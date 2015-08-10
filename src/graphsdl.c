@@ -619,11 +619,12 @@ static void vdu_23command(void) {
 */
 static void toggle_cursor(void) {
   int32 left, right, top, bottom, x, y;
+  curstate instate=cursorstate;
   if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
   if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
     cursorstate = SUSPENDED;
   else
-    cursorstate = ONSCREEN;
+    if (!vdu5mode) cursorstate = ONSCREEN;
   left = xoffset + xtext*xscale*XPPC;	/* Calculate pixel coordinates of ends of cursor */
   right = left + xscale*XPPC -1;
   if (cursmode == UNDERLINE) {
@@ -641,7 +642,7 @@ static void toggle_cursor(void) {
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (echo) SDL_UpdateRect(screen0, xoffset + xtext*xscale*XPPC, yoffset + ytext*yscale*YPPC, xscale*XPPC, yscale*YPPC);
+  if (echo && (instate != cursorstate)) SDL_UpdateRect(screen0, xoffset + xtext*xscale*XPPC, yoffset + ytext*yscale*YPPC, xscale*XPPC, yscale*YPPC);
 }
 
 static void toggle_tcursor(void) {
@@ -1291,7 +1292,7 @@ static void move_curback(void) {
         scroll_text(SCROLL_DOWN);
       }
     }
-    toggle_tcursor();
+    if (!vdu5mode) toggle_tcursor();
   }
 }
 
