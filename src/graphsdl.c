@@ -115,6 +115,7 @@ static void switch_graphics(void);
 static void vdu_cleartext(void);
 
 static Uint8 palette[768];		/* palette for screen */
+static Uint8 hardpalette[24];		/* palette for screen */
 
 static int32
   vscrwidth,			/* Width of virtual screen in pixels */
@@ -737,6 +738,14 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** systems
 */
 static void init_palette(void) {
+  hardpalette[0] = hardpalette[1] = hardpalette[2] = 0;		    /* Black */
+  hardpalette[3] = 255; hardpalette[4] = hardpalette[5] = 0;	    /* Red */
+  hardpalette[6] = 0; hardpalette[7] = 255; hardpalette[8] = 0;	/* Green */
+  hardpalette[9] = hardpalette[10] = 255; hardpalette[11] = 0;	/* Yellow */
+  hardpalette[12] = hardpalette[13] = 0; hardpalette[14] = 255;	/* Blue */
+  hardpalette[15] = 255; hardpalette[16] = 0; hardpalette[17] = 255;	/* Magenta */
+  hardpalette[18] = 0; hardpalette[19] = hardpalette[20] = 255;	/* Cyan */
+  hardpalette[21] = hardpalette[22] = hardpalette[23] = 255;	    /* White */
   switch (colourdepth) {
   case 2:	/* Two colour - Black and white only */
     palette[0] = palette[1] = palette[2] = 0;
@@ -1205,16 +1214,21 @@ void set_cursor(boolean underline) {
 ** to the physical colour given by 'mode' but the code does not do this.
 */
 static void vdu_setpalette(void) {
-  int32 logcol, mode;
+  int32 logcol, pmode, mode;
   logcol = vduqueue[0] & colourmask;
   mode = vduqueue[1];
-  if (mode < 16 && colourdepth <= 16)	/* Just change the RISC OS logical to physical colour mapping */
+  pmode = mode % 16;
+  if (mode < 16 && colourdepth <= 16) {	/* Just change the RISC OS logical to physical colour mapping */
     logtophys[logcol] = mode;
-  else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
+    palette[logcol*3] = hardpalette[pmode*3];
+    palette[1+logcol*3] = hardpalette[1+pmode*3];
+    palette[2+logcol*3] = hardpalette[2+pmode*3];
+  } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
   else {
     if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
   }
+  set_rgb();
 }
 
 /*
@@ -1561,7 +1575,7 @@ static void reset_colours(void) {
 static void vdu_graphcol(void) {
   int32 colnumber;
   if (graphmode == NOGRAPHICS) error(ERR_NOGRAPHICS);
-  if (vduqueue[0] != OVERWRITE_POINT) error(ERR_UNSUPPORTED);	/* Only graphics plot action 0 is supported */
+  if (vduqueue[0] != OVERWRITE_POINT) return; //error(ERR_UNSUPPORTED);	/* Only graphics plot action 0 is supported */
   colnumber = vduqueue[1];
   if (colnumber < 128) {	/* Setting foreground graphics colour */
       graph_fore_action = vduqueue[0];
@@ -2290,8 +2304,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       colour = gf_colour;
       break;
     case PLOT_INVERSE:		/* Use logical inverse of colour at each point */
-      error(ERR_UNSUPPORTED);
-      break;
+      //error(ERR_UNSUPPORTED);
+      colour = gf_colour; /*not really right, but better than an error*/
     case PLOT_BACKGROUND:	/* Use graphics background colour */
       colour = gb_colour;
     }
@@ -2622,8 +2636,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     break;
   }
-  default:
-    error(ERR_UNSUPPORTED);
+  //default:
+    //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
   if (!scaled) SDL_UpdateRect(screen0, plot_rect.x, plot_rect.y, plot_rect.w, plot_rect.h);
 }
