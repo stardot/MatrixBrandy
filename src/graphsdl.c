@@ -572,6 +572,14 @@ static void vdu_2317(void) {
 static void vdu_23command(void) {
   int codeval, n;
   switch (vduqueue[0]) {	/* First byte in VDU queue gives the command type */
+  case 0:       /* More cursor stuff - this only handles VDU23;8202;0;0;0; */
+    if (vduqueue[1] == 10 && vduqueue[2] == 32) {
+      if (graphmode == FULLSCREEN) {
+        if (cursorstate == ONSCREEN) toggle_cursor();
+      }
+    cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
+    }
+    break;
   case 1:	/* Control the appear of the text cursor */
     if (graphmode == FULLSCREEN) {
       if (vduqueue[1] == 0) {
