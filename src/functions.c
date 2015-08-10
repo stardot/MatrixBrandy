@@ -1199,7 +1199,7 @@ static void fn_rnd(void) {
     }
     else {
       nextrandom();
-      push_int(TOINT(randomfraction()*TOFLOAT(value)));
+      push_int(TOINT(1+randomfraction()*TOFLOAT(value)));
     }
   }
   else {	/* Return number in the range 0x80000000..0x7fffffff */
@@ -1781,6 +1781,7 @@ void exec_function(void) {
 ** 'init_functions' is called before running a program
 */
 void init_functions(void) {
-  lastrandom = 0x00575241;
+  srand( (unsigned)time( NULL ) );
+  lastrandom=rand();
   randomoverflow = 0;
 }
