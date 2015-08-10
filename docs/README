@@ -1,0 +1,42 @@
+The documentation for Brandy consists of the following files:
+
+use		This describes how to use the interpreter and
+		lists the differences between it and Acorn's
+		interpreter and its limitations.
+
+messages	This file describes all the error messages that the
+		interpreter can produce and what they mean.
+
+graphics	This contains notes on the program's graphics
+		support.
+
+basic		This is a brief introduction to Basic V.
+
+internals	This gives a high level view of the interpreter's
+		internals. It is not a line-by-line account of
+		how it works but shows how the various components
+		fit together.
+
+compiling	Instructions for compiling the program under
+		various operating systems.
+
+history		A list of changes and bug fixes in the different
+		versions of the program.
+
+Brandy implements Basic V, the dialect of Basic that Acorn Computers
+supplied with their ranges of desktop computers that use the ARM
+processor such as the Archimedes and RiscPC. Basic V is an extended
+version of BBC Basic. This was the Basic used on the BBC Micro that
+Acorn made during the early 1980s.
+
+There is some very useful documentation for the BBC Micro
+available on the Internet. One very good site is 'The BBC Lives!'
+at:
+
+	http://www.nvg.ntnu.no/bbc/
+
+The best manual to look at is the BBC User's Guide. It is useful
+in that it gives a lot of background information on BBC Basic and
+the environment in which it runs. It should help in understanding
+this interpreter better.
+

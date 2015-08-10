@@ -1,0 +1,1546 @@
+Introduction
+~~~~~~~~~~~~
+These notes are an introduction to the internals of the
+interpreter. They describe the files and discuss some of the more
+important areas of the program. They do not describe how the
+interpreter works in detail. The intention is just to provide a
+starting point for understanding the program.
+
+
+Files
+~~~~~
+The source files that make up the interpreter are as follows: 
+
+	assign.c
+	brandy.c
+	commands.c
+	convert.c
+	editor.c
+	emulate.c
+	errors.c
+	evaluate.c
+	fileio.c
+	functions.c
+	heap.c
+	iostate.c
+	keyboard.c
+	lvalue.c
+	mainstate.c
+	miscprocs.c
+	riscos.c
+	simpletext.c
+	stack.c
+	statement.c
+	strings.c
+	textgraph.c
+	textonly.c
+	tokens.c
+	variables.c
+	
+As a general rule there are include files for each of the above
+that declare the functions found in them. In addition there are
+three general include files:
+
+	target.h
+	common.h
+	basicdefs.h
+
+Basicdefs.h is the most important include file as all of the main
+structures used by the interpreter are declared in it. The other
+one to look at is target.h. This contains target-specific 
+declarations.
+
+The files containing the functions that interpret Basic programs
+are as follows:
+
+	assign.c	Assignment statements
+	iostate.c	I/O statements
+	mainstate.c	All Other statements
+	statement.c	Dispatches statement functions
+
+	evaluate.c	Evaluate Expressions
+	functions.c	Evaluate Built-in functions
+
+	commands.c	Perform Basic commands
+
+RISC OS emulation is carried out in:
+
+	emulate.c	Most features emulated
+	fileio.c	File I/O
+
+	keyboard.c	Keyboard input
+
+	riscos.c	}
+	simpletext.c	} Different flavours of screen output
+	textgraph.c	}
+	textonly.c	}
+
+RISC OS emulation is covered in more detail below.
+
+Briefly, each of the files performs the following tasks:
+
+Assign.c
+Functions in here deal with assignments to all types of variable
+and pseudo variables.
+
+Brandy.c
+The main program. It processes command line options and contains
+the main interpreter command line loop.
+
+Commands.c
+This deals with the Basic commands, for example, LIST, SAVE and
+EDIT.
+
+Convert.c
+Contains the function that performs character to number
+conversions plus one or two minor functions in this area.
+
+Editor.c
+This file contains all the program editor functions. It also
+contains the code to load and save programs and to read libraries.
+A very important initialisation function, clear_program(), is
+found here. It sets up many of the values in basicvars to do
+with the program in memory.
+
+Emulate.c
+RISC OS emulation. See below.
+
+Errors.c
+Error handling. Functions in here report errors or pass control to
+error handlers. All of the messages the interpreter can display
+are defined in this files with the exception of the program's
+debugging messages.
+
+Evalute.c
+This contains all the expression evaluation code excluding
+the built-in functions (which are in functions.c).
+
+Fileio.c
+Contains functions that deal with emulating RISC OS's file
+handling. See below.
+
+Functions.c
+This file contains all of the built-in Basic functions
+
+Heap.c
+Memory management. The functions in this file allocate and release
+the Basic workspace as well as control the Basic heap. The string
+memory management in string.c is a layer of code that sits on top
+of this one.
+
+Iostate.c
+Contains the functions that interpret I/O, graphics and sound 
+statements.
+
+Keyboard.c
+Contains functions for reading keyboard input for all supported
+operating systems. The command line editing and history functions
+are located here as well.
+
+Lvalue.c
+Evaluates expressions where an lvalue is required, for example, on
+the left hand side of an assignment. Whenever an address is
+required at which data is to be stored, the function get_lvalue
+provides it.
+
+Mainstate.c
+The bulk of the functions that interpret Basic statements are
+found here.
+
+Miscprocs.c
+This file contains a variety of functions that carry out such
+tasks as skipping white space characters, converting a Basic
+string to C string and so forth.
+
+Riscos.c
+Contains the screen output functions for RISC OS.
+
+Simpletext.c
+This is one of the screen output emulation modules. The functions
+in here provide the most elementary support for screen output.
+None of the screen control features such as cursor positioning,
+clearing the screen and so forth are supported. This is a 'get
+you going' screen output module that does not using anything more
+sophisticated than printf() for output.
+
+Stack.c
+Functions for manipulating the Basic stack are located in here.
+This includes allocating memory from the Basic stack for such
+things as local arrays as well as pushing values on to and popping
+values from the stack. There are also functions for updating items
+on the stack in place, for example, adding values to or
+subtracting values from integer and floating point values. The
+operator stack is created in this module but is handled directly
+by the expression code.
+
+Statement.c
+Contains the dispatch code for the functions that handle the
+individual Basic statements as well as a number of general
+routines used by these functions, for example, check_ateol(),
+which checks that the interpreter has reached a legal end of
+Basic statement token.
+
+Strings.c
+The functions here are concerned with memory management for
+strings. Strings have their own memory management but use the
+functions in heap.c to acquire more memory from the Basic heap
+when needed.
+
+Textgraph.c
+This is one of the emulation modules. It emulates the RISC OS VDU
+drivers where both text and graphics output is possible. As
+written, this code is tied to DOS. See further notes below.
+
+Textonly.c
+This is also one of the emulation modules. It contains functions
+to emulate the RISC OS VDU drivers where only text output is
+possible. It can be used by any operating system. See further
+notes below.
+
+Tokens.c
+The functions in here are concerned with tokenising lines of Basic
+and converting them back into plain text. The functions needed to
+manipulate tokens are found in here as well. There are also
+functions to convert Acorn Basic programs to text.
+
+Variables.c
+This module is principly concerned with creating variables,
+arrays, procedures and functions and searching for them. There are
+also functions for scanning libraries for procedures and functions
+and for parsing procedure and function definitions
+
+Target.h
+This file defines any implementation-specific constants, types and
+so forth and the very important 'TARGET_xxx' macros. The types for
+32-bit integer and 64-bit floating point values used for Basic
+variables are declared here. The idea is that using these types
+will help to make the program more portable. Other items defined
+here are:
+
+	Maximum string length
+	Default and minimum Basic workspace sizes
+	Characters used as directory separators in file names
+	Name of the editor invoked by the EDIT command
+
+The values in the file as it stands should be okay for DOS- and
+Unix-type operating systems.
+
+The 'TARGET_xxx' macros control the OS-specific parts of the
+compilation. These are defined automatically according to the
+predefined macros supplied by the compiler being used, for
+example, under NetBSD, gcc defines the macro __NetBSD__. If this
+exists, the macro 'TARGET_NETBSD' is defined. Similarly, the
+Norcroft C compiler under RISC OS defines the macro '__riscos' and
+the presence of this means that the target macro 'TARGET_RISCOS'
+is defined.
+
+Common.h
+A number of constants, macros and types used throughout the
+interpreter are declared here.
+
+Basicdefs.h
+The majority of the structures used by the program are defined in
+this file, for example, the symbol table layout, Basic stack
+entries, array descriptors and so forth are all found here. The
+most important structure is 'workspace'. It contains all of the
+variables the interpreter uses for a Basic program. There is one
+instance of a workspace structure, a variable called 'basicvars'
+which is declared in brandy.c. This file should be the first place
+to look for any type definitions or constants in the program code.
+
+In general the code is not very well organised.
+
+
+RISC OS Emulation
+~~~~~~~~~~~~~~~~~
+The interpreter is split into two layers, the interpreter proper
+and an emulation layer that deals with all of the operating system-
+specific processing. The functions in this layer provide an
+emulation the facilities of RISC OS that this program needs. The
+RISC OS version consists of little more than wrappers for various
+SWI calls but it is a lot more elaborate in other environments.
+Consider, for example, the Basic graphics statement 'PLOT'. This
+is handled by the function exec_plot() in iostate.c. This
+evaluates the three parameters that PLOT takes and then calls
+emulate_plot() to carry out the actions of the statement. Under
+RISC OS this is nothing more than a call to the SWI 'OS_Plot' but
+under DOS emulate_plot() calls functions that emulate the RISC OS
+VDU drivers. These in turn call a variety of DOS graphics library
+functions that carry out the different actions PLOT can do. Other
+features are not as complex as this, for example, the Basic
+pseudo-variable 'TIME$' returns the current date and time as a
+string. This turns into calls to a couple of standard C functions.
+The rule is that the OS-independent layer (the interpreter really)
+deals with the Basic statement or function until it has to make an
+operating system call at which point it calls a function in the
+emulation code.
+
+The emulation functions are spread across the following modules:
+
+General emulation functions:
+	emulate.c (emulate.h)
+
+Keyboard input:
+	keyboard.c (keyboard.h)
+
+Screen output:
+	riscos.c (screen.h)
+	textonly.c (screen.h)
+	textgraph.c (screen.h)
+	simpletext.c (screen.h)
+	
+File input and output:
+	fileio.c (fileio.h)
+
+The names in parentheses are the names of the 'include' files that
+define the functions found in the emulation files. 
+
+Each file contains one or more implementations of the functions
+listed in the include file for that aspect of the emulation. To
+put it another way, each file contains the operating system-
+specific functions for every supported environment for that part
+of the emulation. The exception is screen output: it used to
+consist of a single file (screen.c) but that file was split into
+three separate files as it was becoming unreadable. There is only
+one include file for screen output, however, screen.h. All three
+screen output files contain the functions defined in that one.
+
+
+Keyboard Input
+--------------
+The functions in keyboard.c deal with keyboard input. There are
+functions to read a line, read a single key and the variations on
+this needed for INKEY. The line input function provides command
+line editing and history facilities for all operating systems
+except RISC OS. The only operating system-specific code is that
+which reads a single character from the keyboard. The RISC OS SWIs
+emulated are OS_ReadLine, OS_ReadC (read character) and OS_Byte
+129 (read character with time limit, check if key pressed, return
+operating system version, take dog for walk, etc, etc).
+Operating systems other than RISC OS map keys such as function and
+cursor keys to the corresponding RISC OS keys codes so that
+what RISC OS does is the common factor that links all versions
+of the code.
+
+
+Screen Output
+-------------
+Screen output is the most complex area to emulate. The idea is to
+provide a partial emulation of the RISC OS VDU drivers. At the
+simplest level the functions emulate two RISC OS SWI calls,
+OS_WriteC and OS_Plot, but these SWIs both carry out an
+enormous number of functions. The equivalent of OS_WriteC in
+the program is the function emulate_vdu(). emulate_plot() is the
+equivalent of OS_Plot. It deals only with graphics commands
+whereas emulate_vdu can handle either. The three screen output
+files emulate OS_WriteC and OS_Plot to varying degrees.
+
+Whilst text output has its own difficulties, the main problem is
+graphics support. Under operating systems other that RISC OS text
+output and graphics output are two entirely distinct things whereas
+under RISC OS they are combined. Matters are even worse with
+Linux and NetBSD where root priviledges are needed to access the
+hardware directly for graphics. Of course, under Linux and NetBSD
+the interpreter could be written as an X application, but this
+would restrict use of the interpreter to running under X if
+graphics were required.
+
+There are three versions of the screen output functions:
+
+riscos.c
+This contains the functions used by the RISC OS version of the
+interpreter. They are really nothing more than prepackaged calls
+to RISC OS.
+
+textonly.c
+This file is used in versions of the interpreter that do not
+include graphics support and it is meant to be suitable for use
+under any operating system except RISC OS. There are two versions
+of the functions here, one that uses ANSI control sequences and
+one that uses the DOS 'conio' library. The conio-based emulation
+is the more complete but it is tied to DOS. The ANSI-based one can
+be used by Linux and NetBSD or by DOS but the emulation is
+limited.
+
+textgraph.c
+This is used when the interpreter supports graphics. It includes
+both text and graphics output. It uses the platform-independent
+graphics library 'jlib' written by Jonathan Griffiths for all of
+the graphics functions. Only a subset of the RISC OS graphics
+facilities are supported. When this file is used the interpreter
+normally works in a text output mode, for example, it runs in a
+DOS box under Windows, but when it encounters a graphics command
+it switches to full screen graphics and all output goes to the
+graphics screen. The file therefore contains functions for
+output to the DOS text screen as well as to the graphics screen.
+Text output uses the DOS conio functions so this file is tied
+to DOS.
+
+The jlib web site is at http://www.crosswinds.net/~jlib
+
+There are two include files for screen output:
+
+	scrcommon.h
+	screen.h
+
+'scrcommon.h' defines constants, types and variables needed by all
+of the VDU driver emulation files. 'screen.h' defines the
+functions that can be called in the files. Each emulation file has
+to provide all of these functions.
+
+
+File Input and Output
+---------------------
+This is handled in a different way to the keyboard and screen
+emulation in that it uses ANSI standard C functions to provide a
+simple emulation of RISC OS's file handling. The same code should
+therefore run unchanged under all operating systems. The functions
+do not equate to RISC OS SWIs this time. They emulate only those
+calls that the interpreter needs. Note that this code is also used
+by the RISC OS version of the program intead of using RISC OS SWIs
+directly but this will probably be changed.
+
+
+Others
+------
+The file 'emulate.c' provides the emulation functions for things
+that are not covered by the above, for example, reading the date
+and time.
+
+
+Supported Environments
+~~~~~~~~~~~~~~~~~~~~~~
+The interpreter has been run under the following operating
+systems:
+
+RISC OS
+Linux
+NetBSD/arm32 and NetBSD/i386
+BEOS
+DOS with the DJGPP DOS extender
+Windows as a console application
+
+The intention is that the code should be portable but it will
+probably give problems on big endian processors and ones with
+other than 32-bit. (Big endian processors will probably give
+problems due to assumptions made about the format of numbers by
+the indirection operators. This is part of the language, not the
+way the interpreter is written.)
+
+
+Stacks
+~~~~~~
+The interpreter uses two stacks, the main Basic stack and the
+operator stack.
+
+
+The Basic Stack
+---------------
+The Basic stack is central to the operation of the program. A
+great deal more than just the intermediate results from evaluating
+expressions is stored on it, for example, return addresses for
+procedures and functions, the old values of variables being used
+for local variables, saved 'ON ERROR' details, information on open
+loops and so forth is also kept on the stack. The operator stack
+is also found on the Basic stack as a stack within a stack. Memory
+for local arrays is also allocated on the stack.
+
+The Basic stack starts at the top of the Basic workspace at
+basicvars.himem and grows towards the bottom. The stack pointer is
+basicvars.stacktop. The stack is not allowed to overwrite the
+heap. Basicvars.stacklimit marks the lowest point the stack is
+allowed to reach. This is set a little way above the top of the
+Basic heap and varies as memory is allocated from the heap.
+
+The code tries to eliminate as many checks for stack overflow as
+possible. When a function is called it ensures that there is
+enough room on the stack to add operands corresponding to every
+level of the operator stack. In other cases an explicit check is
+made for overflow, for example, before saving the value of a
+variable being used as a local variable on the stack.
+
+The program makes use of macros to speed up manipulation
+of the Basic stack in the expression evaluation code. There are
+macros and functions in stack.c that do the same task, for
+example, 'PUSH_FLOAT' is a macro that pushes a floating point
+value on the stack and push_float() is a functions that does the
+same thing. 
+
+
+Operator Stack
+--------------
+The operator stack hold details of pending operations when an
+expression is being evaluated. Each entry on the stack gives the
+operator's priority and identification. The stack is quite small
+(twenty entries) but this should be more than enough. An
+expression would have to be extremely complicated for there to be
+this many pending operations. A new operator stack is created
+every time a function is called to take care of the case of
+operations pending over a function call. (Twenty entries would
+severely limit the number of nested function calls possible
+otherwise.) The space for it is taken from the Basic stack.
+
+
+C Stack
+-------
+The program is written in C and can make heavy use of the C stack,
+especially when interpreting deeply nested functions.
+
+
+Tokens
+~~~~~~
+The main problem of an interpreter is the overhead incurred in
+such actions as having to search for the same variables every time
+a statement is executed. One of the principle features of this
+interpreter is that it tries to eliminate as much of the overhead
+as possible by filling the addresses of variables in expressions
+and  the destinations of branches in the code. To do this it uses
+several different tokens to represent the same item in a program,
+for example, seven tokens are used for references to variables
+that indicate whether the reference has been seen before, whether
+it is an integer variable, whether it is followed by an
+indirection operator and so forth. The first time the reference to
+the variable is seen the interpreter determines the type of the
+variable and its address. It changes the token type and fills in
+the address. The next time the reference is seen the interpreter
+can access the variable and deal with it without having to perform
+any checks. The normal interpreter overheads of referencing the
+variable has been completely eliminated.
+
+Another example: there are three tokens for 'IF', representing an
+'IF' that has not been  seen before, an 'IF' at the start of a
+single line 'IF' statement and one at the start of a block 'IF'.
+The first time the 'IF' is encountered the interpreter determines
+the type of 'IF' and fills in two offsets that give the addresses
+of the first statements after the 'THEN' and 'ELSE' parts of the
+statement. Similarly, there are four different 'ELSE' tokens, two
+for an 'ELSE' that has not been seen before and two where the
+offset of the first statement after the end of the 'IF' statement
+have been filled in. This gets rid of the overhead of looking for
+the 'ELSE' and the end of the statement every time the 'IF' is
+executed.
+
+The interpreter uses this sort of trick to eliminate overheads
+wherever possible. Apart from filling in pointers to variables and
+branch offsets it also converts numbers to binary and preprocesses
+strings. The tokens used for variables also include the length of
+the variable name. Some tokens are used to handle common cases
+quickly, for example, there are tokens representing the values 0,
+1 and 0.0 and an experimental token that is used for references to
+arrays with one dimension. Another use of these tokens is to avoid
+syntax checking parts of the Basic program although this is fairly
+minor.
+
+The file 'tokens.h' defines the token set used by the interpreter.
+
+The program uses more tokens than the Acorn interpreter as it has
+separate tokens for cases such as 'DRAW' and 'DRAW BY' where the
+Acorn interpreter has one token. It also tokenises operators such
+as '<>' and '>>>'.
+
+The interpreter can read programs tokenised using Acorn's Basic
+interpreter's tokens, converting them to its own tokens.
+
+The format of a tokenised line is:
+
+Bytes 0 and 1	Line number
+Bytes 2 and 3	Length of the line
+Bytes 4 and 5	Offset to executable tokens
+Bytes 6..n	Source version of line
+Bytes n+1..x	Executable tokens
+
+The tokenised line is split into two parts, the original source
+line and an executable version where all blanks, variable names,
+comments and so forth have been removed.
+
+The source part of the line is partially tokenised in that Basic
+keywords are replaced by tokens and the positions of variables
+and line numbers marked with other tokens. 
+
+In the executable tokens, references to variables are given in
+terms of an offset to the first character of the name in the
+source part. The same trick is used for strings, except that there
+are two different string tokens, a 'fast' token for handling the
+most common case where the string does not contain embedded '"'
+and a 'slow' one where the interpreter has to allow for '"'. All
+numeric constants are converted to binary. Certain common values
+such as 0 and 1 (integer and floating point) have their own token.
+There is also a token for small integer values between 1 and 256
+where the binary value occupies only one byte instead of four.
+
+When the program is run, the offsets to variable names are
+replaced with pointers to the variable in the symbol table, line
+number references are replaced with the address of the line and
+offsets of tokens such as 'ELSE' and 'ENDCASE' filled in.
+
+When a program is edited or run afresh, the executable tokens
+have to be converted back to their original form. This is
+where the marker tokens in the source part of the line are used.
+The executable tokens are scanned and when a reference to a
+variable is found, the code looks for the next marker in the
+source part of the line. References to lines could be dealt with in
+the same way but at the moment the code extracts the line
+number from the line at the end of the pointer and inserts
+that.
+
+It is not necessary to restore all the tokens in the executable
+part of the line to their original state. If the program has not
+been edited then the offsets after tokens such as 'WHEN' will
+still be valid and there is no need to touch them.
+
+
+The 'lvalue' Structure
+~~~~~~~~~~~~~~~~~~~~~~
+An important structure that is widely used in the program is
+struct lvalue. This contains the address at which a value is to be
+stored and the type of the value to be stored there. It is used in
+a number of places including:
+
+1) To note the address at which a value will be stored in an
+   assignment.
+2) To give the addresses at which parameters will be saved in
+   procedure and function calls   
+3) To note the addresses of items used as local variables
+4) The index variable of a FOR loop is referenced as an lvalue.
+
+The lvalue structure is the most convenient way to hold this
+information. When they are to be used to store a value, references
+to variables, elements of arrays and addresses generated by the
+use of indirection operators are all converted into lvalues.
+
+The type of an lvalue is given by one of the constants whose name
+is of the form 'VAR_xxx'. These constants are used here and also
+in the symbol table. The values defined are: 
+
+VAR_INTWORD	Four-byte integer
+VAR_FLOAT	Eight byte floating point
+VAR_STRINGDOL	String ('string$' type)
+VAR_PROC	Entry is for a procedure
+VAR_FUNCTION	Entry is for a function
+VAR_MARKER	Entry marks location of a proc/fn
+VAR_ARRAY	Array
+
+Array entries are further qualified to give the type of the array:
+
+VAR_INTARRAY	(VAR_INTWORD + VAR_ARRAY)	Integer array
+VAR_FLOATARRAY	(VAR_FLOAT + VAR_ARRAY)		Floating point array
+VAR_STRARRAY	(VAR_STRINGDOL + VAR_ARRAY)	String array
+
+The following entries are used only for items referenced using
+indirection operators:
+
+VAR_INTBYTE	One-byte integer
+VAR_DOLSTRING	String ('$string' type)
+
+VAR_POINTER	Pointer
+
+VAR_INTBYTEPTR	(VAR_INTBYTE + VAR_POINTER)	Pointer to 1 byte integer
+VAR_INTWORDPTR	(VAR_INTWORD + VAR_POINTER)	Pointer to 4 byte integer
+VAR_FLOATPTR	(VAR_FLOAT + VAR_POINTER)	Pointer to floating point
+VAR_DOLSTRPTR	(VAR_DOLSTRING+VAR_POINTER)	Pointer to string
+
+These values are treated as bitfields in the program.
+
+Note tha these values should not be confused with the types of
+entries stored on the Basic stack.
+
+
+Symbol Table
+~~~~~~~~~~~~
+The symbol table is where the details and values of variables
+are kept with the exception of the static integer variables,
+which are found in the structure 'basicvars'. The symbol table
+is organised as a hash table with chains of variables from
+each entry in the table. Variables, procedures and functions
+are all stored in the table.
+
+Struct 'variable' is the main symbol table structure.
+
+The symbol table entries themselves are created on the heap. In
+the case of integer and floating point variables, the value of the
+variable is stored in the symbol table entry. The entries for
+string variables contain the string descriptor. This gives the
+current length of the string and has a pointer to the string on
+the heap. The entries for arrays contains a pointer to the array
+descriptor. This is found on the heap for global arrays and on the
+Basic stack for local arrays. Similarly, the array itself is
+stored on the heap or on the Basic stack depending on the type.
+
+Symbol table entries are never destroyed.
+
+Everything concerned with the symbol table can be found in the
+include file 'basicdefs.h'
+
+
+Variable Types
+--------------
+The 'VAR_xxx' type constants are used to identify the type of a
+variable. The values used in the symbol table are:
+
+VAR_INTWORD	Four-byte integer
+VAR_FLOAT	Eight byte floating point
+VAR_STRINGDOL	String ('string$' type)
+VAR_ARRAY	Array
+VAR_PROC	Entry is for a procedure
+VAR_FUNCTION	Entry is for a function
+VAR_MARKER	Entry marks location of a procedure or function
+
+Array entries are further qualified to give the type of the array:
+
+VAR_INTARRAY (VAR_INTWORD + VAR_ARRAY)		Integer array
+VAR_FLOATARRAY (VAR_FLOAT + VAR_ARRAY)		Floating point array
+VAR_STRARRAY (VAR_STRINGDOL + VAR_ARRAY)	String array
+
+The 'VAR_MARKER' entry for a procedure or function is used when a
+procedure of function is found to note its location. When
+searching through the program to find a procedure or function,
+function scan_fnproc() (in variables.c) adds each procedure and
+function it comes across as far as the one required to the symbol
+table with a 'VAR_MARKER' entry. Nothing is done with the
+procedure or function: it is only when it is called for the first
+time that a proper VAR_PROC or VAR_FUNCTION entry is constructed.
+
+
+Array Descriptor
+----------------
+This is fixed in size and so limits the number of dimensions an
+array can have. The limit is ten, which should be enough. The
+layout is fairly straightforwards.
+
+When working with entire arrays a pointer to the descriptor is
+stored on the Basic stack, except in the case of temporary
+arrays when the descriptor itself goes on the stack. The
+descriptor sfor local arrays are built on the stack but they
+are otherwise treated like normal arrays.
+
+
+Procedure and Function Parameters
+---------------------------------
+The formal parameters of procedures and functions are kept in
+linked lists of lvalue structures. The parameter list is parsed
+the first time a function or procedure is called.
+
+There is one extra 'VAR_xxx' constant that appears only in the
+lvalue structure for a formal parameter:
+
+VAR_RETURN		Marks variable as a 'return' variable
+
+
+Basic Program Organisation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Basic programs live in the Basic workspace. This is an area of
+memory acquired when the interpreter is started. By default it
+is half a megabyte in size but its size can be changed by means
+of an extended version of the 'new' command or at start up by
+means of the command line option '-size'. The organisation
+of the workspace is:
+
+Highest address				Basicvars.end
+					Basicvars.himem
+		Basic stack
+					Basicvars.stacktop
+					Basicvars.stacklimit
+					Basicvars.vartop
+		Basic heap
+					Basicvars.lomem
+					Basicvars.top
+		Basic program
+Lowest address				Basicvars.page
+
+Variables, non-local arrays, strings, byte arrays allocated via
+DIM and libraries loaded via 'LIBRARY' are all stored on the heap.
+The heap grows up from 'lomem'. The current top of the heap is
+given by 'vartop'. 'stacklimit' marks the point beyond which the
+Basic stack is not allowed to go. It is set to vartop+256 to
+provide a 'nogo' area between the stack and heap.
+
+The contents of the Basic stack are described above.
+
+Normally himem = end, but it is in theory possible to change himem
+to give some space that referenced by the indirection operators.
+At present this is disabled as the interpreter will crash as
+the Basic stack has to be moved and there are various pointers
+and linked lists that thread their way through it, for example,
+the procedure and functions return blocks are held as a linked
+list. The operator stack will give problems as the first one
+created is found just below himem.
+
+Another way of creating some free space is to change the value
+of 'end' using the statement 'END=<address>'. This increases
+the size of the Basic workspace and can be used in a running
+program. It is not practical to implement this form of the
+statement. A new, larger workspace could be allocated and
+everything copied to it but there will be a lot of pointers
+that would have to be relocated as well.
+
+Libraries loaded via 'INSTALL' are allocated memory outside of
+the Basic workspace.
+
+
+Basic Heap
+~~~~~~~~~~
+The program acquires one large area of memory, the Basic workspace,
+and uses its own memory management functions. The diagram in the
+previous section shows how the Basic workspace is used. The Basic
+heap is the area of memory between the top of the program and
+the Basic stack.
+
+Heap management is quite simple. Heap usage grows when a program
+runs and that is all. Memory is not, in general, returned to the
+heap, although the string memory management can do so under one
+set of circumstance. The heap is primarily used for:
+
+- Variables (symbol table)
+- Arrays
+- Strings
+- Case statement tables
+
+'heap.c' contains all of the heap manangement functions. The main
+one used for allocating memory is allocmem(). If there is not
+enough memory to satisfy a request, this function reports a fatal
+error, that is, it calls the error functions directly. It will
+only return to the caller is the memory allocation works. There is
+a second function, condalloc(), that does not abort the program if
+the heap is exhausted. It returns a null pointer instead. The
+calling routine has to handle the error. This is used by the
+string memory management code and the function that creates
+arrays.
+
+(Note: the memory for local arrays is allocated on the Basic
+stack, not the heap. Function alloc_stackmem() in stack.c is
+called to take memory from the stack. This corresponds to function
+condalloc() in the way it works.)
+
+Memory can only be returned to the heap if the block being
+released is at the top of the heap. The function freemem() is used
+to return memory.
+
+
+String Memory Management
+------------------------
+Strings can be up to 65536 characters long in this version of the
+interpreter. The code has been written so that the maximum could
+be increased, although the string memory management would need to
+be altered to allow for the longer strings.
+
+The program has a string workspace but this is not heavily used by
+the string code. (It is used as a general string workspace when a
+block of memory is needed to hold a C string, so it cannot be
+removed altogether.)
+
+All of the functions that handle string memory management are
+found in 'strings.c'. The main allocation function is
+alloc_string(). free_string() is called to return a string when it
+is no longer required.
+
+The string memory management is based around allocating memory
+blocks of set sizes for the different string lengths. There is a
+'bin' for free strings of each length. When a string memory
+request is made, the bin of the right length is checked first. If
+the bin is empty, memory is taken either from the free string
+list, of if there is nothing suitable there, the Basic heap. (The
+free string list is described below.) When a string memory block
+is released it is added to the bin for that size of string. 
+
+There are forty six bins covering string lengths from four to
+65536 bytes. Between four and 128 bytes, the lengths of the blocks
+that can be allocated increase by four bytes from one bin to the
+next. Beyond 128 bytes and up to 1024 bytes the length increases
+by 128 bytes per bin. After 1024 bytes it doubles from bin to bin.
+It is assumed that programs will allocate many short strings so
+the granularity of the string size is small. There will be some
+medium sized strings but only a few long ones. Of course this
+might not hold true for many programs but it seems to work quite
+well.
+
+If there is not enough memory left to allocate a block for a
+string, the program attempts to merge the free strings in the bins
+and the free string list. The merged strings are put back in the
+bins if they are of the right size. If they are not, they are
+added to the free string list. if there is a free block that is
+the last item on the Basic heap, that block is returned to the
+heap.
+
+Function collect() deals with this.
+
+The free string list is a list of all memory blocks whose size
+does not correspond to one of the bin sizes. Entries can only be
+added to the list as a result of trying to merge blocks when
+memory is running short. If a string of the required size is not
+available from a bin, the free string list is searched and the
+first entry large enough selected. The string is cut down to the
+length wanted and the excess either moved to one of the bins (if
+it is of a suitable size) or added to the free string list again.
+
+If the length of a string is being changed, function
+resize_string() is called. If the new string length exceeds the
+maximum length that the memory block will hold, a new memory block
+is allocated and the old string copied to it. If the old block is
+large enough then there is no problem. This is designed to work
+best with the medium granularity string memory blocks (those in
+the size range 128 to 1024 bytes) and the large ones (strings
+longer that 1024 bytes) where there is normally a lot of unused
+space in the memory block. It avoid a lot of potential string
+copying. In the case where the new string is shorter, the function
+will either allocate a new string or, if the excess length of the
+old string corresponds to a bin size, the extra is cut off and
+returned to that bin.
+
+In general the functions that manipulate strings always allocate
+strings from the heap to carry out their work. There are few
+places where the string workspace is used. One example is the code
+that handles the function 'GET$' when reading from a file, where a
+block large enough to hold the maximum length string is required.
+The string workspace is really what sets the upper limit on the
+string length. The maximum could be increased if cases such as the
+'GET$' one could be got rid of. (Of course, the size of the
+Basic workspace would then impose a limit.)
+
+It is vital that the program releases strings when they are no
+longer required. There is no garbage collection. There are debug
+options (see below) that can be used to check for memory leaks.
+
+
+Other Memory Areas
+------------------
+The only other memory the interpreter acquires when running is
+to hold libraries loaded via the 'INSTALL' statement and a
+workspace the size of the largest string allowed used when
+manipulating strings.
+
+
+Libraries
+---------
+Libraries can be loaded using either the INSTALL command or the
+LIBRARY statement. INSTALL'ed libraries are kept outside the Basic
+workspace whereas those loaded via LIBRARY go on the Basic heap
+(and as such are only available until the heap is cleared by NEW,
+editing the program and so forth).
+
+To speed up searches for procedures and functions in the
+libraries, a linked list pointing at all of the procedures and
+functions in a library is constructed the first time the library
+is searched.
+
+
+Floating Point Numbers
+----------------------
+The interpreter uses eight byte floating point numbers, the same
+as the 'Basic64' version of the Acorn interpreter. However, it is
+assumed that the representation of floating point numbers on the
+machine on which the program is being run conforms to IEEE
+standard 754. This should not be an issue, but there is one case
+where it is important. This is when the program is reading and
+writing binary floating point values. For compatability with
+the original Acorn interpreter, values are written using the byte
+order that they would have on an ARM processor. There is code to
+convert between the ARM byte order and that used by other
+processors so that the data is always written in the same format.
+The program tries to determine the format when it starts by
+looking for the exponent in the number 1.0. It can identify four
+different layouts and defaults to writing the values in the byte
+order in which they are found in memory if it cannot figure out
+the format. It puts out the message 'floating point number format
+is not known' if it cannot determine the format.
+
+
+Error Handling
+~~~~~~~~~~~~~~
+The interpreter makes extensive use of setjmp and longjmp to
+handle errors. The basic idea is that the code calls a function to
+deal with the error when an error is detected. The error function
+will then use 'longjmp' to continue at the designated point for
+handling the error. All errors are dealt with in this way with
+only a couple of exceptions. It is not necessary for functions to
+check values returned from the functions they call to see if an
+error occured: if a function returns, whatever it did worked.
+
+There are several levels of error handler. The first and most
+important is the one set up when the function 'run_interpreter' is
+called. This function contains the main interpreter command loop.
+Whenever a program stops running (including lines typed in and
+executed immediately) control passes back to this point via a
+longjmp. It is used when a program executes 'STOP' or 'END' or if
+an error occurs and there is no 'ON ERROR' or 'ON ERROR LOCAL' to
+trap the error.
+
+The environment structure for this is 'basicvars.restart'. 
+
+Function 'run_program' is called when a program is run. This sets
+up two more error handlers to deal with errors trapped by 'ON
+ERROR' and 'ON ERROR LOCAL'. The details of these two are held in
+'basicvars.error_restart' and 'basicvars.local_restart'
+respectively. When an error is detected and an 'ON ERROR' error
+handler has been defined, control passes from the Basic error
+handling functions in 'errors.c' to this point and program
+execution resumes at the point of the 'ON ERROR'. Do not forget
+that 'ON ERROR' is a fairly crude error handling mechanism that
+behaves as if there is a 'GOTO' statement that takes you from
+the point of the error to the statements after the 'ON ERROR'.
+There is no cleaning up. (Actually, Brandy does clean up the
+Basic stack, but the effect is still as if there is a 'GOTO'
+statement.)
+
+'ON ERROR LOCAL' introduces a third level of error handler. It is
+the most complex one. Everything is reset when an 'ON ERROR' error
+trap fires: the Basic stack is cleared, local variables set back
+to their original values, the function and procedure call stack
+emptied and so forth. On the other hand, 'ON ERROR LOCAL' restores
+the Basic program's environment to its state at the point where
+the 'ON ERROR LOCAL' error trap was defined. Because of the way in
+which the interpreter works, a new environment structure has to be
+set up for every level of function call. (Function calls are dealt
+with by recursive calls from the expression code to the statement
+code and this has to be reflected in the environment structure.
+The only way to do this is to create a new structure every time a
+function is called.) The environment structure is allocated on the
+Basic stack. 'Basicvars.local_restart' is a pointer to the current
+structure. On returning from a function, the old structure is
+reinstated as the error handler.
+
+When an error is detected the function 'error' in errors.c is
+called. This calls 'handle_error' to recover from the error.
+Recovery can be to either report the error, halt the program
+and branch back to the command loop or to restart the program
+if an 'ON ERROR' or an 'ON ERROR LOCAL' error trap has been
+set up. Note that a call to 'error' is, in general, a one way trip.
+One or two of the error messages are classed as warnings but the
+vast majority of them stop program execution.
+
+One feature of the interpreter is that it can be set to close
+all open files when an error occurs. This option is on by default.
+
+It should also be noted that Brandy's handling of errors differs
+from the Acorn interpreter in that it cleans up the Basic stack
+before restarting at the point of the 'ON ERROR' and 'ON ERROR
+LOCAL'. The Acorn interpreter appears to just reset the stack
+pointer. This means that with the Acorn interpreter, variables sed
+as local variables retain the values they had at the point of the
+error and so forth. Brandy will reset them to the values they had
+when they were declared 'LOCAL'. The Acorn interpreter's approach
+can lead to problems with local arrays. Brandy uses something
+closer to proper exception handling.
+
+
+Program Flow
+~~~~~~~~~~~~
+Once the intepreter has been initialised and parameters on the
+command line dealt with, the program enters its main loop in the
+function 'run_interpreter' in brandy.c. This is fairly simple:
+each line is read and tokenised then passed to 'exec_line'. If the
+line starts with a line number control passes to the line editor
+otherwise it goes to 'exec_thisline' in statement.c to be
+executed. 'exec_thisline' calls 'exec_statements' to deal with the
+statements in the line.
+
+'exec_statements' contains the main statement execution loop.
+Dispatching a statement is a case of using the first token in the
+statement as an index into a table of functions and then calling
+the corresponding function.
+
+One thing to note is that the loop is an infinite loop. The only
+ways out of the function are either to execute a 'STOP' or 'END'
+statement or to hit an error. In both cases, control passes
+directly back to the command loop in 'run_interpreter' by means of
+a 'longjmp'.
+
+If the token is 'RUN', the program ends up in 'run_program' by way
+of 'exec_run'. After initialising everything the function makes a
+recursive call to 'exec_statements' to run the program in memory.
+
+'run_program' sets up an error handler here to deal with 'ON
+ERROR' and 'ON ERROR LOCAL'. If one of these error traps is in use
+and an error occurs, the longjmp in 'errors.c' will end up here.
+All that the code does is jump back into 'exec_statements' with
+the address of the statement after the 'ON ERROR' as the place to
+start. 
+
+(Actually the comment about ending up here after an error is not
+strictly true: if an error occurs when executing statements in a
+function and an 'ON ERROR LOCAL' error trap is in effect, the
+longjmp from 'errors.c' branches back to a similar piece of code
+in 'do_function' in expressions.c)
+
+The program sits in the loop in 'exec_statements' unless a
+function is called. Functions can only be called from the
+expression code (do_function). do_function calls another function
+in statement.c, exec_fnstatements, to interpret the statements
+in the function. This one is just about the same as
+exec_statements except it includes a check for an '=' at the start
+of a statement and returns to do_function if it finds one.
+(exec_statements and exec_fnstatements could be merged.)
+
+The interpreter handles functions in the Basic program by
+recursion. This means that use of the C stack can be quite heavy.
+'do_function' is the only point where the C stack usage really
+has to be checked. The DOS/DJGPP version of the code has to
+include an explicit check on stack usage at this point as there
+seem to be no stack checks added by the version of gcc used
+under DJGPP.
+
+There is not a lot to say about the handling of Basic statements.
+The code is split across four main files:
+
+	assign.c	Assignment statements
+	iostate.c	I/O statements
+	mainstate.c	All other statements
+	statement.c	Dispatches statement functions
+
+Expressions are dealt with by:
+
+	evaluate.c	Evaluate Expressions
+	functions.c	Evaluate Built-in functions
+
+and Basic commands by:
+
+	commands.c
+
+
+Embedded Offsets
+----------------
+A number of the statements have tokens that contain embedded
+offsets, for example, the IF statement tokens are followed by two
+offsets, the offset to the first token of the statement after the
+THEN token and the equivalent after the ELSE token (or the next
+line if there is no ELSE part). In such cases there are two
+different versions of the function to handle the token, one which
+carries out any processing needed to fill in the offset and one
+that assumes that the offset has been filled in. In some cases the
+first version of the function has to carry out the work of the
+statement as well as fill in the offsets, for example, the IF
+first function has to evaluate the expression after the IF token
+to find out if there is a 'THEN' or 'ELSE' token after it and
+whether this is a single line IF or a block IF. In most cases,
+though, the first function does its work and then calls the second
+one. 
+
+
+Tokens Used for Variables
+-------------------------
+The intepreter uses a number of different tokens to represent
+variables of different types. They are:
+
+XVAR		Reference to variable in source code
+INTVAR		Simple reference to an integer variable
+FLOATVAR	Simple reference to a floating point variable
+STRINGVAR	Simple reference to a string variable
+ARRAYVAR	Reference to a whole array
+ARRAYREF	Reference to an array element, possibly followed
+		by an indirection operator
+INTINDVAR	Integer variable followed by an indirection operator
+FLOATINDVAR	Floating point variable followed by an indirection
+		operator.
+STATICVAR	Simple reference to a static variable
+STATINDVAR 	Static variable with indirection operator
+
+All dynamic variables start off with their token set to 'XVAR'. It
+is changed to one of the tokens in the range INTVAR..FLOATINDVAR
+the first time the variable is referenced. This allows the program
+to use specific, optimised functions to read from and write to the
+variables. The location of the variable's value is stored after the
+token to eliminate the overhead of searching for the variable each
+time it is referenced. The offset stored is the byte offset from
+the start of the Basic workspace (basicvars.workspace). It is four
+bytes wide. This is different from other tokens which are followed
+by offsets where the offset stored is that from the token. The
+reason for this is to ensure that the offset is always positive to
+avoid problems on machines where integers are not four bytes wide.
+
+Static variables can be identified when the line is being tokenised
+so they have their own tokens (STATICVAR and STATINDVAR).
+
+
+Assignments
+-----------
+The comments about variables above also applies to them when they
+appear on the left-hand side of an expression. Ignoring static
+variables, the first time an assignment is seen it is dealt with
+by function exec_assignment(). In the call to exec_assignment()
+(in get_lvalue(), to be precise) the type of the variable will be
+identified and the type token changed. In the case of INTVAR,
+FLOATVAR and STRINGVAR, specific functions for dealing with these
+types of variables will be used in future instead of
+exec_assignment(), for example, integer variables are handled by
+assign_intvar(). The other types, for example, ARRAYVAR, will
+continue to go via exec_assignment() as the processing required is
+much greater for these.
+
+exec_assignment() uses tables of functions to deal with the
+individual types of assignment. There are three tables for the
+three assignment operators, '=', '+=' and '-=', indexed by the
+type of the operand on the left-hand side of the expression, for
+example, assignments to whole integer arrays is handled by
+assign_intarray(). There is a large number of functions like
+assign_intarray() and some of them appear to duplicate existing
+functions, for example, assign_intword() could be confused with
+assign_intvar(). The difference is that assign_intvar() is
+specifically for integer variables whereas assign_intword() is a
+general 'store a four byte integer on a word boundary' routine.
+
+Static variables always use their own assignment function as they
+can be identified when the program is tokenised. Static variables
+followed by indirection operators use exec_assignment(), just like
+dynamic variables.
+
+
+Expression Evaluation
+---------------------
+This is dealt with almost in its entirety by functions in
+'expressions.c'. There are two functions that can be called from
+elsewhere, expression() and factor(0. expression() is the general
+expression evaluation function and factor() is used when only
+so-called 'factor' is allowed. expression() is also the heart of
+the expression code and contains the interpreter's inner loop. The
+code has been optimised to handle simple expressions, that is,
+those that consist of, say, a constant or reference to a variable,
+and ones of the form <operand> <operator> <operand>. 
+
+The code uses operator precedence to evaluate expressions, where
+operators are put on a stack and each time checked to see if they
+have a higher or lower priority than the next operator in the
+expression. The operator is evaluated if its priority is greater
+than or equal to that of the next operator. The code does make use
+of recursive descent to handle the unary operators '+' and '-' and
+brackets, although these could have been dealt with via the
+operator precedence method as well.
+
+Just like dispatching statements, the expression code uses tables
+of functions to handle expressions. There are two, factor_table,
+which is indexed by the token type of the start of an operand, and
+'opfunctions' which is indexed by the operator and the type of the
+*right hand* operand as given by its Basic stack entry. 'optable'
+says whether a token is an operator and gives its priority and the
+index value to use for the operator in opfunctions. An optable
+entry of zero means that the token is not an operator and
+indicates that the end of the expression has been reached.
+
+The only 'nasty' in the expression code is that Basic V does
+not allow the comparision and shift operators to be chained
+together, that is, expressions such as:
+
+	abc% >> 4 < 10
+
+will give a syntax error and have to be put in brackets to work.
+There is code specifically to handle comparision operators (or, to
+be more precise, those with the priority of comparison operators)
+in expression().
+
+
+Indirection Operators
+---------------------
+The interpreter fully supports the Basic V indirection operators.
+To protect the integrity of the interpreter and for security
+the address range they can point to is restricted to the Basic
+workspace. They can be used to read any location in the workspace
+but can only write to the Basic heap, that is, from basicvars.lomem
+to basicvars.stacktop and from basicvars.himem to basicvars.end.
+It is not possible to modify the Basic program or to overwrite
+the Basic stack.
+
+The operators work in terms of byte offsets from the start of the
+Basic workspace (except in the RISC OS version of the program). By
+default, PAGE is set to zero and HIMEM to the size of the Basic
+workspace. This is completely transparent to the Basic program and
+makes the code more portable. The only exception is the RISC OS
+version of the program where the start of memory, that is, address
+zero, is used as the base address for the offsets. The offsets
+therefore take the values they would if they were proper addresses
+on an ARM processor. This is necessary for the SYS statement to
+work.
+
+The base address is stored in basicvars.offbase. This can change
+if the NEW command is used to alter the size of the Basic
+workspace (except under RISC OS). The value is otherwise fixed.
+
+
+Procedure and Function Calls
+----------------------------
+One nasty area of the code is the functions that handle procedure
+and function calls. These are spread across evalute.c and
+stack.c. This code would probably benefit from a rewrite.
+
+All of the parameters have to be evaluated before they can be
+assigned to the variables being used as formal parameters. At
+present the code evaluates each parameter and stores its value
+outside the Basic program (in a variable in function
+push_oneparm()). The next parameter is dealt with by a recursive
+call to the same function. Once the parameter list has been
+exhausted the values are assigned to the parameter variables as
+the recursion unwinds.
+
+The parameter variables are treated as local variables, that is,
+their old values are saved on the Basic stack along with an lvalue
+structure that specifies where the value goes and its type. They
+are restored whe the procedure or function call ends. RETURN
+parameters have to store extra information in addition to that
+needed for local variables, namely an lvalue structure that gives
+the address at which the returned value is to be stored and its
+type. Dealing with these is a game of musical chairs where the
+returned value is copied from the parameter variable to its
+destination and then the original value of the parameter varaible
+is restored. All of the functions for saving parameter variable
+values and restoring them and local variables are found in stack.c
+
+
+Array Operations
+----------------
+The interpreter supports array operations as a part of normal
+expression handling. On the other hand, general array expressions
+are not allowed and only a limited range of operations are
+supported.
+
+Dealing with whole arrays is based around the use of array
+descriptors. When an array is referenced in this way, a pointer to
+its descriptor is pushed on to the Basic stack.
+
+The following operations are supported: addition, subtraction,
+multiplication, division, integer division, integer remainder and
+matrix multiplication. Whenever an operation is carried out
+involving an array, a temporary array for the results and a
+descriptor are created on the Basic stack. This array can also be
+used as an operand under some circumstances, namely, that the
+array is on the left-hand side of the operator and that the result
+is of the same type and size as the existing temporary array,
+for example:
+
+	array1$() = array2$()+"  "+array3$()+"  "+array4$()
+
+This gives some flexibility in using arrays as operands but it is
+by no means general. It also goes beyond what the Acorn
+interpreter supports.
+
+
+Filenames and Directories
+~~~~~~~~~~~~~~~~~~~~~~~~~
+In order to make the interpreter operating system independent the
+manipulation of file names is kept to a minimum. The format of
+file names and directory structures varies from OS to OS. The
+normal rule seems to be to assume that a Unix-type file system in
+use. DOS file names maps fairly simply into this but RISC OS
+programmers have suffered many hours of grief. The easiest way to
+prevent this is to avoid anything that relies on the format of the
+names of files. Having said that, though, the functions isapath()
+in fileio.c and open_file() in editor.c do have to know something
+about this. isapath() is used to determine whether the name of a
+file is just that of the file or includes directories and
+open_file() has to be able to construct a name that includes
+directories. These are the only two places in the interpreter where
+there are any dependencies like this.
+
+
+Debug Code
+~~~~~~~~~~
+To help debug the interpreter itself, debugging code can be
+compiled into a number of the files. It is controlled by the macro
+'DEBUG'. This is done on 'CFLAGS' in the makefile (-DDEBUG).
+Whether or not any debugging output is produced is controlled by
+a number of flags in basicvars (defined in 'debug_flags'). These
+are set and cleared by means of the Basic 'LISTO' command, for
+example, 'LISTO 0x1100' will turn on general debugging output and
+displaying the string usage statistics.
+
+There are six debugging options:
+
+DEBUG_DEBUG	0x100	Show general debugging output.
+			Check Basic heap for memory leaks
+			after program has finished running.
+DEBUG_TOKENS	0x200	Show tokenised lines on input plus
+			addresses on listings.
+DEBUG_VARIABLES	0x400	List addresses of variables when
+			created and on listing produced 
+			by LVAR.
+DEBUG_STRINGS	0x800	Show memory allocated and released
+			for strings.
+DEBUG_STATS	0x1000	Show string heap statistics when
+			program finishes.
+DEBUG_STACK	0x2000	Show various control blocks pushed and
+			popped from the Basic stack.
+DEBUG_ALLSTACK	0x4000	Show in detail values and intermediate
+			results push and popped from the stack
+
+The values given are the LISTO value needed to turn on or off each
+option, that is, 'listo %100' will turn on general dubugging output
+and a second 'listo %100' will turn it off again. Debug output is
+sent to 'stderr' and is probably best redirected to a file, for
+example, starting the interpreter with
+
+	brandy 2>tracefile
+
+under RISC OS or NetBSD will send all debugging output to the file
+'tracefile'. This is probably the best way to deal with it.
+
+Note that stderr cannot be redirected under DOS.
+
+Note that a huge amount of debugging output can be produced if all
+the debugging options are turned on. A program that runs for a few
+seconds can produced several megabytes of it.
+
+Basic TRACE output and error messages will also be written to
+'stderr' if general debugging is enabled, that is, 'listo %100'
+is used. This will confuse things if stderr is being written to the
+screen as two copies of everything will appear but is more useful
+if stderr is being written to a file. 'TRACE PROC' and 'TRACE
+GOTO' will probably be the most useful trace options to use.
+
+There is one debugging option on the command line used to run the
+program, -!. The program does not set up any signal handlers if
+this option is used, so that errors such as illegal addresses are
+not trapped by the program. This is useful if a program fails with
+an 'address out of range' error to determine whether the program
+or the interpreter is at fault.
+
+When the debugging output shows addresses, these are proper
+addresses and not offsets. (Not to be confused with the Basic
+indirection operators, which work in terms of offsets.)
+
+There are three extra Basic commands that can be used for
+debugging as well.
+
+LISTB <offset 1> [ , <offset 2> ]
+This displays memory from <offset 1> to <offset 2> in byte form.
+The offsets are the byte offsets from the start of the Basic
+workspace (except under RISC OS where they are effectively
+addresses). If <offset 2> is omitted, 64 bytes are displayed.
+
+LISTW <offset 1> [ , <offset 2> ]
+This displays memory from <offset 1> to <offset 2> as four-byte
+words. The offsets are the byte offsets from the start of the
+Basic workspace (except under RISC OS where they are effectively
+addresses). If <offset 2> is omitted, 64 bytes are displayed.
+
+LISTL <line number>
+This displays a hex dump of line <line number>.
+
+In addition, the Basic TRACE statement can be used, especially the
+form that sends debugging output to a file (TRACE TO). A copy
+of gdb helps enormously too.
+
+
+Interfacing to the Operating System and the SYS Statement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Under RISC OS, the mechanism used to make operating system
+calls from Basic programs is the SYS statement. This is a
+very simple interface that maps directly on to the ARM
+processor's 'SWI' (Software Interrupt) instruction. It
+is envisaged that the SYS statement will also be used to
+make use of the facilities of operating systems other than
+RISC OS.
+
+The format of the SYS statement is as follows:
+
+  SYS <swi number> [ , <in> ] [ TO [ <out> ] [ ; <flags> ] ]
+
+<swi number> is the number of the SWI to call. It can either
+be a number or a string giving the name of the SWI, which
+the interpreter maps on to the SWI number. <in> specifies
+the parameters for the call. This is a list of expressions
+separated by commas that give either numeric or string values.
+They correspond to the values passed in the ARM's registers to
+the SWI. There can be up to ten of these. <out> and <flags>
+is a list of the variables to receive the values returned by
+the SWI. Again, items in the list are comma-separated. The
+state of the processor flags after the call can be returned
+in the variable given by <flags>. Note that this is the last
+item in the list and follows a ';'. Again, up to ten variables
+can be listed here to receive the values returned in the
+corresponding ARM registers.
+
+There are two types of SWI, normal ones and the so-called
+'X' SWIs. The difference between them is the way in which
+errors are handled. In the case of normal SWIs, the operating
+system takes cares of errors. The default action is to abort
+the program with an error message. If the 'X' form of the SWI
+is used, control is returned to the calling program with
+the ARM processor's 'overflow' flag set to indicate that
+an error occured. ARM register R0 then points at an error
+block. The format of the error block is given below.
+
+The numeric values passed from the program to the SWI can be
+either parameter values or addresses. There is no way to 
+tell them apart: they are just values in registers. Strings
+are normal Basic strings, but the interpreter converts them
+to C-style null terminated strings and passes pointers to
+these when the SWI is called. When the call finishes, the
+interpreter deals with the values returned in the registers
+according to the type of the variables in the <out> parameter
+list. If the variable is an integer, the ARM register value
+is stored in it. If it is floating point, the contents of
+the ARM register are converted to a floating point value.
+If it is a string, the ARM register is assumed to point at a
+null-terminated string. This string is converted to a Basic-
+style string.
+
+SWIs sometimes return information in the processor flags.
+Only the 'carry' and 'overflow' flags are used for this.
+The variable <flags> is set to the processor flag state
+after the SWI. The 'overflow' flag is the most important
+as it is used to indicate whether or not the SWI call worked.
+If everything was okay, the overflow flag is cleared. If
+the SWI failed, it is set. Bit masks for the processor
+flags as stored in <flags> are defined in the file
+emulate.c.
+
+There is no checking of parameter types in the SYS statement.
+It is entirely left up to the programmer to ensure that the
+right number of parameters is passed and that the type of
+each parameter is correct.
+
+SWI Error Block
+---------------
+The format of this is:
+
+Bytes 0 to 3:	Error number (four bytes, little endian)
+Bytes 4+:	Null terminated error message.
+
+Implementing SWIs
+-----------------
+Brandy fully implements the SYS statement. The code that
+handles SWI calls is the function emulate_sys() in
+emulate.c. This would form the heart of any SWI
+emulation code under operating systems other than RISC OS.
+Unfortunately there is a problem with this: the handling
+of pointers.
+
+Within a Basic program, anything that looks like an
+address, for example, the address of a block of memory
+allocated via a DIM statement, is really an offset from
+the start of the Basic workspace. The SWI emulation code
+will have to compensate for this. This would have to be
+done on a SWI-by-SWI basis. Similarly, if a SWI returns
+a pointer to something, that pointer will have to be an
+offset within the Basic workspace as addresses within the
+Basic program are not allowed to go outside the workspace.
+
+The variable basicvars.offbase always points to the start
+of the Basic workspace and is the value that should be
+added to values passed as addresses to turn them into real
+addresses. basicvars.offbase is of type 'unsigned char *'.
+There are two functions in miscprocs.c that can be used
+to verify that an address is legal. These are check_read()
+and check_write().
+
+	void check_read(int32 low, int32 size)
+	void check_write(int32 low, int32 size)
+
+'low' is the offset within the Basic workspace of the start
+of the block to be checked and 'size' is its size in bytes.
+Reads are allowed anywhere in the Basic workspace but only
+the memory between the top of the Basic program and the
+Basic stack (the Basic heap) and from basicvars.himem to
+basicvars.end (the memory above the Basic stack) can be
+written to. If an offset is out of range these functions
+just report an 'address out of range' error using the
+normal Basic error handling mechanism. Of course, this means
+that the SWI emulation code cannot take any action to deal
+with the error.
+
+Another function that might be of use is emulate_getswino(),
+located in emulate.c. It takes the name of a SWI and returns
+its SWI number. Bit masks for the processor flags as stored
+in <flags> are also defined in this file, as well as a macro
+to define the 'X' bit set in the 'X' form SWIs.
+
+emulate_sys() and emulate_getswino() just give an 'unsupported
+feature' error under operating systems other than RISC OS.
+
+

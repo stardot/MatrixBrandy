@@ -1,0 +1,1475 @@
+Brandy
+~~~~~~
+
+Contents
+~~~~~~~~
+	Introduction
+	Copyright
+	Disclaimer
+	Using the Interpreter
+	Running Programs
+	Programs and Libraries
+	Differences Between Brandy and RISC OS's Interpreter
+	Identifying the Environment Under Which Brandy is Running
+	I/O Redirection
+	Using Basic as a Script Language Under NetBSD and Linux
+	The SYS Statement
+	The 'key' Command
+	Performance
+	Important Error Messages
+	Known Problems
+	Miscellaneous Comments
+	Conclusion
+	Contact
+
+
+Introduction
+~~~~~~~~~~~~
+Brandy is a Basic V interpreter. It is source code compatible with
+Acorn's Basic V interpreter and runs under a number of different
+operating systems. It currently works with RISC OS, NetBSD (arm32
+and i386), Linux (X86) and DOS using the DJGPP DOS extender. The
+aim of this project is to write a Basic interpreter that is
+compatible with the Acorn interpreter and that runs identically
+across all supported operating systems, emulating features of the
+RISC OS environment where necessary so that a program will run
+unchanged using the Acorn interpreter under RISC OS or this one
+under any other OS. No attempt has been made to support features
+of operating systems other than RISC OS, for example, it is not
+possible to make operating system calls from within a program
+except under RISC OS. The program is simply a Basic interpreter
+and that is all.
+ 
+These notes describe how to use the program and discuss
+differences between it and Acorn's interpreter. They also detail
+the extensions to Basic V that have been implemented and finish
+with some miscellaneous remarks about the program and a list of
+the known bugs.
+
+
+Copyright
+~~~~~~~~~
+Brandy is copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels.
+
+The program is distributed under the terms of the GNU GPL.
+
+Brandy is free software; you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your
+option) any later version.
+
+Brandy is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Brandy; see the file COPYING.  If not, write to
+the Free Software Foundation, 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.
+
+
+Disclaimer
+~~~~~~~~~~
+The Brandy Basic interpreter is provided 'as is' and people using
+it do so entirely at their own risk. No liability whatsoever will
+be accepted for any loss or damage arising from the use of this
+software.
+
+
+Using the Interpreter
+~~~~~~~~~~~~~~~~~~~~~
+To invoke the interpreter, type:
+
+	brandy [ <options> ] [ <filename> ]
+
+where <filename> is the optional name of the program to load and
+<options> is one or more of the following:
+
+-help			Print a summary of these options.
+
+-size <size>		Set the size of the Basic workspace to
+			<size> bytes when starting the interpreter.
+			The minimum size allowed is 10000 bytes
+			and anything below this value will be set
+			to it. The maximum size is limited only
+			by the environment in which the program
+			is being run. The size may have a suffix
+			of 'k' to denote that the size is in
+			kilobytes or 'm' if it is in megabytes,
+			for example, '-size 100k' will set the
+			workspace size to 100 kilobytes (102400
+			bytes) and '-size 8m' will set it to
+			eight megabytes (8388608 bytes).
+
+-lib <filename>		Load Basic library <filename> when the
+			interpreter starts. This option can be 
+			repeated as many times as required to load
+			a number of libraries. This is equivalent
+			to typing 'INSTALL <filename>' at the
+			interpreter's command line. The libraries
+			are loaded in the order given on the
+			command line. Note that the search order
+			is the reverse of this.
+
+-load <filename>	Load Basic program <filename> when the
+			interpreter starts.
+
+-path <directory list>	This specifies a list of directories that
+			the interpreter will search when looking
+			for libraries and programs. The directory
+			names are separated by commas. The pseudo-
+			variable 'FILEPATH$' is set to this value.
+			See the section below on FILEPATH$ for
+			more details.
+
+-quit <filename>	Load and run the Basic program <filename>.
+			Leave the interpreter when the program has
+			finished running.
+
+-chain <filename>	Load and run the Basic program <filename>.
+			Remain in the interpreter when the program
+			has finished running.
+
+-graphics		Start the interpreter with the screen in
+			graphics mode in versions of the program
+			which support graphics and the screen can
+			be in either text or graphics modes.
+
+-ignore			Ignore certain 'unsupported feature' errors.
+			By default the interpreter reports an error
+			whenever it comes across a Basic V feature
+			that it does not support. This option allows
+			some unsupported features that do not affect
+			the basic running of the program to be
+			ignored.
+
+<filename>		Load and run the Basic program <filename>.
+			Remain in the interpreter when the program
+			has finished running.
+
+-nostar			Do not check commands issued via OSCLI to
+			see if they are dealt with by Brandy. Pass
+			all commands to the underlying operating
+			system.
+
+The case of the names of the options is ignored. It depends on the
+operating system under which the interpreter is running as to
+whether the names of files are case sensitive or insensitive.
+
+Minimum Abbreviations
+---------------------
+Options can be abbreviated. The interpreter only checks the first
+one or two characters of the option name to identify it.
+
+-chain		-c
+-graphics	-g
+-help		-h
+-ignore		-ig
+-lib		-li
+-load		-lo
+-path		-p
+-quit		-q
+-size		-s
+-nostar		-no
+
+Parameters for Basic Programs
+-----------------------------
+The interpreter assumes that any unrecognised options are meant
+to be for the Basic program and ignores them.
+
+!!Brandy
+--------
+This is an obey file for RISC OS that runs Brandy in a Taskwindow.
+The file can be placed on the pinboard and the interpreter started
+by double clicking on it.
+
+
+Running Programs
+~~~~~~~~~~~~~~~~
+The name of the program to run can be specified on the command
+line. If no name is given, the interpreter starts with a '>'
+prompt. Programs can be loaded, edited and run from here. Briefly,
+the commands to use are as follows:
+
+QUIT
+Leaves the interpreter.
+
+LOAD <filename>
+Load program <filename> into the Basic workspace.
+
+SAVE <filename>
+Save the program in the Basic workspace in file <filename>.
+
+RUN
+Run the program.
+
+LIST
+LIST <line number>
+LIST <line number> , <line number>
+The first version lists the entire program. The second one lists
+just the line supplied. The third lists lines with line numbers in
+the range given.
+
+EDIT
+This transfers the program in memory to a text editor where it can
+be more easily edited. The program is reloaded when the editor is
+quitted.
+
+EDIT <line number>
+This copies the line specified to the command line where it can be
+edited.
+
+DELETE <line number>
+DELETE <line number> , <line number>
+The first version of DELETE deletes a single line from the
+program, line <line number>. The second version is used to
+delete a block of lines. Note that it is not possible to
+recover any lines deleted.
+
+RENUMBER
+Renumbers the lines of a program.
+
+NEW
+Discard the program in the Basic workspace.
+
+Editing Programs
+----------------
+Any Basic statement typed in without a line number is executed
+immediately.
+
+Basic statements typed in which start with a line number are
+either added to the program or replace the line if the line number
+duplicates ones already in the program.
+
+The 'EDIT' command can be used to transfer a program into
+a text editor where it can be edited more easily.
+
+The file 'basic' contains more details of these commands and
+others as well as information on Basic V.
+
+
+Programs and Libraries
+~~~~~~~~~~~~~~~~~~~~~~
+
+Loading and Saving Programs
+---------------------------
+The interpreter can read Basic programs that have been saved as
+plain text or tokenised using Acorn Basic tokens. It always stores
+them as plain text. The reasons for working with text files are
+that it is not a large overhead to tokenise and expand programs,
+it is more portable and it allows programs to be edited with any
+text editor.
+ 
+Line numbers can be left out when creating a program in a text
+editor. The interpreter will add them when it reads the program.
+The line numbers added start at 1 and go up by 1 so that the
+line numbers given in error messages match up with the lines
+of the program in a text editor.
+ 
+One feature of the interpreter is that it notes the name of the
+file on a 'LOAD' command and uses that name if the 'SAVE' command
+is used without specifying a filename. The interpreter also
+supports the case where the filename is supplied on the first line
+of the program. This take precedence over the name saved from the
+'LOAD' command. (change?)
+
+Libraries
+---------
+The interpreter supports libraries of procedures and functions
+that can be loaded using either the 'INSTALL' command or the
+'LIBRARY' statement in a program. Those loaded via the 'INSTALL'
+command will be permanently loaded and are available until the run
+of the interpreter finishes. The command line option '-lib' can be
+used to specify libraries that will be 'INSTALL'ed when the
+interpreter starts. Libraries loaded by the 'LIBRARY' statement
+are read at the time the statement is encountered and will be
+discarded when a further RUN statement is issued, when NEW or
+CLEAR are used or when the program is editted. Effectively they
+are only available when a Basic program is running. Examples:
+
+	INSTALL "catlib"
+
+	LIBRARY "doglib"
+
+Libraries loaded using 'INSTALL' cannot be discarded. However the
+same library can be loaded via 'LIBRARY' and it will effectively
+take precedence as libraries loaded this way are searched first.
+
+Libraries can be held as plain text, with or without line numbers,
+or can be tokenised.
+
+Local Variables in Libraries
+----------------------------
+It is possible for libraries to have variables and arrays that are
+private to that library. This is an extension to Basic V. These
+are covered in more detail below.
+
+
+Differences Between Brandy and Acorn's Interpreter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Brandy is compatible with the Acorn interpreter and should produce
+the same results as the Acorn one. However perfect compatibility
+cannot be achieved for a number of reasons, for example, the lack
+of graphic commands in some versions of the program greatly limits
+which programs will work. There are also some enhancements that
+could lead to incompatibilites, for example, Brandy allows strings
+to be up to 65536 characters long compared to the Acorn
+interpreter's limit of 255. The list of differences are as
+follows:
+
+1)  Only the RISC OS version has graphics and sound. The DOS
+    implemention supports a subset of the graphics commands.
+2)  Brandy has no support for machine code programs. It does not
+    support either the 'CALL' statement nor the 'USR' function
+    (except for one specific case, to use OS_Byte call 0 to
+    identify the host type). The built-in assembler has not been
+    implemented.
+3)  Only the RISC OS version supports the 'SYS' statement.
+4)  The follow Basic commands have not been implemented: APPEND
+    and AUTO.
+5)  The 'OVERLAY' statement has not been implemented.
+6)  The functions 'INKEY' and 'INKEY$' have only been implemented
+    fully for RISC OS as yet.
+7)  Not all of the VDU commands have been implemented yet in
+    non-RISC OS versions.
+8)  Cursor editing is not available in non-RISC OS versions.
+9)  'WIDTH' has not been implemented. 'PRINT' leaves something
+    to be desired too.
+10) The TRACE option 'TRACE STEP' has not been implemented yet.
+11) Some 'LISTO' options have not been implemented yet.
+12) The 'END=' version of the END statement is not supported.
+13) Brandy behaves differently to the Acorn interpreter after
+    an error when the program contains ON ERROR or ON ERROR
+    LOCAL statements to trap errors.
+
+The major omissions in the versions of the interpreter that run
+under operating systems other than RISC OS are graphics and sound.
+The built-in assembler and support for machine code programs are
+missing too. Apart from that, the interpreter is essentially a
+full implementation of the Acorn interpreter.
+
+The interpreter has the following extensions:
+
+1)  Strings can be up to 65536 characters long.
+2)  Statements can be up to 1024 characters long.
+3)  Libraries can have their own private variables.
+4)  The OSCLI statement has been extended to allow the output from
+    operating system commands to captured.
+5)  The case of commands such as 'LIST' and 'RUN' is ignored, so
+    'LIST' could be entered as 'list' or 'List'. The downside is
+    that variable names that are the lower case equivalents of
+    commands will now be seen as commands, something that seems
+    to happen all too frequently.
+6)  There is a new pseudo-variable 'FILEPATH$' that gives a
+    list of directories to be searched when loading programs and
+    libraries (see the section on this below).
+7)  There are two functions for dealing with command line
+    parameters, 'ARGC' and 'ARGV$' (see the section below).
+8)  There are two new string functions, 'VERIFY' and 'XLATE$'
+    (see the section below).
+9)  'NEW' can be followed by a parameter, the new size of the
+    Basic workspace. This allows it to be changed from the
+    default of half a megabyte (see section on this below).
+10)  The 'RUN' command can be followed by the name of a program
+    to run. It behaves just like the statement 'CHAIN'.
+11) The 'RUN' command can also be followed by a line number to
+    start program execution at that line.
+12)  There is an extra 'TRACE' option: 'TRACE GOTO'. This prints
+    out the source and destination line numbers of any branches in
+    the program.
+13)  'TRACE PROC' shows returns from procedures and functions as
+    well as when they are called.
+14) Individual TRACE options may be turned off and on, for example,
+    'TRACE PROC OFF' will turn off the only the procedure trace
+    and leave any other running.
+15) There is an extra 'LISTO' option, 32. When this option is in
+    effect, listing of a program pauses every twenty lines with
+    the prompt '-- more --'. Press the space bar to show the next
+    twenty lines, 'return' to print just the next line or the 
+    'Escape' key to stop the command.
+16) 'LISTO' can be used as a function to find out the current
+    setting of 'listo'.
+17) There are a couple of extra 'LIST' commands. 'LISTB' dumps
+    memory in byte form between the two addresses specified.
+    'LISTW' is the same, but dumps memory as words. These were
+    added for debugging but will probably be left in.
+18) The 'EDIT' command on its own invokes a text editor to edit
+    the program. Under RISC OS it calls StrongEd Zap, Edit or
+    'twin', under Linux and NetBSD it calls 'vi' and under DOS
+    it calls 'edit'.
+19) 'EDIT' followed by a line number allows that line to be
+    edited using the built-in line editor. This feature is not
+    available under RISC OS.
+20) When a program is loaded via a 'LOAD' command the name of the
+    file is kept and saving the program using the 'SAVE' command
+    with no argument will save the program using that name.
+21) Programs are always saved as plain text.
+22) The latest extended versions of COLOUR, GCOL, MODE and
+    DIM are supported. VDU can also be used as a function to
+    read RISC OS mode variables. COLOUR can also be used as
+    a function to return a number that represents the closest
+    match to the colour whose colour components were passed
+    to the function.
+
+There is quite a list here but really apart from the longer
+maximum string and statement lengths, local variables in
+libraries and the change to 'new', most of these are really
+cosmetic changes.
+
+Local Variables in Libraries
+----------------------------
+Libraries can have their own private variables and arrays. The
+variables are only accessible in the library in which they were
+declared.
+
+The LIBRARY LOCAL statement is used to declare the variables. The
+syntax is as follows:
+
+	LIBRARY LOCAL <list of variables and arrays>
+
+where <list of variable and arrays> is a list of variable and
+array names separated by commas, for example:
+
+	LIBRARY LOCAL abc%, def%, ghi$, jkl(), mno(), pqr$()
+
+In the case of arrays, this merely defines that the array is local
+to the library. The dimensions of the array have to be declared
+using a DIM statement in the normal way, for example:
+
+	LIBRARY LOCAL jkl(), pqr$()
+	DIM jkl(100), pqr$(table_size%)
+
+There can be as many LIBRARY LOCAL and DIM statements as
+necessary but they have to be before the first DEF PROC or DEF FN
+statement in the library. They also have to be the first item on
+the line.
+
+The variables can only be referenced in the library. They are not
+visible outside it. This is different to the way in which local
+variables are dealt with in a procedure or function, where local
+varables can be accessed by any procedure of function called by
+the procedure in which they were declared. They can duplicate the
+names of variables in the Basic program or other libraries.
+
+When looking for a variable in a library, the interpreter first
+searches for it amongst the library's private variables and then
+in the Basic program's.
+
+The variables and arrays are created the first time the library is
+referenced. In practice this means that they are set up when
+the interpreter has to search the library for a procedure or
+function.
+
+Private variables in a library can further be used as local
+variables in a procedure or function. Note that they can only be
+accessed in the library, for example:
+
+	LIBRARY LOCAL abc%, def, ghi$, jkl(), mno$()
+	DIM jkl(100)
+
+	DEF PROCaaa(abc%)
+	LOCAL def, ghi$
+	ENDPROC
+
+	DEF PROCbbb(def, jkl())
+	LOCAL mno$()
+	DIM mno$(100)
+	ENDPROC
+
+	DEF PROCccc(xyz, abc%)
+	ENDPROC
+
+Here, abc%, def, ghi$, jkl() and mno$() are all declared to be
+private to the library. The dimensions of jkl() are also defined.
+
+In PROCaaa, abc% is used as a formal parameter (effectively a
+local variable) and def and ghi$ declared to be local to the
+procedure. Any procedure or function *in the library* that PROCaaa
+calls that use def and ghi$ will use PROCaaa's local versions.
+Any procedure or function that PROCaaa calls that are *outside*
+the library *will not* see these variables.
+
+In PROCbbb, def and jkl() are used as formal parameters and mno$()
+is defined as a local array and its dimensions given. Note that
+this is the first place where the dimensions have been defined.
+
+In PROCccc, two variables are used as formal parameters, xyz and
+abc%. This case is more complex in that abc% is one of the
+library's private variables whereas xyz is not. xyz is one of the
+Basic program's variables. abc% can only be referenced in the
+library but xyz is visible anywhere.
+
+The rules for the scope of private library variables may sound
+complex but they are quite simple. The point to remember is that
+a private variable in *only* accessible in the library in which it
+was declared. If a variable is not declared on a LIBRARY LOCAL
+statement then it is visible anywhere.
+
+FILEPATH$
+---------
+This is an extra pseudo variable. It gives a list of directory
+names that the interpreter will search when looking for programs
+and libraries. The names are separated by commas with no
+intervening blanks or other white space characters, for example:
+
+	FILEPATH$="/home/dave,/usr/local/basic/lib"
+
+The format of the directory names is operating system-dependent
+and the program assumes that they are correct.
+
+FILEPATH$ can be treated like any other string variable except
+that only the '=' assignment operator is allowed, thus:
+
+	FILEPATH$="/usr/local/basic/lib"
+
+is fine but:
+
+	FILEPATH$+=",/usr/local/lib"
+
+is not supported and will give an error.
+
+The interpreter first of all tries to find the program or library
+using the name as supplied. If it cannot find it and the name is
+just the name of a file, that is, it does not contain any 
+directories, it then looks in each of the directories given by
+FILEPATH$ until either it finds the file or it reaches the end of
+the list. If the file can be found, the name of the file as far as
+the interpreter is concerned is the name as orginally supplied
+with the name of the directory in which it was found prepended to
+it, for example:
+
+	load "earthworks"
+
+If this program was found in the directory '/home/dave' the name
+of the program would show up as '/home/dave/earthworks' in the
+output from 'help'. Saving the program without specifying a new
+file name would write to the file '/home/dave/earthworks'.	
+
+As FILEPATH$ is a pseudo variable, its value is not affected by
+CLEAR or NEW. The initial value of FILEPATH$ can be set using the
+command line option '-path'.
+
+The main purpose of FILEPATH$ is to provide a search path for
+libraries but it is also used when looking for programs. It
+would be useful here for 'CHAIN'.
+
+Use of FILEPATH$ can effectively be disabled by setting it to
+the empty string, that is, by entering 'FILEPATH$=""'.
+
+ARGC and ARGV$
+--------------
+These functions return parameters from the command line used to
+start the interpreter. ARGC returns the number of parameters and
+ARGV$ the parameters themselves.
+
+ARGC
+----
+Returns the number of parameters, for example:
+
+	count = ARGC
+
+ARGV$
+-----
+Returns parameters. The syntax is:
+
+	ARGV$ <factor>
+
+where <factor> is a numeric value that identifies the parameter
+to return, for example:
+
+	FOR N%=1 TO ARGC
+	PRINT ARGV$ N%
+ 	NEXT
+
+Parameter numbers are in the range 1 to the value returned by
+ARGC. ARGV$0 is the name of the Basic program if it was started
+from the command line otherwise it is an empty string.
+
+XLATE$
+------
+This function is used to translate character strings. There are
+two forms of it as follows:
+
+	XLATE$(<string>)
+	XLATE$(<string>, <translate table>)
+
+In the first version, the function returns the string <string>
+converted to lower case. Note that only ASCII characters are
+converted. The second version is more powerful in that <string>
+is converted according to the user-supplied translate table
+<translate table>. This can be either a character string or a
+one dimensional string array. The effect is the same in both
+cases: each character in the original string is replaced by
+the corresponding character in the translate table. If the
+table is a string, the character at offset 1 replaces the
+character with ASCII code 0, the character at offset 2
+replaces the one with ASCII code 1 and so forth. It is not
+necessary for the string to be 256 characters long: any
+character whose code would place it beyond the end of the
+string is left unchanged. The use of a string array is more
+convenient in that each character is replaced by the array
+entry corresponding to its ASCII code. Note that only the
+first character of the string in the array is used. If the
+array entry contains an empty string then the original
+character is left unchanged. As with the character string
+translate table, the array does not have to contain 256
+elements: characters whose ASCII code place them beyond the
+end of the array are left unchanged.
+
+Examples:
+	PRINT XLATE$("AbCdEfGh")
+	
+	DIM table$(255)
+	FOR N%=ASC"0" TO ASC"9": table$(N%)="*": NEXT
+	PRINT XLATE$("abc123def456", table$())
+	
+VERIFY
+------
+The format of this function is as follows:
+
+	VERIFY(<string 1>, <string 2> [, <start>])
+
+It returns the offset (from one) of the first character in
+string <string 1> that is not in string <string 2>. <start>
+is an optional parameter that gives the offset at which to
+start the check. If all the characters in <string 1> are
+present in <string 2> the function returns zero; otherwise
+it returns the offset of the first bad character.
+
+Examples:
+	X% = VERIFY(a$, "0123456789")
+	
+	REPEAT A$=GET$: UNTIL VERIFY(a$, "YNyn")=0
+	
+	P%=1
+	REPEAT
+	  P%=VERIFY("...x..x..", ".", P%)
+	  IF P%<>0 THEN PRINT P%
+	UNTIL P%=0
+
+If <string 1> is an empty string or the start position is
+greater than the string length then the function always
+returns zero. If <string 2> is an empty string then the
+unction always returns one or the value of <start> (if
+this is supplied).
+
+BBC Basic 1.26 Extensions
+-------------------------
+The following statement types have been extended in this
+version of the interpreter:
+
+	COLOUR
+	DIM
+	GCOL
+	MODE
+	VDU function
+
+COLOUR
+The new 'OF' and 'ON' parts are supported, for example:
+
+	COLOUR OF 255,255,255 ON 0,0,0
+
+DIM
+It is now possible for local byte arrays to be created in
+procedures and functions. The memory for the byte array is
+reclaimed when the procedure or function ends, for example:
+
+	DIM pointer% LOCAL 1000
+
+GCOL
+The new 'OF' and 'ON' parts are supported, for example:
+
+	GCOL OF 0,0,0 ON 255,255,255
+
+MODE
+The extended form of MODE where the screen size to be used
+is supplied is now supported. Example:
+
+	MODE 800,600,8
+
+VDU Function
+VDU can now be used as a function to return the values of mode
+variables. Example:
+
+	PRINT "Width in characters is ";VDU 1
+
+All of these extensions are described in the file 'basic'.
+
+COLOUR function
+This returns a value that represents the colour with the
+closest match in the current screen mode to the colour with
+the colour components passed to the function. The value is
+for use with the COLOUR OF and GCOL OF statements. Example:
+
+	red = COLOUR(255, 0, 0)
+	blue = COLOUR(0, 0, 255)
+	COLOUR OF red ON blue
+
+This could also be written as:
+
+	COLOUR OF 255, 0, 0 ON 0, 0, 255
+
+or even:
+
+	COLOUR OF COLOUR(255, 0, 0) ON COLOUR(0, 0, 255)
+
+The advantage of the new forms of GCOL and COLOUR are that
+they are mode independent. They are more flexible than the
+old versions of the statements and do away with the need for
+TINT.
+
+Command Line Parameters
+-----------------------
+The interpreter assumes that any unrecognised parameter on the
+command line is meant to be for the Basic program, for example:
+
+	brandy aprog parm1 parm2 -xyz
+
+would be assumed to consist of the name of the program to run,
+aprog, and three parameters for the program, 'parm1', 'parm2' and
+'-xyz'.
+
+	brandy aprog -size 256k parm1 parm2 -xyz
+
+would be interpreted in exactly the same way. '-size 256k' would
+be treated as an option for the interpreter itself.
+
+Beware of cases like:
+
+	brandy aprog -size 256k parm1 -start
+
+Here, '-start' would be seen as '-size' by the program as it
+only checks for '-s' to identify '-size'.
+
+Capturing Command Output with OSCLI
+-----------------------------------
+The OSCLI statement has been extended so that the output from
+operating system commands can be read by the program. The syntax of
+the statement is now:
+
+	OSCLI <command> [ TO <string array> [ , <variable> ] ]
+
+<command> is a string expression that is the command to be issued.
+<string array> is an array that will be used to hold the output
+from the command. It is optional. If it is not present then the
+command output goes to the normal place. <variable> is set to the
+number of lines stored in <string array>. Again, it is optional.
+
+The existing contents of <string array> are discarded before the
+output from the command is stored in it. Elements of the array
+that are not used are set to the empty string. The first element
+of the array used is 1, so the output is found in elements 1 to
+<variable>. If there is more output than will fit in the array the
+excess is discarded. There is nothing to indicate that this has
+happened so it is up to the user to ensure that the array is large
+enough.
+
+Example:
+
+	OSCLI "ex" TO array$(), lines%
+	FOR N%=1 TO lines%
+	  IF LEFT$(array$(N%), 1)="a" THEN PRINT array$(N%)
+	NEXT
+
+Note that there some problems still to be resolved with OSCLI ...
+TO. Errors (or to be more precise, messages written to stderr) are
+not caught in the DOS version of the program as DOS does not
+provide a way to redirect them. They are therefore missed out.
+
+The NEW Command
+---------------
+The NEW command has been extended to allow the size of the Basic
+workspace to be changed. By default, Brandy allocates half a
+megabyte of memory to hold the program, variables, strings and so
+forth. This can be changed by means of the 'NEW' command as
+follows:
+
+	NEW <size>
+
+where <size> is the new size of the workspace in bytes, for
+example:
+
+	NEW 1000000
+
+would set the workspace size to 1,000,000 bytes.
+
+Note that using this command will result in the loss of the
+current contents of the workspace, including any programs and
+libraries (except for libraries loaded by means of the 'INSTALL'
+command). It is not possible to recover a program by means of
+'OLD' under these circumstances.
+
+The minimum size allowed is 10K bytes. The upper limit is whatever
+the operating system on which the interpreter is running allows.
+
+Note that the initial size of the Basic workspace can also be
+set using the command line option '-size'.
+
+SAVE
+----
+There are two versions of the 'SAVE' command used to save a
+program. 'SAVE' uses the current 'LISTO' setting to control the
+format of the program when it is written to disk. 'SAVEO' allows
+the format to be more precisely specified. The format of the SAVEO
+command is:
+
+	SAVEO <format> [,<filename>]
+
+where <format> is a number that gives the 'listo' format to be
+used and <filename> is the name of the file. The name can be
+omitted, in which case the name defaults to either the name used
+on the last 'LOAD' command or the name given on the first line of
+the program. Example:
+
+	SAVEO 10,"test"
+
+would save a program called "test" using 'listo' option 10 (omit
+line numbers and indent lines inside loops, block IF statements
+and so forth).
+
+OLD
+---
+The OLD command is supported but is only of limited use in this
+interpreter. It only works when trying to recover a program
+immediately after typing 'NEW'. It does not work after
+'NEW <memory size>' variant of NEW, nor can it be used after
+quitting from the interpreter and rerunning it.
+
+The Acorn Basic trick of having many programs in memory at once
+and switching between them by modifying PAGE and typing OLD does
+not work. 'OLD' works in a different way to the version in
+Acorn's interpreter.
+
+TRACE
+-----
+Several changes have been made to the TRACE command.
+
+TRACE PROC
+----------
+This shows both when a procedure or function is entered and when
+it is exited. '==>PROCabcd' indicates that PROCabcd has been entered
+and 'PROCabcd-->' shows that it has been exited.
+
+TRACE GOTO
+----------
+The purpose of this option is to trace program flow. It logs all
+jumps in the code, showing the number of the line at which the
+branch occured and the line at which execution continues. It
+works not just for GOTO statements but anywhere where a branch
+can occur, for example, in IF statements. Example: consider the
+following code:
+
+	100 IF X%<10 THEN
+	110   PRINT"X% is less than ten"
+	120   flag%=TRUE
+	130 ELSE
+	140   PRINT"X% is greater than or equal to ten"
+	150   flag%=FALSE
+	160 ENDIF
+	170 PRINT flag%
+
+If X% was set to five, the branch trace would show the following
+entries:
+
+	[100->110][130->170]
+
+and if X% was set to 25, it would look like:
+
+	[100->140]
+
+(Note that the program output has been omitted for clarity here).
+
+In the first case, as X% is less that ten the condition is true
+and so the program branches to line 110. When it reaches the ELSE
+it branches from the ELSE to the line after the ENDIF. In the
+second case, as the condition is false the program flow passes
+from line 100 to the line after the ELSE. As there is no branch
+at the end of the ELSE part of the 'IF' and control runs straight
+through to line 170, there is no trace entry.
+
+FOR, WHILE and REPEAT loops, procedure and functions calls and
+returns, GOTO, GOSUB, ON GOTO, ON GOSUB, ON PROC and RETURN
+statements are all traced by this option. Note, however, that
+some of the trace entries are not intuitive, for example, the
+line number of the start of a WHILE loop will be that of 
+the statement after the WHILE itself, for example:
+
+	200 X%=7
+	210 WHILE X%<10
+	220   X%+=1
+        230 ENDWHILE
+
+will produce the following trace:
+
+	[230->220][230->220]
+
+The reason for this is tied up in the way WHILE loops work.
+
+It is considered that this trace cuts out much of the 'noise' that
+results from simply tracing line numbers.
+
+TRACE <option> [ON | OFF]
+-------------------------
+Individual trace options can be turned on and off without
+affecting any other settings, for example, 'TRACE PROC OFF' turns
+off the procedure and function call trace. 'TRACE OFF' turns off
+all traces. 'TRACE <option> ON' is provided for consistency.
+'TRACE PROC' and 'TRACE PROC ON' both turn on the procedure and
+function call trace.
+
+TRACE <line number>
+-------------------
+This is not supported.
+
+TRACE STEP and TRACE PROC STEP
+------------------------------
+These have not been implemented yet.
+
+ON ERROR and ON ERROR LOCAL
+---------------------------
+ON ERROR and ON ERROR LOCAL provide a means for errors to be
+trapped in a Basic program. The documentation for these in the
+Acorn interpreter says that the effect is as if there is a GOTO
+statement that takes you from the point of the error to the
+statements after the ON ERROR clause. There is little (if any)
+cleaning up after the error. Brandy differs from the Acorn
+interpreter in that it tidies up before restarting at the ON ERROR
+statement: LOCAL variables and arrays are reset to the state they
+were in at the point of the ON ERROR and procedures and functions
+ended cleanly. The intention is to provide something closer to
+exception handling than what the Acorn interpreter has.
+
+EDIT
+----
+The EDIT command loads the Basic program into a text editor. The
+program is reloaded by the interpreter when leaving the editor.
+The editor used by default varies from operating system to
+operating system as follows:
+
+RISC OS		StrongED, Zap, Edit or Twin.
+Linux		vi
+NetBSD		vi
+DOS		edit
+Beos		vi
+
+It is possible to override which editor the program uses by means
+of an environment variable. Under Linux and NetBSD it looks for
+the standard 'EDITOR' environment variable. Under RISC OS it looks
+for 'Brandy$Editor'. The DOS version checks for 'EDITOR'. Care
+should be taken with DOS to choose an editor that runs under DOS
+and not Windows due to the way in which DOS/Windows invokes the
+editor. (The editor is started as a separate program from the
+interpreter and the interpreter itself continues to run rather
+than being suspended until the editor has finished.)
+
+Under RISC OS, if the interpreter is being run in the desktop,
+the Basic program is transfered to the editor, for example,
+StrongED, and the interpreter halted. When the file being edited
+is saved brandy wakes up and reloads the program. The interpreter
+can also be restarted by pressing the 'Esc' key, but it will not
+reload the Basic program if this is done. If the program is
+running outside the desktop it will invoke Twin but this does
+not work very well as the interpreter does not support the way
+in which Twin operates.
+
+Unless the Basic program contains statements such as GOTO that
+reference line numbers, they can be completely ignored in a text
+editor. Lines can be added without line numbers or moved around
+without any problem. The lines of the Basic program will be
+renumbered when the program is reloaded by the interpreter.
+
+NOTE: There are two mistakes that are very, very easy to make
+with the RISC OS editor support. Firstly, once the file has been
+edited and saved, the file as displayed in StrongED or Zap is
+redundant. The editing session has finished and any further
+editing of that file will not affect the version of the program
+that the interpreter is working with. It is easy to forget this
+and to continue making changes to the program in the editor. The
+second mistake is to forget to save the edited program from within
+Brandy. When the file is saved in the editor it is being returned
+to Brandy, not being saved on disk. Again, it is very easy to
+forget this.
+
+
+EDITO
+-----
+There is a variation on the EDIT command, EDITO, that affects how
+the program is formatted when it is passed to the editor. The
+command syntax is:
+
+    EDITO <value>
+
+where <value> controls how the program will be formatted. This
+takes the same values as 'LISTO' and it has the same effect.
+EDITO allows, for example, a program to be passed to the editor
+without line numbers. 'EDITO 8' is the command to use here. If
+EDIT is used, the program is formatted according to the current
+'LISTO' setting. EDITO otherwise works in the same way as EDIT.
+
+Line Editor
+-----------
+The Linux, NetBSD and DOS versions of the interpreter have a
+simple built-in line editor. Apart from allowing input lines to be
+edited, there is also a command line history feature that allows
+the last twenty or so lines entered to be recalled. The editing
+commands are:
+
+Cursor left or Ctrl-B	Move one character left
+Cursor right or Ctrl-F	Move one character right
+Home or Ctrl-A		Go to start of line
+End or Ctrl-E		Go to end of line
+Delete or Ctrl-D	Delete character under cursor
+Backspace or Ctrl-H	Delete character to left of cursor
+Ctrl-K			Delete from cursor to end of line
+Ctrl-U			Delete whole line
+Insert			Toggle between 'insert' and 'overwrite' mode
+Cursor up or CTRL-P	Go back one entry in the command line history
+Cursor down or CTRL-N	Go forwards one entry in the command line history
+
+The aim is to provide both DOS and Unix (emacs) style editing.
+
+The 'Escape' Key
+----------------
+Under operating systems other than RISC OS and DOS the 'escape'
+key is not the 'Esc' key but Control-C, that is, to break into a
+program press the keys 'Ctrl' and 'C' at the same time.
+
+
+Identifying the Environment Under Which Brandy is Running
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+There are three things a program can check to figure out what
+operating system is it running under:
+
+1)  Check the contents of !PAGE. If this is set to &D7C1C7C5
+    then the Basic program is running under Brandy. This value
+    is a constant. Other Basic V interpreters store a different
+    value there, for example, ?PAGE on the Acorn interpreter
+    returns &0D.
+
+2)  Check what INKEY -256 returns. This has been the documented
+    way of checking the OS version since the first version of
+    RISC OS. The values returned are:
+
+	&A0	Arthur 1.2
+	&A1	RISC OS 2.00
+	&A2	RISC OS 2.01
+	&A3	RISC OS 3.00
+	&A4	RISC OS 3.10 and 3.11
+	&A5	RISC OS 3.50
+	&A6	RISC OS 3.60
+	&A7	RISC OS 3.70 and 3.71
+	&A8	RISC OS 4.00, 4.01, 4.02 and 4.03
+	&A9	RISC OS 4.32 to 4.37
+	&AA	RISC OS 5
+
+    Brandy adds the following:
+
+	&F5	Amiga
+	&F6	OpenBSD
+	&F7	FreeBSD
+	&F8	MACOS X
+	&F9	Linux
+	&FA	DOS with DJGPP DOS extender
+	&FB	Beos
+	&FC	Windows 32
+	&FE	NetBSD
+
+    Other values might be added to this list for other operating
+    systems.
+
+3)  The hardware type and general environment type can be found by
+    checking what is returned by OS_Byte 0. The USR function is not
+    supported except in one special case, to make the BBC Micro
+    MOS OSBYTE call. The following code can be used:
+
+	A% = 0: X% = 1: result% = USR &FFF4
+	version% = (result% DIV 256) AND 255
+
+    version% will contain one of the following values:
+
+	6	Acorn hardware (RiscPC, A7000 and so forth)
+	8	Unix-type OS
+	32	PC (DOS and Windows)
+
+    Again, this list might be extended.
+
+
+I/O Redirection
+~~~~~~~~~~~~~~~
+Under RISC OS, NetBSD and Linux it is possible to use the
+operating system's I/O redirection facilities to take input from
+and write output to a file rather than use the keyboard and screen
+respectively. Under NetBSD, for example, commands could be taken
+from a file thus:
+
+	brandy <command.list
+
+Or read from one file with output going to a second file using:
+
+	brandy <command.list >output.file
+
+Under RISC OS these would be:
+
+	brandy { < command.list }
+
+and
+
+	brandy { < command.list > output.file }
+
+Under NetBSD and Linux, redirecting output to a file disables all
+of the VDU commands except for VDU 7, 8, 9, 10, 13 and 27. The
+interpreter flags an error if any VDU command apart from the ones
+listed is used unless the command line flag '-ignore' is used,
+in which case it is just ignored. The reason for this is to make
+the program only write plain text to the file. Similarly,
+redirecting input disables the functions GET and INKEY as well as
+the command line editing and recall features.
+
+RISC OS behaves differently in that nothing is disabled by using
+I/O redirection.
+
+The DOS version of the program does not yet fully support I/O
+redirection. Input can be redirected in the same way as the NetBSD
+and Linux versions but output redirection still needs some work
+done on it in the current version of the interpreter, 1.13.
+(Aside: It works if the program is compiled with textonly.c but
+not if textgraph.c is used. Textgraph.c supports graphics but
+textonly.c does not, so the choice is between a version of the
+program that has graphics and no output redirection or no graphics
+and does support output redirection.)
+
+The current Windows version of the program does not support I/O
+redirection at all.
+
+When input redirection is used, each line from the file is read
+and executed at Brandy's command line. These can be commands to
+load and run programs or Basic statements. Within the limitations
+of what can be run as a single statement from the command line,
+entire Basic programs can be run this way.
+
+One useful command is 'QUIT', which can be used to finish the run
+of the interpreter. The run is also stopped if the end of the file
+is reached.
+
+An example might help here. Consider the following:
+
+	LOAD"examples/sieve"
+        RUN
+        LOAD"examples/hex"
+        RUN
+        IF X%=10 THEN QUIT
+        RUN
+        QUIT 100
+
+If this is saved in a file (for example, command.bbc), then
+typing:
+
+	brandy <command.bbc
+
+would run the interpreter. It would read each line of the file and
+execute it. Note how the IF statement is used to end the run of
+the interpreter before the end of the file is reached because some
+condition is true. It should not be forgotten that after running
+a program, all of its variables are still available until it is
+run again or another program is loaded. At the end QUIT is used to
+halt the run of the interpreter and return a status code of 100 to
+the operating system. (The interpreter normally returns a status
+code of 0.)
+
+
+Using Basic as a Script Language Under NetBSD and Linux
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Basic is not really designed for use as a script language but it
+can be used in this way under NetBSD and Linux. If the first line
+of a Basic program contains the name of the interpreter and the
+file containing the Basic program is made executable, the
+interpreter will automatically be used to run the program, for
+example, conside the following program:
+
+	#!/usr/local/bin/brandy
+	PROCprint
+	QUIT
+	:
+	DEF PROCprint
+	PRINT "Hello"
+	ENDPROC
+
+If this is saved in a file (called, for example, 'hello.bbc')
+and the file is made executable with the command:
+
+	chmod +x hello.bbc
+
+then typing:
+
+	hello.bbc
+
+will invoke brandy and pass the name of the program (hello.bbc)
+to it. Brandy ignores the first line as it starts with '#!' but
+reads the rest of the program and runs it. Note the use of the
+QUIT command to exit from the interpreter once the Basic program
+has finished.
+
+One important point to note here is that the example assumes that
+there is a copy of Brandy in the directory /usr/local/bin.
+
+Using Brandy in this way is different to I/O redirection. Here,
+the interpreter is being invoked with a program. Using input
+redirection, Brandy is passed a string of commands that it
+executes at the command line.
+
+
+The SYS Statement
+~~~~~~~~~~~~~~~~~
+The SYS statement is used to make calls to the operating system
+on machines that run RISC OS. It is envisaged that the same
+mechanism will be used under other operating systems. 
+
+
+The 'key' Command
+~~~~~~~~~~~~~~~~~
+A new feature in Brandy 1.16 is that it emulates the RISC OS
+'key' command to allow strings to be assigned to function keys.
+This is an operating system command under RISC OS that is
+emulated by the interpreter. The command is issued using OSCLI
+in the normal way. The format is:
+
+	key <key number> <string>
+
+where <key> is the function key number in the range 0 to 15
+and <string> is the string assigned to that key. Pressing
+that function key will insert the string into the keyboard
+buffer, for example:
+
+	OSCLI "key 3 run"
+
+will assign the string "run" to function key 3.
+
+There is a simple escape mechanism to allow control characters
+to be included in the string. This is of the form:
+
+	|<letter>
+
+where <letter> is a letter.
+
+The escape sequence '|m' is used to represent a 'newline'
+character, so:
+
+	OSCLI "key 3 run|m"
+
+will set up function key 3 to insert "run" and a newline
+character into the keyboard buffer, so that pressing F3 will
+issue the command.
+
+The string can be enclosed in double quote if desired, for
+example:
+
+	OSCLI "key 4 "     ": REM Insert five blanks
+
+There is a command line option that can be used to tell the
+program to pass all commands to the underlying operating system
+rather than check them to see if they are RISC OS commands 
+emulated by the interpreter. This is '-nostar'.
+
+Note: The key command has not been fully implemented in that
+the RISC OS version allows a greater range of escape sequences.
+Also, it does not check for silly commands.
+ 
+Other emulated RISC OS commands could be added if desired.
+
+
+Performance
+~~~~~~~~~~~
+The Acorn Basic interpreter is written in ARM assembler. Brandy is
+in C and there is therefore no chance that it will come remotely
+close to the Acorn interpreter in terms of speed. The RISC OS
+version, for example, runs between two and five times slower
+when working with integers and is up to twelve times slower when
+floating point numbers are used extensively. That said, the
+performance is quite respectable on a faster processor.
+
+
+Important Error Messages
+~~~~~~~~~~~~~~~~~~~~~~~~
+Attention should be drawn to three of the error messages that the
+interpreter can produce:
+
+The interpreter has gone wrong at line <x> in <y>
+
+This indicates that the interpreter has lost the plot. It says
+that there is possibly something wrong with the Basic program in
+memory but the more likely cause is that the interpreter has run
+across a token that either has an illegal value or that should not
+be encountered in the context in which it was found. In short
+there is almost certainly a logic error in the interpreter. <x>
+and <y> give the line number and name of the module of the source
+code of the interpreter at which the problem was detected.
+
+Unsupported Basic V feature found
+Unsupported Basic V statement type found
+
+The statement contains something that is not supported by this
+version of the interpreter. The most likely culprit is a graphics
+or sound statement. (It might be possible to make the program
+run by using the command line option '-ignore'. This tells the
+intepreter to ignore 'cosmetic' unsupported features, such as
+changing the screen colours.)
+
+These are regarded as fatal errors and cannot be trapped by
+means of 'ON ERROR'.
+
+
+Known Problems
+~~~~~~~~~~~~~~
+There are no major known bugs in the program but there are a
+few minor issues as follows:
+
+1)	'PRINT' could be better implemented. 'WIDTH' is not
+	handled correctly and the way in which floating point
+	numbers are output could be better.
+
+2)	Assigning too large a floating point number to an integer
+	variable does not produce an error. On X86, 'A%=123E45'
+	sets A% to 0x80000000. It does not say that the value is
+	out of range. NetBSD does much the same thing, setting the
+	variable to either 0x7fffffff or 0x80000000 depending on
+	the sign of the floating point number. Under RISC OS an
+	exception is raised (SIGFPE), which is what is wanted.
+
+3)	If an error occurs when renumbering the lines of a program
+	when the program is being loaded, the line number of the
+	line in error is not listed. The reason is that 'top' has
+	not been updated at this point and so searching for the
+	line fails. (Effectively there is no program in memory yet
+	as far as the interpreter is concerned.)
+
+4)	COLOUR <red>,<green>,<blue> is not fully implemented.
+
+5)	GCOL <red>,<green>,<blue> has not been implemented at all.
+
+6)	Under Linux and NetBSD, pressing Ctrl-C when a program is
+	waiting for input should abort the Basic program immediately
+	but at the moment another character has to be typed after
+	pressing Ctrl-C.
+
+
+Miscellaneous Comments
+~~~~~~~~~~~~~~~~~~~~~~
+Some miscellaneous comments:
+
+TIME	When running under NetBSD and Linux, the function TIME
+	returns the processor time used by the program, not the
+	elapsed time. It always starts from zero and is therefore
+	useless as a way of seeding the random number generator,
+	that is, RND(-TIME) will not give the desired result.
+
+TIME=	This is supported.
+
+TIME$=	This is ignored.
+
+MID$()=	There is a difference between Brandy's and Acorn Basic's
+	implementation of 'MID$()='. In Acorn's interpreter, if
+	the starting position exceeds the maximum length of a
+	string (255 characters) the start of string is overwritten.
+	In Brandy, nothing is changed in the original string if the
+	starting position of the new string exceeds the length of	
+	original string.
+
+RIGHT$	Brandy does not precisely emulate the Basic RIGHT$ function.
+	For small negative values of the string length Acorn Basic
+	returns a null string but for large negative values it
+	returns the original string. 'RIGHT$(A$,-33024)' returns
+	a null string but 'RIGHT$(A$,-33025)' returns the value
+	of A$. Brandy always returns a null string if the length
+	is negative.
+
+Block IF Statements
+	There is what looks like a bug in Brandy at first glance
+	involving block IF statements. The following program
+	behaves differently under the Acorn interpreter and Brandy:
+
+	X%=10
+	IF X%=1 THENREM X is 1
+	PRINT"X is 1"
+	ELSE
+	PRINT"Hello X is ";X%
+	ENDIF
+
+	The Acorn interpreter prints 'X is 1' but Brandy prints
+	'Hello X is 10'. The reason for this is that Brandy always
+	sees the IF statement as a block IF. The REM statement is
+	ignored as programs are always run in a 'crunched' form
+	therefore as there is nothing after the 'THEN' the
+	statement is identified as a block IF. In the case of the
+	Acorn interpreter, the 'THEN' is not at the end of the
+	line and it is taken as a single line IF.
+
+	If the program is crunched in the Acorn interpreter by
+	typing 'CRUNCH 31' its behaviour changes. It now prints
+	'Hello X is 10', that is, the IF statement is now seen
+	as a block IF as the REM statement has been discarded.
+
+	The moral of the story is that Brandy runs programs in
+	a crunched form.
+
+Floating Point Number Formats
+	There is an incompatibility between the versions of the
+	program that run on ARM processors and those that run on,
+	for example, a X86, that affects floating point numbers.
+	A file containing floating point numbers written on an
+	ARM processor using PRINT# cannot be read on a processor
+	with a X86 via INPUT# as the format in which the numbers
+	are written to the file is different. On a ARM processor,
+	eight byte floating point numbers are held in the order
+	'aa bb cc dd ee ff gg hh' but on a X86 they are in the
+	order 'ee ff gg hh aa bb cc dd'. Whilst this is a minor
+	issue, it might cause problems. It will be resolved in a
+	later version of the program.
+
+Keyboard Mapping Under DOS and Windows
+	DOS and Windows have separate keyboard mappings. If
+	Brandy is compiled as a DOS program (as it is when using
+	DJGPP) the program uses the DOS keyboard mapping when
+	reading anything from the keyboard. If this has not been
+	changed from the default (by means of statements in
+	AUTOEXEC.BAT and CONFIG.SYS) and the program is run in a
+	DOS box under Windows, it could appear as if the keyboard
+	mapping is wrong. The answer is to add the relevant
+	statements to the files named above.
+
+The WAIT statatemt
+	Under DOS, the 'WAIT <time>' statement does not always
+	halt the program for the time given by <time>. On some
+	types of PC it seems to wait for up to 25% longer than
+	it should, yet on others it works as expected. This
+	problem does not affect other operating systems.
+
+
+Conclusion
+~~~~~~~~~~
+It has been said that Basic is a poor language and that nobody
+seriously uses it. In my opinion Acorn's dialect, Basic V, is an
+excellent one and worth looking at. It has its faults and lacks
+any support for current practices such as object oriented
+programming. On the other hand the language is simple and the
+interpreter requires no special packages or additional libraries
+on the machine on which it runs. Basic V is easy to use and
+substantial programs can be written using it. It is good for
+small, one-off programs or for experimenting. It can also make
+programming enjoyable again.
+
+This is the first version of the program. It seems to be quite
+stable but plenty of bugs still lurk. They are many rough edges
+and a number of minor features have only been partially
+implemented as yet. There is plenty of scope for improvement.
+
+Contact
+~~~~~~~
+If anybody has any suggestions or improvements for the program
+or finds any bugs, I can be email'ed at:
+
+	dave_daniels@argonet.co.uk
+
+Alternatively post a message on the comp.sys.acorn.programmer
+newsgroup.
+

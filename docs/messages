@@ -1,0 +1,921 @@
+Error Messages
+==============
+
+Following is an alphabetical list of the error messages produced
+by Brandy and explanations of what they mean.
+
+Error messages are divided into three categories depending on how
+serious the error is. These are warnings, errors and fatal errors
+and are marked below by (Warning), (Error) and (Fatal)
+respectively. Warnings are the least serious and the Basic program
+continues to run after the error message has been displayed.
+Errors will normally cause the program to be halted but they can
+be trapped by means of ON ERROR or ON ERROR LOCAL statements.
+The third type of error, fatal errors, represent serious
+problems that cannot be trapped. The Basic program is always
+stopped if one of these in encountered.
+
+A number of these messages refer to the 'Basic stack'. This is an
+area of memory that the interpreter uses to temporarily store
+information. The 'Basic workspace' is the area of memory that
+holds the Basic program plus any variables, arrays and strings it
+creates and the Basic stack.
+
+Some of the messages below contain expressions such as '<value>'
+or 'PROC<name>'. The purpose of these is to say what appears in
+the real error messages, for example, 'PROC<name>' indicates that
+the name of a procedure is displayed at that point in the error
+message. '<value>' is a numeric value. Other examples are
+'<array name>()', which represents the name of an
+array and '<file name>' which is the name of a file.
+
+(Error)  '#' missing
+--------------------
+There is a syntax error in this line. A '#' is expected after one
+of the keywords, for example, CLOSE# or BPUT#
+
+(Error)  '(' missing
+--------------------
+There is a syntax error in this line. A '(' is expected after one
+of the keywords, for example, if DIM is used as a function if must
+be followed by a (' as in DIM(array(), 2)
+
+(Error)  ')' missing
+--------------------
+There is a syntax error in this line. The interpreter expected to
+find a ')' but found something else.
+
+(Error)  ',' missing
+--------------------
+There is a syntax error in this line. The interpreter expected to
+find a ',' but found something else instead.
+
+(Error)  ',' or ')' expected
+----------------------------
+There is a syntax error in this line. A ',' or ')' was expected,
+for example, in the parameter list of a procedure or function
+definition, but something else was found instead.
+
+(Error)  '=' (function return) encountered outside a function
+-------------------------------------------------------------
+A function return is marked by starting a statement with an '='.
+One of these was found outside a function.
+
+(Error)  '=' missing
+--------------------
+There is a syntax error in an assignment statement in this line.
+The assignment operator, =, was expected but something else was
+found instead.
+
+(Error)  'CASE' statement has too many 'WHEN' clauses
+-----------------------------------------------------
+This is an implementation limitation. A single CASE statement
+has more than 500 WHEN clauses.
+
+(Error)  'LIBRARY LOCAL' can only be used at the start of a library
+-------------------------------------------------------------------
+The LIBRARY LOCAL statement, used to define variables and arrays
+that will be private to a library, has been encountered at some
+place other than the start of a library. It can only be used at
+the start of a library before the first procedure or function in
+the library.
+
+(Error)  'OF' missing
+---------------------
+There is a syntax error in a CASE statement in this line. The
+keyword OF is missing. This should go after the CASE expression.
+
+(Error)  'ON' statement index value of <value> is out of range
+--------------------------------------------------------------
+The index value in an ON statement is either less than one or
+greater than the number of entries in the ON statement and there
+is no ELSE part to deal with this case.
+
+(Error)  'RESTORE DATA' information is not the top item on the Basic stack
+--------------------------------------------------------------------------
+The LOCAL DATA statement stores information on the Basic stack
+that will be retrieved later by a RESTORE DATA statement. This
+error message says that the interpreter could not find that
+information when it reached a RESTORE DATA statement.
+LOCAL DATA and RESTORE DATA statements go in pairs.
+
+(Error)  'RESTORE ERROR' information is not the top item on the Basic stack
+---------------------------------------------------------------------------
+The LOCAL ERROR statement stores information on the Basic stack
+that will be retrieved later by a RESTORE ERROR statement. This
+error message says that the interpreter could not find that
+information when it reached a RESTORE ERROR statement. LOCAL ERROR
+and RESTORE ERROR statements go in pairs.
+
+(Error)  'SPC()' or 'TAB()' found outside an 'INPUT' or 'PRINT' statement
+-------------------------------------------------------------------------
+The two functions SPC() and TAB() can only be used in INPUT and
+PRINT statements.
+
+(Error)  'SYS' statement has too many parameters
+------------------------------------------------
+In a SYS statement, a maximum of ten parameters can be passed to
+a SWI or received back from it.
+
+(Error)  'TO' missing
+---------------------
+The keyword TO is missing in a FOR statement.
+
+(Error)  '"' missing
+---------------------
+This error is reported when dealing with a string that is in
+quotes in a READ statement. The end of the line in the DATA
+statement has been reached and the second '"' has not been found.
+
+(Error)  Address is out of range
+--------------------------------
+This error can be reported when using indirection operators in an
+arithmetic expression. It says that the address from which data is
+to be read or to which it is to be written lies outside the Basic
+workspace. More specifically, whilst the contents of any address
+within the Basic workspace can be read, data can only be written
+to addresses that lie between the top of the Basic program itself
+and the Basic stack and from HIMEM to the end of the Basic
+workspace. This is to prevent the Basic program corrupting itself.
+
+(Fatal)  Amount of memory requested exceeds what is available
+-------------------------------------------------------------
+This message is produced when a NEW command is used to change the
+size of the Basic workspace if the new size is greater than the
+memory available to run the interpreter.
+
+(Error)  Arithmetic operations cannot be performed on these operands
+--------------------------------------------------------------------
+This says that an arithmetic operation is not possible with the
+operands provided, for example, it is not possible to subtract one
+character string from another.
+
+(Fatal)  Arithmetic stack overflow
+----------------------------------
+This says that there is no memory left for information to be
+stored on the Basic stack. The most likely cause of this is a
+problem in the Basic program, for example, it has gone into a loop
+making recursive procedure or function calls. Another possibility
+is that there is very little memory left once all the arrays and
+variables that a program uses have been created and there is no
+room for the Basic stack.
+
+(Error)  Array '<array name>()' has already been created
+--------------------------------------------------------
+The array named in the message has already appeared in a DIM statement.
+
+(Error)  Array '<array name>()' has too many dimensions
+-------------------------------------------------------
+An attempt has been to create an array with more dimensions than
+the interpreter allows. The limit is ten (this is an
+implementation restriction of the interpreter).
+
+(Error)  Array index value of <value> is out of range in reference to '<array name>()'
+--------------------------------------------------------------------------------------
+This error indicates that an array index in a reference to an
+element of the array given in the message is bad. It is either
+less than zero or greater than the size of the dimension of the
+array to which it refers.
+
+(Error)  Bad program
+--------------------
+The Basic program in memory has been corrupted and is not usable.
+This error might appear if the value of PAGE is changed and the
+OLD statement is used to recover a program that supposedly starts
+at this new location. If there is not a recognisable program then
+this error message will be displayed. At this point the only
+commands allowed are LOAD, NEW or QUIT. This message will be
+displayed again if anything else is used.
+
+(Fatal)  Basic program file '<file name>' is empty
+--------------------------------------------------
+The basic program file <file name> referenced in a LOAD or CHAIN
+statement is empty.
+
+(Error)  Call to built-in function does not have enough parameters
+------------------------------------------------------------------
+A call in a built-in function such as LEFT$ does not have enough
+parameters.
+
+(Error)  Call to built-in function has too many parameters
+----------------------------------------------------------
+A call to a built-in function such as RIGHT$ has too many
+parameters.
+
+(Error)  Cannot find 'ENDCASE'
+------------------------------
+This can appear when executing the statements following a WHEN
+part of a CASE statement. The interpreter has reached the end of
+the statements for a particular WHEN and is trying to find the
+ENDCASE for the statement so that the program can continue at that
+point. The message says that it cannot find the ENDCASE.
+
+(Error)  Cannot find 'ENDWHILE' matching this 'WHILE'
+-----------------------------------------------------
+The message says that the interpreter encountered a WHILE
+statement where the initial value of the expression after the
+WHILE was FALSE. This means that the entire loop will be skipped.
+The interpreter cannot find the ENDWHILE at the end of the loop.
+
+(Error)  Cannot find array '<array name>()'
+-------------------------------------------
+The array named in the error message cannot be found, that it, it
+was not declared on a DIM statement.
+
+(Fatal)  Cannot find file '<file name>'
+---------------------------------------
+The file named in the error message could not be found when trying
+to open the file for reading.
+
+(Error)  Cannot find function 'FN<name>'
+----------------------------------------
+This error can show up when evaluating an arithmetic expression.
+The function named in the message cannot be found in the Basic
+program or any of the currently loaded libraries (assuming that
+the Basic program loads any libraries).
+
+(Error)  Cannot find library '<file name>'
+------------------------------------------
+The library named in the message could not be found when trying to
+execute a LIBRARY or INSTALL statement.
+
+(Error)  Cannot find line <value>
+---------------------------------
+The line with line number given in the message could not be found
+when executing, for example, a GOTO or RESTORE statement.
+
+(Error)  Cannot find matching 'ENDIF' for this 'IF' or 'ELSE'
+-------------------------------------------------------------
+There is a problem with the syntax of the program. An ENDIF could
+not be found when trying to find the ENDIF for the current block
+IF statement. ENDIFs have to be the first item on a line.
+
+(Error)  Cannot find procedure 'PROC<name>'
+-------------------------------------------
+The procedure named in the message cannot be found either in the
+program or in any libraries that have been loaded. 
+
+(Error)  Cannot find variable '<variable name>'
+-----------------------------------------------
+There is a reference to the variable named in the message but it
+cannot be found. In other words, no value has been assigned to the
+variable before that variable is referenced.
+
+(Error)  Cannot open file '<file name>' for output
+--------------------------------------------------
+In a call to the OPENOUT function, the file named in the message
+cannot be opened or created, for example, because the file is
+being written to something that can only be read from.
+
+(Error)  Cannot open file '<file name>' for update
+--------------------------------------------------
+In a call to the OPENUP function, the file named in the message
+cannot be opened, for example, because the name of the file is not
+legal.
+
+(Error)  Cannot write to file as it has been opened for input only
+------------------------------------------------------------------
+An attempt has been made to write to a file that has been opened
+for input only via the OPENIN function. The file should be opened
+with OPENUP if it is to be written to as well as read from.
+
+(Error)  Character string is too long
+-------------------------------------
+An attempt has been made to create a character string that is
+longer than the interpreter allows. The limit is currently 65536
+characters.
+
+(Fatal)  Could not create file '<file name>'
+--------------------------------------------
+This error is reported when trying to save a Basic program if it
+is not possible to create the file named in the message, for
+example, because the name of the file is not legal.
+
+(Fatal)  Could not finish writing to file '<file name>'
+-------------------------------------------------------
+An error occured when writing the file named in the message, for
+example, the disk filled up.
+
+(Fatal)  Could not read file '<file name>'
+------------------------------------------
+An error occured when reading the file named in the message that
+the program could not deal with.
+
+(Error)  Dimension of array '<array name>()' is negative
+--------------------------------------------------------
+In a DIM statement, the value of one of the dimensions of the
+array named in the message is negative.
+
+(Error)  Division by zero
+-------------------------
+This says that the interpreter has encountered an attempt to
+divide by zero in an arithmetic expression.
+
+(Error)  ENDPROC encountered outside a PROC
+-------------------------------------------
+The interpreter has reached an ENDPROC statement but no procedures
+have been called.
+
+(Error)  Escape
+---------------
+The 'escape' key has been hit to stop the Basic program running.
+Whilst everything in the program is left as it was at the time the
+key was pressed to allow, for example, the values of variables to
+be printed out, it is not possible to restart the program from he
+point at which it halted.
+
+(Fatal)  Expression is too complex to evaluate
+----------------------------------------------
+This says that the interpreter has come across an arithmetic
+expression that is too complicated for it to evaluate. The
+expression will have to be simplified.
+
+(Error)  File name missing
+--------------------------
+A SAVE command needs the name of the file to be supplied as the
+name cannot be found anywhere else.
+
+(Error)  Floating point exception
+---------------------------------
+An arithmetic operation involving floating point number has given
+an error, for example, the result of a multiplication is greater
+than (roughtly) 10 to the 308.
+
+(Error)  Functions cannot be used as PROCs
+------------------------------------------
+A statement has been found that starts with a call to a user-
+defined function, that is, a function is being used where a
+procedure call would be expected. This is not allowed.
+
+(Error)  HIMEM cannot be changed in a PROC, FN or any other program structure
+-----------------------------------------------------------------------------
+The places in a Basic program where HIMEM can be changed are
+limited. It cannot be altered in a procedure, function, subroutine
+or in the body of a loop, for example, in the body of a REPEAT
+loop. It cannot be altered after either LOCAL DATA or LOCAL ERROR
+tatements have been used. In short, it can really only be
+hanged at the start of a program.
+
+(Fatal)  Handle is invalid or file associated with it has been closed
+---------------------------------------------------------------------
+Files are identified by the interpreter by a so-called 'file
+handle' when they are being read from or written to. This message
+says that the file handle used in a file I/O statement is not
+one of the handles currently in use or an attempt has been
+made to perform an I/O operation on a file that has been closed.
+
+(Error)  Have reached end of file
+---------------------------------
+This error can occur when reading a file. An attempt has been made
+to read beyond the end of the file.
+
+(Fatal)  Hit problem with file '<file name>'
+--------------------------------------------
+This says that the interpreter encountered an error when reading
+from or writing to a file that it could not handle, for example,
+the disk filled up when writing a file to disk.
+
+(Error)  Invalid option found after 'TRACE'
+-------------------------------------------
+The trace option after TRACE is not one of ON, OFF, PROC, GOTO,
+STEP or RETURN.
+
+(Error)  LOCAL found outside a PROC or FN
+-----------------------------------------
+A LOCAL statement has been encountered by the interpreter but this
+statement can only be used in a procedure of function.
+
+(Error)  LOMEM cannot be changed in a PROC or FN
+------------------------------------------------
+This error message says that an attempt was made to change the
+pseudo-variable LOMEM in a procedure or function. LOMEM can only
+be altered before calling any procedures or functions (or possible
+between calls) as changing it discards all the variables and
+arrays created by the program.
+
+(Warning)  Library '<file name>' has already been loaded. Command ignored
+-------------------------------------------------------------------------
+This is a warning message put out when an attempt is made to load
+a library via LIBRARY when there is already a copy of it in memory
+loaded by a previous LIBRARY command. (The same message can also
+be displayed when INSTALL is used to load a library that has
+already been loaded via INSTALL.) Note that it is possible to use
+INSTALL to load a library and then for the same library to be
+loaded via LIBRARY. The version brought into memory using LIBRARY
+will take precedence. 
+
+(Error)  Line number is outside the range 0..65279
+--------------------------------------------------
+The line number in, for example, a GOTO statement is outside the
+range allowed for line numbers.
+
+(Fatal)  Line number went outside the range 0..65279 when renumbering program
+-----------------------------------------------------------------------------
+This error can appear when the RENUMBER command is used, possible
+as a result of using too large a line number step. The program is
+renumbered again using a step of one.
+
+(Warning)  Line numbers have been added to the program
+------------------------------------------------------
+This message is displayed when a program is loaded via the LOAD
+command or the command line option '-load'. if the program does
+not have line numbers.
+
+(Warning)  Memory available for Basic programs is now <value> bytes
+-------------------------------------------------------------------
+This message is put out when the NEW command is used to change the
+size of the Basic workspace to confirm the new size of the
+workspace.
+
+(Error)  Not in a 'FOR' loop
+----------------------------
+This message says that the interpreter has encountered a NEXT
+statement but it is not in a FOR loop.
+
+(Error)  Not in a 'REPEAT' loop
+-------------------------------
+This error message indicates that the interpreter has run into an
+UNTIL statement but it is not in a REPEAT loop.
+
+(Error)  Not in a 'WHILE' loop
+------------------------------
+This message can be produced when an ENDWHILE statement is
+encountered. It says that the statement has been found when the
+Basic program is not executing a WHILE loop.
+
+(Warning)  Note: <value> open files have been closed
+----------------------------------------------------
+The interpreter keeps track of all the files that have been opened
+by Basic programs. When the run of the interpreter itself ends it
+closes any files that are still open. This message is displayed if
+it has to close any.
+
+(Warning)  Note: one open file has been closed
+----------------------------------------------
+The interpreter keeps track of all the files that have been opened
+by Basic programs. When the run of the interpreter itself ends it
+closes any files that are still open. This message is displayed if
+it has to close any.
+
+(Error)  Number is out of range
+-------------------------------
+This messages says that an arithmetic operation has given an
+error, for example, the result of the multiplication of two
+integers is larger than can be stored in an integer variable.
+
+(Error)  Number of array indexes in reference to '<array name>()' is wrong
+--------------------------------------------------------------------------
+Either too many or two few indexes have been supplied in a
+reference to the array named in the message.
+
+(Error)  OS command failed
+--------------------------
+An operating system command issued via OSCLI or '*' failed. It
+returned a negative status code.
+
+(Error)  PROCs cannot be used as functions
+------------------------------------------
+This error message can be generated when evaluating an arithmetic
+expression. It indicates that the Basic program is trying to call
+a procedure as if it were a function.
+
+(Error)  Parameter no. <value> is not a valid 'RETURN' parameter
+----------------------------------------------------------------
+This message can appear when the interpreter is evaluating the
+parameters of a function or procedure call. 'Return' parameters
+are used to pass back values when a procedure or function call
+ends and there are restrictions as to what can be used for such
+parameter in the actual procedure or function call. In general,
+references to variables, arrays and elements are allowed but
+general arithmetic expressions are not. The interpreter has found
+a general expression When evaluating the parameter.
+
+(Fatal)  Program execution has run into a PROC or FN
+----------------------------------------------------
+It is an error in this interpreter for it to encounter a DEF PROC
+or DEF FN statement in the normal course of running a program.
+
+(Error)  RETURN encountered outside a subroutine
+------------------------------------------------
+The interpreter has encountered a RETURN statement but no
+subroutines have been called.
+
+(Fatal)  STOP
+-------------
+This error message is produced when a STOP statement is reached.
+The Basic program is halted at this point.
+
+(Error)  Screen mode descriptor is invalid
+------------------------------------------
+There is something wrong with the screen mode description string
+after the MODE keyword.
+
+(Error)  Screen mode is not available
+-------------------------------------
+A screen mode that matches the one requested in the mode
+description string is not available.
+
+(Error)  Silly!
+---------------
+This message indicates that an error such as setting the STEP
+value in a FOR loop to zero has been found.
+
+(Error)  Line is longer than 1024 characters
+--------------------------------------------
+The maximum length of a line that the interpreter can handle is
+1024 characters. However, this message can be produced when the
+length of a line is much less than this due to the way in which
+the interpreter works. The real limit depends on the contents of
+the line but will be around 500 characters.
+
+(Error)  Syntax error
+---------------------
+There is something wrong with the syntax of the statement, for
+example, there is some extra text at the end of it.
+
+(Error)  Syntax error in expression
+-----------------------------------
+There is an error in the syntax of an arithmetic expression.
+
+(Error)  The dimension number in call to 'DIM()' is out of range
+----------------------------------------------------------------
+In a call to the DIM function to find the size of an array
+dimension, the number of the dimension is less than one or greater
+than the number of dimensions of the array supplied as the first
+argument of the function call.
+
+(Error)  The dimensions of array '<array name>()' have not been defined
+-----------------------------------------------------------------------
+The array <array name> has been declared as a LOCAL array in a
+procedure or function but its dimensions have not been defined on
+a subsequent DIM statement.
+
+(Fatal)  The file pointer cannot be changed
+-------------------------------------------
+This error can occur when the PTR# statement is used. It means
+either that the attempt to set the file pointer of the file being
+referenced in the statement failed or that the file itself is of
+a type that does not have a file pointer.
+
+(Fatal)  The file pointer's value cannot be found
+-------------------------------------------------
+This message is associated with the PTR# function. It means either
+that the attempt to find the value of the file pointer of the file
+being referenced in the function failed or that the file itself is
+of a type that does not have a file pointer.
+
+(Fatal)  The interpreter has gone wrong at line <value> in <file name>
+----------------------------------------------------------------------
+This message indicates that the interpreter has detected something
+has gone wrong in itself. <value> and <filename> say where the
+problem was discovered. This message should not appear and almost
+certainly means that the Basic program being run has revealed a
+bug in the interpreter.
+
+(Fatal)  The interpreter has run out of memory
+----------------------------------------------
+This indicates there is no more memory left in the Basic
+workspace. There can be many reasons for this, for example, there
+might not be enough room to create a long character string or
+there might be no memory to create a local array in a procedure.
+The size of the Basic workspace can be increased by means of the
+NEW statement, but at a cost of losing everything in the existing
+workspace.
+
+(Fatal)  The maximum allowed number of files is already open
+------------------------------------------------------------
+The interpreter only allows a certain number of files to be open
+at the same time and the Basic program is attempting to open more
+than that number. The limit is twenty files.
+
+(Fatal)  The size of the file cannot be found
+---------------------------------------------
+This message is produced by an error in a call to the EXT#
+function. It indicates either that the attempt to find the size of
+the file referenced in the function failed or, more likely, that
+the file itself does not have a set size. An example of this is
+when trying to read from the serial port: although the serial port
+is seen as a file by the program it is not really one and trying
+to find its size is meaningless.
+
+(Error)  There are no more 'DATA' statements to read
+----------------------------------------------------
+This error message can be generated by a READ statement. It says
+that the Basic program is trying to read more data than has been
+supplied on the DATA statements.
+
+(Error)  There are not enough parameters in the call to '<name>'
+----------------------------------------------------------------
+The number of parameters supplied in a call to the procedure or
+function named in the error message is less than the number
+defined in its DEF PROC or DEF FN statement.
+
+(Error)  There are too many parameters in the call to '<name>'
+--------------------------------------------------------------
+The number of parameters supplied in a call to the procedure or
+function named in the error message is greater than the number
+defined in its DEF PROC or DEF FN statement.
+
+(Fatal)  There is not enough memory to create a byte array
+----------------------------------------------------------
+This says that the Basic program has run out of memory. This
+happened when trying to create a byte array in a DIM statement,
+that is, when dealing with a '<variable name> <size>' type of
+array definition. There was no enough memory left in the Basic
+workspace to create an array of the requested size. Assuming that
+there was not something wrong with the array size itself, the way
+to fix this is to increase the size of the Basic workspace.
+
+(Fatal)  There is not enough memory to create array '<array name>()'
+--------------------------------------------------------------------
+This error message says that the Basic program has run out of
+memory when trying to create the array named in the message. It is
+possible for this error to appear if the Basic program goes into
+a loop making recursive calls to a procedure or function that
+creates local arrays and it runs out of memory because it is
+making so many copies of the array, but if there is nothing wrong
+with the Basic program then the size of the Basic workspace will
+have to be increased.
+
+(Fatal)  There is not enough memory to load library '<file name>'
+-----------------------------------------------------------------
+This message says that the interpreter ran out of memory when
+trying to load a library via INSTALL or LIBRARY. If the failure
+occurs when using a LIBRARY statement then the size of the Basic
+workspace will have to be increased to make room for the
+library. On the other hand, not much can be done if it
+ccurs on an INSTALLcommand as there is not enough
+memory available to run the interpreter.
+
+(Fatal)  This Basic command cannot be used in a running program
+---------------------------------------------------------------
+Some Basic commands such as LIST can be used in a program as their
+effects are benign, but in general commands tend to have
+distructive effects on the program, for example, he NEW command,
+so they cannot be used.
+
+(Fatal)  This version of the interpreter does not support graphics
+------------------------------------------------------------------
+The version of the interpreter being used does not support any of
+the graphics statements such as MOVE, DRAW, PLOT, CLG and so
+forth.
+
+(Error)  Tried to take log of zero or a negative number
+-------------------------------------------------------
+This error is produced when LN or LOG are called in an arithmetic
+expression when the function argument is zero or negative.
+
+(Error)  Tried to take square root of a negative number
+-------------------------------------------------------
+This error is reported when SQR is called in an arithmetic
+expression when the function argument is negative.
+
+(Error)  Type mismatch: array wanted
+------------------------------------
+This error is produced when an array is required, for example, as
+the first argument in a call to the DIM function, but the item
+passed is not an array.
+
+(Error)  Type mismatch: array must have only one dimension
+----------------------------------------------------------
+The arrays used in some functions calls, for example, when being
+used for the translate table in a call to XLATE$, have to have
+only one dimension. This error is produced when the array has more
+than one dimension.
+
+(Error)  Type mismatch: arrays must have the same dimensions
+------------------------------------------------------------
+The arrays in such operations as array addition have to have the
+same number of dimensions and the number of elements in each
+dimension has to be the same.
+
+(Error)  Type mismatch: cannot compare these operands
+-----------------------------------------------------
+This error indicates that one or both of the operands of a
+relational operator is not valid, for example, it is not possible
+to compare a string with an integer or to compare arrays.
+
+(Error)  Type mismatch: cannot perform matrix multiplication on these arrays
+----------------------------------------------------------------------------
+The sizes of the dimensions of the arrays being used as operands
+in a matrix multiplication operation are not compatible, for
+example, one of the arrays has more than two dimensions or the
+number of columns in one matrix is not equal to the number of rows
+in the other.
+
+(Error)  Type mismatch: cannot swap variables or arrays of different types
+--------------------------------------------------------------------------
+This error can be reported on a SWAP statement. It means that an
+attempt has been made to swap two items of incompatible types, for
+example, an integer variable and a string variable or an integer
+array and a floating point array.
+
+(Error)  Type mismatch: floating point array wanted
+---------------------------------------------------
+This error can show up, for example, in a matrix multiplication
+operation where one of the operands contains floating point
+numbers but the other one does not. It can also be reported when
+trying to assign a value to a floating point array.
+
+(Error)  Type mismatch: integer array wanted
+--------------------------------------------
+This error can be reported in, for example, a matrix
+multiplication operation where one of the matrices contains
+integer values but the other one is, for example, a string. It can
+also be reported when assigning a value to an integer array.
+
+(Error)  Type mismatch: number or string wanted
+-----------------------------------------------
+This means that a numeric or string variable is needed but that is
+not what was found. This error can be produced, for example, on an
+INPUT statement if the item to be read is an array.
+
+(Error)  Type mismatch: number wanted
+-------------------------------------
+A number is required but the interpreter found something else, for
+example, a string. This error can be produced in a number of
+places, for example, array indices have to be numeric values.
+
+(Error)  Type mismatch: number wanted for PROC/FN parameter no. <value>
+-----------------------------------------------------------------------
+An error was found in a procedure of function call. The parameter
+supplied for the given parameter position should be numeric but
+something else was found instead, for example, a string.
+
+(Error)  Type mismatch: numeric array wanted
+--------------------------------------------
+This error is reported when a numeric array is required for an
+operation but the interpreter found something else.
+
+(Error)  Type mismatch: numeric variable wanted
+-----------------------------------------------
+This can typically show up in a FOR statement where the loop
+control variable has to be numeric.
+
+(Error)  Type mismatch: string array wanted
+-------------------------------------------
+A string array is required, for example, following the TO part of
+an OSCLI...TO statement, but the interpreter found something else
+instead.
+
+(Error)  Type mismatch: string wanted
+-------------------------------------
+This is a very common error to see. A string was required for an
+operation but something else, for example, a numeric value, was
+found instead.
+
+(Error)  Type mismatch: string wanted for PROC/FN parameter no. <value>
+-----------------------------------------------------------------------
+An error was found in a procedure or function call when evaluating
+the parameters of the call. The parameter at the given position
+should be a string but something else was found instead.
+
+(Error)  Unable to read from file
+---------------------------------
+This message indicates that an error occured when trying to read
+from a file that the interpreter could not deal with.
+
+(Error)  Unable to write to file
+--------------------------------
+This messaeg indicates that an error occured when trying to write
+to a file that the interpreter could not deal with.
+
+(Fatal)  Unexpected signal (<value>) received
+---------------------------------------------
+This message should never appear. If it does then something has
+gone wrong internally with the interpreter.
+
+(Error)  Unrecognisable operand
+-------------------------------
+This error message indicates that there is a syntax error in an
+arithmetic expression. The interpreter has found something that
+cannot be used as an operand.
+
+(Fatal)  Unsupported Basic V feature found
+------------------------------------------
+This message says that the interpreter has come across a version
+or feature of a Basic V statement that it does not support, for
+example, the USR function can only be used for certain specific
+purposes and anything else results in this error being flagged. 
+
+(Fatal)  Unsupported Basic V statement type found
+-------------------------------------------------
+The interpreter does not support all of the Basic V statements,
+for example, the OVERLAY statement is not supported.
+
+(Warning)  Value entered is not a legal token value
+---------------------------------------------------
+Tokens are keywords such as 'IF' but in the form that the
+interpreter uses internally. It is possible to type these in
+directly from the keyboard. This message is produced if this is
+attempted but the value typed in is not that used for a token.
+
+(Warning)  Value of HIMEM must be in the range END to end of the Basic workspace
+--------------------------------------------------------------------------------
+This messages says that the value to assigned to HIMEM is outside
+the allowable range. HIMEM can only be set to a value that puts it
+somewhere between the end of the Basic program's variables (given
+by the function END) and the end of the Basic workspace.
+
+(Warning)  Value of LOMEM must be in the range TOP to end of the Basic workspace
+--------------------------------------------------------------------------------
+This says that the value to assigned to LOMEM is outside the
+allowable range. LOMEM can only be set to a value that puts it
+somewhere between the top of the Basic program (given by the
+function TOP) and the end of the Basic workspace.
+
+(Warning)  Value of PAGE must lie in the Basic workspace
+--------------------------------------------------------
+PAGE gives the location in the Basic workspace where the Basic
+program begins. It can be set to point at any location in the
+workspace. This message is produced if an attempt is made to
+change it to a value that lies outside the workspace.
+
+(Error)  Variable after 'NEXT' is not the control variable of the current 'FOR' loop
+------------------------------------------------------------------------------------
+The keyword NEXT can be followed by the name of the control
+variable of the FOR statement at the start of the FOR loop
+currently being executed. This message says that the name supplied
+after the NEXT does not match.
+
+(Error)  Variable name expected
+-------------------------------
+This message says that there is an error in the statement being
+executed. The name of a variable was required but something else
+was found instead.
+
+(Fatal) VDU commands cannot be used as output is not to a screen
+----------------------------------------------------------------
+The output produced by the PRINT and VDU statements usually goes
+to the screen but can be redirected to a file. VDU commands cannot
+be used in a program when output is being sent to a file as they
+would be meaningless.
+
+(Warning)  Warning: '"' missing
+-------------------------------
+When reading a line of the Basic program from either a file or the
+keyboard, the interpreter has found a character string that has no
+terminating '"'.
+
+(Warning)  Warning: bad binary constant
+---------------------------------------
+The interpreter has found the start of a binary constant (a '%')
+in the Basic program but there are no digits after the %.
+
+(Warning)  Warning: bad hexadecimal constant
+--------------------------------------------
+The interpreter has found the start of a hexadecimal constant (a
+'&') in the Basic program but there are no digits after the &.
+
+(Warning)  Warning: could not find line <value> when renumbering program
+------------------------------------------------------------------------
+When renumbering the lines of the Basic program, the interpreter
+found a reference to a line number on a statement (for example, on
+a GOTO or GOSUB statement) that it could not find in the Basic
+program.
+
+(Warning)  Warning: exponent is too large
+-----------------------------------------
+The exponent in a floating point constant is too large. The limit
+is about 10 to the 308.
+
+(Warning) Warning: Floating point number format is not known
+------------------------------------------------------------
+This message is one that should never appear. In the highly
+unlikely case that it does, it will be displayed when the program
+first starts and means that the interpreter cannot identify the
+format of floating point numbers used by the processor on which
+the program is being run. This does not affect the normal
+operation of the program and can be ignored in the vast majority
+of cases. However, if files are being written using 'PRINT#' that
+contain floating point numbers and these files are being read on
+other types of machine, then there is a chance that the numbers
+will be read incorrectly on the other machine. If the file is read
+on the machine on which it was created or another one of the same
+type then there is no problem. It only becomes an issue if the
+file is moved between different machine types.
+
+(Warning)  Warning: line number is outside the range 0..65279
+-------------------------------------------------------------
+The interpreter has found a line number that is outside the range
+0 to 65279. This can be either the number of a line or a reference
+to a line in, for example, a GOTO statement.
+
+(Warning)  Warning: number of '(' in line exceeds the number of ')'
+-------------------------------------------------------------------
+When reading a line of a program from a file or from the keyboard,
+the number of '(' in the line was found to be greater than the
+number of ')'.
+
+(Warning)  Warning: number of '(' in line is less than the number of ')'
+------------------------------------------------------------------------
+When reading a line of a program from a file or from the keyboard,
+the number of '(' in the line was found to be less than the number
+of ')'.
+
+(Warning)  Warning: '(' and ')' are nested incorrectly
+------------------------------------------------------
+The interpreter found that brackets were incorrectly nested when
+reading a line of a program from a file or from the keyboard.
+
+

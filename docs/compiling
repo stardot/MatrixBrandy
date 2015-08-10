@@ -1,0 +1,189 @@
+These notes discuss how to compile the program under different operating
+systems.
+
+
+General
+-------
+The program is written strictly in ANSI C. It has been successfully
+compiled under the following operation systems:
+
+RISC OS		Norcroft C
+NetBSD, FreeBSD	gcc
+OpenBSD		gcc
+Linux		gcc
+Mac OS X	Objective C
+Amiga		SAS C
+DOS		gcc, Jacob Navia's version of lcc and Borland C++
+		version 5.5.
+
+It has also been compiled under Beos using gcc but this was just
+a test to make sure it worked.
+
+Hopefully the program will compile under other operating systems
+without any changes but it has only been tried on the above.
+ 
+The RISC OS version of the program is the main one. It was largely
+developed under RISC OS except for the OS-specific parts.
+
+Under RISC OS, the source is found in the 'C' and 'H'
+subdirectories in the interpreter's directory in the normal way.
+Under the other operating systems it is kept in the 'src'
+subdirectory.
+ 		
+As a general rule, the commands to compile the interpreter are:
+
+	cd brandy	Change to the directory containing the
+			interpreter.
+
+	make		recompiles modules including debug code
+- or -
+	make recompile	recompiles everything including debug code
+- or -
+	make nodebug	recompiles the program with no debug code
+			and optimisation turned on.
+
+Only one of the 'make' command should be used, depending on the
+version of the program that is desired, for example, to compile
+all of the source with debug code, change to the directory that
+contains the source and type:
+
+	make recompile
+
+
+Compiling Under Different Operating Systems
+-------------------------------------------
+Compilation of the OS-specific parts of the interpreter is
+controlled by a macro of the form:
+
+	TARGET_xxxxxx
+
+where 'xxxxxx' is the target operating system, for example,
+TARGET_RISCOS and TARGET_LINUX. The macro is defined in
+target.h. The values for the various operating systems are
+as follows:
+
+RISC OS		TARGET_RISCOS
+NetBSD		TARGET_NETBSD
+OpenBSD		TARGET_OPENBSD
+FreeBSD		TARGET_FREEBSD
+Linux		TARGET_LINUX
+Mac OS X	TARGET_MACOSX		
+DOS		TARGET_DJGPP, TARGET_WIN32, TARGET_BCC32
+Amiga		TARGET_AMIGA
+Beos		TARGET_BEOS
+
+Which of the above to use is determined in target.h by checking
+the predefined macros that are supplied by the compiler, for
+example, under RISC OS, there is a macro __riscos and if this
+exists, the macro TARGET_RISCOS is defined. It will be necessary
+to find out what macros are predefined by the C compiler to be
+used to compile the interpreter. If it is gcc, the predefined
+macros can be found by looking at the 'specs' file. The command
+'gcc -v' will say where this file is (if it exists). An
+alternative is to hard-code the TARGET_xxxx macro in target.h.
+
+
+Target.h
+--------
+The machine-specific options for compiling the program are defined
+in this include file. There is not much to set up and details of
+what is needed is given in the file. All of the conditional
+compilation in the program is controlled by what is set in
+target.h.
+
+
+Compiler Options
+----------------
+The options used for the non-debug version of the program have been
+found to give the best performance. They may not look the best and
+there may be cases where different options will give a better result
+for a particular Basic program but they seem to be good.
+
+
+RISC OS
+-------
+The program has only been compiled with the Norcroft C compiler.
+
+Acorn's make utility is called 'amu', not 'make', and so the
+commands to compile the program are:
+
+	amu
+- or - 
+	amu recompile
+- or -
+	amu nodebug
+
+The program compiles and runs under RISC OS 3.1 or later. Note
+that the names of some of the source files are longer than ten
+characters, which might cause problems for users of versions
+of RISC OS earlier than 4.0. Either the names will have to be
+truncated or a filing system that supports longer names such as
+Richard Atterer's raFS will have to be used.
+
+
+*BSD and Linux
+--------------
+There are no problems compiling the program under either of these
+operating systems. 
+
+It is in theory possible to compile a version of the program that
+supports graphics using Jonathan Griffith's platform-independent
+graphics library 'JLib' and svgalib. This did not work when tried,
+though.
+Some Linux and BSD targets implement graphics using the SDL libraries.
+Other targets can be made to support SDL by adding "#define USE_SDL"
+in the appropriate place in src/target.h.  If graphics are not
+required, then see the "No Graphics" section of this file.
+
+
+DOS
+---
+The program is meant to be compiled using D.J.Delorie's DOS
+extender DJGPP and the version of gcc that come with that but
+other compilers such as Borland's C++ compiler can be used. The
+file 'makefile' is set up for use with DJGPP and gcc but there 
+are two others, 'makefile.bcc' for use with the Borland compiler
+and 'makefile.text' that creates a version of the interpreter that
+has no graphics support.
+
+
+No Graphics
+-----------
+Some targets include graphics support by default: DOS implements
+graphics support using Jonathan Griffith's platform-idependent graphics
+library 'JLib', other targets implement graphics with SDL.
+
+If neither of these libraries are available then versions of the
+program that do not support graphics can be compiled by using the
+makefile 'makefile.text'.  makefile.text compiles two different
+brandy executables:
+  tbrandy: Text-only mode that supports ANSI escape sequences or
+           the DOS conio library
+  sbrandy: Simple text, output is restricted to functions such as
+           printf() and putchar()
+
+The commands to compile the different versions of the program become:
+
+	make -f makefile.text            # to make sbrandy and tbrandy.
+        make -f makefile.text sbrandy    # to make sbrandy only.
+        make -f makefile.text tbrandy    # to make tbrandy only.
+
+	make -f makefile.text recompile
+	make -f makefile.text srecompile
+	make -f makefile.text trecompile
+
+	make -f makefile.text nodebug
+	make -f makefile.text snodebug
+	make -f makefile.text tnodebug
+
+depending on the version of the code wanted.
+
+Borland C++
+-----------
+The interpreter can be compiled using Borland's C compiler. The
+makefile to use is 'makefile.bcc'. This will only create an
+optimised version of the code, that is, it does not compile the
+debugging version. The only flavour of 'make' command that works
+is:
+
+	make -f makefile.bcc

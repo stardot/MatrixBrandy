@@ -1,0 +1,385 @@
+Version 1.00  08/11/2000
+This is the initial release version of the interpreter.
+
+
+Version 1.01  14/11/2000
+-  Fixed bug in code that reads programs tokenised with Acorn's
+   tokens that affected the SUM' token.
+
+-  Fixed problem with SYS code in RISC OS version of program to
+   do with returning the processor flags. Only 'carry' was being
+   returned.
+
+-  Fixed bug in SYS code where SWIs that failed were always causing
+   the Basic program to be halted with an error. Execution now
+   continues if an 'X' form SWI is used.
+
+-  'QUIT=1' was not being flagged as a syntax error. Fixed.
+
+-  If a line containing an error such as:
+	100 abcd
+   was the last line of the program, the line number of the line
+   in error was not being given in the error message. Fixed.
+
+
+Version 1.02  20/11/2000
+-  Fixed bug in NetBSD and Linux versions where the type of a
+   parameter in a call to read() was wrong. This showed up on
+   big endian machines.
+
+-  Fixed bug where a statement such as DEF PROC1FORa%=1 TO 10 was
+   being handled incorrectly. The 'FOR' toke was being taken as part
+   of the procedure name.
+
+-  Fixed bug with array references where the first array index
+   started with an unary indirection operator. This was giving a
+   'type mismatch' error.
+
+-  The program does not work very well on big endian machines. 1.02
+   should hopefully be better in this respect.
+
+-  Compilation has been tidied up under NetBSD and Linux. The same
+   makefile is now used for both.
+
+
+Version 1.03  22/11/2000
+-  Fixed 'PRINT ""1' bug where '"1       1' was output instead of
+   just '       1'.
+
+-  More big endian problems sorted out.
+
+
+Version 1.04  26/11/2000
+-  Fixed bug where hex constants such as &FFFFFFFF were being
+   stored incorrectly (only the least significant byte was being
+   stored so &FFFFFFFF was showing up as &FF).
+
+-  Yet more big endian and alignment issues sorted out.
+
+
+Version 1.05  01/12/2000
+-  Libraries can now have variables that are private to those
+   libraries.
+
+-  LIBRARY and INSTALL can now handle lists of libraries.
+
+-  BPUT can now be followed by a list of values instead of just
+   one.
+
+-  OSCLI has been extended to allow the program to capture the
+   output from commands.
+
+
+Version 1.06  15/12/2000
+-  Bug where functions could be used as procedures (and vice
+   versa) fixed.
+
+-  Fixed bug in the VAL function where it would sometimes return
+   the wrong result as the string being converted was not
+   terminated properly.
+
+-  Fixed bug in BPUT introduced in 1.05.
+
+-  HIMEM can now be changed.
+
+-  Blank lines in files are no longer discarded when loading a
+   program.
+
+-  The initial value and step used if the lines of a program are
+   renumbered when loading a program have been changed to 1 and
+   1 respectively, the idea being that they will match the numbers
+   of the lines of the program in the file in an editor.
+
+-  Under RISC OS, the 'edit' command can now invoke editors such
+   as StrongED and Zap.
+
+-  Added limited support for making BBC MOS calls via USR and
+   CALL so that OS_Byte 0 could be used to determine the type of
+   the machine on which the interpreter is being run.
+
+
+Version 1.07  01/01/2001
+-  Fixed bug in function SUM when the argument was a string array.
+   The function should return all of the strings in the array
+   concatenated together but it was producing rubbish.
+
+-  Fixed bug in function SUM LEN. This was failing with the error
+   message 'type mismatch: array wanted'.
+
+-  Fixed bugs in the EOF and EXT functions that show up when the
+   file is not a disk file but, for example, a serial port.
+
+-  Sorted out some more portability issues, but at a cost of
+   making the program about 10% slower.
+
+-  The code for the OSCLI ... TO statement has been improved.
+
+-  The RISC OS version of the program has been changed to use
+   direct OS calls in fileio.c instead of C library functions. This
+   allows Basic programs to carry out I/O operations on a file using
+   a mixture of Basic statements and SWIs.
+
+-  The INPUT# code has been tidied up.
+
+-  Typing in token values directly on the command line is now
+   handled correctly, for example, typing in the hex value &F1
+   no longer gives the error 'The interpreter has gone wrong'.
+
+-  Under NetBSD and Linux, the handling of I/O redirection on the
+   program's command line has been sorted out. It is now possible
+   to invoke the program so that it takes input from or directs
+   output to a file instead of using the keyboard for input and
+   screen for output.
+
+-  The QUIT command can now optinally be followed by a value that
+   the interpreter passes back to the underlying operating system
+   as a return or status code.
+
+
+Version 1.08  19/04/2001
+-  Fixed 'big endian' bug in code that checks if a file contains
+   a tokenised Basic program. The test was failing on big endian
+   machines.
+
+-  Changed code that writes the four byte start marker at the
+   start of a Basic program so that it is always written in
+   the same order, that is, fixed another endian bug.
+
+-  Extended the WAIT statement so that the time to wait can
+   be supplied. The time interval is in centiseconds.
+
+
+Version 1.09  29/04/2001
+-  Fixed bug in INSTR where the end of the string being searched
+   was missed when the first character of the wanted string
+   occured a number of times in the search string.
+
+-  Tidied up STR function so that STR$~ produced the same results
+   as PRINT~, for 'STR$~255' now produced 'FF' instead of 'ff'.
+   Also changed the format for floating point values so that an
+   exponent is marked with an 'E' instead of an 'e'.
+
+-  Fixed bug in INPUT statement where INPUT ' cleared the screen
+   instead of skipping to the next line.
+
+-  Fixed bug in INPUT statement where 'INPUT TAB() <variable>'
+   printed a '?' prompt when it should not have done so.
+
+-  Fixed a problem in EVAL where the pointer to the expression
+   that contained the EVAL function was being corrupted if the
+   string being evaluated contained a reference to a function
+   that had not been called before. 'EVAL(EVAL(a$))' now works
+   as well.
+
+
+Version 1.10  28/05/2001
+
+-  Fixed bug in EDIT introduced fixing EVAL in version 1.09. A
+   'bad token' error message was being produced when editing a
+   single line with EDIT <line> under DOS and Unix. The amended
+   line was being saved correctly but the error message was then
+   being displayed.
+
+-  Tidied up handling of @% in PRINT and STR$ when the number of
+   digits to print is zero. '@%=0: PRINT PI' now produces
+   3.141592654 instead of 3, as per the Acorn interpreter.
+
+-  Added function XLATE$. This either translates a string using
+   a user-supplied translate table or translates it to lower case
+   if no translate table is supplied.
+
+-  Added function VERIFY. This is used to check that a string
+   contains only specific characters.
+
+-  Changed EDIT and EDITO so that EDIT uses the last EDITO value
+   instead of LISTO when converting the program to text when it
+   is edited. If EDITO has not been used, the LISTO value is
+   used instead.
+
+Version 1.11  17/09/2001
+
+Darren Salt (ds@youmustbejoking.demon.co.uk) contributed a number
+of the changes in this version of the program.
+
+-  Added support for reading Acorn five byte floating point
+   values (Darren Salt).
+
+-  Improved support for reading and writing Acorn eight byte
+   floating point values on machines that use a different format
+   for this sort of number to what Acorn use (Darren Salt).
+
+-  Added support for reading gzip'ed files under Linux (Darren
+   Salt).
+
+-  The Linux version of the program can be installed using
+   'configure' (Darren Salt).
+
+-  Added code to detect the format of eight byte floating point
+   numbers on the platform on which the interpreter is running.
+   This is used when reading and writing such values (DD, based
+   on original code by Darren Salt).
+
+-  The first line of a program in text form is now ignored if
+   it starts with a '#' in all versions of the interpreter.
+   This only used to be supported in the NetBSD and Linux
+   versions.
+
+-  Changed handling of syntax errors detected when a line is
+   tokenised. The interpreter now puts out a slightly more
+   meaningful 'syntax error' message if a program with such
+   an error in it is run instead of 'STOP'.
+
+-  DIM statements of the form 'DIM abc%!8 100' are now
+   dealt with correctly. Previously the code always wanted
+   a variable as the location at which to store the address
+   of the byte array and did not allow the use of an
+   indirected expression. This was an oversight in the code
+   and has now been fixed.
+
+-  Fixed bug where the string memory management was not being
+   reset under certain conditions when a program was edited.
+   The program was being corrupted if a string expression was
+   evaluated immediately prior to editing the program and then
+   again immediately afterwards.
+
+-  Fixed bug in ERROR statement code where ERROR 0,<text>
+   was not being treated as a fatal error, that is, the
+   error could be trapped by ON ERROR. Also fixed problem
+   where ERR was not returning the user-supplied error
+   number after an ERROR statement.
+
+-  Fixed bug in handling of ON ERROR LOCAL where a storage
+   overwrite was causing the interpreter to abort with a
+   'interpreter has gone wrong' message when restoring LOCAL
+   variables to their original values when dealing with an
+   ENDPROC after branching to the statements after the ON
+   ERROR LOCAL.
+
+-  Fixed bug in READ statement that affected the reading of
+   strings in cases such as 'READ a$,b$: DATA abcd,', that is,
+   there is nothing after the last comma in the DATA statement.
+   It should return a null string, but the code was skipping to
+   the next DATA statement instead.
+
+Version 1.12  01/12/2001
+
+-  Split interpreter.c into four files and moved some stuff
+   around. Renamed some files.
+
+Version 1.13 28/11/2002
+
+-  Included new RND code written by Crispian Daniels.
+
+-  Included fixes for various graphics problem written
+   by Crispian Daniels.
+
+-  Incorporated new MacOS target written by Crispian
+   Daniels.
+
+-  Incorporated new FreeBSD target written by Dirk Engling.
+
+-  Removed limit on the number of command line arguments
+   returned by ARGV$.
+
+-  Fixed problem in Unix version of program where screen
+   output was not being displayed before using OSCLI.
+
+-  Added new VDU function. This returns the value of the
+   specified RISC OS VDU variable.
+
+-  Added new function COLOUR. This returns a value that
+   represents the closest colour to the colour with the
+   specified colour components in the current screen
+   mode.
+
+-  Added missing GCOL <red>,<green>,<blue> statement
+
+-  Added extended form of GCOL statement: GCOL OF ... ON
+
+-  Added extended form of COLOUR statement: COLOUR OF ... ON
+
+-  Added extended MODE statement: MODE <x>,<y>,<bpp>,<rate>
+
+-  Extended the DIM statement to support the
+     DIM <variable> LOCAL <size>
+   version of the statement.
+
+-  Checked program compiled and worked using the Castle C
+   compiler.
+   
+Version 1.14  28/07/2003
+-  Quick hack to fix DIM ... LOCAL problem. The problem was
+   that the code to check that writes using indirection
+   operators were to legal addresses blew away writes to
+   byte arrays on the stack. I have removed this check so
+   that the stack can written to.
+
+Version 1.15 16/08/2003
+-  Added '*key' to allow strings to be defined for
+   function keys as on a BB Micro or RISC OS machine.
+
+
+Version 1.16 25/01/2004
+-  Added OpenBSD target (changes supplied by Julian Smith).
+
+-  Added Amiga target (changes supplied by Stefan Haubenthal).
+
+-  Fixed bug in tokenisation code where any keyword immediately
+   followed by a '.' was taken as abbreviated and the '.'
+   always skipped. This should not have been happening when
+   the full keyword was supplied. The '.' in this case is the
+   start of a floating point number.
+
+-  Changed the handling of the function 'TOP'. Brandy used to
+   have a token for this function but it is not how the RISC OS
+   Basic interpreter treats it. It uses the token for 'TO'
+   followed by the letter 'P'. This means that the interpreter
+   determines from the context whether this is the function 'TOP'
+   or the keyword 'TO' followed by a variable name starting
+   with 'P'. Brandy now works the way the RISC OS interpreter
+   does.
+
+-  Fixed bug in handling of 'ERR'. The number of the last error
+   was not being saved so that it could be referenced using
+   ERR except in the case of errors raised via 'ERROR'. This
+   bug was introduced in 1.11 when the *opposite* problem was
+   fixed!
+
+-  Added '*' command emulation to versions running Unix-type
+   operating system. Previously it was DOS only.
+
+-  Changed handling of OS commands to that leading blanks and
+   '*' are removed first.
+
+-  Added new command line option '-nostar' to stop program
+   checking all '*' commands to see if they are emulated by
+   the interpreter.
+
+-  Tidied up the output on 'help' which shows the where the
+   Basic program and variables are.
+
+
+Version 1.17  21/03/04
+-  Fixed problem when reading a BBC Basic program that has been
+   crunched. Lines are expanded into their text form before being
+   retokenised. Lines can be up to 253 bytes long in their tokenised
+   form but can expand to much more than this. The buffer that held
+   the expanded form allowed for the expansion but could still be too
+   small. Fixed.
+
+-  Fixed bug where the top level operator stack was being removed
+   from the Basic stack when ON ERROR was used. The program would
+   crash horribly.
+
+Version 1.18  21/01/05
+-  Incorporated changes to the Amiga target from Stefan Haubenthal.
+
+-  Incorporated changes to the program by 'Sprow'.
+
+Version 1.19 09/10/05
+-  Included fix for bug in print_screen() supplied by Mark de Wilde.
+
+Version 1.20 31/12/06
+-  Replaced obsolete graphics library jlib with SDL
+-  Resolve minor warnings and missing echo_off echo_on
+   in RISC OS version. (patch from Sprow)

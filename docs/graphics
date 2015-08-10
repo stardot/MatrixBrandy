@@ -1,0 +1,141 @@
+Graphics Support
+----------------
+
+Brandy includes limited graphics support under operating systems
+other than RISC OS. At the moment it only works for the DOS
+version of the program. It includes only a subset of the
+facilities provided by the RISC OS VDU drivers but it should be
+enough for now.
+ 
+The graphics support is based around a target-independent graphics
+library called 'jlib' written by Jonathan Griffiths. This was
+chosen as it can be compiled to work under DOS, Windows and Linux
+with both svgalib and X. It provides the same interface in all
+these environments. The disadvantage of the library is that it can
+only work in one fixed resolution. This is set when the library
+is compiled. The resolution chosen was 800 by 600 pixels with 256
+colours. Roughly speaking this means that Brandy can only support
+the standard screen modes found in RISC OS 3.1.
+
+The graphic support includes all of the Basic graphics statements
+with some restrictions and a small number of the VDU 23 commands.
+The graphics 'plot action' set by VDU 18 is limited to just
+setting the colour of a pixel, that is, VDU 18,0,... It is not
+possible to, for example, plot points by exclusive or'ing the old
+and new pixels. This is a limitation set by the library. Features
+such as the extended colour fill patterns and plotting dotted
+lines are not supported. The standard RISC OS palettes in 2, 4, 16
+and 256 colour modes are emulated and both colour and greyscale
+palettes are possible. Modes can be set using either MODE <number>,
+MODE <string> or MODE <x size>, <y size>, <depth>.
+
+
+Jlib
+----
+Jlib was written by Jonathan Cox. At the time of writing it
+is available from the web site:
+
+	http://matrix.crosswinds.net/~jlib/
+
+If you wish to recompile Brandy and include the graphics support
+you will need to download the source code of jlib and recompile
+the library. Please refer the section 'Recompiling Jlib' below.
+
+
+Using Graphics under DOS
+------------------------
+The only way for a DOS program to plot any graphics is to take
+over the whole screen. What Brandy does is work with the screen in
+what could be called normal 'text' mode and to switch to full
+screen when either the Basic statement CLG is used or a 'PLOT'
+command is issued (either directly or via another statement such
+as MOVE). It will remain in full screen mode until a 'MODE'
+command is used when it will switch back to 'text' mode. When
+running in a DOS box under Windows it may or may not be possible
+to switch between full screen DOS graphics and Windows depending
+on the whim of Windows.
+
+An alternative is to use the command line option '-g'. This will
+switch the interpreter to full screen graphics mode when it
+starts. It will remain like this until the program is ended,
+including over mode changes. However if a RISC OS screen mode that
+does not support graphics is chosen, say MODE 3, the program will
+then switch to text mode and go back to graphics mode when a
+screen mode that supports graphics is selected.
+
+
+Caveats
+-------
+There are a number of issues with the graphics code at present.
+
+1)  'RECTANGLE ... TO' and 'RECTANGLE FILL ... TO' do not work
+    if the source and destination areas overlap. This is an issue
+    with the graphics library.
+
+2)  When in graphics mode, scrolling the screen down, that is,
+    moving the screen contents down a line, does not work properly.
+    The cause of this is the same as in 1).
+
+3)  The ellipse code can only plot an ellipse whose semi major
+    axis lies parallel to the X axis. This is a limitation of the
+    graphics library.
+
+4)  Clearing the screen sometimes leaves some rubbish down the
+    right-hand side of the screen in modes that are less than
+    800 pixels wide. This appears to be a bug in the library.
+
+5)  The text screen size is always reset to 80 by 25 when the
+    program switches from full screen graphics to text mode.
+    
+There are a number of points to be aware of that seem to be
+the consequence of trying to mix DOS graphics and WIndows.
+
+As noted above, the program runs has to take over the whole
+screen before any graphics can be plotted. This does not work
+very well. Problems seen include not always being
+able to swap back to Windows by pressing alt-Enter, Windows
+terminating the program when it take back control of the
+screen unilaterally, Windows resetting the palette to the
+Windows default palette, output from DOS commands overwriting
+what is on the screen and the location of what the program
+thinks is the top left-hand corner of the screen changing so
+that all output appears in the wrong place. The moral seems
+to be that it works but do not be suprised if it goes wrong.
+
+
+Other Operating Systems
+-----------------------
+JLIB is platform independent and so in theory it should not be a
+problem to create a version of the interpreter that support
+graphics that run under other operating systems. In practice it is
+more complex. The Linux version using svgalib, for example, does
+not initialise properly. Even if worked, there are issues of
+security here: many people do not like svgalib as programs that
+use it have to have root priviledges. For many this is out of the
+question. As Brandy is a programming environment, giving it this
+kind of authority would not be clever. Still, the pieces are there
+is somebody wishes to pick them up and fit them together.
+
+There is a mythical 'X' version of the program, that is, it
+exists as an idea. Zero X programming experience is the reason
+why it has not been written yet.
+
+
+Recompiling Jlib
+~~~~~~~~~~~~~~~~
+The graphics library jlib is a pre-requisite for Brandy's graphics
+support. It will be necessary to download it from the web site:
+
+	http://matrix.crosswinds.net/~jlib/
+
+It comes in source form and will have to be compiled before use.
+The instructions for this are contained in the jlib documentation.
+
+Notes:
+1)  The DJGPP version of the library is the one to create.
+
+2)  The code should be compiled to use a screen resolution of
+    800 by 600. Brandy's graphics support has never been tested
+    with anything else. The screen size is not hard coded into
+    Brandy's code but it is best to assume it will not work.
+ 
