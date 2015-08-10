@@ -119,6 +119,8 @@ static Uint8 palette[768];		/* palette for screen */
 static Uint8 vdu141on;			/* Mode 7 VDU141 toggle */
 static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
+static Uint8 vdu141track[27];           /* Track use of Double Height in Mode 7 *
+                                         * First line is [1] */
 
 static int32
   vscrwidth,			/* Width of virtual screen in pixels */
@@ -680,6 +682,11 @@ void find_cursor(void) {
 //    xtext = wherex()-1;
 //    ytext = wherey()-1;
 //  }
+}
+
+void reset141(void) {
+  int p;
+  for(p=0;p<26;p++) vdu141track[p]=0;
 }
 
 void set_rgb(void) {
@@ -1638,6 +1645,8 @@ static void vdu_cleartext(void) {
   int32 left, right, top, bottom;
   if (screenmode == 7) {
     vdu141on=0;
+    reset141();
+    vdu141mode=1;
     mode7highbit=0;
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
@@ -2074,7 +2083,12 @@ void emulate_vdu(int32 charvalue) {
 	}
 	if (charvalue == 141) {
 	  vdu141on = 1;
-	  vdu141mode = (vdu141mode + 1) % 2;
+	  if (vdu141track[ytext] == 0) {
+	    vdu141track[ytext+1]=1;
+	    vdu141mode = 0;
+	  } else {
+	    vdu141mode = 1;
+	  }
 	}
       }
       if (vdu5mode)			    /* Sending text output to graphics cursor */
@@ -2321,6 +2335,7 @@ static void setup_mode(int32 mode) {
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
   vdu141on = 0;
+  reset141();
   vdu141mode = 1;
   mode7highbit = 0;
   screenwidth = modetable[mode].xres;
