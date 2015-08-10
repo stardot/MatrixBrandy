@@ -1286,7 +1286,8 @@ static void echo_text(void) {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line, base;
+  int32 y, topx, topy, line, base, mxt, mxp, mpt;
+  mxt=xtext;
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xbufoffset +xtext*XPPC;
   topy = ybufoffset +ytext*YPPC;
@@ -1300,6 +1301,16 @@ static void write_char(int32 ch) {
         line = mode7font[ch-' '][y/2+(4*vdu141mode)];
       } else {
         line = mode7font[ch-' '][y];
+      }
+      if ((ch == 156) || (ch == 157)) {
+        /* Fill the rest of the line */
+	for (mpt=mxt; mpt < 40 ; mpt++) {
+          mxp = xbufoffset +mpt*XPPC;
+	  place_rect.x = mxp;
+	  SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
+	  blit_scaled(mxp, topy, mxp+XPPC-1, topy+YPPC-1);
+	}
+	place_rect.x = topx;
       }
     } else {
       line = sysfont[ch-' '][y];
@@ -1625,6 +1636,13 @@ static void move_curup(void) {
 */
 static void vdu_cleartext(void) {
   int32 left, right, top, bottom;
+  if (screenmode == 7) {
+    vdu141on=0;
+    mode7highbit=0;
+    text_physforecol = text_forecol = 7;
+    text_physbackcol = text_backcol = 0;
+    set_rgb();
+  }
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
@@ -2388,6 +2406,7 @@ void emulate_mode(int32 mode) {
   xtext = twinleft;
   ytext = twintop;
   SDL_Flip(screen0);
+  emulate_vdu(VDU_CLEARGRAPH);
 }
 
 /*
