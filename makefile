@@ -8,7 +8,7 @@ CFLAGS2 = -O2 -I/usr/include/SDL -DUSE_SDL
 
 LDFLAGS +=
 
-LIBS = -lm -lSDL
+LIBS = -lX11 -lm -lSDL
 
 SRCDIR = src
 
