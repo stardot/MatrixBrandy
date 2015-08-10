@@ -121,7 +121,7 @@ static void init1(void) {
   basicvars.runflags.quitatend = FALSE;		/* Do not exit from interpreter when program finishes */
   basicvars.runflags.start_graphics = FALSE;	/* Do not start in graphics mode */
   basicvars.runflags.ignore_starcmd = FALSE;	/* Do not ignore built-in '*' commands */
-  basicvars.runflags.flag_cosmetic = TRUE;	/* Flag all unsupported features as errors */
+  basicvars.runflags.flag_cosmetic = FALSE;	/* Don't flag all unsupported features as errors */
 
   basicvars.misc_flags.trapexcp = TRUE;		/* Trap exceptions */
   basicvars.misc_flags.validedit = FALSE;	/* Contents of edit_flags are not valid */

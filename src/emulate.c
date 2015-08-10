@@ -885,7 +885,6 @@ static int check_command(char *text) {
     text++;
   }
   command[length] = 0;
-  fprintf(stderr, "command=>%s< length=%d\n", command, length);
   if (strncmp(command, "key", 3) == 0) return CMD_KEY;
   if (strncmp(command, "opt", 3) == 0) return CMD_DONOTHING;
   if (strncmp(command, "tv", 2) == 0) return CMD_DONOTHING;
