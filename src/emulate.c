@@ -93,9 +93,11 @@ static time_t startime;		/* Adjustment subtracted in 'TIME' */
 ** MOS calls emulated by the Acorn interpreter
 */
 static int32 emulate_mos(int32 address) {
-  int32 areg, xreg;
+  int32 areg, xreg, yreg;
   areg = basicvars.staticvars[A_PERCENT].varentry.varinteger;
   xreg = basicvars.staticvars[X_PERCENT].varentry.varinteger;
+  yreg = basicvars.staticvars[Y_PERCENT].varentry.varinteger;
+
   switch (address) {
   case BBC_OSBYTE:	/* Emulate OSBYTE 0 */
     if (areg==0 && xreg!=0) return MACTYPE;	/* OSBYTE 0 - Return machine type */
@@ -808,7 +810,9 @@ void emulate_waitdelay(int32 time) {
  * List of RISC OS commands emulated by this code
  */
 #define CMD_UNKNOWN 0
-#define CMD_KEY 1
+#define CMD_DONOTHING 1
+#define CMD_KEY 2
+#define CMD_STARQUIT 3
 
 #define HIGH_FNKEY 15		/* Highest funcrion key number */
 /*
@@ -881,7 +885,14 @@ static int check_command(char *text) {
     text++;
   }
   command[length] = 0;
-  if (strcmp(command, "key") == 0) return CMD_KEY;
+  fprintf(stderr, "command=>%s< length=%d\n", command, length);
+  if (strncmp(command, "key", 3) == 0) return CMD_KEY;
+  if (strncmp(command, "opt", 3) == 0) return CMD_DONOTHING;
+  if (strncmp(command, "tv", 2) == 0) return CMD_DONOTHING;
+  if (strncmp(command, "fx", 2) == 0) return CMD_DONOTHING;
+  if ((strncmp(command, "q", 1) == 0) && length==1) return CMD_STARQUIT;
+  if ((strncmp(command, "qu", 2) == 0) && length==2) return CMD_STARQUIT;
+  if (strncmp(command, "quit", 4) == 0) return CMD_STARQUIT;
   return CMD_UNKNOWN;
 }
 
@@ -912,6 +923,12 @@ void emulate_oscli(char *command, char *respfile) {
     cmd = check_command(command);
     if (cmd == CMD_KEY) {
       emulate_key(command);
+      return;
+    }
+    if (cmd == CMD_STARQUIT) {
+      exit_interpreter(0);
+    }
+    if (cmd == CMD_DONOTHING) {
       return;
     }
   }
@@ -958,20 +975,37 @@ void emulate_oscli(char *command, char *respfile) {
 ** it should not be a problem unless the size of stringwork is
 ** drastically reduced.)
 **
+** However, just appending stuff to the command buffer has an
+** unfortunate effect with the tokeniser, as upon return
+** it tries to parse the appended redirection code! So we now
+** copy the command string to a new buffer, then play with that
+** instead.
+**
 ** This is the Unix version of the function, where both stdout
 ** and stderr can be redirected to a file
 */
 void emulate_oscli(char *command, char *respfile) {
-  int cmd;
+  int cmd, clen;
+  char *cmdbuf;
   while (*command == ' ' || *command == '*') command++;
+  clen=strlen(command) + 256;
+  cmdbuf=malloc(clen);
+  strncpy(cmdbuf, command, clen-1);
   if (!basicvars.runflags.ignore_starcmd) {
 /*
  * Check if command is one of the RISC OS commands emulated
  * by this code. Only 'key' is supported at present
  */
-    cmd = check_command(command);
+    cmd = check_command(cmdbuf);
     if (cmd == CMD_KEY) {
-      emulate_key(command);
+      emulate_key(cmdbuf);
+      return;
+    }
+    if (cmd == CMD_STARQUIT) {
+      exit_interpreter(0);
+      return;
+    }
+    if (cmd == CMD_DONOTHING) {
       return;
     }
   }
@@ -983,8 +1017,8 @@ void emulate_oscli(char *command, char *respfile) {
     {
     FILE *sout;
     char buf;
-    strcat(command, " 2>&1");
-    sout = popen(command, "r");
+    strcat(cmdbuf, " 2>&1");
+    sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
     while (fread(&buf, 1, 1, sout) > 0) {
@@ -993,26 +1027,28 @@ void emulate_oscli(char *command, char *respfile) {
     }
     echo_on();
     pclose(sout);
+    
     }
 #else
     fflush(stdout);	/* Make sure everything has been output */
     fflush(stderr);
-    basicvars.retcode = system(command);
+    basicvars.retcode = system(cmdbuf);
     find_cursor();	/* Figure out where the cursor has gone to */
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
   }
   else {	/* Want response back from command */
-    strcat(command, " >");
-    strcat(command, respfile);
-    strcat(command, " 2>&1");
-    basicvars.retcode = system(command);
+    strcat(cmdbuf, " >");
+    strcat(cmdbuf, respfile);
+    strcat(cmdbuf, " 2>&1");
+    basicvars.retcode = system(cmdbuf);
     find_cursor();	/* Figure out where the cursor has gone to */
     if (basicvars.retcode<0) {
       remove(respfile);
       error(ERR_CMDFAIL);
     }
   }
+  free(cmdbuf);
 }
 #else
 #error There is no emulate_oscli() function for this target
