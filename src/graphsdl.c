@@ -456,7 +456,7 @@ void set_rgb(void) {
   gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
 }
 
-void sdlchar(char ch) {
+void sdlchar(int32 ch) {
   int32 y, line;
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   place_rect.x = xtext * XPPC;
