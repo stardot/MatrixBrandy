@@ -2043,6 +2043,13 @@ static void vdu_movetext(void) {
     if (column > twinright || row > twinbottom) return;	/* Ignore command if values are out of range */
     move_cursor(column, row);
   }
+  if (screenmode == 7) {
+    vdu141on=0;
+    mode7highbit=0;
+    text_physforecol = text_forecol = 7;
+    text_physbackcol = text_backcol = 0;
+    set_rgb();
+  }
 }
 
 /*
