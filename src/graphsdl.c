@@ -116,6 +116,10 @@ static void vdu_cleartext(void);
 
 static Uint8 palette[768];		/* palette for screen */
 
+static Uint8 vdu141on;			/* Mode 7 VDU141 toggle */
+static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
+static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
+
 static int32
   vscrwidth,			/* Width of virtual screen in pixels */
   vscrheight,			/* Height of virtual screen in pixels */
@@ -1282,16 +1286,21 @@ static void echo_text(void) {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line;
+  int32 y, topx, topy, line, base;
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xbufoffset +xtext*XPPC;
   topy = ybufoffset +ytext*YPPC;
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
+  if (mode7highbit && ch < 128) ch+=128;
   for (y=0; y < YPPC; y++) {
     if (screenmode == 7) {
-      line = mode7font[ch-' '][y];
+      if (vdu141on) {
+        line = mode7font[ch-' '][y/2+(4*vdu141mode)];
+      } else {
+        line = mode7font[ch-' '][y];
+      }
     } else {
       line = sysfont[ch-' '][y];
     }
@@ -1319,6 +1328,13 @@ static void write_char(int32 ch) {
     if (!echo) echo_text();	/* Line is full so flush buffered characters */
     xtext = twinleft;
     ytext++;
+    if (screenmode == 7) {
+      vdu141on=0;
+      mode7highbit=0;
+      text_physforecol = text_forecol = 7;
+      text_physbackcol = text_backcol = 0;
+      set_rgb();
+    }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
       scroll(SCROLL_UP);	/* So scroll window up */
       ytext--;
@@ -1678,6 +1694,13 @@ static void vdu_return(void) {
   else {
     move_cursor(twinleft, ytext);
   }
+  if (screenmode == 7) {
+    vdu141on = 0;
+    mode7highbit=0;
+    text_physforecol = text_forecol = 7;
+    text_physbackcol = text_backcol = 0;
+    set_rgb();
+  }
 }
 
 /*
@@ -1706,6 +1729,7 @@ static void vdu_cleargraph(void) {
 */
 static void vdu_textcol(void) {
   int32 colnumber;
+  if (screenmode == 7) return;
   colnumber = vduqueue[0];
   if (colnumber < 128) {	/* Setting foreground colour */
     if (graphmode == FULLSCREEN) {	/* Operating in full screen graphics mode */
@@ -2002,9 +2026,39 @@ static void vdu_movetext(void) {
 ** off' commands, are silently ignored.
 */
 void emulate_vdu(int32 charvalue) {
+  uint32 m7col;
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
   if (vduneeded == 0) {			/* VDU queue is empty */
     if (charvalue >= ' ') {		/* Most common case - print something */
+      /* Handle Mode 7 colour changes */
+      if (screenmode == 7) {
+        if (charvalue >= 128 && charvalue <= 151) {
+	  mode7highbit=0;
+	  if (charvalue >= 144) mode7highbit=1;
+          m7col = (charvalue - 128) % 16;
+	  if  (m7col >= 0 && m7col <= 7) {
+	    text_physforecol = text_forecol = m7col;
+	    set_rgb();
+          }
+	}
+	if (charvalue == 156) {
+          /* Black background colour */
+	  text_physbackcol = text_backcol = 0;
+	  set_rgb();
+	}
+	if (charvalue == 157) {
+          /* Set background colour */
+	  text_physbackcol = text_backcol = text_physforecol;
+	  set_rgb();
+	}
+	if (charvalue == 10) {
+	  vdu141on = 0;
+	}
+	if (charvalue == 141) {
+	  vdu141on = 1;
+	  vdu141mode = (vdu141mode + 1) % 2;
+	}
+      }
       if (vdu5mode)			    /* Sending text output to graphics cursor */
         plot_char(charvalue);
       else if (graphmode == FULLSCREEN) {
@@ -2248,6 +2302,9 @@ static void setup_mode(int32 mode) {
   if (modetable[mode].xres > vscrwidth || modetable[mode].yres > vscrheight) error(ERR_BADMODE);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
+  vdu141on = 0;
+  vdu141mode = 1;
+  mode7highbit = 0;
   screenwidth = modetable[mode].xres;
   screenheight = modetable[mode].yres;
   xgraphunits = modetable[mode].xgraphunits;
