@@ -1211,7 +1211,7 @@ static void switch_text(void) {
 ** The screen is redrawn by this call
 */
 static void scroll(updown direction) {
-  int left, right, top, dest, topwin;
+  int left, right, top, dest, topwin, n;
 /*int bottom; */
   topwin = ybufoffset+twintop*YPPC;		/* Y coordinate of top of text window */
   if (direction == SCROLL_UP) {	/* Shifting screen up */
@@ -1230,6 +1230,10 @@ static void scroll(updown direction) {
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
+    if (screenmode == 7) {
+      for(n=1; n<=25; n++) vdu141track[n-1]=vdu141track[n];
+      vdu141track[25]=0;
+    }
   }
   else {	/* Shifting screen down */
     dest = ybufoffset+(twintop+1)*YPPC;
@@ -1249,6 +1253,10 @@ static void scroll(updown direction) {
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
+    if (screenmode == 7) {
+      for(n=0; n<=24; n++) vdu141track[n+1]=vdu141track[n];
+      vdu141track[0]=0; vdu141track[1]=0;
+    }
   }
   line_rect.x = 0;
   line_rect.y = 0;
