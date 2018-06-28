@@ -1331,7 +1331,7 @@ static void echo_text(void) {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line, base, mxt, mxp, mpt;
+  int32 y, yy, topx, topy, line, base, mxt, mxp, mpt;
   mxt=xtext;
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xbufoffset +xtext*XPPC;
@@ -1354,12 +1354,29 @@ static void write_char(int32 ch) {
 	line=0;
       } else {
 	if (vdu141on) {
-          line = mode7font[ch-' '][y/2+(4*vdu141mode)];
+	  yy=y/2+(4*vdu141mode);
+	  if (mode7sepgrp && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
+	    if (yy == 2 || yy == 5) {
+	      line = 0;
+	    } else {
+	      line = mode7font[ch-' '][yy] & 0xEE;
+	    }
+	  } else {
+	    line = mode7font[ch-' '][yy];
+	  }
 	} else {
-          if (vdu141track[ytext] == 1) {
+	  if (vdu141track[ytext] == 1) {
 	    line = 0;
 	  } else {
-	    line = mode7font[ch-' '][y];
+	    if (mode7sepgrp && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
+	      if (y == 2 || y == 5) {
+	        line = 0;
+	      } else {
+	        line = mode7font[ch-' '][y] & 0xEE;
+	      }
+	    } else {
+	      line = mode7font[ch-' '][y];
+	    }
 	  }
 	}
 	if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))
@@ -1370,7 +1387,7 @@ static void write_char(int32 ch) {
       if ((ch == 156) || (ch == 157)) {
         /* Fill the rest of the line */
 	for (mpt=mxt; mpt < 40 ; mpt++) {
-          mxp = xbufoffset +mpt*XPPC;
+	  mxp = xbufoffset +mpt*XPPC;
 	  place_rect.x = mxp;
 	  SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
 	  blit_scaled(mxp, topy, mxp+XPPC-1, topy+YPPC-1);
