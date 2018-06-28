@@ -122,12 +122,14 @@ static void vdu_cleartext(void);
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
-static Uint8 vdu141on;			/* Mode 7 VDU141 toggle */
+/* Flags for controlling MODE 7 operation */
+static Uint8 vdu141on = 0;		/* Mode 7 VDU141 toggle */
 static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
 static Uint8 mode7sepgrp = 0;		/* Separated graphics in Mode 7 */
-static Uint8 vdu141track[27];           /* Track use of Double Height in Mode 7 *
-                                         * First line is [1] */
+static Uint8 mode7conceal = 0;		/* CONCEAL teletext flag */
+static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
+					 * First line is [1] */
 
 static int32
   vscrwidth,			/* Width of virtual screen in pixels */
@@ -680,6 +682,19 @@ static byte mode7font [224][8] = {
 #define XPPC 8		/* Size of character in pixels in X direction */
 #define YPPC 8		/* Size of character in pixels in Y direction */
 
+/* Bulk of Mode 7 code in emulate_vdu, some in write_char */
+
+static void reset_mode7() {
+  int p;
+  vdu141on = 0;
+  vdu141mode = 1;
+  mode7highbit = 0;
+  mode7sepgrp = 0;
+  mode7conceal = 0;
+
+  for(p=0;p<26;p++) vdu141track[p]=0;
+}
+
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
 ** its position is valid, that is, lies within the text window
@@ -689,11 +704,6 @@ void find_cursor(void) {
 //    xtext = wherex()-1;
 //    ytext = wherey()-1;
 //  }
-}
-
-void reset141(void) {
-  int p;
-  for(p=0;p<26;p++) vdu141track[p]=0;
 }
 
 void set_rgb(void) {
@@ -1336,13 +1346,17 @@ static void write_char(int32 ch) {
   }
   for (y=0; y < YPPC; y++) {
     if (screenmode == 7) {
-      if (vdu141on) {
-        line = mode7font[ch-' '][y/2+(4*vdu141mode)];
+      if (mode7conceal) {
+	line=0;
       } else {
-        if (vdu141track[ytext] == 1) {
-	  line = 0;
+	if (vdu141on) {
+          line = mode7font[ch-' '][y/2+(4*vdu141mode)];
 	} else {
-	  line = mode7font[ch-' '][y];
+          if (vdu141track[ytext] == 1) {
+	    line = 0;
+	  } else {
+	    line = mode7font[ch-' '][y];
+	  }
 	}
       }
       if ((ch == 156) || (ch == 157)) {
@@ -1385,6 +1399,8 @@ static void write_char(int32 ch) {
     if (screenmode == 7) {
       vdu141on=0;
       mode7highbit=0;
+      mode7sepgrp=0;
+      mode7conceal=0;
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
       set_rgb();
@@ -1685,10 +1701,7 @@ static void move_curup(void) {
 static void vdu_cleartext(void) {
   int32 left, right, top, bottom;
   if (screenmode == 7) {
-    vdu141on=0;
-    reset141();
-    vdu141mode=1;
-    mode7highbit=0;
+    reset_mode7();
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
     set_rgb();
@@ -2087,6 +2100,8 @@ static void vdu_movetext(void) {
   if (screenmode == 7) {
     vdu141on=0;
     mode7highbit=0;
+    mode7sepgrp=0;
+    mode7conceal=0;
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
     set_rgb();
@@ -2107,22 +2122,33 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
-        if (charvalue >= 128 && charvalue <= 151) {
+	if (charvalue >= 128 && charvalue <= 135) {
 	  mode7highbit=0;
-	  if (charvalue >= 144) mode7highbit=1;
-          m7col = (charvalue - 128) % 16;
-	  if  (m7col >= 0 && m7col <= 7) {
-	    text_physforecol = text_forecol = m7col;
-	    set_rgb();
-          }
+	  mode7conceal=0;
+	  m7col = (charvalue - 128) % 16;
+	  text_physforecol = text_forecol = m7col;
+	  set_rgb();
+	}
+
+	if (charvalue >= 144 && charvalue <= 151) {
+	  mode7highbit=1;
+	  mode7conceal=0;
+	  m7col = (charvalue - 128) % 16;
+	  text_physforecol = text_forecol = m7col;
+	  set_rgb();
+	}
+
+
+	if (charvalue == 152) {
+	  mode7conceal=1;
 	}
 	if (charvalue == 156) {
-          /* Black background colour */
+	  /* Black background colour */
 	  text_physbackcol = text_backcol = 0;
 	  set_rgb();
 	}
 	if (charvalue == 157) {
-          /* Set background colour */
+	  /* Set background colour */
 	  text_physbackcol = text_backcol = text_physforecol;
 	  set_rgb();
 	}
@@ -2385,11 +2411,7 @@ static void setup_mode(int32 mode) {
   if (modetable[mode].xres > vscrwidth || modetable[mode].yres > vscrheight) error(ERR_BADMODE);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
-  vdu141on = 0;
-  reset141();
-  vdu141mode = 1;
-  mode7highbit = 0;
-  mode7sepgrp = 0;
+  reset_mode7();
   screenwidth = modetable[mode].xres;
   screenheight = modetable[mode].yres;
   xgraphunits = modetable[mode].xgraphunits;
