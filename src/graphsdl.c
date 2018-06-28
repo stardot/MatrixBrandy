@@ -125,6 +125,7 @@ static Uint8 hardpalette[24];		/* palette for screen */
 static Uint8 vdu141on;			/* Mode 7 VDU141 toggle */
 static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
+static Uint8 mode7sepgrp = 0;		/* Separated graphics in Mode 7 */
 static Uint8 vdu141track[27];           /* Track use of Double Height in Mode 7 *
                                          * First line is [1] */
 
@@ -1236,8 +1237,9 @@ static void scroll(updown direction) {
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      for(n=1; n<=25; n++) vdu141track[n-1]=vdu141track[n];
+      for(n=2; n<=25; n++) vdu141track[n-1]=vdu141track[n];
       vdu141track[25]=0;
+      vdu141track[0]=0;
     }
   }
   else {	/* Shifting screen down */
@@ -1337,7 +1339,11 @@ static void write_char(int32 ch) {
       if (vdu141on) {
         line = mode7font[ch-' '][y/2+(4*vdu141mode)];
       } else {
-        line = mode7font[ch-' '][y];
+        if (vdu141track[ytext] == 1) {
+	  line = 0;
+	} else {
+	  line = mode7font[ch-' '][y];
+	}
       }
       if ((ch == 156) || (ch == 157)) {
         /* Fill the rest of the line */
@@ -2383,6 +2389,7 @@ static void setup_mode(int32 mode) {
   reset141();
   vdu141mode = 1;
   mode7highbit = 0;
+  mode7sepgrp = 0;
   screenwidth = modetable[mode].xres;
   screenheight = modetable[mode].yres;
   xgraphunits = modetable[mode].xgraphunits;
