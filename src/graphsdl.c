@@ -128,6 +128,8 @@ static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
 static Uint8 mode7sepgrp = 0;		/* Separated graphics in Mode 7 */
 static Uint8 mode7conceal = 0;		/* CONCEAL teletext flag */
+static Uint8 mode7hold = 0;		/* Hold Graphics flag */
+static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 
@@ -691,6 +693,7 @@ static void reset_mode7() {
   mode7highbit = 0;
   mode7sepgrp = 0;
   mode7conceal = 0;
+  mode7hold = 0;
 
   for(p=0;p<26;p++) vdu141track[p]=0;
 }
@@ -1339,6 +1342,7 @@ static void write_char(int32 ch) {
   if (screenmode == 7) {
     if (mode7highbit) {
       ch = ch | 0x80;
+      if (mode7hold && ((ch >= 145 && ch <= 151) | ch == 158 )) ch=mode7prevchar;
     } else {
       ch = ch & 0x7F;
       if ( ch < 32 ) ch =32;
@@ -1358,6 +1362,7 @@ static void write_char(int32 ch) {
 	    line = mode7font[ch-' '][y];
 	  }
 	}
+	if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) mode7prevchar=ch;
       }
       if ((ch == 156) || (ch == 157)) {
         /* Fill the rest of the line */
@@ -1401,6 +1406,7 @@ static void write_char(int32 ch) {
       mode7highbit=0;
       mode7sepgrp=0;
       mode7conceal=0;
+      mode7hold=0;
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
       set_rgb();
@@ -2102,6 +2108,7 @@ static void vdu_movetext(void) {
     mode7highbit=0;
     mode7sepgrp=0;
     mode7conceal=0;
+    mode7hold=0;
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
     set_rgb();
@@ -2130,18 +2137,9 @@ void emulate_vdu(int32 charvalue) {
 	  set_rgb();
 	}
 
-	if (charvalue >= 144 && charvalue <= 151) {
-	  mode7highbit=1;
-	  mode7conceal=0;
-	  m7col = (charvalue - 128) % 16;
-	  text_physforecol = text_forecol = m7col;
-	  set_rgb();
-	}
-
-
-	if (charvalue == 152) {
-	  mode7conceal=1;
-	}
+	if (charvalue == 152) mode7conceal=1;
+	if (charvalue == 153) mode7sepgrp=0;
+	if (charvalue == 154) mode7sepgrp=1;
 	if (charvalue == 156) {
 	  /* Black background colour */
 	  text_physbackcol = text_backcol = 0;
@@ -2152,12 +2150,10 @@ void emulate_vdu(int32 charvalue) {
 	  text_physbackcol = text_backcol = text_physforecol;
 	  set_rgb();
 	}
-	if (charvalue == 10) {
-	  vdu141on = 0;
-	}
-	if (charvalue == 140) {
-	  vdu141on = 0;
-	}
+	if (charvalue == 158) mode7hold=1;
+	if (charvalue == 159) mode7hold=0;
+	if (charvalue == 10) vdu141on = 0;
+	if (charvalue == 140) vdu141on = 0;
 	if (charvalue == 141) {
 	  vdu141on = 1;
 	  if (vdu141track[ytext] == 0) {
@@ -2187,6 +2183,15 @@ void emulate_vdu(int32 charvalue) {
           }
         }
         toggle_tcursor();
+      }
+      if (screenmode == 7) {
+	if (charvalue >= 144 && charvalue <= 151) {
+	  mode7highbit=1;
+	  mode7conceal=0;
+	  m7col = (charvalue - 128) % 16;
+	  text_physforecol = text_forecol = m7col;
+	  set_rgb();
+	}
       }
       return;
     }
