@@ -2111,6 +2111,9 @@ void emulate_vdu(int32 charvalue) {
 	if (charvalue == 10) {
 	  vdu141on = 0;
 	}
+	if (charvalue == 140) {
+	  vdu141on = 0;
+	}
 	if (charvalue == 141) {
 	  vdu141on = 1;
 	  if (vdu141track[ytext] == 0) {
