@@ -23,6 +23,11 @@
 **	This file contains the VDU driver emulation for the interpreter
 **	used when graphics output is possible. It uses the SDL graphics library.
 **
+**	MODE 7 implementation by Michael McConnell. It's rather rudimentary, it
+**	supports most codes when output by the VDU driver, however it does NOT
+**	support adding codes in front of existing text to change the nature of
+**	content already on screen.
+**
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -1319,7 +1324,14 @@ static void write_char(int32 ch) {
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
-  if (mode7highbit && ch < 128) ch+=128;
+  if (screenmode == 7) {
+    if (mode7highbit) {
+      ch = ch | 0x80;
+    } else {
+      ch = ch & 0x7F;
+      if ( ch < 32 ) ch =32;
+    }
+  }
   for (y=0; y < YPPC; y++) {
     if (screenmode == 7) {
       if (vdu141on) {
