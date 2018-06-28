@@ -1362,7 +1362,10 @@ static void write_char(int32 ch) {
 	    line = mode7font[ch-' '][y];
 	  }
 	}
-	if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) mode7prevchar=ch;
+	if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))
+	  mode7prevchar=ch;
+	else
+	  mode7prevchar=32;
       }
       if ((ch == 156) || (ch == 157)) {
         /* Fill the rest of the line */
