@@ -1359,7 +1359,7 @@ static void write_char(int32 ch) {
 	    if (yy == 2 || yy == 5) {
 	      line = 0;
 	    } else {
-	      line = mode7font[ch-' '][yy] & 0xEE;
+	      line = mode7font[ch-' '][yy] & 0x66;
 	    }
 	  } else {
 	    line = mode7font[ch-' '][yy];
@@ -1369,10 +1369,10 @@ static void write_char(int32 ch) {
 	    line = 0;
 	  } else {
 	    if (mode7sepgrp && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
-	      if (y == 2 || y == 5) {
+	      if (y == 2 || y == 5 || y == 7) {
 	        line = 0;
 	      } else {
-	        line = mode7font[ch-' '][y] & 0xEE;
+	        line = mode7font[ch-' '][y] & 0x66;
 	      }
 	    } else {
 	      line = mode7font[ch-' '][y];
