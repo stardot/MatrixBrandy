@@ -447,7 +447,7 @@ static byte sysfont [224][8] = {
 /* ÿ */  {0x66u, 0u, 0x66u, 0x66u, 0x66u, 0x3Eu, 0x6u, 0x3Cu}
 };
 
-static byte mode7font [224][8] = {
+static byte mode7font [225][8] = {
 /*   */  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
 /* ! */  {0x8u, 0x8u, 0x8u, 0x8u, 0x8u, 0u, 0x8u, 0u},
 /* " */  {0x14u, 0x14u, 0x14u, 0u, 0u, 0u, 0u, 0u},
@@ -679,7 +679,8 @@ static byte mode7font [224][8] = {
 /* ï¿½ */  {0u, 0u, 0u, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu},
 /*   */  {0xF0u, 0xF0u, 0xF0u, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu},
 /* ï¿½ */  {0xFu, 0xFu, 0xFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu},
-/* ï¿½ */  {0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu}
+/* ï¿½ */  {0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu, 0xFFu},
+/* ï¿½ */  {0u, 0x7Eu, 0x7Eu, 0x7Eu, 0x7Eu, 0x7Eu, 0x7Eu, 0u}
 };
 
 #define XPPC 8		/* Size of character in pixels in X direction */
@@ -1350,8 +1351,9 @@ static void write_char(int32 ch) {
       if (mode7highbit) {
 	ch = ch | 0x80;
       } else {
-	ch = ch & 0x7F;
+	if (ch < 255) ch = ch & 0x7F;
 	if ( ch < 32 ) ch =32;
+	if (ch == 255) ch = 256;
       }
     }
   }
@@ -2177,13 +2179,6 @@ void emulate_vdu(int32 charvalue) {
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
         // printf("VDU code: %02X - %d, mode7hold=%d\n", charvalue, charvalue, mode7hold);
-	if (charvalue >= 129 && charvalue <= 135) {
-	  mode7highbit=0;
-	  mode7conceal=0;
-	  m7col = (charvalue - 128) % 16;
-	  text_physforecol = text_forecol = m7col;
-	  set_rgb();
-	}
 	if (charvalue == 136) mode7flash=1;
 	if (charvalue == 137) mode7flash=0;
 	if (charvalue == 152) {
@@ -2235,6 +2230,14 @@ void emulate_vdu(int32 charvalue) {
         toggle_tcursor();
       }
       if (screenmode == 7) {
+	if (charvalue >= 129 && charvalue <= 135) {
+	  mode7highbit=0;
+	  mode7conceal=0;
+	  mode7hold=0;
+	  m7col = (charvalue - 128) % 16;
+	  text_physforecol = text_forecol = m7col;
+	  set_rgb();
+	}
 	if (charvalue >= 145 && charvalue <= 151) {
 	  mode7highbit=1;
 	  mode7conceal=0;
