@@ -129,6 +129,7 @@ static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
 static Uint8 mode7sepgrp = 0;		/* Separated graphics in Mode 7 */
 static Uint8 mode7conceal = 0;		/* CONCEAL teletext flag */
 static Uint8 mode7hold = 0;		/* Hold Graphics flag */
+static Uint8 mode7flash = 0;		/* Flash flag */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
@@ -694,6 +695,8 @@ static void reset_mode7() {
   mode7sepgrp = 0;
   mode7conceal = 0;
   mode7hold = 0;
+  mode7flash = 0;
+  mode7prevchar=32;
 
   for(p=0;p<26;p++) vdu141track[p]=0;
 }
@@ -1331,7 +1334,7 @@ static void echo_text(void) {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, yy, topx, topy, line, base, mxt, mxp, mpt;
+  int32 y, yy, topx, topy, line, base, mxt, mxp, mpt, xch, xline;
   mxt=xtext;
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xbufoffset +xtext*XPPC;
@@ -1339,14 +1342,43 @@ static void write_char(int32 ch) {
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
+  xch=ch;
   if (screenmode == 7) {
-    if (mode7highbit) {
-      ch = ch | 0x80;
-      if (mode7hold && ((ch >= 145 && ch <= 151) | ch == 158 )) ch=mode7prevchar;
+    if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch >= 153 && ch <= 159))) {
+      ch=mode7prevchar;
     } else {
-      ch = ch & 0x7F;
-      if ( ch < 32 ) ch =32;
+      if (mode7highbit) {
+	ch = ch | 0x80;
+      } else {
+	ch = ch & 0x7F;
+	if ( ch < 32 ) ch =32;
+      }
     }
+  }
+  if ((screenmode == 7) && ((xch == 156) || (xch == 157))) {
+    xline=ch;
+    for (y=0; y < YPPC; y++) {
+      /* Fill the rest of the line */
+      ch=32;
+      for (mpt=mxt; mpt < 40 ; mpt++) {
+	mxp = xbufoffset +mpt*XPPC;
+	place_rect.x = mxp;
+	SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
+	blit_scaled(mxp, topy, mxp+XPPC-1, topy+YPPC-1);
+      }
+      place_rect.x = topx;
+    }
+    if (line!=0) {
+      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
+      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = tf_colour;
+      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = tf_colour;
+      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = tf_colour;
+      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = tf_colour;
+      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = tf_colour;
+      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = tf_colour;
+      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = tf_colour;
+    }
+    ch=xline;
   }
   for (y=0; y < YPPC; y++) {
     if (screenmode == 7) {
@@ -1379,20 +1411,10 @@ static void write_char(int32 ch) {
 	    }
 	  }
 	}
-	if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))
+	if (mode7highbit && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)))
 	  mode7prevchar=ch;
-	else
-	  mode7prevchar=32;
-      }
-      if ((ch == 156) || (ch == 157)) {
-        /* Fill the rest of the line */
-	for (mpt=mxt; mpt < 40 ; mpt++) {
-	  mxp = xbufoffset +mpt*XPPC;
-	  place_rect.x = mxp;
-	  SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
-	  blit_scaled(mxp, topy, mxp+XPPC-1, topy+YPPC-1);
-	}
-	place_rect.x = topx;
+	//else
+	//  mode7prevchar=32;
       }
     } else {
       line = sysfont[ch-' '][y];
@@ -1427,6 +1449,7 @@ static void write_char(int32 ch) {
       mode7sepgrp=0;
       mode7conceal=0;
       mode7hold=0;
+      mode7flash=0;
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
       set_rgb();
@@ -1804,6 +1827,9 @@ static void vdu_return(void) {
   if (screenmode == 7) {
     vdu141on = 0;
     mode7highbit=0;
+    mode7flash=0;
+    mode7sepgrp=0;
+    mode7prevchar=32;
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
     set_rgb();
@@ -2129,6 +2155,7 @@ static void vdu_movetext(void) {
     mode7sepgrp=0;
     mode7conceal=0;
     mode7hold=0;
+    mode7flash=0;
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
     set_rgb();
@@ -2149,17 +2176,21 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
-	if (charvalue >= 128 && charvalue <= 135) {
+        // printf("VDU code: %02X - %d, mode7hold=%d\n", charvalue, charvalue, mode7hold);
+	if (charvalue >= 129 && charvalue <= 135) {
 	  mode7highbit=0;
 	  mode7conceal=0;
 	  m7col = (charvalue - 128) % 16;
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
 	}
-
-	if (charvalue == 152) mode7conceal=1;
+	if (charvalue == 136) mode7flash=1;
+	if (charvalue == 137) mode7flash=0;
+	if (charvalue == 152) {
+	  mode7conceal=1;
+	  mode7prevchar=32;
+	}
 	if (charvalue == 153) mode7sepgrp=0;
-	if (charvalue == 154) mode7sepgrp=1;
 	if (charvalue == 156) {
 	  /* Black background colour */
 	  text_physbackcol = text_backcol = 0;
@@ -2171,7 +2202,6 @@ void emulate_vdu(int32 charvalue) {
 	  set_rgb();
 	}
 	if (charvalue == 158) mode7hold=1;
-	if (charvalue == 159) mode7hold=0;
 	if (charvalue == 10) vdu141on = 0;
 	if (charvalue == 140) vdu141on = 0;
 	if (charvalue == 141) {
@@ -2205,13 +2235,15 @@ void emulate_vdu(int32 charvalue) {
         toggle_tcursor();
       }
       if (screenmode == 7) {
-	if (charvalue >= 144 && charvalue <= 151) {
+	if (charvalue >= 145 && charvalue <= 151) {
 	  mode7highbit=1;
 	  mode7conceal=0;
 	  m7col = (charvalue - 128) % 16;
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
 	}
+	if (charvalue == 154) mode7sepgrp=1;
+	if (charvalue == 159) mode7hold=0;
       }
       return;
     }
