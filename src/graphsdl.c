@@ -127,6 +127,7 @@ static Uint8 vdu141on = 0;		/* Mode 7 VDU141 toggle */
 static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
 static Uint8 mode7sepgrp = 0;		/* Separated graphics in Mode 7 */
+static Uint8 mode7sepreal = 0;		/* Separated graphics in Mode 7 */
 static Uint8 mode7conceal = 0;		/* CONCEAL teletext flag */
 static Uint8 mode7hold = 0;		/* Hold Graphics flag */
 static Uint8 mode7flash = 0;		/* Flash flag */
@@ -694,6 +695,7 @@ static void reset_mode7() {
   vdu141mode = 1;
   mode7highbit = 0;
   mode7sepgrp = 0;
+  mode7sepreal = 0;
   mode7conceal = 0;
   mode7hold = 0;
   mode7flash = 0;
@@ -1350,6 +1352,7 @@ static void write_char(int32 ch) {
     } else {
       if (mode7highbit) {
 	ch = ch | 0x80;
+	mode7sepreal=mode7sepgrp;
       } else {
 	if (ch < 255) ch = ch & 0x7F;
 	if ( ch < 32 ) ch =32;
@@ -1389,7 +1392,7 @@ static void write_char(int32 ch) {
       } else {
 	if (vdu141on) {
 	  yy=y/2+(4*vdu141mode);
-	  if (mode7sepgrp && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
+	  if (mode7sepreal && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
 	    if (yy == 2 || yy == 5) {
 	      line = 0;
 	    } else {
@@ -1402,7 +1405,7 @@ static void write_char(int32 ch) {
 	  if (vdu141track[ytext] == 1) {
 	    line = 0;
 	  } else {
-	    if (mode7sepgrp && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
+	    if (mode7sepreal && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
 	      if (y == 2 || y == 5 || y == 7) {
 	        line = 0;
 	      } else {
@@ -1444,11 +1447,13 @@ static void write_char(int32 ch) {
   if (xtext > twinright) {
     if (!echo) echo_text();	/* Line is full so flush buffered characters */
     xtext = twinleft;
+      mode7sepgrp=0;
     ytext++;
     if (screenmode == 7) {
       vdu141on=0;
       mode7highbit=0;
       mode7sepgrp=0;
+      mode7sepreal=0;
       mode7conceal=0;
       mode7hold=0;
       mode7flash=0;
@@ -1831,6 +1836,7 @@ static void vdu_return(void) {
     mode7highbit=0;
     mode7flash=0;
     mode7sepgrp=0;
+    mode7sepreal=0;
     mode7prevchar=32;
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
