@@ -2183,7 +2183,6 @@ void emulate_vdu(int32 charvalue) {
 	if (charvalue == 137) mode7flash=0;
 	if (charvalue == 152) {
 	  mode7conceal=1;
-	  mode7prevchar=32;
 	}
 	if (charvalue == 153) mode7sepgrp=0;
 	if (charvalue == 156) {
@@ -2233,7 +2232,7 @@ void emulate_vdu(int32 charvalue) {
 	if (charvalue >= 129 && charvalue <= 135) {
 	  mode7highbit=0;
 	  mode7conceal=0;
-	  mode7hold=0;
+	  mode7prevchar=32;
 	  m7col = (charvalue - 128) % 16;
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
