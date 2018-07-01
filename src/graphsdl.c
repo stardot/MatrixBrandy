@@ -2185,6 +2185,7 @@ void emulate_vdu(int32 charvalue) {
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
         // printf("VDU code: %02X - %d, mode7hold=%d\n", charvalue, charvalue, mode7hold);
+#ifdef MODE7FLASHDIM
 	if (charvalue == 136) {
 	  mode7flash=1;
 	  m7col = (text_physforecol % 8) +8;
@@ -2197,6 +2198,7 @@ void emulate_vdu(int32 charvalue) {
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
 	}
+#endif
 	if (charvalue == 152) {
 	  mode7conceal=1;
 	}
