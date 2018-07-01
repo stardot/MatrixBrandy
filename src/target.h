@@ -25,8 +25,8 @@
 **	Included a Mac OS X target for conditional compilation.
 */
 
-#define BRANDY_VERSION "1.20.1"
-#define BRANDY_DATE    "24-Sep-2014"
+#define BRANDY_VERSION "1.21.0"
+#define BRANDY_DATE    "02-Jul-2018"
 
 #ifndef __target_h
 #define __target_h

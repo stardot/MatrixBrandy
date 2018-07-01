@@ -383,3 +383,8 @@ Version 1.20 31/12/06
 -  Replaced obsolete graphics library jlib with SDL
 -  Resolve minor warnings and missing echo_off echo_on
    in RISC OS version. (patch from Sprow)
+
+Version 1.21 02/07/18
+-  Some fixes including RND()
+-  Extended character set to include full RISC OS character set
+-  Almost complete MODE 7 implementation
