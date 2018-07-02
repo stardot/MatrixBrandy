@@ -1354,6 +1354,9 @@ static void write_char(int32 ch) {
 	ch = ch | 0x80;
 	mode7sepreal=mode7sepgrp;
       } else {
+        if (ch==163) ch=96;
+	if (ch==223) ch=35;
+	if (ch==224) ch=95;
 	if (ch < 255) ch = ch & 0x7F;
 	if ( ch < 32 ) ch =32;
 	if (ch == 255) ch = 256;

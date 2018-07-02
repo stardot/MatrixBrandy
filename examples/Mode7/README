@@ -1,0 +1,7 @@
+Here are some example teletext pages, from Prestel and Ceefax.
+
+These can be displayed in Brandy in Mode 7 using *cat <filename>
+
+(Yes, counter-intuitive, but remember that * commands are passed to the
+underlying Linux system, so *cat does what *type would do on a BBC / RiscOS
+system.)
