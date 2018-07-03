@@ -2228,20 +2228,16 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
-        // printf("VDU code: %02X - %d, mode7hold=%d\n", charvalue, charvalue, mode7hold);
-	if (charvalue == 136) {
-	  mode7flash=1;
-	}
+	/* Set At codes go here, Set After codes are further down. */
 	if (charvalue == 137) {
 	  mode7flash=0;
 	}
-	if (charvalue == 143) { /* HACK HACK */
-	  alarm(1);
-	}
+	if (charvalue == 140) vdu141on = 0;
 	if (charvalue == 152) {
 	  mode7conceal=1;
 	}
 	if (charvalue == 153) mode7sepgrp=0;
+	if (charvalue == 154) mode7sepgrp=1;
 	if (charvalue == 156) {
 	  /* Black background colour */
 	  text_physbackcol = text_backcol = 0;
@@ -2254,16 +2250,6 @@ void emulate_vdu(int32 charvalue) {
 	}
 	if (charvalue == 158) mode7hold=1;
 	if (charvalue == 10) vdu141on = 0;
-	if (charvalue == 140) vdu141on = 0;
-	if (charvalue == 141) {
-	  vdu141on = 1;
-	  if (vdu141track[ytext] == 0) {
-	    vdu141track[ytext+1]=1;
-	    vdu141mode = 0;
-	  } else {
-	    vdu141mode = 1;
-	  }
-	}
       }
       if (vdu5mode)			    /* Sending text output to graphics cursor */
         plot_char(charvalue);
@@ -2286,6 +2272,7 @@ void emulate_vdu(int32 charvalue) {
         toggle_tcursor();
       }
       if (screenmode == 7) {
+	/* Set After codes go here, Set At codes are above. */
 	if (charvalue >= 129 && charvalue <= 135) {
 	  mode7highbit=0;
 	  mode7conceal=0;
@@ -2294,6 +2281,18 @@ void emulate_vdu(int32 charvalue) {
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
 	}
+	if (charvalue == 136) {
+	  mode7flash=1;
+	}
+	if (charvalue == 141) {
+	  vdu141on = 1;
+	  if (vdu141track[ytext] == 0) {
+	    vdu141track[ytext+1]=1;
+	    vdu141mode = 0;
+	  } else {
+	    vdu141mode = 1;
+	  }
+	}
 	if (charvalue >= 145 && charvalue <= 151) {
 	  mode7highbit=1;
 	  mode7conceal=0;
@@ -2301,7 +2300,6 @@ void emulate_vdu(int32 charvalue) {
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
 	}
-	if (charvalue == 154) mode7sepgrp=1;
 	if (charvalue == 159) mode7hold=0;
       }
       return;
