@@ -34,6 +34,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <SDL.h>
+#include <sys/time.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -95,7 +96,7 @@
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 600
 
-static SDL_Surface *screen0, *screen1, *sdl_fontbuf;
+static SDL_Surface *screen0, *screen1, *screen2, *screen3, *swapscreen, *sdl_fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
@@ -132,6 +133,8 @@ static Uint8 mode7conceal = 0;		/* CONCEAL teletext flag */
 static Uint8 mode7hold = 0;		/* Hold Graphics flag */
 static Uint8 mode7flash = 0;		/* Flash flag */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
+static Uint8 mode7bank = 0;		/* Bank switching for Mode 7 Flashing */
+static Uint8 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 
@@ -699,7 +702,9 @@ static void reset_mode7() {
   mode7conceal = 0;
   mode7hold = 0;
   mode7flash = 0;
+  mode7bank = 0;
   mode7prevchar=32;
+  mode7timer=0;
 
   for(p=0;p<26;p++) vdu141track[p]=0;
 }
@@ -1249,6 +1254,12 @@ static void scroll(updown direction) {
     scroll_rect.y = ybufoffset + YPPC * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
     scroll_rect.h = YPPC * (twinbottom - twintop);
+    if (screenmode == 7) {
+      SDL_BlitSurface(screen3, NULL, modescreen, NULL);
+      SDL_BlitSurface(modescreen, &scroll_rect, screen3, NULL);
+      SDL_BlitSurface(screen2, NULL, modescreen, NULL);
+      SDL_BlitSurface(modescreen, &scroll_rect, screen2, NULL);
+    }
     SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
     line_rect.x = 0;
     line_rect.y = YPPC * (twinbottom - twintop);
@@ -1256,6 +1267,8 @@ static void scroll(updown direction) {
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
+      SDL_FillRect(screen2, &line_rect, tb_colour);
+      SDL_FillRect(screen3, &line_rect, tb_colour);
       for(n=2; n<=25; n++) vdu141track[n-1]=vdu141track[n];
       vdu141track[25]=0;
       vdu141track[0]=0;
@@ -1280,6 +1293,8 @@ static void scroll(updown direction) {
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
+      SDL_FillRect(screen2, &line_rect, tb_colour);
+      SDL_FillRect(screen3, &line_rect, tb_colour);
       for(n=0; n<=24; n++) vdu141track[n+1]=vdu141track[n];
       vdu141track[0]=0; vdu141track[1]=0;
     }
@@ -1328,6 +1343,26 @@ static void echo_text(void) {
   }
 }
 
+void mode7flipbank() {
+  if (screenmode == 7) {
+    if (mode7timer == 0) {
+      if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
+      if (mode7bank) {
+	SDL_BlitSurface(screen2, NULL, modescreen, NULL);
+	mode7bank=0;
+      } else {
+	SDL_BlitSurface(screen3, NULL, modescreen, NULL);
+	mode7bank=1;
+      }
+      blit_scaled(0,0,screenwidth-1,screenheight-1);
+      mode7timer=100;
+      toggle_cursor();
+    } else {
+      mode7timer-=1;
+    }
+  }
+}
+
 /*
 ** 'write_char' draws a character when in fullscreen graphics mode
 ** when output is going to the text cursor. It assumes that the
@@ -1372,10 +1407,12 @@ static void write_char(int32 ch) {
 	mxp = xbufoffset +mpt*XPPC;
 	place_rect.x = mxp;
 	SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
+	SDL_BlitSurface(sdl_fontbuf, &font_rect, screen2, &place_rect);
+	SDL_BlitSurface(sdl_fontbuf, &font_rect, screen3, &place_rect);
       }
-      blit_scaled(xbufoffset+mxt, topy, mxp+XPPC-1, topy+YPPC-1);
       place_rect.x = topx;
     }
+    blit_scaled(xbufoffset+mxt, topy, mxp+XPPC-1, topy+YPPC-1);
     if (line!=0) {
       if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
       if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = tf_colour;
@@ -1439,6 +1476,8 @@ static void write_char(int32 ch) {
     }
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
+  SDL_BlitSurface(sdl_fontbuf, &font_rect, screen2, &place_rect);
+  if ((screenmode == 7) && !mode7flash) SDL_BlitSurface(sdl_fontbuf, &font_rect, screen3, &place_rect);
   if (echo) {
     if (!scaled) {
       SDL_BlitSurface(sdl_fontbuf, &font_rect, screen0, &place_rect);
@@ -1773,6 +1812,8 @@ static void vdu_cleartext(void) {
       top = twintop*YPPC;
       bottom = twinbottom*YPPC+YPPC-1;
       SDL_FillRect(modescreen, NULL, tb_colour);
+      SDL_FillRect(screen2, NULL, tb_colour);
+      SDL_FillRect(screen3, NULL, tb_colour);
       blit_scaled(left, top, right, bottom);
       xtext = twinleft;
       ytext = twintop;
@@ -2188,20 +2229,15 @@ void emulate_vdu(int32 charvalue) {
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
         // printf("VDU code: %02X - %d, mode7hold=%d\n", charvalue, charvalue, mode7hold);
-#ifdef MODE7FLASHDIM
 	if (charvalue == 136) {
 	  mode7flash=1;
-	  m7col = (text_physforecol % 8) +8;
-	  text_physforecol = text_forecol = m7col;
-	  set_rgb();
 	}
 	if (charvalue == 137) {
 	  mode7flash=0;
-	  m7col = text_physforecol % 8;
-	  text_physforecol = text_forecol = m7col;
-	  set_rgb();
 	}
-#endif
+	if (charvalue == 143) { /* HACK HACK */
+	  alarm(1);
+	}
 	if (charvalue == 152) {
 	  mode7conceal=1;
 	}
@@ -2255,7 +2291,6 @@ void emulate_vdu(int32 charvalue) {
 	  mode7conceal=0;
 	  mode7prevchar=32;
 	  m7col = (charvalue - 128) % 16;
-	  if (mode7flash) m7col += 8;
 	  text_physforecol = text_forecol = m7col;
 	  set_rgb();
 	}
@@ -2551,6 +2586,8 @@ static void setup_mode(int32 mode) {
     if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
     SDL_FillRect(screen0, NULL, tb_colour);
     SDL_FillRect(modescreen, NULL, tb_colour);
+    SDL_FillRect(screen2, NULL, tb_colour);
+    SDL_FillRect(screen3, NULL, tb_colour);
     if (xoffset == 0)	/* Use whole screen */
       SDL_SetClipRect(screen0, NULL);
     else {	/* Only part of the screen is used */
@@ -3481,6 +3518,8 @@ boolean init_screen(void) {
     return FALSE;
   }
   screen1 = SDL_DisplayFormat(screen0);
+  screen2 = SDL_DisplayFormat(screen0);
+  screen3 = SDL_DisplayFormat(screen0);
   modescreen = SDL_DisplayFormat(screen0);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   sdl_fontbuf = SDL_ConvertSurface(fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */

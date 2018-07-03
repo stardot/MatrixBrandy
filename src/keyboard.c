@@ -46,6 +46,8 @@
 #ifdef USE_SDL
 #include "SDL.h"
 
+extern void mode7flipbank();
+
 Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
   SDL_Event event;
@@ -431,6 +433,7 @@ static int32 is_fn_key(int32 key) {
 static boolean waitkey(int wait) {
   fd_set keyset;
   struct timeval waitime;
+
 #ifdef USE_SDL
   SDL_Event ev;
   SDL_TimerID timer_id;
@@ -443,7 +446,7 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
-    while (SDL_PollEvent(&ev) > 0)
+    while (SDL_PollEvent(&ev) > 0) 
       switch(ev.type)
       {
         case SDL_USEREVENT:
@@ -498,10 +501,12 @@ int32 read_key(void) {
   SDL_Event ev;
   fd_set keyset;
   struct timeval waitime;
+
   while (ch == 0) {
 /*
 ** First check the SDL event Queue
 */
+    mode7flipbank();
     if (SDL_PollEvent(&ev))
       switch(ev.type)
       {
