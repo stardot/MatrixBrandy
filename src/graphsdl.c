@@ -96,7 +96,7 @@
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 600
 
-static SDL_Surface *screen0, *screen1, *screen2, *screen3, *swapscreen, *sdl_fontbuf;
+static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A, *sdl_fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
@@ -1254,21 +1254,19 @@ static void scroll(updown direction) {
     scroll_rect.y = ybufoffset + YPPC * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
     scroll_rect.h = YPPC * (twinbottom - twintop);
-    if (screenmode == 7) {
-      SDL_BlitSurface(screen3, NULL, modescreen, NULL);
-      SDL_BlitSurface(modescreen, &scroll_rect, screen3, NULL);
-      SDL_BlitSurface(screen2, NULL, modescreen, NULL);
-      SDL_BlitSurface(modescreen, &scroll_rect, screen2, NULL);
-    }
     SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
+    if (screenmode == 7) {
+      SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
+      SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
+    }
     line_rect.x = 0;
     line_rect.y = YPPC * (twinbottom - twintop);
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      SDL_FillRect(screen2, &line_rect, tb_colour);
-      SDL_FillRect(screen3, &line_rect, tb_colour);
+      SDL_FillRect(screen2A, &line_rect, tb_colour);
+      SDL_FillRect(screen3A, &line_rect, tb_colour);
       for(n=2; n<=25; n++) vdu141track[n-1]=vdu141track[n];
       vdu141track[25]=0;
       vdu141track[0]=0;
@@ -1287,14 +1285,18 @@ static void scroll(updown direction) {
     line_rect.x = 0;
     line_rect.y = YPPC;
     SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
+    if (screenmode == 7) {
+      SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
+      SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
+    }
     line_rect.x = 0;
     line_rect.y = 0;
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      SDL_FillRect(screen2, &line_rect, tb_colour);
-      SDL_FillRect(screen3, &line_rect, tb_colour);
+      SDL_FillRect(screen2A, &line_rect, tb_colour);
+      SDL_FillRect(screen3A, &line_rect, tb_colour);
       for(n=0; n<=24; n++) vdu141track[n+1]=vdu141track[n];
       vdu141track[0]=0; vdu141track[1]=0;
     }
@@ -1306,6 +1308,11 @@ static void scroll(updown direction) {
   scroll_rect.x = left;
   scroll_rect.y = dest;
   SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
+  if (screenmode == 7) {
+    SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
+    SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
+  
+  }
   if (scaled)
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
   else { 	/* Scrolling the entire screen */
@@ -1350,12 +1357,13 @@ void mode7flipbank() {
       if (mode7bank) {
 	SDL_BlitSurface(screen2, NULL, modescreen, NULL);
 	mode7bank=0;
+	mode7timer=100;
       } else {
 	SDL_BlitSurface(screen3, NULL, modescreen, NULL);
 	mode7bank=1;
+	mode7timer=33;
       }
       blit_scaled(0,0,screenwidth-1,screenheight-1);
-      mode7timer=100;
       toggle_cursor();
     } else {
       mode7timer-=1;
@@ -1798,26 +1806,38 @@ static void move_curup(void) {
 */
 static void vdu_cleartext(void) {
   int32 left, right, top, bottom;
-  if (screenmode == 7) {
-    reset_mode7();
-    text_physforecol = text_forecol = 7;
-    text_physbackcol = text_backcol = 0;
-    set_rgb();
-  }
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
-      left = twinleft*XPPC;
-      right = twinright*XPPC+XPPC-1;
-      top = twintop*YPPC;
-      bottom = twinbottom*YPPC+YPPC-1;
-      SDL_FillRect(modescreen, NULL, tb_colour);
-      SDL_FillRect(screen2, NULL, tb_colour);
-      SDL_FillRect(screen3, NULL, tb_colour);
-      blit_scaled(left, top, right, bottom);
-      xtext = twinleft;
-      ytext = twintop;
-      if (cursorstate==SUSPENDED) toggle_cursor();	/* Redraw cursor */
+      if (textwin) {	/* Text window defined that does not occupy the whole screen */
+        left = xbufoffset+twinleft*XPPC;
+        right = xbufoffset+twinright*XPPC+XPPC-1;
+        top = ybufoffset+twintop*YPPC;
+        bottom = ybufoffset+twinbottom*YPPC+YPPC-1;
+        line_rect.x = left;
+        line_rect.y = top;
+        line_rect.w = right - left +1;
+        line_rect.h = bottom - top +1;
+        SDL_FillRect(modescreen, &line_rect, tb_colour);
+        if (screenmode == 7) {
+	  SDL_FillRect(screen2, &line_rect, tb_colour);
+          SDL_FillRect(screen3, &line_rect, tb_colour);
+        }
+        blit_scaled(0,0,screenwidth-1,screenheight-1);
+      }
+      else {	/* Text window is not being used */
+	left = twinleft*XPPC;
+	right = twinright*XPPC+XPPC-1;
+	top = twintop*YPPC;
+	bottom = twinbottom*YPPC+YPPC-1;
+	SDL_FillRect(modescreen, NULL, tb_colour);
+	blit_scaled(left, top, right, bottom);
+	SDL_FillRect(screen2, NULL, tb_colour);
+	SDL_FillRect(screen3, NULL, tb_colour);
+	xtext = twinleft;
+	ytext = twintop;
+	if (cursorstate==SUSPENDED) toggle_cursor();	/* Redraw cursor */
+	}
     }
     else {	/* Screen is not scaled */
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
@@ -1830,10 +1850,22 @@ static void vdu_cleartext(void) {
         line_rect.w = right - left +1;
         line_rect.h = bottom - top +1;
         SDL_FillRect(modescreen, &line_rect, tb_colour);
-        SDL_FillRect(screen0, &line_rect, tb_colour);
+        if (screenmode == 7) {
+	  SDL_FillRect(screen2, &line_rect, tb_colour);
+          SDL_FillRect(screen3, &line_rect, tb_colour);
+        }
+	SDL_FillRect(screen0, &line_rect, tb_colour);
       }
       else {	/* Text window is not being used */
         SDL_FillRect(modescreen, NULL, tb_colour);
+        if (screenmode == 7) {
+	  SDL_FillRect(screen2, NULL, tb_colour);
+	  SDL_FillRect(screen3, NULL, tb_colour);
+	  reset_mode7();
+	  text_physforecol = text_forecol = 7;
+	  text_physbackcol = text_backcol = 0;
+	  set_rgb();
+        }
         SDL_FillRect(screen0, NULL, tb_colour);
       }
       xtext = twinleft;
@@ -3516,9 +3548,11 @@ boolean init_screen(void) {
     return FALSE;
   }
   screen1 = SDL_DisplayFormat(screen0);
-  screen2 = SDL_DisplayFormat(screen0);
-  screen3 = SDL_DisplayFormat(screen0);
   modescreen = SDL_DisplayFormat(screen0);
+  screen2 = SDL_DisplayFormat(screen0);
+  screen2A = SDL_DisplayFormat(screen0);
+  screen3 = SDL_DisplayFormat(screen0);
+  screen3A = SDL_DisplayFormat(screen0);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   sdl_fontbuf = SDL_ConvertSurface(fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
   SDL_FreeSurface(fontbuf);
