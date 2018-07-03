@@ -1372,8 +1372,8 @@ static void write_char(int32 ch) {
 	mxp = xbufoffset +mpt*XPPC;
 	place_rect.x = mxp;
 	SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
-	blit_scaled(mxp, topy, mxp+XPPC-1, topy+YPPC-1);
       }
+      blit_scaled(xbufoffset+mxt, topy, mxp+XPPC-1, topy+YPPC-1);
       place_rect.x = topx;
     }
     if (line!=0) {
