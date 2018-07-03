@@ -1826,6 +1826,7 @@ static void vdu_cleartext(void) {
         blit_scaled(0,0,screenwidth-1,screenheight-1);
       }
       else {	/* Text window is not being used */
+	reset_mode7();
 	left = twinleft*XPPC;
 	right = twinright*XPPC+XPPC-1;
 	top = twintop*YPPC;
