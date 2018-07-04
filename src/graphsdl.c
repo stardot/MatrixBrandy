@@ -1247,7 +1247,7 @@ static void switch_text(void) {
 ** The screen is redrawn by this call
 */
 static void scroll(updown direction) {
-  int left, right, top, dest, topwin, n;
+  int left, right, top, dest, topwin, m, n;
 /*int bottom; */
   topwin = ybufoffset+twintop*YPPC;		/* Y coordinate of top of text window */
   if (direction == SCROLL_UP) {	/* Shifting screen up */
@@ -1276,6 +1276,12 @@ static void scroll(updown direction) {
       for(n=2; n<=25; n++) vdu141track[n-1]=vdu141track[n];
       vdu141track[25]=0;
       vdu141track[0]=0;
+      /* Scroll the Mode 7 text buffer */
+      for (m=twintop+1; m<=twinbottom; m++) {
+	for (n=twinleft; n<=twinright; n++) mode7frame[m][n] = mode7frame[m-1][n];
+      }
+      /* Blank the bottom line */
+      for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
     }
   }
   else {	/* Shifting screen down */
@@ -1305,6 +1311,12 @@ static void scroll(updown direction) {
       SDL_FillRect(screen3A, &line_rect, tb_colour);
       for(n=0; n<=24; n++) vdu141track[n+1]=vdu141track[n];
       vdu141track[0]=0; vdu141track[1]=0;
+      /* Scroll the Mode 7 text buffer */
+      for (m=twintop; m<=twinbottom-1; m++) {
+	for (n=twinleft; n<=twinright; n++) mode7frame[m][n] = mode7frame[m+1][n];
+      }
+      /* Blank the bottom line */
+      for (n=twinleft; n<=twinright; n++) mode7frame[twintop][n] = 32;
     }
   }
   line_rect.x = 0;
@@ -1817,7 +1829,7 @@ static void move_curup(void) {
 ** when the interpreter supports graphics
 */
 static void vdu_cleartext(void) {
-  int32 left, right, top, bottom;
+  int32 left, right, top, bottom, m, n;
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
@@ -1833,7 +1845,9 @@ static void vdu_cleartext(void) {
         SDL_FillRect(modescreen, &line_rect, tb_colour);
         if (screenmode == 7) {
 	  SDL_FillRect(screen2, &line_rect, tb_colour);
-          SDL_FillRect(screen3, &line_rect, tb_colour);
+	  SDL_FillRect(screen3, &line_rect, tb_colour);
+	  for (m=twintop; m<=twinbottom; m++)
+	    for (n=twinleft; n<=twinright; n++) mode7frame[m][n]=32;
         }
         blit_scaled(0,0,screenwidth-1,screenheight-1);
       }
@@ -1863,22 +1877,10 @@ static void vdu_cleartext(void) {
         line_rect.w = right - left +1;
         line_rect.h = bottom - top +1;
         SDL_FillRect(modescreen, &line_rect, tb_colour);
-        if (screenmode == 7) {
-	  SDL_FillRect(screen2, &line_rect, tb_colour);
-          SDL_FillRect(screen3, &line_rect, tb_colour);
-        }
 	SDL_FillRect(screen0, &line_rect, tb_colour);
       }
       else {	/* Text window is not being used */
         SDL_FillRect(modescreen, NULL, tb_colour);
-        if (screenmode == 7) {
-	  SDL_FillRect(screen2, NULL, tb_colour);
-	  SDL_FillRect(screen3, NULL, tb_colour);
-	  reset_mode7();
-	  text_physforecol = text_forecol = 7;
-	  text_physbackcol = text_backcol = 0;
-	  set_rgb();
-        }
         SDL_FillRect(screen0, NULL, tb_colour);
       }
       xtext = twinleft;
@@ -2273,7 +2275,7 @@ void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
   if (vduneeded == 0) {			/* VDU queue is empty */
     if (vdu21state) {
-      if (charvalue==6) vdu21state=0;
+      if (charvalue == VDU_ENABLE) vdu21state=0;
       return;
     }
     if (charvalue >= ' ') {		/* Most common case - print something */
