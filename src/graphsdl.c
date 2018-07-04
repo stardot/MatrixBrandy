@@ -123,7 +123,10 @@ static void vdu_cleartext(void);
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
+static Uint8 vdu21state = 0;		/* VDU21 - disable all output until VDU6 received */
+
 /* Flags for controlling MODE 7 operation */
+static Uint8 mode7frame[25][40];	/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
 static Uint8 vdu141on = 0;		/* Mode 7 VDU141 toggle */
 static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
@@ -693,7 +696,7 @@ static byte mode7font [225][8] = {
 /* Bulk of Mode 7 code in emulate_vdu, some in write_char */
 
 static void reset_mode7() {
-  int p;
+  int p, q;
   vdu141on = 0;
   vdu141mode = 1;
   mode7highbit = 0;
@@ -707,6 +710,9 @@ static void reset_mode7() {
   mode7timer=0;
 
   for(p=0;p<26;p++) vdu141track[p]=0;
+  for (p=0; p<25; p++) {
+    for (q=0; q<40; q++) mode7frame[p][q]=32;
+  }
 }
 
 /*
@@ -1390,6 +1396,11 @@ static void write_char(int32 ch) {
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
   xch=ch;
   if (screenmode == 7) {
+    if (ch == 127 ) {
+      mode7frame[ytext][xtext]=32;
+    } else {
+      mode7frame[ytext][xtext]=ch;
+    }
     if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
     } else {
@@ -1401,8 +1412,9 @@ static void write_char(int32 ch) {
 	if (ch==223) ch=35;
 	if (ch==224) ch=95;
 	if (ch < 255) ch = ch & 0x7F;
-	if ( ch < 32 ) ch =32;
-	if (ch == 255) ch = 256;
+	if ( ch < 32 ) ch=32;
+	if (ch == 255) ch=256;
+	if (ch == 127) ch=32;
       }
     }
   }
@@ -2142,6 +2154,7 @@ static void vdu_restwind(void) {
     }
     clipping = FALSE;
   }
+  mode7highbit = 0;
   xorigin = yorigin = 0;
   xlast = ylast = xlast2 = ylast2 = 0;
   gwinleft = 0;
@@ -2169,6 +2182,7 @@ static void vdu_restwind(void) {
 */
 static void vdu_textwind(void) {
   int32 left, right, top, bottom;
+  mode7highbit = 0;
   left = vduqueue[0];
   bottom = vduqueue[1];
   right = vduqueue[2];
@@ -2258,6 +2272,10 @@ void emulate_vdu(int32 charvalue) {
   uint32 m7col;
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
   if (vduneeded == 0) {			/* VDU queue is empty */
+    if (vdu21state) {
+      if (charvalue==6) vdu21state=0;
+      return;
+    }
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 colour changes */
       if (screenmode == 7) {
@@ -2384,6 +2402,7 @@ void emulate_vdu(int32 charvalue) {
     break;
   case VDU_ENABLE:	/* 6 - Enable the VDU driver (ignored) */
     enable_vdu = TRUE;
+    vdu21state=0;
     break;
   case VDU_BEEP:	/* 7 - Sound the bell */
     putchar('\7');
@@ -2431,7 +2450,8 @@ void emulate_vdu(int32 charvalue) {
   case VDU_RESTCOL:	/* 20 - Restore logical colours to default values */
     reset_colours();
     break;
-  case VDU_DISABLE:	/* 21 - Disable the VDU driver (ignored) */
+  case VDU_DISABLE:	/* 21 - Disable the VDU driver */
+    vdu21state = 1;
     break;
   case VDU_SCRMODE:	/* 22 - Change screen mode */
     emulate_mode(vduqueue[0]);
