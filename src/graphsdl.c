@@ -697,8 +697,8 @@ static byte mode7font [225][8] = {
 
 static void reset_mode7() {
   int p, q;
-  vdu141on = 0;
   vdu141mode = 1;
+  vdu141on = 0;
   mode7highbit = 0;
   mode7sepgrp = 0;
   mode7sepreal = 0;
@@ -706,8 +706,8 @@ static void reset_mode7() {
   mode7hold = 0;
   mode7flash = 0;
   mode7bank = 0;
-  mode7prevchar=32;
   mode7timer=0;
+  mode7prevchar=32;
 
   for(p=0;p<26;p++) vdu141track[p]=0;
   for (p=0; p<25; p++) {
@@ -1409,7 +1409,7 @@ static void write_char(int32 ch) {
   xch=ch;
   if (screenmode == 7) {
     if (ch == 127 ) {
-      mode7frame[ytext][xtext]=32;
+      mode7frame[ytext][xtext]=ch=32;
     } else {
       mode7frame[ytext][xtext]=ch;
     }
@@ -1426,15 +1426,12 @@ static void write_char(int32 ch) {
 	if (ch < 255) ch = ch & 0x7F;
 	if ( ch < 32 ) ch=32;
 	if (ch == 255) ch=256;
-	if (ch == 127) ch=32;
       }
     }
   }
   if ((screenmode == 7) && ((xch == 156) || (xch == 157))) {
-    xline=ch;
     for (y=0; y < YPPC; y++) {
       /* Fill the rest of the line */
-      ch=32;
       for (mpt=mxt; mpt < 40 ; mpt++) {
 	mxp = xbufoffset +mpt*XPPC;
 	place_rect.x = mxp;
@@ -1445,17 +1442,6 @@ static void write_char(int32 ch) {
       place_rect.x = topx;
     }
     blit_scaled(xbufoffset+mxt, topy, mxp+XPPC-1, topy+YPPC-1);
-    if (line!=0) {
-      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
-      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = tf_colour;
-      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = tf_colour;
-      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = tf_colour;
-      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = tf_colour;
-      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = tf_colour;
-      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = tf_colour;
-      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = tf_colour;
-    }
-    ch=xline;
   }
   for (y=0; y < YPPC; y++) {
     if (screenmode == 7) {
