@@ -91,6 +91,8 @@ static HANDLE sigintthread = NULL;     /* Thread number for Escape key watching 
 
 static char errortext[200];     /* Copy of text of last error for REPORT */
 
+extern void dump_mode7(void);
+
 /*
 ** 'handle_signal' deals with any signals raised during program execution.
 ** Under some operating systems raising a signal causes the signal handler
