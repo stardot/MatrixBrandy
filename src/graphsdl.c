@@ -143,7 +143,7 @@ static Uint8 mode7bank = 0;		/* Bank switching for Mode 7 Flashing */
 static Uint8 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 mode7black = 0;		/* Allow teletext black codes RISC OS 5 */
 static Uint8 mode7reveal = 0;		/* RISC OS 5 - reveal content hidden by CONCEAL */
-static Uint8 mode7bitmapupdate = 1;	/* RISC OS 5 - do we update bitmap and blit after each character */
+static Uint8 mode7bitmapupdate = 2;	/* RISC OS 5 - do we update bitmap and blit after each character */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 
@@ -864,7 +864,7 @@ static void vdu_2317(void) {
 /* RISC OS 5 - Set Teletext characteristics */
 static void vdu_2318(void) {
   if (vduqueue[1] == 1) {
-    mode7bitmapupdate=vduqueue[2] & 1;
+    mode7bitmapupdate=vduqueue[2] & 2;
   }
   if (vduqueue[1] == 2) {
     mode7reveal=vduqueue[2] & 1;
@@ -872,6 +872,7 @@ static void vdu_2318(void) {
   }
   if (vduqueue[1] == 3) {
     mode7black = vduqueue[2] & 1;
+    mode7renderscreen();
   }
 }
 

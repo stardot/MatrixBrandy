@@ -1,0 +1,30 @@
+Mode 7 support in Brandy BBC BASIC V
+====================================
+As of version 1.21.2, MODE 7 is now running using a text buffer,
+which recalculates the line whenever a character in it is changed. This
+allows for existing lines to be modified with control codes, and existing
+characters are changed to reflect the modification.
+
+This is a change to the teletext in 1.21.0 and .1, where streams of characters
+were obeyed correctly, but placed characters would not reflect existing
+codes, nor would placed codes affect existing characters.
+
+Glyphs are using 8x9 character cells, this allows for a decent rendering
+of mosaic graphics, especially separated graphics.
+
+Some RISC OS 5 extensions are also supported:
+  (source: http://beebwiki.mdfs.net/VDU_23)
+VDU 23,18,1,flags,0,0,0,0,0,0 - Set Teletext display update
+  bit 0 - suspend immediate updates of display bitmap (not implemented)
+  bit 1 - update display after every character (default: set)
+
+VDU 23,18,2,flags,0,0,0,0,0,0 - Set Teletext reveal state
+  bit 0 - if set, any concealed text will be displayed. If cleared, concealed
+          text is concealed.
+Setting or clearing this will cause an immediate refresh of the display.
+
+VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
+  enable = 0: Control codes &80 and &90 do nothing (default)
+  enable = 1: Control code &80 selects alphanumeric black,
+              control code &90 selects graphics black.
+Enabling or disabling this will cause an immediate refresh of the display.
