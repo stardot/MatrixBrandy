@@ -92,6 +92,7 @@ static HANDLE sigintthread = NULL;     /* Thread number for Escape key watching 
 static char errortext[200];     /* Copy of text of last error for REPORT */
 
 extern void dump_mode7(void);
+extern void mode7renderscreen(void);
 
 /*
 ** 'handle_signal' deals with any signals raised during program execution.
@@ -101,6 +102,12 @@ extern void dump_mode7(void);
 */
 static void handle_signal(int signo) {
   switch (signo) {
+  case SIGUSR1:
+    dump_mode7();
+    return;
+  case SIGUSR2:
+    mode7renderscreen();
+    return;
   case SIGINT:
     (void) signal(SIGINT, handle_signal);
     basicvars.escape = TRUE;
@@ -165,6 +172,8 @@ void watch_signals(void) {
 void init_errors(void) {
   errortext[0] = NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
+    (void) signal(SIGUSR1, handle_signal);
+    (void) signal(SIGUSR2, handle_signal);
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
     (void) signal(SIGINT, handle_signal);
