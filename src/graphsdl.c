@@ -698,6 +698,7 @@ static byte mode7font [225][9] = {
 
 #define XPPC 8		/* Size of character in pixels in X direction */
 #define YPPC 8		/* Size of character in pixels in Y direction */
+#define M7YPPC 9	/* Size of Mode 7 characters in Y direction */
 
 /* Bulk of Mode 7 code in emulate_vdu, some in write_char */
 
@@ -1277,28 +1278,30 @@ static void switch_text(void) {
 ** The screen is redrawn by this call
 */
 static void scroll(updown direction) {
-  int left, right, top, dest, topwin, m, n;
+  int left, right, top, dest, topwin, m, n, myppc;
 /*int bottom; */
-  topwin = ybufoffset+twintop*YPPC;		/* Y coordinate of top of text window */
+  if (screenmode == 7) myppc = M7YPPC;
+    else myppc=YPPC;
+  topwin = ybufoffset+twintop*myppc;		/* Y coordinate of top of text window */
   if (direction == SCROLL_UP) {	/* Shifting screen up */
-    dest = ybufoffset + twintop*YPPC;		/* Move screen up to this point */
+    dest = ybufoffset + twintop*myppc;		/* Move screen up to this point */
     left = xbufoffset + twinleft*XPPC;
     right = xbufoffset + twinright*XPPC+XPPC-1;
-    top = dest+YPPC;				/* Top of block to move starts here */
-/*  bottom = ybufoffset+twinbottom*YPPC+YPPC-1;	   End of block is here */
+    top = dest+myppc;				/* Top of block to move starts here */
+/*  bottom = ybufoffset+twinbottom*myppc+myppc-1;	   End of block is here */
     scroll_rect.x = xbufoffset + twinleft*XPPC;
-    scroll_rect.y = ybufoffset + YPPC * (twintop + 1);
+    scroll_rect.y = ybufoffset + myppc * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
-    scroll_rect.h = YPPC * (twinbottom - twintop);
+    scroll_rect.h = myppc * (twinbottom - twintop);
     SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
     if (screenmode == 7) {
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
     line_rect.x = 0;
-    line_rect.y = YPPC * (twinbottom - twintop);
+    line_rect.y = myppc * (twinbottom - twintop);
     line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC;
+    line_rect.h = myppc;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
       SDL_FillRect(screen2A, &line_rect, tb_colour);
@@ -1315,17 +1318,17 @@ static void scroll(updown direction) {
     }
   }
   else {	/* Shifting screen down */
-    dest = ybufoffset+(twintop+1)*YPPC;
+    dest = ybufoffset+(twintop+1)*myppc;
     left = xbufoffset+twinleft*XPPC;
     right = xbufoffset+(twinright+1)*XPPC-1;
-    top = ybufoffset+twintop*YPPC;
-/*  bottom = ybufoffset+twinbottom*YPPC-1; */
+    top = ybufoffset+twintop*myppc;
+/*  bottom = ybufoffset+twinbottom*myppc-1; */
     scroll_rect.x = left;
     scroll_rect.y = top;
     scroll_rect.w = XPPC * (twinright - twinleft +1);
-    scroll_rect.h = YPPC * (twinbottom - twintop);
+    scroll_rect.h = myppc * (twinbottom - twintop);
     line_rect.x = 0;
-    line_rect.y = YPPC;
+    line_rect.y = myppc;
     SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
     if (screenmode == 7) {
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
@@ -1334,7 +1337,7 @@ static void scroll(updown direction) {
     line_rect.x = 0;
     line_rect.y = 0;
     line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC;
+    line_rect.h = myppc;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
       SDL_FillRect(screen2A, &line_rect, tb_colour);
@@ -1352,7 +1355,7 @@ static void scroll(updown direction) {
   line_rect.x = 0;
   line_rect.y = 0;
   line_rect.w = XPPC * (twinright - twinleft +1);
-  line_rect.h = YPPC * (twinbottom - twintop +1);
+  line_rect.h = myppc * (twinbottom - twintop +1);
   scroll_rect.x = left;
   scroll_rect.y = dest;
   SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
@@ -1362,7 +1365,7 @@ static void scroll(updown direction) {
   
   }
   if (scaled)
-    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+    blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
   else { 	/* Scrolling the entire screen */
     SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
     SDL_Flip(screen0);
@@ -1759,15 +1762,17 @@ static void move_curup(void) {
 ** when the interpreter supports graphics
 */
 static void vdu_cleartext(void) {
-  int32 left, right, top, bottom, m, n;
+  int32 left, right, top, bottom, m, n, myppc;
+  if (screenmode == 7) myppc=M7YPPC;
+    else myppc=YPPC;
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
         left = xbufoffset+twinleft*XPPC;
         right = xbufoffset+twinright*XPPC+XPPC-1;
-        top = ybufoffset+twintop*YPPC;
-        bottom = ybufoffset+twinbottom*YPPC+YPPC-1;
+        top = ybufoffset+twintop*myppc;
+        bottom = ybufoffset+twinbottom*myppc+myppc-1;
         line_rect.x = left;
         line_rect.y = top;
         line_rect.w = right - left +1;
@@ -1785,8 +1790,8 @@ static void vdu_cleartext(void) {
 	reset_mode7();
 	left = twinleft*XPPC;
 	right = twinright*XPPC+XPPC-1;
-	top = twintop*YPPC;
-	bottom = twinbottom*YPPC+YPPC-1;
+	top = twintop*myppc;
+	bottom = twinbottom*myppc+myppc-1;
 	SDL_FillRect(modescreen, NULL, tb_colour);
 	blit_scaled(left, top, right, bottom);
 	SDL_FillRect(screen2, NULL, tb_colour);
@@ -1800,8 +1805,8 @@ static void vdu_cleartext(void) {
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
         left = xbufoffset+twinleft*XPPC;
         right = xbufoffset+twinright*XPPC+XPPC-1;
-        top = ybufoffset+twintop*YPPC;
-        bottom = ybufoffset+twinbottom*YPPC+YPPC-1;
+        top = ybufoffset+twintop*myppc;
+        bottom = ybufoffset+twinbottom*myppc+myppc-1;
         line_rect.x = left;
         line_rect.y = top;
         line_rect.w = right - left +1;
@@ -3522,7 +3527,7 @@ void end_screen(void) {
 void mode7renderline(int32 ypos) {
   int32 ch, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
   int32 y, yy, topx, topy, line, base, mxt, mxp, mpt, xch, xline;
-  Uint8 m7yppc=9;
+  Uint8 myppc=M7YPPC;
   
   byte m7dhlookup[9][2] = {
     {0u, 4u},
@@ -3592,7 +3597,7 @@ void mode7renderline(int32 ypos) {
     /* Now we write the character. Copied and optimised from write_char() above */
     mxt=xtext;
     topx = xbufoffset +xtext*XPPC;
-    topy = ybufoffset +ypos*m7yppc;
+    topy = ybufoffset +ypos*myppc;
     place_rect.x = topx;
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
@@ -3613,7 +3618,7 @@ void mode7renderline(int32 ypos) {
       }
     }
     /* In write_char() we now fill the line with BG colour. Since this function fills the entire line, don't bother */
-    for (y=0; y < m7yppc; y++) {
+    for (y=0; y < myppc; y++) {
       if (mode7conceal && !mode7reveal) {
 	line=0;
       } else {
@@ -3710,7 +3715,7 @@ void mode7renderline(int32 ypos) {
     }
   }
 
-  if (mode7bitmapupdate) blit_scaled(0, topy, 639, topy+m7yppc-1);
+  if (mode7bitmapupdate) blit_scaled(0, topy, 639, topy+myppc-1);
 
   vdu141on=0;
   mode7highbit=0;
