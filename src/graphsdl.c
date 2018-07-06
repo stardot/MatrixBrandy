@@ -3697,6 +3697,7 @@ void mode7renderline(int32 ypos) {
 	  text_physforecol = text_forecol = 0;
 	  set_rgb();
 	}
+	break;
       case TELETEXT_GRAPHICS_RED:
       case TELETEXT_GRAPHICS_GREEN:
       case TELETEXT_GRAPHICS_YELLOW:
