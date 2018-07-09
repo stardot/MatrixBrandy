@@ -3602,7 +3602,7 @@ void mode7renderline(int32 ypos) {
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     xch=ch;
-    if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch >= 153 && ch <= 159))) {
+    if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && mode7reveal) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
     } else {
       if (mode7highbit) {
