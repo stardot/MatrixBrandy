@@ -1301,6 +1301,20 @@ void exec_local(void) {
 /*
 ** 'exec_next' handles what is really the business end of a 'FOR' loop.
 */
+
+static stack_for *find_for(void)
+{
+  stack_for *fp;
+
+  if (GET_TOPITEM == STACK_INTFOR || GET_TOPITEM == STACK_FLOATFOR) /* FOR control block is top of stack */
+    fp = basicvars.stacktop.forsp;
+  else {	/* Discard entries until FOR control block is found */
+    fp = get_for();
+  }
+  if (fp == NIL) error(ERR_NOTFOR);	/* Not in a FOR loop */
+  return fp;
+}
+  
 void exec_next(void) {
   stack_for *fp;
   lvalue nextvar;
@@ -1309,17 +1323,16 @@ void exec_next(void) {
   static float64 floatvalue;
   if (basicvars.escape) error(ERR_ESCAPE);
   do {
-    if (GET_TOPITEM == STACK_INTFOR || GET_TOPITEM == STACK_FLOATFOR) /* FOR control block is top of stack */
-      fp = basicvars.stacktop.forsp;
-    else {	/* Discard entries until FOR control block is found */
-       fp = get_for();
-    }
-    if (fp == NIL) error(ERR_NOTFOR);	/* Not in a FOR loop */
+    fp = find_for();
     basicvars.current++;	/* Skip NEXT token */
     if (!ateol[*basicvars.current]) {	/* There is a control variable (or two) here */
       if (*basicvars.current != ',') {
         get_lvalue(&nextvar);
-        if (nextvar.address.intaddr != fp->forvar.address.intaddr) error(ERR_WRONGFOR);	/* Cannot match 'FOR' loop variable */
+        while (nextvar.address.intaddr != fp->forvar.address.intaddr) {
+          /* top for loop is an inner one - pop the stack to find the one that matches the NEXT */
+          pop_for();
+          fp = find_for();
+        }          
       }
     }
 /*

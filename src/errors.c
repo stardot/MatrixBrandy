@@ -371,7 +371,6 @@ static detail errortable [] = {
   {NONFATAL, NOPARM,  46, "Not in a 'WHILE' loop"},
   {NONFATAL, NOPARM,  43, "Not in a 'REPEAT' loop"},
   {NONFATAL, NOPARM,  32, "Not in a 'FOR' loop"},
-  {NONFATAL, NOPARM,  33, "Variable after 'NEXT' is not the control variable of the current 'FOR' loop"},
   {NONFATAL, NOPARM,  18, "Division by zero"},
   {NONFATAL, NOPARM,  21, "Tried to take square root of a negative number"},
   {NONFATAL, NOPARM,  22, "Tried to take log of zero or a negative number"},
