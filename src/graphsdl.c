@@ -3588,7 +3588,6 @@ void mode7renderline(int32 ypos) {
       case TELETEXT_BACKGROUND_BLACK:
 	text_physbackcol = text_backcol = 0;
 	set_rgb();
-	mode7prevchar=32;
 	break;
       case TELETEXT_BACKGROUND_SET:
 	text_physbackcol = text_backcol = text_physforecol;
@@ -3606,7 +3605,7 @@ void mode7renderline(int32 ypos) {
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     xch=ch;
-    if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && mode7reveal) || (ch >= 153 && ch <= 155) || (ch >= 157 && ch <= 159))) {
+    if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && mode7reveal) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
     } else {
       if (mode7highbit) {
@@ -3714,6 +3713,11 @@ void mode7renderline(int32 ypos) {
 	text_physforecol = text_forecol = (ch - 144);
 	set_rgb();
 	 break;
+      /* These two break the teletext spec, but matches the behaviour in the SAA5050 and RISC OS */
+      case TELETEXT_BACKGROUND_BLACK:
+      case TELETEXT_BACKGROUND_SET:
+	mode7prevchar=32;
+	break;
       case TELETEXT_GRAPHICS_RELEASE:
 	mode7hold=0;
 	break;
