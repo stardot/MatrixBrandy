@@ -2226,8 +2226,11 @@ void emulate_vdu(int32 charvalue) {
           ytext++;
           if (ytext > twinbottom) {
             ytext--;
-            if (textwin)
+            if (textwin) {
               scroll_text(SCROLL_UP);
+	    } else {
+	      scroll(SCROLL_UP);
+	    }
           }
         }
 	return;
