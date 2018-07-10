@@ -1293,8 +1293,8 @@ static void scroll(updown direction) {
     scroll_rect.y = ybufoffset + myppc * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
     scroll_rect.h = myppc * (twinbottom - twintop);
-    SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
-    if (screenmode == 7) {
+    if (screenmode != 7 || mode7bitmapupdate) SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
+    if (screenmode == 7 && mode7bitmapupdate) {
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
@@ -1302,10 +1302,12 @@ static void scroll(updown direction) {
     line_rect.y = myppc * (twinbottom - twintop);
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = myppc;
-    SDL_FillRect(screen1, &line_rect, tb_colour);
+    if (screenmode != 7 || mode7bitmapupdate) SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      SDL_FillRect(screen2A, &line_rect, tb_colour);
-      SDL_FillRect(screen3A, &line_rect, tb_colour);
+      if (mode7bitmapupdate) {
+        SDL_FillRect(screen2A, &line_rect, tb_colour);
+        SDL_FillRect(screen3A, &line_rect, tb_colour);
+      }
       for(n=2; n<=25; n++) vdu141track[n-1]=vdu141track[n];
       vdu141track[25]=0;
       vdu141track[0]=0;
@@ -1329,8 +1331,8 @@ static void scroll(updown direction) {
     scroll_rect.h = myppc * (twinbottom - twintop);
     line_rect.x = 0;
     line_rect.y = myppc;
-    SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
-    if (screenmode == 7) {
+    if (screenmode != 7 || mode7bitmapupdate) SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
+    if (screenmode == 7 && mode7bitmapupdate) {
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
@@ -1338,10 +1340,12 @@ static void scroll(updown direction) {
     line_rect.y = 0;
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = myppc;
-    SDL_FillRect(screen1, &line_rect, tb_colour);
+    if (screenmode != 7 || mode7bitmapupdate) SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      SDL_FillRect(screen2A, &line_rect, tb_colour);
-      SDL_FillRect(screen3A, &line_rect, tb_colour);
+      if (mode7bitmapupdate) {
+        SDL_FillRect(screen2A, &line_rect, tb_colour);
+        SDL_FillRect(screen3A, &line_rect, tb_colour);
+      }
       for(n=0; n<=24; n++) vdu141track[n+1]=vdu141track[n];
       vdu141track[0]=0; vdu141track[1]=0;
       /* Scroll the Mode 7 text buffer */
@@ -1358,17 +1362,18 @@ static void scroll(updown direction) {
   line_rect.h = myppc * (twinbottom - twintop +1);
   scroll_rect.x = left;
   scroll_rect.y = dest;
-  SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
-  if (screenmode == 7) {
+  if (screenmode != 7 || mode7bitmapupdate) SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
+  if (screenmode == 7 && mode7bitmapupdate) {
     SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
     SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
-  
   }
-  if (scaled)
-    blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
-  else { 	/* Scrolling the entire screen */
-    SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
-    SDL_Flip(screen0);
+  if (scaled) {
+    if (screenmode != 7 || mode7bitmapupdate) blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
+  } else { 	/* Scrolling the entire screen */
+    if (screenmode != 7 || mode7bitmapupdate) {
+      SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
+      SDL_Flip(screen0);
+    }
   }
 }
 
@@ -1405,6 +1410,7 @@ void mode7flipbank() {
   if (screenmode == 7) {
     if (mode7timer == 0) {
       if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
+      if (!mode7bitmapupdate) mode7renderscreen();
       if (mode7bank) {
 	SDL_BlitSurface(screen2, NULL, modescreen, NULL);
 	mode7bank=0;

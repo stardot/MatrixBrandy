@@ -1,19 +1,19 @@
-REM This example program solves the "Towers of Hanoi" puzzle
-:
-INPUT "Number of discs? " number%
-steps% = 0
-T = TIME
-PROChanoi("left", "middle", "right", number%)
-PRINT;steps%;" steps in ";(TIME-T)/100;" seconds"
-END
-:
-:
-DEF PROChanoi(from$, using$, to$, N%)
-IF N%=0 THEN ENDPROC
-PROChanoi(from$, to$, using$, N%-1)
-PRINT STRING$(N%, " ");"Move disc "; N%; " from "; from$; " to "; to$
-steps%+=1
-PROChanoi(using$, from$, to$, N%-1)
-ENDPROC
-
-
+   10REM This example program solves the "Towers of Hanoi" puzzle
+   20:
+   30INPUT "Number of discs? " number%
+   40steps% = 0
+   50T = TIME
+   60PROChanoi("left", "middle", "right", number%)
+   70PRINT;steps%;" steps in ";(TIME-T)/100;" seconds"
+   80END
+   90:
+  100:
+  110DEF PROChanoi(from$, using$, to$, N%)
+  120IF N%=0 THEN ENDPROC
+  130PROChanoi(from$, to$, using$, N%-1)
+  140PRINT STRING$(N%, " ");"Move disc "; N%; " from "; from$; " to "; to$
+  150steps%+=1
+  160PROChanoi(using$, from$, to$, N%-1)
+  170ENDPROC
+  180
+  190
