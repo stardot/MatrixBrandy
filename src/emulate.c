@@ -813,8 +813,9 @@ void emulate_waitdelay(int32 time) {
 #define CMD_DONOTHING 1
 #define CMD_KEY 2
 #define CMD_STARQUIT 3
+#define CMD_STARDOT 4
 
-#define HIGH_FNKEY 15		/* Highest funcrion key number */
+#define HIGH_FNKEY 15		/* Highest function key number */
 /*
  * emulate_key - emulate the 'key' command to define a function
  * key string. On entry 'command' points at the start of the
@@ -879,7 +880,7 @@ static int check_command(char *text) {
   int length;
   if (*text == 0) return CMD_UNKNOWN;
   length = 0;
-  while (length < 10 && isalnum(*text)) {
+  while (length < 10 && (isalnum(*text) || text[0]=='.')) {
     command[length] = tolower(*text);
     length++;
     text++;
@@ -889,6 +890,7 @@ static int check_command(char *text) {
   if (strncmp(command, "opt", 3) == 0) return CMD_DONOTHING;
   if (strncmp(command, "tv", 2) == 0) return CMD_DONOTHING;
   if (strncmp(command, "fx", 2) == 0) return CMD_DONOTHING;
+  if (strncmp(command, ".", 1) == 0) return CMD_STARDOT;
   if ((strncmp(command, "q", 1) == 0) && length==1) return CMD_STARQUIT;
   if ((strncmp(command, "qu", 2) == 0) && length==2) return CMD_STARQUIT;
   if (strncmp(command, "quit", 4) == 0) return CMD_STARQUIT;
@@ -929,6 +931,10 @@ void emulate_oscli(char *command, char *respfile) {
     }
     if (cmd == CMD_DONOTHING) {
       return;
+    }
+    if (cmd == CMD_STARDOT) {
+      strncpy(cmdbuf, "dir", 3);
+      strncpy(cmdbuf+3, command+1, clen-3);
     }
   }
 
@@ -1006,6 +1012,10 @@ void emulate_oscli(char *command, char *respfile) {
     }
     if (cmd == CMD_DONOTHING) {
       return;
+    }
+    if (cmd == CMD_STARDOT) {
+      strncpy(cmdbuf, "ls", 2);
+      strncpy(cmdbuf+2, command+1, clen-2);
     }
   }
 
