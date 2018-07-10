@@ -61,7 +61,7 @@
 ** traps exceptions that happen within its own code).
 */
 
-#define COPYRIGHT "Brandy V1.21.2 is free software; you can redistribute it and/or modify\r\n" \
+#define COPYRIGHT "Brandy V1.21.3 is free software; you can redistribute it and/or modify\r\n" \
         "it under the terms of the GNU General Public License as published by\r\n" \
         "the Free Software Foundation. See the file COPYING for further details.\r\n"
 
