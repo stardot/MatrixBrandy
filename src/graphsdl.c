@@ -869,12 +869,11 @@ static void vdu_2318(void) {
   }
   if (vduqueue[1] == 2) {
     mode7reveal=vduqueue[2] & 1;
-    mode7renderscreen();
   }
   if (vduqueue[1] == 3) {
     mode7black = vduqueue[2] & 1;
-    mode7renderscreen();
   }
+  mode7renderscreen();
 }
 
 /*
@@ -3550,6 +3549,8 @@ void mode7renderline(int32 ypos) {
     {4u, 8u},
   };
 
+  if (!mode7bitmapupdate) return;
+
   /* Preserve values */
   l_text_physbackcol=text_physbackcol;
   l_text_backcol=text_backcol;
@@ -3750,7 +3751,11 @@ void mode7renderline(int32 ypos) {
 
 void mode7renderscreen(void) {
   int32 ypos;
+  Uint8 bmpstate=mode7bitmapupdate;
+  
+  mode7bitmapupdate=1;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos);
+  mode7bitmapupdate=bmpstate;
 }
 
 /* Debug code */
