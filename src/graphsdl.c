@@ -3753,6 +3753,8 @@ void mode7renderscreen(void) {
   int32 ypos;
   Uint8 bmpstate=mode7bitmapupdate;
   
+  if (screenmode != 7) return;
+  
   mode7bitmapupdate=1;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos);
   mode7bitmapupdate=bmpstate;
