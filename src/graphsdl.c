@@ -3731,7 +3731,7 @@ void mode7renderline(int32 ypos) {
     }
   }
 
-  if (mode7bitmapupdate) blit_scaled(0, topy, 639, topy+myppc-1);
+  blit_scaled(0, topy, 639, topy+myppc-1);
 
   vdu141on=0;
   mode7highbit=0;
