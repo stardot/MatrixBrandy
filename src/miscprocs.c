@@ -100,9 +100,10 @@ byte *alignaddr(byte *addr) {
 ** lies within the Basic workspace. This check is not carried out
 ** when running under RISC OS
 */
-void check_read(int32 low, int32 size) {
+void check_read(uint32 low, uint32 size) {
 #ifndef TARGET_RISCOS
   byte *lowaddr = basicvars.offbase+low;
+  if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
 #endif
 }
@@ -119,7 +120,7 @@ void check_read(int32 low, int32 size) {
 ** the RMA and dynamic areas). Note that the code makes some
 ** assumptions about the RISC OS memory map
 */
-void check_write(int32 low, int32 size) {
+void check_write(uint32 low, uint32 size) {
   byte *lowaddr, *highaddr;
   lowaddr = basicvars.offbase+low;
   highaddr = lowaddr+size;
@@ -135,6 +136,11 @@ void check_write(int32 low, int32 size) {
    lowaddr>=basicvars.slotend) return;
 #else
   if (lowaddr>=basicvars.lomem && highaddr<basicvars.end) return;
+#endif
+
+#ifdef USE_SDL
+  /* Mode 7 screen memory */
+  if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
 #endif
 
 #else

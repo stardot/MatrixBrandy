@@ -926,7 +926,7 @@ static void do_unaryminus(void) {
 ** the stack
 */
 static void do_getbyte(void) {
-  int32 offset = 0;
+  uint32 offset = 0, msx, msy;
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
@@ -937,7 +937,25 @@ static void do_getbyte(void) {
     error(ERR_TYPENUM);
   }
   check_read(offset, sizeof(byte));
+#ifdef USE_SDL
+  if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFFu) {
+    /* Mode 7 screen memory */
+    printf("do_getbyte: offset = %X\n", offset);
+    offset -= 0xFFFF7C00u;
+    printf("do_getbyte: offset = %u\n", offset);
+    if (offset >= 1000) {
+      push_int(0);
+    } else {
+      msy = offset / 40;
+      msx = offset % 40;
+      push_int(mode7frame[msy][msx]);
+    }
+  } else {
+    push_int(basicvars.offbase[offset]);
+  }
+#else
   push_int(basicvars.offbase[offset]);
+#endif /* USE_SDL */
 }
 
 /*

@@ -24,6 +24,10 @@
 #ifndef __miscprocs_h
 #define __miscprocs_h
 
+#ifdef USE_SDL
+#include <SDL.h>
+#endif
+
 #include "common.h"
 #include "basicdefs.h"
 
@@ -32,8 +36,8 @@ extern boolean amend_line(char [], int32);
 extern boolean isidstart(char);
 extern boolean isidchar(char);
 extern boolean isident(byte);
-extern void check_read(int32, int32);
-extern void check_write(int32, int32);
+extern void check_read(uint32, uint32);
+extern void check_write(uint32, uint32);
 extern int32 get_integer(int32);
 extern float64 get_float(int32);
 extern void store_integer(int32, int32);
@@ -50,7 +54,9 @@ extern void show_word(int32, int32);
 extern void save_current(void);
 extern void restore_current(void);
 extern boolean secure_tmpnam(char []);
-
+#ifdef USE_SDL
+extern Uint8 mode7frame[25][40];
+#endif
 #define ISIDSTART(ch) (isalpha(ch) || ch=='_' || ch=='`')
 #define ISIDCHAR(ch) (isalnum(ch) || ch=='_' || ch=='`')
 

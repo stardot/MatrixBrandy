@@ -221,8 +221,8 @@ void restore_handlers(void) {
 void announce(void) {
   emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
-  emulate_printf("Basicvars is at &%p, tokenised line is at &%p\r\n", &basicvars, &thisline);
-  emulate_printf("Workspace is at &%p, size is &%x, page = &%p\r\nhimem = &%p\r\n",
+  emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\n", &basicvars, &thisline);
+  emulate_printf("Workspace is at &%X, size is &%X, page = &%X\r\nhimem = &%X\r\n",
    basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
 #endif
 }

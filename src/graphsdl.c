@@ -129,7 +129,7 @@ static Uint8 hardpalette[24];		/* palette for screen */
 static Uint8 vdu21state = 0;		/* VDU21 - disable all output until VDU6 received */
 
 /* Flags for controlling MODE 7 operation */
-static Uint8 mode7frame[25][40];	/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
+Uint8 mode7frame[25][40];	/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
 static Uint8 vdu141on = 0;		/* Mode 7 VDU141 toggle */
 static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
 static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
@@ -3549,7 +3549,7 @@ void mode7renderline(int32 ypos) {
     {4u, 8u},
   };
 
-  if (!mode7bitmapupdate) return;
+  if (!mode7bitmapupdate || (screenmode != 7)) return;
 
   /* Preserve values */
   l_text_physbackcol=text_physbackcol;

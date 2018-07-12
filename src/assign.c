@@ -120,6 +120,29 @@ static void assign_stringdol(pointers address) {
 */
 static void assign_intbyteptr(pointers address) {
   stackitem exprtype;
+  uint32 msx, msy, addr, value;
+
+  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
+    /* Mode 7 screen memory */
+    addr = address.offset - 0xFFFF7C00u;
+    if (addr >= 1000) {
+      return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
+    } else {
+      msy = addr / 40;
+      msx = addr % 40;
+      exprtype = GET_TOPITEM;
+      if (exprtype==STACK_INT)
+	value = pop_int();
+      else if (exprtype==STACK_FLOAT)
+	value = TOINT(pop_float());
+      else {
+	error(ERR_TYPENUM);
+      }
+      mode7frame[msy][msx] = value;
+      mode7renderline(msy);
+    }
+    return;
+  }
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   check_write(address.offset, sizeof(byte));
   exprtype = GET_TOPITEM;
