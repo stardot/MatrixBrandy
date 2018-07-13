@@ -112,7 +112,7 @@ Uint32 xor_mask;
 ** function definitions
 */
 
-extern void draw_line(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32);
+extern void draw_line(SDL_Surface *, int32, int32, int32, int32, int32, int32, int32, int32, int32, int32, Uint32);
 extern void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, int32, int32, Uint32);
 extern void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32);
 extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32);
@@ -2720,7 +2720,7 @@ static void flood_fill(int32 x, int y, int colour) {
       lright++;
     }
     lright--;
-    draw_line(modescreen, vscrwidth, vscrheight, lleft, y, lright, y, colour);
+    draw_line(modescreen, vscrwidth, vscrheight, screenwidth, screenheight, xbufoffset, ybufoffset, lleft, y, lright, y, colour);
     if (lleft < left) left = lleft;
     if (lright > right) right = lright;
   } while (sp != 0);
@@ -2792,7 +2792,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
-    draw_line(modescreen, vscrwidth, vscrheight, sx, sy, ex, ey, colour);
+    draw_line(modescreen, vscrwidth, vscrheight, screenwidth, screenheight, xbufoffset, ybufoffset, sx, sy, ex, ey, colour);
     if (!scaled) {
       plot_rect.x = left;
       plot_rect.y = top;

@@ -152,7 +152,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 sw, int32 sh, int32 n, int32 *x, in
 ** 'draw_line' draws an arbitary line in the graphics buffer 'sr'.
 ** clipping for x & y is implemented
 */
-void draw_line(SDL_Surface *sr, int32 sw, int32 sh, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col) {
+void draw_line(SDL_Surface *sr, int32 sw, int32 sh, int32 mx, int32 my, int32 xo, int32 yo, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col) {
   int d, x, y, ax, ay, sx, sy, dx, dy, tt;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
@@ -171,7 +171,7 @@ void draw_line(SDL_Surface *sr, int32 sw, int32 sh, int32 x1, int32 y1, int32 x2
   if (ax > ay) {
     d = ay - (ax >> 1);
     while (x != x2) {
-      if ((x >= 0) && (x < sw) && (y >= 0) && (y < sh)) 
+      if ((x >= xo) && (x < (mx+xo)) && (y >= 0) && (y < (my+yo)))
         *((Uint32*)sr->pixels + x + y*sw) = col;
       if (d >= 0) {
         y += sy;
@@ -183,7 +183,7 @@ void draw_line(SDL_Surface *sr, int32 sw, int32 sh, int32 x1, int32 y1, int32 x2
   } else {
     d = ax - (ay >> 1);
     while (y != y2) {
-      if ((x >= 0) && (x < sw) && (y >= 0) && (y < sh)) 
+      if ((x >= xo) && (x < (mx+xo)) && (y >= 0) && (y < (my+yo))) 
         *((Uint32*)sr->pixels + x + y*sw) = col;
       if (d >= 0) {
         x += sx;
@@ -193,7 +193,7 @@ void draw_line(SDL_Surface *sr, int32 sw, int32 sh, int32 x1, int32 y1, int32 x2
       d += ax;
     }
   }
-  if ((x >= 0) && (x < sw) && (y >= 0) && (y < sh)) 
+  if ((x >= 0) && (x < (mx+xo)) && (y >= 0) && (y < (my+yo))) 
     *((Uint32*)sr->pixels + x + y*sw) = col;
 }
 
