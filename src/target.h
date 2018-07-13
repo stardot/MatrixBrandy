@@ -26,7 +26,7 @@
 */
 
 #define BRANDY_VERSION "1.21.3"
-#define BRANDY_DATE    "10-Jul-2018"
+#define BRANDY_DATE    "13-Jul-2018"
 
 #ifndef __target_h
 #define __target_h
