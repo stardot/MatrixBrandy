@@ -2813,7 +2813,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       plot_rect.y = ey;
       plot_rect.w = 1;
       plot_rect.h = 1;
-      if ((ex < 0) || (ex >= screenwidth) || (ey < 0) || (ey >= screenheight)) break;
+      if ((ex < xbufoffset) || (ex >= (screenwidth+xbufoffset)) || (ey < ybufoffset) || (ey >= (screenheight+ybufoffset))) break;
       *((Uint32*)screen0->pixels + ex + ey*vscrwidth) = colour;
     }
     else {
@@ -3115,7 +3115,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   //default:
     //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
-  if ((plot_rect.x >= 0) && (plot_rect.x <= screenwidth) && (plot_rect.y >= 0) && (plot_rect.y <= screenheight)) {
+  if ((plot_rect.x >= 0) && (plot_rect.x <= screenwidth+xbufoffset) && (plot_rect.y >= 0) && (plot_rect.y <= screenheight+ybufoffset)) {
     if (!scaled) SDL_UpdateRect(screen0, plot_rect.x, plot_rect.y, plot_rect.w, plot_rect.h);
   }
 }
