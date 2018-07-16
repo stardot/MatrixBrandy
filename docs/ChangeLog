@@ -1,0 +1,33 @@
+ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
+======================================================================
+
+* V1.21.0
+- Replaced system font with hand-reconstructed Acorn system font based on that
+  found in RISC OS 3.1
+- Initial Teletext support. Font similar to the SAA5050, teletext codes handled
+  as a stream.
+* V1.21.1
+- Software double buffering implemented, Mode 7 Flash supported.
+* V1.21.2
+- Mode 7 character frame buffer implemented, line and screen recalculation
+  implemented.
+- Glyph size changed to 8x9 (was 8x8).
+- Implemented some of RISC OS 5's Teletext extensions on VDU23,18. See
+  docs/Mode7 for more details.
+* V1.21.3
+- Teletext fixes for edge cases
+- Big performance enhancement when running in Mode 7 no-update mode
+  (VDU23,18,1,0|)
+- Nested FOR..NEXT fix - thanks Coeus @ stardot.org.uk forums for the patch
+- *. is remapped to *ls - so running *. now lists the contents of your current
+  directory.
+- Mode 7 screen memory access, mapped to &FFFF7C00-&FFFF7FFF. Althought Tube
+  BASIC didn't directly allow host screen access, this is where it would have
+  been mapped for file system access and OSWORD 6. In Matrix Brandy, just access
+  the memory directly.  Note that scrolling does NOT move the start address of
+  the screen, the top left character cell will ALWAYS be at &FFFF7C00.
+- Fix for PLOTting out of range causing a segfault.
+- Fix for DRAWing out of bounds on non-scaled modes with < 800x600 resolution.
+* V1.21.4
+- Slight rename of application to Matrix Brandy, to distinguish between this
+  and the "base" version from Sourceforge, and other forks.

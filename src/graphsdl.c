@@ -3499,7 +3499,7 @@ boolean init_screen(void) {
   vscrwidth = SCREEN_WIDTH;	    /* vscrwidth and vscrheight are constants for now but they */
   vscrheight = SCREEN_HEIGHT;   /* might be variables in the future if we have resizeable windows */
   xgupp = ygupp = 1;
-  SDL_WM_SetCaption("Brandy Basic V Interpreter", "Brandy");
+  SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   if (basicvars.runflags.start_graphics) {

@@ -61,9 +61,9 @@
 ** traps exceptions that happen within its own code).
 */
 
-#define COPYRIGHT "Brandy " BRANDY_VERSION " is free software; you can redistribute it and/or modify\r\n" \
-        "it under the terms of the GNU General Public License as published by\r\n" \
-        "the Free Software Foundation. See the file COPYING for further details.\r\n"
+#define COPYRIGHT "Matrix Brandy " BRANDY_VERSION " is free software;  you can redistribute it and/or\r\n" \
+        "modify it  under the  terms of the  GNU General Public License as published\r\n" \
+        "by the  Free Software Foundation.  See  the file COPYING for further details.\r\n"
 
 #define MAXCALLDEPTH 10      /* Maximum no. of entries printed in PROC/FN traceback */
 
