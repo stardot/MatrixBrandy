@@ -33,7 +33,7 @@
 
 #define MAX_YRES 1280
 #define MAX_XRES 16384
-static int32 left[MAX_YRES], right[MAX_YRES];
+static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 #define FAST_2_MUL(x) ((x)<<1)
 #define FAST_3_MUL(x) (((x)<<1)+x)
@@ -69,8 +69,8 @@ void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2)
     t = a - dx;
     b = t - dx;
     for (i = 0; i <= dx; i++) {
-      if (x1 < left[y1]) left[y1] = x1;
-      if (x1 > right[y1]) right[y1] = x1;
+      if (x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (x1 > geom_right[y1]) geom_right[y1] = x1;
       x1 += xf;
       if (t < 0)
         t += a;
@@ -85,8 +85,8 @@ void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2)
     t = a - dy;
     b = t - dy;
     for (i = 0; i <= dy; i++) {
-      if (x1 < left[y1]) left[y1] = x1;
-      if (x1 > right[y1]) right[y1] = x1;
+      if (x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (x1 > geom_right[y1]) geom_right[y1] = x1;
       y1 += yf;
       if (t < 0)
         t += a;
@@ -133,8 +133,8 @@ void buff_convex_poly(SDL_Surface *sr, int32 sw, int32 sh, int32 n, int32 *x, in
 
   /* reset the minumum amount of the edge tables */
   for (iy = low; iy <= high; iy++) {
-    left[iy] = MAX_XRES + 1;
-    right[iy] = - 1;
+    geom_left[iy] = MAX_XRES + 1;
+    geom_right[iy] = - 1;
   }
 
   /* define edges */
@@ -143,9 +143,9 @@ void buff_convex_poly(SDL_Surface *sr, int32 sw, int32 sh, int32 n, int32 *x, in
   for (i = 0; i < n - 1; i++)
     trace_edge(x[i], y[i], x[i + 1], y[i + 1]);
 
-  /* fill horizontal spans of pixels from left[] to right[] */
+  /* fill horizontal spans of pixels from geom_left[] to geom_right[] */
   for (iy = low; iy <= high; iy++)
-    draw_h_line(sr, sw, sh, left[iy], iy, right[iy], col);
+    draw_h_line(sr, sw, sh, geom_left[iy], iy, geom_right[iy], col);
 }
 
 /*

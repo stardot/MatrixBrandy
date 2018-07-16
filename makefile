@@ -19,7 +19,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/emulate.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o $(SRCDIR)/geom.o
+	$(SRCDIR)/assign.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
@@ -28,7 +28,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/emulate.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/geom.c
+	$(SRCDIR)/assign.c
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
@@ -56,12 +56,6 @@ GSDL_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 
 $(SRCDIR)/graphsdl.o: $(GSDL_C) $(SRCDIR)/graphsdl.c
 	$(CC) $(CFLAGS) $(SRCDIR)/graphsdl.c -c -o $(SRCDIR)/graphsdl.o
-
-# Build GEOM.C
-GEOM_C = $(SRCDIR)/target.h
-
-$(SRCDIR)/geom.o: $(GEOM_C) $(SRCDIR)/geom.c
-	$(CC) $(CFLAGS) $(SRCDIR)/geom.c -c -o $(SRCDIR)/geom.o
 
 # Build STRINGS.C
 STRINGS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
