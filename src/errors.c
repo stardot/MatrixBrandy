@@ -91,7 +91,6 @@ static HANDLE sigintthread = NULL;     /* Thread number for Escape key watching 
 
 static char errortext[200];     /* Copy of text of last error for REPORT */
 
-extern void dump_mode7(void);
 extern void mode7renderscreen(void);
 
 /*
@@ -103,7 +102,6 @@ extern void mode7renderscreen(void);
 static void handle_signal(int signo) {
   switch (signo) {
   case SIGUSR1:
-    dump_mode7();
     return;
   case SIGUSR2:
     mode7renderscreen();

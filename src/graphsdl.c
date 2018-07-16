@@ -4093,14 +4093,3 @@ void get_sdl_mouse(int32 values[]) {
   values[2]=xb;
   values[3]=emulate_time();
 }
-
-/* Debug code */
-void dump_mode7(void) {
-  FILE *f;
-  int p, q;
-  f=fopen("mode7dump", "wb");
-  for (p=0; p<25; p++) {
-    for (q=0; q<40; q++) fprintf(f, "%c", mode7frame[p][q]);
-  }
-  fclose(f);
-}

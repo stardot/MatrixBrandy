@@ -674,6 +674,7 @@ void emulate_mouse(int32 values[]) {
   values[0]=0; /* Return zeros. Better than crashing with an error. */
   values[1]=0;
   values[2]=0;
+  values[3]=0;
 #endif
   return;
 }
