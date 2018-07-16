@@ -131,7 +131,7 @@ typedef double float64;			/* Type for 64-bit floating point variables in Basic *
 #error Target operating system for interpreter is either missing or not supported
 #endif
 
-#define IDSTRING "Brandy Basic V Interpreter Version " BRANDY_VERSION " (" BRANDY_OS ") " BRANDY_DATE
+#define IDSTRING "Matrix Brandy Basic V Interpreter Version " BRANDY_VERSION " (" BRANDY_OS ") " BRANDY_DATE
 
 /*
 ** MAXSTRING is the length of the longest string the interpreter
