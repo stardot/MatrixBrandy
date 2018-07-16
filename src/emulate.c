@@ -637,7 +637,6 @@ void emulate_mouse_off(void) {
 */
 void emulate_mouse_to(int32 x, int32 y) {
   return; /* Do nothing, silently */
-  error(ERR_UNSUPPORTED);
 }
 
 /*

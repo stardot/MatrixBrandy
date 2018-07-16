@@ -41,6 +41,7 @@
 #include "basicdefs.h"
 #include "scrcommon.h"
 #include "screen.h"
+#include "emulate.h"
 
 /*
 ** Notes
@@ -134,6 +135,7 @@ static Uint8 vdu21state = 0;		/* VDU21 - disable all output until VDU6 received 
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_2_MUL(x) ((x)<<1)
 #define FAST_3_MUL(x) (((x)<<1)+x)
+#define FAST_4_MUL(x) ((x)<<2)
 #define FAST_4_DIV(x) ((x)>>2)
 
 /* Flags for controlling MODE 7 operation */
@@ -4084,14 +4086,12 @@ void get_sdl_mouse(int32 values[]) {
   if (y >= ygraphunits) y = (ygraphunits - 1);
 
   /* Swap button bits around */
-  xb = 0;
-  if (b & 1) xb |= 4;
-  if (b & 2) xb |= 2;
-  if (b & 4) xb |= 1;
+  xb = FAST_4_DIV(b & 4) + (b & 2) + FAST_4_MUL(b & 1);
 
   values[0]=x;
   values[1]=y;
   values[2]=xb;
+  values[3]=emulate_time();
 }
 
 /* Debug code */
