@@ -45,6 +45,9 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
+#ifdef USE_SDL
+#include <SDL.h>
+#endif
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -602,6 +605,8 @@ void emulate_setime (int32 time) {
 
 #endif
 
+extern void emulate_mouse(int32 values[]);
+
 /*
 ** 'emulate_setimedol' is called to handle assignments to the Basic
 ** pseudo variable 'TIME$'. This is used to set the computer's clock.
@@ -616,14 +621,14 @@ void emulate_setimedol(char *time) {
 ** 'emulate_mouse_on' turns on the mouse pointer
 */
 void emulate_mouse_on(int32 pointer) {
-  error(ERR_UNSUPPORTED);
+  return; /* Do nothing, silently */
 }
 
 /*
 ** 'emulate_mouse_off' turns off the mouse pointer
 */
 void emulate_mouse_off(void) {
-  error(ERR_UNSUPPORTED);
+  return; /* Do nothing, silently */
 }
 
 /*
@@ -631,6 +636,7 @@ void emulate_mouse_off(void) {
 ** screen
 */
 void emulate_mouse_to(int32 x, int32 y) {
+  return; /* Do nothing, silently */
   error(ERR_UNSUPPORTED);
 }
 
@@ -639,7 +645,7 @@ void emulate_mouse_to(int32 x, int32 y) {
 ** per step of the mouse to 'x' and 'y'.
 */
 void emulate_mouse_step(int32 x, int32 y) {
-  error(ERR_UNSUPPORTED);
+  return; /* Do nothing, silently */
 }
 
 /*
@@ -647,7 +653,7 @@ void emulate_mouse_step(int32 x, int32 y) {
 ** to the specified values 'red', 'green' and 'blue'
 */
 void emulate_mouse_colour(int32 colour, int32 red, int32 green, int32 blue) {
-  error(ERR_UNSUPPORTED);
+  return; /* Do nothing, silently */
 }
 
 /*
@@ -655,6 +661,7 @@ void emulate_mouse_colour(int32 colour, int32 red, int32 green, int32 blue) {
 ** in the rectangle defined by (left, bottom) and (right, top).
 */
 void emulate_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
+  return; /* Do nothing, silently. We can't restrict the mouse. */
   error(ERR_UNSUPPORTED);
 }
 
@@ -662,7 +669,14 @@ void emulate_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
 ** 'emulate_mouse' emulates the Basic 'MOUSE' statement
 */
 void emulate_mouse(int32 values[]) {
-  error(ERR_UNSUPPORTED);
+#ifdef USE_SDL
+  get_sdl_mouse(values);
+#else
+  values[0]=0; /* Return zeros. Better than crashing with an error. */
+  values[1]=0;
+  values[2]=0;
+#endif
+  return;
 }
 
 /*

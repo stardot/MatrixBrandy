@@ -4067,6 +4067,33 @@ void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint3
   }
 }
 
+void get_sdl_mouse(int32 values[]) {
+  int x, y, xo, yo;
+  Uint8 b, xb;
+
+  SDL_PumpEvents();
+  b=SDL_GetMouseState(&x, &y);
+  xo = ((2*vscrwidth) - xgraphunits)/2;
+  yo = ((2*vscrheight) - ygraphunits)/2;
+  x=(x*2)-xo;
+  if (x < 0) x = 0;
+  if (x >= xgraphunits) x = (xgraphunits - 1);
+
+  y=(2*(vscrheight-y))-yo;
+  if (y < 0) y = 0;
+  if (y >= ygraphunits) y = (ygraphunits - 1);
+
+  /* Swap button bits around */
+  xb = 0;
+  if (b & 1) xb |= 4;
+  if (b & 2) xb |= 2;
+  if (b & 4) xb |= 1;
+
+  values[0]=x;
+  values[1]=y;
+  values[2]=xb;
+}
+
 /* Debug code */
 void dump_mode7(void) {
   FILE *f;
