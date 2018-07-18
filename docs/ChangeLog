@@ -34,3 +34,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MOUSE commands no longer error as unsupported. Most now no-op, but MOUSE X, Y, B[, C]
   returns mouse position and button state. If specified, C contains a centisecond counter.
   (In this implementation, it equals the value of TIME).
+- INKEY with negative argument partially supported. (-129 to -255 not supported)
