@@ -115,7 +115,8 @@ $(SRCDIR)/lvalue.o: $(LVALUE_C) $(SRCDIR)/lvalue.c
 
 # Build KEYBOARD.C
 KEYBOARD_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
-	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h
+	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
+	$(SRCDIR)/keyboard-inkey.h
 
 $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
 	$(CC) $(CFLAGS) $(SRCDIR)/keyboard.c -c -o $(SRCDIR)/keyboard.o

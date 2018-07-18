@@ -42,6 +42,7 @@
 #include "errors.h"
 #include "keyboard.h"
 #include "screen.h"
+#include "keyboard-inkey.h"
 
 #ifdef USE_SDL
 #include "SDL.h"
@@ -904,6 +905,9 @@ int32 emulate_get(void) {
 ** Note that the behaviour of the RISC OS version of INKEY with a +ve argument
 ** appears to be undefined if the wait exceeds 32767 centiseconds.
 */
+
+int32 keydown=0;
+
 int32 emulate_inkey(int32 arg) {
   if (arg >= 0) {       /* Timed wait for a key to be hit */
     if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);     /* There is no keyboard to read */
@@ -917,7 +921,27 @@ int32 emulate_inkey(int32 arg) {
   else if (arg == -256)         /* Return version of operating system */
     return OSVERSION;
   else {        /* Check is a specific key is being pressed */
+#ifdef USE_SDL
+    SDL_Event ev;
+    if (arg < -128) return -1;
+    if (SDL_PollEvent(&ev)){
+      switch(ev.type)
+      {
+	case SDL_KEYDOWN:
+	  keydown=ev.key.keysym.sym;
+	  break;
+	case SDL_KEYUP:
+	  keydown=0;
+	  break;
+      }
+    }
+    if (inkeylookup[(arg * -1) -1] == keydown)
+      return -1;
+    else
+      return 0;
+#else
     error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
+#endif
   }
   return 0;
 }
