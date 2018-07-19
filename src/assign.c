@@ -48,6 +48,9 @@
 #include <stdio.h>
 #endif
 
+#ifdef USE_SDL
+extern void mode7renderline(int32 ypos);
+#endif
 
 /*
 ** 'assignment_invalid' is called when an attempt is made to assign to
@@ -122,6 +125,7 @@ static void assign_intbyteptr(pointers address) {
   stackitem exprtype;
   uint32 msx, msy, addr, value;
 
+#ifdef USE_SDL
   if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
     /* Mode 7 screen memory */
     addr = address.offset - 0xFFFF7C00u;
@@ -143,6 +147,7 @@ static void assign_intbyteptr(pointers address) {
     }
     return;
   }
+#endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   check_write(address.offset, sizeof(byte));
   exprtype = GET_TOPITEM;
