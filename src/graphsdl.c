@@ -2800,16 +2800,16 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case DRAW_SOLIDLINE+8:
   case DRAW_DOTLINE:
   case DRAW_DOTLINE+8:
-  case DRAW_DASHLINE:
-  case DRAW_DASHLINE+8:
-  case DRAW_BROKENLINE:
-  case DRAW_BROKENLINE+8: {	/* Draw line */
+  case DRAW_SOLIDLINE2:
+  case DRAW_SOLIDLINE2+8:
+  case DRAW_DOTLINE2:
+  case DRAW_DOTLINE2+8: {	/* Draw line */
     int32 top, left;
     left = sx;	/* Find top left-hand corner of rectangle containing line */
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
-    draw_line(modescreen, sx, sy, ex, ey, colour, (code & 0x38));
+    draw_line(modescreen, sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK));
     if (!scaled) {
       plot_rect.x = left;
       plot_rect.y = top;
@@ -3891,7 +3891,11 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 
 /*
 ** 'draw_line' draws an arbitary line in the graphics buffer 'sr'.
-** clipping for x & y is implemented
+** clipping for x & y is implemented.
+** Style is the bitmasked with 0x38 from the PLOT code:
+** Bit 0x08: Don't plot end point
+** Bit 0x10: Draw a dotted line, skipping every other point.
+** Bit 0x20: Don't plot the start point.
 */
 void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style) {
   int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip;
@@ -3934,7 +3938,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
         skip=0;
       } else {
 	if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
-          *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+	  *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
 	if (style & 0x10) skip=1;
       }
       if (d >= 0) {
