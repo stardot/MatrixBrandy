@@ -3892,7 +3892,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 ** clipping for x & y is implemented
 */
 void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style) {
-  int d, x, y, ax, ay, sx, sy, dx, dy, tt;
+  int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip=0;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
     tt = y1; y1 = y2; y2 = tt;
@@ -3903,10 +3903,6 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
   dy = y2 - y1;
   ay = abs(dy) << 1;
   sy = ((dy < 0) ? -1 : 1);
-  if (style & 0x10) {
-    sx = sx * 2;
-    sy = sy * 2;
-  }
 
   x = x1;
   y = y1;
@@ -3914,8 +3910,13 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
   if (ax > ay) {
     d = ay - (ax >> 1);
     while (x != x2) {
-      if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset)))
-        *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+      if (skip) {
+        skip=0;
+      } else {
+	if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset)))
+	  *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+	if (style & 0x10) skip=1;
+      }
       if (d >= 0) {
         y += sy;
         d -= ax;
@@ -3926,8 +3927,13 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
   } else {
     d = ax - (ay >> 1);
     while (y != y2) {
-      if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
-        *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+      if (skip) {
+        skip=0;
+      } else {
+	if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
+          *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+	if (style & 0x10) skip=1;
+      }
       if (d >= 0) {
         x += sx;
         d -= ay;
