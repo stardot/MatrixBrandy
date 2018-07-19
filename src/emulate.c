@@ -72,6 +72,7 @@
 #endif
 
 #ifdef USE_SDL
+extern void set_sdl_mouse(int32 x, int32 y);
 extern void get_sdl_mouse(int32 values[]);
 #endif
 
@@ -636,7 +637,7 @@ void emulate_mouse_off(void) {
 ** screen
 */
 void emulate_mouse_to(int32 x, int32 y) {
-  return; /* Do nothing, silently */
+  return; /* Do nothing, silently. Not available in SDL 1.2 */
 }
 
 /*

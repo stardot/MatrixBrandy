@@ -113,7 +113,7 @@ Uint32 xor_mask;
 ** function definitions
 */
 
-extern void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32);
+extern void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32);
 extern void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32);
 extern void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32);
 extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32);
@@ -2730,7 +2730,7 @@ static void flood_fill(int32 x, int y, int colour) {
       lright++;
     }
     lright--;
-    draw_line(modescreen, lleft, y, lright, y, colour);
+    draw_line(modescreen, lleft, y, lright, y, colour, 0);
     if (lleft < left) left = lleft;
     if (lright > right) right = lright;
   } while (sp != 0);
@@ -2795,14 +2795,19 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
   }
 /* Now carry out the operation */
+  /* Hack */
+  if (code <= 71) code = code & 0xF7;
   switch (code & GRAPHOP_MASK) {
-  case DRAW_SOLIDLINE: {	/* Draw line */
+  case DRAW_SOLIDLINE:
+  case DRAW_DOTLINE:
+  case DRAW_DASHLINE:
+  case DRAW_BROKENLINE: {	/* Draw line */
     int32 top, left;
     left = sx;	/* Find top left-hand corner of rectangle containing line */
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
-    draw_line(modescreen, sx, sy, ex, ey, colour);
+    draw_line(modescreen, sx, sy, ex, ey, colour, (code & 0x30));
     if (!scaled) {
       plot_rect.x = left;
       plot_rect.y = top;
@@ -3886,18 +3891,23 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 ** 'draw_line' draws an arbitary line in the graphics buffer 'sr'.
 ** clipping for x & y is implemented
 */
-void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col) {
+void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style) {
   int d, x, y, ax, ay, sx, sy, dx, dy, tt;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
     tt = y1; y1 = y2; y2 = tt;
   }
+  printf("xscale=%u, yscale=%u\n", xscale, yscale);
   dx = x2 - x1;
   ax = abs(dx) << 1;
   sx = ((dx < 0) ? -1 : 1);
   dy = y2 - y1;
   ay = abs(dy) << 1;
   sy = ((dy < 0) ? -1 : 1);
+  if (style & 0x10) {
+    sx = sx * 2;
+    sy = sy * 2;
+  }
 
   x = x1;
   y = y1;

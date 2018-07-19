@@ -42,7 +42,12 @@
 #define MOVE_ABSOLUTE	4	/* Move cursor to actual coordinate given */
 #define DRAW_ABSOLUTE	5	/* Draw line to actual coordinate given */
 
-#define DRAW_SOLIDLINE	0	/* Draw a solid line including both end points */
+#define REPLOT_MASK	8	/* Used for PLOT modes 0-63 except 8 and 12 */
+
+#define DRAW_SOLIDLINE	0x00	/* Draw a solid line including both end points */
+#define DRAW_DOTLINE	0x10	/* Draw a dotted line including both end points */
+#define DRAW_DASHLINE	0x20	/* Draw a dashed line including both end points */
+#define DRAW_BROKENLINE	0x30	/* Draw a broken line including both end points */
 #define PLOT_POINT	0x40	/* Plot a single point */
 #define FILL_TRIANGLE	0x50	/* Plot a filled triangle */
 #define FILL_RECTANGLE	0x60	/* Plot a filled rectangle */
