@@ -31,7 +31,12 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.21.4
 - Slight rename of application to Matrix Brandy, to distinguish between this
   and the "base" version from Sourceforge, and other forks.
-- MOUSE commands no longer error as unsupported. Most now no-op, but MOUSE X, Y, B[, C]
-  returns mouse position and button state. If specified, C contains a centisecond counter.
+- MOUSE commands no longer error as unsupported. Most now no-op, but
+  MOUSE X, Y, B[, C] returns mouse position and button state. If specified,
+  C contains a centisecond counter.
   (In this implementation, it equals the value of TIME).
 - INKEY with negative argument partially supported. (-129 to -255 not supported)
+* V1.21.5
+- Fixed a couple of compiler warnings that show up in Fedora.
+- PLOT codes for drawing dotted lines implemented, along with skipping start
+  and end points as required.

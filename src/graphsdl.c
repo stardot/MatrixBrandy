@@ -1028,8 +1028,8 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   if (right >= screenwidth) right = screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= screenheight) bottom = screenheight-1;
-  dleft = left*xscale + xoffset;		    /* Calculate pixel coordinates in the */
-  dtop  = top*yscale + yoffset;		        /* screen buffer of the rectangle */
+  dleft = left*xscale + xoffset;		/* Calculate pixel coordinates in the */
+  dtop  = top*yscale + yoffset;			/* screen buffer of the rectangle */
   yy = dtop;
   for (j = top; j <= bottom; j++) {
     for (jj = 1; jj <= yscale; jj++) {
@@ -2795,19 +2795,21 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
   }
 /* Now carry out the operation */
-  /* Hack */
-  if (code <= 71) code = code & 0xF7;
   switch (code & GRAPHOP_MASK) {
   case DRAW_SOLIDLINE:
+  case DRAW_SOLIDLINE+8:
   case DRAW_DOTLINE:
+  case DRAW_DOTLINE+8:
   case DRAW_DASHLINE:
-  case DRAW_BROKENLINE: {	/* Draw line */
+  case DRAW_DASHLINE+8:
+  case DRAW_BROKENLINE:
+  case DRAW_BROKENLINE+8: {	/* Draw line */
     int32 top, left;
     left = sx;	/* Find top left-hand corner of rectangle containing line */
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
-    draw_line(modescreen, sx, sy, ex, ey, colour, (code & 0x30));
+    draw_line(modescreen, sx, sy, ex, ey, colour, (code & 0x38));
     if (!scaled) {
       plot_rect.x = left;
       plot_rect.y = top;
@@ -3892,7 +3894,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 ** clipping for x & y is implemented
 */
 void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style) {
-  int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip=0;
+  int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
     tt = y1; y1 = y2; y2 = tt;
@@ -3906,6 +3908,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
 
   x = x1;
   y = y1;
+  if (style & 0x20) skip=1;
 
   if (ax > ay) {
     d = ay - (ax >> 1);
@@ -3942,8 +3945,10 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
       d += ax;
     }
   }
-  if ((x >= 0) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
-    *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+  if ( ! (style & 0x08)) {
+    if ((x >= 0) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
+      *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
+  }
 }
 
 /*
