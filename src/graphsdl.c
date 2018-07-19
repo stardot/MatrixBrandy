@@ -3898,7 +3898,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 ** Bit 0x20: Don't plot the start point.
 */
 void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style) {
-  int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip;
+  int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip=0;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
     tt = y1; y1 = y2; y2 = tt;
