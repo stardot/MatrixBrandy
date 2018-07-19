@@ -72,7 +72,7 @@
 #endif
 
 #ifdef USE_SDL
-void sdlchar(char);
+extern void get_sdl_mouse(int32 values[]);
 #endif
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
