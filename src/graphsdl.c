@@ -3897,7 +3897,6 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
     tt = x1; x1 = x2; x2 = tt;
     tt = y1; y1 = y2; y2 = tt;
   }
-  printf("xscale=%u, yscale=%u\n", xscale, yscale);
   dx = x2 - x1;
   ax = abs(dx) << 1;
   sx = ((dx < 0) ? -1 : 1);
