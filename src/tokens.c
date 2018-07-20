@@ -21,10 +21,6 @@
 **      This module contains the tokenisation routines and functions for
 **      manipulating pointers and offsets found in the tokenised form of the
 **      Basic program.
-**
-** 05-Apr-2014 JGH: reformat() will detokenise Russell format BASIC files
-**      and in-program LOAD/SAVE commands.
-**
 */
 
 #include <stdio.h>
@@ -339,8 +335,7 @@ static int
 static boolean
   linestart,            /* TRUE if at the start of a tokenised line */
   firstitem,            /* TRUE if processing the start of an untokenised Basic statement */
-  numbered,             /* TRUE if line starts with a line number */
-  immediate;		/* TRUE if tokenising line in immediate mode */
+  numbered;             /* TRUE if line starts with a line number */
 
 /*
 ** 'isempty' returns true if the line passed to it has nothing on it
@@ -589,7 +584,6 @@ static int kwsearch(void) {
 */
     if (numbered && islower(first)) return NOKEYWORD;
     if (!numbered) {    /* Line is not numbered so ignore case of keyword */
-//    if (!numbered && immediate) {    /* Immediate mode line is not numbered so ignore case of keyword - not working */
       for (n=0; keyword[n] != NUL; n++) keyword[n] = toupper(keyword[n]);
       first = keyword[0];
     }
@@ -941,7 +935,6 @@ static void tokenise_source(char *start, boolean haslineno) {
   int token;
   char ch;
   boolean linenoposs;
-
   next = OFFLINE;
   store_lineno(NOLINENO);
   store_linelen(0);
@@ -955,7 +948,7 @@ static void tokenise_source(char *start, boolean haslineno) {
     next = OFFLINE;
     numbered = *lp>='0' && *lp<='9';
     if (numbered) store_lineno(convert_lineno());       /* Line number found */
-    if (basicvars.list_flags.indent)    	/* Ignore leading blanks if indenting LISTO option is in effect */
+    if (basicvars.list_flags.indent)    /* Ignore leading blanks if indenting LISTO option is in effect */
       lp = skip_blanks(lp);
     else {
       while (*lp == ' ' || *lp == TAB) {        /* Copy leading white space characters */
@@ -1366,13 +1359,13 @@ static void mark_badline(void) {
 ** 2)  The executable version of the line is created
 */
 void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediatemode) {
-  immediate = immediatemode;
   tokenbase = tokenbuf;
   tokenise_source(start, haslineno);
   if (lasterror>0)
     mark_badline();
-  else
+  else {
     translate();
+  }
 }
 
 /*
@@ -1976,41 +1969,38 @@ void reset_linenums(byte *bp) {
 
 /*  =============== Acorn -> Brandy token conversion =============== */
 
-/* Legal range of values for each Acorn and Russell token type */
+/* Legal range of values for each Acorn token type */
 
 #define ACORNONE_LOWEST         0x7Fu
 #define ACORNONE_HIGHEST        0xFFu
-#define RUSSELL_LOWEST		0x01u
-#define RUSSELL_HIGHEST		0x10u
-
-#define ACORN_OTHER             0xC6u   /* Two byte tokens preceded by C6 (functions) */
-#define ACORN_COMMAND           0xC7u   /* Two byte tokens preceded by C7 (immediate commands) */
-#define ACORN_TWOBYTE           0xC8u   /* Two byte tokens preceded by C8 (commands) */
-
 #define ACORNTWO_LOWEST         0x8Eu
-#define ACORNTWO_HIGHEST        0xA6u
+#define ACORNTWO_HIGHEST        0xA3u
 #define ACORNCMD_LOWEST         0x8Eu
 #define ACORNCMD_HIGHEST        0x9Fu
 #define ACORNOTH_LOWEST         0x8Eu
-#define ACORNOTH_HIGHEST        0x96u
+#define ACORNOTH_HIGHEST        0x8Fu
 
-#define ACORN_ENDLINE    0x0Du   /* Marks the end of a tokenised line */
-#define ACORN_LINENUM    0x8Du   /* Token that preceeds a line number */
+#define ACORN_OTHER     0xC6u   /* Two byte tokens preceded by C6 */
+#define ACORN_COMMAND   0xC7u   /* Two byte tokens preceded by C7 (commands) */
+#define ACORN_TWOBYTE   0xC8u   /* Two byte tokens preceded by C8 */
 
-#define ACORN_TIME1      0x91u
-#define ACORN_FN         0xA4u
-#define ACORN_TO         0xB8u
-#define ACORN_TIME2      0xD1u
-#define ACORN_DATA       0xDCu
-#define ACORN_PROC       0xF2u
-#define ACORN_REM        0xF4u
-#define ACORN_TAB        0x8Au
-#define ACORN_INSTR      0xA7u
-#define ACORN_POINT      0xB0u
-#define ACORN_LEFT_DOL   0xC0u
-#define ACORN_MID_DOL    0xC1u
-#define ACORN_RIGHT_DOL  0xC2u
-#define ACORN_STRING_DOL 0xC4u
+#define ACORN_ENDLINE   0x0Du   /* Marks the end of a tokenised line */
+#define ACORN_LINENUM   0x8Du   /* Token that preceeds a line number */
+
+#define ACORN_TIME1     0x91u
+#define ACORN_FN        0xA4u
+#define ACORN_TO        0xB8u
+#define ACORN_TIME2     0xD1u
+#define ACORN_DATA      0xDCu
+#define ACORN_PROC      0xF2u
+#define ACORN_REM       0xF4u
+#define ACORN_TAB       0x8Au
+#define ACORN_INSTR     0xA7u
+#define ACORN_POINT     0xB0u
+#define ACORN_LEFT_DOL  0xC0u
+#define ACORN_MID_DOL   0xC1u
+#define ACORN_RIGHT_DOL 0xC2u
+#define ACORN_STRING_DOL        0xC4u
 
 #define ACORNLEN        1024    /* Size of buffer to hold plain text version of line */
 
@@ -2031,23 +2021,6 @@ static int32 expand_linenum(byte *p) {
   line = ((a<<4) ^ c) & 0xff;
   return (line<<8) | ((((a<<2) & 0xc0) ^ b) & 0xff);
 }
-
-static char *lowbyte_token [] = {
-  "CIRCLE", "ELLIPSE", "FILL", "MOUSE",         /* 0x01..0x04 */
-  "ORIGIN", "QUIT", "RECTANGLE", "SWAP",        /* 0x05..0x08 */
-  "SYS", "TINT", "WAIT", "INSTALL",             /* 0x09..0x0C */
-  NIL, "PRIVATE", "BY", "EXIT"                  /* 0x0D..0x10 */
-};
-
-static char *winbyte_token [] = {
-  "SUM", "WHILE", "CASE", "WHEN", "OF",         /* 0xC6..0xCA */
-  "ENDCASE", "OTHERWISE", "ENDIF", "ENDWHILE"   /* 0xCB..0xCE */
-};
-
-static char *bbcbyte_token [] = {
-  "AUTO", "DELETE", "LOAD", "LIST", "NEW",      /* 0xC6..0xCA */
-  "OLD", "RENUMBER", "SAVE", "EDIT"             /* 0xCB..0xCE */
-};
 
 static char *onebyte_token [] = {
   "OTHERWISE", "AND", "DIV", "EOR", "MOD",      /* 0x7F..0x83 */
@@ -2092,8 +2065,7 @@ static char *twobyte_token [] = {
   "WAIT", "MOUSE", "QUIT", "SYS",               /* 0x96..0x99 */
   "INSTALL", "LIBRARY", "TINT", "ELLIPSE",
   "BEATS", "TEMPO", "VOICES", "VOICE",          /* 0x9E..0xA1 */
-  "STEREO", "OVERLAY", "MANDEL", "PRIVATE",     /* 0xA2..0xA6 */
-  "EXIT"
+  "STEREO", "OVERLAY"                           /* 0xA2..0xA3 */
 };
 
 /* Basic commands - Two byte tokens preceded by 0xC7 */
@@ -2106,12 +2078,7 @@ static char *command_token [] = {
   "TWINO", "INSTALL"                            /* 0x9E..0x9F */
 };
 
-/* Basic functions - Two byte tokens preceded by 0xC6 */
-
-static char *other_token [] = {
-  "SUM", "BEAT", "ANSWER", "SFOPENIN",          /* 0x8E..0x91 */
-  "SFOPENOUT", "SFOPENUP", "SFNAME$", "MENU"    /* 0x92..0x96 */
-};
+static char *other_token [] = {"SUM", "BEAT"};  /* 0x8E..0x8F */
 
 /*
  * nospace - Tokens that should not or need not be followed by a
@@ -2142,98 +2109,65 @@ static byte nospace [] = {
 int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   int count;
   char *cp, *p;
-  byte token, token2;
+  byte token;
   char line[ACORNLEN];
-
   cp = &line[0];
-  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));	  /* Start with two byte line number */
+  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));        /* Start with two byte line number */
   cp+=count;
-  tp+=ACORN_START;     					  /* Skip line number and length byte */
+  tp+=ACORN_START;      /* Skip line number and length byte */
   token = *tp;
   while (token != ACORN_ENDLINE) {
-    if (token>RUSSELL_HIGHEST && token<ACORNONE_LOWEST) { /* Normal characters */
+    if (token<ACORNONE_LOWEST) {        /* Normal characters */
       *cp = token;
       cp++;
       tp++;
-      if (token == '\"') {      			  /* Got a character string */
-        do {    					  /* Copy string as far as next '"' or end of line */
+      if (token == '\"') {      /* Got a character string */
+        do {    /* Copy string as far as next '"' or end of line */
           *cp = token = *tp;
           cp++;
           tp++;
         } while (token != '\"' && *tp != ACORN_ENDLINE);
       }
-    } else {
-      if (token == ACORN_LINENUM) {
-        count = sprintf(cp, "%d", expand_linenum(tp+1));
-        cp+=count;
-        tp+=ACORN_LINESIZE;
-      } else {
-        if (token == ACORN_REM || token == ACORN_DATA) { /* REM or DATA - Copy rest of line */
-          p = onebyte_token[token-ACORNONE_LOWEST];
-          strcpy(cp, p);
-          cp+=strlen(p);
-          tp++;
-          while (*tp != ACORN_ENDLINE) {
-            *cp = *tp;
-            cp++;
-            tp++;
-          }
-        } else {      /* Tokens */
-          if (token == 0xCDu) {                                           /* CD    */
-            p=tp+1;
-            while(*p == ' ') p++;
-            if (*p == CR || *p == ':') {
-              p = onebyte_token[token-ACORNONE_LOWEST];
-            } else {
-              p = bbcbyte_token[token-ACORN_OTHER];
-            }
-          } else {
-            if (token >= RUSSELL_LOWEST && token <= RUSSELL_HIGHEST) {    /* 01-10 */
-              p = lowbyte_token[token-RUSSELL_LOWEST];
-            } else {
-              if (token < ACORN_OTHER || token > ACORN_TWOBYTE) {         /* 7F-C5, C9-FF */ 
-                p = onebyte_token[token-ACORNONE_LOWEST];
-              } else {
-                if (ftype == 2) {
-                  p = winbyte_token[token-ACORN_OTHER];
-                } else {
-                  token2 = *(tp+1);
-                  if (token2 < ACORNTWO_LOWEST) {
-                    p = bbcbyte_token[token-ACORN_OTHER];                 /* Cx <8E  */
-                  } else {
-                    switch (token) {
-                      case ACORN_TWOBYTE:                                 /* C8 nn   */
-                        if (token2>ACORNTWO_HIGHEST) {
-                          p = bbcbyte_token[token2-ACORN_OTHER];          /* C8      */
-                        } else {
-                          p = twobyte_token[token2-ACORNTWO_LOWEST];      /* C8 8E+n */
-                          tp++;
-                          break;
-                        }
-                      case ACORN_COMMAND:                                 /* C7 nn   */
-                        if (token2>ACORNCMD_HIGHEST) {
-                          p = bbcbyte_token[token2-ACORN_OTHER];          /* C7      */
-                        } else {
-                          p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
-                          tp++;
-                          break;
-                        }
-                      case ACORN_OTHER:                                   /* C6 nn   */
-                        if (token2>ACORNOTH_HIGHEST) {
-                          p = bbcbyte_token[token2-ACORN_OTHER];          /* C6      */
-                        } else {
-                          p = other_token[token-ACORNOTH_LOWEST];
-                          tp++;
-                          break;
-                        }
-                    } /* switch */
-                  }
-                }
-              }
-            }
-          }
-          tp++;
-        }
+    }
+    else if (token == ACORN_LINENUM) {
+      count = sprintf(cp, "%d", expand_linenum(tp+1));
+      cp+=count;
+      tp+=ACORN_LINESIZE;
+    }
+    else if (token == ACORN_REM || token == ACORN_DATA) {       /* REM or DATA - Copy rest of line */
+      p = onebyte_token[token-ACORNONE_LOWEST];
+      strcpy(cp, p);
+      cp+=strlen(p);
+      tp++;
+      while (*tp != ACORN_ENDLINE) {
+        *cp = *tp;
+        cp++;
+        tp++;
+      }
+    }
+    else {      /* Tokens */
+      switch (token) {
+      case ACORN_TWOBYTE:
+        token = *(tp+1);
+        if (token<ACORNTWO_LOWEST || token>ACORNTWO_HIGHEST) error(ERR_BADPROG);
+        p = twobyte_token[token-ACORNTWO_LOWEST];
+        tp+=2;
+        break;
+      case ACORN_COMMAND:
+        token = *(tp+1);
+        if (token<ACORNCMD_LOWEST || token>ACORNCMD_HIGHEST) error(ERR_BADPROG);
+        p = command_token[token-ACORNCMD_LOWEST];
+        tp+=2;
+        break;
+      case ACORN_OTHER:
+        token = *(tp+1);
+        if (token<ACORNOTH_LOWEST || token>ACORNOTH_HIGHEST) error(ERR_BADPROG);
+        p = other_token[token-ACORNOTH_LOWEST];
+        tp+=2;
+        break;
+      default:
+        p = onebyte_token[token-ACORNONE_LOWEST];
+        tp++;
       }
 /*
 ** Because the code expands tokenised Acorn Basic to text then
