@@ -39,7 +39,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.21.5
 - Merged J.G.Harston's "Banana Brandy" fork, and cleaned up some breakages
   caused by this.
-- Fixed a couple of compiler warnings that show up in Fedora.
+- Refactor code to use new mos.c function names, remove aliases from mos.h
 - PLOT codes for drawing dotted lines implemented, along with skipping start
   and end points as required.
 - Fix behaviour of OPENUP for file not found - thanks Phlamethrower @ *. for
