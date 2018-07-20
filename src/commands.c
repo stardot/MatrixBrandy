@@ -299,7 +299,7 @@ static void delete(void) {
 /*
 ** 'renumber' renumbers a Basic program
 */
-static void renumber(void) {
+void renumber(void) {
   int32 start, step;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */

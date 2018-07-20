@@ -644,13 +644,13 @@ static filetype identify(FILE *thisfile, char *name) {
 */
 void read_basic(char *name) {
   FILE *loadfile;
-  int32 length;
+  int32 length, ftype;
   loadfile = open_file(name);
   if (loadfile==NIL) error(ERR_NOTFOUND, name);
   last_added = NIL;
-  if ((length=identify(loadfile, name)) != TEXTFILE) {	/* Tokenised BBC BASIC file */
+  if ((ftype=identify(loadfile, name)) != TEXTFILE) {	/* Tokenised BBC BASIC file */
     clear_program();
-    length = read_bbcfile(loadfile, basicvars.top, basicvars.himem, length);
+    length = read_bbcfile(loadfile, basicvars.top, basicvars.himem, ftype);
   }
   else {						/* Plain text */
     clear_program();
