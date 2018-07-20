@@ -19,6 +19,9 @@
 **
 **
 **	This file contains the bulk of the Basic interpreter itself
+**
+** 20-Mar-2014 JGH: DEF correctly executed as a REM - skips to next line
+**
 */
 
 #include <stdio.h>
@@ -40,7 +43,7 @@
 #include "convert.h"
 #include "miscprocs.h"
 #include "editor.h"
-#include "emulate.h"
+#include "mos.h"
 #include "screen.h"
 #include "lvalue.h"
 #include "fileio.h"
@@ -317,49 +320,11 @@ void exec_data(void) {
 }
 
 /*
-** 'exec_def' processes 'DEF'-type statements. It is an error in
-** this interpreter to run into a procedure or multi-line function
+** 'exec_def' processes 'DEF'-type statements. A DEF is executed
+** identically to a REM - execution skips to the next line.
 */
 void exec_def(void) {
-  byte *tp, *base;
-  basicvars.current++;		/* Skip the DEF token */
-  if (*basicvars.current != TOKEN_XFNPROCALL) {		/* Not followed by PROC or FN so ignore rest of line */
-    while (!ateol[*basicvars.current]) basicvars.current = skip_token(basicvars.current);
-    return;
-  }
-  tp = get_srcaddr(basicvars.current);		/* Find name of PROC or FN */
-  if (*tp == TOKEN_PROC) error(ERR_CRASH);	/* Have run into a procedure */
-/* This leaves just functions. Check for single line function */
-  tp = basicvars.current+1+LOFFSIZE;
-  if (*tp == '(') {	/* Function name is followed by a parameter list */
-    tp++;
-    while (!ateol[*tp]) {	/* Find end of parameter list */
-      if (*tp == TOKEN_RETURN) tp++;	/* Return parameter */
-      if (*tp == TOKEN_XVAR) {		/* Found a parameter */
-        base = tp;
-        tp+=1+LOFFSIZE;
-        if (*tp == ')') {		/* Could mark an array or the end of the parameters */
-          base = get_srcaddr(base);
-          if (*(skip_name(base)-1) == '(') tp++;	/* Got 'name()' - Found an array */
-        }
-      }
-      else if (*tp == TOKEN_STATICVAR)	/* Found a static variable */
-        tp+=2;
-      else {
-        error(ERR_SYNTAX);
-      }
-      if (*tp == ')') break;	/* Found end of parameter list */
-      if (*tp != ',') error(ERR_SYNTAX);
-      tp++;	/* Skip the ',' */
-    }
-    if (*tp == ')') tp++;	/* Skip the ')' */
-/* Check if token after the function name (and optional parameter list) is a '=' */
-  }
-  if (*tp != '=') error(ERR_CRASH);	/* Not an '=' - Flag error */
-  do	/* Single line function - Skip to end of statement */
-    tp = skip_token(tp);
-  while (!ateol[*tp]);
-  basicvars.current = tp;
+  basicvars.current = basicvars.thisline+*(basicvars.thisline+2)+256*(*(basicvars.thisline+3))-1;
 }
 
 /*
@@ -1688,7 +1653,7 @@ void exec_oscli(void) {
   fclose(respfile);
   remove(respname);
 /* Save the number of lines stored in the array */
-  if (linecount.typeinfo != 0) store_value(linecount, count);
+  if (linecount.typeinfo != 0) store_value(linecount, count, TRUE);
 }
 
 /*
@@ -1820,7 +1785,8 @@ static void read_numeric(lvalue destination) {
   text[n] = NUL;
   if (n == 0) error(ERR_BADEXPR);	/* Number string is empty */
   basicvars.datacur = dp;
-  tokenize(text, readexpr, NOLINE);	/* Tokenise the expression */
+  tokenize(text, readexpr, NOLINE, FALSE);	/* Tokenise the expression */
+//  tokenize(text, readexpr, NOLINE);	/* Tokenise the expression */
   save_current();	/* Preserve our place in the program */
   basicvars.current = FIND_EXEC(&readexpr[0]);
   expression();
@@ -1982,6 +1948,7 @@ void exec_report(void) {
   basicvars.current++;
   check_ateol();
   p = get_lasterror();
+  emulate_printf("\r\n");
   emulate_vdustr(p, strlen(p));
   basicvars.printcount+=strlen(p);
 }
@@ -2317,9 +2284,7 @@ void exec_sys(void) {
   int32 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
   stackitem parmtype;
   basicstring descriptor, tempdesc[MAXSYSPARMS];
-#ifdef TARGET_RISCOS
   lvalue destination;
-#endif
   basicvars.current++;
   expression();		/* Fetch the SWI name or number */
   parmtype = GET_TOPITEM;
@@ -2385,17 +2350,9 @@ void exec_sys(void) {
   }
 /* Make the SWI call */
   emulate_sys(swino, inregs, outregs, &flags);
-
   for (n=0; n<MAXSYSPARMS; n++) {	/* Discard any temporary strings used */
     if (tempdesc[n].stringaddr != NIL) free_string(tempdesc[n]);
   }
-
-/* emulate_sys is only supported on RISCOS systems
-** on all other systems it returns an UNSUPPORTED error
-** so don't bother including the support code if not RISCOS
-*/
-#ifdef TARGET_RISCOS
-
   if (ateol[*basicvars.current]) return;	/* Not returning any parameters so just go home */
   basicvars.current++;
   parmcount = 0;
@@ -2403,7 +2360,7 @@ void exec_sys(void) {
   while (!ateol[*basicvars.current] && *basicvars.current != ';') {
     if (*basicvars.current != ',') {	/* Want this return value */
       get_lvalue(&destination);
-      store_stg_value(destination, outregs[parmcount]);
+      store_value(destination, outregs[parmcount], STRINGOK);
     }
     parmcount++;
     if (parmcount>=MAXSYSPARMS) error(ERR_SYSCOUNT);
@@ -2416,10 +2373,9 @@ void exec_sys(void) {
   if (*basicvars.current == ';') {	/* Want flags as well */
     basicvars.current++;	/* Skip ';' token */
     get_lvalue(&destination);
-    store_value(destination, flags);
+    store_value(destination, flags, NOSTRING);
   }
   check_ateol();
-#endif
 }
 
 /*

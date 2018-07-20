@@ -52,7 +52,7 @@
 
 static int32 lastaddr = 0;
 
-static char editname[20];       /* Default Name of editor invoked by 'EDIT' command */
+static char editname[80];       /* Default Name of editor invoked by 'EDIT' command */
 
 /*
 ** 'get_number' is called to evaluate an expression that returns an
@@ -725,7 +725,8 @@ static void alter_line(void) {
   basicvars.list_flags = basicvars.listo_copy;  /* Restore LISTOF flags to original values */
   ok = amend_line(basicvars.stringwork, MAXSTATELEN);
   if (!ok) error(ERR_ESCAPE);
-  tokenize(basicvars.stringwork, thisline, HASLINE);
+  tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
+//  tokenize(basicvars.stringwork, thisline, HASLINE);
   if (get_lineno(thisline) == NOLINENO) /* If line number has been removed, execute line */
     exec_thisline();
   else {

@@ -36,7 +36,7 @@
 #include "miscprocs.h"
 #include "evaluate.h"
 #include "convert.h"
-#include "emulate.h"
+#include "mos.h"
 #include "fileio.h"
 #include "screen.h"
 #include "lvalue.h"
@@ -1184,18 +1184,18 @@ static void exec_mouse_position(void) {
   emulate_mouse(mousevalues);		/* Note: this code does not check the type of the variable to receive the values */
   get_lvalue(&destination);
   if (*basicvars.current != ',') error(ERR_COMISS);
-  store_value(destination, mousevalues[0]);	/* Mouse x coordinate */
+  store_value(destination, mousevalues[0], NOSTRING);	/* Mouse x coordinate */
   basicvars.current++;	/* Skip ',' token */
   get_lvalue(&destination);
   if (*basicvars.current != ',') error(ERR_COMISS);
-  store_value(destination, mousevalues[1]);	/* Mouse y coordinate */
+  store_value(destination, mousevalues[1], NOSTRING);	/* Mouse y coordinate */
   basicvars.current++;	/* Skip ',' token */
   get_lvalue(&destination);
-  store_value(destination, mousevalues[2]);	/* Mouse button state */
+  store_value(destination, mousevalues[2], NOSTRING);	/* Mouse button state */
   if (*basicvars.current == ',') {	/* Want timestamp as well */
     basicvars.current++;	/* Skip ',' token */
     get_lvalue(&destination);
-    store_value(destination, mousevalues[3]);	/* Timestamp */
+    store_value(destination, mousevalues[3], NOSTRING);	/* Timestamp */
   }
   check_ateol();
 }

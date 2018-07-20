@@ -32,6 +32,9 @@
 /*
 ** Crispian Daniels August 20th 2002:
 **      Included Mac OS X target in conditional compilation.
+**
+** 06-Mar-2014 JGH: Zero-length function key strings handled correctly.
+**
 */
 
 #include <stdio.h>
@@ -439,10 +442,7 @@ static boolean waitkey(int wait) {
   SDL_Event ev;
   SDL_TimerID timer_id;
 /* set up timer if wait time not zero */
-  if (wait != 0) {
-    timer_id = SDL_AddTimer(wait*10, waitkey_callbackfunc, 0);
-    if (timer_id == NULL)  error(ERR_SDL_TIMER);
-  }
+  if (wait != 0) timer_id = SDL_AddTimer(wait*10, waitkey_callbackfunc, 0);
   while ( 1 ) {
 /*
  * First check for SDL events
@@ -883,13 +883,13 @@ int32 emulate_get(void) {
 /* NUL found. Check for function key */
   key = pop_key();
   fn_keyno = is_fn_key(key);
-  if (fn_keyno == 0) {  /* Not a function key - Return NUL then key code */
+  if (fn_keyno == 0) {	/* Not a function key - Return NUL then key code */
     push_key(key);
     return NUL;
   }
 /* Function key hit. Check if there is a function key string */
-  if (fn_key[fn_keyno].text == NIL) {   /* No string is defined for this key */
-    push_key(key);
+  if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
+    push_key(key);	/* No string is defined for this key */
     return NUL;
   }
 /*
@@ -1009,8 +1009,8 @@ int32 emulate_get(void) {
       return NUL;
     }
 /* Function key hit. Check if there is a function key string */
-    if (fn_key[fn_keyno].text == NIL) { /* No string is defined for this key */
-      push_key(ch);
+    if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
+      push_key(ch);			/* No string is defined for this key */
       return NUL;
     }
 /*
@@ -1070,8 +1070,8 @@ int32 emulate_get(void) {
       return NUL;
     }
 /* Function key hit. Check if there is a function key string */
-    if (fn_key[fn_keyno].text == NIL) { /* No string is defined for this key */
-      push_key(ch);
+    if (fn_key[fn_keyno].text == NIL|| fn_key[fn_keyno].length == 0) {
+      push_key(ch);		/* No string is defined for this key */
       return NUL;
     }
 /*
@@ -1090,9 +1090,9 @@ int32 emulate_get(void) {
 int32 emulate_inkey(int32 arg) {
   if (arg >= 0) {       /* Timed wait for a key to be hit */
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* There is no keyboard to read */
-    if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in the range 0..32767 centiseconds */
+    if (arg > INKEYMAX) arg = INKEYMAX;         /* Wait must be in the range 0..32767 centiseconds */
     if (holdcount > 0) return pop_key();        /* There is a character waiting so return that */
-    if (kbhit()) return emulate_get();  /* There is an unread key waiting */
+    if (kbhit()) return emulate_get();          /* There is an unread key waiting */
     while (arg > 0) {   /* Wait for 'arg' centiseconds, checking the keyboard every centisecond */
       delay(10);        /* Wait 10 milliseconds */
       if (kbhit()) return emulate_get();        /* Return a key if one is now available */

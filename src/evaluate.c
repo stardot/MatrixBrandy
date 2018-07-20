@@ -3324,7 +3324,7 @@ void (*factor_table[256])(void) = {
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 80..83 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 84..87 */
   bad_syntax, fn_mod, bad_syntax, bad_syntax,			/* 88..8B */
-  bad_syntax, fn_beat, bad_syntax, bad_syntax,			/* 8C..8F */
+  bad_syntax, fn_beats, bad_syntax, bad_syntax,			/* 8C..8F */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 90..93 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 94..97 */
   fn_colour, bad_syntax, bad_syntax, fn_dim,			/* 98..9B */

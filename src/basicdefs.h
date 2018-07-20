@@ -419,6 +419,7 @@ typedef struct {
   byte *himem;				/* Address of top of basic stack */
   byte *end;				/* Address of top of address space */
   byte *slotend;			/* Address of end of wimp slot under RISC OS */
+  byte *thisline;			/* Start of current line being executed */
   byte *current;			/* Current pointer into Basic program */
   byte *lastvartop;			/* Used to note the address of the top of the Basic heap */
   char *stringwork;			/* Pointer to string workspace */

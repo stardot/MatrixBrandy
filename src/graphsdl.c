@@ -1288,7 +1288,6 @@ static void switch_text(void) {
 */
 static void scroll(updown direction) {
   int left, right, top, dest, topwin, m, n, myppc;
-/*int bottom; */
   if (screenmode == 7) myppc = M7YPPC;
     else myppc=YPPC;
   topwin = ybufoffset+twintop*myppc;		/* Y coordinate of top of text window */
@@ -1297,7 +1296,6 @@ static void scroll(updown direction) {
     left = xbufoffset + twinleft*XPPC;
     right = xbufoffset + twinright*XPPC+XPPC-1;
     top = dest+myppc;				/* Top of block to move starts here */
-/*  bottom = ybufoffset+twinbottom*myppc+myppc-1;	   End of block is here */
     scroll_rect.x = xbufoffset + twinleft*XPPC;
     scroll_rect.y = ybufoffset + myppc * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
@@ -1333,7 +1331,6 @@ static void scroll(updown direction) {
     left = xbufoffset+twinleft*XPPC;
     right = xbufoffset+(twinright+1)*XPPC-1;
     top = ybufoffset+twintop*myppc;
-/*  bottom = ybufoffset+twinbottom*myppc-1; */
     scroll_rect.x = left;
     scroll_rect.y = top;
     scroll_rect.w = XPPC * (twinright - twinleft +1);
@@ -1400,10 +1397,15 @@ static void echo_ttext(void) {
 ** start of the line to the current value of the text cursor
 */
 static void echo_text(void) {
+  int sx, ex, sy, ey;
   if (xtext == 0) return;	/* Return if nothing has changed */
   if (scaled)
     blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
   else {
+    sx = xoffset;
+    sy = yoffset+ytext*YPPC;
+    ex = xoffset+xtext*XPPC-1;
+    ey = sy+YPPC-1;
     line_rect.x = xoffset;
     line_rect.y = yoffset+ytext*YPPC;
     line_rect.w = xtext*XPPC;
@@ -4115,5 +4117,5 @@ void get_sdl_mouse(int32 values[]) {
   values[0]=x;
   values[1]=y;
   values[2]=xb;
-  values[3]=emulate_time();
+  values[3]=mos_rdtime();
 }

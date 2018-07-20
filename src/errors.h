@@ -19,6 +19,8 @@
 **
 **
 **	Error messages and error handling
+**
+** 05-Mar-2014 JGH: Added MOS/OSCLI errors (merged from his Banana Brandy fork)
 */
 
 #ifndef __errors_h
@@ -172,10 +174,24 @@ typedef enum {
     ERR_NOGZIP,         /* gzip support not available */
     WARN_FUNNYFLOAT,    /* Unknown floating point format */
     ERR_EMUCMDFAIL,     /* Emulated RISC OS command failed */
-    ERR_SDL_TIMER       /* SDL Timer Error */
+// From JGH's Banana Brandy fork
+    ERR_PLACE147,	/* Placeholder */
+    ERR_PLACE148,	/* Placeholder */
+    ERR_PLACE149,	/* Placeholder */
+    ERR_PLACE150,	/* Placeholder */
+    ERR_BADCOMMAND,	/* 254, Bad command */
+    ERR_BADSTRING,	/* 253, Bad string */
+    ERR_BADADDRESS,	/* 252, Bad address */
+    ERR_BADNUMBER,	/* 252, Bad number */
+    ERR_BADKEY,		/* 251, Bad key */
+    ERR_KEYINUSE,	/* 250, Key in use */
+    ERR_BADLANGUAGE,	/* 249, No language */
+    ERR_BADFILING,	/* 248, Bad filing system */
+    ERR_MOSVERSION,	/* 247, MOS x,yz */
+    ERR_BADSYNTAX	/* 220, Bad syntax */
 } errnum;
 
-#define HIGHERROR	ERR_SDL_TIMER
+#define HIGHERROR	ERR_BADSYNTAX
 
 /* Other interpreter errors */
 

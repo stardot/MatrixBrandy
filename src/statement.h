@@ -27,6 +27,9 @@
 #include "common.h"
 #include "basicdefs.h"
 
+#define STRINGOK FALSE
+#define NOSTRING TRUE
+
 extern byte ateol[];
 
 extern void init_interpreter(void);
@@ -41,12 +44,8 @@ extern boolean isateol(byte *);
 extern void check_ateol(void);
 extern void bad_token(void);
 extern void bad_syntax(void);
-extern void store_value(lvalue, int32);
+extern void store_value(lvalue, int32, boolean);
 extern void end_run(void);
-
-#ifdef TARGET_RISCOS
-extern void store_stg_value(lvalue, int32);
-#endif
 
 #endif
 

@@ -352,7 +352,7 @@
 
 extern byte thisline[];			/* tokenised version of command line */
 
-extern void tokenize(char *, byte [], boolean);
+extern void tokenize(char *, byte [], boolean, boolean);
 extern void expand(byte *, char *);
 extern byte *skip_token(byte *);
 extern byte *skip_name(byte *);
@@ -373,7 +373,7 @@ extern boolean isvalid(byte *);
 extern void reset_indent(void);
 extern void resolve_linenums(byte *);
 extern void reset_linenums(byte *);
-extern int32 reformat(byte *, byte *);
+extern int32 reformat(byte *, byte *, int32);
 extern boolean isempty(byte []);
 
 #define GET_INTVALUE(p) (*p | (*(p+1)<<8) | (*(p+2)<<16) | (*(p+3)<<24))

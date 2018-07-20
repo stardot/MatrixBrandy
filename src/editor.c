@@ -19,6 +19,9 @@
 **
 **	This module contains the functions used to edit a program
 **	as well as ones to read and write programs and libraries
+**
+** 05-Apr-2014 JGH: Can load Russell format BASIC programs.
+**
 */
 
 #include <stdio.h>
@@ -434,33 +437,46 @@ static FILE *open_file(char *name) {
 }
 
 /*
-** 'read_bbcfile' reads a tokenised Acorn Basic file. It converts the
+** 'read_bbcfile' reads a tokenised BBC BASIC file. It converts the
 ** file to this this interpreter's format, saving it in the Basic
 ** workspace at the address given by 'base'. It returns the number
-** of bytes occupied by the loaded file.
-** On entry, the 'carriage return' at the start of the file has been
-** read and the file pointer is pointing at the first byte of the
-** line number of the first line
+** of bytes occupied by the loaded file. On entry, 'ftype' indicates
+** whether it is Acorn format (6502/6809/PDP/32K/68K/ARM) or Russell
+** format (Z80/80x86).
+** On entry, the file pointer is pointing to the start of the file, the
+** initial CR for Acorn files, the first line length for Russell files.
+** Acorn format:    <cr><hi><lo><len><text....><cr>...<cr><ff>
+** Russell format: <len><lo><hi><text....><cr>...<cr><00><ff><ff>
+**
 */
-static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit) {
+static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
   int length, count;
   byte line[INPUTLEN], *filebase;
   byte tokenline[MAXSTATELEN];
   basicvars.linecount = 0;	/* Number of line being read from file */
   filebase = base;
+
+  if (ftype == BBCFILE) count=fgetc(bbcfile);	/* Skip initial CR */
   do {
-    line[0] = fgetc(bbcfile);	/* High order byte of line number */
-    if (line[0]==ACORN_ENDMARK) break;	/* Found 0xFF at end of file so end */
-    line[1] = fgetc(bbcfile);	/* Low order byte of line number */
-    line[2] = length = fgetc(bbcfile);	/* Line length */
+    if (ftype == BBCFILE) {
+      line[0] = fgetc(bbcfile);			/* High order byte of line number */
+      if (line[0]==ACORN_ENDMARK) break;	/* Found 0xFF marking end of program so end */
+      line[1] = fgetc(bbcfile);			/* Low order byte of line number */
+      line[2] = length = fgetc(bbcfile);	/* Line length */
+    } else {
+      line[2] = length = fgetc(bbcfile);	/* Line length */
+      if (line[2]==0) break;			/* Found 0x00 at end of file so end */
+      line[1] = fgetc(bbcfile);			/* Low order byte of line number */
+      line[0] = fgetc(bbcfile);			/* High order byte of line number */
+    }
     count = fread(&line[3], sizeof(byte), length - 3, bbcfile);
-    if (count != length - 3) {	/* Incorrect number of bytes read */
+    if (count != length - 3) {			/* Incorrect number of bytes read */
       fclose(bbcfile);
       error(ERR_READFAIL, basicvars.filename);
     }
     basicvars.linecount++;
-    length = reformat(line, tokenline);
-    if (length > 0) {	/* Line length is not zero so include line */
+    length = reformat(line, tokenline, ftype);
+    if (length > 0) {				/* Line length is not zero so include line */
       if (base + length >= limit) {
         fclose(bbcfile);
         error(ERR_NOROOM);
@@ -542,7 +558,8 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     while (length>=0 && isspace(basicvars.stringwork[length]));
     length++;
     basicvars.stringwork[length] = NUL;
-    tokenize(basicvars.stringwork, tokenline, HASLINE);
+    tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
+//    tokenize(basicvars.stringwork, tokenline, HASLINE);
     if (get_lineno(tokenline)==NOLINENO) {
       save_lineno(tokenline, 0);	/* Otherwise renumber goes a bit funny */
       needsnumbers = TRUE;
@@ -579,7 +596,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   mark_end(base);
   if (needsnumbers) {		/* Line numbers are missing */
     renumber_program(filebase, 1, 1);
-    if (!silent) error(WARN_RENUMBERED);
+//    if (!silent) error(WARN_RENUMBERED);
   }
   return ALIGN(base-filebase+ENDMARKSIZE);
 }
@@ -587,27 +604,35 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 /*
 ** 'identify' tries to identify the type of file passed to it,
 ** that is, is it a tokenised Basic program, plain text or what.
-** Two file formats are supported, Acorn Basic tokenised files and
-** plain text. Acorn BBC Basic files start with a 'carriage return'
-** character, and the program uses this to tell apart the types of
-** file. This is not a good test as a plain text file that starts
-** with a blank line will cause it to fail under DOS
+** Three file formats are supported, Acorn or Russell tokenised
+** Basic and plain text.
+** Acorn Basic files start with <cr><hi><lo><len>..., len-><cr>
+** Russell Basic files start with <len><hi><lo>... len-1-><cr>
+** This is not a 100% rigourous test, a carefully constructed
+** text file that starts with a <cr> could be recognised as an
+** Acorn Basic file. Strictly speaking, the entire file needs
+** to be scanned following the line length links and checking
+** what scanning procedure gives a valid file.
 */
 static filetype identify(FILE *thisfile, char *name) {
-  int firstchar = fgetc(thisfile);	/* Check type of file */
-  if (firstchar==EOF && ferror(thisfile)!=0) {	/* Could not read file */
-    fclose(thisfile);
-    error(ERR_READFAIL, name);
-  }
-  if (firstchar==EOF) {	/* File is empty */
-    fclose(thisfile);
-    error(ERR_EMPTYFILE, name);
-  }
-  if (firstchar==CR)
-    return BBCFILE;
-  else {
-    return TEXTFILE;
-  }
+  char *result;
+  int32 count;
+
+  count = fread(basicvars.stringwork, sizeof(byte), 260, thisfile);
+  fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
+  if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
+
+  if (basicvars.stringwork[0] == CR)			/* Simple check for Acorn format */
+    if ((unsigned char)basicvars.stringwork[3] > 3)
+      if (basicvars.stringwork[(unsigned char)basicvars.stringwork[3]] == CR)
+        return BBCFILE;
+
+  if ((unsigned char)basicvars.stringwork[0] > 3)	/* Simple check for Russell format */
+    if (basicvars.stringwork[(unsigned char)basicvars.stringwork[0]-1] == CR)
+      return Z80FILE;
+
+  return TEXTFILE;					/* Everything else is text */
+
 }
 
 /*
@@ -623,11 +648,11 @@ void read_basic(char *name) {
   loadfile = open_file(name);
   if (loadfile==NIL) error(ERR_NOTFOUND, name);
   last_added = NIL;
-  if (identify(loadfile, name)==BBCFILE) {	/* Acorn BBC Basic tokenised file */
+  if ((length=identify(loadfile, name)) != TEXTFILE) {	/* Tokenised BBC BASIC file */
     clear_program();
-    length = read_bbcfile(loadfile, basicvars.top, basicvars.himem);
+    length = read_bbcfile(loadfile, basicvars.top, basicvars.himem, length);
   }
-  else {	/* Plain text */
+  else {						/* Plain text */
     clear_program();
     length = read_textfile(loadfile, basicvars.top, basicvars.himem, basicvars.runflags.loadngo);
   }
@@ -666,15 +691,15 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
 }
 
 /*
-** 'read_bbclib' reads a library file tokenised using Acorn Basic tokens.
+** 'read_bbclib' reads a tokenised BBC BASIC library file.
 ** It has to be read a line at a line and translated into the tokens
 ** used by this interpreter
 */
-static void read_bbclib(FILE *libfile, char *name, boolean onheap) {
+static void read_bbclib(FILE *libfile, char *name, boolean onheap, int32 ftype) {
   int32 size;
   byte *base;
   base = basicvars.vartop;
-  size = read_bbcfile(libfile, base, basicvars.stacktop.bytesp);
+  size = read_bbcfile(libfile, base, basicvars.stacktop.bytesp, ftype);
   if (onheap) {	/* Adjust heap pointers as library is on the heap */
     basicvars.vartop = basicvars.vartop+size;
     basicvars.stacklimit.bytesp = basicvars.vartop+STACKBUFFER;
@@ -732,6 +757,8 @@ static void read_textlib(FILE *libfile, char *name, boolean onheap) {
 void read_library(char *name, boolean onheap) {
   library *lp;
   FILE *libfile;
+  int32 ftype;
+
   if (onheap)	/* Check if library has already been loaded */
     lp = basicvars.liblist;
   else {
@@ -743,10 +770,10 @@ void read_library(char *name, boolean onheap) {
     return;
   }
   libfile = open_file(name);
-  if (libfile == NIL) error(ERR_NOLIB, name);	/* Cannot find library */
-  if (identify(libfile, name) == BBCFILE)		/* Library tokenised using Acorn Basic tokens */
-    read_bbclib(libfile, name, onheap);
-  else {	/* Reading a library in plain text form */
+  if (libfile == NIL) error(ERR_NOLIB, name);		/* Cannot find library */
+  if ((ftype=identify(libfile, name)) != TEXTFILE)	/* Reading a BBC BASIC tokenised library */
+    read_bbclib(libfile, name, onheap, ftype);
+  else {						/* Reading a library in plain text form */
     read_textlib(libfile, name, onheap);
   }
 }
@@ -780,8 +807,8 @@ void write_text(char *name) {
 void edit_line(void) {
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   clear_refs();
-  basicvars.misc_flags.validsaved = FALSE;		/* If program is edited mark save area contents as bad */
-  if (isempty(thisline))		/* Empty line = delete line */
+  basicvars.misc_flags.validsaved = FALSE;	/* If program is edited mark save area contents as bad */
+  if (isempty(thisline))			/* Empty line = delete line */
     delete_line(get_lineno(thisline));
   else {
     insert_line(thisline);

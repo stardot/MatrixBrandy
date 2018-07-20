@@ -217,6 +217,7 @@ void restore_handlers(void) {
 ** 'announce' prints out the start messages for the interpreter
 */
 void announce(void) {
+//cmd_ver(); emulate_prinf("\n");
   emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\n", &basicvars, &thisline);
@@ -264,7 +265,11 @@ void show_help(void) {
   printf("  -chain <file>  Run Basic program <file> and stay in interpreter when it ends\n");
   printf("  -quit <file>   Run Basic program <file> and leave interpreter when it ends\n");
   printf("  -lib <file>    Load the Basic library <file> when the interpreter starts\n");
-  printf("  -ignore        Ignore 'unsupported feature' errors where possible\n");
+#ifdef DEFAULT_IGNORE
+  printf("  -strict        'Unsupported features' generate errors\n");
+#else
+  printf("  -ignore        Ignore 'unsupported feature' where possible\n");
+#endif
   printf("  <file>         Run Basic program <file> and stay in interpreter when it ends\n\n");
 #ifdef HAVE_ZLIB_H
   printf("Basic program files may be gzipped.\n\n");
@@ -296,7 +301,7 @@ void cmderror(int32 errnumber, ...) {
     printf(badcmdtable[errnumber].msgtext, va_arg(parms, char *));
     break;
   case NOPARM:
-    printf("%s", badcmdtable[errnumber].msgtext);
+    printf(badcmdtable[errnumber].msgtext);
     break;
   default:
     break;
@@ -338,8 +343,8 @@ static detail errortable [] = {
   {NONFATAL, NOPARM,  31, "Call to built-in function has too many parameters"},
   {NONFATAL, NOPARM,  31, "Call to built-in function does not have enough parameters"},
   {FATAL,    NOPARM,   0, "Program execution has run into a PROC or FN"},
-  {FATAL,    STRING,  10, "There is not enough memory to create array '%s)'"},
-  {FATAL,    STRING,  10, "There is not enough memory to create a byte array"},
+  {FATAL,    STRING,  11, "There is not enough memory to create array '%s)'"},
+  {FATAL,    STRING,  11, "There is not enough memory to create a byte array"},
   {NONFATAL, STRING,  10, "Dimension of array '%s)' is negative"},
   {NONFATAL, STRING,  10, "Array '%s)' has too many dimensions"},
   {NONFATAL, STRING,  10, "Array '%s)' has already been created"},
@@ -347,19 +352,19 @@ static detail errortable [] = {
   {NONFATAL, STRING,  15, "Number of array indexes in reference to '%s)' is wrong"},
   {NONFATAL, NOPARM,  15, "The dimension number in call to 'DIM()' is out of range"},
   {NONFATAL, STRING,  14, "The dimensions of array '%s)' have not been defined"},
-  {NONFATAL, NOPARM,   0, "Address is out of range"},
+  {NONFATAL, NOPARM, 242, "Address is out of range"},
   {WARNING,  NOPARM,   0, "Value entered is not a legal token value"},
   {WARNING,  NOPARM,  28, "Warning: bad hexadecimal constant"},
   {WARNING,  NOPARM,  28, "Warning: bad binary constant"},
   {WARNING,  NOPARM,  20, "Warning: exponent is too large"},
   {NONFATAL, NOPARM,   0, "Variable name expected"},
   {NONFATAL, NOPARM,   4,  "'=' missing or syntax error in statement has misled interpreter"},
-  {NONFATAL, NOPARM,  27, "',' missing"},
-  {NONFATAL, NOPARM,  27, "'(' missing"},
-  {NONFATAL, NOPARM,  27, "')' missing"},
-  {WARNING,  NOPARM,   9, "Warning: '\"' missing"},
-  {NONFATAL, NOPARM,   9, "'\"' missing"},
-  {NONFATAL, NOPARM,  45, "'#' missing"},
+  {NONFATAL, NOPARM,  27, "Missing ','"},
+  {NONFATAL, NOPARM,  27, "Missing '('"},
+  {NONFATAL, NOPARM,  27, "Missing ')'"},
+  {WARNING,  NOPARM,   9, "Warning: missing '\"'"},
+  {NONFATAL, NOPARM,   9, "Missing '\"'"},
+  {NONFATAL, NOPARM,  45, "Missing '#'"},
   {NONFATAL, NOPARM,  49, "Cannot find matching 'ENDIF' for this 'IF' or 'ELSE'"},
   {NONFATAL, NOPARM,  49, "Cannot find 'ENDWHILE' matching this 'WHILE'"},
   {NONFATAL, NOPARM,  47, "Cannot find 'ENDCASE'"},
@@ -376,7 +381,7 @@ static detail errortable [] = {
   {NONFATAL, INTEGER, 40, "'ON' statement index value of %d is out of range"},
   {NONFATAL, NOPARM,  20, "Floating point exception"},
   {NONFATAL, NOPARM,  19, "Character string is too long"},
-  {NONFATAL, NOPARM,   0, "Unrecognisable operand"},
+  {NONFATAL, NOPARM,   0, "Unrecognisable operand"}, // need to check what uses this
   {NONFATAL, NOPARM,   6, "Type mismatch: number wanted"},
   {NONFATAL, NOPARM,   6, "Type mismatch: string wanted"},
   {NONFATAL, INTEGER,  6, "Type mismatch: number wanted for PROC/FN parameter no. %d"},
@@ -392,63 +397,65 @@ static detail errortable [] = {
   {NONFATAL, NOPARM,   6, "Type mismatch: array must have only one dimension"},
   {NONFATAL, NOPARM,   6, "Type mismatch: arrays must have the same dimensions"},
   {NONFATAL, NOPARM,   6, "Type mismatch: cannot perform matrix multiplication on these arrays"},
-  {NONFATAL, NOPARM,   0, "Type mismatch: cannot swap variables or arrays of different types"},
-  {NONFATAL, NOPARM,   0, "Type mismatch: cannot compare these operands"},
-  {NONFATAL, NOPARM,   0, "Arithmetic operations cannot be performed on these operands"},
-  {NONFATAL, NOPARM,   0, "Syntax error in expression"},
+  {NONFATAL, NOPARM,   6, "Type mismatch: cannot swap variables or arrays of different types"},
+  {NONFATAL, NOPARM,   6, "Type mismatch: cannot compare these operands"},
+  {NONFATAL, NOPARM,   6, "Arithmetic operations cannot be performed on these operands"},
+  {NONFATAL, NOPARM,  16, "Syntax error in expression"},
   {NONFATAL, NOPARM,  38, "RETURN encountered outside a subroutine"},
-  {NONFATAL, NOPARM,   0, "Functions cannot be used as PROCs"},
-  {NONFATAL, NOPARM,   0, "PROCs cannot be used as functions"},
+  {NONFATAL, NOPARM,  30, "Functions cannot be used as PROCs"},
+  {NONFATAL, NOPARM,  30, "PROCs cannot be used as functions"},
   {NONFATAL, NOPARM,  13, "ENDPROC encountered outside a PROC"},
   {NONFATAL, NOPARM,   7, "'=' (function return) encountered outside a function"},
   {NONFATAL, NOPARM,  12, "LOCAL found outside a PROC or FN"},
-  {NONFATAL, NOPARM,   0, "There are no more 'DATA' statements to read"},
+  {NONFATAL, NOPARM,  42, "There are no more 'DATA' statements to read"},
   {FATAL,    NOPARM,   0, "The interpreter has run out of memory"},
-  {NONFATAL, NOPARM,   0, "'CASE' statement has too many 'WHEN' clauses"},
-  {NONFATAL, NOPARM,   0, "'SYS' statement has too many parameters"},
+  {NONFATAL, NOPARM,  47, "'CASE' statement has too many 'WHEN' clauses"},
+  {NONFATAL, NOPARM,  51, "'SYS' statement has too many parameters"},
   {FATAL,    NOPARM,   0, "Arithmetic stack overflow"},
   {FATAL,    NOPARM,   0, "Expression is too complex to evaluate"},
   {WARNING,  NOPARM,   0, "Value of HIMEM must be in the range END to end of the Basic workspace"},
   {WARNING,  NOPARM,   0, "Value of LOMEM must be in the range TOP to end of the Basic workspace"},
   {WARNING,  NOPARM,   0, "Value of PAGE must lie in the Basic workspace"},
-  {NONFATAL, NOPARM,   0, "LOMEM cannot be changed in a PROC or FN"},
+  {NONFATAL, NOPARM,   0, "LOMEM cannot be changed in a PROC or FN"}, // need to check what uses this
   {NONFATAL, NOPARM,   0, "HIMEM cannot be changed in a PROC, FN or any other program structure"},
   {NONFATAL, NOPARM,   0, "Invalid option found after 'TRACE'"},
-  {NONFATAL, NOPARM,   0, "'RESTORE ERROR' information is not the top item on the Basic stack"},
-  {NONFATAL, NOPARM,  42, "'RESTORE DATA' information is not the top item on the Basic stack"},
-  {NONFATAL, NOPARM,   0, "'SPC()' or 'TAB()' found outside an 'INPUT' or 'PRINT' statement"},
-  {NONFATAL, NOPARM,   0, "Screen mode descriptor is invalid"},
-  {NONFATAL, NOPARM,   0, "Screen mode is not available"},
+  {NONFATAL, NOPARM,  54, "'RESTORE ERROR' information is not the top item on the Basic stack"},
+  {NONFATAL, NOPARM,  54, "'RESTORE DATA' information is not the top item on the Basic stack"},
+  {NONFATAL, NOPARM,   4, "'SPC()' or 'TAB()' found outside an 'INPUT' or 'PRINT' statement"},
+  {NONFATAL, NOPARM,  25, "Screen mode descriptor is invalid"},
+  {NONFATAL, NOPARM,  25, "Screen mode is not available"},
   {WARNING,  STRING,   0, "Library '%s' has already been loaded. Command ignored"},
-  {NONFATAL, STRING,   0, "Cannot find library '%s'"},
+  {NONFATAL, STRING, 214, "Cannot find library '%s'"},
   {FATAL,    STRING,   0, "There is not enough memory to load library '%s'"},
   {NONFATAL, NOPARM,   0, "'LIBRARY LOCAL' can only be used at the start of a library"},
   {NONFATAL, NOPARM,   0, "File name missing"},
-  {FATAL,    STRING,   0, "Cannot find file '%s'"},
-  {NONFATAL, STRING,   0, "Cannot open file '%s' for output"},
-  {NONFATAL, NOPARM,   0, "Cannot write to file as it has been opened for input only"},
-  {NONFATAL, NOPARM,   0, "Unable to read from file"},
-  {NONFATAL, NOPARM,   0, "Unable to write to file"},
-  {NONFATAL, NOPARM,   0, "Have reached end of file"},
-  {FATAL,    STRING,   0, "Could not read file '%s'"},
-  {FATAL,    STRING,   0, "Could not create file '%s'"},
-  {FATAL,    STRING,   0, "Could not finish writing to file '%s'"},
+// Filing system errors:
+  {FATAL,    STRING, 214, "Cannot find file '%s'"},
+  {NONFATAL, STRING, 193, "Cannot open file '%s' for output"},
+  {NONFATAL, NOPARM, 193, "Cannot write to file as it has been opened for input only"},
+  {NONFATAL, NOPARM, 189, "Unable to read from file"},
+  {NONFATAL, NOPARM, 193, "Unable to write to file"},
+  {NONFATAL, NOPARM, 223, "Have reached end of file"},
+  {FATAL,    STRING, 189, "Could not read file '%s'"},
+  {FATAL,    STRING, 192, "Could not create file '%s'"},
+  {FATAL,    STRING, 202, "Could not finish writing to file '%s'"},
   {FATAL,    STRING,   0, "Basic program file '%s' is empty"},
 #ifdef TARGET_RISCOS
   {FATAL,    STRING,   0, "%s"},
-  {FATAL,    INTEGER,  0, "Unexpected signal (&%x) received"},
-  {NONFATAL, STRING,   0, "%s"},
+  {FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
+  {NONFATAL, STRING,   254, "%s"},
 #else
   {FATAL,    STRING,   0, "Hit problem with file '%s'"},
-  {FATAL,    INTEGER,  0, "Unexpected signal (&%x) received"},
-  {NONFATAL, NOPARM,   0, "OS command failed"},
+  {FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
+  {NONFATAL, NOPARM,   254, "OS command failed"},
 #endif
-  {FATAL,    NOPARM,   0, "Handle is invalid or file associated with it has been closed"},
+  {FATAL,    NOPARM, 222, "Handle is invalid or file associated with it has been closed"},
   {FATAL,    NOPARM,   0, "The file pointer cannot be changed"},
   {FATAL,    NOPARM,   0, "The file pointer's value cannot be found"},
   {FATAL,    NOPARM,   0, "The size of the file cannot be found"},
-  {FATAL,    NOPARM,   0, "The maximum allowed number of files is already open"},
+  {FATAL,    NOPARM, 192, "The maximum allowed number of files is already open"},
   {FATAL,    NOPARM,   0, "Amount of memory requested exceeds what is available"},
+//
   {FATAL,    INTSTR,   0, "The interpreter has gone wrong at line %d in %s"},
   {FATAL,    NOPARM,   0, "This Basic command cannot be used in a running program"},
   {FATAL,    NOPARM,   0, "Line number went outside the range 0..65279 when renumbering program"},
@@ -459,14 +466,34 @@ static detail errortable [] = {
   {WARNING,  NOPARM,   0, "Warning: number of '(' in line is less than the number of ')'"},
   {WARNING,  NOPARM,   0, "Warning: '(' and ')' are nested incorrectly"},
   {WARNING,  INTEGER,  0, "Memory available for Basic programs is now %d bytes"},
+//
   {WARNING,  NOPARM,   0, "Note: one open file has been closed"},
   {WARNING,  INTEGER,  0, "Note: %d open files have been closed"},
   {FATAL,    STRING,   0, "Edit session failed (%s)"},
-  {NONFATAL, STRING,   0, "OSCLI failed (%s)"},
+  {NONFATAL, STRING, 254, "OSCLI failed (%s)"},
   {FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
   {WARNING,  NOPARM,   0, "Warning: floating point number format is not known"},
   {NONFATAL, STRING,   0, "%s"},
-  {FATAL,    NOPARM,   0, "SDL Timer initialisation failed"}
+// 05-Mar-2014 JGH:
+  {NONFATAL, NOPARM,  0, "err147"},
+  {NONFATAL, NOPARM,  0, "err148"},
+  {NONFATAL, NOPARM,  0, "err149"},
+  {NONFATAL, NOPARM,  0, "err150"},
+//
+// OSCLI (command line) errors:
+  {NONFATAL, NOPARM, 254, "Bad command"},
+  {NONFATAL, NOPARM, 253, "Bad string"},
+  {NONFATAL, NOPARM, 252, "Bad address"},
+  {NONFATAL, NOPARM, 252, "Bad number"},
+  {NONFATAL, NOPARM, 251, "Bad key"},
+  {NONFATAL, NOPARM, 250, "Key in use"},
+  {NONFATAL, NOPARM, 249, "No language"},
+  {NONFATAL, NOPARM, 248, "Bad filing system"},
+  {NONFATAL, NOPARM, 247, "MOS x.yz"},
+  {NONFATAL, STRING, 220, "Syntax: %s"}
+//  {NONFATAL, NOPARAM, 223, "End of file"},         --> ERR_HITEOF
+//  {NONFATAL, NOPARAM, 222, "Channel not open"},    --> ERR_BADHANDLE
+//  {NONFATAL, STRING,  214, "File '%s' not found"}, --> ERR_NOTFOUND
 };
 
 /*
@@ -498,16 +525,16 @@ static void print_details(boolean iserror) {
   basicvars.printcount = 0;             /* Reset no. of chars Basic has printed on line to zero */
   if (basicvars.error_line==0) {        /* Error occured when dealing with the command line */
     if (basicvars.linecount==0)
-      emulate_printf("%s\r\n", errortext);
+      emulate_printf("\r\n%s\r\n", errortext);
     else {
       emulate_printf("[Line %d] %s\r\n", basicvars.linecount, errortext);
     }
   }
   else {        /* Error occured in running program */
     if (basicvars.procstack==NIL)
-      emulate_printf("%s at line %d", errortext, basicvars.error_line);
+      emulate_printf("\r\n%s at line %d", errortext, basicvars.error_line);
     else {
-      emulate_printf("%s at line %d in %s%s", errortext, basicvars.error_line,
+      emulate_printf("\r\n%s at line %d in %s%s", errortext, basicvars.error_line,
        procfn(basicvars.procstack->fnprocname), basicvars.procstack->fnprocname+1);
     }
 /* Note: see comments in save_current() in miscprocs.c about savedcur[0] */

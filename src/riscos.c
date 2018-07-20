@@ -39,6 +39,9 @@
 
 #include "kernel.h"
 #include "swis.h"
+#ifndef _kernel_ERROR
+#define _kernel_ERROR (-2)
+#endif
 
 /* OS_Word and OS_Byte calls used */
 

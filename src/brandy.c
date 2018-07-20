@@ -35,7 +35,7 @@
 #include "commands.h"
 #include "statement.h"
 #include "fileio.h"
-#include "emulate.h"
+#include "mos.h"
 #include "keyboard.h"
 #include "screen.h"
 #include "miscprocs.h"
@@ -121,8 +121,11 @@ static void init1(void) {
   basicvars.runflags.quitatend = FALSE;		/* Do not exit from interpreter when program finishes */
   basicvars.runflags.start_graphics = TRUE;	/* Start in graphics mode */
   basicvars.runflags.ignore_starcmd = FALSE;	/* Do not ignore built-in '*' commands */
-  basicvars.runflags.flag_cosmetic = FALSE;	/* Don't flag all unsupported features as errors */
-
+#ifdef DEFAULT_IGNORE
+  basicvars.runflags.flag_cosmetic = FALSE;	/* Ignore all unsupported features */
+#else
+  basicvars.runflags.flag_cosmetic = TRUE;	/* Unsupported features generate errors */
+#endif
   basicvars.misc_flags.trapexcp = TRUE;		/* Trap exceptions */
   basicvars.misc_flags.validedit = FALSE;	/* Contents of edit_flags are not valid */
 
@@ -198,6 +201,8 @@ static void check_cmdline(int argc, char *argv[]) {
       }
       else if (optchar=='i' && tolower(*(p+2))=='g')	/* -ignore  Ignore cosmetic errors */
         basicvars.runflags.flag_cosmetic = FALSE;
+      else if (optchar=='s' && tolower(*(p+2))=='t')	/* -strict  Error on cosmetic errors */
+        basicvars.runflags.flag_cosmetic = TRUE;
       else if (optchar=='l' && tolower(*(p+2))=='i') {	/* -lib */
         n++;
         if (n==argc)
@@ -329,7 +334,7 @@ static void run_interpreter(void) {
 /* Control passes to this point in the event of an error via a 'longjmp' */
   while (TRUE) {
     read_command();
-    tokenize(inputline, thisline, HASLINE);
+    tokenize(inputline, thisline, HASLINE, TRUE);
     interpret_line();
   }
 }

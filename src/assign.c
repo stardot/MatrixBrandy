@@ -42,7 +42,7 @@
 #include "statement.h"
 #include "assign.h"
 #include "fileio.h"
-#include "emulate.h"
+#include "mos.h"
 
 #ifdef DEBUG
 #include <stdio.h>

@@ -156,13 +156,12 @@ typedef double float64;			/* Type for 64-bit floating point variables in Basic *
 ** The ALIGN macro is used to control the sizes of blocks of
 ** memory allocated from the heap. They are always a multiple
 ** of ALIGN bytes.
-**
-** Note the use of 'char *': this is to make it automatically
-** align things on a 32-bit or 64-bit boundary according to
-** the size of a pointer (32 or 64 bits).
 */
-
-#define ALIGN(x) ((x+sizeof(char *)-1) & -(int)sizeof(char *))
+#ifdef TARGET_HPUX
+#define ALIGN(x) ((x+sizeof(double)-1) & -(int)sizeof(double))
+#else
+#define ALIGN(x) ((x+sizeof(int32)-1) & -(int)sizeof(int32))
+#endif
 
 /*
 ** Name of editor invoked by Basic 'EDIT' command
@@ -173,20 +172,20 @@ typedef double float64;			/* Type for 64-bit floating point variables in Basic *
 */
 
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-#define EDITOR_VARIABLE "EDITOR"
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR "edit"
 #elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_FREEBSD)\
  | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
-#define EDITOR_VARIABLE "EDITOR"
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR "vi"
 #elif defined(TARGET_MACOSX)
-#define EDITOR_VARIABLE "EDITOR"
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #elif defined(TARGET_RISCOS)
-#define EDITOR_VARIABLE "Brandy$$Editor"
-#define DEFAULT_EDITOR "filer_run"
+#define EDITOR_VARIABLE "Brandy$Editor"
+#define DEFAULT_EDITOR "Filer_Run"
 #elif defined(TARGET_AMIGA)
-#define EDITOR_VARIABLE "EDITOR"
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR "ed"
 #endif
 
@@ -215,8 +214,9 @@ typedef double float64;			/* Type for 64-bit floating point variables in Basic *
 
 /* Host type values returned by OSBYTE 0 */
 
-#if defined(__arm)
+#if defined(TARGET_RISCOS)
 #define MACTYPE 0x600
+// Note - ARM running on *nix must return 8 not 6. It specifies the platform not the CPU.
 #elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA)\
  | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)

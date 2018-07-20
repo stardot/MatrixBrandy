@@ -47,6 +47,9 @@ enum {XMIXED_ENDIAN, XLITTLE_ENDIAN, XBIG_ENDIAN, XBIG_MIXED_ENDIAN} double_type
 
 #include "kernel.h"
 #include "swis.h"
+#ifndef _kernel_ERROR
+#define _kernel_ERROR (-2)
+#endif
 
 /*
 ** Under RISC OS, direct operating system calls such as OS_Find are used

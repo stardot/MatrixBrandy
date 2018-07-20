@@ -24,6 +24,8 @@
 ** Changed by Crispian Daniels on August 12th 2002.
 **	Changed 'fn_rnd' to use a pseudo-random generator equivalent
 **	to the BASIC II implementation.
+**
+** 05-Apr-2014 JGH: Seperated BEAT from BEATS, they do different things.
 */
 
 #include <stdio.h>
@@ -44,7 +46,7 @@
 #include "evaluate.h"
 #include "keyboard.h"
 #include "screen.h"
-#include "emulate.h"
+#include "mos.h"
 #include "miscprocs.h"
 #include "fileio.h"
 #include "functions.h"
@@ -481,12 +483,20 @@ static void fn_atn(void) {
 }
 
 /*
-** 'fn_beat' is one of the functions associated with RISC OS' sound system.
-** Both 'BEATS' and 'BEAT' seem to return the same value.
+** 'fn_beat' is one of the functions associated with the RISC OS sound system.
+** 'BEAT' returns the current microbeat number.
 */
 void fn_beat(void) {
-  if (*basicvars.current == TOKEN_BEATS) basicvars.current++;	/* BEATS and BEAT arrive here via different routes */
-  push_int(emulate_beatfn());
+  push_int(mos_rdbeat());
+}
+
+/*
+** 'fn_beats' is one of the functions associated with the RISC OS sound system.
+** 'BEATS' returns the number of microbeats in a bar.
+*/
+void fn_beats(void) {
+  basicvars.current++;
+  push_int(mos_rdbeats());
 }
 
 /*
@@ -697,7 +707,8 @@ static void fn_eval(void) {
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
   basicvars.stringwork[descriptor.stringlen] = NUL;	/* Now have a null-terminated version of string */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
-  tokenize(basicvars.stringwork, evalexpr, NOLINE);	/* 'tokenise' leaves its results in 'thisline' */
+  tokenize(basicvars.stringwork, evalexpr, NOLINE, FALSE);	/* 'tokenise' leaves its results in 'thisline' */
+//  tokenize(basicvars.stringwork, evalexpr, NOLINE);	/* 'tokenise' leaves its results in 'thisline' */
   save_current();		/* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();
@@ -734,7 +745,7 @@ void fn_false(void) {
 ** keyboard and saves it on the Basic stack as a number
 */
 static void fn_get(void) {
-  push_int(emulate_get());
+  push_int(emulate_get() & 0xFF);
 }
 
 /*
@@ -764,7 +775,7 @@ static void fn_getdol(void) {
 ** OS_Byte 129 under a different name.
 */
 static void fn_inkey(void) {
-  push_int(emulate_inkey(eval_intfactor()));
+  push_int(emulate_inkey(eval_intfactor()) & 0xFF);
 }
 
 /*

@@ -17,7 +17,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/miscprocs.o $(SRCDIR)/mainstate.o $(SRCDIR)/lvalue.o \
 	$(SRCDIR)/keyboard.o $(SRCDIR)/iostate.o $(SRCDIR)/heap.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
-	$(SRCDIR)/errors.o $(SRCDIR)/emulate.o $(SRCDIR)/editor.o \
+	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
 	$(SRCDIR)/assign.o
 
@@ -26,7 +26,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/miscprocs.c $(SRCDIR)/mainstate.c $(SRCDIR)/lvalue.c \
 	$(SRCDIR)/keyboard.c $(SRCDIR)/iostate.c $(SRCDIR)/heap.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
-	$(SRCDIR)/errors.c $(SRCDIR)/emulate.c $(SRCDIR)/editor.c \
+	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
 	$(SRCDIR)/assign.c
 
@@ -52,7 +52,8 @@ $(SRCDIR)/tokens.o: $(TOKENS_C) $(SRCDIR)/tokens.c
 
 # Build GRAPHSDL.C
 GSDL_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
-	$(SRCDIR)/errors.h $(SRCDIR)/scrcommon.h $(SRCDIR)/screen.h
+	$(SRCDIR)/errors.h $(SRCDIR)/scrcommon.h $(SRCDIR)/screen.h \
+	$(SRCDIR)/mos.h
 
 $(SRCDIR)/graphsdl.o: $(GSDL_C) $(SRCDIR)/graphsdl.c
 	$(CC) $(CFLAGS) $(SRCDIR)/graphsdl.c -c -o $(SRCDIR)/graphsdl.o
@@ -97,7 +98,7 @@ MAINSTATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/variables.h $(SRCDIR)/stack.h \
 	$(SRCDIR)/heap.h $(SRCDIR)/strings.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/statement.h $(SRCDIR)/evaluate.h $(SRCDIR)/convert.h \
-	$(SRCDIR)/miscprocs.h $(SRCDIR)/editor.h $(SRCDIR)/emulate.h \
+	$(SRCDIR)/miscprocs.h $(SRCDIR)/editor.h $(SRCDIR)/mos.h \
 	$(SRCDIR)/screen.h $(SRCDIR)/lvalue.h $(SRCDIR)/fileio.h \
 	$(SRCDIR)/mainstate.h
 
@@ -125,7 +126,7 @@ $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
 IOSTATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/stack.h $(SRCDIR)/strings.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/miscprocs.h $(SRCDIR)/evaluate.h \
-	$(SRCDIR)/convert.h $(SRCDIR)/emulate.h $(SRCDIR)/fileio.h \
+	$(SRCDIR)/convert.h $(SRCDIR)/mos.h $(SRCDIR)/fileio.h \
 	$(SRCDIR)/screen.h $(SRCDIR)/lvalue.h $(SRCDIR)/statement.h \
 	$(SRCDIR)/iostate.h
 
@@ -145,7 +146,7 @@ FUNCTIONS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/variables.h $(SRCDIR)/strings.h \
 	$(SRCDIR)/convert.h $(SRCDIR)/stack.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/evaluate.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/emulate.h $(SRCDIR)/miscprocs.h $(SRCDIR)/fileio.h \
+	$(SRCDIR)/mos.h $(SRCDIR)/miscprocs.h $(SRCDIR)/fileio.h \
 	$(SRCDIR)/functions.h
 
 $(SRCDIR)/functions.o: $(FUNCTIONS_C) $(SRCDIR)/functions.c
@@ -184,6 +185,9 @@ EMULATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 $(SRCDIR)/emulate.o: $(EMULATE_C) $(SRCDIR)/emulate.c
 	$(CC) $(CFLAGS) $(SRCDIR)/emulate.c -c -o $(SRCDIR)/emulate.o
 
+$(SRCDIR)/mos.o: $(EMULATE_C) $(SRCDIR)/mos.c
+	$(CC) $(CFLAGS) $(SRCDIR)/mos.c -c -o $(SRCDIR)/mos.o
+
 # Build EDITOR.C
 EDITOR_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/variables.h $(SRCDIR)/heap.h \
@@ -214,7 +218,7 @@ $(SRCDIR)/commands.o: $(COMMANDS_C) $(SRCDIR)/commands.c
 BRANDY_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/errors.h $(SRCDIR)/heap.h \
 	$(SRCDIR)/editor.h $(SRCDIR)/commands.h $(SRCDIR)/statement.h \
-	$(SRCDIR)/fileio.h $(SRCDIR)/emulate.h $(SRCDIR)/keyboard.h \
+	$(SRCDIR)/fileio.h $(SRCDIR)/mos.h $(SRCDIR)/keyboard.h \
 	$(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h
 
 $(SRCDIR)/brandy.o: $(BRANDY_C) $(SRCDIR)/brandy.c
@@ -226,7 +230,7 @@ ASSIGN_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/stack.h $(SRCDIR)/strings.h $(SRCDIR)/variables.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/miscprocs.h $(SRCDIR)/editor.h \
 	$(SRCDIR)/evaluate.h $(SRCDIR)/lvalue.h $(SRCDIR)/statement.h \
-	$(SRCDIR)/assign.h $(SRCDIR)/fileio.h $(SRCDIR)/emulate.h
+	$(SRCDIR)/assign.h $(SRCDIR)/fileio.h $(SRCDIR)/mos.h
 
 $(SRCDIR)/assign.o: $(ASSIGN_C) $(SRCDIR)/assign.c
 	$(CC) $(CFLAGS) $(SRCDIR)/assign.c -c -o $(SRCDIR)/assign.o

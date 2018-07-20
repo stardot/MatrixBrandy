@@ -1,0 +1,75 @@
+Banana Brandy update v1.20/v0.02
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BEAT and BEATS seperated, they do two different things.
+BEAT reads current microbeat number, BEATS reads total number
+of microbeats in a bar.
+
+tokens.c/editor/c
+-----------------
+Can load Russell format BASIC programs (Z80/DOS/Windows BASIC).
+
+mos.c
+-----
+All mos_oscli() functions combined together.
+CALL OSBYTE and OSWORD on RISC OS passed directly to OS_Byte and OS_Word.
+
+
+Apple Brandy update v1.20/v0.01
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+error.c
+-------
+Fixed some ERR error numbers. Added OSCLI error messages.
+Fixed REPORT and default error reporter to output \r\n before message.
+
+keyboard.c
+----------
+Handles zero-length function key strings correctly.
+
+statement.s
+-----------
+Executing DEF correctly skips past to next line, allowing correct execution
+of, multiple-entry procedures, eg:
+ 10 DEFPROCtimed(delay%)
+ 20 DEFPROCdefault:LOCAL delay%:delay%=100
+ 30 delay%=TIME+delay%:REPEAT UNTIL TIME>delay%:ENDPROC
+
+Renamed emulate.c and emulate.h to mos.c and mos.h
+--------------------------------------------------
+
+mos.c
+-----
+OSCLI passed to OS restores text cursor to next line after any output.
+Rewritten *FX to correctly parse numbers and call OSBYTE.
+Added mos_osbyte() to provide low-level OSBYTE functions. Serial
+handling FXs translated to OSBYTEs and renumbered to correct OSBYTE
+calls.
+
+Written cmd_parse_dec() for *FX and *KEY and any other future commands.
+
+Added *HELP with help topics. See *HELP BASIC, *HELP MOS.
+
+*KEY rewritten, with generalised gstrans() function.
+
+Need to write proper command table parser to replace command_check().
+
+
+Bugs identified to be fixed
+===========================
+GSTrans terminates at a quote when it shouldn't, eg
+  *KEY 1 hello"there
+should assign the string hello"there but instead assigns hello".
+
+When sys_font[] is available, implement OSWORD 10 to read font bitmap.
+
+Need to add *LOAD and *SAVE commands.
+
+Integrate extensions from WinCE fork (^variable, SYS to host OS, etc.)
+Add $$ to reference null-terminated strings.
+Move toupper()/tolower() to in-code functions, removes need for UnixLib
+on RISC OS.
+Probably need host-specific modules for SYS calls.
+Make *FX0,0 give appropriate error string.
+RISC OS Brandy should be able to claim memory on startup instead of needing
+*WimpSlot beforehand.
+*cd <notfound> doesn't give any error.
+MinGW: Escape causes next char to also be Escape.

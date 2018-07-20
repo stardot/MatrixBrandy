@@ -39,7 +39,8 @@ extern void read_basic(char *);
 extern void write_basic(char *);
 extern void read_library(char *, boolean);
 extern void write_text(char *);
-extern void recover_program(void);
+extern boolean validate_program(void);
+extern boolean recover_program(void);
 extern void renumber_program(byte *, int32, int32);
 
 #endif

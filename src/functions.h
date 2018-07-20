@@ -48,6 +48,6 @@ extern void fn_false(void);
 extern void fn_end(void);
 extern void fn_dim(void);
 extern void fn_colour(void);
-extern void fn_beat(void);
+extern void fn_beats(void);
 
 #endif

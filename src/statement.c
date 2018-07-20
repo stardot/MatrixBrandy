@@ -231,21 +231,45 @@ static void next_line(void) {
   lp = basicvars.current+1;		/* Skip NUL and point at start of next line */
   if (AT_PROGEND(lp)) end_run();	/* Have reached end of program */
   if (basicvars.traces.lines) trace_line(get_lineno(lp));
+  basicvars.thisline = lp;		/* Remember start of current line */
   basicvars.current = FIND_EXEC(lp);	/* Find first executable token on line */
 }
 
 /*
-** 'store_value' is called to save an integer value at the
-** address given by 'lvalue'.
+** 'store_value' is called to save an integer or string value at the
+** address given by 'lvalue'. If 'nostring' is set to TRUE then only
+** an integer value can be stored. If 'nostring' is FALSE then the
+** value passed to the function can be treated as a pointer to a
+** null-terminated string. This is only used by the code that deals
+** with the SYS statement
+**
+** The code assumes that pointers are 32 bits wide. This affects
+** string variables in that the value returned by the SWI is
+** assumed to be a pointer to a null-terminated string. This is
+** passed back as a 32-bit integer. This problem cannot be avoided
+** with the SYS statement, which was only designed for use on a
+** 32-bit ARM processor
 */
 
-void store_value(lvalue destination, int32 value) {
+void store_value(lvalue destination, int32 value, boolean nostring) {
+  int32 length;
+  char *cp;
   switch (destination.typeinfo) {
   case VAR_INTWORD:
     *destination.address.intaddr = value;
     break;
   case VAR_FLOAT:
     *destination.address.floataddr = TOFLOAT(value);
+    break;
+  case VAR_STRINGDOL:
+    if (nostring) error(ERR_VARNUM);
+    length = strlen(TOSTRING(value));
+    if (length>MAXSTRING) error(ERR_STRINGLEN);
+    free_string(*destination.address.straddr);
+    cp = alloc_string(length);
+    if (length>0) memmove(cp, TOSTRING(value), length);
+    destination.address.straddr->stringlen = length;
+    destination.address.straddr->stringaddr = cp;
     break;
   case VAR_INTBYTEPTR:
     check_write(destination.address.offset, sizeof(byte));
@@ -257,38 +281,8 @@ void store_value(lvalue destination, int32 value) {
   case VAR_FLOATPTR:
     store_float(destination.address.offset, TOFLOAT(value));
     break;
-  default:
-    error(ERR_VARNUM);
-  }
-}
-
-#ifdef TARGET_RISCOS
-/*
-** 'store_stg_value' is called to save a string value at the
-** address given by 'lvalue'. It is only required on RISCOS targets.
-**
-** The code assumes that pointers are 32 bits wide. This affects
-** string variables in that the value returned by the SWI is
-** assumed to be a pointer to a null-terminated string. This is
-** passed back as a 32-bit integer. This problem cannot be avoided
-** with the SYS statement, which was only designed for use on a
-** 32-bit ARM processor
-*/
-
-void store_stg_value(lvalue destination, int32 value) {
-  int32 length;
-  char *cp;
-  switch (destination.typeinfo) {
-  case VAR_STRINGDOL:
-    length = strlen(TOSTRING(value));
-    if (length>MAXSTRING) error(ERR_STRINGLEN);
-    free_string(*destination.address.straddr);
-    cp = alloc_string(length);
-    if (length>0) memmove(cp, TOSTRING(value), length);
-    destination.address.straddr->stringlen = length;
-    destination.address.straddr->stringaddr = cp;
-    break;
   case VAR_DOLSTRPTR:
+    if (nostring) error(ERR_VARNUM);
     length = strlen(TOSTRING(value));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
@@ -299,7 +293,6 @@ void store_stg_value(lvalue destination, int32 value) {
     error(ERR_VARNUM);
   }
 }
-#endif
 
 /*
 ** 'statements' is an important table. It controls the dispatch
