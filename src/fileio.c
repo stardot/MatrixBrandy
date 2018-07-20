@@ -523,7 +523,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
   thefile = fopen(filename, UPMODE);
-  if (thefile==NIL) error(ERR_OPENUPDATE, filename);
+  if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
   fileinfo[n].stream = thefile;
   fileinfo[n].filetype = OPENUP;
   fileinfo[n].eofstatus = OKAY;

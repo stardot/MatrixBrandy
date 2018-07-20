@@ -138,7 +138,6 @@ typedef enum {
     ERR_FILENAME,       /* File name missing */
     ERR_NOTFOUND,       /* Cannot find file */
     ERR_OPENWRITE,      /* Cannot open file for write */
-    ERR_OPENUPDATE,     /* Cannot open file for update */
     ERR_OPENIN,         /* File is open for reading, not writing */
     ERR_CANTREAD,       /* Unable to read from file */
     ERR_CANTWRITE,      /* Unable to write to file */

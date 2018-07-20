@@ -426,7 +426,6 @@ static detail errortable [] = {
   {NONFATAL, NOPARM,   0, "File name missing"},
   {FATAL,    STRING,   0, "Cannot find file '%s'"},
   {NONFATAL, STRING,   0, "Cannot open file '%s' for output"},
-  {NONFATAL, STRING,   0, "Cannot open file '%s' for update"},
   {NONFATAL, NOPARM,   0, "Cannot write to file as it has been opened for input only"},
   {NONFATAL, NOPARM,   0, "Unable to read from file"},
   {NONFATAL, NOPARM,   0, "Unable to write to file"},

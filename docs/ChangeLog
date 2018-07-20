@@ -40,3 +40,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fixed a couple of compiler warnings that show up in Fedora.
 - PLOT codes for drawing dotted lines implemented, along with skipping start
   and end points as required.
+- Fix behaviour of OPENUP for file not found - thanks Phlamethrower @ *. for
+  the pointer.
