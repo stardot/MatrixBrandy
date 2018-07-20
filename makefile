@@ -177,15 +177,12 @@ ERRORS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 $(SRCDIR)/errors.o: $(ERRORS_C) $(SRCDIR)/errors.c
 	$(CC) $(CFLAGS) $(SRCDIR)/errors.c -c -o $(SRCDIR)/errors.o
 
-# Build EMULATE.C
-EMULATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
-	$(SRCDIR)/basicdefs.h $(SRCDIR)/emulate.h \
+# Build MOS.C
+MOS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
+	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h \
 	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h
 
-$(SRCDIR)/emulate.o: $(EMULATE_C) $(SRCDIR)/emulate.c
-	$(CC) $(CFLAGS) $(SRCDIR)/emulate.c -c -o $(SRCDIR)/emulate.o
-
-$(SRCDIR)/mos.o: $(EMULATE_C) $(SRCDIR)/mos.c
+$(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
 	$(CC) $(CFLAGS) $(SRCDIR)/mos.c -c -o $(SRCDIR)/mos.o
 
 # Build EDITOR.C
