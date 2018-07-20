@@ -4,7 +4,7 @@ CC = gcc
 LD = gcc
 
 #CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL
-CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL
+CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
 
 LDFLAGS +=
 
