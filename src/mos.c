@@ -1022,7 +1022,21 @@ void cmd_cat(char *command) {
 #elif defined(TARGET_NETBSD) | defined(TARGET_LINUX) | defined(TARGET_MACOSX)\
  | defined(TARGET_UNIX) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
  | defined(TARGET_GNUKFREEBSD)
+#ifdef USE_SDL
+    FILE *sout;
+    char buf;
+    sout = popen("ls -l", "r");
+    if (sout == NULL) error(ERR_CMDFAIL);
+    echo_off();
+    while (fread(&buf, 1, 1, sout) > 0) {
+      if (buf == '\n') emulate_vdu('\r');
+      emulate_vdu(buf);
+    }
+    echo_on();
+    pclose(sout);
+#else
 	system("ls -l");
+#endif
 #elif defined(TARGET_AMIGA)
 	system("list");
 #endif
@@ -1095,11 +1109,7 @@ void cmd_help(char *command)
 		emulate_printf("\r\n%s\r\n", IDSTRING);
 //	}
 	if (cmd == HELP_BASIC) {
-		emulate_printf("  Brandy Basic main branch v%s (%s)\r\n", BRANDY_VERSION, BRANDY_DATE);
-#ifdef FORK_VERSION
-		emulate_printf("  %s Brandy Basic fork v%s (%s)\r\n", FORK_NAME, FORK_VERSION, FORK_DATE);
-		// NB: Adjust spaces in above to align version strings correctly
-#endif
+		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_VERSION, BRANDY_DATE);
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
@@ -1194,46 +1204,52 @@ int check_command(char *text) {
 ** drastically reduced.)
 */
 void mos_oscli(char *command, char *respfile) {
-  int cmd;
+  int cmd, clen;
+  char *cmdbuf, *cmdbufbase;
 
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */
   if (*command == (char)124 || *command == (char)221) return;	/* Comment     */
 //if (*command == '\\') { }					/* Extension   */
 
+  clen=strlen(command) + 256;
+  cmdbufbase=malloc(clen);
+  cmdbuf=cmdbufbase;
+  strncpy(cmdbuf, command, clen-1);
+
   if (!basicvars.runflags.ignore_starcmd) {
 /*
  * Check if command is one of the *commands implemented
  * by this code.
  */
-  cmd = check_command(command);
-  if (cmd == CMD_KEY)  { cmd_key(command+3); return; } 
-  if (cmd == CMD_CAT)  { cmd_cat(command); return; }
-  if (cmd == CMD_QUIT) { cmd_quit(command+4); return; }
-  if (cmd == CMD_HELP) { cmd_help(command+4); return; }
-  if (cmd == CMD_CD)   { cmd_cd(command+2); return; }
-  if (cmd == CMD_FX)   { cmd_fx(command+2); return; }
+  cmd = check_command(cmdbuf);
+  if (cmd == CMD_KEY)  { cmd_key(cmdbuf+3); return; } 
+  if (cmd == CMD_CAT)  { cmd_cat(cmdbuf); return; }
+  if (cmd == CMD_QUIT) { cmd_quit(cmdbuf+4); return; }
+  if (cmd == CMD_HELP) { cmd_help(cmdbuf+4); return; }
+  if (cmd == CMD_CD)   { cmd_cd(cmdbuf+2); return; }
+  if (cmd == CMD_FX)   { cmd_fx(cmdbuf+2); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
   }
 
-  if (*command == '/') {		/* Run file, so just pass to OS     */
-    command++;				/* Step past '/'                    */
-    while (*command == ' ') command++;	/* And skip any more leading spaces */
+  if (*cmdbuf == '/') {		/* Run file, so just pass to OS     */
+    cmdbuf++;				/* Step past '/'                    */
+    while (*cmdbuf == ' ') cmdbuf++;	/* And skip any more leading spaces */
   }
 
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
 /* Command is to be sent to underlying DOS-style OS */
   if (respfile==NIL) {			/* Command output goes to normal place */
-    basicvars.retcode = system(command);
+    basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
 #if defined(TARGET_MINGW)
     emulate_printf("\r\n");		/* Restore cursor position */
 #endif
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
   } else {				/* Want response back from command */
-    strcat(command, " >");
-    strcat(command, respfile);
-    basicvars.retcode = system(command);
+    strcat(cmdbuf, " >");
+    strcat(cmdbuf, respfile);
+    basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
 #if defined(TARGET_MINGW)
     emulate_printf("\r\n");		/* Restore cursor position */
@@ -1253,11 +1269,10 @@ void mos_oscli(char *command, char *respfile) {
 */
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
-    {
     FILE *sout;
     char buf;
-    strcat(command, " 2>&1");
-    sout = popen(command, "r");
+    strcat(cmdbuf, " 2>&1");
+    sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
     while (fread(&buf, 1, 1, sout) > 0) {
@@ -1266,25 +1281,25 @@ void mos_oscli(char *command, char *respfile) {
     }
     echo_on();
     pclose(sout);
-    }
 #else
     fflush(stdout);			/* Make sure everything has been output */
     fflush(stderr);
-    basicvars.retcode = system(command);
+    basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
   } else {				/* Want response back from command */
-    strcat(command, " >");
-    strcat(command, respfile);
-    strcat(command, " 2>&1");
-    basicvars.retcode = system(command);
+    strcat(cmdbuf, " >");
+    strcat(cmdbuf, respfile);
+    strcat(cmdbuf, " 2>&1");
+    basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
     if (basicvars.retcode<0) {
       remove(respfile);
       error(ERR_CMDFAIL);
     }
   }
+  free(cmdbufbase);
 #else
 #error There is no mos_oscli() function for this target
 #endif
