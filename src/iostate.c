@@ -322,7 +322,7 @@ void exec_beats(void) {
   basicvars.current++;
   beats = eval_integer();
   check_ateol();
-  emulate_beats(beats);
+  mos_wrbeat(beats);
 }
 
 /*
@@ -1087,7 +1087,7 @@ static void exec_mouse_on(void) {
     pointer = 0;
   }
   check_ateol();
-  emulate_mouse_on(pointer);
+  mos_mouse_on(pointer);
 }
 
 /*
@@ -1097,7 +1097,7 @@ static void exec_mouse_on(void) {
 static void exec_mouse_off(void) {
   basicvars.current++;
   check_ateol();
-  emulate_mouse_off();
+  mos_mouse_off();
 }
 
 /*
@@ -1112,7 +1112,7 @@ static void exec_mouse_to(void) {
   basicvars.current++;
   y = eval_integer();
   check_ateol();
-  emulate_mouse_to(x, y);
+  mos_mouse_to(x, y);
 }
 
 /*
@@ -1132,7 +1132,7 @@ static void exec_mouse_step(void) {
     y = x;
   }
   check_ateol();
-  emulate_mouse_step(x, y);
+  mos_mouse_step(x, y);
 }
 
 /*
@@ -1152,7 +1152,7 @@ static void exec_mouse_colour(void) {
   basicvars.current++;
   blue = eval_integer();
   check_ateol();
-  emulate_mouse_colour(colour, red, green, blue);
+  mos_mouse_colour(colour, red, green, blue);
 }
 
 /*
@@ -1172,7 +1172,7 @@ static void exec_mouse_rectangle(void) {
   basicvars.current++;
   top = eval_integer();
   check_ateol();
-  emulate_mouse_rectangle(left, bottom, right, top);
+  mos_mouse_rectangle(left, bottom, right, top);
 }
 
 /*
@@ -1181,7 +1181,7 @@ static void exec_mouse_rectangle(void) {
 static void exec_mouse_position(void) {
   int32 mousevalues[4];
   lvalue destination;
-  emulate_mouse(mousevalues);		/* Note: this code does not check the type of the variable to receive the values */
+  mos_mouse(mousevalues);		/* Note: this code does not check the type of the variable to receive the values */
   get_lvalue(&destination);
   if (*basicvars.current != ',') error(ERR_COMISS);
   store_value(destination, mousevalues[0], NOSTRING);	/* Mouse x coordinate */
@@ -1582,12 +1582,12 @@ void exec_sound(void) {
   case TOKEN_ON:
     basicvars.current++;
     check_ateol();
-    emulate_sound_on();
+    mos_sound_on();
     break;
   case TOKEN_OFF:
     basicvars.current++;
     check_ateol();
-    emulate_sound_off();
+    mos_sound_off();
     break;
   default:
     delay = 0;
@@ -1606,7 +1606,7 @@ void exec_sound(void) {
       delay = eval_integer();
     }
     check_ateol();
-    emulate_sound(channel, amplitude, pitch, duration, delay);
+    mos_sound(channel, amplitude, pitch, duration, delay);
   }
 }
 
@@ -1621,7 +1621,7 @@ void exec_stereo(void) {
   basicvars.current++;
   position = eval_integer();
   check_ateol();
-  emulate_stereo(channel, position);
+  mos_stereo(channel, position);
 }
 
 /*
@@ -1632,7 +1632,7 @@ void exec_tempo(void) {
   basicvars.current++;
   tempo = eval_integer();
   check_ateol();
-  emulate_tempo(tempo);
+  mos_wrtempo(tempo);
 }
 
 /*
@@ -1691,7 +1691,7 @@ void exec_voice(void) {
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   name = pop_string();
-  emulate_voice(channel, tocstring(name.stringaddr, name.stringlen));
+  mos_voice(channel, tocstring(name.stringaddr, name.stringlen));
   if (stringtype == STACK_STRTEMP) free_string(name);
 }
 
@@ -1703,7 +1703,7 @@ void exec_voices(void) {
   basicvars.current++;
   count = eval_integer();
   check_ateol();
-  emulate_voices(count);
+  mos_voices(count);
 }
 
 /*

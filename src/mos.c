@@ -78,9 +78,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef USE_SDL
-void sdlchar(char);
-#endif
+int check_command(char *text);
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
 

@@ -1460,7 +1460,7 @@ static void assign_time(void) {
   basicvars.current++;
   time = eval_integer();
   check_ateol();
-  emulate_setime(time);
+  mos_wrtime(time);
 }
 
 /*
@@ -1477,7 +1477,7 @@ static void assign_timedol(void) {
   stringtype = GET_TOPITEM;
   if (stringtype!=STACK_STRING && stringtype!=STACK_STRTEMP) error(ERR_TYPESTR);
   time = pop_string();
-  emulate_setimedol(tocstring(time.stringaddr, time.stringlen));
+  mos_wrrtc(tocstring(time.stringaddr, time.stringlen));
   if (stringtype==STACK_STRTEMP) free_string(time);
 }
 

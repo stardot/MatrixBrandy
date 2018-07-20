@@ -339,7 +339,7 @@ static void fn_right(void) {
 ** this is depends on the underlying OS
 */
 static void fn_time(void) {
-  push_int(emulate_time());
+  push_int(mos_rdtime());
 }
 
 /*
@@ -399,7 +399,7 @@ static void fn_acs(void) {
 ** these
 */
 static void fn_adval(void) {
-  push_int(emulate_adval(eval_intfactor()));
+  push_int(mos_adval(eval_intfactor()));
 }
 
 /*
@@ -1468,7 +1468,7 @@ static void fn_tan(void) {
 ** 'TEMPO' on to the stack
 */
 static void fn_tempofn(void) {
-  push_int(emulate_tempofn());
+  push_int(mos_rdtempo());
 }
 
 /*
@@ -1528,7 +1528,7 @@ void fn_true(void) {
 ** It is probably safer to say that this function is unsupported
 */
 static void fn_usr(void) {
-  push_int(emulate_usr(eval_intfactor()));
+  push_int(mos_usr(eval_intfactor()));
 }
 
 /*

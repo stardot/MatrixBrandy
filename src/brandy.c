@@ -152,7 +152,7 @@ static void init2(void) {
     cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
     exit(EXIT_FAILURE);
   }
-  if (!init_emulation() || !init_keyboard() || !init_screen()) {
+  if (!mos_init() || !init_keyboard() || !init_screen()) {
     cmderror(CMD_INITFAIL);	/* Initialisation failed */
     exit_interpreter(EXIT_FAILURE);	/* End run */
   }
@@ -351,7 +351,7 @@ void exit_interpreter(int retcode) {
   fileio_shutdown();
   end_screen();
   end_keyboard();
-  end_emulation();
+  mos_final();
   restore_handlers();
   release_heap();
   exit(retcode);

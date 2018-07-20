@@ -91,7 +91,7 @@ void exec_call(void) {
   parmcount = 0;
   address = eval_integer();
   check_ateol();
-  emulate_call(address, parmcount, parameters);
+  mos_call(address, parmcount, parameters);
 }
 
 /*
@@ -545,7 +545,7 @@ void exec_end(void) {
     default:
       error(ERR_TYPENUM);
     }
-    emulate_endeq(newend);
+    mos_setend(newend);
   }
   else {	/* Normal 'END' statement */
     check_ateol();
@@ -2297,7 +2297,7 @@ void exec_sys(void) {
     break;
   case STACK_STRING: case STACK_STRTEMP:
     descriptor = pop_string();
-    swino = emulate_getswino(descriptor.stringaddr, descriptor.stringlen);
+    swino = mos_getswinum(descriptor.stringaddr, descriptor.stringlen);
     if (parmtype == STACK_STRTEMP) free_string(descriptor);
     break;
   default:
@@ -2349,7 +2349,7 @@ void exec_sys(void) {
     }
   }
 /* Make the SWI call */
-  emulate_sys(swino, inregs, outregs, &flags);
+  mos_sys(swino, inregs, outregs, &flags);
   for (n=0; n<MAXSYSPARMS; n++) {	/* Discard any temporary strings used */
     if (tempdesc[n].stringaddr != NIL) free_string(tempdesc[n]);
   }
@@ -2488,7 +2488,7 @@ void exec_wait(void) {
   else {	/* WAIT <time to wait> */
     int32 delay = eval_integer();
     check_ateol();
-    emulate_waitdelay(delay);
+    mos_waitdelay(delay);
   }
 }
 

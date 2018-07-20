@@ -26,38 +26,6 @@
 
 #include "common.h"
 
-// Aliases for functions for old code
-#define emulate_oscli      mos_oscli
-#define emulate_endeq      mos_setend
-#define emulate_waitdelay  mos_waitdelay
-#define emulate_getswino   mos_getswinum
-#define emulate_sys        mos_sys
-#define emulate_call       mos_call
-#define emulate_usr        mos_usr
-#define emulate_time       mos_rdtime
-#define emulate_setime     mos_wrtime
-#define emulate_setimedol  mos_wrrtc
-#define emulate_mouse_on   mos_mouse_on
-#define emulate_mouse_off  mos_mouse_off
-#define emulate_mouse_to   mos_mouse_to
-#define emulate_mouse_step mos_mouse_step
-#define emulate_mouse_colour    mos_mouse_colour
-#define emulate_mouse_rectangle mos_mouse_rectangle
-#define emulate_mouse      mos_mouse
-#define emulate_adval      mos_adval
-#define emulate_sound_on   mos_sound_on
-#define emulate_sound_off  mos_sound_off
-#define emulate_sound      mos_sound
-#define emulate_beats      mos_wrbeat
-#define emulate_beatfn     mos_rdbeat
-#define emulate_tempo      mos_wrtempo
-#define emulate_tempofn    mos_rdtempo
-#define emulate_voice      mos_voice
-#define emulate_voices     mos_voices
-#define emulate_stereo     mos_stereo
-#define init_emulation     mos_init
-#define end_emulation      mos_final
-
 extern char *mos_gstrans(char *);
 extern void  mos_oscli(char *, char *);
 extern int32 mos_osbyte(int32, int32, int32);
