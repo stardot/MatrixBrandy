@@ -41,7 +41,7 @@
 #include "basicdefs.h"
 #include "scrcommon.h"
 #include "screen.h"
-#include "emulate.h"
+#include "mos.h"
 
 /*
 ** Notes
