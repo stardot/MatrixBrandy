@@ -775,7 +775,7 @@ static void fn_getdol(void) {
 ** OS_Byte 129 under a different name.
 */
 static void fn_inkey(void) {
-  push_int(emulate_inkey(eval_intfactor()) & 0xFF);
+  push_int(emulate_inkey(eval_intfactor()));
 }
 
 /*
