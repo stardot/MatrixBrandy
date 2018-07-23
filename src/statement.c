@@ -251,8 +251,9 @@ static void next_line(void) {
 ** 32-bit ARM processor
 */
 
-void store_value(lvalue destination, int32 value, boolean nostring) {
+void store_value(lvalue destination, int32 valuex, boolean nostring) {
   int32 length;
+  long int value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
   switch (destination.typeinfo) {
   case VAR_INTWORD:
