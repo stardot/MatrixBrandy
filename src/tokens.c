@@ -2138,189 +2138,120 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   char *cp, *p;
   byte token, token2;
   char line[ACORNLEN];
-  cp = &line[0];
-  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));        /* Start with two byte line number */
-  cp+=count;
-  tp+=ACORN_START;      /* Skip line number and length byte */
-  token = *tp;
 
-  if (ftype == 2) /* Russell format - use the parser from JGH's banana fork */
-  {
-    while (token != ACORN_ENDLINE) {
-      if (token>RUSSELL_HIGHEST && token<ACORNONE_LOWEST) { /* Normal characters */
-	*cp = token;
-	cp++;
-	tp++;
-	if (token == '\"') {      			  /* Got a character string */
-          do {    					  /* Copy string as far as next '"' or end of line */
-            *cp = token = *tp;
-            cp++;
-            tp++;
-          } while (token != '\"' && *tp != ACORN_ENDLINE);
-	}
-      } else {
-	if (token == ACORN_LINENUM) {
-          count = sprintf(cp, "%d", expand_linenum(tp+1));
-          cp+=count;
-          tp+=ACORN_LINESIZE;
-	} else {
-          if (token == ACORN_REM || token == ACORN_DATA) { /* REM or DATA - Copy rest of line */
-            p = onebyte_token[token-ACORNONE_LOWEST];
-            strcpy(cp, p);
-            cp+=strlen(p);
-            tp++;
-            while (*tp != ACORN_ENDLINE) {
-              *cp = *tp;
-              cp++;
-              tp++;
-            }
-	    break;
-          } else {      /* Tokens */
-            if (token == 0xCDu) {                                           /* CD    */
-              p=tp+1;
-              while(*p == ' ') p++;
-              if (*p == CR || *p == ':') {
-        	p = onebyte_token[token-ACORNONE_LOWEST];
-              } else {
-        	p = bbcbyte_token[token-ACORN_OTHER];
-              }
-            } else {
-              if (token >= RUSSELL_LOWEST && token <= RUSSELL_HIGHEST) {    /* 01-10 */
-        	p = lowbyte_token[token-RUSSELL_LOWEST];
-              } else {
-        	if (token < ACORN_OTHER || token > ACORN_TWOBYTE) {         /* 7F-C5, C9-FF */ 
-                  p = onebyte_token[token-ACORNONE_LOWEST];
-        	} else {
-                  p = winbyte_token[token-ACORN_OTHER];
-        	}
-              }
-            }
-            tp++;
-          }
-	}
-  /*
-  ** Because the code expands tokenised Acorn Basic to text then
-  ** retokenises it, blanks are added around keywords if there are
-  ** none there already to prevent keywords being missed. Acorn
-  ** Basic programs are often crunched, that is, spaces are
-  ** removed after tokenising the program, leading to cases where
-  ** keywords and text form one great long string of characters.
-  ** As the keywords are tokenised they can be identified but they
-  ** will be lost when the program is expanded to text form.
-  */
-	if (cp  !=  &line[0] && isalnum(*(cp-1))) {       /* If keyword is preceded by a letter or a digit, add a blank */
-          *cp = ' ';
-          cp++;
-	}
-	strcpy(cp, p);
-	cp+=strlen(p);
-  /*
-   * If keyword is followed by a letter or a digit, add a blank.
-   * Some keywords have to be followed by a string, for example
-   * PROC, so filter those out
-   */
-	if (isalnum(*tp)) {
-          int n;
-          for (n = 0; nospace[n] != 0 && nospace[n] != token; n++);
-          if (nospace[n] == 0) {  /* Token is not in the 'no space' table */
-            *cp = ' ';
-            cp++;
-          }
-	}
-      }
-      token = *tp;
-    }
-    *cp = NUL;    /* Complete the line */
-    tokenize(line, tokenbuf, HASLINE, FALSE);
-    return get_linelen(tokenbuf);
-  } else { /* Not Russell format - use the original parser from mainline Brandy */
-    while (token != ACORN_ENDLINE) {
-      if (token<ACORNONE_LOWEST) {        /* Normal characters */
-	*cp = token;
-	cp++;
-	tp++;
-	if (token == '\"') {      /* Got a character string */
-          do {    /* Copy string as far as next '"' or end of line */
-            *cp = token = *tp;
-            cp++;
-            tp++;
-          } while (token != '\"' && *tp != ACORN_ENDLINE);
-	}
-      }
-      else if (token == ACORN_LINENUM) {
-	count = sprintf(cp, "%d", expand_linenum(tp+1));
-	cp+=count;
-	tp+=ACORN_LINESIZE;
-      }
-      else if (token == ACORN_REM || token == ACORN_DATA) {       /* REM or DATA - Copy rest of line */
-	p = onebyte_token[token-ACORNONE_LOWEST];
-	strcpy(cp, p);
-	cp+=strlen(p);
-	tp++;
-	while (*tp != ACORN_ENDLINE) {
-          *cp = *tp;
+  cp = &line[0];
+  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));	  /* Start with two byte line number */
+  cp+=count;
+  tp+=ACORN_START;     					  /* Skip line number and length byte */
+  token = *tp;
+  while (token != ACORN_ENDLINE) {
+    if (token>RUSSELL_HIGHEST && token<ACORNONE_LOWEST) { /* Normal characters */
+      *cp = token;
+      cp++;
+      tp++;
+      if (token == '\"') {      			  /* Got a character string */
+        do {    					  /* Copy string as far as next '"' or end of line */
+          *cp = token = *tp;
           cp++;
           tp++;
-	}
+        } while (token != '\"' && *tp != ACORN_ENDLINE);
       }
-      else {      /* Tokens */
-	switch (token) {
-	case ACORN_TWOBYTE:
-          token = *(tp+1);
-          if (token<ACORNTWO_LOWEST || token>ACORNTWO_HIGHEST) error(ERR_BADPROG);
-          p = twobyte_token[token-ACORNTWO_LOWEST];
-          tp+=2;
-          break;
-	case ACORN_COMMAND:
-          token = *(tp+1);
-          if (token<ACORNCMD_LOWEST || token>ACORNCMD_HIGHEST) error(ERR_BADPROG);
-          p = command_token[token-ACORNCMD_LOWEST];
-          tp+=2;
-          break;
-	case ACORN_OTHER:
-          token = *(tp+1);
-          if (token<ACORNOTH_LOWEST || token>ACORNOTH_HIGHEST) error(ERR_BADPROG);
-          p = other_token[token-ACORNOTH_LOWEST];
-          tp+=2;
-          break;
-	default:
+    } else if (token == ACORN_LINENUM) {
+      count = sprintf(cp, "%d", expand_linenum(tp+1));
+      cp+=count;
+      tp+=ACORN_LINESIZE;
+    } else if (token == ACORN_REM || token == ACORN_DATA) { /* REM or DATA - Copy rest of line */
+      p = onebyte_token[token-ACORNONE_LOWEST];
+      strcpy(cp, p);
+      cp+=strlen(p);
+      tp++;
+      while (*tp != ACORN_ENDLINE) {
+        *cp = *tp;
+        cp++;
+        tp++;
+      }
+    } else {      /* Tokens */
+      if (token == 0xCDu) {                                           /* CD    */
+        p=tp+1;
+        while(*p == ' ') p++;
+        if (*p == CR || *p == ':') {
           p = onebyte_token[token-ACORNONE_LOWEST];
-          tp++;
-	}
-  /*
-  ** Because the code expands tokenised Acorn Basic to text then
-  ** retokenises it, blanks are added around keywords if there are
-  ** none there already to prevent keywords being missed. Acorn
-  ** Basic programs are often crunched, that is, spaces are
-  ** removed after tokenising the program, leading to cases where
-  ** keywords and text form one great long string of characters.
-  ** As the keywords are tokenised they can be identified but they
-  ** will be lost when the program is expanded to text form.
-  */
-	if (cp  !=  &line[0] && isalnum(*(cp-1))) {       /* If keyword is preceded by a letter or a digit, add a blank */
+        } else {
+          p = bbcbyte_token[token-ACORN_OTHER];
+        }
+      } else if (token >= RUSSELL_LOWEST && token <= RUSSELL_HIGHEST) {    /* 01-10 */
+        p = lowbyte_token[token-RUSSELL_LOWEST];
+      } else if (token < ACORN_OTHER || token > ACORN_TWOBYTE) {         /* 7F-C5, C9-FF */ 
+        p = onebyte_token[token-ACORNONE_LOWEST];
+      } else if (ftype == 2) {
+        p = winbyte_token[token-ACORN_OTHER];
+      } else {
+        token2 = *(tp+1);
+        if (token2 < ACORNTWO_LOWEST) {
+          p = bbcbyte_token[token-ACORN_OTHER];                 /* Cx <8E  */
+        } else {
+          switch (token) {
+            case ACORN_TWOBYTE:                                 /* C8 nn   */
+              if (token2>ACORNTWO_HIGHEST) {
+                p = bbcbyte_token[token2-ACORN_OTHER];          /* C8      */
+              } else {
+                p = twobyte_token[token2-ACORNTWO_LOWEST];      /* C8 8E+n */
+                tp++;
+                break;
+              }
+            case ACORN_COMMAND:                                 /* C7 nn   */
+              if (token2>ACORNCMD_HIGHEST) {
+                p = bbcbyte_token[token2-ACORN_OTHER];          /* C7      */
+              } else {
+                p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
+                tp++;
+                break;
+              }
+            case ACORN_OTHER:                                   /* C6 nn   */
+              if (token2>ACORNOTH_HIGHEST) {
+                p = bbcbyte_token[token2-ACORN_OTHER];          /* C6      */
+              } else {
+                p = other_token[token-ACORNOTH_LOWEST];
+                tp++;
+                break;
+              }
+          } /* switch */
+        }
+      }
+      tp++;
+/*
+** Because the code expands tokenised Acorn Basic to text then
+** retokenises it, blanks are added around keywords if there are
+** none there already to prevent keywords being missed. Acorn
+** Basic programs are often crunched, that is, spaces are
+** removed after tokenising the program, leading to cases where
+** keywords and text form one great long string of characters.
+** As the keywords are tokenised they can be identified but they
+** will be lost when the program is expanded to text form.
+*/
+      if (cp  !=  &line[0] && isalnum(*(cp-1))) {       /* If keyword is preceded by a letter or a digit, add a blank */
+        *cp = ' ';
+        cp++;
+      }
+      strcpy(cp, p);
+      cp+=strlen(p);
+/*
+ * If keyword is followed by a letter or a digit, add a blank.
+ * Some keywords have to be followed by a string, for example
+ * PROC, so filter those out
+ */
+      if (isalnum(*tp)) {
+        int n;
+        for (n = 0; nospace[n] != 0 && nospace[n] != token; n++);
+        if (nospace[n] == 0) {  /* Token is not in the 'no space' table */
           *cp = ' ';
           cp++;
-	}
-	strcpy(cp, p);
-	cp+=strlen(p);
-  /*
-   * If keyword is followed by a letter or a digit, add a blank.
-   * Some keywords have to be followed by a string, for example
-   * PROC, so filter those out
-   */
-	if (isalnum(*tp)) {
-          int n;
-          for (n = 0; nospace[n] != 0 && nospace[n] != token; n++);
-          if (nospace[n] == 0) {  /* Token is not in the 'no space' table */
-            *cp = ' ';
-            cp++;
-          }
-	}
+        }
       }
-      token = *tp;
     }
-    *cp = NUL;    /* Complete the line */
-    tokenize(line, tokenbuf, HASLINE, ftype);
-    return get_linelen(tokenbuf);
+    token = *tp;
   }
+  *cp = NUL;    /* Complete the line */
+  tokenize(line, tokenbuf, HASLINE, FALSE);
+  return get_linelen(tokenbuf);
 }
