@@ -1632,16 +1632,16 @@ switch (areg) {
 //	case 129:		// OSBYTE 129 - INKEY
 
 	case 130:		// OSBYTE 130 - High word of user memory
-		areg = (int32)basicvars.workspace - (int32)basicvars.offbase;
+		areg = basicvars.workspace - basicvars.offbase;
 		return ((areg & 0xFFFF0000) >> 8) | 130;
 
 	case 131:		// OSBYTE 132 - Bottom of user memory
-		areg = (int32)basicvars.workspace - (int32)basicvars.offbase;
+		areg = basicvars.workspace - basicvars.offbase;
 		if (areg < 0xFFFF)	return (areg << 8) | 131;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
 	case 132:		// OSBYTE 132 - Top of user memory
-		areg = (int32)basicvars.slotend - (int32)basicvars.offbase;
+		areg = basicvars.slotend - basicvars.offbase;
 		if (areg < 0xFFFF)	return (areg << 8) | 132;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
