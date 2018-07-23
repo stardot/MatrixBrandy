@@ -2174,6 +2174,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               cp++;
               tp++;
             }
+	    break;
           } else {      /* Tokens */
             if (token == 0xCDu) {                                           /* CD    */
               p=tp+1;
@@ -2190,41 +2191,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
         	if (token < ACORN_OTHER || token > ACORN_TWOBYTE) {         /* 7F-C5, C9-FF */ 
                   p = onebyte_token[token-ACORNONE_LOWEST];
         	} else {
-                  if (ftype == 2) {
-                    p = winbyte_token[token-ACORN_OTHER];
-                  } else {
-                    token2 = *(tp+1);
-                    if (token2 < ACORNTWO_LOWEST) {
-                      p = bbcbyte_token[token-ACORN_OTHER];                 /* Cx <8E  */
-                    } else {
-                      switch (token) {
-                	case ACORN_TWOBYTE:                                 /* C8 nn   */
-                          if (token2>ACORNTWO_HIGHEST) {
-                            p = bbcbyte_token[token2-ACORN_OTHER];          /* C8      */
-                          } else {
-                            p = twobyte_token[token2-ACORNTWO_LOWEST];      /* C8 8E+n */
-                            tp++;
-                            break;
-                          }
-                	case ACORN_COMMAND:                                 /* C7 nn   */
-                          if (token2>ACORNCMD_HIGHEST) {
-                            p = bbcbyte_token[token2-ACORN_OTHER];          /* C7      */
-                          } else {
-                            p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
-                            tp++;
-                            break;
-                          }
-                	case ACORN_OTHER:                                   /* C6 nn   */
-                          if (token2>ACORNOTH_HIGHEST) {
-                            p = bbcbyte_token[token2-ACORN_OTHER];          /* C6      */
-                          } else {
-                            p = other_token[token-ACORNOTH_LOWEST];
-                            tp++;
-                            break;
-                          }
-                      } /* switch */
-                    }
-                  }
+                  p = winbyte_token[token-ACORN_OTHER];
         	}
               }
             }
