@@ -78,6 +78,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef USE_SDL
+#include "graphsdl.h"
+#endif
+
 int check_command(char *text);
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
@@ -1213,7 +1217,7 @@ void mos_oscli(char *command, char *respfile) {
   clen=strlen(command) + 256;
   cmdbufbase=malloc(clen);
   cmdbuf=cmdbufbase;
-  strncpy(cmdbuf, command, clen-1);
+  memcpy(cmdbuf, command, clen-1);
 
   if (!basicvars.runflags.ignore_starcmd) {
 /*

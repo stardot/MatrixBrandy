@@ -42,6 +42,7 @@
 #include "scrcommon.h"
 #include "screen.h"
 #include "mos.h"
+#include "graphsdl.h"
 
 /*
 ** Notes
