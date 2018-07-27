@@ -34,6 +34,7 @@
 #include "errors.h"
 #include "fileio.h"
 #include "strings.h"
+#include "net.h"
 
 /* Floating point number format */
 
@@ -434,7 +435,7 @@ void init_fileio(void) {
 #define UPMODE "r+"
 #endif
 
-typedef enum {CLOSED, OPENIN, OPENUP, OPENOUT} filestate;
+typedef enum {CLOSED, OPENIN, OPENUP, OPENOUT, NETWORK} filestate;
 
 typedef enum {OKAY, PENDING, ATEOF} eofstate;
 
@@ -443,6 +444,7 @@ typedef struct {
   filestate filetype;		/* Way in which file has been opened */
   eofstate eofstatus;		/* Current end-of-file status */
   boolean lastwaswrite;		/* TRUE if the last operation on a file was a write */
+  int nethandle;		/* network handle */
 } fileblock;
 
 static fileblock fileinfo [MAXFILES];
@@ -525,23 +527,44 @@ int32 fileio_openup(char *name, int32 namelen) {
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
-  thefile = fopen(filename, UPMODE);
-  if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
-  fileinfo[n].stream = thefile;
-  fileinfo[n].filetype = OPENUP;
-  fileinfo[n].eofstatus = OKAY;
-  fileinfo[n].lastwaswrite = FALSE;
-  return FIRSTHANDLE-n;
+  /* Check, does it start "ip4:" if so use network handler to open it. */
+  if (!strncmp(filename, "ip4:", 4)) {
+    int handle;
+    handle=brandynet_connect(filename+4);
+    if (handle == -1) return 0;
+    //fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
+    fileinfo[n].filetype = NETWORK;
+    fileinfo[n].eofstatus = OKAY;
+    fileinfo[n].lastwaswrite = FALSE;
+    fileinfo[n].nethandle = handle;
+    return FIRSTHANDLE-n;
+  } else {
+    thefile = fopen(filename, UPMODE);
+    if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+    fileinfo[n].stream = thefile;
+    fileinfo[n].filetype = OPENUP;
+    fileinfo[n].eofstatus = OKAY;
+    fileinfo[n].lastwaswrite = FALSE;
+    return FIRSTHANDLE-n;
+  }
 }
 
 /*
-** 'close_file' is a function used locally to close a file
+** 'close_file' is a function used locally to close a file or network channel
 */
 static void close_file(int32 handle) {
-  fclose(fileinfo[handle].stream);
-  fileinfo[handle].stream = NIL;
-  fileinfo[handle].filetype = CLOSED;
-  fileinfo[handle].lastwaswrite = FALSE;
+  if (fileinfo[handle].filetype == NETWORK) {
+    brandynet_close(fileinfo[handle].nethandle);
+    fileinfo[handle].stream = NIL;
+    fileinfo[handle].filetype = CLOSED;
+    fileinfo[handle].lastwaswrite = FALSE;
+    fileinfo[handle].nethandle = -1;
+  } else {
+    fclose(fileinfo[handle].stream);
+    fileinfo[handle].stream = NIL;
+    fileinfo[handle].filetype = CLOSED;
+    fileinfo[handle].lastwaswrite = FALSE;
+  }
 }
 
 /*

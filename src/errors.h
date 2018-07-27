@@ -188,10 +188,14 @@ typedef enum {
     ERR_BADLANGUAGE,	/* 249, No language */
     ERR_BADFILING,	/* 248, Bad filing system */
     ERR_MOSVERSION,	/* 247, MOS x,yz */
-    ERR_BADSYNTAX	/* 220, Bad syntax */
+    ERR_BADSYNTAX,	/* 220, Bad syntax */
+// Network errors
+    ERR_NET_CONNREFUSED,	/* 246, Connection refused */
+    ERR_NET_NOTFOUND,	/* 246, Host not found */
+    ERR_NET_MAXSOCKETS,	/* 246, Maximum number of sockets already open */
+    ERR_NET_NOTSUPP,	/* 246, Network operation not supported */
+    HIGHERROR		/* Leave last, dummy error */
 } errnum;
-
-#define HIGHERROR	ERR_BADSYNTAX
 
 /* Other interpreter errors */
 

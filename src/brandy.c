@@ -39,6 +39,7 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "miscprocs.h"
+#include "net.h"
 
 /* #define DEBUG */
 
@@ -66,6 +67,7 @@ static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 */
 int main(int argc, char *argv[]) {
   init1();
+  brandynet_init();
   check_cmdline(argc, argv);
   init2();
   run_interpreter();

@@ -3,7 +3,7 @@
 CC = gcc
 LD = gcc
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL
+#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
 CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
 
 LDFLAGS +=
@@ -19,7 +19,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o
+	$(SRCDIR)/assign.o $(SRCDIR)/net.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
@@ -28,7 +28,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
@@ -154,10 +154,17 @@ $(SRCDIR)/functions.o: $(FUNCTIONS_C) $(SRCDIR)/functions.c
 
 # Build FILEIO.C
 FILEIO_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
-	$(SRCDIR)/errors.h $(SRCDIR)/fileio.h $(SRCDIR)/strings.h
+	$(SRCDIR)/errors.h $(SRCDIR)/fileio.h $(SRCDIR)/strings.h \
+	$(SRCDIR)/net.h
 
 $(SRCDIR)/fileio.o: $(FILEIO_C) $(SRCDIR)/fileio.c
 	$(CC) $(CFLAGS) $(SRCDIR)/fileio.c -c -o $(SRCDIR)/fileio.o
+
+# Build NET.C
+NET_C = $(SRCDIR)/net.h $(SRCDIR)/errors.h
+
+$(SRCDIR)/net.o: $(NET_C) $(SRCDIR)/net.c
+	$(CC) $(CFLAGS) $(SRCDIR)/net.c -c -o $(SRCDIR)/net.o
 
 # Build EVALUATE.C
 EVALUATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -216,7 +223,7 @@ BRANDY_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/errors.h $(SRCDIR)/heap.h \
 	$(SRCDIR)/editor.h $(SRCDIR)/commands.h $(SRCDIR)/statement.h \
 	$(SRCDIR)/fileio.h $(SRCDIR)/mos.h $(SRCDIR)/keyboard.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h
+	$(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h $(SRCDIR)/net.h
 
 $(SRCDIR)/brandy.o: $(BRANDY_C) $(SRCDIR)/brandy.c
 	$(CC) $(CFLAGS) $(SRCDIR)/brandy.c -c -o $(SRCDIR)/brandy.o

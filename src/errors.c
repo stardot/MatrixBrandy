@@ -490,10 +490,14 @@ static detail errortable [] = {
   {NONFATAL, NOPARM, 249, "No language"},
   {NONFATAL, NOPARM, 248, "Bad filing system"},
   {NONFATAL, NOPARM, 247, "MOS x.yz"},
-  {NONFATAL, STRING, 220, "Syntax: %s"}
-//  {NONFATAL, NOPARAM, 223, "End of file"},         --> ERR_HITEOF
-//  {NONFATAL, NOPARAM, 222, "Channel not open"},    --> ERR_BADHANDLE
-//  {NONFATAL, STRING,  214, "File '%s' not found"}, --> ERR_NOTFOUND
+  {NONFATAL, STRING, 220, "Syntax: %s"},
+//
+// Network errors
+  {NONFATAL, NOPARM, 246, "Connection refused"},
+  {NONFATAL, NOPARM, 246, "Host not found"},
+  {NONFATAL, NOPARM, 246, "The maximum allowed number of sockets is already open"},
+  {NONFATAL, NOPARM, 246, "Network operation not supported"},
+  {NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
 };
 
 /*
