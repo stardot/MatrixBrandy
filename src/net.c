@@ -115,6 +115,10 @@ int32 net_bget(int handle) {
   return(value);
 }
 
+boolean net_eof(handle) {
+  return(neteof[handle]);
+}
+
 int net_bput(int handle, int32 value) {
   char minibuf[2];
   int retval;
@@ -126,6 +130,10 @@ int net_bput(int handle, int32 value) {
   return(0);
 }
 
-boolean net_eof(handle) {
-  return(neteof[handle]);
+int net_bputstr(int handle, char *string, int32 length) {
+  int retval;
+
+  retval=send(netsockets[handle], string, length, 0);
+  if (retval == -1) return(1);
+  return(0);
 }

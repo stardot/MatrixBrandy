@@ -46,5 +46,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   the pointer.
 * V1.21.6
 - Implemented some network connectivity. Connect using OPENUP"ip4:host:port".
-  Currently only EOF#, BGET# and BPUT# work, and that's with single bytes.
+  Currently only EOF#, BGET# and BPUT# work (both bytes and strings for BPUT)
 - New demo: examples/Mode7/telstar - a client for Telstar!

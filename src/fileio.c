@@ -809,11 +809,15 @@ void fileio_bput(int32 handle, int32 value) {
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   int32 result;
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
-  fileinfo[handle].eofstatus = OKAY;
-  result = fwrite(string, sizeof(char), length, fileinfo[handle].stream);
-  if (result!=length) error(ERR_CANTWRITE);
-  fileinfo[handle].lastwaswrite = TRUE;
+  if (fileinfo[handle].filetype==NETWORK) {
+    if(net_bputstr(fileinfo[handle].nethandle, string, length)) error(ERR_CANTWRITE);
+  } else {
+    if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+    fileinfo[handle].eofstatus = OKAY;
+    result = fwrite(string, sizeof(char), length, fileinfo[handle].stream);
+    if (result!=length) error(ERR_CANTWRITE);
+    fileinfo[handle].lastwaswrite = TRUE;
+  }
 }
 
 /*
