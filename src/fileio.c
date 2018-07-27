@@ -532,7 +532,7 @@ int32 fileio_openup(char *name, int32 namelen) {
     int handle;
     handle=brandynet_connect(filename+4);
     if (handle == -1) return 0;
-    //fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
+    fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
     fileinfo[n].filetype = NETWORK;
     fileinfo[n].eofstatus = OKAY;
     fileinfo[n].lastwaswrite = FALSE;
@@ -592,26 +592,39 @@ void fileio_close(int32 handle) {
 */
 int32 fileio_bget(int32 handle) {
   int32 ch;
+
   handle = map_handle(handle);
-  if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
-    fileinfo[handle].eofstatus = ATEOF;
-    error(ERR_HITEOF);
-  }
-  else if (fileinfo[handle].filetype==OPENOUT) {	/* If file is open for output, read one char */
-    ch = NUL;
-    fileinfo[handle].eofstatus = PENDING;
-  }
-  if (fileinfo[handle].lastwaswrite) {		/* Ensure everything has been written to disk first */
-    fflush(fileinfo[handle].stream);
+  if (fileinfo[handle].filetype == NETWORK) {
+    ch= net_bget(fileinfo[handle].nethandle);
+    if (ch == -2) {
+      if (fileinfo[handle].eofstatus == PENDING) {
+	fileinfo[handle].eofstatus = ATEOF;
+	error(ERR_HITEOF);
+      } else {
+	fileinfo[handle].eofstatus = PENDING;
+      }
+    }
+  } else {
+    if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
+      fileinfo[handle].eofstatus = ATEOF;
+      error(ERR_HITEOF);
+    }
+    else if (fileinfo[handle].filetype==OPENOUT) {	/* If file is open for output, read one char */
+      ch = NUL;
+      fileinfo[handle].eofstatus = PENDING;
+    }
+    if (fileinfo[handle].lastwaswrite) {		/* Ensure everything has been written to disk first */
+      fflush(fileinfo[handle].stream);
+      fileinfo[handle].lastwaswrite = FALSE;
+    }
+    ch = fgetc(fileinfo[handle].stream);	/* Read a character */
+    if (ch==EOF) {
+      fileinfo[handle].eofstatus = PENDING;	/* If call returns 'EOF' set 'PENDING EOF' flag */
+      ch = 0;
+    }
     fileinfo[handle].lastwaswrite = FALSE;
+    return ch;
   }
-  ch = fgetc(fileinfo[handle].stream);	/* Read a character */
-  if (ch==EOF) {
-    fileinfo[handle].eofstatus = PENDING;	/* If call returns 'EOF' set 'PENDING EOF' flag */
-    ch = 0;
-  }
-  fileinfo[handle].lastwaswrite = FALSE;
-  return ch;
 }
 
 /*
