@@ -960,6 +960,9 @@ int32 fileio_eof(int32 handle) {
   FILE *stream;
   boolean ateof;
   handle = map_handle(handle);
+  if (fileinfo[handle].filetype == NETWORK) {
+    return net_eof(fileinfo[handle].nethandle);
+  } else {
   stream = fileinfo[handle].stream;
   position = ftell(stream);
   if (position==-1) return feof(stream) ? TRUE : FALSE;
@@ -967,6 +970,7 @@ int32 fileio_eof(int32 handle) {
   ateof = ftell(stream)==position;
   fseek(stream, position, SEEK_SET);
   return ateof;
+  }
 }
 
 /*
