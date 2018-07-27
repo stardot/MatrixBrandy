@@ -792,11 +792,15 @@ static void write(FILE *stream, int32 value) {
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
-  fileinfo[handle].eofstatus = OKAY;
-  result = fputc(value, fileinfo[handle].stream);
-  if (result==EOF) error(ERR_CANTWRITE);
-  fileinfo[handle].lastwaswrite = TRUE;
+  if (fileinfo[handle].filetype==NETWORK) {
+    if(net_bput(fileinfo[handle].nethandle, value)) error(ERR_CANTWRITE);
+  } else {
+    if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+    fileinfo[handle].eofstatus = OKAY;
+    result = fputc(value, fileinfo[handle].stream);
+    if (result==EOF) error(ERR_CANTWRITE);
+    fileinfo[handle].lastwaswrite = TRUE;
+  }
 }
 
 /*

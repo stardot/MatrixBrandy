@@ -106,6 +106,8 @@ static void handle_signal(int signo) {
   case SIGUSR2:
     mode7renderscreen();
     return;
+  case SIGPIPE:
+    return;
   case SIGINT:
     (void) signal(SIGINT, handle_signal);
     basicvars.escape = TRUE;
@@ -172,6 +174,7 @@ void init_errors(void) {
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
     (void) signal(SIGUSR1, handle_signal);
     (void) signal(SIGUSR2, handle_signal);
+    (void) signal(SIGPIPE, handle_signal);
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
     (void) signal(SIGINT, handle_signal);
