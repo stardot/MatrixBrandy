@@ -2087,7 +2087,7 @@ static void vdu_plot(void) {
   int32 x, y;
   x = vduqueue[1]+vduqueue[2]*256;
   if (x > 0x7FFF) x = -(0x10000-x);	/* X is negative */
-  y = vduqueue[3]+vduqueue[3]*256;
+  y = vduqueue[3]+vduqueue[4]*256;
   if (y > 0x7FFF) y = -(0x10000-y);	/* Y is negative */
   emulate_plot(vduqueue[0], x, y);	/* vduqueue[0] gives the plot code */
 }
@@ -3869,9 +3869,13 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 
   /* set highest and lowest points to visit */
   for (i = 0; i < n; i++) {
-    if (y[i] > high)
+    if (y[i] > MAX_YRES)
+      y[i] = high = MAX_YRES;
+    else if (y[i] > high)
       high = y[i];
-    if (y[i] < low)
+    if (y[i] < 0)
+      y[i] = low = 0;
+    else if (y[i] < low)
       low = y[i];
   }
 
