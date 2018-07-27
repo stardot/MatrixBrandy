@@ -940,9 +940,7 @@ static void do_getbyte(void) {
 #ifdef USE_SDL
   if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFFu) {
     /* Mode 7 screen memory */
-    printf("do_getbyte: offset = %X\n", offset);
     offset -= 0xFFFF7C00u;
-    printf("do_getbyte: offset = %u\n", offset);
     if (offset >= 1000) {
       push_int(0);
     } else {

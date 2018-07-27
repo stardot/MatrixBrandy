@@ -44,3 +44,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   and end points as required.
 - Fix behaviour of OPENUP for file not found - thanks Phlamethrower @ *. for
   the pointer.
+* V1.21.6
+- Implemented some network connectivity. Connect using OPENUP"ip4:host:port".
+  Currently only EOF#, BGET# and BPUT# work, and that's with single bytes.
+- New demo: examples/Mode7/telstar - a client for Telstar!
