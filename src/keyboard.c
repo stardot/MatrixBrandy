@@ -909,6 +909,7 @@ int32 emulate_get(void) {
 int32 keydown=0;
 
 int32 emulate_inkey(int32 arg) {
+  mode7flipbank();
   if (arg >= 0) {       /* Timed wait for a key to be hit */
     if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);     /* There is no keyboard to read */
     if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in range 0..32767 centiseconds */
