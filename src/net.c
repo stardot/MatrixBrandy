@@ -82,7 +82,7 @@ int brandynet_connect(char *dest) {
 
 int brandynet_close(int handle) {
   close(netsockets[handle]);
-  netsockets[handle] = 0;
+  netsockets[handle] = neteof[handle] = 0;
   return(0);
 }
 
