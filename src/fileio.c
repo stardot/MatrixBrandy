@@ -595,7 +595,7 @@ int32 fileio_bget(int32 handle) {
 
   handle = map_handle(handle);
   if (fileinfo[handle].filetype == NETWORK) {
-    ch= net_bget(fileinfo[handle].nethandle);
+    ch=net_bget(fileinfo[handle].nethandle);
     if (ch == -2) {
       if (fileinfo[handle].eofstatus == PENDING) {
 	fileinfo[handle].eofstatus = ATEOF;
@@ -623,8 +623,8 @@ int32 fileio_bget(int32 handle) {
       ch = 0;
     }
     fileinfo[handle].lastwaswrite = FALSE;
-    return ch;
   }
+  return ch;
 }
 
 /*
