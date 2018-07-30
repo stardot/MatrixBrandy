@@ -49,3 +49,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   Currently only EOF#, BGET# and BPUT# work (both bytes and strings for BPUT)
 - New demo: examples/Mode7/telstar - a client for Telstar!
 - Fix for bad plotting, again from Coeus @ Stardot. Thank you!
+* V1.21.7
+- Bug fixes for Mode 7 flash and Networking

@@ -1,0 +1,21 @@
+
+
+Networking has been added to Brandy BASIC as of version 1.21.6, significant
+bugs fixed for 1.21.7.
+
+The interface is as such:
+
+Open a file handle using OPENUP, instead of a filename use "ip4:host:port".
+
+PRINT# and INPUT# are NOT implemented for this, for a BBC BASIC internal
+format these are rather pointless for communicating with anything else.
+
+BGET# returns the next byte in the buffer, or -1 if no data waiting.
+(This is NOT an error condition, an interactive service like Telstar will
+not send data when it doesn't need to.) If the remote host has closed the
+connection, it will return -2 once the receive buffer is exhausted.
+
+BPUT# allows bytes or strings to be sent. 
+
+CLOSE# closes the network channel. This should be done even if the remote
+host has closed the connection.

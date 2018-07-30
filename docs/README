@@ -23,6 +23,15 @@ compiling	Instructions for compiling the program under
 history		A list of changes and bug fixes in the different
 		versions of the program.
 
+ChangeLog	A more detailed list of changes and bug fixes
+		beginning with V1.21.0.
+
+Mode7		This contains notes on the program's Mode 7 Teletext
+		support.
+
+networking	This contains some notes on the implementation of
+		network connectivity that was added in V1.21.6.
+
 Brandy implements Basic V, the dialect of Basic that Acorn Computers
 supplied with their ranges of desktop computers that use the ARM
 processor such as the Archimedes and RiscPC. Basic V is an extended
