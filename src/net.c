@@ -108,8 +108,10 @@ int32 net_bget(int handle) {
   int retval=0;
 
   if (neteof[handle]) return(-2);
-  if (bufptr[handle] >= bufendptr[handle]) retval=net_get_something(handle);
-  if (retval) return(-2);				/* EOF */
+  if (bufptr[handle] >= bufendptr[handle]) {
+    retval=net_get_something(handle);
+    if (retval) return(-2);				/* EOF */
+  }
   if (bufptr[handle] >= bufendptr[handle]) return(-1);	/* No data available. EOF NOT set */
   value=netbuffer[handle][(bufptr[handle])];
   bufptr[handle]++;

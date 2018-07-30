@@ -1,63 +1,73 @@
-   10MODE 7:OFF
-   20R%=0
-   30S$=FNwelcome
-   40ON ERROR GOTO 170
-   50X%=OPENUP S$
-   60BPUT#X%,13
-   70REPEAT M%=BGET#X%: UNTIL M% <> -1
-   80PROCvdu(M%)
-   90REPEAT
-  100M%=BGET#X%
-  110I%=INKEY(1):IF I%=35 THEN I%=95
-  120IF I%=18 THEN PROCreveal: GOTO 110
-  130IF I%=24 THEN PRINT:GOTO 170
-  140IF I% > 0 THEN BPUT#X%,I%
-  150IF M% >= 0 THEN PROCvdu(M%)
-  160UNTIL M%=-2
-  170CLOSE#X%:PROCdhscan: ON
-  180END
-  190DEFPROCvdu(M%)
-  200IF M%<>27 THEN PROCactvdu(M%): ENDPROC
-  210REPEAT M%=BGET#X%:UNTIL M%<>-1
-  220VDU (M%+64): PROCdhscan
-  230ENDPROC
-  240DEFPROCactvdu(M%)
-  250IF M% = &11 THEN ON: ENDPROC
-  260IF M% = &14 THEN OFF: ENDPROC
-  270IF M% > 32 THEN VDU (M% OR 128) ELSE VDU M%
-  280ENDPROC
-  290DEFPROCdhscan
-  300FOR N%=0 TO 24
-  310FOR P%=0 TO 39
-  320IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%=N%+1
-  330NEXT P%, N%
+   10REM > telstar
+   20MODE 7:OFF
+   30R%=0
+   40S$=FNwelcome
+   50ON ERROR GOTO 180
+   60X%=OPENUP S$
+   70BPUT#X%,13
+   80REPEAT M%=BGET#X%: UNTIL M% <> -1
+   90PROCvdu(M%)
+  100REPEAT
+  110M%=BGET#X%: IF M%=-2 THEN GOTO 170
+  120I%=INKEY(1):IF I%=35 THEN I%=95
+  130IF I%=18 THEN PROCreveal: GOTO 120
+  140IF I%=24 THEN PRINT:GOTO 180
+  150IF I% > 0 THEN BPUT#X%,I%
+  160IF M% >= 0 THEN PROCvdu(M%)
+  170UNTIL M%=-2
+  180CLOSE#X%:PROCdhscan: ON
+  190END
+  200:
+  210DEFPROCvdu(M%)
+  220IF M%<>27 THEN PROCactvdu(M%): ENDPROC
+  230REPEAT M%=BGET#X%:UNTIL M%<>-1
+  240VDU (M%+64): PROCdhscan
+  250ENDPROC
+  260:
+  270DEFPROCactvdu(M%)
+  280CASE M% OF
+  290WHEN 8, 9, 10, 12, 13, 30: VDU M%
+  300WHEN 17: ON
+  310WHEN 20: OFF
+  320OTHERWISE: IF M% >= 32 THEN VDU (M% OR 128)
+  330ENDCASE
   340ENDPROC
-  350DEFPROCcopyline
-  360FOR P%=0 TO 39
-  370?(&FFFF7C00+(40*(N%+1))+P%) = ?(&FFFF7C00+(40*N%)+P%)
-  380NEXT P%
-  390ENDPROC
-  400DEFPROCreveal
-  410IF R%=0 THEN R%=1 ELSE R%=0
-  420VDU23,18,2,R%|
-  430ENDPROC
-  440DEFFNwelcome
-  450PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
-  460PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
-  470PRINT
-  480PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
-  490PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
-  500PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
-  510PRINT
-  520PRINT CHR$(133);"4 - Tetrachloromethane"
-  530PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
-  530PRINT CHR$(134);"   Press CTRL-R to toggle Reveal": PRINT
-  540PRINT CHR$(134);"   Press CTRL-X to exit": PRINT
-  550PRINT TAB(4,23)CHR$(129)"Please make your selection..."
-  560REPEAT A%=GET: UNTIL A% >= 49 AND A% <= 52
-  570IF A% = 49 THEN S$ = "ip4:glasstty.com:6502"
-  580IF A% = 50 THEN S$ = "ip4:glasstty.com:6503"
-  590IF A% = 51 THEN S$ = "ip4:glasstty.com:6504"
-  600IF A% = 52 THEN S$ = "ip4:fish.ccl4.org:23"
-  610CLS
-  620=S$
+  350:
+  360DEFPROCdhscan
+  370FOR N%=0 TO 24
+  380FOR P%=0 TO 39
+  390IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%=N%+1
+  400NEXT P%, N%
+  410ENDPROC
+  420:
+  430DEFPROCcopyline
+  440FOR P%=0 TO 39
+  450?(&FFFF7C00+(40*(N%+1))+P%) = ?(&FFFF7C00+(40*N%)+P%)
+  460NEXT P%
+  470ENDPROC
+  480:
+  490DEFPROCreveal
+  500IF R%=0 THEN R%=1 ELSE R%=0
+  510VDU23,18,2,R%|
+  520ENDPROC
+  530:
+  540DEFFNwelcome
+  550PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
+  560PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
+  570PRINT
+  580PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
+  590PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+  600PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+  610PRINT
+  620PRINT CHR$(133);"4 - Tetrachloromethane"
+  630PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+  640PRINT CHR$(134);"   Press CTRL-R to toggle Reveal": PRINT
+  650PRINT CHR$(134);"   Press CTRL-X to exit": PRINT
+  660PRINT TAB(4,23)CHR$(129)"Please make your selection..."
+  670REPEAT A%=GET: UNTIL A% >= 49 AND A% <= 52
+  680IF A% = 49 THEN S$ = "ip4:glasstty.com:6502"
+  690IF A% = 50 THEN S$ = "ip4:glasstty.com:6503"
+  700IF A% = 51 THEN S$ = "ip4:glasstty.com:6504"
+  710IF A% = 52 THEN S$ = "ip4:fish.ccl4.org:23"
+  720CLS
+  730=S$
