@@ -3559,6 +3559,7 @@ void end_screen(void) {
 void mode7renderline(int32 ypos) {
   int32 ch, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
   int32 y, yy, topx, topy, line, base, mxt, mxp, mpt, xch, xline;
+  int32 vdu141used = 0;
   Uint8 myppc=M7YPPC;
   
   byte m7dhlookup[9][2] = {
@@ -3663,7 +3664,7 @@ void mode7renderline(int32 ypos) {
 	      else line = mode7font[ch-' '][yy] & 0x66;
 	  } else line = mode7font[ch-' '][yy];
 	} else {
-	  if (vdu141track[ypos] == 1) line = 0;
+	  if (vdu141track[ypos] == 2) line = 0;
 	    else {
 	    if (mode7sepreal && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255))) {
 	      if (y == 2 || y == 5 || y == 8) line = 0;
@@ -3719,10 +3720,14 @@ void mode7renderline(int32 ypos) {
 	break;
       case TELETEXT_SIZE_DOUBLEHEIGHT:
 	vdu141on = 1;
-	if (!vdu141track[ypos]) {
-	  vdu141track[ypos+1]=1;
+	vdu141used=1;
+	if (vdu141track[ypos] < 2) {
+	  vdu141track[ypos] = 1;
+	  vdu141track[ypos+1]=2;
 	  vdu141mode = 0;
-	} else vdu141mode = 1;
+	} else {
+	  vdu141mode = 1;
+	}
 	break;
       case TELETEXT_GRAPHICS_BLACK:
 	if (mode7black) {
@@ -3771,6 +3776,13 @@ void mode7renderline(int32 ypos) {
   set_rgb();
   xtext=xt;
   ytext=yt;
+
+  /* Cascade VDU141 changes */
+  if ((!vdu141used) && vdu141track[ypos]==1) vdu141track[ypos]=0;
+  if ((ypos < 24) && vdu141track[ypos+1]) {
+    if ((vdu141track[ypos] == 0) || (vdu141track[ypos] == 2)) vdu141track[ypos+1]=1;
+    mode7renderline(ypos+1);
+  }
 }
 
 void mode7renderscreen(void) {
@@ -3780,6 +3792,7 @@ void mode7renderscreen(void) {
   if (screenmode != 7) return;
   
   mode7bitmapupdate=1;
+  for (ypos=0; ypos < 26;ypos++) vdu141track[ypos]=0;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos);
   mode7bitmapupdate=bmpstate;
 }
