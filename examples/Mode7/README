@@ -1,7 +1,10 @@
-Here are some example teletext pages, from Prestel and Ceefax.
+Here are some examples for Mode 7.
 
-These can be displayed in Brandy in Mode 7 using *cat <filename>
+engtest.dat can be displayed in Brandy in Mode 7 using *cat engtest.dat
 
 (Yes, counter-intuitive, but remember that * commands are passed to the
 underlying Linux system, so *cat does what *type would do on a BBC / RiscOS
 system.)
+
+telstar is a Brandy BASIC Telstar client, demonstrating both the Mode 7
+capability and the network connectivity feature added in V1.21.6
