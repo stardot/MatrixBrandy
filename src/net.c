@@ -118,7 +118,7 @@ int32 net_bget(int handle) {
   return(value);
 }
 
-boolean net_eof(handle) {
+boolean net_eof(int handle) {
   return(neteof[handle]);
 }
 
