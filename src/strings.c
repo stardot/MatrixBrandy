@@ -104,12 +104,12 @@ static heapblock *freelist;		/* List of free blocks not in bins */
 
 static int32 binsizes[BINCOUNT] = {	/* Bin number -> string size */
 /* short strings */
-   0,  4,  8, 12, 16, 20, 24, 28,  32,  36,  40,  44,  48,  52,  56,  60, 64,
-  68, 72, 76, 80, 84, 88, 92, 96, 100, 104, 108, 112, 116, 120, 124, 128,
+   0,  8,  16, 24, 32, 40, 48, 56,  64,  72,  80,  88,  96, 104, 112, 120, 128,
+  136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256,
 /* Now the medium strings */
-  256, 384, 512, 640, 768, 896, 1024,
+  512, 768, 1024, 1280, 1536, 1792, 2048,
 /* Finally the long strings */
-  2048, 4096, 8192, 16384, 32768, 65536
+  4096, 8192, 16384, 32768, 65536, 131072
 };
 
 char emptystring;	/* All requests for zero bytes point here */
