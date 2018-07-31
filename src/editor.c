@@ -52,6 +52,13 @@
 static byte *last_added;	/* Address of last line added to program */
 static boolean needsnumbers;	/* TRUE if a program need to be renumbered */
 
+#ifdef BRANDYAPP
+extern const char _binary_app_start;
+extern const char _binary_app_end;
+extern const char _binary_app_size;
+static unsigned long int blockptr;
+#endif
+
 typedef enum {TEXTFILE, BBCFILE, Z80FILE} filetype;
 
 /*
@@ -601,6 +608,87 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   return ALIGN(base-filebase+ENDMARKSIZE);
 }
 
+#ifdef BRANDYAPP
+
+static void blockread(void *ptr, size_t size, size_t nmemb) {
+  unsigned char *blob = (unsigned char *)&_binary_app_start;
+  unsigned char *blobend = (unsigned char *)&_binary_app_end;
+  unsigned long int blobsize = (unsigned long int)&_binary_app_size;
+
+  memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
+  blockptr += (size*nmemb);
+}
+
+static char *blockgets(char *s, int size) {
+  unsigned char *blob = (unsigned char *)&_binary_app_start;
+  unsigned char *blobend = (unsigned char *)&_binary_app_end;
+  unsigned long int blobsize = (unsigned long int)&_binary_app_size;
+
+  unsigned int p = 0;
+  int l = 1;
+
+  while (l && (p < (size-1)) && (blob+blockptr <= blobend)) {
+    *(s+p) = *(blob+blockptr);
+    if (*(s+p)=='\n') l=0;
+    p++; blockptr++;
+  }
+  *(s+p)='\0';
+  if (blob+blockptr <= blobend) return s;
+  return NULL;
+}
+
+static int32 read_textblock(byte *base, byte *limit, boolean silent) {
+  int length;
+  byte *filebase;
+  char *result;
+  byte tokenline[MAXSTATELEN];
+
+  blockptr = 0; // fseek (textfile, 0, 0);
+  tokenline[2] = 0;
+  blockread (tokenline, 1, 3);
+  blockptr = 0;  /* Close and reopen the file as a text file */
+  needsnumbers = FALSE;		/* This will be set by tokenise_line() above */
+  basicvars.linecount = 0;	/* Number of line being read from file */
+  filebase = base;
+  result = blockgets(basicvars.stringwork, INPUTLEN); // result = fgets(basicvars.stringwork, INPUTLEN, textfile);
+  if (result!=NIL && basicvars.stringwork[0]=='#') {	/* Ignore first line if it starts with a '#' */
+  result = blockgets(basicvars.stringwork, INPUTLEN); // result = fgets(basicvars.stringwork, INPUTLEN, textfile);
+  }
+  while (result!=NIL) {
+    basicvars.linecount++;
+    length = strlen(basicvars.stringwork);
+/* First, get rid of any trailing blanks, line feeds and so forth */
+    do
+      length--;
+    while (length>=0 && isspace(basicvars.stringwork[length]));
+    length++;
+    basicvars.stringwork[length] = NUL;
+    tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
+    if (get_lineno(tokenline)==NOLINENO) {
+      save_lineno(tokenline, 0);	/* Otherwise renumber goes a bit funny */
+      needsnumbers = TRUE;
+    }
+    length = get_linelen(tokenline);
+    if (length>0) {	/* Line length is not zero so include line */
+      if (base+length>=limit) {	/* No room left */
+        error(ERR_NOROOM);
+      }
+      memmove(base, tokenline, length);
+      base+=length;
+    }
+    result = blockgets(basicvars.stringwork, INPUTLEN); // result = fgets(basicvars.stringwork, INPUTLEN, textfile);
+  }
+  basicvars.linecount = 0;
+  if (base+ENDMARKSIZE>=limit) error(ERR_NOROOM);
+  mark_end(base);
+  if (needsnumbers) {		/* Line numbers are missing */
+    renumber_program(filebase, 1, 1);
+//    if (!silent) error(WARN_RENUMBERED);
+  }
+  return ALIGN(base-filebase+ENDMARKSIZE);
+}
+#endif
+
 /*
 ** 'identify' tries to identify the type of file passed to it,
 ** that is, is it a tokenised Basic program, plain text or what.
@@ -663,6 +751,19 @@ void read_basic(char *name) {
     fprintf(stderr, "Program is loaded at page=&%p,  top=&%p\n", basicvars.page, basicvars.top);
   }
 }
+
+#ifdef BRANDYAPP
+void read_basic_block() {
+  int32 length, ftype;
+
+  last_added = NIL;
+  clear_program();
+  length = read_textblock(basicvars.top, basicvars.himem, basicvars.runflags.loadngo);
+  basicvars.top+=length;
+  basicvars.misc_flags.badprogram = FALSE;
+  adjust_heaplimits();
+}
+#endif
 
 /*
 ** 'link_library' is called to add a library to the relevant library list

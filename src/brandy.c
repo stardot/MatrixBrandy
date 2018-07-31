@@ -68,7 +68,12 @@ static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 int main(int argc, char *argv[]) {
   init1();
   brandynet_init();
+#ifdef BRANDYAPP
+   basicvars.runflags.quitatend = TRUE;
+   basicvars.runflags.loadngo = TRUE;
+#else
   check_cmdline(argc, argv);
+#endif
   init2();
   run_interpreter();
   return EXIT_FAILURE;
@@ -326,12 +331,17 @@ static void run_interpreter(void) {
   if (setjmp(basicvars.restart)==0) {
     if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
     init_errors();	/* Set up the signal handlers */
+#ifdef BRANDYAPP
+    read_basic_block();
+    run_program(basicvars.start);
+#else
     if (liblist!=NIL) load_libraries();
     if (loadfile!=NIL) {	/*  Name of program to load was given on command line */
       read_basic(loadfile);
       strcpy(basicvars.program, loadfile);	/* Save the name of the file */
       if (basicvars.runflags.loadngo) run_program(basicvars.start);	/* Start program execution */
     }
+#endif
   }
 /* Control passes to this point in the event of an error via a 'longjmp' */
   while (TRUE) {
