@@ -51,6 +51,7 @@
 #include "SDL.h"
 
 extern void mode7flipbank();
+static int nokeyboard=0;
 
 Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
@@ -577,7 +578,7 @@ int32 read_key(void) {
     FD_ZERO(&keyset);
     FD_SET(keyboard, &keyset);
     waitime.tv_sec = waitime.tv_usec = 0; /* Zero wait time */
-    if ( select(1, &keyset, NIL, NIL, &waitime) > 0 ) {
+    if ( !nokeyboard && ( select(1, &keyset, NIL, NIL, &waitime) > 0 )) {
       errcode = read(keyboard, &ch, 1);
       if (errcode < 0) {                /* read() returned an error */
         if (errno == EINTR) error(ERR_ESCAPE);  /* Assume Ctrl-C was pressed */
@@ -1572,6 +1573,8 @@ boolean init_keyboard(void) {
   keyboard = fileno(stdin);
   errcode = tcgetattr(keyboard, &tty);
   if (errcode < 0) {    /* Could not obtain keyboard parameters */
+    nokeyboard=1;
+#ifndef USE_SDL /* if SDL the window can still poll for keyboard input */
     if (errno != ENOTTY) return FALSE;  /* tcgetattr() returned an error we cannot handle */
 /*
 ** The error returned by tcgetattr() was ENOTTY (not a typewriter).
@@ -1584,6 +1587,7 @@ boolean init_keyboard(void) {
 ** this will not be a problem.
 */
     basicvars.runflags.inredir = TRUE;
+#endif
     return TRUE;
   }
   origtty = tty;                /* Preserve original settings for later */
