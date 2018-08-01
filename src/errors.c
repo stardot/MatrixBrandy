@@ -174,6 +174,8 @@ void init_errors(void) {
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
     (void) signal(SIGUSR1, handle_signal);
     (void) signal(SIGUSR2, handle_signal);
+    (void) signal(SIGTTIN, SIG_IGN);
+    (void) signal(SIGTTOU, SIG_IGN);
     (void) signal(SIGPIPE, handle_signal);
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
