@@ -1818,6 +1818,7 @@ static void vdu_cleartext(void) {
     mxppc=XPPC;
     myppc=YPPC;
   }
+printf("cls\n");
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
@@ -1831,12 +1832,6 @@ static void vdu_cleartext(void) {
         line_rect.w = right - left +1;
         line_rect.h = bottom - top +1;
         SDL_FillRect(modescreen, &line_rect, tb_colour);
-        if (screenmode == 7) {
-	  SDL_FillRect(screen2, &line_rect, tb_colour);
-	  SDL_FillRect(screen3, &line_rect, tb_colour);
-	  for (m=twintop; m<=twinbottom; m++)
-	    for (n=twinleft; n<=twinright; n++) mode7frame[m][n]=32;
-        }
         blit_scaled(0,0,screenwidth-1,screenheight-1);
       }
       else {	/* Text window is not being used */
@@ -1855,6 +1850,7 @@ static void vdu_cleartext(void) {
     }
     else {	/* Screen is not scaled */
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
+printf("cls: c\n");
         left = xbufoffset+twinleft*mxppc;
         right = xbufoffset+twinright*mxppc+mxppc-1;
         top = ybufoffset+twintop*myppc;
@@ -1867,6 +1863,12 @@ static void vdu_cleartext(void) {
 	SDL_FillRect(screen0, &line_rect, tb_colour);
 	SDL_FillRect(screen2, &line_rect, tb_colour);
 	SDL_FillRect(screen3, &line_rect, tb_colour);
+        if (screenmode == 7) {
+	  SDL_FillRect(screen2, &line_rect, tb_colour);
+	  SDL_FillRect(screen3, &line_rect, tb_colour);
+	  for (m=twintop; m<=twinbottom; m++)
+	    for (n=twinleft; n<=twinright; n++) mode7frame[m][n]=32;
+        }
       }
       else {	/* Text window is not being used */
 	reset_mode7();
