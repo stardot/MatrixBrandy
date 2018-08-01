@@ -51,3 +51,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fix for bad plotting, again from Coeus @ Stardot. Thank you!
 * V1.21.7
 - Bug fixes for Mode 7 flash and Networking
+- String handling was not 64-bit clean. Bins are now multiples of 64-bits long.
+- Initial framework for building standalone applications written in BASIC.
