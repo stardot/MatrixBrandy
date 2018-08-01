@@ -1818,7 +1818,6 @@ static void vdu_cleartext(void) {
     mxppc=XPPC;
     myppc=YPPC;
   }
-printf("cls\n");
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
@@ -1850,7 +1849,6 @@ printf("cls\n");
     }
     else {	/* Screen is not scaled */
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
-printf("cls: c\n");
         left = xbufoffset+twinleft*mxppc;
         right = xbufoffset+twinright*mxppc+mxppc-1;
         top = ybufoffset+twintop*myppc;
