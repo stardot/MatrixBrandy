@@ -68,15 +68,15 @@
 ** that corresponds to that length.
 */
 
-#define SHORTLIMIT 128			/* Largest 'short' string */
-#define MEDLIMIT 1024			/* Largest 'medium' string */
+#define SHORTLIMIT 256			/* Largest 'short' string */
+#define MEDLIMIT 2048			/* Largest 'medium' string */
 
-#define SHORTGRAIN (sizeof(int))	/* Difference between each 'short' string length */
-#define MEDGRAIN 128			/* Difference between each 'medium' string length */
+#define SHORTGRAIN 8			/* Difference between each 'short' string length */
+#define MEDGRAIN 256			/* Difference between each 'medium' string length */
 
-#define SHORTBINS ((SHORTLIMIT/SHORTGRAIN)+1)	/* Number of bins for short strings (+1 as range is 0..128) */
+#define SHORTBINS ((SHORTLIMIT/SHORTGRAIN)+1)	/* Number of bins for short strings (+1 as range is 0..256) */
 #define MEDSTART SHORTBINS		/* Index of first 'medium' bin entry */
-#define MEDBINS ((MEDLIMIT/MEDGRAIN)-1)	/* Number of bins for medium strings (-1 as range is 256..1024) */
+#define MEDBINS ((MEDLIMIT/MEDGRAIN)-1)	/* Number of bins for medium strings (-1 as range is 512..2048) */
 #define LONGSTART (SHORTBINS+MEDBINS)	/* Index of first 'long' bin entry */
 #define BINCOUNT 46			/* Number of bins */
 
@@ -104,12 +104,12 @@ static heapblock *freelist;		/* List of free blocks not in bins */
 
 static int32 binsizes[BINCOUNT] = {	/* Bin number -> string size */
 /* short strings */
-   0,  8,  16, 24, 32, 40, 48, 56,  64,  72,  80,  88,  96, 104, 112, 120, 128,
-  136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256,
+0,   8,  16,  24,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 120, 128,
+   136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256,
 /* Now the medium strings */
-  384, 512, 768, 1024, 1280, 1536, 1792, 2048,
+  512, 768, 1024, 1280, 1536, 1792, 2048,
 /* Finally the long strings */
-  4096, 8192, 16384, 32768, 65536
+  3072, 4096, 8192, 16384, 32768, 65536
 };
 
 char emptystring;	/* All requests for zero bytes point here */
