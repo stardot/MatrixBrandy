@@ -54,3 +54,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - String handling was not 64-bit clean. Bins are now multiples of 64-bits long.
 - Initial framework for building standalone applications written in BASIC.
 - Mode 7 now runs with a high-resolution font.
+- MOUSE ON and MOUSE OFF control whether or not the mouse is displayed.
+  As per RISC OS it is OFF upon mode change.
