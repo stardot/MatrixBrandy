@@ -647,7 +647,8 @@ void mos_wrrtc(char *time) {
 */
 void mos_mouse_on(int32 pointer) {
 #ifdef USE_SDL
-  return; // Do nothing, silently.
+  sdl_mouse_onoff(1);
+  return;
 #else
   error(ERR_UNSUPPORTED);
 #endif
@@ -658,7 +659,8 @@ void mos_mouse_on(int32 pointer) {
 */
 void mos_mouse_off(void) {
 #ifdef USE_SDL
-  return; // Do nothing, silently.
+  sdl_mouse_onoff(0);
+  return;
 #else
   error(ERR_UNSUPPORTED);
 #endif
