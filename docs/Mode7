@@ -30,3 +30,7 @@ VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
   enable = 1: Control code &80 selects alphanumeric black,
               control code &90 selects graphics black.
 Enabling or disabling this will cause an immediate refresh of the display.
+
+A Brandy-specific extension:
+VDU 23,18,255,width,0,0,0,0,0,0 - Set Teletext character cell width
+  Valid values are 12, 14 and 16. All other values are ignored.
