@@ -4127,5 +4127,5 @@ void sdl_mouse_onoff(int state) {
 }
 
 void set_wintitle(char *title) {
-    SDL_WM_SetCaption(title, title);
+  SDL_WM_SetCaption(title, title);
 }

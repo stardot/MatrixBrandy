@@ -1,79 +1,93 @@
    10REM > telstar
-   20ON ERROR GOTO 180
-   30MODE 7:OFF
-   40R%=0
-   50S$=FNwelcome
-   60X%=OPENUP S$
-   70BPUT#X%,13
-   80REPEAT M%=BGET#X%: UNTIL M% <> -1
-   90PROCvdu(M%)
-  100REPEAT
-  110M%=BGET#X%: IF M%=-2 THEN GOTO 170
-  120I%=INKEY(1):IF I%=35 THEN I%=95
-  130IF I%=18 THEN PROCreveal: GOTO 120
-  140IF I%=24 THEN PRINT:GOTO 180
-  150IF I% > 0 THEN BPUT#X%,I%
-  160IF M% >= 0 THEN PROCvdu(M%)
-  170UNTIL M%=-2
-  180CLOSE#X%:PROCdhscan: PRINT
-  190VDU RND(7)+128:PRINT "         Press any key to exit.";
-  200A%=GET: PRINT: ON
-  210END
-  220:
-  230DEFPROCvdu(M%)
-  240IF M%<>27 THEN PROCactvdu(M%): ENDPROC
-  250REPEAT M%=BGET#X%:UNTIL M%<>-1
-  260VDU (M%+64)
-  270ENDPROC
-  280:
-  290DEFPROCactvdu(M%)
-  300CASE M% OF
-  310WHEN 8, 9, 12, 13, 30: VDU M%
-  320WHEN 10: PROCdhscan: VDU M%
-  330WHEN 17: ON
-  340WHEN 20: OFF
-  350OTHERWISE: IF M% >= 32 THEN VDU (M% OR 128)
-  360ENDCASE
-  370ENDPROC
-  380:
-  390DEFPROCdhscan
-  400FOR N%=0 TO 24
-  410FOR P%=0 TO 39
-  420IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%=N%+1
-  430NEXT P%, N%
-  440ENDPROC
-  450:
-  460DEFPROCcopyline
+   20:
+   30REM This is a basic Viewdata/Videotex client written in BBC BASIC. but
+   40REM using some Matrix Brandy extensions. For instance, the networking
+   50REM interface is a local extension, as is the screen memory access and
+   60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
+   70REM are from RISC OS 5, the one in PROCwidth is local to Matrix Brandy.
+   80:
+   90*WinTitle Matrix Brandy BASIC Telstar Client
+  100ON ERROR GOTO 280
+  110MODE 7:OFF
+  120reveal%=0
+  130W%=16
+  140S$=FNwelcome
+  150X%=OPENUP S$
+  160BPUT#X%,13
+  170REPEAT M%=BGET#X%: UNTIL M% <> -1
+  180PROCvdu(M%)
+  190REPEAT
+  200M%=BGET#X%: IF M%=-2 THEN GOTO 270
+  210IF M% >= 0 THEN PROCvdu(M%): GOTO 270
+  220I%=INKEY(1):IF I%=35 THEN I%=95
+  230IF I%=18 THEN PROCreveal: GOTO 210
+  240IF I%=23 THEN PROCwidth: GOTO 210
+  250IF I%=24 THEN PRINT:GOTO 280
+  260IF I% > 0 THEN BPUT#X%,I%
+  270UNTIL M%=-2
+  280CLOSE#X%:PROCdhscan: PRINT
+  290VDU RND(7)+128:PRINT "         Press any key to exit.";
+  300A%=GET: PRINT: ON
+  310END
+  320:
+  330DEFPROCvdu(M%)
+  340IF M% >= 32 THEN VDU (M% OR 128): ENDPROC
+  350CASE M% OF
+  360WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: VDU (N%+64): ENDPROC
+  370WHEN 8, 9, 12, 13, 30: VDU M%
+  380WHEN 10: PROCdhscan: VDU M%
+  390WHEN 17: ON
+  400WHEN 20: OFF
+  410ENDCASE
+  420ENDPROC
+  430:
+  440DEFPROCdhscan
+  450VDU23,18,1,0|
+  460FOR N%=0 TO 24
   470FOR P%=0 TO 39
-  480?(&FFFF7C00+(40*(N%+1))+P%) = ?(&FFFF7C00+(40*N%)+P%)
-  490NEXT P%
-  500ENDPROC
-  510:
-  520DEFPROCreveal
-  530IF R%=0 THEN R%=1 ELSE R%=0
-  540VDU23,18,2,R%|
-  550ENDPROC
-  560:
-  570DEFFNwelcome
-  580PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
-  590PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
-  600PRINT
-  610PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
-  620PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
-  630PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
-  640PRINT
-  650PRINT CHR$(133);"4 - Tetrachloromethane"
-  660PRINT
-  670PRINT CHR$(129);"0 - Exit"
-  680PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
-  690PRINT CHR$(134);"   Press CTRL-R to toggle Reveal": PRINT
-  700PRINT CHR$(134);"   Press CTRL-X to exit": PRINT
-  710PRINT TAB(4,23)CHR$(129)"Please make your selection..."
-  720REPEAT A%=GET: UNTIL A% >= 48 AND A% <= 52
-  730IF A% = 48 THEN QUIT
-  740IF A% = 49 THEN S$ = "glasstty.com:6502"
-  750IF A% = 50 THEN S$ = "glasstty.com:6503"
-  760IF A% = 51 THEN S$ = "glasstty.com:6504"
-  770IF A% = 52 THEN S$ = "fish.ccl4.org:23"
-  780CLS
-  790="ip4:"+S$
+  480IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%=N%+1
+  490NEXT P%, N%
+  500VDU23,18,1,2|
+  510ENDPROC
+  520:
+  530DEFPROCcopyline
+  540FOR P%=0 TO 39
+  550?(&FFFF7C00+(40*(N%+1))+P%) = ?(&FFFF7C00+(40*N%)+P%)
+  560NEXT P%
+  570ENDPROC
+  580:
+  590DEFPROCreveal
+  600IF reveal%=0 THEN reveal%=1 ELSE reveal%=0
+  610VDU23,18,2,reveal%|
+  620ENDPROC
+  630:
+  640DEFPROCwidth
+  650W%=W%+2
+  660IF W% > 16 THEN W%=12
+  670VDU23,18,255,W%|
+  680ENDPROC
+  690:
+  700DEFFNwelcome
+  710PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
+  720PRINT CHR$(130);CHR$(141);" Matrix Brandy BASIC Telstar Client"
+  730PRINT
+  740PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
+  750PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+  760PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+  770PRINT
+  780PRINT CHR$(133);"4 - Tetrachloromethane";CHR$(134);"(CCl4)"
+  790PRINT
+  800PRINT CHR$(129);"0 - Exit"
+  810PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+  820PRINT CHR$(134);"  Press CTRL-R to toggle Reveal":
+  830PRINT CHR$(134);"  Press CTRL-W to change screen width"
+  840PRINT CHR$(134);"  Press CTRL-X to exit": PRINT
+  850PRINT TAB(4,23)CHR$(129)"Please make your selection..."
+  860REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=24
+  870IF A% = 24 OR A% = 48 THEN ON:END
+  880IF A% = 49 THEN S$ = "glasstty.com:6502"
+  890IF A% = 50 THEN S$ = "glasstty.com:6503"
+  900IF A% = 51 THEN S$ = "glasstty.com:6504"
+  910IF A% = 52 THEN S$ = "fish.ccl4.org:23"
+  920CLS
+  930="ip4:"+S$
