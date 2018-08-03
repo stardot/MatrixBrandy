@@ -1,11 +1,13 @@
 
 
 Networking has been added to Brandy BASIC as of version 1.21.6, significant
-bugs fixed for 1.21.7.
+bugs fixed for 1.21.7, and IPv6 capability added for 1.21.8.
 
 The interface is as such:
 
-Open a file handle using OPENUP, instead of a filename use "ip4:host:port".
+Open a file handle using OPENUP, instead of a filename use "ip0:host:port",
+"ip4:host:port" or "ip6:host:port". When using "ip0" it'll use whichever
+is available, ip4 and ip6 request the connection to use only that protocol.
 
 PRINT# and INPUT# are NOT implemented for this, for a BBC BASIC internal
 format these are rather pointless for communicating with anything else.

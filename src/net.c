@@ -36,7 +36,7 @@ void brandynet_init() {
   }
 }
 
-int brandynet_connect(char *dest) {
+int brandynet_connect(char *dest, char type) {
   char *host, *port;
   int n,ptr, len, mysocket, portnum, ret;
   struct addrinfo hints, *addrdata, *rp;
@@ -50,9 +50,11 @@ int brandynet_connect(char *dest) {
   }
 
   memset(&hints, 0, sizeof(hints));
-  hints.ai_family=AF_UNSPEC;
+  if (type == '0') hints.ai_family=AF_UNSPEC;
+  else if (type == '4') hints.ai_family=AF_INET;
+  else if (type == '6') hints.ai_family=AF_INET6;
   hints.ai_socktype = SOCK_STREAM;
-  hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
+  hints.ai_flags = AI_ADDRCONFIG;
   hints.ai_protocol = IPPROTO_TCP;
 
   host=strdup(dest);

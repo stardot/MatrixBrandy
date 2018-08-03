@@ -62,4 +62,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Background operation now working, as is launching from a non-console source
   for example a Window Manager launcher icon.
 * V1.21.8
-
+- Networking: Uses getaddrinfo instead of gethostbyname, this also means we
+  can connect to IPv6 hosts. The port can be specified by name (as per
+  /etc/services) or by number.

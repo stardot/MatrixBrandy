@@ -4,7 +4,7 @@
 #include "common.h"
 
 extern void brandynet_init();
-extern int brandynet_connect(char *dest);
+extern int brandynet_connect(char *dest, char type);
 extern int brandynet_close(int handle);
 extern int32 net_bget(int handle);
 extern boolean net_eof(int handle);
