@@ -59,3 +59,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Mode 7 glyph width can be changed on the fly to 12, 14 or 16 pixels wide,
   using VDU23,18,255,x| where x is 12, 14 or 16. Other values are ignored.
 - New command *WINTITLE - sets the SDL window title bar amd icon text.
+- Background operation now working, as is launching from a non-console source
+  for example a Window Manager launcher icon.
+* V1.21.8
+
