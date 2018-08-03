@@ -528,7 +528,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
   /* Check, does it start "ip4:" if so use network handler to open it. */
-  if (!strncmp(filename, "ip4:", 4)) {
+  if (!strncmp(filename, "ip4:", 4) || !strncmp(filename, "ip6:", 4)) {
     int handle;
     handle=brandynet_connect(filename+4);
     if (handle == -1) return 0;

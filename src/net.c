@@ -38,10 +38,8 @@ void brandynet_init() {
 
 int brandynet_connect(char *dest) {
   char *host, *port;
-  int n,ptr, len, mysocket, portnum;
-  struct sockaddr_in netdest;
-  struct hostent *he;
-  struct in_addr *inaddr;
+  int n,ptr, len, mysocket, portnum, ret;
+  struct addrinfo hints, *addrdata, *rp;
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     if (!netsockets[n]) break;
@@ -51,30 +49,41 @@ int brandynet_connect(char *dest) {
     return(-1);
   }
 
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family=AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
+  hints.ai_protocol = IPPROTO_TCP;
+
   host=strdup(dest);
   port=strchr(host,':');
   port[0]='\0';
   port++;
   portnum=atoi(port);
 
-  mysocket = socket(AF_INET, SOCK_STREAM, 0);
+  ret=getaddrinfo(host, port, &hints, &addrdata);
 
-  memset(&netdest, 0, sizeof(netdest));			/* zero the struct */
-  netdest.sin_family = AF_INET;
-
-  if ((he = gethostbyname(host)) == NULL) {
+  if(ret) {
     error(ERR_NET_NOTFOUND);
     return(-1);
   }
-  inaddr=(struct in_addr *)he->h_addr;
-  netdest.sin_addr = *inaddr;				/* set destination IP address */
-  netdest.sin_port = htons(portnum);			/* set destination port number */
-  free(host);						/* Don't need this any more*/
 
-  if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
+  for(rp = addrdata; rp != NULL; rp = rp->ai_next) {
+    mysocket = socket(rp->ai_family, SOCK_STREAM, 0);
+    if (mysocket == -1) continue;
+    if (connect(mysocket, rp->ai_addr, rp->ai_addrlen) != -1)
+      break; /* success! */
+    close(mysocket);
+  }
+
+  if (!rp) {
     error(ERR_NET_CONNREFUSED);
     return(-1);
   }
+
+  free(host);				/* Don't need this any more */
+  freeaddrinfo(addrdata);		/* Don't need this any more either */
+
   fcntl(mysocket, F_SETFL, O_NONBLOCK);
   netsockets[n] = mysocket;
   return(n);
