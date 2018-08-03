@@ -1006,6 +1006,7 @@ unsigned int cmd_parse_dec(char** text)
 #define CMD_VER			8
 #define CMD_TITLE		9
 #define CMD_HELP		10
+#define CMD_WINTITLE		11
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1044,6 +1045,14 @@ void cmd_cat(char *command) {
 #elif defined(TARGET_AMIGA)
 	system("list");
 #endif
+}
+
+void cmd_wintitle(char *command) {
+#ifdef USE_SDL
+  while (*command == ' ') command++;	// Skip spaces
+  set_wintitle(command);
+#endif
+  return;
 }
 
 /*
@@ -1177,7 +1186,7 @@ int check_command(char *text) {
   }
   command[length] = 0;
   if (strcmp(command, "key")    == 0) return CMD_KEY;
-//if (strcmp(command, "cat")    == 0) return CMD_CAT;
+//if (strcmp(command, "cat")    == 0) return CMD_CAT; /* Disabled, *. works but *cat is passed to OS */
   if (strcmp(command, "cd")     == 0) return CMD_CD;
   if (strcmp(command, "chdir")  == 0) return CMD_CD;
   if (strcmp(command, "quit")   == 0) return CMD_QUIT;
@@ -1186,6 +1195,7 @@ int check_command(char *text) {
 //if (strcmp(command, "title")  == 0) return CMD_TITLE;
   if (strcmp(command, "help")   == 0) return CMD_HELP;
   if (strcmp(command, "ver")    == 0) return CMD_VER;
+  if (strcmp(command, "wintitle") == 0) return CMD_WINTITLE;
   if (strcmp(command, "basic")  == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
@@ -1234,6 +1244,7 @@ void mos_oscli(char *command, char *respfile) {
   if (cmd == CMD_CD)   { cmd_cd(cmdbuf+2); return; }
   if (cmd == CMD_FX)   { cmd_fx(cmdbuf+2); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
+  if (cmd == CMD_WINTITLE) {cmd_wintitle(cmdbuf+8); return; }
   }
 
   if (*cmdbuf == '/') {		/* Run file, so just pass to OS     */

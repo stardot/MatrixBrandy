@@ -3466,7 +3466,7 @@ boolean init_screen(void) {
   vscrwidth = SCREEN_WIDTH;	    /* vscrwidth and vscrheight are constants for now but they */
   vscrheight = SCREEN_HEIGHT;   /* might be variables in the future if we have resizeable windows */
   xgupp = ygupp = 1;
-  SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Brandy");
+  SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   if (basicvars.runflags.start_graphics) {
@@ -4124,4 +4124,8 @@ void get_sdl_mouse(int32 values[]) {
 void sdl_mouse_onoff(int state) {
   if (state) SDL_ShowCursor(SDL_ENABLE);
   else SDL_ShowCursor(SDL_DISABLE);
+}
+
+void set_wintitle(char *title) {
+    SDL_WM_SetCaption(title, title);
 }
