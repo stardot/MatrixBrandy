@@ -4139,5 +4139,8 @@ void fullscreenmode(int onoff) {
   } else {
     flags &= ~SDL_FULLSCREEN;
   }
+  SDL_BlitSurface(screen0, NULL, screen1, NULL);
   SDL_SetVideoMode(screen0->w, screen0->h, screen0->format->BitsPerPixel, flags);
+  SDL_BlitSurface(screen1, NULL, screen0, NULL);
+  SDL_UpdateRect(screen0, 0, 0, 0, 0);
 }
