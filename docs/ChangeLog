@@ -65,3 +65,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Networking: Uses getaddrinfo instead of gethostbyname, this also means we
   can connect to IPv6 hosts. The port can be specified by name (as per
   /etc/services) or by number.
+- New command *FULLSCREEN - switches SDL fullscreen mode on or off

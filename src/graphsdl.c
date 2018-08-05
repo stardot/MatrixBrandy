@@ -4129,3 +4129,15 @@ void sdl_mouse_onoff(int state) {
 void set_wintitle(char *title) {
   SDL_WM_SetCaption(title, title);
 }
+
+void fullscreenmode(int onoff) {
+  Uint32 flags = screen0->flags;
+  if (onoff == 1) {
+    flags |= SDL_FULLSCREEN;
+  } else if (onoff == 2) {
+    flags ^= SDL_FULLSCREEN;
+  } else {
+    flags &= ~SDL_FULLSCREEN;
+  }
+  SDL_SetVideoMode(screen0->w, screen0->h, screen0->format->BitsPerPixel, flags);
+}
