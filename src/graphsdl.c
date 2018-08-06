@@ -95,8 +95,8 @@
 /*
 ** SDL related defines, Variables and params
 */
-Uint32 SCREEN_WIDTH=800;
-Uint32 SCREEN_HEIGHT=600;
+Uint32 SCREEN_WIDTH=640;
+Uint32 SCREEN_HEIGHT=512;
 
 static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
@@ -759,6 +759,7 @@ static void vdu_2318(void) {
   if (vduqueue[1] == 3) {
     mode7black = vduqueue[2] & 1;
   }
+#if 0
   if (vduqueue[1] == 255) { /* Brandy extension - render glyphs 12, 14 or 16 glyphs wide */
     if ((vduqueue[2] == 12) || (vduqueue[2]== 14) || (vduqueue[2] == 16)) {
       static SDL_Surface *m7fontbuf;
@@ -789,6 +790,7 @@ static void vdu_2318(void) {
       }
     }
   }
+#endif
   mode7renderscreen();
 }
 
@@ -2431,10 +2433,44 @@ int32 emulate_vpos(void) {
 */
 static void setup_mode(int32 mode) {
   int32 modecopy;
+  Uint32 sx, sy, ox, oy;
+  int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+
   modecopy = mode;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   if (mode > HIGHMODE) mode = modecopy = 0;	/* User-defined modes are mapped to mode 0 */
+#if 1
+  ox=vscrwidth;
+  oy=vscrheight;
+  sx=(modetable[mode].xres * modetable[mode].xscale);
+  sy=(modetable[mode].yres * modetable[mode].yscale);
+  SDL_BlitSurface(screen0, NULL, screen1, NULL);
+  SDL_FreeSurface(screen0);
+  screen0 = SDL_SetVideoMode(sx, sy, 32, flags);
+  if (!screen0) {
+    /* Reinstate previous display mode */
+    screen0 = SDL_SetVideoMode(ox, oy, 32, flags);
+    SDL_BlitSurface(screen1, NULL, screen0, NULL);
+    SDL_UpdateRect(screen0, 0, 0, 0, 0);
+    error(ERR_BADMODE);
+  }
+  vscrwidth = sx;
+  vscrheight = sy;
+  SDL_FreeSurface(modescreen);
+  modescreen = SDL_DisplayFormat(screen0);
+  SDL_FreeSurface(screen1);
+  screen1 = SDL_DisplayFormat(screen0);
+  SDL_FreeSurface(screen2);
+  screen2 = SDL_DisplayFormat(screen0);
+  SDL_FreeSurface(screen2A);
+  screen2A = SDL_DisplayFormat(screen0);
+  SDL_FreeSurface(screen3);
+  screen3 = SDL_DisplayFormat(screen0);
+  SDL_FreeSurface(screen3A);
+  screen3A = SDL_DisplayFormat(screen0);
+#else
   if (modetable[mode].xres > vscrwidth || modetable[mode].yres > vscrheight) error(ERR_BADMODE);
+#endif
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
   place_rect.h = font_rect.h = YPPC;
@@ -3438,7 +3474,6 @@ void emulate_origin(int32 x, int32 y) {
 boolean init_screen(void) {
 
   static SDL_Surface *fontbuf, *v5fontbuf, *m7fontbuf;
-  int initmode=31;		/* Mode 31 - 800x600, 16 colours */
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -3447,13 +3482,6 @@ boolean init_screen(void) {
   }
 
   screen0 = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32, flags);
-  if (!screen0) {
-    /* Couldn't start a 800x600 viewport. Let's try 640x512 - most standard modes will work */
-    SCREEN_WIDTH=640;
-    SCREEN_WIDTH=512;
-    initmode=20;		/* Mode 20 - 640x512, 16 colours */
-    screen0 = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32, flags);
-  }
   if (!screen0) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;
@@ -3486,7 +3514,7 @@ boolean init_screen(void) {
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   if (basicvars.runflags.start_graphics) {
-    setup_mode(initmode);
+    setup_mode(0);
     switch_graphics();
   }
   else {

@@ -146,6 +146,10 @@ static modetails modetable [] = {
 /* 65 */  { 800, 300,   4, 1600,  1200, 100, 37, 1, 2,  TRUE},
 /* 66 */  { 800, 300,  16, 1600,  1200, 100, 37, 1, 2,  TRUE},
 /* 67 */  { 800, 300, 256, 1600,  1200, 100, 37, 1, 2,  TRUE},
+/* 68 */  { 400, 300,   2, 1600,  1200,  50, 37, 2, 2,  TRUE},
+/* 69 */  { 400, 300,   4, 1600,  1200,  50, 37, 2, 2,  TRUE},
+/* 70 */  { 400, 300,  16, 1600,  1200,  50, 37, 2, 2,  TRUE},
+/* 71 */  { 400, 300, 256, 1600,  1200,  50, 37, 2, 2,  TRUE},
 };
 
 #ifndef __riscos
@@ -158,7 +162,7 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 #endif
 
 #define MODEMASK 0x7F		/* Mode numbers are in the range 0..127 */
-#define HIGHMODE 67		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
+#define HIGHMODE 71		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
 				/* Modes 54..63 are undefined. User modes are 64-127, mostly undefined. */
 #define USERMODE 127		/* Pretend mode used before specific mode given */
 #define COL256MASK 0x3F		/* Mask to extract colour number in 256 colour modes */
