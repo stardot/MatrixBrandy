@@ -66,3 +66,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   can connect to IPv6 hosts. The port can be specified by name (as per
   /etc/services) or by number.
 - New command *FULLSCREEN - switches SDL fullscreen mode on or off
+- Graphics cursor now on right-most point of circle after drawing,
+  as per RISC OS.

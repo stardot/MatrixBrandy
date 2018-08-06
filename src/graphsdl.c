@@ -2882,7 +2882,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     break;
   case PLOT_CIRCLE:		/* Plot the outline of a circle */
   case FILL_CIRCLE: {		/* Plot a filled circle */
-    int32 xradius, yradius;
+    int32 xradius, yradius, xr;
 /*
 ** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
 ** point on the circumference, specifically the left-most point of the
@@ -2890,11 +2890,14 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
     xradius = abs(xlast2-xlast)/xgupp;
     yradius = abs(xlast2-xlast)/ygupp;
+    xr=xlast2-xlast;
     if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
       draw_ellipse(modescreen, sx, sy, xradius, yradius, colour);
     else {
       filled_ellipse(modescreen, sx, sy, xradius, yradius, colour);
     }
+    /* To match RISC OS, xlast needs to be the right-most point not left-most. */
+    xlast+=(xr*2);
     ex = sx-xradius;
     ey = sy-yradius;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
