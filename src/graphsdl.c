@@ -95,8 +95,8 @@
 /*
 ** SDL related defines, Variables and params
 */
-#define SCREEN_WIDTH  800
-#define SCREEN_HEIGHT 600
+Uint32 SCREEN_WIDTH=800;
+Uint32 SCREEN_HEIGHT=600;
 
 static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
@@ -3438,6 +3438,7 @@ void emulate_origin(int32 x, int32 y) {
 boolean init_screen(void) {
 
   static SDL_Surface *fontbuf, *v5fontbuf, *m7fontbuf;
+  int initmode=31;		/* Mode 31 - 800x600, 16 colours */
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -3446,6 +3447,13 @@ boolean init_screen(void) {
   }
 
   screen0 = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32, flags);
+  if (!screen0) {
+    /* Couldn't start a 800x600 viewport. Let's try 640x512 - most standard modes will work */
+    SCREEN_WIDTH=640;
+    SCREEN_WIDTH=512;
+    initmode=20;		/* Mode 20 - 640x512, 16 colours */
+    screen0 = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32, flags);
+  }
   if (!screen0) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;
@@ -3478,7 +3486,7 @@ boolean init_screen(void) {
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   if (basicvars.runflags.start_graphics) {
-    setup_mode(31);		/* Mode 31 - 800 by 600 by 16 colours */
+    setup_mode(initmode);
     switch_graphics();
   }
   else {
