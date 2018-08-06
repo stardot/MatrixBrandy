@@ -68,3 +68,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - New command *FULLSCREEN - switches SDL fullscreen mode on or off
 - Graphics cursor now on right-most point of circle after drawing,
   as per RISC OS.
+- VDU5 text plotting is now transparent.
