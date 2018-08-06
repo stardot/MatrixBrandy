@@ -98,7 +98,8 @@
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 600
 
-static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A, *sdl_fontbuf, *sdl_m7fontbuf;
+static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
+static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
@@ -1436,23 +1437,23 @@ static void plot_char(int32 ch) {
   topy = GYTOPY(ylast);	/* top left-hand corner of the character */
   place_rect.x = topx;
   place_rect.y = topy;
-  SDL_FillRect(sdl_fontbuf, NULL, gb_colour);
+  SDL_FillRect(sdl_v5fontbuf, NULL, gb_colour);
   for (y=0; y<YPPC; y++) {
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = gf_colour;
-      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = gf_colour;
-      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = gf_colour;
-      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = gf_colour;
-      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = gf_colour;
-      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = gf_colour;
-      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = gf_colour;
-      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = gf_colour;
+      if (line & 0x80) *((Uint32*)sdl_v5fontbuf->pixels + 0 + y*XPPC) = gf_colour;
+      if (line & 0x40) *((Uint32*)sdl_v5fontbuf->pixels + 1 + y*XPPC) = gf_colour;
+      if (line & 0x20) *((Uint32*)sdl_v5fontbuf->pixels + 2 + y*XPPC) = gf_colour;
+      if (line & 0x10) *((Uint32*)sdl_v5fontbuf->pixels + 3 + y*XPPC) = gf_colour;
+      if (line & 0x08) *((Uint32*)sdl_v5fontbuf->pixels + 4 + y*XPPC) = gf_colour;
+      if (line & 0x04) *((Uint32*)sdl_v5fontbuf->pixels + 5 + y*XPPC) = gf_colour;
+      if (line & 0x02) *((Uint32*)sdl_v5fontbuf->pixels + 6 + y*XPPC) = gf_colour;
+      if (line & 0x01) *((Uint32*)sdl_v5fontbuf->pixels + 7 + y*XPPC) = gf_colour;
     }
   }
-  SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
+  SDL_BlitSurface(sdl_v5fontbuf, &font_rect, modescreen, &place_rect);
   if (!scaled) {
-    SDL_BlitSurface(sdl_fontbuf, &font_rect, screen0, &place_rect);
+    SDL_BlitSurface(sdl_v5fontbuf, &font_rect, screen0, &place_rect);
     SDL_UpdateRect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
   }
   else blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
@@ -3436,7 +3437,7 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
 
-  static SDL_Surface *fontbuf, *m7fontbuf;
+  static SDL_Surface *fontbuf, *v5fontbuf, *m7fontbuf;
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -3456,10 +3457,14 @@ boolean init_screen(void) {
   screen3 = SDL_DisplayFormat(screen0);
   screen3A = SDL_DisplayFormat(screen0);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+  v5fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   sdl_fontbuf = SDL_ConvertSurface(fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
+  sdl_v5fontbuf = SDL_ConvertSurface(v5fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
   sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
+  SDL_SetColorKey(sdl_v5fontbuf, SDL_SRCCOLORKEY, 0);
   SDL_FreeSurface(fontbuf);
+  SDL_FreeSurface(v5fontbuf);
   SDL_FreeSurface(m7fontbuf);
 
   vdunext = 0;
