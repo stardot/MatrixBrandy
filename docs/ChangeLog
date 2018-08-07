@@ -73,3 +73,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   bad mode to the program if SDL is unable to select the desired mode.
   This has broken the teletext aspect control, so that is for now disabled.
 - Can now define your own screen modes with *NewMode.
+- INKEY now working with multiple keys.

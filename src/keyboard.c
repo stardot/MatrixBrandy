@@ -53,6 +53,8 @@
 extern void mode7flipbank();
 static int nokeyboard=0;
 
+static int keystate[512];
+
 Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
   SDL_Event event;
@@ -453,7 +455,11 @@ static boolean waitkey(int wait) {
       {
         case SDL_USEREVENT:
           return 0;             /* timeout expired */
+	case SDL_KEYUP:
+	  keystate[ev.key.keysym.sym]=0;
+	  break;
         case SDL_KEYDOWN:
+	  keystate[ev.key.keysym.sym]=1;
           switch(ev.key.keysym.sym)
           {
             case SDLK_RSHIFT:   /* ignore non-character keys */
@@ -512,7 +518,11 @@ int32 read_key(void) {
     if (SDL_PollEvent(&ev))
       switch(ev.type)
       {
+	case SDL_KEYUP:
+	  keystate[ev.key.keysym.sym]=0;
+	  break;
         case SDL_KEYDOWN:
+	  keystate[ev.key.keysym.sym]=1;
           switch(ev.key.keysym.sym)
           {
             case SDLK_RSHIFT:   /* ignored keys */
@@ -930,14 +940,14 @@ int32 emulate_inkey(int32 arg) {
       switch(ev.type)
       {
 	case SDL_KEYDOWN:
-	  keydown=ev.key.keysym.sym;
+	  keystate[ev.key.keysym.sym]=1;
 	  break;
 	case SDL_KEYUP:
-	  keydown=0;
+	  keystate[ev.key.keysym.sym]=0;
 	  break;
       }
     }
-    if (inkeylookup[(arg * -1) -1] == keydown)
+    if (keystate[inkeylookup[(arg * -1) -1]] == 1)
       return -1;
     else
       return 0;
@@ -1560,6 +1570,7 @@ boolean init_keyboard(void) {
   struct termios tty;
   int n, errcode;
   for (n = 0; n < FN_KEY_COUNT; n++) fn_key[n].text = NIL;
+  for (n = 0; n < 512 ; n++) keystate[n]=0;
   fn_string_count = 0;
   fn_string = NIL;
   holdcount = 0;
