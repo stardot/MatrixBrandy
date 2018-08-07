@@ -127,6 +127,7 @@ static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
 static Uint8 vdu21state = 0;		/* VDU21 - disable all output until VDU6 received */
+static int autorefresh=1;		/* Refresh screen on updates? */
 
 /* From geom.c */
 #define MAX_YRES 1280
@@ -600,6 +601,14 @@ static void reset_mode7() {
   }
 }
 
+static void do_sdl_flip(SDL_Surface *layer) {
+  if (autorefresh) SDL_Flip(layer);
+}
+
+static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
+  if (autorefresh) SDL_UpdateRect(layer, x, y, w, h);
+}
+
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
 ** its position is valid, that is, lies within the text window
@@ -655,7 +664,7 @@ void sdlchar(int32 ch) {
     }
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, screen0, &place_rect);
-  if (echo) SDL_UpdateRect(screen0, xtext * XPPC, ytext * YPPC, XPPC, YPPC);
+  if (echo) do_sdl_updaterect(screen0, xtext * XPPC, ytext * YPPC, XPPC, YPPC);
 }
 
 /*
@@ -678,7 +687,7 @@ static void scroll_text(updown direction) {
     line_rect.h = YPPC;
     SDL_FillRect(screen1, &line_rect, tb_colour);
     SDL_BlitSurface(screen1, NULL, screen0, NULL);
-    SDL_Flip(screen0);
+    do_sdl_flip(screen0);
   }
   else {
     xx = xtext; yy = ytext;
@@ -782,7 +791,7 @@ static void vdu_2318(void) {
 	SDL_FillRect(screen0, NULL, tb_colour);
 	SDL_FillRect(screen2, NULL, tb_colour);
 	SDL_FillRect(screen3, NULL, tb_colour);
-	SDL_Flip(screen0);
+	do_sdl_flip(screen0);
 	SDL_SetClipRect(screen0, &line_rect);
       }
     }
@@ -878,7 +887,7 @@ static void toggle_cursor(void) {
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (echo && (instate != cursorstate)) SDL_UpdateRect(screen0, xoffset + xtext*xscale*mxppc, yoffset + ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xoffset + xtext*xscale*mxppc, yoffset + ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
 static void toggle_tcursor(void) {
@@ -911,7 +920,7 @@ static void toggle_tcursor(void) {
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (echo) SDL_UpdateRect(screen0, xtext * mxppc, ytext * myppc, mxppc, myppc);
+  if (echo) do_sdl_updaterect(screen0, xtext * mxppc, ytext * myppc, mxppc, myppc);
 }
 
 /*
@@ -965,7 +974,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   scale_rect.y = dtop;
   scale_rect.w = (right+1 - left) * xscale;
   scale_rect.h = (bottom+1 - top) * yscale;
-  SDL_UpdateRect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+  do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -1301,7 +1310,7 @@ static void scroll(updown direction) {
   } else { 	/* Scrolling the entire screen */
     if (screenmode != 7 || mode7bitmapupdate) {
       SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
-      SDL_Flip(screen0);
+      do_sdl_flip(screen0);
     }
   }
 }
@@ -1311,7 +1320,7 @@ static void scroll(updown direction) {
 ** text screen when working in 'no echo' mode. If does the buffer flip.
 */
 static void echo_ttext(void) {
-  if (xtext != 0) SDL_UpdateRect(screen0, 0, ytext*YPPC, xtext*XPPC, YPPC);
+  if (xtext != 0) do_sdl_updaterect(screen0, 0, ytext*YPPC, xtext*XPPC, YPPC);
 }
 
 /*
@@ -1343,7 +1352,7 @@ static void echo_text(void) {
     scroll_rect.x = xoffset;
     scroll_rect.y = yoffset+ytext*myppc;
     SDL_BlitSurface(modescreen, &line_rect, screen0, &scroll_rect);
-    SDL_UpdateRect(screen0, xoffset, yoffset+ytext*myppc, xtext*mxppc, myppc);
+    do_sdl_updaterect(screen0, xoffset, yoffset+ytext*myppc, xtext*mxppc, myppc);
   }
 }
 
@@ -1361,7 +1370,7 @@ void mode7flipbank() {
 	mode7bank=1;
 	mode7timer=33;
       }
-      SDL_UpdateRect(screen0, 0, 0, 0, 0);
+      do_sdl_updaterect(screen0, 0, 0, 0, 0);
       toggle_cursor();
     } else {
       mode7timer-=1;
@@ -1405,7 +1414,7 @@ static void write_char(int32 ch) {
   if (echo) {
     if (!scaled) {
       SDL_BlitSurface(sdl_fontbuf, &font_rect, screen0, &place_rect);
-      SDL_UpdateRect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
+      do_sdl_updaterect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
     }
     else blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
@@ -1453,7 +1462,7 @@ static void plot_char(int32 ch) {
   SDL_BlitSurface(sdl_v5fontbuf, &font_rect, modescreen, &place_rect);
   if (!scaled) {
     SDL_BlitSurface(sdl_v5fontbuf, &font_rect, screen0, &place_rect);
-    SDL_UpdateRect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
+    do_sdl_updaterect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
   }
   else blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
@@ -1796,7 +1805,7 @@ static void vdu_cleartext(void) {
     xtext = twinleft;
     ytext = twintop;
   }
-  SDL_Flip(screen0);
+  do_sdl_flip(screen0);
 }
 
 /*
@@ -1841,7 +1850,7 @@ static void vdu_cleargraph(void) {
     blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
   }
   if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
-  SDL_Flip(screen0);
+  do_sdl_flip(screen0);
 }
 
 /*
@@ -2452,9 +2461,10 @@ static void setup_mode(int32 mode) {
     sx=ox; sy=oy;
     screen0 = SDL_SetVideoMode(ox, oy, 32, flags);
     SDL_BlitSurface(screen1, NULL, screen0, NULL);
-    SDL_UpdateRect(screen0, 0, 0, 0, 0);
+    do_sdl_updaterect(screen0, 0, 0, 0, 0);
     error(ERR_BADMODE);
   }
+  autorefresh=1;
   vscrwidth = sx;
   vscrheight = sy;
   SDL_FreeSurface(modescreen);
@@ -2568,7 +2578,7 @@ void emulate_mode(int32 mode) {
   SDL_FillRect(modescreen, NULL, tb_colour);
   xtext = twinleft;
   ytext = twintop;
-  SDL_Flip(screen0);
+  do_sdl_flip(screen0);
   emulate_vdu(VDU_CLEARGRAPH);
 }
 
@@ -3123,7 +3133,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
   if ((plot_rect.x >= 0) && (plot_rect.x <= screenwidth+xbufoffset) && (plot_rect.y >= 0) && (plot_rect.y <= screenheight+ybufoffset)) {
-    if (!scaled) SDL_UpdateRect(screen0, plot_rect.x, plot_rect.y, plot_rect.w, plot_rect.h);
+    if (!scaled) do_sdl_updaterect(screen0, plot_rect.x, plot_rect.y, plot_rect.w, plot_rect.h);
   }
 }
 
@@ -3785,7 +3795,7 @@ void mode7renderline(int32 ypos) {
 	break;
     }
   }
-  SDL_UpdateRect(screen0, xoffset, topy, 640, M7YPPC);
+  do_sdl_updaterect(screen0, xoffset, topy, 640, M7YPPC);
 
   vdu141on=0;
   mode7highbit=0;
@@ -4184,7 +4194,7 @@ void fullscreenmode(int onoff) {
   SDL_BlitSurface(screen0, NULL, screen1, NULL);
   SDL_SetVideoMode(screen0->w, screen0->h, screen0->format->BitsPerPixel, flags);
   SDL_BlitSurface(screen1, NULL, screen0, NULL);
-  SDL_UpdateRect(screen0, 0, 0, 0, 0);
+  do_sdl_updaterect(screen0, 0, 0, 0, 0);
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, int32 yscale) {
@@ -4201,4 +4211,11 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, 
  modetable[mode].xscale = xscale;
  modetable[mode].yscale = yscale;
  modetable[mode].graphics = TRUE;
+}
+
+void star_refresh(int flag) {
+  if ((flag == 0) || (flag == 1)) {
+    autorefresh=flag;
+  }
+  SDL_Flip(screen0);
 }

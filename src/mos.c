@@ -1027,6 +1027,7 @@ unsigned int cmd_parse_num(char** text)
 #define CMD_WINTITLE		11
 #define CMD_FULLSCREEN		12
 #define CMD_NEWMODE		13
+#define CMD_REFRESH		14
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1128,6 +1129,26 @@ void cmd_newmode(char *command) {
     if (!*command) {cmd_newmode_err(); return;}
     yscale=cmd_parse_dec(&command);
     setupnewmode(mode, xres, yres, cols, xscale, yscale);
+  }
+#endif
+  return;
+}
+
+void cmd_refresh(char *command) {
+#ifdef USE_SDL
+  int flag=2;
+
+  while (*command == ' ') command++;	// Skip spaces
+  if (strlen(command) == 0) {
+    star_refresh(2);
+  } else {
+    if (strcmp(command, "on") == 0) flag=1;
+    if (strcmp(command, "off") == 0) flag=0;
+    if (flag == 2) {
+      emulate_printf("Syntax: Refresh [<On|Off>]\r\n");
+      return;
+    }
+    star_refresh(flag);
   }
 #endif
   return;
@@ -1278,6 +1299,7 @@ int check_command(char *text) {
   if (strcmp(command, "wintitle") == 0) return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
   if (strcmp(command, "newmode") == 0) return CMD_NEWMODE;
+  if (strcmp(command, "refresh") == 0) return CMD_REFRESH;
   if (strcmp(command, "basic")  == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
@@ -1329,6 +1351,7 @@ void mos_oscli(char *command, char *respfile) {
   if (cmd == CMD_WINTITLE) {cmd_wintitle(cmdbuf+8); return; }
   if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(cmdbuf+10); return; }
   if (cmd == CMD_NEWMODE) {cmd_newmode(cmdbuf+7); return; }
+  if (cmd == CMD_REFRESH) {cmd_refresh(cmdbuf+7); return; }
   }
 
   if (*cmdbuf == '/') {		/* Run file, so just pass to OS     */
