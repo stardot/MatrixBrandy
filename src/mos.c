@@ -1228,6 +1228,7 @@ void cmd_help(char *command)
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r\n\r");
 		emulate_printf("  WinTitle   <window title>\r\n  FullScreen [<ON|OFF|1|0>]\n\r");
 		emulate_printf("  NewMode    <mode> <xres> <yres> <cols> <xscale> <yscale>\r\n");
+		emulate_printf("  Refresh    [<On|Off>]\r\n");
 //		emulate_printf("  VER\n\r");
 	}
 	if (*command == '.')

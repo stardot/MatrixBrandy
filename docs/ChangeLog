@@ -74,3 +74,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   This has broken the teletext aspect control, so that is for now disabled.
 - Can now define your own screen modes with *NewMode.
 - INKEY now working with multiple keys.
+* V1.21.9
+- Implement *REFRESH (based on RTR's BB4W/BBCSDL).
