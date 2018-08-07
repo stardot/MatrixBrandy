@@ -575,6 +575,7 @@ int32 read_key(void) {
               push_key(INSERT);
               return NUL;
             case SDLK_ESCAPE:
+	      if (basicvars.escape_enabled) error(ERR_ESCAPE);
 	      return ESCAPE;
             case SDLK_F1: case SDLK_F2: case SDLK_F3: case SDLK_F4: case SDLK_F5:
             case SDLK_F6: case SDLK_F7: case SDLK_F8: case SDLK_F9:
