@@ -4184,3 +4184,19 @@ void fullscreenmode(int onoff) {
   SDL_BlitSurface(screen1, NULL, screen0, NULL);
   SDL_UpdateRect(screen0, 0, 0, 0, 0);
 }
+
+void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, int32 yscale) {
+
+ if ((mode < 64) || (mode > HIGHMODE)) return; /* Ignore redefine modes < 64 or > HIGHMODE */
+ if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256)) return; /* Ignore new mode if colours invalid */
+ modetable[mode].xres = xres;
+ modetable[mode].yres = yres;
+ modetable[mode].coldepth = cols;
+ modetable[mode].xgraphunits = (xres * 2 * xscale);
+ modetable[mode].ygraphunits = (yres * 2 * yscale);
+ modetable[mode].xtext = (xres / 8);
+ modetable[mode].ytext = (yres / 8);
+ modetable[mode].xscale = xscale;
+ modetable[mode].yscale = yscale;
+ modetable[mode].graphics = TRUE;
+}

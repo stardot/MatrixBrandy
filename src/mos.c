@@ -991,6 +991,24 @@ unsigned int cmd_parse_dec(char** text)
 	return ByteVal;
 }
 
+unsigned int cmd_parse_num(char** text)
+{
+	unsigned int ByteVal;
+	char *command;
+
+	command=*text;
+	while (*command == ' ') command++;	// Skip spaces
+	if (*command < '0' || *command > '9')
+		error(ERR_BADNUMBER);
+	ByteVal = (*command++) - '0';
+	while (*command >= '0' && *command <='9') {
+		ByteVal=ByteVal*10 + (*command++) - '0';
+	}
+	while (*command == ' ') command++;	// Skip spaces
+	*text=command;
+	return ByteVal;
+}
+
 
 #ifndef TARGET_RISCOS
 /*
@@ -1008,6 +1026,7 @@ unsigned int cmd_parse_dec(char** text)
 #define CMD_HELP		10
 #define CMD_WINTITLE		11
 #define CMD_FULLSCREEN		12
+#define CMD_NEWMODE		13
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1071,6 +1090,45 @@ void cmd_fullscreen(char *command) {
   if (strcmp(command, "off" ) == 0) flag=0;
   if (flag != 3) fullscreenmode(flag);
   else emulate_printf("Syntax: FullScreen [<ON|OFF|1|0>]\r\nWith no parameter, this command toggles the current setting.\r\n");
+#endif
+  return;
+}
+
+static void cmd_newmode_err() {
+  emulate_printf("Syntax: NewMode <mode> <xres> <yres> <cols> <xscale> <yscale>\r\n");
+  return;
+}
+void cmd_newmode(char *command) {
+#ifdef USE_SDL
+  int mode, xres, yres, cols, xscale, yscale;
+
+  while (*command == ' ') command++;	// Skip spaces
+  if (strlen(command) == 0) {
+    cmd_newmode_err();
+  } else {
+    mode=cmd_parse_dec(&command);
+    if (*command == ',') command++;			// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (!*command) {cmd_newmode_err(); return;}
+    xres=cmd_parse_num(&command);
+    if (*command == ',') command++;			// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (!*command) {cmd_newmode_err(); return;}
+    yres=cmd_parse_num(&command);
+    if (*command == ',') command++;			// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (!*command) {cmd_newmode_err(); return;}
+    cols=cmd_parse_num(&command);
+    if (*command == ',') command++;			// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (!*command) {cmd_newmode_err(); return;}
+    xscale=cmd_parse_dec(&command);
+    if (*command == ',') command++;			// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (!*command) {cmd_newmode_err(); return;}
+    yscale=cmd_parse_dec(&command);
+    setupnewmode(mode, xres, yres, cols, xscale, yscale);
+  }
 #endif
   return;
 }
@@ -1148,6 +1206,7 @@ void cmd_help(char *command)
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r\n\r");
 		emulate_printf("  WinTitle   <window title>\r\n  FullScreen [<ON|OFF|1|0>]\n\r");
+		emulate_printf("  NewMode    <mode> <xres> <yres> <cols> <xscale> <yscale>\r\n");
 //		emulate_printf("  VER\n\r");
 	}
 	if (*command == '.')
@@ -1218,6 +1277,7 @@ int check_command(char *text) {
   if (strcmp(command, "ver")    == 0) return CMD_VER;
   if (strcmp(command, "wintitle") == 0) return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
+  if (strcmp(command, "newmode") == 0) return CMD_NEWMODE;
   if (strcmp(command, "basic")  == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
@@ -1268,6 +1328,7 @@ void mos_oscli(char *command, char *respfile) {
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
   if (cmd == CMD_WINTITLE) {cmd_wintitle(cmdbuf+8); return; }
   if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(cmdbuf+10); return; }
+  if (cmd == CMD_NEWMODE) {cmd_newmode(cmdbuf+7); return; }
   }
 
   if (*cmdbuf == '/') {		/* Run file, so just pass to OS     */

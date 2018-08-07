@@ -131,7 +131,7 @@ static modetails modetable [] = {
 /* 51 */  { 320, 240,   4, 1280,   960,  40, 30, 2, 2,  TRUE},
 /* 52 */  { 320, 240,  16, 1280,   960,  40, 30, 2, 2,  TRUE},
 /* 53 */  { 320, 240, 256, 1280,   960,  40, 30, 2, 2,  TRUE},
-/* Place holders for RISC OS native screen modes that aren't defined yet - using definition for MODE 23 */
+/* Place holders for RISC OS native screen modes that aren't defined yet - using definition for MODE 0 */
 /* 54 */  {1152, 896,   2, 2304,  1792, 144, 56, 1, 1,  TRUE},
 /* 55 */  {1152, 896,   2, 2304,  1792, 144, 56, 1, 1,  TRUE},
 /* 56 */  {1152, 896,   2, 2304,  1792, 144, 56, 1, 1,  TRUE},
@@ -142,7 +142,7 @@ static modetails modetable [] = {
 /* 61 */  {1152, 896,   2, 2304,  1792, 144, 56, 1, 1,  TRUE},
 /* 62 */  {1152, 896,   2, 2304,  1792, 144, 56, 1, 1,  TRUE},
 /* 63 */  {1152, 896,   2, 2304,  1792, 144, 56, 1, 1,  TRUE},
-/* Third party modes sart here. */ 
+/* Third party modes start here */ 
 /* 64 */  { 800, 300,   2, 1600,  1200, 100, 37, 1, 2,  TRUE},
 /* 65 */  { 800, 300,   4, 1600,  1200, 100, 37, 1, 2,  TRUE},
 /* 66 */  { 800, 300,  16, 1600,  1200, 100, 37, 1, 2,  TRUE},
@@ -151,6 +151,14 @@ static modetails modetable [] = {
 /* 69 */  { 400, 300,   4, 1600,  1200,  50, 37, 2, 2,  TRUE},
 /* 70 */  { 400, 300,  16, 1600,  1200,  50, 37, 2, 2,  TRUE},
 /* 71 */  { 400, 300, 256, 1600,  1200,  50, 37, 2, 2,  TRUE},
+/* 72 */  {1024, 288,   2, 2048,  1152, 128, 36, 1, 2,  TRUE},
+/* 73 */  {1024, 288,   4, 2048,  1152, 128, 36, 1, 2,  TRUE},
+/* 74 */  {1024, 288,  16, 2048,  1152, 128, 36, 1, 2,  TRUE},
+/* 75 */  {1024, 288, 256, 2048,  1152, 128, 36, 1, 2,  TRUE},
+/* 76 */  {1024, 576,   2, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 77 */  {1024, 576,   4, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 78 */  {1024, 576,  16, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 79 */  {1024, 576, 256, 2048,  1152, 128, 72, 1, 1,  TRUE},
 };
 
 #ifndef __riscos
@@ -163,7 +171,7 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 #endif
 
 #define MODEMASK 0x7F		/* Mode numbers are in the range 0..127 */
-#define HIGHMODE 71		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
+#define HIGHMODE 79		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
 				/* Modes 54..63 are undefined. User modes are 64-127, mostly undefined. */
 #define USERMODE 127		/* Pretend mode used before specific mode given */
 #define COL256MASK 0x3F		/* Mask to extract colour number in 256 colour modes */
