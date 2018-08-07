@@ -905,6 +905,7 @@ void mos_waitdelay(int32 time) {
   delay.tv_sec = time/100;		/* Time to wait (seconds) */
   delay.tv_usec = time%100*10000;	/* Time to wait (microseconds) */
   (void) select(0, NIL, NIL, NIL, &delay);
+  if(basicvars.escape_enabled && emulate_inkey(-113)) basicvars.escape=TRUE;
 }
 
 #endif
