@@ -487,6 +487,7 @@ typedef struct {
   int32 curcount;			/* Number of entries on savedcur[] stack*/
   byte *savedcur[MAXCURCOUNT];		/* Stack of saved values of 'current' for EVAL and READ */
   boolean escape;			/* TRUE if the 'escape' key has been pressed */
+  boolean escape_enabled;		/* TRUE if the 'escape' key is enabled */
   int32 retcode;			/* Return code from last OSCLI command */
   int32 argcount;			/* Number of Basic program command line arguments */
   int32 printcount;			/* Chars printed this line (used by PRINT) */

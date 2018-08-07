@@ -36,5 +36,6 @@ extern readstate emulate_readline(char [], int32);
 extern void set_fn_string(int key, char *string, int length);
 extern boolean init_keyboard(void);
 extern void end_keyboard(void);
+extern void checkforescape(void);
 
 #endif

@@ -1096,7 +1096,7 @@ void cmd_fullscreen(char *command) {
 }
 
 static void cmd_newmode_err() {
-  emulate_printf("Syntax: NewMode <mode> <xres> <yres> <cols> <xscale> <yscale>\r\n");
+  emulate_printf("Syntax: NewMode <mode> <xres> <yres> <colours> <xscale> <yscale>\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16 or 256.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
   return;
 }
 void cmd_newmode(char *command) {
@@ -1227,7 +1227,7 @@ void cmd_help(char *command)
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r\n\r");
 		emulate_printf("  WinTitle   <window title>\r\n  FullScreen [<ON|OFF|1|0>]\n\r");
-		emulate_printf("  NewMode    <mode> <xres> <yres> <cols> <xscale> <yscale>\r\n");
+		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale>\r\n");
 		emulate_printf("  Refresh    [<On|Off>]\r\n");
 //		emulate_printf("  VER\n\r");
 	}
@@ -1775,6 +1775,20 @@ switch (areg) {
 
 	case 160:		// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
+	case 200:		// OSBYTE 200 - bit 1 disables escape
+		if (xreg & 2) {
+		  basicvars.escape_enabled = FALSE;
+		} else {
+		  basicvars.escape_enabled = TRUE;
+		}
+		break;
+	case 229:		// OSBYTE 229 - Enable or disable escape
+		if (xreg) {
+		  basicvars.escape_enabled = FALSE;
+		} else {
+		  basicvars.escape_enabled = TRUE;
+		}
+		break;
 
 	}
 if (areg < 128 && areg > 25)

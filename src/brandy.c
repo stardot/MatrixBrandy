@@ -128,6 +128,7 @@ static void init1(void) {
   basicvars.runflags.quitatend = FALSE;		/* Do not exit from interpreter when program finishes */
   basicvars.runflags.start_graphics = TRUE;	/* Start in graphics mode */
   basicvars.runflags.ignore_starcmd = FALSE;	/* Do not ignore built-in '*' commands */
+  basicvars.escape_enabled = TRUE;		/* Allow the Escape key to stop execution */
 #ifdef DEFAULT_IGNORE
   basicvars.runflags.flag_cosmetic = FALSE;	/* Ignore all unsupported features */
 #else

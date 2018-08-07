@@ -43,6 +43,7 @@
 #include "mainstate.h"
 #include "assign.h"
 #include "statement.h"
+#include "keyboard.h"
 
 /* #define DEBUG */
 
@@ -388,6 +389,9 @@ void exec_fnstatements(byte *lp) {
 void exec_statements(byte *lp) {
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
+#ifdef USE_SDL
+    checkforescape();
+#endif
     (*statements[*basicvars.current])();	/* Dispatch a statement */
   } while (TRUE);
 }

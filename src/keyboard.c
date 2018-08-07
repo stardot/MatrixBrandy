@@ -49,6 +49,7 @@
 
 #ifdef USE_SDL
 #include "SDL.h"
+#include "SDL_events.h"
 
 extern void mode7flipbank();
 static int nokeyboard=0;
@@ -498,6 +499,21 @@ static boolean waitkey(int wait) {
 #endif
 }
 
+#define ESCINT 100
+int escinterval=ESCINT;
+
+void checkforescape(void) {
+#ifdef USE_SDL
+  if (basicvars.escape_enabled) {
+    if (!escinterval) {
+      escinterval=ESCINT;
+      if(emulate_inkey(-113)) basicvars.escape=TRUE;
+    } else escinterval--;
+  }
+#endif
+  return;
+}
+
 /*
 ** 'read_key' reads the next character from the keyboard
 ** or gets the next keypress from the SDL event queue
@@ -559,7 +575,7 @@ int32 read_key(void) {
               push_key(INSERT);
               return NUL;
             case SDLK_ESCAPE:
-              return ESCAPE;
+	      return ESCAPE;
             case SDLK_F1: case SDLK_F2: case SDLK_F3: case SDLK_F4: case SDLK_F5:
             case SDLK_F6: case SDLK_F7: case SDLK_F8: case SDLK_F9:
               ch = KEY_F1 + ev.key.keysym.sym - SDLK_F1;
@@ -591,7 +607,7 @@ int32 read_key(void) {
     if ( !nokeyboard && ( select(1, &keyset, NIL, NIL, &waitime) > 0 )) {
       errcode = read(keyboard, &ch, 1);
       if (errcode < 0) {                /* read() returned an error */
-        if (errno == EINTR) error(ERR_ESCAPE);  /* Assume Ctrl-C was pressed */
+        if ((errno == EINTR) && basicvars.escape_enabled) error(ERR_ESCAPE);  /* Assume Ctrl-C was pressed */
         error(ERR_BROKEN, __LINE__, "keyboard");        /* Otherwise roll over and die */
       }
       else return ch;
@@ -602,7 +618,7 @@ int32 read_key(void) {
 #else
   errcode = read(keyboard, &ch, 1);
   if (errcode < 0) {            /* read() returned an error */
-    if (errno == EINTR) error(ERR_ESCAPE);      /* Assume Ctrl-C was pressed */
+    if (basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);      /* Assume Ctrl-C was pressed */
     error(ERR_BROKEN, __LINE__, "keyboard");    /* Otherwise roll over and die */
   }
 #endif
