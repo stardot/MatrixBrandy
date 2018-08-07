@@ -72,3 +72,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Resize window on mode change. We also now start in Mode 0, and report
   bad mode to the program if SDL is unable to select the desired mode.
   This has broken the teletext aspect control, so that is for now disabled.
+- Can now define your own screen modes with *NewMode.

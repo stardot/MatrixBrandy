@@ -76,7 +76,7 @@ typedef struct {
 ** screen modes. The Mode 7 line is faked to allow a decent scaling on Teletext.
 ** The values for modes 3 and 6 are to size the window accordingly.
 */
-static modetails modetable [] = {
+static modetails modetable [127] = {
 /*  0 */  { 640, 256,   2, 1280,  1024,  80, 32, 1, 2,  TRUE},
 /*  1 */  { 320, 256,   4, 1280,  1024,  40, 32, 2, 2,  TRUE},
 /*  2 */  { 160, 256,  16, 1280,  1024,  20, 32, 4, 2,  TRUE},
@@ -171,7 +171,7 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 #endif
 
 #define MODEMASK 0x7F		/* Mode numbers are in the range 0..127 */
-#define HIGHMODE 79		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
+#define HIGHMODE 126		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
 				/* Modes 54..63 are undefined. User modes are 64-127, mostly undefined. */
 #define USERMODE 127		/* Pretend mode used before specific mode given */
 #define COL256MASK 0x3F		/* Mask to extract colour number in 256 colour modes */

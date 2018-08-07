@@ -2439,6 +2439,8 @@ static void setup_mode(int32 mode) {
 #if 1
   ox=vscrwidth;
   oy=vscrheight;
+  /* Try to catch an undefined mode */
+  if (modetable[mode].xres == 0) error(ERR_BADMODE);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
   toggle_cursor();
