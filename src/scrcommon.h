@@ -74,15 +74,16 @@ typedef struct {
 /*
 ** The mode details table gives details of all the numbered RISC OS
 ** screen modes. The Mode 7 line is faked to allow a decent scaling on Teletext.
+** The values for modes 3 and 6 are to size the window accordingly.
 */
 static modetails modetable [] = {
 /*  0 */  { 640, 256,   2, 1280,  1024,  80, 32, 1, 2,  TRUE},
 /*  1 */  { 320, 256,   4, 1280,  1024,  40, 32, 2, 2,  TRUE},
 /*  2 */  { 160, 256,  16, 1280,  1024,  20, 32, 4, 2,  TRUE},
-/*  3 */  {   0,   0,   2,    0,     0,  80, 25, 1, 2, FALSE},
+/*  3 */  { 640, 200,   2,    0,     0,  80, 25, 1, 1, FALSE},
 /*  4 */  { 320, 256,   2, 1280,  1024,  40, 32, 2, 2,  TRUE},
 /*  5 */  { 160, 256,   4, 1280,  1024,  20, 32, 4, 2,  TRUE},
-/*  6 */  {   0,   0,   2,    0,     0,  40, 25, 2, 2, FALSE},
+/*  6 */  { 320, 200,   2,    0,     0,  40, 25, 1, 1, FALSE},
 /*  7 */  { 640, 500,  16, 1280,  1000,  40, 25, 1, 1,  TRUE},
 /*  8 */  { 640, 256,   4, 1280,  1024,  80, 32, 1, 2,  TRUE},
 /*  9 */  { 320, 256,  16, 1280,  1024,  40, 32, 2, 2,  TRUE},

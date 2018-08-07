@@ -95,9 +95,6 @@
 /*
 ** SDL related defines, Variables and params
 */
-Uint32 SCREEN_WIDTH=640;
-Uint32 SCREEN_HEIGHT=512;
-
 static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
@@ -2444,11 +2441,13 @@ static void setup_mode(int32 mode) {
   oy=vscrheight;
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
+  toggle_cursor();
   SDL_BlitSurface(screen0, NULL, screen1, NULL);
   SDL_FreeSurface(screen0);
   screen0 = SDL_SetVideoMode(sx, sy, 32, flags);
   if (!screen0) {
     /* Reinstate previous display mode */
+    sx=ox; sy=oy;
     screen0 = SDL_SetVideoMode(ox, oy, 32, flags);
     SDL_BlitSurface(screen1, NULL, screen0, NULL);
     SDL_UpdateRect(screen0, 0, 0, 0, 0);
@@ -3472,7 +3471,6 @@ void emulate_origin(int32 x, int32 y) {
 ** interpreter to run)
 */
 boolean init_screen(void) {
-
   static SDL_Surface *fontbuf, *v5fontbuf, *m7fontbuf;
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
 
@@ -3481,7 +3479,7 @@ boolean init_screen(void) {
     return FALSE;
   }
 
-  screen0 = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 32, flags);
+  screen0 = SDL_SetVideoMode(640, 512, 32, flags); /* MODE 0 */
   if (!screen0) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;
@@ -3507,8 +3505,6 @@ boolean init_screen(void) {
   vduneeded = 0;
   enable_print = FALSE;
   graphmode = TEXTMODE;         /* Say mode is capable of graphics output but currently set to text */
-  vscrwidth = SCREEN_WIDTH;	    /* vscrwidth and vscrheight are constants for now but they */
-  vscrheight = SCREEN_HEIGHT;   /* might be variables in the future if we have resizeable windows */
   xgupp = ygupp = 1;
   SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
