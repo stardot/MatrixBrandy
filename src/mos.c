@@ -1088,8 +1088,8 @@ void cmd_fullscreen(char *command) {
   if (strlen(command) == 0) flag=2;
   if (strcmp(command, "1" ) == 0) flag=1;
   if (strcmp(command, "0" ) == 0) flag=0;
-  if (strcmp(command, "on" ) == 0) flag=1;
-  if (strcmp(command, "off" ) == 0) flag=0;
+  if (strcasecmp(command, "on" ) == 0) flag=1;
+  if (strcasecmp(command, "off" ) == 0) flag=0;
   if (flag != 3) fullscreenmode(flag);
   else emulate_printf("Syntax: FullScreen [<ON|OFF|1|0>]\r\nWith no parameter, this command toggles the current setting.\r\n");
 #endif
@@ -1143,8 +1143,8 @@ void cmd_refresh(char *command) {
   if (strlen(command) == 0) {
     star_refresh(2);
   } else {
-    if (strcmp(command, "on") == 0) flag=1;
-    if (strcmp(command, "off") == 0) flag=0;
+    if (strcasecmp(command, "on") == 0) flag=1;
+    if (strcasecmp(command, "off") == 0) flag=0;
     if (flag == 2) {
       emulate_printf("Syntax: Refresh [<On|Off>]\r\n");
       return;
