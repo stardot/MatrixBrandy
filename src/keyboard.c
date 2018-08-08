@@ -950,12 +950,19 @@ int32 emulate_inkey(int32 arg) {
   else {        /* Check is a specific key is being pressed */
 #ifdef USE_SDL
     SDL_Event ev;
-    Uint8 *keystate;
+    Uint8 mousestate, *keystate;
     if (arg < -128) return -1;
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
+    mousestate = SDL_GetMouseState(NULL, NULL);
     while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
+    }
+    if ((arg <= -10) && (arg >= -12)) {
+      /* Mouse button INKEYs */
+      if ((arg == -10) && (mousestate & 1)) return -1;
+      if ((arg == -11) && (mousestate & 2)) return -1;
+      if ((arg == -12) && (mousestate & 4)) return -1;
     }
     if (keystate[inkeylookup[(arg * -1) -1]])
       return -1;
