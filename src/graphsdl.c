@@ -4199,8 +4199,14 @@ void fullscreenmode(int onoff) {
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, int32 yscale) {
 
- if ((mode < 64) || (mode > HIGHMODE)) return; /* Ignore redefine modes < 64 or > HIGHMODE */
- if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256)) return; /* Ignore new mode if colours invalid */
+ if ((mode < 64) || (mode > HIGHMODE)) {
+   emulate_printf("Warning: *NewMode can only define modes in the range 64 to %d.\r\n", HIGHMODE);
+   return;
+ }
+ if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256)) {
+   emulate_printf("Warning: *NewMode can only define modes with 2, 4, 16 or 256 colours.\r\n");
+   return;
+ }
  modetable[mode].xres = xres;
  modetable[mode].yres = yres;
  modetable[mode].coldepth = cols;
