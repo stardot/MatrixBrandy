@@ -1394,7 +1394,6 @@ static void write_char(int32 ch) {
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xbufoffset +xtext*XPPC;
   topy = ybufoffset +ytext*YPPC;
-    printf("ybufoffset=%d, topy=%d, cursorstate=%d\n", ybufoffset, topy, cursorstate);
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
