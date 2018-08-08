@@ -568,16 +568,14 @@ static unsigned int mode7font [96][20] = {
 /* ~ */ {0u, 0u, 0u, 0x300u, 0x300u, 0u, 0u, 0x3FF0u, 0x3FF0u, 0u, 0u, 0x300u, 0x300u, 0u, 0u, 0u, 0u, 0u, 0u, 0u },
 /* DEL */  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
 };
-static unsigned int char255[20] =
+static unsigned int char255[20] = /* Text-mode CHR$(255) */
 /*255 */  {0u, 0x3FF0u, 0x3FF0u, 0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u, 0u, 0u, 0u, 0u, 0u
 };
 
-#define XPPC 8		/* Size of character in pixels in X direction */
-#define YPPC 8		/* Size of character in pixels in Y direction */
-unsigned int M7XPPC=16;	/* Size of Mode 7 characters in X direction */
-unsigned int M7YPPC=20;	/* Size of Mode 7 characters in Y direction */
-
-/* Bulk of Mode 7 code in emulate_vdu, some in write_char */
+unsigned int XPPC=8;		/* Size of character in pixels in X direction */
+unsigned int YPPC=8;		/* Size of character in pixels in Y direction */
+unsigned int M7XPPC=16;		/* Size of Mode 7 characters in X direction */
+unsigned int M7YPPC=20;		/* Size of Mode 7 characters in Y direction */
 
 static void reset_mode7() {
   int p, q;
@@ -607,6 +605,10 @@ static void do_sdl_flip(SDL_Surface *layer) {
 
 static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
   if (autorefresh) SDL_UpdateRect(layer, x, y, w, h);
+}
+
+static int istextonly(void) {
+  return ((screenmode == 3 || screenmode == 6 || screenmode == 7));
 }
 
 /*
@@ -1387,17 +1389,16 @@ void mode7flipbank() {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, yy, topx, topy, line, base, mxt, mxp, mpt, xch, xline;
+  int32 y, yy, topx, topy, line;
 
-  mxt=xtext;
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xbufoffset +xtext*XPPC;
   topy = ybufoffset +ytext*YPPC;
+    printf("ybufoffset=%d, topy=%d, cursorstate=%d\n", ybufoffset, topy, cursorstate);
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
-  xch=ch;
-  for (y=0; y < YPPC; y++) {
+  for (y=0; y < 8; y++) {
     line = sysfont[ch-' '][y];
     if (line!=0) {
       if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
@@ -1532,16 +1533,9 @@ static void move_cursor(int32 column, int32 row) {
 ** 'overwrite'.
 */
 void set_cursor(boolean underline) {
-  if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove old style cursor */
     cursmode = underline ? UNDERLINE : BLOCK;
     if (cursorstate == SUSPENDED) toggle_cursor();	/* Draw new style cursor */
-  }
-  else {
-    if (cursorstate == ONSCREEN) toggle_tcursor();	/* Remove old style cursor */
-    cursmode = underline ? UNDERLINE : BLOCK;
-    if (cursorstate == SUSPENDED) toggle_tcursor();	/* Draw new style cursor */
-  }
 }
 
 /*
@@ -2202,23 +2196,9 @@ void emulate_vdu(int32 charvalue) {
       }
       if (vdu5mode)			    /* Sending text output to graphics cursor */
         plot_char(charvalue);
-      else if (graphmode == FULLSCREEN) {
+      else {
         write_char(charvalue);
         if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw the cursor */
-      }
-      else {	/* Send character to text screen */
-        sdlchar(charvalue);
-        xtext++;
-        if (xtext > twinright) {		/* Have reached edge of text window. Skip to next line  */
-          xtext = twinleft;
-          ytext++;
-          if (ytext > twinbottom) {
-            ytext--;
-            if (textwin)
-              scroll_text(SCROLL_UP);
-          }
-        }
-        toggle_tcursor();
       }
       return;
     }
@@ -2258,7 +2238,7 @@ void emulate_vdu(int32 charvalue) {
     }
     break;
   case VDU_GRAPHICURS:	/* 5 - Print text at graphics cursor */
-    if (screenmode != 7) {
+    if (!istextonly()) {
       if (graphmode == TEXTMODE) switch_graphics();		/* Use VDU 5 as a way of switching to graphics mode */
       if (graphmode == FULLSCREEN) {
         vdu5mode = TRUE;
@@ -2444,8 +2424,7 @@ static void setup_mode(int32 mode) {
 
   modecopy = mode;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
-  if (mode > HIGHMODE) mode = modecopy = 0;	/* User-defined modes are mapped to mode 0 */
-#if 1
+  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
   ox=vscrwidth;
   oy=vscrheight;
   /* Try to catch an undefined mode */
@@ -2479,11 +2458,9 @@ static void setup_mode(int32 mode) {
   screen3 = SDL_DisplayFormat(screen0);
   SDL_FreeSurface(screen3A);
   screen3A = SDL_DisplayFormat(screen0);
-#else
-  if (modetable[mode].xres > vscrwidth || modetable[mode].yres > vscrheight) error(ERR_BADMODE);
-#endif
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
+  YPPC=8; if ((mode == 3) || (mode == 6)) YPPC=10;
   place_rect.h = font_rect.h = YPPC;
   reset_mode7();
   screenwidth = modetable[mode].xres;
@@ -2511,50 +2488,42 @@ static void setup_mode(int32 mode) {
     xbufoffset = xoffset;
     ybufoffset = yoffset;
   }
-  if (modetable[mode].graphics) {	/* Mode can be used for graphics */
-    xgupp = xgraphunits/screenwidth;	/* Graphics units per pixel in X direction */
-    ygupp = ygraphunits/screenheight;	/* Graphics units per pixel in Y direction */
-    xorigin = yorigin = 0;
-    xlast = ylast = xlast2 = ylast2 = 0;
-    gwinleft = 0;
-    gwinright = xgraphunits-1;
-    gwintop = ygraphunits-1;
-    gwinbottom = 0;
-  }
+  xgupp = xgraphunits/screenwidth;	/* Graphics units per pixel in X direction */
+  ygupp = ygraphunits/screenheight;	/* Graphics units per pixel in Y direction */
+  xorigin = yorigin = 0;
+  xlast = ylast = xlast2 = ylast2 = 0;
+  gwinleft = 0;
+  gwinright = xgraphunits-1;
+  gwintop = ygraphunits-1;
+  gwinbottom = 0;
   textwin = FALSE;		/* A text window has not been created yet */
   twinleft = 0;			/* Set up initial text window to whole screen */
   twinright = textwidth-1;
   twintop = 0;
   twinbottom = textheight-1;
   xtext = ytext = 0;
-  if (graphmode == FULLSCREEN && (!basicvars.runflags.start_graphics || !modetable[mode].graphics)) {
+  if (graphmode == FULLSCREEN && (!basicvars.runflags.start_graphics)) {
     switch_text();
     graphmode = TEXTONLY;
   }
   if (graphmode != NOGRAPHICS && graphmode != FULLSCREEN) {	/* Decide on current graphics mode */
-    if (modetable[mode].graphics)
-      graphmode = TEXTMODE;	/* Output to text screen but can switch to graphics */
-    else {
-      graphmode = TEXTONLY;	/* Output to text screen. Mode does not allow graphics */
-    }
+    graphmode = TEXTMODE;	/* Output to text screen but can switch to graphics */
   }
   reset_colours();
-  if (graphmode == FULLSCREEN) {
-    init_palette();
-    if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
-    SDL_FillRect(screen0, NULL, tb_colour);
-    SDL_FillRect(modescreen, NULL, tb_colour);
-    SDL_FillRect(screen2, NULL, tb_colour);
-    SDL_FillRect(screen3, NULL, tb_colour);
-    if (xoffset == 0)	/* Use whole screen */
-      SDL_SetClipRect(screen0, NULL);
-    else {	/* Only part of the screen is used */
-      line_rect.x = xoffset;
-      line_rect.y = yoffset;
-      line_rect.w = vscrwidth;
-      line_rect.h = vscrheight;
-      SDL_SetClipRect(screen0, &line_rect);
-    }
+  init_palette();
+  if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
+  SDL_FillRect(screen0, NULL, tb_colour);
+  SDL_FillRect(modescreen, NULL, tb_colour);
+  SDL_FillRect(screen2, NULL, tb_colour);
+  SDL_FillRect(screen3, NULL, tb_colour);
+  if (xoffset == 0)	/* Use whole screen */
+    SDL_SetClipRect(screen0, NULL);
+  else {	/* Only part of the screen is used */
+    line_rect.x = xoffset;
+    line_rect.y = yoffset;
+    line_rect.w = vscrwidth;
+    line_rect.h = vscrheight;
+    SDL_SetClipRect(screen0, &line_rect);
   }
   sdl_mouse_onoff(0);
   if (screenmode == 7) {
@@ -2758,7 +2727,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   int32 xlast3, ylast3, sx, sy, ex, ey;
   Uint32 colour = 0;
   SDL_Rect plot_rect, temp_rect;
-  if (screenmode == 7) return;
+  if (istextonly()) return;
   if (graphmode == TEXTONLY) return;
   if (graphmode == TEXTMODE) switch_graphics();
 /* Decode the command */
@@ -3596,7 +3565,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 
 void mode7renderline(int32 ypos) {
   int32 ch, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
-  int32 y, yy, topx, topy, line, base, mxt, mxp, mpt, xch, xline;
+  int32 y, yy, topx, topy, line, xch;
   int32 vdu141used = 0;
   
   if (!mode7bitmapupdate || (screenmode != 7)) return;
@@ -3654,7 +3623,6 @@ void mode7renderline(int32 ypos) {
 	break;
     }
     /* Now we write the character. Copied and optimised from write_char() above */
-    mxt=xtext;
     topx = xbufoffset +xtext*M7XPPC;
     topy = ybufoffset +ypos*M7YPPC;
     place_rect.x = topx;
