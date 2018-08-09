@@ -76,3 +76,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - INKEY now working with multiple keys.
 * V1.21.9
 - Implement *REFRESH (based on RTR's BB4W/BBCSDL).
+  Possible divergence: An error condition will re-enable Refresh.
+- INKEY implementation improved, we now also pick up mouse keys.
+- ESCAPE now works within the SDL window.

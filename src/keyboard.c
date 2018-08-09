@@ -889,7 +889,7 @@ int32 emulate_get(void) {
 #else
   errcode = read(keyboard, &ch, 1);
   if (errcode < 0) {
-    if(errno == EINTR) error(ERR_ESCAPE);       /* Assume CTRL-C has been pressed */
+    if(basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);       /* Assume CTRL-C has been pressed */
     error(ERR_BROKEN, __LINE__, "keyboard");
   }
 #endif
@@ -1389,7 +1389,7 @@ readstate emulate_readline(char buffer[], int32 length) {
   do {
     ch = emulate_get();
     watch_signals();           /* Let asynchronous signals catch up */
-    if ((ch == ESCAPE) || basicvars.escape) return READ_ESC;      /* Check if the escape key has been pressed and bail out if it has */
+    if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;      /* Check if the escape key has been pressed and bail out if it has */
     switch (ch) {       /* Normal keys */
     case CR: case LF:   /* End of line */
       emulate_vdu('\r');
