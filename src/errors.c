@@ -38,6 +38,7 @@
 #include "evaluate.h"
 #include "miscprocs.h"
 #include "keyboard.h"
+#include "graphsdl.h"
 
 #if defined(TARGET_MINGW)
 #include <windows.h>
@@ -691,6 +692,7 @@ void error(int32 errnumber, ...) {
     emulate_printf("Out of range error number %d\r\n", errnumber);
     errnumber = ERR_BROKEN;
   }
+  star_refresh(1);
   basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */
 #ifdef TARGET_MINGW
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
