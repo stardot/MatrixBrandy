@@ -150,7 +150,7 @@ static Uint8 mode7hold = 0;		/* Hold Graphics flag */
 static Uint8 mode7flash = 0;		/* Flash flag */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static Uint8 mode7bank = 0;		/* Bank switching for Mode 7 Flashing */
-static Uint8 mode7timer = 0;		/* Timer for bank switching */
+static long long int mode7timer = 0;	/* Timer for bank switching */
 static Uint8 mode7black = 0;		/* Allow teletext black codes RISC OS 5 */
 static Uint8 mode7reveal = 0;		/* RISC OS 5 - reveal content hidden by CONCEAL */
 static Uint8 mode7bitmapupdate = 2;	/* RISC OS 5 - do we update bitmap and blit after each character */
@@ -1360,22 +1360,20 @@ static void echo_text(void) {
 
 void mode7flipbank() {
   if (screenmode == 7) {
-    if (mode7timer == 0) {
+    if ((mode7timer - mos_centiseconds()) <= 0) {
       if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
       if (!mode7bitmapupdate) mode7renderscreen();
       if (mode7bank) {
 	SDL_BlitSurface(screen2, NULL, screen0, NULL);
 	mode7bank=0;
-	mode7timer=100;
+	mode7timer=mos_centiseconds() + 100;
       } else {
 	SDL_BlitSurface(screen3, NULL, screen0, NULL);
 	mode7bank=1;
-	mode7timer=33;
+	mode7timer=mos_centiseconds() + 33;
       }
       do_sdl_updaterect(screen0, 0, 0, 0, 0);
       toggle_cursor();
-    } else {
-      mode7timer-=1;
     }
   }
 }

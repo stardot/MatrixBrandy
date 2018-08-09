@@ -601,10 +601,12 @@ void mos_wrtime(int32 time) {
 ** 'TIME' to return its current value. This should be the current
 ** value of the centisecond clock, but how accurate the value is
 ** depends on the underlying OS.
-** This code was supplied by Jeff Doggett
+** This code was supplied by Jeff Doggett, and modified
+** by Michael McConnell
 */
-int32 mos_rdtime(void) {
-  unsigned int rc;
+
+long long int mos_centiseconds(void) {
+  unsigned long int rc;
   struct timeval tv;
   struct timezone tzp;
 
@@ -613,12 +615,15 @@ int32 mos_rdtime(void) {
   /* tv -> tv_sec = Seconds since 1970 */
   /* tv -> tv_usec = and microseconds */
 
-  rc = tv.tv_sec & 0xFFFFFF;
+  rc = tv.tv_sec;
   rc = rc * 100;
   rc = rc + (tv.tv_usec / 10000);
-  rc = rc - startime;
 
-  return ((int32) rc);
+  return (rc);
+}
+
+int32 mos_rdtime(void) {
+  return ((int32) (mos_centiseconds() - startime));
 }
 
 /*
