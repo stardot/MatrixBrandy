@@ -185,37 +185,7 @@ static int32
   xorigin,			/* X coordinate of graphics origin */
   yorigin,			/* Y coordinate of graphics origin */
   xscale,			/* X direction scale factor */
-  yscale,			/* Y direction scale factor */
-  xoffset,			/* X offset to centre screen mode in 800 by 600 screen in pixels */
-  yoffset,			/* Y offset to centre screen mode in 800 by 600 screen in pixels */
-  xbufoffset,			/* X offset in screen buffer used for plotting graphics */
-  ybufoffset;			/* Y offset in screen buffer used for plotting graphics */
-
-/*
-** Note:
-** xoffset, yoffset, xbufoffset and ybufoffset are used as follows:
-** xoffset and yoffset give the offset in pixels of the top left-hand
-** corner of the graphics area being displayed from the top left-hand
-** corner of the virtual screen. The virtual screen has a resolution
-** of 800 by 600 pixels and most of the RISC OS screen modes have a
-** resolution (in pixels) of less than this. Mode 27, for example, is
-** 640 by 480 pixels. The mode 27 screen is moved in and down by xoffset
-** and yoffset pixels respectively to centre the graphics area within the
-** virtual screen.
-** 'xbufoffset' and 'ybufoffset' are related to 'xoffset' and 'yoffset'.
-** They specify the offsets in pixels in the X and Y directions of the
-** top left-hand corner of the rectangle in the virtual screen or the
-** buffer in which graphics are plotted. There are two cases here:
-**	1) The virtual screen is being used directly for graphics
-**	2) Graphics are plotted to a second buffer first
-** In the first case the same buffer is used for both plotting the
-** graphics and displaying them. 'xbufoffset' and 'ybufoffset' will be
-** the same as 'xoffset' and 'yoffset'. In the second case, the graphics
-** are plotted in one buffer and then copied to the virtual screen
-** buffer to be displayed. Here 'xbufoffset' and 'ybufoffset' refer to
-** the buffer used for plotting whilst 'xoffset' and 'yoffset' refer to
-** the virtual screen.
-*/
+  yscale;			/* Y direction scale factor */
 
 static boolean
   scaled,			/* TRUE if screen mode is scaled to fit real screen */
@@ -226,8 +196,8 @@ static boolean
 ** These two macros are used to convert from RISC OS graphics coordinates to
 ** pixel coordinates
 */
-#define GXTOPX(x) ((x) / xgupp + xbufoffset)
-#define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp + ybufoffset)
+#define GXTOPX(x) ((x) / xgupp)
+#define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp)
 
 static graphics graphmode;	/* Says whether graphics are possible or not */
 
@@ -782,11 +752,9 @@ static void vdu_2318(void) {
 	screenwidth = modetable[7].xres;
 	screenheight = modetable[7].yres;
 	xgraphunits = modetable[7].xgraphunits;
-	xbufoffset = xoffset = (vscrwidth-screenwidth)/2;
-	ybufoffset = yoffset = (vscrheight-screenheight)/2;
 	gwinright = xgraphunits-1;
-	line_rect.x = xoffset;
-	line_rect.y = yoffset;
+	line_rect.x = 0;
+	line_rect.y = 0;
 	line_rect.w = vscrwidth;
 	line_rect.h = vscrheight;
 	SDL_FillRect(modescreen, NULL, tb_colour);
@@ -872,24 +840,24 @@ static void toggle_cursor(void) {
     cursorstate = SUSPENDED;
   else
     if (!vdu5mode) cursorstate = ONSCREEN;
-  left = xoffset + xtext*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
+  left = xtext*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
-    y = (yoffset + (ytext+1)*yscale*myppc - yscale) * vscrwidth;
+    y = ((ytext+1)*yscale*myppc - yscale) * vscrwidth;
     for (x=left; x <= right; x++) {
       *((Uint32*)screen0->pixels + x + y) ^= xor_mask;
       if (yscale != 1) *((Uint32*)screen0->pixels + x + y + vscrwidth) ^= xor_mask;
     }
   }
   else if (cursmode == BLOCK) {
-    top = yoffset + ytext*yscale*myppc;
+    top = ytext*yscale*myppc;
     bottom = top + myppc*yscale -1;
     for (y = top; y <= bottom; y++) {
       for (x = left; x <= right; x++)
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xoffset + xtext*xscale*mxppc, yoffset + ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xtext*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
 static void toggle_tcursor(void) {
@@ -941,8 +909,7 @@ static void toggle_tcursor(void) {
 ** are given in terms of what could be called the pseudo pixel
 ** coordinates of the buffer. These pseudo pixel coordinates are
 ** converted to real pixel coordinates by multiplying them by 'xscale'
-** and 'yscale'. 'xoffset' and 'yoffset' are added to the coordinates
-** to position the screen buffer in the middle of the screen.
+** and 'yscale'.
 */
 static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   int32 dleft, dtop, xx, yy, i, j, ii, jj;
@@ -957,8 +924,8 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   if (right >= screenwidth) right = screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= screenheight) bottom = screenheight-1;
-  dleft = left*xscale + xoffset;		/* Calculate pixel coordinates in the */
-  dtop  = top*yscale + yoffset;			/* screen buffer of the rectangle */
+  dleft = left*xscale;			/* Calculate pixel coordinates in the */
+  dtop  = top*yscale;			/* screen buffer of the rectangle */
   yy = dtop;
   for (j = top; j <= bottom; j++) {
     for (jj = 1; jj <= yscale; jj++) {
@@ -1182,13 +1149,6 @@ static void switch_graphics(void) {
     twinbottom = textheight-1;
   }
 #endif
-  if (xoffset != 0) {	/* Only part of the screen is used */
-    line_rect.x = xoffset-1;
-    line_rect.y = yoffset-1;
-    line_rect.w = vscrwidth;
-    line_rect.h = vscrheight;
-    SDL_SetClipRect(screen0, &line_rect);
-  }
   vdu_cleartext();	/* Clear the graphics screen */
   if (cursorstate == NOCURSOR) {	/* 'cursorstate' might be set to 'HIDDEN' if OFF used */
     cursorstate = SUSPENDED;
@@ -1224,14 +1184,14 @@ static void scroll(updown direction) {
     mxppc=XPPC;
     myppc=YPPC;
   }
-  topwin = ybufoffset+twintop*myppc;		/* Y coordinate of top of text window */
+  topwin = twintop*myppc;		/* Y coordinate of top of text window */
   if (direction == SCROLL_UP) {	/* Shifting screen up */
-    dest = ybufoffset + twintop*myppc;		/* Move screen up to this point */
-    left = xbufoffset + twinleft*mxppc;
-    right = xbufoffset + twinright*mxppc+mxppc-1;
+    dest = twintop*myppc;		/* Move screen up to this point */
+    left = twinleft*mxppc;
+    right = twinright*mxppc+mxppc-1;
     top = dest+myppc;				/* Top of block to move starts here */
-    scroll_rect.x = xbufoffset + twinleft*mxppc;
-    scroll_rect.y = ybufoffset + myppc * (twintop + 1);
+    scroll_rect.x = twinleft*mxppc;
+    scroll_rect.y = myppc * (twintop + 1);
     scroll_rect.w = mxppc * (twinright - twinleft +1);
     scroll_rect.h = myppc * (twinbottom - twintop);
     if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
@@ -1262,10 +1222,10 @@ static void scroll(updown direction) {
     }
   }
   else {	/* Shifting screen down */
-    dest = ybufoffset+(twintop+1)*myppc;
-    left = xbufoffset+twinleft*mxppc;
-    right = xbufoffset+(twinright+1)*mxppc-1;
-    top = ybufoffset+twintop*myppc;
+    dest = (twintop+1)*myppc;
+    left = twinleft*mxppc;
+    right = (twinright+1)*mxppc-1;
+    top = twintop*myppc;
     scroll_rect.x = left;
     scroll_rect.y = top;
     scroll_rect.w = mxppc * (twinright - twinleft +1);
@@ -1333,7 +1293,7 @@ static void echo_ttext(void) {
 ** start of the line to the current value of the text cursor
 */
 static void echo_text(void) {
-  int sx, ex, sy, ey;
+  int ex, sy, ey;
   if (xtext == 0) return;	/* Return if nothing has changed */
   if (screenmode == 7) {
     do_sdl_flip(screen0);
@@ -1342,18 +1302,17 @@ static void echo_text(void) {
   if (scaled)
     blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
   else {
-    sx = xoffset;
-    sy = yoffset+ytext*YPPC;
-    ex = xoffset+xtext*XPPC-1;
+    sy = ytext*YPPC;
+    ex = xtext*XPPC-1;
     ey = sy+YPPC-1;
-    line_rect.x = xoffset;
-    line_rect.y = yoffset+ytext*YPPC;
+    line_rect.x = 0;
+    line_rect.y = ytext*YPPC;
     line_rect.w = xtext*XPPC;
     line_rect.h = YPPC;
-    scroll_rect.x = xoffset;
-    scroll_rect.y = yoffset+ytext*YPPC;
+    scroll_rect.x = 0;
+    scroll_rect.y = ytext*YPPC;
     SDL_BlitSurface(modescreen, &line_rect, screen0, &scroll_rect);
-    do_sdl_updaterect(screen0, xoffset, yoffset+ytext*YPPC, xtext*XPPC, YPPC);
+    do_sdl_updaterect(screen0, 0, ytext*YPPC, xtext*XPPC, YPPC);
   }
 }
 
@@ -1389,8 +1348,8 @@ static void write_char(int32 ch) {
   int32 y, yy, topx, topy, line;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
-  topx = xbufoffset +xtext*XPPC;
-  topy = ybufoffset +ytext*YPPC;
+  topx = xtext*XPPC;
+  topy = ytext*YPPC;
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
@@ -1720,10 +1679,10 @@ static void vdu_cleartext(void) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
     if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
-        left = xbufoffset+twinleft*mxppc;
-        right = xbufoffset+twinright*mxppc+mxppc-1;
-        top = ybufoffset+twintop*myppc;
-        bottom = ybufoffset+twinbottom*myppc+myppc-1;
+        left = twinleft*mxppc;
+        right = twinright*mxppc+mxppc-1;
+        top = twintop*myppc;
+        bottom = twinbottom*myppc+myppc-1;
         line_rect.x = left;
         line_rect.y = top;
         line_rect.w = right - left +1;
@@ -1747,10 +1706,10 @@ static void vdu_cleartext(void) {
     }
     else {	/* Screen is not scaled */
       if (textwin) {	/* Text window defined that does not occupy the whole screen */
-        left = xbufoffset+twinleft*mxppc;
-        right = xbufoffset+twinright*mxppc+mxppc-1;
-        top = ybufoffset+twintop*myppc;
-        bottom = ybufoffset+twinbottom*myppc+myppc-1;
+        left = twinleft*mxppc;
+        right = twinright*mxppc+mxppc-1;
+        top = twintop*myppc;
+        bottom = twinbottom*myppc+myppc-1;
         line_rect.x = left;
         line_rect.y = top;
         line_rect.w = right - left +1;
@@ -2035,15 +1994,7 @@ static void vdu_plot(void) {
 */
 static void vdu_restwind(void) {
   if (clipping) {	/* Restore graphics clipping region to entire screen area for mode */
-    if (scaled || xoffset == 0)
-      SDL_SetClipRect(modescreen, NULL);
-    else {
-      line_rect.x = xoffset-1;
-      line_rect.y = yoffset-1;
-      line_rect.w = vscrwidth;
-      line_rect.h = vscrheight;
-      SDL_SetClipRect(screen0, &line_rect);
-    }
+    SDL_SetClipRect(modescreen, NULL);
     clipping = FALSE;
   }
   mode7highbit = 0;
@@ -2479,14 +2430,6 @@ static void setup_mode(int32 mode) {
   cursmode = UNDERLINE;
   cursorstate = NOCURSOR;	/* Graphics mode text cursor is not being displayed */
   clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
-  xoffset = (vscrwidth-screenwidth*xscale)/2;
-  yoffset = (vscrheight-screenheight*yscale)/2;
-  if (scaled)	/* Graphics are written to a second buffer then copied to the virtual screen */
-    xbufoffset = ybufoffset = 0;
-  else {	/* Graphics are written directly to the virtual screen buffer */
-    xbufoffset = xoffset;
-    ybufoffset = yoffset;
-  }
   xgupp = xgraphunits/screenwidth;	/* Graphics units per pixel in X direction */
   ygupp = ygraphunits/screenheight;	/* Graphics units per pixel in Y direction */
   xorigin = yorigin = 0;
@@ -2515,15 +2458,7 @@ static void setup_mode(int32 mode) {
   SDL_FillRect(modescreen, NULL, tb_colour);
   SDL_FillRect(screen2, NULL, tb_colour);
   SDL_FillRect(screen3, NULL, tb_colour);
-  if (xoffset == 0)	/* Use whole screen */
-    SDL_SetClipRect(screen0, NULL);
-  else {	/* Only part of the screen is used */
-    line_rect.x = xoffset;
-    line_rect.y = yoffset;
-    line_rect.w = vscrwidth;
-    line_rect.h = vscrheight;
-    SDL_SetClipRect(screen0, &line_rect);
-  }
+  SDL_SetClipRect(screen0, NULL);
   sdl_mouse_onoff(0);
   if (screenmode == 7) {
     font_rect.w = place_rect.w = M7XPPC;
@@ -2795,7 +2730,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       plot_rect.y = ey;
       plot_rect.w = 1;
       plot_rect.h = 1;
-      if ((ex < xbufoffset) || (ex >= (screenwidth+xbufoffset)) || (ey < ybufoffset) || (ey >= (screenheight+ybufoffset))) break;
+      if ((ex < 0) || (ex >= (screenwidth)) || (ey < 0) || (ey >= (screenheight))) break;
       *((Uint32*)screen0->pixels + ex + ey*vscrwidth) = colour;
     }
     else {
@@ -3100,7 +3035,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   //default:
     //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
-  if ((plot_rect.x >= 0) && (plot_rect.x <= screenwidth+xbufoffset) && (plot_rect.y >= 0) && (plot_rect.y <= screenheight+ybufoffset)) {
+  if ((plot_rect.x >= 0) && (plot_rect.x <= screenwidth) && (plot_rect.y >= 0) && (plot_rect.y <= screenheight)) {
     if (!scaled) do_sdl_updaterect(screen0, plot_rect.x, plot_rect.y, plot_rect.w, plot_rect.h);
   }
 }
@@ -3622,8 +3557,8 @@ void mode7renderline(int32 ypos) {
 	break;
     }
     /* Now we write the character. Copied and optimised from write_char() above */
-    topx = xbufoffset +xtext*M7XPPC;
-    topy = ybufoffset +ypos*M7YPPC;
+    topx = xtext*M7XPPC;
+    topy = ypos*M7YPPC;
     place_rect.x = topx;
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
@@ -3761,7 +3696,7 @@ void mode7renderline(int32 ypos) {
 	break;
     }
   }
-  if (echo) do_sdl_updaterect(screen0, xoffset, topy, 640, M7YPPC);
+  do_sdl_updaterect(screen0, 0, topy, 640, M7YPPC);
 
   vdu141on=0;
   mode7highbit=0;
@@ -3941,7 +3876,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
       if (skip) {
         skip=0;
       } else {
-	if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset)))
+	if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
 	  *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
 	if (style & 0x10) skip=1;
       }
@@ -3958,7 +3893,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
       if (skip) {
         skip=0;
       } else {
-	if ((x >= xbufoffset) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
+	if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
 	  *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
 	if (style & 0x10) skip=1;
       }
@@ -3971,7 +3906,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
     }
   }
   if ( ! (style & 0x08)) {
-    if ((x >= 0) && (x < (screenwidth+xbufoffset)) && (y >= 0) && (y < (screenheight+ybufoffset))) 
+    if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
       *((Uint32*)sr->pixels + x + y*vscrwidth) = col;
   }
 }
