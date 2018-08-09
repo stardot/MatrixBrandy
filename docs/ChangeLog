@@ -78,4 +78,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Implement *REFRESH (based on RTR's BB4W/BBCSDL).
   Possible divergence: An error condition will re-enable Refresh.
 - INKEY implementation improved, we now also pick up mouse keys.
-- ESCAPE now works within the SDL window.
+- ESCAPE now works within the SDL window. *FX229 also implemented to disable
+  or enable ESCAPE.
+- Display warnings/help for *NewMode
+- Improve rendering of MODEs 3 and 6.
+- MODE 7 flash now locked to the centisecond timer.
