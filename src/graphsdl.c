@@ -1234,8 +1234,9 @@ static void scroll(updown direction) {
     scroll_rect.y = ybufoffset + myppc * (twintop + 1);
     scroll_rect.w = mxppc * (twinright - twinleft +1);
     scroll_rect.h = myppc * (twinbottom - twintop);
-    if (screenmode != 7 || mode7bitmapupdate) SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
+    if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
     if (screenmode == 7 && mode7bitmapupdate) {
+      SDL_BlitSurface(screen0, &scroll_rect, screen1, NULL);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
@@ -1271,8 +1272,9 @@ static void scroll(updown direction) {
     scroll_rect.h = myppc * (twinbottom - twintop);
     line_rect.x = 0;
     line_rect.y = myppc;
-    if (screenmode != 7 || mode7bitmapupdate) SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
+    if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
     if (screenmode == 7 && mode7bitmapupdate) {
+      SDL_BlitSurface(screen0, &scroll_rect, screen1, &line_rect);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
@@ -1302,19 +1304,19 @@ static void scroll(updown direction) {
   line_rect.h = myppc * (twinbottom - twintop +1);
   scroll_rect.x = left;
   scroll_rect.y = dest;
-  if (screenmode != 7 || mode7bitmapupdate) SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
+  if (screenmode != 7) SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
   if (screenmode == 7 && mode7bitmapupdate) {
     SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
     SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
   }
   if (scaled) {
-    if (screenmode != 7 || mode7bitmapupdate) blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
+    blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
   } else { 	/* Scrolling the entire screen */
     if (screenmode != 7 || mode7bitmapupdate) {
       SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
-      do_sdl_flip(screen0);
     }
   }
+  do_sdl_flip(screen0);
 }
 
 /*
@@ -1331,30 +1333,27 @@ static void echo_ttext(void) {
 ** start of the line to the current value of the text cursor
 */
 static void echo_text(void) {
-  int sx, ex, sy, ey, mxppc, myppc;
+  int sx, ex, sy, ey;
   if (xtext == 0) return;	/* Return if nothing has changed */
   if (screenmode == 7) {
-    mxppc = M7XPPC;
-    myppc = M7YPPC;
-  } else {
-    mxppc=XPPC;
-    myppc=YPPC;
+    do_sdl_flip(screen0);
+    return;
   }
   if (scaled)
-    blit_scaled(0, ytext*myppc, xtext*mxppc-1, ytext*myppc+myppc-1);
+    blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
   else {
     sx = xoffset;
-    sy = yoffset+ytext*myppc;
-    ex = xoffset+xtext*mxppc-1;
-    ey = sy+myppc-1;
+    sy = yoffset+ytext*YPPC;
+    ex = xoffset+xtext*XPPC-1;
+    ey = sy+YPPC-1;
     line_rect.x = xoffset;
-    line_rect.y = yoffset+ytext*myppc;
-    line_rect.w = xtext*mxppc;
-    line_rect.h = myppc;
+    line_rect.y = yoffset+ytext*YPPC;
+    line_rect.w = xtext*XPPC;
+    line_rect.h = YPPC;
     scroll_rect.x = xoffset;
-    scroll_rect.y = yoffset+ytext*myppc;
+    scroll_rect.y = yoffset+ytext*YPPC;
     SDL_BlitSurface(modescreen, &line_rect, screen0, &scroll_rect);
-    do_sdl_updaterect(screen0, xoffset, yoffset+ytext*myppc, xtext*mxppc, myppc);
+    do_sdl_updaterect(screen0, xoffset, yoffset+ytext*YPPC, xtext*XPPC, YPPC);
   }
 }
 
@@ -2170,10 +2169,13 @@ void emulate_vdu(int32 charvalue) {
       return;
     }
     if (charvalue >= ' ') {		/* Most common case - print something */
-      /* Handle Mode 7 colour changes */
+      /* Handle Mode 7 */
       if (screenmode == 7) {
-	if (charvalue == 127) mode7frame[ytext][xtext]=32;
-	  else mode7frame[ytext][xtext]=charvalue;
+	if (charvalue == 127) {
+	  mode7frame[ytext][xtext]=32;
+	} else {
+	  mode7frame[ytext][xtext]=charvalue;
+	}
 	mode7renderline(ytext);
 	/* Set At codes go here, Set After codes are further down. */
         xtext++;
@@ -2190,12 +2192,13 @@ void emulate_vdu(int32 charvalue) {
           }
         }
 	return;
-      }
-      if (vdu5mode)			    /* Sending text output to graphics cursor */
-        plot_char(charvalue);
-      else {
-        write_char(charvalue);
-        if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw the cursor */
+      } else {
+	if (vdu5mode)			    /* Sending text output to graphics cursor */
+          plot_char(charvalue);
+	else {
+          write_char(charvalue);
+          if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw the cursor */
+	}
       }
       return;
     }
@@ -2428,7 +2431,6 @@ static void setup_mode(int32 mode) {
   if (modetable[mode].xres == 0) error(ERR_BADMODE);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
-  toggle_cursor();
   SDL_BlitSurface(screen0, NULL, screen1, NULL);
   SDL_FreeSurface(screen0);
   screen0 = SDL_SetVideoMode(sx, sy, 32, flags);
@@ -3686,8 +3688,7 @@ void mode7renderline(int32 ypos) {
 	if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
       }
     }
-    SDL_BlitSurface(sdl_m7fontbuf, &font_rect, modescreen, &place_rect);
-    SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
+    if(!mode7bank) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
     if (mode7flash) SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
@@ -3760,7 +3761,7 @@ void mode7renderline(int32 ypos) {
 	break;
     }
   }
-  do_sdl_updaterect(screen0, xoffset, topy, 640, M7YPPC);
+  if (echo) do_sdl_updaterect(screen0, xoffset, topy, 640, M7YPPC);
 
   vdu141on=0;
   mode7highbit=0;
