@@ -962,7 +962,7 @@ static void do_getbyte(void) {
 ** the stack. The address of the word to be pushed is byte-aligned
 */
 static void do_getword(void) {
-  int32 offset = 0;
+  int32 offset = 0, msx, msy, loop, val = 0;
   basicvars.current++;		/* Skip '!' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
@@ -972,7 +972,27 @@ static void do_getword(void) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFCu) {
+    /* Mode 7 screen memory */
+    offset -= 0xFFFF7C00u;
+    if (offset >= 1000) {
+      push_int(0);
+    } else {
+      for (loop=3; loop>=0; loop--) {
+	val = val << 8;
+	msy = (offset+loop) / 40;
+	msx = (offset+loop) % 40;
+	if (msy < 25) val += mode7frame[msy][msx];
+      }
+      push_int(val);
+    }
+  } else {
+    push_int(get_integer(offset));
+  }
+#else
   push_int(get_integer(offset));
+#endif
 }
 
 /*
