@@ -46,6 +46,7 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "keyboard-inkey.h"
+#include "mos.h"
 
 #ifdef USE_SDL
 #include "SDL.h"
@@ -501,13 +502,19 @@ static boolean waitkey(int wait) {
 
 #define ESCINT 100
 int escinterval=ESCINT;
+long long int esclast=0;
 
 void checkforescape(void) {
+long long int i;
 #ifdef USE_SDL
   if (basicvars.escape_enabled) {
     if (!escinterval) {
       escinterval=ESCINT;
-      if(emulate_inkey(-113)) basicvars.escape=TRUE;
+      i=mos_centiseconds();
+      if (i > esclast) {
+        esclast=i;
+        if(emulate_inkey(-113)) basicvars.escape=TRUE;
+      }
     } else escinterval--;
   }
 #endif
