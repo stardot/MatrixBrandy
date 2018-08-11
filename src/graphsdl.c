@@ -3205,7 +3205,7 @@ void emulate_mapcolour(int32 colour, int32 physcolour) {
 ** statement
 */
 void emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
-  int32 colnum = emulate_colourfn(red, green, blue);
+  int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
   set_text_colour(background, colnum);
 }
 

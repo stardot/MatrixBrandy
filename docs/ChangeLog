@@ -86,6 +86,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MODE 7 screen memory: An earlier omission meant only the byte pointer
   functions worked, now word pointer functions also work.
 * V1.21.10
-- *REFRESH now only re-enabled upon ESCAPE or an untrappable error condition
-  (ERR=0).
-- GCOL r, g, b now behaves properly when values > 255 supplied.
+- *REFRESH now follows BB4W/BBCSDL behaviour, with extension *REFRESH ONERROR
+  which uses the behaviour from V1.21.9 (disabled, re-enabled on error)
+- COLOUR r,g,b and GCOL r,g,b now behaves properly when values > 255 supplied.
