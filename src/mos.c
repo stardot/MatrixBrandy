@@ -1142,16 +1142,21 @@ void cmd_newmode(char *command) {
 
 void cmd_refresh(char *command) {
 #ifdef USE_SDL
-  int flag=2;
+  int flag=3;
 
   while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
-    star_refresh(2);
+    star_refresh(3);
   } else {
-    if (strcasecmp(command, "on") == 0) flag=1;
-    if (strcasecmp(command, "off") == 0) flag=0;
-    if (flag == 2) {
-      emulate_printf("Syntax: Refresh [<On|Off>]\r\n");
+    if (strcasecmp(command, "onerror") == 0) {
+      flag=2;
+    } else if (strcasecmp(command, "on") == 0) {
+      flag=1;
+    } else if (strcasecmp(command, "off") == 0) {
+      flag=0;
+    }
+    if (flag == 3) {
+      emulate_printf("Syntax: Refresh [<On|Off|OnError>]\r\n");
       return;
     }
     star_refresh(flag);

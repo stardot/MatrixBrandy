@@ -570,11 +570,11 @@ static void reset_mode7() {
 }
 
 static void do_sdl_flip(SDL_Surface *layer) {
-  if (autorefresh) SDL_Flip(layer);
+  if (autorefresh==1) SDL_Flip(layer);
 }
 
 static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
-  if (autorefresh) SDL_UpdateRect(layer, x, y, w, h);
+  if (autorefresh==1) SDL_UpdateRect(layer, x, y, w, h);
 }
 
 static int istextonly(void) {
@@ -4121,8 +4121,12 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, 
 }
 
 void star_refresh(int flag) {
-  if ((flag == 0) || (flag == 1)) {
+  if ((flag == 0) || (flag == 1) || (flag==2)) {
     autorefresh=flag;
   }
   SDL_Flip(screen0);
+}
+
+int get_refreshmode(void) {
+  return autorefresh;
 }
