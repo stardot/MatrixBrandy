@@ -3160,7 +3160,7 @@ void emulate_gcol(int32 action, int32 colour, int32 tint) {
 ** otherwise the foreground colour is altered
 */
 void emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
-  int32 colnum = emulate_colourfn(red, green, blue);
+  int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
   emulate_gcolnum(action, background, colnum);
 }
 
