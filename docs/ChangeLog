@@ -89,3 +89,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - *REFRESH now follows BB4W/BBCSDL behaviour, with extension *REFRESH ONERROR
   which uses the behaviour from V1.21.9 (disabled, re-enabled on error)
 - COLOUR r,g,b and GCOL r,g,b now behaves properly when values > 255 supplied.
+- OSBYTE 42 implemented to allow BASIC and user programs to see "MOS" states.
+  So far only X=1 implemented, to set or get *REFRESH setting. See docs/osbyte
