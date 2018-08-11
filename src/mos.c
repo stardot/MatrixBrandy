@@ -1535,7 +1535,7 @@ int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
 * OSBYTE &27  39
 * OSBYTE &28  40
 * OSBYTE &29  41
-* OSBYTE &2A  42
+* OSBYTE &2A  42 Brandy local - Get/set Brandy settings
 * OSBYTE &2B  43
 * OSBYTE &2C  44
 * OSBYTE &2D  45
@@ -1762,6 +1762,15 @@ switch (areg) {
 		else error(ERR_MOSVERSION);
 		break;
 
+	case 42:		// OSBYTE 42 - local to Brandy
+		if (xreg==1) {	// get/set REFRESH state
+		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x12A);
+		  else {
+		    if (yreg > 2) return;
+		    else star_refresh(yreg);
+		  }
+		}
+		break;
 	case 128:		// OSBYTE 128 - ADVAL
 		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
 
@@ -1786,11 +1795,11 @@ switch (areg) {
 
 	case 160:		// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
-	case 200:		// OSBYTE 200 - bit 1 disables escape
-		if (xreg & 2) {
-		  basicvars.escape_enabled = FALSE;
-		} else {
+	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
+		if (xreg & 1) {
 		  basicvars.escape_enabled = TRUE;
+		} else {
+		  basicvars.escape_enabled = FALSE;
 		}
 		break;
 	case 229:		// OSBYTE 229 - Enable or disable escape
@@ -1802,7 +1811,7 @@ switch (areg) {
 		break;
 
 	}
-if (areg < 128 && areg > 25)
+if (areg != 42 && (areg < 128 && areg > 25))
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return
 else
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return

@@ -1,0 +1,24 @@
+Certain OSBYTE calls are supported by Matrix Brandy, either by
+CALL &FFF4 or result%=USR&FFF4. Use of SYS is NOT supported.
+
+Where a return value is supported, it will be &00YYXXAA.
+
+Supported OSBYTE calls are:
+A=0:
+	X=0: return the MOS version as an error.
+	X=1: Return the OS version in the X register (as per the 'use' doc)
+
+A=42:	(Note: Local to Brandy, OSBYTE 42 is not defined on BBC or RISC OS)
+	X=1: Get or set refresh state (as per *REFRESH)
+		Y=0: Equivalent to *REFRESH OFF
+		Y=1: Equivalent to *REFRESH ON
+		Y=2: Equivalent to *REFRESH ONERROR
+		Y=255: Query the state, will return 0, 1 or 2 in X register.
+
+A=128:	ADVAL
+A=130:	High word of user memory.
+A=131:	Bottom of user memory.
+A=132:	Top of user memory
+A=160:	Read VDU variable (equivalent to VDU(X%))
+A=200:	Set ESCAPE and BREAK effect - only ESCAPE effect supported.
+A=229:	Enable or disable ESCAPE, disabled if X non-zero.
