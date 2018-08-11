@@ -83,5 +83,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Display warnings/help for *NewMode
 - Improve rendering of MODEs 3 and 6.
 - MODE 7 flash now locked to the centisecond timer.
-- MODE 7 screeen memory: An earlier omission meant only the byte pointer
+- MODE 7 screen memory: An earlier omission meant only the byte pointer
   functions worked, now word pointer functions also work.
+* V1.21.10

@@ -692,7 +692,6 @@ void error(int32 errnumber, ...) {
     emulate_printf("Out of range error number %d\r\n", errnumber);
     errnumber = ERR_BROKEN;
   }
-  star_refresh(1);
   basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */
 #ifdef TARGET_MINGW
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
@@ -704,6 +703,7 @@ void error(int32 errnumber, ...) {
   vsprintf(errortext, errortable[errnumber].msgtext, parms);
   va_end(parms);
   basicvars.error_number = errortable[errnumber].equiverror;
+  if ((basicvars.error_number == 0) || (basicvars.error_number == 17)) star_refresh(1);
   if (basicvars.current==NIL)           /* Not running a program */
     basicvars.error_line = 0;
   else {
