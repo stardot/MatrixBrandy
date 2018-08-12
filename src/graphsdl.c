@@ -1378,7 +1378,6 @@ static void write_char(int32 ch) {
   if (xtext > twinright) {
     if (!echo) echo_text();	/* Line is full so flush buffered characters */
     xtext = twinleft;
-      mode7sepgrp=0;
     ytext++;
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
       scroll(SCROLL_UP);	/* So scroll window up */
