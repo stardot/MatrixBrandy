@@ -14,7 +14,8 @@ A=42:	(Note: Local to Brandy, OSBYTE 42 is not defined on BBC or RISC OS)
 		Y=1: Equivalent to *REFRESH ON
 		Y=2: Equivalent to *REFRESH ONERROR
 		Y=255: Query the state, will return 0, 1 or 2 in X register.
-
+	X=255: Analogue of Linux's "stty sane" - enables Refresh, and issues
+	       a VDU 6.
 A=128:	ADVAL
 A=130:	High word of user memory.
 A=131:	Bottom of user memory.

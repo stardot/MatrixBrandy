@@ -1770,6 +1770,10 @@ switch (areg) {
 		    else star_refresh(yreg);
 		  }
 		}
+		if (xreg==255) { // Analogue to 'stty sane'
+		  star_refresh(1);
+		  emulate_vdu(6);
+		}
 		break;
 	case 128:		// OSBYTE 128 - ADVAL
 		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
