@@ -97,6 +97,9 @@ int check_command(char *text);
 
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
+static int osbyte112v = 1;
+static int osbyte113v = 1;
+
 /* =================================================================== */
 /* ======= Emulation functions common to all operating systems ======= */
 /* =================================================================== */
@@ -1775,6 +1778,16 @@ switch (areg) {
 		  emulate_vdu(6);
 		}
 		break;
+	case 112:
+		if (xreg == 0) xreg=1;
+		osbyte112v = xreg;
+		star_refresh(osbyte112v==osbyte113v);
+		break;
+	case 113:
+		if (xreg == 0) xreg=1;
+		osbyte113v = xreg;
+		star_refresh(osbyte112v==osbyte113v);
+		break;
 	case 128:		// OSBYTE 128 - ADVAL
 		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
 
@@ -1815,7 +1828,7 @@ switch (areg) {
 		break;
 
 	}
-if (areg != 42 && (areg < 128 && areg > 25))
+if (areg != 42 && (areg < 112 && areg > 25))
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return
 else
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return

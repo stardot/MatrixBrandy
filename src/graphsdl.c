@@ -4124,7 +4124,7 @@ void star_refresh(int flag) {
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     autorefresh=flag;
   }
-  SDL_Flip(screen0);
+  if (flag & 1) SDL_Flip(screen0);
 }
 
 int get_refreshmode(void) {
