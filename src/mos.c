@@ -1775,6 +1775,8 @@ switch (areg) {
 		}
 		if (xreg==255) { // Analogue to 'stty sane'
 		  star_refresh(1);
+		  osbyte112(1);
+		  osbyte113(1);
 		  emulate_vdu(6);
 		}
 		break;
