@@ -1677,9 +1677,12 @@ static void vdu_cleartext(void) {
       line_rect.w = right - left +1;
       line_rect.h = bottom - top +1;
       SDL_FillRect(modescreen, &line_rect, tb_colour);
+      SDL_FillRect(screen2, &line_rect, tb_colour);
+      SDL_FillRect(screen3, &line_rect, tb_colour);
       blit_scaled(0,0,screenwidth-1,screenheight-1);
     }
     else {	/* Text window is not being used */
+      reset_mode7();
       left = twinleft*mxppc;
       right = twinright*mxppc+mxppc-1;
       top = twintop*myppc;
