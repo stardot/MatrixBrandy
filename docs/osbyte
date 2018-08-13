@@ -14,6 +14,8 @@ A=42:	(Note: Local to Brandy, OSBYTE 42 is not defined on BBC or RISC OS)
 		Y=1: Equivalent to *REFRESH ON
 		Y=2: Equivalent to *REFRESH ONERROR
 		Y=255: Query the state, will return 0, 1 or 2 in X register.
+	X=2: Set the interval for checking ESCAPE, 1 is added.
+	X=3: Set the multiplier for the ESCAPE interval checker, 1 is added.
 	X=255: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
 A=112:	Selects which video bank the VDU drivers access. 4 available.

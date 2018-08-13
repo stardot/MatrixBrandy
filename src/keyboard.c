@@ -55,6 +55,9 @@
 extern void mode7flipbank();
 static int nokeyboard=0;
 
+static int escint=128;
+static int escmul=1;
+
 Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
   SDL_Event event;
@@ -500,8 +503,14 @@ static boolean waitkey(int wait) {
 #endif
 }
 
-#define ESCINT 100
-int escinterval=ESCINT;
+void set_escint(int i) {
+  escint=i+1;
+}
+void set_escmul(int i) {
+  escmul=i+1;
+}
+
+int escinterval=0;
 long long int esclast=0;
 
 void checkforescape(void) {
@@ -509,7 +518,7 @@ long long int i;
 #ifdef USE_SDL
   if (basicvars.escape_enabled) {
     if (!escinterval) {
-      escinterval=ESCINT;
+      escinterval=escint*escmul;
       i=mos_centiseconds();
       if (i > esclast) {
         esclast=i;

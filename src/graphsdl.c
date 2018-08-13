@@ -935,7 +935,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
     SDL_BlitSurface(modescreen, &scale_rect, screenbank[writebank], &scale_rect);
-    if (displaybank == writebank) SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
+    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
   } else {
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
@@ -946,8 +946,10 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 	for (i = left; i <= right; i++) {
           for (ii = 1; ii <= xscale; ii++) {
             *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
-            if (displaybank == writebank) *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
-            xx++;
+            if ((autorefresh==1) && (displaybank == writebank)) {
+	      *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+            }
+	    xx++;
           }
 	}
 	yy++;
@@ -958,7 +960,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left) * xscale;
     scale_rect.h = (bottom+1 - top) * yscale;
   }
-  if (displaybank == writebank) do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+  if ((autorefresh==1) && (displaybank == writebank)) do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -4009,7 +4011,10 @@ void star_refresh(int flag) {
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     autorefresh=flag;
   }
-  if (flag & 1) SDL_Flip(screen0);
+  if (flag & 1) {
+    SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+    SDL_Flip(screen0);
+  }
 }
 
 int get_refreshmode(void) {

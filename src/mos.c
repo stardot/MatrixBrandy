@@ -1773,6 +1773,12 @@ switch (areg) {
 		    else star_refresh(yreg);
 		  }
 		}
+		if (xreg==2) { // Set Escape Check Interval +1
+		  set_escint(yreg);
+		}
+		if (xreg==3) { // Set Escape Check Multiplier +1
+		  set_escmul(yreg);
+		}
 		if (xreg==255) { // Analogue to 'stty sane'
 		  star_refresh(1);
 		  osbyte112(1);
