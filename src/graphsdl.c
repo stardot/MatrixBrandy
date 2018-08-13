@@ -924,11 +924,6 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
-  if (left >= screenwidth || right < 0 || top >= screenheight || bottom < 0) return;	/* Is off screen completely */
-  if (left < 0) left = 0;		/* Clip the rectangle as necessary */
-  if (right >= screenwidth) right = screenwidth-1;
-  if (top < 0) top = 0;
-  if (bottom >= screenheight) bottom = screenheight-1;
   if(!scaled) {
     scale_rect.x = left;
     scale_rect.y = top;
@@ -937,6 +932,11 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     SDL_BlitSurface(modescreen, &scale_rect, screenbank[writebank], &scale_rect);
     if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
   } else {
+    if (left >= screenwidth || right < 0 || top >= screenheight || bottom < 0) return;	/* Is off screen completely */
+    if (left < 0) left = 0;		/* Clip the rectangle as necessary */
+    if (right >= screenwidth) right = screenwidth-1;
+    if (top < 0) top = 0;
+    if (bottom >= screenheight) bottom = screenheight-1;
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
     yy = dtop;
@@ -960,7 +960,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left) * xscale;
     scale_rect.h = (bottom+1 - top) * yscale;
   }
-  if ((autorefresh==1) && (displaybank == writebank)) do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+  if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
