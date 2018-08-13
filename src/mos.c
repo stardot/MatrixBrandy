@@ -1779,14 +1779,10 @@ switch (areg) {
 		}
 		break;
 	case 112:
-		if (xreg == 0) xreg=1;
-		osbyte112v = xreg;
-		star_refresh(osbyte112v==osbyte113v);
+		osbyte112(xreg);
 		break;
 	case 113:
-		if (xreg == 0) xreg=1;
-		osbyte113v = xreg;
-		star_refresh(osbyte112v==osbyte113v);
+		osbyte113(xreg);
 		break;
 	case 128:		// OSBYTE 128 - ADVAL
 		return (mos_adval((yreg << 8) | xreg) << 8) | 128;

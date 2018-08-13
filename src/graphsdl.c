@@ -92,10 +92,15 @@
 **  copying areas of the virtual screen that have changed.
 */
 
+static int displaybank=0;
+static int writebank=0;
+#define MAXBANKS 4
+
 /*
 ** SDL related defines, Variables and params
 */
 static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
+static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
@@ -833,7 +838,7 @@ static void toggle_cursor(void) {
     mxppc=XPPC;
     myppc=YPPC;
   }
-
+  if (displaybank != writebank) return;
   curstate instate=cursorstate;
   if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
   if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
@@ -929,7 +934,8 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.y = top;
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
-    SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
+    SDL_BlitSurface(modescreen, &scale_rect, screenbank[writebank], &scale_rect);
+    if (displaybank == writebank) SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
   } else {
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
@@ -939,7 +945,8 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 	xx = dleft;
 	for (i = left; i <= right; i++) {
           for (ii = 1; ii <= xscale; ii++) {
-            *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+            *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+            if (displaybank == writebank) *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             xx++;
           }
 	}
@@ -951,7 +958,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left) * xscale;
     scale_rect.h = (bottom+1 - top) * yscale;
   }
-  do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+  if (displaybank == writebank) do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -2317,6 +2324,7 @@ static void setup_mode(int32 mode) {
   int32 modecopy;
   Uint32 sx, sy, ox, oy;
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+  int p;
 
   modecopy = mode;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
@@ -2324,6 +2332,7 @@ static void setup_mode(int32 mode) {
   ox=vscrwidth;
   oy=vscrheight;
   /* Try to catch an undefined mode */
+  if (cursorstate == ONSCREEN) toggle_cursor();
   if (modetable[mode].xres == 0) error(ERR_BADMODE);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
@@ -2341,8 +2350,13 @@ static void setup_mode(int32 mode) {
   autorefresh=1;
   vscrwidth = sx;
   vscrheight = sy;
-  SDL_FreeSurface(modescreen);
+  for (p=0; p<4; p++) {
+    SDL_FreeSurface(screenbank[p]);
+    screenbank[p]=SDL_DisplayFormat(screen0);
+  }
   modescreen = SDL_DisplayFormat(screen0);
+  displaybank=0;
+  writebank=0;
   SDL_FreeSurface(screen1);
   screen1 = SDL_DisplayFormat(screen0);
   SDL_FreeSurface(screen2);
@@ -3249,6 +3263,7 @@ void emulate_origin(int32 x, int32 y) {
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *v5fontbuf, *m7fontbuf;
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+  int p;
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
     fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
@@ -3260,8 +3275,14 @@ boolean init_screen(void) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;
   }
-  screen1 = SDL_DisplayFormat(screen0);
+  for (p=0; p<4; p++) {
+    SDL_FreeSurface(screenbank[p]);
+    screenbank[p]=SDL_DisplayFormat(screen0);
+  }
   modescreen = SDL_DisplayFormat(screen0);
+  displaybank=0;
+  writebank=0;
+  screen1 = SDL_DisplayFormat(screen0);
   screen2 = SDL_DisplayFormat(screen0);
   screen2A = SDL_DisplayFormat(screen0);
   screen3 = SDL_DisplayFormat(screen0);
@@ -3990,4 +4011,20 @@ void star_refresh(int flag) {
 
 int get_refreshmode(void) {
   return autorefresh;
+}
+
+void osbyte112(int x) {
+  /* OSBYTE 112 selects which bank of video memory is to be written to */
+  if (screenmode == 7) return;
+  if (x==0) x=1;
+  if (x <= MAXBANKS) writebank=(x-1);
+}
+
+void osbyte113(int x) {
+  /* OSBYTE 113 selects which bank of video memory is to be displayed */
+  if (screenmode == 7) return;
+  if (x==0) x=1;
+  if (x <= MAXBANKS) displaybank=(x-1);
+  SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+  SDL_Flip(screen0);
 }
