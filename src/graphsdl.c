@@ -924,25 +924,33 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   if (right >= screenwidth) right = screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= screenheight) bottom = screenheight-1;
-  dleft = left*xscale;			/* Calculate pixel coordinates in the */
-  dtop  = top*yscale;			/* screen buffer of the rectangle */
-  yy = dtop;
-  for (j = top; j <= bottom; j++) {
-    for (jj = 1; jj <= yscale; jj++) {
-      xx = dleft;
-      for (i = left; i <= right; i++) {
-        for (ii = 1; ii <= xscale; ii++) {
-          *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
-          xx++;
-        }
-      }
-      yy++;
-    } 
+  if(!scaled) {
+    scale_rect.x = left;
+    scale_rect.y = top;
+    scale_rect.w = (right+1 - left);
+    scale_rect.h = (bottom+1 - top);
+    SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
+  } else {
+    dleft = left*xscale;			/* Calculate pixel coordinates in the */
+    dtop  = top*yscale;			/* screen buffer of the rectangle */
+    yy = dtop;
+    for (j = top; j <= bottom; j++) {
+      for (jj = 1; jj <= yscale; jj++) {
+	xx = dleft;
+	for (i = left; i <= right; i++) {
+          for (ii = 1; ii <= xscale; ii++) {
+            *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+            xx++;
+          }
+	}
+	yy++;
+      } 
+    }
+    scale_rect.x = dleft;
+    scale_rect.y = dtop;
+    scale_rect.w = (right+1 - left) * xscale;
+    scale_rect.h = (bottom+1 - top) * yscale;
   }
-  scale_rect.x = dleft;
-  scale_rect.y = dtop;
-  scale_rect.w = (right+1 - left) * xscale;
-  scale_rect.h = (bottom+1 - top) * yscale;
   do_sdl_updaterect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
@@ -1269,12 +1277,10 @@ static void scroll(updown direction) {
     SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
     SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
   }
-  if (scaled) {
+  if (screenmode == 7) {
+    if (mode7bitmapupdate) SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
+  } else {
     blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
-  } else { 	/* Scrolling the entire screen */
-    if (screenmode != 7 || mode7bitmapupdate) {
-      SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
-    }
   }
   do_sdl_flip(screen0);
 }
@@ -1299,21 +1305,7 @@ static void echo_text(void) {
     do_sdl_flip(screen0);
     return;
   }
-  if (scaled)
     blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
-  else {
-    sy = ytext*YPPC;
-    ex = xtext*XPPC-1;
-    ey = sy+YPPC-1;
-    line_rect.x = 0;
-    line_rect.y = ytext*YPPC;
-    line_rect.w = xtext*XPPC;
-    line_rect.h = YPPC;
-    scroll_rect.x = 0;
-    scroll_rect.y = ytext*YPPC;
-    SDL_BlitSurface(modescreen, &line_rect, screen0, &scroll_rect);
-    do_sdl_updaterect(screen0, 0, ytext*YPPC, xtext*XPPC, YPPC);
-  }
 }
 
 void mode7flipbank() {
@@ -1368,11 +1360,7 @@ static void write_char(int32 ch) {
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
   if (echo) {
-    if (!scaled) {
-      SDL_BlitSurface(sdl_fontbuf, &font_rect, screen0, &place_rect);
-      do_sdl_updaterect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
-    }
-    else blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
+    blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
   xtext++;
   if (xtext > twinright) {
@@ -1415,11 +1403,7 @@ static void plot_char(int32 ch) {
     }
   }
   SDL_BlitSurface(sdl_v5fontbuf, &font_rect, modescreen, &place_rect);
-  if (!scaled) {
-    SDL_BlitSurface(sdl_v5fontbuf, &font_rect, screen0, &place_rect);
-    do_sdl_updaterect(screen0, place_rect.x, place_rect.y, XPPC, YPPC);
-  }
-  else blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
+  blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
   xlast += XPPC*xgupp;	/* Move to next character position in X direction */
@@ -1676,61 +1660,27 @@ static void vdu_cleartext(void) {
   }
   if (graphmode == FULLSCREEN) {
     if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
-    if (scaled) {	/* Using a screen mode that has to be scaled when displayed */
-      if (textwin) {	/* Text window defined that does not occupy the whole screen */
-        left = twinleft*mxppc;
-        right = twinright*mxppc+mxppc-1;
-        top = twintop*myppc;
-        bottom = twinbottom*myppc+myppc-1;
-        line_rect.x = left;
-        line_rect.y = top;
-        line_rect.w = right - left +1;
-        line_rect.h = bottom - top +1;
-        SDL_FillRect(modescreen, &line_rect, tb_colour);
-        blit_scaled(0,0,screenwidth-1,screenheight-1);
-      }
-      else {	/* Text window is not being used */
-	left = twinleft*mxppc;
-	right = twinright*mxppc+mxppc-1;
-	top = twintop*myppc;
-	bottom = twinbottom*myppc+myppc-1;
-	SDL_FillRect(modescreen, NULL, tb_colour);
-	blit_scaled(left, top, right, bottom);
-	SDL_FillRect(screen2, NULL, tb_colour);
-	SDL_FillRect(screen3, NULL, tb_colour);
-	xtext = twinleft;
-	ytext = twintop;
-	if (cursorstate==SUSPENDED) toggle_cursor();	/* Redraw cursor */
-	}
+    if (textwin) {	/* Text window defined that does not occupy the whole screen */
+      left = twinleft*mxppc;
+      right = twinright*mxppc+mxppc-1;
+      top = twintop*myppc;
+      bottom = twinbottom*myppc+myppc-1;
+      line_rect.x = left;
+      line_rect.y = top;
+      line_rect.w = right - left +1;
+      line_rect.h = bottom - top +1;
+      SDL_FillRect(modescreen, &line_rect, tb_colour);
+      blit_scaled(0,0,screenwidth-1,screenheight-1);
     }
-    else {	/* Screen is not scaled */
-      if (textwin) {	/* Text window defined that does not occupy the whole screen */
-        left = twinleft*mxppc;
-        right = twinright*mxppc+mxppc-1;
-        top = twintop*myppc;
-        bottom = twinbottom*myppc+myppc-1;
-        line_rect.x = left;
-        line_rect.y = top;
-        line_rect.w = right - left +1;
-        line_rect.h = bottom - top +1;
-        SDL_FillRect(modescreen, &line_rect, tb_colour);
-	SDL_FillRect(screen0, &line_rect, tb_colour);
-	SDL_FillRect(screen2, &line_rect, tb_colour);
-	SDL_FillRect(screen3, &line_rect, tb_colour);
-        if (screenmode == 7) {
-	  SDL_FillRect(screen2, &line_rect, tb_colour);
-	  SDL_FillRect(screen3, &line_rect, tb_colour);
-	  for (m=twintop; m<=twinbottom; m++)
-	    for (n=twinleft; n<=twinright; n++) mode7frame[m][n]=32;
-        }
-      }
-      else {	/* Text window is not being used */
-	reset_mode7();
-        SDL_FillRect(modescreen, NULL, tb_colour);
-        SDL_FillRect(screen0, NULL, tb_colour);
-        SDL_FillRect(screen2, NULL, tb_colour);
-        SDL_FillRect(screen3, NULL, tb_colour);
-      }
+    else {	/* Text window is not being used */
+      left = twinleft*mxppc;
+      right = twinright*mxppc+mxppc-1;
+      top = twintop*myppc;
+      bottom = twinbottom*myppc+myppc-1;
+      SDL_FillRect(modescreen, NULL, tb_colour);
+      blit_scaled(left, top, right, bottom);
+      SDL_FillRect(screen2, NULL, tb_colour);
+      SDL_FillRect(screen3, NULL, tb_colour);
       xtext = twinleft;
       ytext = twintop;
       if (cursorstate==SUSPENDED) toggle_cursor();	/* Redraw cursor */
@@ -1792,11 +1742,7 @@ static void vdu_cleargraph(void) {
   if (graphmode == TEXTMODE) switch_graphics();
   if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor */
   SDL_FillRect(modescreen, NULL, gb_colour);
-  if (!scaled)
-    SDL_FillRect(screen0, NULL, gb_colour);
-  else {
-    blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
-  }
+  blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
   if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
   do_sdl_flip(screen0);
 }
@@ -2633,18 +2579,9 @@ static void flood_fill(int32 x, int y, int colour) {
     if (lleft < left) left = lleft;
     if (lright > right) right = lright;
   } while (sp != 0);
-  if (!scaled) {
-    plot_rect.x = left;
-    plot_rect.y = top;
-    plot_rect.w = right - left +1;
-    plot_rect.h = bottom - top +1;
-    SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-  }
-  else {
     if (cursorstate == ONSCREEN) toggle_cursor();
     blit_scaled(left, top, right, bottom);
     if (cursorstate == SUSPENDED) toggle_cursor();
-  }
 }
 
 /*
@@ -2709,36 +2646,17 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
     draw_line(modescreen, sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK));
-    if (!scaled) {
-      plot_rect.x = left;
-      plot_rect.y = top;
-      plot_rect.w = sx + ex - 2*left +1;
-      plot_rect.h = sy + ey - 2*top +1;
-      SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-    }
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      blit_scaled(left, top, sx+ex-left, sy+ey-top);
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    blit_scaled(left, top, sx+ex-left, sy+ey-top);
+    if (cursorstate == SUSPENDED) toggle_cursor();
     break;
   }
   case PLOT_POINT:	/* Plot a single point */
-    if (!scaled) {
-      plot_rect.x = ex; /* we need to set this for the UpdateRect */
-      plot_rect.y = ey;
-      plot_rect.w = 1;
-      plot_rect.h = 1;
-      if ((ex < 0) || (ex >= (screenwidth)) || (ey < 0) || (ey >= (screenheight))) break;
-      *((Uint32*)screen0->pixels + ex + ey*vscrwidth) = colour;
-    }
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      if ((ex < 0) || (ex >= screenwidth) || (ey < 0) || (ey >= screenheight)) break;
-      *((Uint32*)modescreen->pixels + ex + ey*vscrwidth) = colour;
-      blit_scaled(ex, ey, ex, ey);
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    if ((ex < 0) || (ex >= screenwidth) || (ey < 0) || (ey >= screenheight)) break;
+    *((Uint32*)modescreen->pixels + ex + ey*vscrwidth) = colour;
+    blit_scaled(ex, ey, ex, ey);
+    if (cursorstate == SUSPENDED) toggle_cursor();
     break;
   case FILL_TRIANGLE: {		/* Plot a filled triangle */
     int32 left, right, top, bottom;
@@ -2754,18 +2672,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast > top) top = ylast;
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
-    if (!scaled) {
-      plot_rect.x = GXTOPX(left);
-      plot_rect.y = GYTOPY(top);
-      plot_rect.w = GXTOPX(right) - GXTOPX(left) +1;
-      plot_rect.h = GYTOPY(bottom) - GYTOPY(top) +1;
-      SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-    }
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
+    if (cursorstate == SUSPENDED) toggle_cursor();
     break;
   }
   case FILL_RECTANGLE: {		/* Plot a filled rectangle */
@@ -2783,13 +2692,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
     SDL_FillRect(modescreen, &plot_rect, colour);
-    if (!scaled)
-      SDL_FillRect(screen0, &plot_rect, colour);
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      blit_scaled(left, top, right, bottom);
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    blit_scaled(left, top, right, bottom);
+    if (cursorstate == SUSPENDED) toggle_cursor();
     break;
   }
   case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
@@ -2813,18 +2718,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
     if (vy < bottom) bottom = vy;
-    if (!scaled) {
-      plot_rect.x = GXTOPX(left);
-      plot_rect.y = GYTOPY(top);
-      plot_rect.w = GXTOPX(right) - GXTOPX(left) +1;
-      plot_rect.h = GYTOPY(bottom) - GYTOPY(top) +1;
-      SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-    }
-    else {
-      if (cursorstate==ONSCREEN) toggle_cursor();
-      blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
-      if (cursorstate==SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate==ONSCREEN) toggle_cursor();
+    blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
+    if (cursorstate==SUSPENDED) toggle_cursor();
     break;
   }
   case FLOOD_BACKGROUND:	/* Flood fill background with graphics foreground colour */
@@ -2851,18 +2747,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     ex = sx-xradius;
     ey = sy-yradius;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    if (!scaled) {
-      plot_rect.x = ex;
-      plot_rect.y = ey;
-      plot_rect.w = 2*xradius +1; /* Add one to fix rounding errors */
-      plot_rect.h = 2*yradius +1;
-      SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-    }
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
+    if (cursorstate == SUSPENDED) toggle_cursor();
     break;
   }
   case SHIFT_RECTANGLE: {	/* Move or copy a rectangle */
@@ -2893,13 +2780,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     temp_rect.h = plot_rect.h = bottom - top +1;
     SDL_BlitSurface(modescreen, &temp_rect, screen1, &plot_rect); /* copy to temp buffer */
     SDL_BlitSurface(screen1, &plot_rect, modescreen, &plot_rect);
-    if (!scaled)
-      SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
+    if (cursorstate == SUSPENDED) toggle_cursor();
     if (code == MOVE_RECTANGLE) {	/* Move rectangle - Set original rectangle to the background colour */
       int32 destright, destbot;
       destright = destleft+right-left;
@@ -2982,18 +2865,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
         plot_rect.h = bottom - top +1;
         SDL_FillRect(modescreen, &plot_rect, gb_colour);
       }
-      if (!scaled) {
-        plot_rect.x = left;
-        plot_rect.y = top;
-        plot_rect.w = right - left +1;
-        plot_rect.h = bottom - top +1;
-        SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-      }
-      else {
-        if (cursorstate == ONSCREEN) toggle_cursor();
-        blit_scaled(left, top, right, bottom);
-        if (cursorstate == SUSPENDED) toggle_cursor();
-      }
+      if (cursorstate == ONSCREEN) toggle_cursor();
+      blit_scaled(left, top, right, bottom);
+      if (cursorstate == SUSPENDED) toggle_cursor();
     }
     break;
   }
@@ -3017,25 +2891,13 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     ex = sx-semimajor;
     ey = sy-semiminor;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    if (!scaled) {
-      plot_rect.x = ex;
-      plot_rect.y = ey;
-      plot_rect.w = 2*semimajor;
-      plot_rect.h = 2*semiminor;
-      SDL_BlitSurface(modescreen, &plot_rect, screen0, &plot_rect);
-    }
-    else {
-      if (cursorstate == ONSCREEN) toggle_cursor();
-      blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
-      if (cursorstate == SUSPENDED) toggle_cursor();
-    }
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
+    if (cursorstate == SUSPENDED) toggle_cursor();
     break;
   }
   //default:
     //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
-  }
-  if ((plot_rect.x >= 0) && (plot_rect.x <= screenwidth) && (plot_rect.y >= 0) && (plot_rect.y <= screenheight)) {
-    if (!scaled) do_sdl_updaterect(screen0, plot_rect.x, plot_rect.y, plot_rect.w, plot_rect.h);
   }
 }
 
