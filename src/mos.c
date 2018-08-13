@@ -1769,7 +1769,7 @@ switch (areg) {
 		if (xreg==1) {	// get/set REFRESH state
 		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x12A);
 		  else {
-		    if (yreg > 2) return;
+		    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
 		    else star_refresh(yreg);
 		  }
 		}
