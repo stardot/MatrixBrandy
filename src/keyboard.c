@@ -945,8 +945,8 @@ int32 emulate_get(void) {
 }
 
 /*
-** 'emulate_inkey' emulates the Basic function 'inkey'. Only the 'timed wait'
-** and 'OS version' flavours of the function are supported.
+** 'emulate_inkey' emulates the Basic function 'inkey'. Only the 'timed wait',
+** individual key scan and 'OS version' flavours of the function are supported.
 ** Note that the behaviour of the RISC OS version of INKEY with a +ve argument
 ** appears to be undefined if the wait exceeds 32767 centiseconds.
 */

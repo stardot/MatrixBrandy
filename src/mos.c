@@ -1536,9 +1536,9 @@ int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
 * OSBYTE &25  37
 * OSBYTE &26  38
 * OSBYTE &27  39
-* OSBYTE &28  40
-* OSBYTE &29  41
-* OSBYTE &2A  42 Brandy local - Get/set Brandy settings
+* OSBYTE &28  40 Brandy local - set ESCAPE polling interval; 0 resets defaults.
+* OSBYTE &29  41 Brandy local - set ESCAPE polling interval, multiplied by 256.
+* OSBYTE &2A  42 Brandy local - Get/set *REFRESH state
 * OSBYTE &2B  43
 * OSBYTE &2C  44
 * OSBYTE &2D  45
@@ -1799,8 +1799,13 @@ switch (areg) {
 	case 128:		// OSBYTE 128 - ADVAL
 		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
 
-//	case 129:		// OSBYTE 129 - INKEY
-
+	case 129:		// OSBYTE 129 - INKEY
+		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
+		if ((yreg=255) && (xreg >= 128)) {
+		  if (emulate_inkey(xreg + 0xFFFFFF00)) return (0xFFFF81);
+		    else return (0x81);
+		}
+		break;
 	case 130:		// OSBYTE 130 - High word of user memory
 		areg = basicvars.workspace - basicvars.offbase;
 		return ((areg & 0xFFFF0000) >> 8) | 130;

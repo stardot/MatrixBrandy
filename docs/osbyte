@@ -19,6 +19,7 @@ A=42:	[Brandy only] Get or set *REFRESH state
 	       VDU 6 and sets both video bank controls to 0.
 A=112:	Selects which video bank the VDU drivers access. 4 available.
 A=113:	Selects which video bank is drawn to the display window.
+A=129:  INKEY. As with BASIC INKEY, scanning for range of keys not supported.
 A=130:	High word of user memory.
 A=131:	Bottom of user memory.
 A=132:	Top of user memory
