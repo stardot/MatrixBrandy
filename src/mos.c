@@ -1764,20 +1764,24 @@ switch (areg) {
 		if (xreg!=0) return MACTYPE;
 		else error(ERR_MOSVERSION);
 		break;
-
+	case 40:
+		set_escint(xreg);
+		break;
+	case 41:
+		set_escmul(xreg);
+		break;
 	case 42:		// OSBYTE 42 - local to Brandy
-		if (xreg==1) {	// get/set REFRESH state
-		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x12A);
-		  else {
-		    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
-		    else star_refresh(yreg);
-		  }
+		if (xreg==0) {	// get/set REFRESH state
+		  return ((get_refreshmode() << 8) + 0x2A);
 		}
-		if (xreg==2) { // Set Escape Check Interval +1
-		  set_escint(yreg);
+		if (xreg==1) {
+		  star_refresh(0);
 		}
-		if (xreg==3) { // Set Escape Check Multiplier +1
-		  set_escmul(yreg);
+		if (xreg==2) {
+		  star_refresh(1);
+		}
+		if (xreg==3) {
+		  star_refresh(2);
 		}
 		if (xreg==255) { // Analogue to 'stty sane'
 		  star_refresh(1);
@@ -1816,6 +1820,27 @@ switch (areg) {
 
 	case 160:		// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
+	case 163:		// OSBYTE 163 - Application Support.
+		if (xreg==1) {	// get/set REFRESH state
+		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
+		  else {
+		    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
+		    else star_refresh(yreg);
+		  }
+		}
+		if (xreg==2) { // Set Escape Check Interval, 0 resets defaults
+		  set_escint(yreg);
+		}
+		if (xreg==3) { // Set Escape Check Interval, multiplied by 256.
+		  set_escmul(yreg);
+		}
+		if (xreg==127) { // Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
+		  star_refresh(1);
+		  osbyte112(1);
+		  osbyte113(1);
+		  emulate_vdu(6);
+		}
+		break;
 	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
 		if (xreg & 1) {
 		  basicvars.escape_enabled = TRUE;
@@ -1832,9 +1857,9 @@ switch (areg) {
 		break;
 
 	}
-if (areg != 42 && (areg < 112 && areg > 25))
-	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return
-else
+if (areg <= 25 || (areg >= 40 && areg <= 42) || areg >= 112) 
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
+else
+	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return
 }
 #endif

@@ -504,10 +504,13 @@ static boolean waitkey(int wait) {
 }
 
 void set_escint(int i) {
-  escint=i+1;
+  if (i==0) {
+    escint=128;
+    escmul=0;
+  } else escint=i;
 }
 void set_escmul(int i) {
-  escmul=i+1;
+  escmul=i<<8;
 }
 
 int escinterval=0;
@@ -518,7 +521,7 @@ long long int i;
 #ifdef USE_SDL
   if (basicvars.escape_enabled) {
     if (!escinterval) {
-      escinterval=escint*escmul;
+      escinterval=escint+escmul;
       i=mos_centiseconds();
       if (i > esclast) {
         esclast=i;
