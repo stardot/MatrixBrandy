@@ -26,7 +26,7 @@
 */
 
 #define BRANDY_VERSION "1.21.9"
-#define BRANDY_DATE    "10-Aug-2018"
+#define BRANDY_DATE    "10 Aug 2018"
 
 #ifndef __target_h
 #define __target_h
@@ -149,7 +149,8 @@ typedef double float64;			/* Type for 64-bit floating point variables in Basic *
 ** is the minimum it can be changed to.
 */
 
-#define DEFAULTSIZE (512*1024)
+//#define DEFAULTSIZE (512*1024)
+#define DEFAULTSIZE 651516
 #define MINSIZE (10*1024)
 
 /*

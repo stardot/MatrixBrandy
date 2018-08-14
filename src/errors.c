@@ -495,7 +495,7 @@ static detail errortable [] = {
   {NONFATAL, NOPARM, 250, "Key in use"},
   {NONFATAL, NOPARM, 249, "No language"},
   {NONFATAL, NOPARM, 248, "Bad filing system"},
-  {NONFATAL, NOPARM, 247, "MOS x.yz"},
+  {NONFATAL, NOPARM, 247, "Matrix Brandy MOS V" BRANDY_VERSION " (" BRANDY_DATE ")"},
   {NONFATAL, STRING, 220, "Syntax: %s"},
 //
 // Network errors
@@ -703,7 +703,7 @@ void error(int32 errnumber, ...) {
   vsprintf(errortext, errortable[errnumber].msgtext, parms);
   va_end(parms);
   basicvars.error_number = errortable[errnumber].equiverror;
-  if (2 == get_refreshmode()) star_refresh(1);
+  if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
   if (basicvars.current==NIL)           /* Not running a program */
     basicvars.error_line = 0;
   else {
