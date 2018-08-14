@@ -951,8 +951,6 @@ int32 emulate_get(void) {
 ** appears to be undefined if the wait exceeds 32767 centiseconds.
 */
 
-int32 keydown=0;
-
 int32 emulate_inkey(int32 arg) {
   mode7flipbank();
   if (arg >= 0) {       /* Timed wait for a key to be hit */
