@@ -4066,6 +4066,14 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
    emulate_printf("Warning: *NewMode can only define modes with 2, 4, 16 or 256 colours.\r\n");
    return;
  }
+ if ((mxscale==0) || (myscale==0)) {
+   emulate_printf("Warning: pixel scaling can't be zero.\r\n");
+   return;
+ }
+ if ((xres < 8) || (yres < 8)) {
+   emulate_printf("Warning: Display size can't be smaller than 8x8 pixels.\r\n");
+   return;
+ }
  modetable[mode].xres = xres;
  modetable[mode].yres = yres;
  modetable[mode].coldepth = cols;
