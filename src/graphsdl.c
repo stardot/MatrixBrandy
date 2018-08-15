@@ -210,7 +210,8 @@ static graphics graphmode;	/* Says whether graphics are possible or not */
 ** Built-in ISO Latin-1 font for graphics mode. The first character
 ** in the table is a blank.
 */
-static byte sysfont [224][8] = {
+static byte sysfont[224][8];
+static byte sysfontbase [224][8] = {
 /*   */  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
 /* ! */  {0x18u, 0x18u, 0x18u, 0x18u, 0x18u, 0u, 0x18u, 0u},
 /* " */  {0x6cu, 0x6cu, 0x6cu, 0u, 0u, 0u, 0u, 0u},
@@ -571,6 +572,24 @@ static void reset_mode7() {
   for(p=0;p<26;p++) vdu141track[p]=0;
   for (p=0; p<25; p++) {
     for (q=0; q<40; q++) mode7frame[p][q]=32;
+  }
+}
+
+void reset_sysfont(int x) {
+  int p, c, i;
+
+  if (!x) {
+    memcpy(sysfont, sysfontbase, sizeof(sysfont));
+    return;
+  }
+  if ((x>=1) && (x<= 7)) {
+    p=(x-1)*32;
+    for (c=0; c<= 31; c++) 
+      for (i=0; i<= 7; i++) sysfont[p+c][i]=sysfontbase[p+c][i];
+  }
+  if (x ==8){
+    for (c=0; c<=95; c++)
+      for (i=0; i<= 7; i++) sysfont[c][i]=sysfontbase[c][i];
   }
 }
 
@@ -3275,6 +3294,7 @@ boolean init_screen(void) {
     return FALSE;
   }
 
+  reset_sysfont(0);
   screen0 = SDL_SetVideoMode(640, 512, 32, flags); /* MODE 0 */
   if (!screen0) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());

@@ -10,5 +10,6 @@ extern void star_refresh(int flag);
 extern int get_refreshmode(void);
 extern void osbyte112(int x);
 extern void osbyte113(int x);
+extern void reset_sysfont(int x);
 
 #endif

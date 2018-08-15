@@ -1764,6 +1764,17 @@ switch (areg) {
 		if (xreg!=0) return MACTYPE;
 		else error(ERR_MOSVERSION);
 		break;
+	case 20:
+		reset_sysfont(8);
+		return 0x030114;
+	case 25:
+		if ((xreg >= 0) && (xreg <= 7)) {
+		  reset_sysfont(xreg);
+		  return(0x19);
+		} else {
+		  return(0x19 + (xreg << 8));
+		}
+		break;
 	case 40:
 		set_escint(xreg);
 		break;
