@@ -89,8 +89,11 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - *REFRESH now follows BB4W/BBCSDL behaviour, with extension *REFRESH ONERROR
   which uses the behaviour from V1.21.9 (disabled, re-enabled on error)
 - COLOUR r,g,b and GCOL r,g,b now behaves properly when values > 255 supplied.
-- OSBYTE 42 implemented to allow BASIC and user programs to see "MOS" states.
-  So far only X=1 implemented, to set or get *REFRESH setting. See docs/osbyte
+- OSBYTE 42 implemented to allow BASIC and user programs to get and set REFRESH
+  state, allowing access while maintaining logical separation of language and
+  MOS.
+- OSBYTEs 40 and 41 implmented for fine-tuning the ESCAPE polling.
+  OSBYTE 40 with X=0 resets to default.
 - Screen banks enabled, set at compile time (default is 4). Use with OSBYTE
   112 and 113. Not enabled for MODE 7.
 - OSBYTEs 20 and 25 implemented for resetting the system font.
