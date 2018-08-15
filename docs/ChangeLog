@@ -93,3 +93,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   So far only X=1 implemented, to set or get *REFRESH setting. See docs/osbyte
 - Screen banks enabled, set at compile time (default is 4). Use with OSBYTE
   112 and 113. Not enabled for MODE 7.
+- OSBYTEs 20 and 25 implemented for resetting the system font.
+- BB4W/BBCSDL's VDU23,22 implemented to a degree.

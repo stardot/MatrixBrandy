@@ -794,6 +794,38 @@ static void vdu_2318(void) {
   mode7renderscreen();
 }
 
+/* BB4W/BBCSDL - Define and select custom mode */
+/* Implementation not likely to be exact, char width and height are fixed in Brandy so are /8 to generate xscale and yscale */
+static void set_text_colour(boolean background, int colnum);
+static void set_graphics_colour(boolean background, int colnum);
+static void vdu_2322(void) {
+  int32 mwidth, mheight, xscale, yscale, cols, charset;
+  
+  mwidth=(vduqueue[1] + (vduqueue[2]<<8));
+  mheight=(vduqueue[3] + (vduqueue[4]<<8));
+  xscale=vduqueue[5]/8;
+  yscale=vduqueue[6]/8;
+  cols=vduqueue[7];
+  charset=vduqueue[8];
+  if ((cols != 0) && (cols != 2) && (cols != 4) && (cols != 16)) return; /* Invalid colours, do nothing */
+  if (0 == cols) cols=256;
+  if (0 == xscale) xscale=1;
+  if (0 == yscale) yscale=1;
+  setupnewmode(126,mwidth/xscale,mheight/yscale,cols,xscale,yscale);
+  emulate_mode(126);
+  if (charset & 0x80) {
+    text_physforecol = text_forecol = 0;
+    if(cols==256) {
+      text_backcol = 63;
+      text_physbackcol = (text_backcol << COL256SHIFT)+text_foretint;
+    } else {
+      text_physbackcol = text_backcol = 63 & colourmask;
+    }
+    set_rgb();
+    vdu_cleartext();
+  }
+}
+
 /*
 ** 'vdu_23command' emulates some of the VDU 23 command sequences
 */
@@ -832,6 +864,10 @@ static void vdu_23command(void) {
     break;
   case 18:	/* RISC OS 5 set Teletext characteristics */
     vdu_2318();
+    break;
+  case 22:	/* BB4W/BBCSDL Custom Mode */
+    vdu_2322();
+    break;
   default:
     codeval = vduqueue[0] & 0x00FF;
     if (codeval < 32 ) break;   /* Ignore unhandled commands */
