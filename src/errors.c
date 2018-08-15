@@ -688,6 +688,7 @@ static void handle_error(errortype severity) {
 void error(int32 errnumber, ...) {
   va_list parms;
   byte *badline;
+  hide_cursor();
   if (errnumber<1 || errnumber>HIGHERROR) {
     emulate_printf("Out of range error number %d\r\n", errnumber);
     errnumber = ERR_BROKEN;

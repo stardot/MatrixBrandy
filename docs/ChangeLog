@@ -95,3 +95,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   112 and 113. Not enabled for MODE 7.
 - OSBYTEs 20 and 25 implemented for resetting the system font.
 - BB4W/BBCSDL's VDU23,22 implemented to a degree.
+- MODEs 3 and 6 now have black bars when background colour used.

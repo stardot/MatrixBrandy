@@ -835,9 +835,7 @@ static void vdu_23command(void) {
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
       if (vduqueue[2] == 32) {
-	if (graphmode == FULLSCREEN) {
-          if (cursorstate == ONSCREEN) toggle_cursor();
-	}
+	if (graphmode == FULLSCREEN) hide_cursor();
         cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
       } else if (vduqueue[2] == 114) {
         cursorstate = SUSPENDED;
@@ -849,7 +847,7 @@ static void vdu_23command(void) {
   case 1:	/* Control the appear of the text cursor */
     if (graphmode == FULLSCREEN) {
       if (vduqueue[1] == 0) {
-        if (cursorstate == ONSCREEN) toggle_cursor();
+        hide_cursor();
         cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
       }
       if (vduqueue[1] == 1 && cursorstate != NOCURSOR) cursorstate = ONSCREEN;
@@ -874,6 +872,14 @@ static void vdu_23command(void) {
     /* codes 32 to 255 are user-defined character setup commands */
     for (n=0; n < 8; n++) sysfont[codeval-32][n] = vduqueue[n+1];
   }
+}
+
+void hide_cursor() {
+  if (cursorstate == ONSCREEN) toggle_cursor();
+}
+
+void reveal_cursor() {
+  if (cursorstate==SUSPENDED) toggle_cursor();
 }
 
 /*
@@ -1017,7 +1023,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   }
   if ((screenmode == 3) || (screenmode == 6)) {
     int p;
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     scroll_rect.x=0;
     scroll_rect.w=screenwidth*xscale;
     scroll_rect.h=4;
@@ -1386,7 +1392,7 @@ static void echo_text(void) {
 void mode7flipbank() {
   if (screenmode == 7) {
     if ((mode7timer - mos_centiseconds()) <= 0) {
-      if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
+      hide_cursor();
       if (!mode7bitmapupdate) mode7renderscreen();
       if (mode7bank) {
 	SDL_BlitSurface(screen2, NULL, screen0, NULL);
@@ -1398,7 +1404,7 @@ void mode7flipbank() {
 	mode7timer=mos_centiseconds() + 33;
       }
       do_sdl_updaterect(screen0, 0, 0, 0, 0);
-      toggle_cursor();
+      reveal_cursor();
     }
   }
 }
@@ -1496,11 +1502,11 @@ static void plot_char(int32 ch) {
 void echo_on(void) {
   echo = TRUE;
   if (graphmode == FULLSCREEN) {
-    echo_text();			/* Flush what is in the graphics buffer */
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Display cursor again */
+    echo_text();	/* Flush what is in the graphics buffer */
+    reveal_cursor();	/* Display cursor again */
   }
   else {
-    echo_ttext();			/* Flush what is in the text buffer */
+    echo_ttext();	/* Flush what is in the text buffer */
   }
 }
 
@@ -1511,9 +1517,7 @@ void echo_on(void) {
 */
 void echo_off(void) {
   echo = FALSE;
-  if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove the cursor if it is being displayed */
-  }
+  if (graphmode == FULLSCREEN) hide_cursor();	/* Remove the cursor if it is being displayed */
 }
 
 /*
@@ -1526,10 +1530,10 @@ void echo_off(void) {
 */
 static void move_cursor(int32 column, int32 row) {
   if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if in graphics mode */
+    hide_cursor();	/* Remove cursor if in graphics mode */
     xtext = column;
     ytext = row;
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor if in graphics mode */
+    reveal_cursor();	/* Redraw cursor if in graphics mode */
   }
   else {
     toggle_tcursor();
@@ -1546,9 +1550,9 @@ static void move_cursor(int32 column, int32 row) {
 ** 'overwrite'.
 */
 void set_cursor(boolean underline) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove old style cursor */
+    hide_cursor();	/* Remove old style cursor */
     cursmode = underline ? UNDERLINE : BLOCK;
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Draw new style cursor */
+    reveal_cursor();	/* Draw new style cursor */
 }
 
 /*
@@ -1618,13 +1622,13 @@ static void move_curback(void) {
     }
   }
   else if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor */
+    hide_cursor();	/* Remove cursor */
     xtext--;
     if (xtext < twinleft) {	/* Cursor is at left-hand edge of text window so move up a line */
       xtext = twinright;
       move_up();
     }
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
+    reveal_cursor();	/* Redraw cursor */
   }
   else {	/* Writing to the text screen */
     toggle_tcursor();
@@ -1654,13 +1658,13 @@ static void move_curforward(void) {
     }
   }
   else if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor */
+    hide_cursor();	/* Remove cursor */
     xtext++;
     if (xtext > twinright) {	/* Cursor is at right-hand edge of text window so move down a line */
       xtext = twinleft;
       move_down();
     }
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
+    reveal_cursor();	/* Redraw cursor */
   }
   else {	/* Writing to text screen */
     xtext++;
@@ -1684,9 +1688,9 @@ static void move_curdown(void) {
     if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
   }
   else if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor */
+    hide_cursor();	/* Remove cursor */
     move_down();
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
+    reveal_cursor();	/* Redraw cursor */
   }
   else {		/* Writing to a text window */
     ytext++;
@@ -1706,9 +1710,9 @@ static void move_curup(void) {
     if (ylast > gwintop) ylast = gwinbottom+YPPC*ygupp-1;	/* Move above top of window - Wrap around to bottow */
   }
   else if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor */
+    hide_cursor();	/* Remove cursor */
     move_up();
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
+    reveal_cursor();	/* Redraw cursor */
   }
   else {	/* Writing to text screen */
     ytext--;
@@ -1734,7 +1738,7 @@ static void vdu_cleartext(void) {
     myppc=YPPC;
   }
   if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if it is being displayed */
+    hide_cursor();	/* Remove cursor if it is being displayed */
     if (textwin) {	/* Text window defined that does not occupy the whole screen */
       left = twinleft*mxppc;
       right = twinright*mxppc+mxppc-1;
@@ -1761,7 +1765,7 @@ static void vdu_cleartext(void) {
       SDL_FillRect(screen3, NULL, tb_colour);
       xtext = twinleft;
       ytext = twintop;
-      if (cursorstate==SUSPENDED) toggle_cursor();	/* Redraw cursor */
+      reveal_cursor();	/* Redraw cursor */
     }
   }
   else if (textwin) {	/* Text window defined that does not occupy the whole screen */
@@ -1791,9 +1795,9 @@ static void vdu_return(void) {
   if (vdu5mode)
     xlast = gwinleft;
   else if (graphmode==FULLSCREEN) {
-    if (cursorstate==ONSCREEN) toggle_cursor();	/* Remove cursor */
+    hide_cursor();	/* Remove cursor */
     xtext = twinleft;
-    if (cursorstate==SUSPENDED) toggle_cursor();	/* Redraw cursor */
+    reveal_cursor();	/* Redraw cursor */
   }
   else {
     move_cursor(twinleft, ytext);
@@ -1818,10 +1822,10 @@ static void vdu_return(void) {
 static void vdu_cleargraph(void) {
   if (graphmode == TEXTONLY) return;	/* Ignore command in text-only modes */
   if (graphmode == TEXTMODE) switch_graphics();
-  if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor */
+  hide_cursor();	/* Remove cursor */
   SDL_FillRect(modescreen, NULL, gb_colour);
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
-  if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor */
+  reveal_cursor();	/* Redraw cursor */
   do_sdl_flip(screen0);
 }
 
@@ -2028,9 +2032,9 @@ static void vdu_restwind(void) {
   gwintop = ygraphunits-1;
   gwinbottom = 0;
   if (graphmode == FULLSCREEN) {
-    if (cursorstate == ONSCREEN) toggle_cursor();	/* Remove cursor if in graphics mode */
+    hide_cursor();	/* Remove cursor if in graphics mode */
     xtext = ytext = 0;
-    if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw cursor if in graphics mode */
+    reveal_cursor();	/* Redraw cursor if in graphics mode */
   }
   else {
     xtext = ytext = 0;
@@ -2171,7 +2175,7 @@ void emulate_vdu(int32 charvalue) {
           plot_char(charvalue);
 	else {
           write_char(charvalue);
-          if (cursorstate == SUSPENDED) toggle_cursor();	/* Redraw the cursor */
+          reveal_cursor();	/* Redraw the cursor */
 	}
       }
       return;
@@ -2403,7 +2407,7 @@ static void setup_mode(int32 mode) {
   ox=vscrwidth;
   oy=vscrheight;
   /* Try to catch an undefined mode */
-  if (cursorstate == ONSCREEN) toggle_cursor();
+  hide_cursor();
   if (modetable[mode].xres == 0) error(ERR_BADMODE);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
@@ -2664,9 +2668,9 @@ static void flood_fill(int32 x, int y, int colour) {
     if (lleft < left) left = lleft;
     if (lright > right) right = lright;
   } while (sp != 0);
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(left, top, right, bottom);
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
 }
 
 /*
@@ -2731,17 +2735,17 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
     draw_line(modescreen, sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK));
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(left, top, sx+ex-left, sy+ey-top);
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   }
   case PLOT_POINT:	/* Plot a single point */
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     if ((ex < 0) || (ex >= screenwidth) || (ey < 0) || (ey >= screenheight)) break;
     *((Uint32*)modescreen->pixels + ex + ey*vscrwidth) = colour;
     blit_scaled(ex, ey, ex, ey);
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   case FILL_TRIANGLE: {		/* Plot a filled triangle */
     int32 left, right, top, bottom;
@@ -2757,9 +2761,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast > top) top = ylast;
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   }
   case FILL_RECTANGLE: {		/* Plot a filled rectangle */
@@ -2777,9 +2781,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
     SDL_FillRect(modescreen, &plot_rect, colour);
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(left, top, right, bottom);
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   }
   case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
@@ -2803,9 +2807,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
     if (vy < bottom) bottom = vy;
-    if (cursorstate==ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
-    if (cursorstate==SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   }
   case FLOOD_BACKGROUND:	/* Flood fill background with graphics foreground colour */
@@ -2832,9 +2836,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     ex = sx-xradius;
     ey = sy-yradius;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   }
   case SHIFT_RECTANGLE: {	/* Move or copy a rectangle */
@@ -2865,9 +2869,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     temp_rect.h = plot_rect.h = bottom - top +1;
     SDL_BlitSurface(modescreen, &temp_rect, screen1, &plot_rect); /* copy to temp buffer */
     SDL_BlitSurface(screen1, &plot_rect, modescreen, &plot_rect);
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     if (code == MOVE_RECTANGLE) {	/* Move rectangle - Set original rectangle to the background colour */
       int32 destright, destbot;
       destright = destleft+right-left;
@@ -2950,9 +2954,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
         plot_rect.h = bottom - top +1;
         SDL_FillRect(modescreen, &plot_rect, gb_colour);
       }
-      if (cursorstate == ONSCREEN) toggle_cursor();
+      hide_cursor();
       blit_scaled(left, top, right, bottom);
-      if (cursorstate == SUSPENDED) toggle_cursor();
+      reveal_cursor();
     }
     break;
   }
@@ -2976,9 +2980,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     ex = sx-semimajor;
     ey = sy-semiminor;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    if (cursorstate == ONSCREEN) toggle_cursor();
+    hide_cursor();
     blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
-    if (cursorstate == SUSPENDED) toggle_cursor();
+    reveal_cursor();
     break;
   }
   //default:

@@ -179,7 +179,8 @@ $(SRCDIR)/evaluate.o: $(EVALUATE_C) $(SRCDIR)/evaluate.c
 # Build ERRORS.C
 ERRORS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/stack.h $(SRCDIR)/fileio.h \
-	$(SRCDIR)/tokens.h $(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h
+	$(SRCDIR)/tokens.h $(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h \
+	$(SRCDIR)/keyboard.h $(SRCDIR)/graphsdl.h
 
 $(SRCDIR)/errors.o: $(ERRORS_C) $(SRCDIR)/errors.c
 	$(CC) $(CFLAGS) $(SRCDIR)/errors.c -c -o $(SRCDIR)/errors.o
