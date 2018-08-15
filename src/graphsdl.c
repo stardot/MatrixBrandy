@@ -104,7 +104,7 @@ static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
-static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
+static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, horizbar_rect;
 
 Uint32 tf_colour,       /* text foreground SDL rgb triple */
        tb_colour,       /* text background SDL rgb triple */
@@ -799,7 +799,7 @@ static void vdu_2318(void) {
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
 static void vdu_2322(void) {
-  int32 mwidth, mheight, xscale, yscale, cols, charset;
+  int32 mwidth, mheight, mxscale, myscale, cols, charset;
   
   mwidth=(vduqueue[1] + (vduqueue[2]<<8));
   mheight=(vduqueue[3] + (vduqueue[4]<<8));
@@ -809,9 +809,9 @@ static void vdu_2322(void) {
   charset=vduqueue[8];
   if ((cols != 0) && (cols != 2) && (cols != 4) && (cols != 16)) return; /* Invalid colours, do nothing */
   if (0 == cols) cols=256;
-  if (0 == xscale) xscale=1;
-  if (0 == yscale) yscale=1;
-  setupnewmode(126,mwidth/xscale,mheight/yscale,cols,xscale,yscale);
+  if (0 == mxscale) mxscale=1;
+  if (0 == myscale) myscale=1;
+  setupnewmode(126,mwidth/mxscale,mheight/myscale,cols,mxscale,myscale);
   emulate_mode(126);
   if (charset & 0x80) {
     text_physforecol = text_forecol = 0;
@@ -1014,6 +1014,17 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.y = dtop;
     scale_rect.w = (right+1 - left) * xscale;
     scale_rect.h = (bottom+1 - top) * yscale;
+  }
+  if ((screenmode == 3) || (screenmode == 6)) {
+    int p;
+    if (cursorstate == ONSCREEN) toggle_cursor();
+    scroll_rect.x=0;
+    scroll_rect.w=screenwidth*xscale;
+    scroll_rect.h=4;
+    for (p=0; p<25; p++) {
+      scroll_rect.y=16+(p*20);
+      SDL_FillRect(screen0, &scroll_rect, 0);
+    }
   }
   if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
@@ -4041,7 +4052,7 @@ void fullscreenmode(int onoff) {
   do_sdl_updaterect(screen0, 0, 0, 0, 0);
 }
 
-void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, int32 yscale) {
+void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale) {
 
  if ((mode < 64) || (mode > HIGHMODE)) {
    emulate_printf("Warning: *NewMode can only define modes in the range 64 to %d.\r\n", HIGHMODE);
@@ -4054,12 +4065,12 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 xscale, 
  modetable[mode].xres = xres;
  modetable[mode].yres = yres;
  modetable[mode].coldepth = cols;
- modetable[mode].xgraphunits = (xres * 2 * xscale);
- modetable[mode].ygraphunits = (yres * 2 * yscale);
+ modetable[mode].xgraphunits = (xres * 2 * mxscale);
+ modetable[mode].ygraphunits = (yres * 2 * myscale);
  modetable[mode].xtext = (xres / 8);
  modetable[mode].ytext = (yres / 8);
- modetable[mode].xscale = xscale;
- modetable[mode].yscale = yscale;
+ modetable[mode].xscale = mxscale;
+ modetable[mode].yscale = myscale;
  modetable[mode].graphics = TRUE;
 }
 
