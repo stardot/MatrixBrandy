@@ -17,6 +17,7 @@ A=42:	[Brandy only] Get or set *REFRESH state
 	X=3: Equivalent to *REFRESH ONERROR
 	X=255: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
+A=43:	Perform a VDU X to the controlling Linux terminal.
 A=112:	Selects which video bank the VDU drivers access. 4 available.
 A=113:	Selects which video bank is drawn to the display window.
 A=129:  INKEY. As with BASIC INKEY, scanning for range of keys not supported.

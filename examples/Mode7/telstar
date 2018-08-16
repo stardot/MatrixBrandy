@@ -8,7 +8,7 @@
    80:
    90*FX229,1
   100*WinTitle Matrix Brandy BASIC Telstar Client
-  110ON ERROR GOTO 330
+  110ON ERROR GOTO 340
   120MODE 7:OFF
   130reveal%=0
   140scan%=0
@@ -19,95 +19,96 @@
   190X%=OPENUP FNwelcome
   200BPUT#X%,13
   210REPEAT
-  220M%=BGET#X%: IF M%=-2 THEN GOTO 320
-  230IF M% >= 0 THEN PROCvdu(M%): GOTO 320
+  220M%=BGET#X%: IF M%=-2 THEN GOTO 330
+  230IF M% >= 0 THEN PROCvdu(M%): GOTO 330
   240PROCdhscan
   250I%=INKEY(10):IF I%=35 THEN I%=95
-  260IF I%=6 THEN OSCLI"FullScreen": GOTO 220
-  270IF I%=16 THEN PROCdumpscreen: GOTO 220
-  280IF I%=18 THEN PROCreveal: GOTO 220
-  290IF I%=23 THEN PROCwidth: GOTO 220
-  300IF I%=24 THEN GOTO 330
-  310IF I% > 0 THEN BPUT#X%,I%
-  320UNTIL M%=-2
-  330CLOSE#X%: scan%=-1:PROCdhscan
-  340PRINTTAB(9,24)CHR$(128+RND(7));"Press any key to exit.";
-  350A=GET: PRINT: ON
-  360END
-  370:
-  380DEFPROCvdu(M%)
-  390IF M% >= 32 THEN VDU (M% OR 128): ENDPROC
-  400CASE M% OF
-  410WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: VDU (N%+64): scan%+=(N%=77): ENDPROC
-  420WHEN 9, 10, 12, 13, 30: VDU M%
-  430WHEN 8: VDU 8,32,8
-  440WHEN 17: ON
-  450WHEN 20: OFF
-  460ENDCASE
-  470ENDPROC
-  480:
-  490DEFPROCdhscan
-  500IF scan%=0 THEN ENDPROC
-  510VDU23,18,1,0|
-  520FOR N%=0 TO 24: FOR P%=0 TO 39
-  530IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%=N%+1
-  540NEXT P%, N%
-  550VDU23,18,1,2|scan%=0
-  560ENDPROC
-  570:
-  580DEFPROCcopyline
-  590FOR P%=0 TO 36 STEP 4
-  600!(&FFFF7C00+(40*(N%+1))+P%) = !(&FFFF7C00+(40*N%)+P%)
-  610NEXT P%
-  620ENDPROC
-  630:
-  640DEFPROCreveal
-  650reveal% = reveal% EOR 1
-  660VDU23,18,2,reveal%|
-  670ENDPROC
-  680:
-  690DEFPROCwidth
-  700W%=W%+2: IF W% > 16 THEN W%=12
-  710VDU23,18,255,W%|
-  720ENDPROC
-  730:
-  740DEFPROCdumpscreen: REM For debug purposes, triggered on CTRL-P
-  750F$="vt."+STR$screen%+".header"
-  760Q%=OPENOUT F$
-  770FOR P%=0 TO 39: B%=?(&FFFF7C00+P%)
-  780IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
-  790NEXT:CLOSE#Q%
-  800F$="vt."+STR$screen%+".body"
-  810Q%=OPENOUT F$
-  820FOR P%=40 TO 959: B%=?(&FFFF7C00+P%)
-  830IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
-  840NEXT:CLOSE#Q%:screen%+=1
-  850ENDPROC
-  860:
-  870DEFFNwelcome
-  880PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156);
+  260IF I%=-1 THEN GOTO 330
+  270IF I%=6 THEN OSCLI"FullScreen": GOTO 220
+  280IF I%=16 THEN PROCdumpscreen: GOTO 220
+  290IF I%=18 THEN PROCreveal: GOTO 220
+  300IF I%=23 THEN PROCwidth: GOTO 220
+  310IF I%=24 THEN GOTO 340
+  320IF I% > 0 THEN BPUT#X%,I%
+  330UNTIL M%=-2
+  340CLOSE#X%: scan%=-1:PROCdhscan
+  350PRINTTAB(9,24)CHR$(128+RND(7));"Press any key to exit.";
+  360A=GET: PRINT: ON
+  370END
+  380:
+  390DEFPROCvdu(M%)
+  400IF M% >= 32 THEN VDU (M% OR 128): ENDPROC
+  410CASE M% OF
+  420WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: VDU (N%+64): scan%+=(N%=77): ENDPROC
+  430WHEN 9, 10, 12, 13, 30: VDU M%
+  440WHEN 8: VDU 8,32,8
+  450WHEN 17: ON
+  460WHEN 20: OFF
+  470ENDCASE
+  480ENDPROC
+  490:
+  500DEFPROCdhscan
+  510IF scan%=0 THEN ENDPROC
+  520VDU23,18,1,0|
+  530FOR N%=0 TO 24: FOR P%=0 TO 39
+  540IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%=N%+1
+  550NEXT P%, N%
+  560VDU23,18,1,2|scan%=0
+  570ENDPROC
+  580:
+  590DEFPROCcopyline
+  600FOR P%=0 TO 36 STEP 4
+  610!(&FFFF7C00+(40*(N%+1))+P%) = !(&FFFF7C00+(40*N%)+P%)
+  620NEXT P%
+  630ENDPROC
+  640:
+  650DEFPROCreveal
+  660reveal% = reveal% EOR 1
+  670VDU23,18,2,reveal%|
+  680ENDPROC
+  690:
+  700DEFPROCwidth
+  710W%=W%+2: IF W% > 16 THEN W%=12
+  720VDU23,18,255,W%|
+  730ENDPROC
+  740:
+  750DEFPROCdumpscreen: REM For debug purposes, triggered on CTRL-P
+  760F$="vt."+STR$screen%+".header"
+  770Q%=OPENOUT F$
+  780FOR P%=0 TO 39: B%=?(&FFFF7C00+P%)
+  790IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
+  800NEXT:CLOSE#Q%
+  810F$="vt."+STR$screen%+".body"
+  820Q%=OPENOUT F$
+  830FOR P%=40 TO 959: B%=?(&FFFF7C00+P%)
+  840IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
+  850NEXT:CLOSE#Q%:screen%+=1
+  860ENDPROC
+  870:
+  880DEFFNwelcome
   890PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156);
-  900PRINT
-  910PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
-  920PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
-  930PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
-  940PRINT
-  950PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
-  960PRINT
-  970PRINT CHR$(129);"0 - Exit"
-  980PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
-  990PRINT CHR$(134);"  Press CTRL-F to toggle Full Screen":
- 1000PRINT CHR$(134);"  Press CTRL-R to toggle Reveal":
- 1010REMPRINT CHR$(134);"  Press CTRL-W to change screen width"
- 1020PRINT CHR$(134);"  Press CTRL-X to exit immediately": PRINT
- 1030PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1040REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=6 OR A%=23 OR A%=24
- 1050IF A% = 24 OR A% = 48 THEN ON:END
- 1060IF A% = 6 THEN OSCLI"FullScreen": GOTO 1040
- 1070IF A% = 23 THEN PROCwidth: GOTO 1040
- 1080IF A% = 49 THEN S$ = "glasstty.com:6502"
- 1090IF A% = 50 THEN S$ = "glasstty.com:6503"
- 1100IF A% = 51 THEN S$ = "glasstty.com:6504"
- 1110IF A% = 52 THEN S$ = "fish.ccl4.org:23"
- 1120CLS
- 1130="ip0:"+S$
+  900PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156);
+  910PRINT
+  920PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
+  930PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+  940PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+  950PRINT
+  960PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
+  970PRINT
+  980PRINT CHR$(129);"0 - Exit"
+  990PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+ 1000PRINT CHR$(134);"  Press CTRL-F to toggle Full Screen":
+ 1010PRINT CHR$(134);"  Press CTRL-R to toggle Reveal":
+ 1020REMPRINT CHR$(134);"  Press CTRL-W to change screen width"
+ 1030PRINT CHR$(134);"  Press CTRL-X to exit immediately": PRINT
+ 1040PRINT TAB(4,23)CHR$(129);"Please make your selection..."
+ 1050REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=6 OR A%=23 OR A%=24
+ 1060IF A% = 24 OR A% = 48 THEN ON:END
+ 1070IF A% = 6 THEN OSCLI"FullScreen": GOTO 1050
+ 1080IF A% = 23 THEN PROCwidth: GOTO 1050
+ 1090IF A% = 49 THEN S$ = "glasstty.com:6502"
+ 1100IF A% = 50 THEN S$ = "glasstty.com:6503"
+ 1110IF A% = 51 THEN S$ = "glasstty.com:6504"
+ 1120IF A% = 52 THEN S$ = "fish.ccl4.org:23"
+ 1130CLS
+ 1140="ip0:"+S$

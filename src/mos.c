@@ -1548,7 +1548,7 @@ int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
 * OSBYTE &28  40 Brandy local - set ESCAPE polling interval; 0 resets defaults.
 * OSBYTE &29  41 Brandy local - set ESCAPE polling interval, multiplied by 256.
 * OSBYTE &2A  42 Brandy local - Get/set *REFRESH state
-* OSBYTE &2B  43
+* OSBYTE &2B  43 Brandy local - output X to Linux controlling terminal
 * OSBYTE &2C  44
 * OSBYTE &2D  45
 * OSBYTE &2E  46
@@ -1810,6 +1810,10 @@ switch (areg) {
 		  emulate_vdu(6);
 		}
 		break;
+	case 43:
+		printf("%c", xreg);
+		fflush(stdout);
+		break;
 	case 112:
 		osbyte112(xreg);
 		break;
@@ -1882,7 +1886,7 @@ switch (areg) {
 		break;
 
 	}
-if (areg <= 25 || (areg >= 40 && areg <= 42) || areg >= 112) 
+if (areg <= 25 || (areg >= 40 && areg <= 43) || areg >= 112) 
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
 else
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return

@@ -450,7 +450,7 @@ static boolean waitkey(int wait) {
 
 #ifdef USE_SDL
   SDL_Event ev;
-  SDL_TimerID timer_id;
+  SDL_TimerID timer_id = NULL;
 /* set up timer if wait time not zero */
   if (wait != 0) timer_id = SDL_AddTimer(wait*10, waitkey_callbackfunc, 0);
   while ( 1 ) {
@@ -461,7 +461,8 @@ static boolean waitkey(int wait) {
       switch(ev.type)
       {
         case SDL_USEREVENT:
-          return 0;             /* timeout expired */
+	  if (timer_id) SDL_RemoveTimer(timer_id);
+	  return 0;             /* timeout expired */
 	case SDL_KEYUP:
 	  break;
         case SDL_KEYDOWN:
@@ -475,6 +476,7 @@ static boolean waitkey(int wait) {
             case SDLK_LALT:
               break;
             default:
+	      if (timer_id) SDL_RemoveTimer(timer_id);
               SDL_PushEvent(&ev);  /* we got a char - push the event back and say we found one */
               return 1;
               break;
