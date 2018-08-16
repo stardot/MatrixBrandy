@@ -493,6 +493,7 @@ static boolean waitkey(int wait) {
     if ( select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
 
     if (wait == 0) return 0; /* return after one check if wait time = 0 */
+    usleep(1000);
   }
 #else
   FD_ZERO(&keyset);
