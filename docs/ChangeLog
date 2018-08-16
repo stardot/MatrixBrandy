@@ -101,6 +101,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MODEs 3 and 6 now have black bars when background colour used.
 - RISC OS 3.5-style MODE commands will define a new mode (126) if a previously
   defined mode is not available. The extended RISC OS 5.x format is not
-  supported. Eigen factor affects both drawing and reading mouse pointer
-  positon; on RISC OS 3.7 the eigen factor only affects drawing.
-- *NewMode extended to allow input of X and Y eigen factors.
+  supported.
+- *NewMode extended to allow input of X and Y eigen factors, used internally
+  by the MODE "string" format.
