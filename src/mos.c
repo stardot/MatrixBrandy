@@ -1145,7 +1145,7 @@ void cmd_newmode(char *command) {
       if (!*command) yeig=xeig;
       else yeig=cmd_parse_dec(&command);
     }
-    if((xeig > 3) || (yeig > 3)) error(ERR_BADMODE);
+    if((xeig > 3) || (yeig > 3)) cmd_newmode_err();
     setupnewmode(mode, xres, yres, cols, xscale, yscale, xeig, yeig);
   }
 #endif
@@ -1250,7 +1250,7 @@ void cmd_help(char *command)
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r\n\r");
 		emulate_printf("  WinTitle   <window title>\r\n  FullScreen [<ON|OFF|1|0>]\n\r");
-		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale>\r\n");
+		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
 		emulate_printf("  Refresh    [<On|Off>]\r\n");
 //		emulate_printf("  VER\n\r");
 	}
