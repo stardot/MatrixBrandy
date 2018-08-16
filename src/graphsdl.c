@@ -3590,7 +3590,7 @@ void mode7renderline(int32 ypos) {
 	if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
       }
     }
-    if(!mode7bank) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
+    if(!mode7bank || !mode7flash) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
     if (mode7flash) SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
