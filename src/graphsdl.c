@@ -811,7 +811,7 @@ static void vdu_2322(void) {
   if (0 == cols) cols=256;
   if (0 == mxscale) mxscale=1;
   if (0 == myscale) myscale=1;
-  setupnewmode(126,mwidth/mxscale,mheight/myscale,cols,mxscale,myscale);
+  setupnewmode(126,mwidth/mxscale,mheight/myscale,cols,mxscale,myscale,1,1);
   emulate_mode(126);
   if (charset & 0x80) {
     text_physforecol = text_forecol = 0;
@@ -2537,7 +2537,11 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
   for (n=0; n<=HIGHMODE; n++) {
     if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
   }
-  if (n > HIGHMODE) error(ERR_BADMODE);
+  if (n > HIGHMODE) {
+    /* Mode isn't predefined. So, let's make it. */
+    n=126;
+    setupnewmode(n, xres, yres, coldepth, 1, 1, 1, 1);
+  }
   emulate_mode(n);
 }
 
@@ -2552,9 +2556,14 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
   if (xres == 0 || yres == 0 || rate == 0 || (colours == 0 && greys == 0)) error(ERR_BADMODE);
   coldepth = colours!=0 ? colours : greys;
   for (n=0; n <= HIGHMODE; n++) {
-    if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
+    if (xeig==1 && yeig==1 && modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
   }
-  if (n > HIGHMODE) error(ERR_BADMODE);
+  if (n > HIGHMODE) {
+    //error(ERR_BADMODE);
+    /* Mode isn't predefined. So, let's make it. */
+    n=126;
+    setupnewmode(n, xres, yres, coldepth, 1, 1, xeig, yeig);
+  }
   emulate_mode(n);
   if (colours == 0) {	/* Want a grey scale palette  - Reset all the colours */
     int32 step, intensity;
@@ -4056,34 +4065,33 @@ void fullscreenmode(int onoff) {
   do_sdl_updaterect(screen0, 0, 0, 0, 0);
 }
 
-void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale) {
-
- if ((mode < 64) || (mode > HIGHMODE)) {
-   emulate_printf("Warning: *NewMode can only define modes in the range 64 to %d.\r\n", HIGHMODE);
-   return;
- }
- if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256)) {
-   emulate_printf("Warning: *NewMode can only define modes with 2, 4, 16 or 256 colours.\r\n");
-   return;
- }
- if ((mxscale==0) || (myscale==0)) {
-   emulate_printf("Warning: pixel scaling can't be zero.\r\n");
-   return;
- }
- if ((xres < 8) || (yres < 8)) {
-   emulate_printf("Warning: Display size can't be smaller than 8x8 pixels.\r\n");
-   return;
- }
- modetable[mode].xres = xres;
- modetable[mode].yres = yres;
- modetable[mode].coldepth = cols;
- modetable[mode].xgraphunits = (xres * 2 * mxscale);
- modetable[mode].ygraphunits = (yres * 2 * myscale);
- modetable[mode].xtext = (xres / 8);
- modetable[mode].ytext = (yres / 8);
- modetable[mode].xscale = mxscale;
- modetable[mode].yscale = myscale;
- modetable[mode].graphics = TRUE;
+void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
+  if ((mode < 64) || (mode > HIGHMODE)) {
+    emulate_printf("Warning: *NewMode can only define modes in the range 64 to %d.\r\n", HIGHMODE);
+    return;
+  }
+  if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256)) {
+    emulate_printf("Warning: *NewMode can only define modes with 2, 4, 16 or 256 colours.\r\n");
+    return;
+  }
+  if ((mxscale==0) || (myscale==0)) {
+    emulate_printf("Warning: pixel scaling can't be zero.\r\n");
+    return;
+  }
+  if ((xres < 8) || (yres < 8)) {
+    emulate_printf("Warning: Display size can't be smaller than 8x8 pixels.\r\n");
+    return;
+  }
+  modetable[mode].xres = xres;
+  modetable[mode].yres = yres;
+  modetable[mode].coldepth = cols;
+  modetable[mode].xgraphunits = (xres * (1<<xeig) * mxscale);
+  modetable[mode].ygraphunits = (yres * (1<<yeig) * myscale);
+  modetable[mode].xtext = (xres / 8);
+  modetable[mode].ytext = (yres / 8);
+  modetable[mode].xscale = mxscale;
+  modetable[mode].yscale = myscale;
+  modetable[mode].graphics = TRUE;
 }
 
 void star_refresh(int flag) {

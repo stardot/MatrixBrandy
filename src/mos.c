@@ -1105,12 +1105,12 @@ void cmd_fullscreen(char *command) {
 }
 
 static void cmd_newmode_err() {
-  emulate_printf("Syntax: NewMode <mode> <xres> <yres> <colours> <xscale> <yscale>\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16 or 256.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
+  emulate_printf("Syntax:\r\n  NewMode <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16 or 256.\r\nEigen factors must be in the range 0-3, default 1. yeig=xeig if omitted.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
   return;
 }
 void cmd_newmode(char *command) {
 #ifdef USE_SDL
-  int mode, xres, yres, cols, xscale, yscale;
+  int mode, xres, yres, cols, xscale, yscale, xeig, yeig;
 
   while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
@@ -1137,7 +1137,16 @@ void cmd_newmode(char *command) {
     while (*command == ' ') command++;		// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yscale=cmd_parse_dec(&command);
-    setupnewmode(mode, xres, yres, cols, xscale, yscale);
+    if (*command == ',') command++;			// Step past any comma
+    if (!*command) xeig=yeig=1;
+    else {
+      xeig=cmd_parse_dec(&command);
+      if (*command == ',') command++;			// Step past any comma
+      if (!*command) yeig=xeig;
+      else yeig=cmd_parse_dec(&command);
+    }
+    if((xeig > 3) || (yeig > 3)) error(ERR_BADMODE);
+    setupnewmode(mode, xres, yres, cols, xscale, yscale, xeig, yeig);
   }
 #endif
   return;
