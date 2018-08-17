@@ -1506,12 +1506,12 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[2]=((rtn >> 16) & 0xFF);
       break;
     case SWI_OS_ReadLine:
-      *(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase)='\0';
-      rtn=emulate_readline((inregs[0] & 0x3FFFFFFF)+basicvars.offbase, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4]) : 0);
-      a=outregs[1]=strlen(basicvars.offbase+(inregs[0] & 0x3FFFFFFF));
+      vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
+      *vptr='\0';
+      rtn=emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4]) : 0);
+      a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
-      *(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase+a)=13;
-      *(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase+a+1)=0;
+      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
