@@ -1494,6 +1494,10 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       emulate_printf("\r\n"); break;
     case SWI_OS_ReadC:
       outregs[0]=emulate_get(); break;
+    case SWI_OS_CLI:
+      outregs[0]=inregs[0];
+      mos_oscli(basicvars.offbase+inregs[0], NIL);
+      break;
     case SWI_OS_Byte:
       rtn=mos_osbyte(inregs[0], inregs[1], inregs[2]);
       outregs[0]=inregs[0];
