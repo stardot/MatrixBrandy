@@ -33,7 +33,7 @@ extern int32 mos_adval(int32);
 extern void  mos_sound_on(void);
 extern void  mos_sound_off(void);
 extern void  mos_sound(int32, int32, int32, int32, int32);
-extern long long int mos_centiseconds(void);
+extern int64 mos_centiseconds(void);
 extern int32 mos_rdtime(void);
 extern void  mos_wrtime(int32);
 extern void  mos_rdrtc(char *);

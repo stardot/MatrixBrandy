@@ -517,10 +517,10 @@ void set_escmul(int i) {
 }
 
 int escinterval=0;
-long long int esclast=0;
+int64 esclast=0;
 
 void checkforescape(void) {
-long long int i;
+int64 i;
 #ifdef USE_SDL
   if (basicvars.escape_enabled) {
     if (!escinterval) {
