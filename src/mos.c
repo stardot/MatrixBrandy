@@ -1477,25 +1477,44 @@ int32 mos_getswinum(char *name, int32 length) {
 ** platforms other than RISC OS this is emulated.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
-  int32 ptr;
+  int32 ptr, rtn;
   int32 xflag = swino & 0x20000;	/* Is the X flag set? */
 
   swino = swino & ~0x20000;		/* Strip off the X flag if set */
-  printf("xflag=%X\n", xflag);
   switch (swino) {
     case SWI_OS_WriteC:
+      outregs[0]=inregs[0];
       emulate_vdu(inregs[0] & 0xFF);
       break;
     case SWI_OS_WriteS: /* Doesn't work from RISC OS BASIC so no-op */
       break;
     case SWI_OS_Write0:
+      outregs[0]=inregs[0]+1+strlen(basicvars.offbase+inregs[0]);
       emulate_printf("%s", basicvars.offbase+inregs[0]);
       break;
     case SWI_OS_NewLine:
       emulate_printf("\r\n");
       break;
     case SWI_OS_Byte:
-      mos_osbyte(inregs[0], inregs[1], inregs[2]);
+      rtn=mos_osbyte(inregs[0], inregs[1], inregs[2]);
+      outregs[0]=inregs[0];
+      outregs[1]=((rtn >> 8) & 0xFF);
+      outregs[2]=((rtn >> 16) & 0xFF);
+      break;
+    case SWI_OS_SWINumberFromString:
+      outregs[1]=inregs[1];
+      for(ptr=0;*(basicvars.offbase+inregs[1]+ptr) >=32; ptr++) ;
+      *(basicvars.offbase+inregs[1]+ptr)='\0';
+      outregs[0]=mos_getswinum(basicvars.offbase+inregs[1], strlen(basicvars.offbase+inregs[1]));
+      break;
+    case SWI_ColourTrans_SetGCOL:
+      outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
+      outregs[2]=0;
+      outregs[3]=inregs[3] & 0x80;
+      outregs[4]=inregs[4];
+      break;
+    case SWI_ColourTrans_SetTextColour:
+      outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       break;
     default:
       error(ERR_SWINUMMOTKNOWN, swino);

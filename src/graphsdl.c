@@ -3118,9 +3118,10 @@ void emulate_gcol(int32 action, int32 colour, int32 tint) {
 ** to true if the graphics background colour is to be changed
 ** otherwise the foreground colour is altered
 */
-void emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
+int emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
   int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
   emulate_gcolnum(action, background, colnum);
+  return(colnum);
 }
 
 /*
@@ -3163,9 +3164,10 @@ void emulate_mapcolour(int32 colour, int32 physcolour) {
 ** 'emulate_setcolour' handles the Basic 'COLOUR <red>,<green>,<blue>'
 ** statement
 */
-void emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
+int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
   int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
   set_text_colour(background, colnum);
+  return(colnum);
 }
 
 /*
