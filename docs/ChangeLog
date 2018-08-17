@@ -104,3 +104,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   supported.
 - *NewMode extended to allow input of X and Y eigen factors, used internally
   by the MODE "string" format.
+- Initial SWI support, currently only a few SWIs are supported.
+  No support for external modules, all supported SWIs are part of the
+  MOS code.
