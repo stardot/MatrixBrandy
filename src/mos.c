@@ -1471,7 +1471,14 @@ int32 mos_getswinum(char *name, int32 length) {
 ** platforms other than RISC OS this is emulated.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
-  error(ERR_UNSUPPORTED);
+  switch (swino) {
+    case SWI_OS_WriteC:
+      printf("OS_WriteC: R0=%d\n", inregs[0]);
+      emulate_vdu(inregs[0] & 0xFF);
+      break;
+    default:
+      error(ERR_SWINUMMOTKNOWN, swino);
+  }
 }
 
 /*
