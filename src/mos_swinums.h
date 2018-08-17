@@ -3,8 +3,12 @@
 
 typedef struct {
   int32 swinum;		/* RISC OS SWI number */
-  char *msgtext;	/* SWI Name */
+  char *swiname;	/* SWI Name */
 } switable;
+
+/* Source: http://www.riscos.com/support/developers/prm_index/numswilist.html */
+
+/* Used by mos.c: int32 mos_getswinum(char *name, int32 length) */
 
 #define SWI_OS_WriteC		0x00
 #define SWI_OS_WriteS		0x01
@@ -22,6 +26,8 @@ static switable swilist[] = {
 	{SWI_OS_ReadC,		"OS_ReadC"},
 	{SWI_OS_CLI,		"OS_CLI"},
 	{SWI_OS_Byte,		"OS_Byte"},
+	
+	{0xFFFFFFFF,		"End_of_list"}
 };
 
 #endif

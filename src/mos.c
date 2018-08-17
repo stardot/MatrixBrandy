@@ -659,7 +659,7 @@ void mos_mouse_on(int32 pointer) {
   sdl_mouse_onoff(1);
   return;
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -671,7 +671,7 @@ void mos_mouse_off(void) {
   sdl_mouse_onoff(0);
   return;
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -683,7 +683,7 @@ void mos_mouse_to(int32 x, int32 y) {
 #ifdef USE_SDL
   return; // Do nothing, silently.
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -695,7 +695,7 @@ void mos_mouse_step(int32 x, int32 y) {
 #ifdef USE_SDL
   return; // Do nothing, silently.
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -707,7 +707,7 @@ void mos_mouse_colour(int32 colour, int32 red, int32 green, int32 blue) {
 #ifdef USE_SDL
   return; // Do nothing, silently.
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -719,7 +719,7 @@ void mos_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
 #ifdef USE_SDL
   return; // Do nothing, silently.
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -730,7 +730,7 @@ void mos_mouse(int32 values[]) {
 #ifdef USE_SDL
   get_sdl_mouse(values);
 #else
-  error(ERR_UNSUPPORTED);
+  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif
 }
 
@@ -1458,13 +1458,17 @@ void mos_oscli(char *command, char *respfile) {
 ** SWI 'name'
 */
 int32 mos_getswinum(char *name, int32 length) {
-  error(ERR_UNSUPPORTED);
-  return 0;
+  int32 ptr, num;
+  for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
+    if ((!strncmp(name, swilist[ptr].swiname, length)) && length==strlen(swilist[ptr].swiname)) break;
+  }
+  if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN);
+  return (swilist[ptr].swinum);
 }
 
 /*
-** 'mos_sys' issues a SWI call and returns the result. This is
-** not supported under any OS other than RISC OS
+** 'mos_sys' issues a SWI call and returns the result. On
+** platforms other than RISC OS this is emulated.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
   error(ERR_UNSUPPORTED);
