@@ -1486,15 +1486,14 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=inregs[0];
       emulate_vdu(inregs[0] & 0xFF);
       break;
-    case SWI_OS_WriteS: /* Doesn't work from RISC OS BASIC so no-op */
-      break;
     case SWI_OS_Write0:
       outregs[0]=inregs[0]+1+strlen(basicvars.offbase+inregs[0]);
       emulate_printf("%s", basicvars.offbase+inregs[0]);
       break;
     case SWI_OS_NewLine:
-      emulate_printf("\r\n");
-      break;
+      emulate_printf("\r\n"); break;
+    case SWI_OS_ReadC:
+      outregs[0]=emulate_get(); break;
     case SWI_OS_Byte:
       rtn=mos_osbyte(inregs[0], inregs[1], inregs[2]);
       outregs[0]=inregs[0];
@@ -1509,15 +1508,13 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       break;
     case SWI_ColourTrans_SetGCOL:
       outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
-      outregs[2]=0;
-      outregs[3]=inregs[3] & 0x80;
-      outregs[4]=inregs[4];
+      outregs[2]=0; outregs[3]=inregs[3] & 0x80; outregs[4]=inregs[4];
       break;
     case SWI_ColourTrans_SetTextColour:
       outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       break;
     default:
-      error(ERR_SWINUMMOTKNOWN, swino);
+      error(ERR_SWINUMNOTKNOWN, swino);
   }
 }
 

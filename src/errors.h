@@ -175,7 +175,7 @@ typedef enum {
     WARN_FUNNYFLOAT,    /* Unknown floating point format */
     ERR_EMUCMDFAIL,     /* Emulated RISC OS command failed */
     ERR_SWINAMENOTKNOWN,/* SWI name not known */
-    ERR_SWINUMMOTKNOWN,	/* SWI &xxx not known */
+    ERR_SWINUMNOTKNOWN,	/* SWI &xxx not known */
 // From JGH's Banana Brandy fork
     ERR_PLACE149,	/* Placeholder */
     ERR_PLACE150,	/* Placeholder */

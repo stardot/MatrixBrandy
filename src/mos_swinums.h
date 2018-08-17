@@ -11,7 +11,7 @@ typedef struct {
 /* Used by mos.c: int32 mos_getswinum(char *name, int32 length) */
 
 #define SWI_OS_WriteC			0x00
-#define SWI_OS_WriteS			0x01
+#define SWI_OS_WriteS			0x01 /* Doesn't work from RISC OS BASIC so not implemented */
 #define SWI_OS_Write0			0x02
 #define SWI_OS_NewLine			0x03
 #define SWI_OS_ReadC			0x04
@@ -24,7 +24,6 @@ typedef struct {
 
 static switable swilist[] = {
 	{SWI_OS_WriteC,			"OS_WriteC"},
-	{SWI_OS_WriteS,			"OS_WriteS"},
 	{SWI_OS_Write0,			"OS_Write0"},
 	{SWI_OS_NewLine,		"OS_NewLine"},
 	{SWI_OS_ReadC,			"OS_ReadC"},
