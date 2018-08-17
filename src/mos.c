@@ -1459,11 +1459,17 @@ void mos_oscli(char *command, char *respfile) {
 */
 int32 mos_getswinum(char *name, int32 length) {
   int32 ptr, num;
+  int32 xflag=0;
+  if (name[0] == 'X') {
+    name++;
+    length--;
+    xflag=0x20000;
+  }
   for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
     if ((!strncmp(name, swilist[ptr].swiname, length)) && length==strlen(swilist[ptr].swiname)) break;
   }
   if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN);
-  return (swilist[ptr].swinum);
+  return ((swilist[ptr].swinum)+xflag);
 }
 
 /*
@@ -1472,12 +1478,21 @@ int32 mos_getswinum(char *name, int32 length) {
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
   int32 ptr;
+  int32 xflag = swino & 0x20000;	/* Is the X flag set? */
+
+  swino = swino & ~0x20000;		/* Strip off the X flag if set */
+  printf("xflag=%X\n", xflag);
   switch (swino) {
     case SWI_OS_WriteC:
       emulate_vdu(inregs[0] & 0xFF);
       break;
-    case SWI_OS_WriteS:
+    case SWI_OS_WriteS: /* Doesn't work from RISC OS BASIC so no-op */
+      break;
+    case SWI_OS_Write0:
       emulate_printf("%s", basicvars.offbase+inregs[0]);
+      break;
+    case SWI_OS_NewLine:
+      emulate_printf("\r\n");
       break;
     case SWI_OS_Byte:
       mos_osbyte(inregs[0], inregs[1], inregs[2]);

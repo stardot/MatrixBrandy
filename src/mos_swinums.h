@@ -21,7 +21,7 @@ typedef struct {
 static switable swilist[] = {
 	{SWI_OS_WriteC,		"OS_WriteC"},
 	{SWI_OS_WriteS,		"OS_WriteS"},
-	{SWI_OS_Write0,		"OS_WriteO"},
+	{SWI_OS_Write0,		"OS_Write0"},
 	{SWI_OS_NewLine,	"OS_NewLine"},
 	{SWI_OS_ReadC,		"OS_ReadC"},
 	{SWI_OS_CLI,		"OS_CLI"},
