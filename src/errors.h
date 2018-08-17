@@ -174,9 +174,9 @@ typedef enum {
     ERR_NOGZIP,         /* gzip support not available */
     WARN_FUNNYFLOAT,    /* Unknown floating point format */
     ERR_EMUCMDFAIL,     /* Emulated RISC OS command failed */
+    ERR_SWINAMENOTKNOWN,/* SWI name not known */
+    ERR_SWINUMMOTKNOWN,	/* SWI &xxx not known */
 // From JGH's Banana Brandy fork
-    ERR_PLACE147,	/* Placeholder */
-    ERR_PLACE148,	/* Placeholder */
     ERR_PLACE149,	/* Placeholder */
     ERR_PLACE150,	/* Placeholder */
     ERR_BADCOMMAND,	/* 254, Bad command */

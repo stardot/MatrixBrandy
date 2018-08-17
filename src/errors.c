@@ -480,9 +480,9 @@ static detail errortable [] = {
   {FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
   {WARNING,  NOPARM,   0, "Warning: floating point number format is not known"},
   {NONFATAL, STRING,   0, "%s"},
+  {NONFATAL, NOPARM, 486, "SWI name not known"},
+  {NONFATAL, INTEGER,486, "SWI &%X not known"},
 // 05-Mar-2014 JGH:
-  {NONFATAL, NOPARM,  0, "err147"},
-  {NONFATAL, NOPARM,  0, "err148"},
   {NONFATAL, NOPARM,  0, "err149"},
   {NONFATAL, NOPARM,  0, "err150"},
 //

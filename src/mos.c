@@ -60,6 +60,7 @@
 #include "errors.h"
 #include "basicdefs.h"
 #include "mos.h"
+#include "mos_swinums.h"
 #include "screen.h"
 #include "keyboard.h"
 
