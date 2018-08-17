@@ -1471,9 +1471,16 @@ int32 mos_getswinum(char *name, int32 length) {
 ** platforms other than RISC OS this is emulated.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
+  int32 ptr;
   switch (swino) {
     case SWI_OS_WriteC:
       emulate_vdu(inregs[0] & 0xFF);
+      break;
+    case SWI_OS_WriteS:
+      emulate_printf("%s", basicvars.offbase+inregs[0]);
+      break;
+    case SWI_OS_Byte:
+      mos_osbyte(inregs[0], inregs[1], inregs[2]);
       break;
     default:
       error(ERR_SWINUMMOTKNOWN, swino);
