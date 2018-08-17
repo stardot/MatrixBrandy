@@ -131,7 +131,7 @@ int32 emulate_inkey(int32 arg) {
 ** line history and other features that might be available via this SWI
 ** call.
 */
-readstate emulate_readline(char buffer[], int32 length) {
+readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int32 carry;
@@ -1389,7 +1389,7 @@ static void shift_up(char buffer[], int32 offset) {
 ** Only the 0xE0 is returned. This appears to be a bug in the C runtime
 ** library.
 */
-readstate emulate_readline(char buffer[], int32 length) {
+readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   int32 ch, lastplace;
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read fron file stdin */
     char *p;

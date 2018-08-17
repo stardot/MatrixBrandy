@@ -461,7 +461,7 @@ static void strip(char line[]) {
 boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = NUL;
-  result = emulate_readline(line, linelen);
+  result = emulate_readline(line, linelen, 0);
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
@@ -480,7 +480,7 @@ boolean read_line(char line[], int32 linelen) {
 */
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
-  result = emulate_readline(line, linelen);
+  result = emulate_readline(line, linelen,0);
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);

@@ -125,8 +125,8 @@ static int32 emulate_mos(int32 address) {
   case BBC_OSWORD:
 #ifdef TARGET_RISCOS
     (void) _kernel_osword(areg, (int *)xreg);
-    return areg;
 #endif
+    return areg;
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
     emulate_vdu(areg);
     return areg;
@@ -1477,7 +1477,8 @@ int32 mos_getswinum(char *name, int32 length) {
 ** platforms other than RISC OS this is emulated.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
-  int32 ptr, rtn;
+  int32 ptr, rtn, a, b, c;
+  char *vptr;
   int32 xflag = swino & 0x20000;	/* Is the X flag set? */
 
   swino = swino & ~0x20000;		/* Strip off the X flag if set */
@@ -1503,6 +1504,14 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=inregs[0];
       outregs[1]=((rtn >> 8) & 0xFF);
       outregs[2]=((rtn >> 16) & 0xFF);
+      break;
+    case SWI_OS_ReadLine:
+      *(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase)='\0';
+      rtn=emulate_readline((inregs[0] & 0x3FFFFFFF)+basicvars.offbase, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4]) : 0);
+      a=outregs[1]=strlen(basicvars.offbase+(inregs[0] & 0x3FFFFFFF));
+      /* Hack the output to add the terminating 13 */
+      *(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase+a)=13;
+      *(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase+a+1)=0;
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
