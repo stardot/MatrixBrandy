@@ -21,7 +21,8 @@ tek_gcx%=0
 tek_gcy%=0
 tek_originx%=0
 tek_originy%=0
-VDU 1, 27, 1, 12
+SYS6,43,27
+SYS6,43,12
 ENDPROC
 :
 :
@@ -36,7 +37,8 @@ ENDPROC
 REM PROCclg clears the graphics screen
 :
 DEF PROCclg
-VDU 1, 27, 1, 12
+SYS6,43,27
+SYS6,43,12
 ENDPROC
 :
 :
@@ -54,10 +56,16 @@ REM to the coordinates given, making them the new cursor position
 DEF PROCdraw(X%, Y%)
 X%=(X%+tek_originx%) DIV 2
 Y%=(Y%+tek_originy%) DIV 2
-VDU 1, 29
-VDU 1, (tek_gcy%>>5)+32, 1, (tek_gcy% AND 31)+96, 1, (tek_gcx%>>5)+32, 1, (tek_gcx% AND 31)+64
-VDU 1,(Y%>>5)+32, 1,(Y% AND 31)+96, 1,(X%>>5)+32, 1,(X% AND 31)+64
-VDU 1, 31
+SYS6,43,29
+SYS6,43,(tek_gcy%>>5)+32
+SYS6,43,(tek_gcy% AND 31)+96
+SYS6,43,(tek_gcx%>>5)+32
+SYS6,43,(tek_gcx% AND 31)+64
+SYS6,43,(Y%>>5)+32
+SYS6,43,(Y% AND 31)+96
+SYS6,43,(X%>>5)+32
+SYS6,43,(X% AND 31)+64
+SYS6,43,31
 tek_gcx%=X%
 tek_gcy%=Y%
 ENDPROC
@@ -71,10 +79,16 @@ sx%=(sx%+tek_originx%) DIV 2
 sy%=(sy%+tek_originy%) DIV 2
 ex%=(ex%+tek_originx%) DIV 2
 ey%=(ey%+tek_originy%) DIV 2
-VDU 1, 29
-VDU 1, (sy%>>5)+32, 1, (sy% AND 31)+96, 1, (sx%>>5)+32, 1, (sx% AND 31)+64
-VDU 1, (ey%>>5)+32, 1, (ey% AND 31)+96, 1, (ex%>>5)+32, 1, (ex% AND 31)+64
-VDU 1, 31
+SYS6,43,29
+SYS6,43,(sy%>>5)+32
+SYS6,43,(sy% AND 31)+96
+SYS6,43,(sx%>>5)+32
+SYS6,43,(sx% AND 31)+64
+SYS6,43,(ey%>>5)+32
+SYS6,43,(ey% AND 31)+96
+SYS6,43,(ex%>>5)+32
+SYS6,43,(ex% AND 31)+64
+SYS6,43,31
 tek_gcx%=ex%
 tek_gcy%=ey%
 ENDPROC
@@ -85,10 +99,16 @@ REM PROCpoint plots a single point
 DEF PROCpoint(X%, Y%)
 X%=(X%+tek_originx%) DIV 2
 Y%=(Y%+tek_originy%) DIV 2
-VDU 1, 29
-VDU 1,(Y%>>5)+32, 1,(Y% AND 31)+96, 1,(X%>>5)+32, 1,(X% AND 31)+64
-VDU 1,(Y%>>5)+32, 1,(Y% AND 31)+96, 1,(X%>>5)+32, 1,(X% AND 31)+64
-VDU 1, 31
+SYS6,43,29
+SYS6,43,(Y%>>5)+32
+SYS6,43,(Y% AND 31)+96
+SYS6,43,(X%>>5)+32
+SYS6,43,(X% AND 31)+64
+SYS6,43,(Y%>>5)+32
+SYS6,43,(Y% AND 31)+96
+SYS6,43,(X%>>5)+32
+SYS6,43,(X% AND 31)+64
+SYS6,43,31
 tek_gcx%=X%
 tek_gcy%=Y%
 ENDPROC
