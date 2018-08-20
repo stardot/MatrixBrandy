@@ -125,6 +125,8 @@ static int32 emulate_mos(int32 address) {
   case BBC_OSWORD:
 #ifdef TARGET_RISCOS
     (void) _kernel_osword(areg, (int *)xreg);
+#else
+    return mos_osword(areg, xreg);
 #endif
     return areg;
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
@@ -1489,7 +1491,11 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       break;
     case SWI_OS_Write0:
       outregs[0]=inregs[0]+1+strlen(basicvars.offbase+inregs[0]);
-      emulate_printf("%s", basicvars.offbase+inregs[0]);
+      if ((inregs[1]==42) && (inregs[2]==42)) {
+        printf("%s\r\n", basicvars.offbase+inregs[0]);
+      } else {
+        emulate_printf("%s", basicvars.offbase+inregs[0]);
+      }
       break;
     case SWI_OS_NewLine:
       emulate_printf("\r\n"); break;
@@ -1504,6 +1510,11 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=inregs[0];
       outregs[1]=((rtn >> 8) & 0xFF);
       outregs[2]=((rtn >> 16) & 0xFF);
+      break;
+    case SWI_OS_Word:
+      mos_osword(inregs[0], inregs[1]);
+      outregs[0]=inregs[0];
+      outregs[1]=inregs[1];
       break;
     case SWI_OS_ReadLine:
       vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
@@ -1556,6 +1567,13 @@ boolean mos_init(void) {
 void mos_final(void) {
 }
 
+int32 mos_osword(int32 areg, int32 xreg) {
+   switch (areg) {
+     case 10:
+       osword10(xreg);
+       break;
+   }
+}
 
 int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
 /*

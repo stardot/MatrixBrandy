@@ -16,6 +16,7 @@ typedef struct {
 #define SWI_OS_ReadC			0x04
 #define SWI_OS_CLI			0x05
 #define SWI_OS_Byte			0x06
+#define SWI_OS_Word			0x07
 #define SWI_OS_ReadLine			0x0E
 #define SWI_OS_SWINumberFromString	0x39
 
@@ -29,6 +30,7 @@ static switable swilist[] = {
 	{SWI_OS_ReadC,			"OS_ReadC"},
 	{SWI_OS_CLI,			"OS_CLI"},
 	{SWI_OS_Byte,			"OS_Byte"},
+	{SWI_OS_Word,			"OS_Word"},
 	{SWI_OS_ReadLine,		"OS_ReadLine"},
 	{SWI_OS_SWINumberFromString,	"OS_SWINumberFromString"},
 

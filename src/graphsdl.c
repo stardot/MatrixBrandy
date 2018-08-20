@@ -4126,3 +4126,13 @@ void osbyte113(int x) {
   SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
   SDL_Flip(screen0);
 }
+
+void osword10(int32 x) {
+  char *block;
+  int32 offset, i;
+  
+  block=(char *)(basicvars.offbase+x);
+  offset = block[0]-32;
+  if (offset < 0) return;
+  for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
+}
