@@ -3004,11 +3004,12 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 ** the colour number of the point (x,y) on the screen
 */
 int32 emulate_pointfn(int32 x, int32 y) {
-  int32 colour;
+  int32 colour, colnum;
   if (graphmode == FULLSCREEN) {
     colour = *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth);
-    if (colourdepth == 256) colour = colour>>COL256SHIFT;
-    return colour;
+    colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
+    if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
+    return colnum;
   }
   else {
     return 0;
