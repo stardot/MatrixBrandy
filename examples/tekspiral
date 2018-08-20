@@ -1,0 +1,43 @@
+REM NOTE: This program will ONLY run in an xterm window under NetBSD and Linux.
+REM
+REM It uses the Tektronics graphics terminal emulation that xterm provides
+REM to draw a simple graph in the xterm 'Tek' window.
+:
+REM To run the program:
+REM 1) Load it in the normal way
+REM 2) Switch output to the xterm 'Tek' window
+REM 3) Run the program in the normal way
+REM 4) Switch output back to the xterm 'VT' window
+:
+REM To switch xterm between 'Tek' and 'vt' modes, press 'Ctrl' and the
+REM middle mouse button to bring up the xterm 'VT Options' menu. The
+REM last-but-one entry on this is 'Switch to Tek Mode'. Select this
+REM option to display the window 'tektronix(Tek)'. To switch back,
+REM press 'Ctrl' and the middle mouse button to display the 'Tek Options'
+REM menu. Select the option 'Switch to VT Mode' to return xterm to
+REM normal operation.
+:
+LIBRARY"examples/teklib"
+PROCmode(0)
+R%=2500
+H%=R%/2
+REM rotated towards viewer by:
+R=-PI/4
+U=COS(R):V=SIN(R)
+PROCP(4,0)
+FORI%=1TOR%
+PROCP(5,I%)
+NEXT
+END
+DEFPROCP(C%,S%)
+T=PI*(S%-H%)/R%
+C=COS(T)
+X=COS(50*T)*C
+Z=SIN(50*T)*C
+Y=SIN(T)
+W=Y*U+Z*V
+Z=-Y*V+Z*U
+Y=W
+P=3500/(8-Z)
+IFC%=4 THEN PROCmove(1024+X*P,768+Y*P) ELSE PROCdraw(1024+X*P,768+Y*P)
+ENDPROC
