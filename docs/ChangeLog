@@ -107,3 +107,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Initial SWI support, currently only a few SWIs are supported.
   No support for external modules, all supported SWIs are part of the
   MOS code.
+- examples/teklib updated - this pre-dates SDL support for Brandy, using Tek
+  to provide an element of graphics.  This has been updated to use OSBYTE 43
+  to send characters to the controlling terminal, so if run from an xterm,
+  the old Tek demos once again run correctly as intended.
