@@ -745,7 +745,11 @@ void fn_false(void) {
 ** keyboard and saves it on the Basic stack as a number
 */
 static void fn_get(void) {
-  push_int(emulate_get() & 0xFF);
+  int ch;
+  do {
+    ch=emulate_get() & 0xFF;
+  } while (ch==0);
+  push_int(ch);
 }
 
 /*
@@ -754,6 +758,7 @@ static void fn_get(void) {
 */
 static void fn_getdol(void) {
   char *cp;
+  int ch;
   int32 handle, count;
   if (*basicvars.current == '#') {	/* Have encountered the 'GET$#' version */
     basicvars.current++;
@@ -765,7 +770,10 @@ static void fn_getdol(void) {
   }
   else {	/* Normal 'GET$' - Return character read as a string */
     cp = alloc_string(1);
-    *cp = emulate_get();
+    do {
+      ch=emulate_get() & 0xFF;
+    } while (ch==0);
+    *cp = ch;
     push_strtemp(1, cp);
   }
 }
