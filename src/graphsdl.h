@@ -11,6 +11,7 @@ extern int get_refreshmode(void);
 extern void osbyte112(int x);
 extern void osbyte113(int x);
 extern int32 osbyte134_165(int32 a);
+extern int32 osbyte135(void);
 extern void reset_sysfont(int x);
 extern void hide_cursor(void);
 extern void reveal_cursor(void);

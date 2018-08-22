@@ -4131,6 +4131,15 @@ int32 osbyte134_165(int32 a) {
   return ((ytext << 16) + (xtext << 8) + a);
 }
 
+int32 osbyte135() {
+  if (screenmode == 7) {
+    printf("Mode 7\n");
+    return ((screenmode << 16) + (mode7frame[ytext][xtext] << 8) + 135);
+  } else {
+    return ((screenmode << 16) + 135);
+  }
+}
+
 void osword10(int32 x) {
   char *block;
   int32 offset, i;

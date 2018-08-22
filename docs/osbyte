@@ -8,7 +8,7 @@ A=0:
 	X=0: return the MOS version as an error.
 	X=1: Return the OS version in the X register (as per the 'use' doc)
 
-A=40;   [Brandy only] Set the interval for checking ESCAPE, 0 resets default.
+A=40;	[Brandy only] Set the interval for checking ESCAPE, 0 resets default.
 A=41:	[Brandy only] Set the interval for checking ESCAPE, multipled by 256.
 A=42:	[Brandy only] Get or set *REFRESH state
 	X=0: Query the refresh state, will return 0, 1 or 2 in X register.
@@ -18,13 +18,17 @@ A=42:	[Brandy only] Get or set *REFRESH state
 	X=255: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
 A=43:	Perform a VDU X to the controlling Linux terminal.
+A=106	Select mouse pointer. Due to SDL limitations, this simply turns the
+	pointer on or off, and unlinking does nothing.
 A=112:	Selects which video bank the VDU drivers access. 4 available.
 A=113:	Selects which video bank is drawn to the display window.
-A=129:  INKEY. As with BASIC INKEY, scanning for range of keys not supported.
+A=129:	INKEY. As with BASIC INKEY, scanning for range of keys not supported.
 A=130:	High word of user memory.
 A=131:	Bottom of user memory.
 A=132:	Top of user memory
-A=134:  Return text cursor position in X and Y. Identical to 165.
+A=134:	Return text cursor position in X and Y. Identical to 165.
+A=135:	Return screen mode and character under cursor or 0 if unreadable.
+	In Brandy, the character under the cursor is only returned in MODE 7.
 A=160:	Read VDU variable (equivalent to VDU(X%))
 A=163:	Application Support - all these are local to Brandy,
 	old implementation moved from 42 with a few changes
@@ -37,6 +41,6 @@ A=163:	Application Support - all these are local to Brandy,
 	X=3: Set the interval for checking ESCAPE, multiplied by 256.
 	X=127: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
-A=165:  Return text cursor position in X and Y. Identical to 134.
+A=165	Return text cursor position in X and Y. Identical to 134.
 A=200:	Set ESCAPE and BREAK effect - only ESCAPE effect supported.
 A=229:	Enable or disable ESCAPE, disabled if X non-zero.
