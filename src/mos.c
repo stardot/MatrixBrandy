@@ -110,7 +110,7 @@ static int osbyte113v = 1;
 ** MOS calls emulated by the Acorn interpreter
 */
 static int32 emulate_mos(int32 address) {
-  int32 areg, xreg, yreg, addr;
+  int32 areg, xreg, yreg;
   areg = basicvars.staticvars[A_PERCENT].varentry.varinteger;
   xreg = basicvars.staticvars[X_PERCENT].varentry.varinteger;
   yreg = basicvars.staticvars[Y_PERCENT].varentry.varinteger;
@@ -123,19 +123,10 @@ static int32 emulate_mos(int32 address) {
 #endif
     break;
   case BBC_OSWORD:
-    addr=xreg;
-    /* Are we using of both X% and Y% to supply block address, BBC Micro style?
-     * If so, X%=addr MOD 256; Y%=addr DIV 256. Block has to be within the first
-     * 64K of address space.  If X% > 255, assume the entire address is in X%.
-     * This allows the full 32-bit address space.
-     */
-    if (addr <=0xFF) {
-      addr += ((yreg & 0xFF)<<8);
-    }
 #ifdef TARGET_RISCOS
-    (void) _kernel_osword(areg, (int *)addr);
+    (void) _kernel_osword(areg, (int *)xreg);
 #else
-    return mos_osword(areg, addr);
+    return mos_osword(areg, xreg);
 #endif
     return areg;
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
