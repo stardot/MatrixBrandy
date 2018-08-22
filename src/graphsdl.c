@@ -868,7 +868,7 @@ static void vdu_23command(void) {
     break;
   default:
     codeval = vduqueue[0] & 0x00FF;
-    if (codeval < 32 ) break;   /* Ignore unhandled commands */
+    if ((codeval < 32) || (codeval == 127)) break;   /* Ignore unhandled commands */
     /* codes 32 to 255 are user-defined character setup commands */
     for (n=0; n < 8; n++) sysfont[codeval-32][n] = vduqueue[n+1];
   }
