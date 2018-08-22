@@ -4127,6 +4127,10 @@ void osbyte113(int x) {
   SDL_Flip(screen0);
 }
 
+int32 osbyte134_165(int32 a) {
+  return ((ytext << 16) + (xtext << 8) + a);
+}
+
 void osword10(int32 x) {
   char *block;
   int32 offset, i;

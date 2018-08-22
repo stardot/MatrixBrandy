@@ -1925,8 +1925,9 @@ switch (areg) {
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
 //	case 133:		// OSBYTE 133 - Read screen start for MODE - inapplicable?
-//	case 134:		// OSBYTE 134 - Read POS and VPOS
-
+	case 134:		// OSBYTE 134 - Read POS and VPOS
+	case 165:		// Identical, since we don't have an editing cursor
+		return osbyte134_165(areg);
 	case 160:		// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
 	case 163:		// OSBYTE 163 - Application Support.

@@ -119,3 +119,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   at immediate mode
 - Initial structure in place for OSWORD; OSWORD 10 implemented including
   BBC-style call to &FFF1.
+- OSBYTEs 134 and 165 implemented. As Brandy doesn't have the Acorn-style
+  editing cursor, these two function identically.
