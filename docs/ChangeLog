@@ -115,5 +115,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fixed: POINT(x,y) should return the logical mode-specific colour number
   rather than an RGB value.
 - Bug fixed: GET returning 0 and key value for some keys
+- Bug fixed: Crash when ON ERROR handler invoked in program run using CHAIN
+  at immediate mode
 - Initial structure in place for OSWORD; OSWORD 10 implemented including
   BBC-style call to &FFF1.

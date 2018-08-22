@@ -265,10 +265,7 @@ void exec_xcase(void) {
 }
 
 /*
-** 'exec_chain' deals with the Basic 'CHAIN' statement. It is a bit
-** nasty in that the way it works is by loading the new program and
-** then resetting the current pointer to the start of the program
-** without letting anyone know what it has done
+** 'exec_chain' deals with the Basic 'CHAIN' statement.
 */
 void exec_chain(void) {
   basicstring namedesc;
@@ -282,13 +279,8 @@ void exec_chain(void) {
   filename = tocstring(namedesc.stringaddr, namedesc.stringlen);
   if (stringtype == STACK_STRTEMP) free_string(namedesc);
   check_ateol();
-  clear_error();	/* Clear the decks and read the new program */
   read_basic(filename);
-  init_expressions();	/* Initialise the expression evaluation code */
-  basicvars.datacur = NIL;
-  basicvars.curcount = 0;
-  basicvars.runflags.outofdata = FALSE;
-  basicvars.current = FIND_EXEC(basicvars.start);	/* Find place at which to start new program */
+  run_program(NIL);
 }
 
 /*

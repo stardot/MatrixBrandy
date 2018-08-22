@@ -421,7 +421,7 @@ void run_program(byte *lp) {
   clear_strings();
   clear_heap();
   clear_stack();
-  init_expressions();
+  init_expressions();	/* Initialise the expression evaluation code */
   if (lp == NIL) lp = basicvars.start;	/* Check starting position in program */
   basicvars.lastsearch = basicvars.start;
   basicvars.curcount = 0;
