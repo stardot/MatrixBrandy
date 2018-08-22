@@ -126,7 +126,7 @@ static int32 emulate_mos(int32 address) {
 #ifdef TARGET_RISCOS
     (void) _kernel_osword(areg, (int *)xreg);
 #else
-    return mos_osword(areg, xreg);
+    return mos_osword(areg, (xreg & 0xFF)+((yreg & 0xFF)<<8));
 #endif
     return areg;
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
