@@ -44,3 +44,8 @@ A=163:	Application Support - all these are local to Brandy,
 A=165	Return text cursor position in X and Y. Identical to 134.
 A=200:	Set ESCAPE and BREAK effect - only ESCAPE effect supported.
 A=229:	Enable or disable ESCAPE, disabled if X non-zero.
+A=250:	X must equal 0, Y must equal 255. Get display write bank set with
+	OSBYTE 112 returned in X register and display video bank set with
+	OSBYTE 113 returned in Y register.
+A=251:	X must equal 0, Y must equal 255. Get display video bank set with
+	OSBYTE 113 returned in X register.

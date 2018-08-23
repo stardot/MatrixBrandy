@@ -1970,7 +1970,12 @@ switch (areg) {
 		  basicvars.escape_enabled = TRUE;
 		}
 		break;
-
+	case 250:
+		if ((xreg == 0) && (yreg == 255)) return osbyte250();
+		break;
+	case 251:
+		if ((xreg == 0) && (yreg == 255)) return osbyte251();
+		break;
 	}
 if (areg <= 25 || (areg >= 40 && areg <= 43) || areg >= 106) 
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return

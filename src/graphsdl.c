@@ -4140,6 +4140,14 @@ int32 osbyte135() {
   }
 }
 
+int32 osbyte250() {
+  return (((displaybank+1) << 16) + ((writebank+1) << 8) + 250);
+}
+
+int32 osbyte251() {
+  return (((displaybank+1) << 8) + 251);
+}
+
 void osword10(int32 x) {
   char *block;
   int32 offset, i;
