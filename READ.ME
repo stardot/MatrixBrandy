@@ -1,21 +1,25 @@
-Brandy 1.20
+Brandy 1.21
 ---------------
 
-This version uses the SDL graphics library.
-The file docs/history lists what has been done.
+This version uses the SDL 1.2 graphics library.
+The file docs/history lists what has been done up to version 1.20.1
+and docs/ChangeLog lists what has been done since.
 
 
 Files
 -----
-docs            Documentation
-examples        Some sample programs
-COPYING         Copy of GPL
-src             Directory containing source code
-makefile        Makefile to recompile program under NetBSD and Linux
-makefile.text   Makefile to compile text mode versions
-makefile.riscos Makefile for AMU to recompile under RISC OS
-makefile.djgpp  Makefile for text only version for DOS using DJGPP
-makefile.bcc    Makefile for the DOS version using Borland C
+docs		Documentation
+examples	Some sample programs
+COPYING		Copy of GPL
+src		Directory containing source code
+makefile	Makefile to compile program under NetBSD and Linux
+makefile-app	Makefile to compile program unedr NetBSD and Linux, adding
+		a BASIC program to make a standalone application.
+other-makefiles:Makefiles targeting platforms other than Linux, these are:
+makefile.text	Makefile to compile text mode versions
+makefile.riscos	Makefile for AMU to recompile under RISC OS
+makefile.djgpp	Makefile for text only version for DOS using DJGPP
+makefile.bcc	Makefile for the DOS version using Borland C
 
 
 The program is distributed under the terms of the GNU GPL.

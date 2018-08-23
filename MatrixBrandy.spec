@@ -1,5 +1,5 @@
 Summary: A BBC BASIC interpreter for Linux
-Name: brandy
+Name: MatrixBrandy
 Version: 1.21.11
 Release: 1
 License: GPLv2+
