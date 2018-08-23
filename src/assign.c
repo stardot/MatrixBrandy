@@ -175,8 +175,6 @@ static void assign_intwordptr(pointers address) {
     if (addr >= 1000) {
       return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
     } else {
-      msy = addr / 40;
-      msx = addr % 40;
       exprtype = GET_TOPITEM;
       if (exprtype==STACK_INT)
 	value = pop_int();
@@ -227,6 +225,7 @@ static void assign_floatptr(pointers address) {
 }
 
 static void assign_dolstrptr(pointers address) {
+  uint32 ptr, msx, msy, addr, render=0;
   stackitem exprtype;
   basicstring result;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -234,8 +233,24 @@ static void assign_dolstrptr(pointers address) {
   if (exprtype!=STACK_STRING && exprtype!=STACK_STRTEMP) error(ERR_TYPESTR);
   result = pop_string();
   check_write(address.offset, result.stringlen);
-  memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
-  basicvars.offbase[address.offset+result.stringlen] = CR;
+  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
+    addr = address.offset - 0xFFFF7C00u;
+    for(ptr=0; ptr<result.stringlen; ptr++) {
+      render=1;
+      msy = addr / 40;
+      msx = addr % 40;
+      if (msy < 25) mode7frame[msy][msx]=result.stringaddr[ptr];
+      addr++;
+      if (msx==39) {
+	mode7renderline(msy);
+	render=0;
+      }
+    }
+    if (render) mode7renderline(msy);
+  } else {
+    memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
+    basicvars.offbase[address.offset+result.stringlen] = CR;
+  }
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 
