@@ -1572,6 +1572,7 @@ void mos_osword(int32 areg, int32 xreg) {
        osword10(xreg);
        break;
    }
+   return NULL;
 }
 
 int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
