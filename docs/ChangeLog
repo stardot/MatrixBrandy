@@ -118,8 +118,16 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fixed: Crash when ON ERROR handler invoked in program run using CHAIN
   at immediate mode
 - Initial structure in place for OSWORD; OSWORD 10 implemented including
-  BBC-style call to &FFF1.
+  BBC-style call to &FFF1 and SWI &07.
 - OSBYTEs 134 and 165 implemented. As Brandy doesn't have the Acorn-style
   editing cursor, these two function identically.
 - OSBYTEs 106 and 135 implemented partially (135 only complete in MODE 7),
   106 can only turn the pointer on or off.
+- Invocation behaviour change:
+  If BASIC program starts with # as the first character, assume we have a
+  shell-compatible start line that is invoking Brandy. In this case, if the
+  program is started on the Linux command line as a parameter to Brandy, it
+  will exit upon program completion instead of returning to immediate mode
+  (as if -quit was set on the command line). This also means a BASIC program
+  can be made executable and will run when run as a script, and Brandy will
+  exit upon completion.

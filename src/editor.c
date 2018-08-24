@@ -549,6 +549,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 #endif
   result = fgets(basicvars.stringwork, INPUTLEN, textfile);
   if (result!=NIL && basicvars.stringwork[0]=='#') {	/* Ignore first line if it starts with a '#' */
+    basicvars.runflags.quitatend=basicvars.runflags.loadngo;
 #ifdef HAVE_ZLIB_H
     if (gzipped)
       result = gzgets(gzipfile, basicvars.stringwork, INPUTLEN);
