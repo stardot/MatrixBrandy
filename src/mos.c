@@ -126,7 +126,7 @@ static int32 emulate_mos(int32 address) {
 #ifdef TARGET_RISCOS
     (void) _kernel_osword(areg, (int *)xreg);
 #else
-    return mos_osword(areg, xreg);
+    mos_osword(areg, xreg);
 #endif
     return areg;
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
@@ -1514,7 +1514,6 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
     case SWI_OS_Word:
       mos_osword(inregs[0], inregs[1]);
       outregs[0]=inregs[0];
-      outregs[1]=inregs[1];
       break;
     case SWI_OS_ReadLine:
       vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
@@ -1567,7 +1566,7 @@ boolean mos_init(void) {
 void mos_final(void) {
 }
 
-int32 mos_osword(int32 areg, int32 xreg) {
+void mos_osword(int32 areg, int32 xreg) {
    switch (areg) {
      case 10:
        osword10(xreg);
