@@ -473,8 +473,8 @@ static detail errortable [] = {
   {WARNING,  NOPARM,   0, "Warning: '(' and ')' are nested incorrectly"},
   {WARNING,  INTEGER,  0, "Memory available for Basic programs is now %d bytes"},
 //
-  {WARNING,  NOPARM,   0, "Note: one open file has been closed"},
-  {WARNING,  INTEGER,  0, "Note: %d open files have been closed"},
+  {WARNING,  NOPARM,  -1, "Note: one open file has been closed"},
+  {WARNING,  INTEGER, -1, "Note: %d open files have been closed"},
   {FATAL,    STRING,   0, "Edit session failed (%s)"},
   {NONFATAL, STRING, 254, "OSCLI failed (%s)"},
   {FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
@@ -703,7 +703,7 @@ void error(int32 errnumber, ...) {
   va_start(parms, errnumber);
   vsprintf(errortext, errortable[errnumber].msgtext, parms);
   va_end(parms);
-  basicvars.error_number = errortable[errnumber].equiverror;
+  if (errortable[errnumber].equiverror != -1) basicvars.error_number = errortable[errnumber].equiverror;
   if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
   if (basicvars.current==NIL)           /* Not running a program */
     basicvars.error_line = 0;
