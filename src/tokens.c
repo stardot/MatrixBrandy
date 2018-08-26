@@ -2135,7 +2135,7 @@ static byte nospace [] = {
 */
 int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   int count;
-  char *cp, *p;
+  char *cp = NULL, *p = NULL;
   byte token, token2;
   char line[ACORNLEN];
 
@@ -2172,7 +2172,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
       }
     } else {      /* Tokens */
       if (token == 0xCDu) {                                           /* CD    */
-        p=tp+1;
+        p=(char *)tp+1;
         while(*p == ' ') p++;
         if (*p == CR || *p == ':') {
           p = onebyte_token[token-ACORNONE_LOWEST];

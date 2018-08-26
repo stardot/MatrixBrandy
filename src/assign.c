@@ -124,7 +124,8 @@ static void assign_stringdol(pointers address) {
 static void assign_intbyteptr(pointers address) {
   stackitem exprtype;
 #ifdef USE_SDL
-  uint32 msx, msy, addr, value;
+  uint32 msx, msy, addr;
+  uint32 value=0;
 
   if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
     /* Mode 7 screen memory */
@@ -167,7 +168,8 @@ static void assign_intbyteptr(pointers address) {
 static void assign_intwordptr(pointers address) {
   stackitem exprtype;
 #ifdef USE_SDL
-  uint32 loop, msx, msy, addr, value;
+  uint32 loop, msx, msy, addr;
+  uint32 value=0;
 
   if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFC) {
     /* Mode 7 screen memory */

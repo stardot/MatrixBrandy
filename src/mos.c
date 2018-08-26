@@ -98,9 +98,6 @@ int check_command(char *text);
 
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
-static int osbyte112v = 1;
-static int osbyte113v = 1;
-
 /* =================================================================== */
 /* ======= Emulation functions common to all operating systems ======= */
 /* =================================================================== */
@@ -773,7 +770,7 @@ void mos_mouse(int32 values[]) {
 int32 mos_adval(int32 x) {
   int32 inputvalues[4];
 
-  if(x>6 & x<10) {
+  if((x>6) & (x<10)) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
@@ -943,7 +940,7 @@ char *mos_gstrans(char *instring) {
 
 	result=outstring=instring;
 	while (*instring == ' ') instring++;		// Skip spaces
-	if (quoted = *instring == '"') instring++;
+	if ((quoted = (*instring == '"'))) instring++;
 
 	while (*instring) {
 		ch = *instring++;
@@ -1181,7 +1178,7 @@ void cmd_refresh(char *command) {
 }
 
 /*
- * *CD/*CHDIR <directory>
+ * *CD / *CHDIR <directory>
  * Change directory
  * Has to be an internal command as CWD is per-process
  */
@@ -1460,7 +1457,7 @@ void mos_oscli(char *command, char *respfile) {
 ** SWI 'name'
 */
 int32 mos_getswinum(char *name, int32 length) {
-  int32 ptr, num;
+  int32 ptr;
   int32 xflag=0;
   if (name[0] == 'X') {
     name++;
@@ -1479,10 +1476,11 @@ int32 mos_getswinum(char *name, int32 length) {
 ** platforms other than RISC OS this is emulated.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
-  int32 ptr, rtn, a, b, c;
+  int32 ptr, rtn, a;
   char *vptr;
-  int32 xflag = swino & 0x20000;	/* Is the X flag set? */
+  int32 xflag;
 
+  xflag = swino & 0x20000;	/* Is the X flag set? */
   swino = swino & ~0x20000;		/* Strip off the X flag if set */
   switch (swino) {
     case SWI_OS_WriteC:
@@ -1490,7 +1488,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       emulate_vdu(inregs[0] & 0xFF);
       break;
     case SWI_OS_Write0:
-      outregs[0]=inregs[0]+1+strlen(basicvars.offbase+inregs[0]);
+      outregs[0]=inregs[0]+1+strlen((char *)basicvars.offbase+inregs[0]);
       if ((inregs[1]==42) && (inregs[2]==42)) {
         printf("%s\r\n", basicvars.offbase+inregs[0]);
       } else {
@@ -1503,7 +1501,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=emulate_get(); break;
     case SWI_OS_CLI:
       outregs[0]=inregs[0];
-      mos_oscli(basicvars.offbase+inregs[0], NIL);
+      mos_oscli((char *)basicvars.offbase+inregs[0], NIL);
       break;
     case SWI_OS_Byte:
       rtn=mos_osbyte(inregs[0], inregs[1], inregs[2]);
@@ -1527,7 +1525,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[1]=inregs[1];
       for(ptr=0;*(basicvars.offbase+inregs[1]+ptr) >=32; ptr++) ;
       *(basicvars.offbase+inregs[1]+ptr)='\0';
-      outregs[0]=mos_getswinum(basicvars.offbase+inregs[1], strlen(basicvars.offbase+inregs[1]));
+      outregs[0]=mos_getswinum((char *)basicvars.offbase+inregs[1], strlen((char *)basicvars.offbase+inregs[1]));
       break;
     case SWI_ColourTrans_SetGCOL:
       outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));

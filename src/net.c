@@ -38,7 +38,7 @@ void brandynet_init() {
 
 int brandynet_connect(char *dest, char type) {
   char *host, *port;
-  int n,ptr, len, mysocket, portnum, ret;
+  int n, mysocket, portnum, ret;
   struct addrinfo hints, *addrdata, *rp;
 
   for (n=0; n<MAXNETSOCKETS; n++) {
@@ -115,7 +115,7 @@ static int net_get_something(int handle) {
 }
 
 int32 net_bget(int handle) {
-  int value, ptr;
+  int value;
   int retval=0;
 
   if (neteof[handle]) return(-2);

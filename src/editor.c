@@ -479,20 +479,24 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
     count = fread(&line[3], sizeof(byte), length - 3, bbcfile);
     if (count != length - 3) {			/* Incorrect number of bytes read */
       fclose(bbcfile);
+      bbcfile = NULL;
       error(ERR_READFAIL, basicvars.filename);
     }
     basicvars.linecount++;
     length = reformat(line, tokenline, ftype);
     if (length > 0) {				/* Line length is not zero so include line */
       if (base + length >= limit) {
-        fclose(bbcfile);
-        error(ERR_NOROOM);
+        if (bbcfile) {
+	  fclose(bbcfile);
+	  bbcfile = NULL;
+	}
+	error(ERR_NOROOM);
       }
       memmove(base, tokenline, length);
       base+=length;
     }
   } while (!feof(bbcfile));
-  fclose(bbcfile);
+  if (bbcfile) fclose(bbcfile);
   basicvars.linecount = 0;
   if (base + ENDMARKSIZE >= limit) error(ERR_NOROOM);
   mark_end(base);
@@ -704,7 +708,6 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
 ** what scanning procedure gives a valid file.
 */
 static filetype identify(FILE *thisfile, char *name) {
-  char *result;
   int32 count;
 
   count = fread(basicvars.stringwork, sizeof(byte), 260, thisfile);

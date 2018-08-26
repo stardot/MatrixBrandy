@@ -104,7 +104,7 @@ static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
-static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, horizbar_rect;
+static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
 
 Uint32 tf_colour,       /* text foreground SDL rgb triple */
        tb_colour,       /* text background SDL rgb triple */
@@ -803,8 +803,8 @@ static void vdu_2322(void) {
   
   mwidth=(vduqueue[1] + (vduqueue[2]<<8));
   mheight=(vduqueue[3] + (vduqueue[4]<<8));
-  xscale=vduqueue[5]/8;
-  yscale=vduqueue[6]/8;
+  mxscale=vduqueue[5]/8;
+  myscale=vduqueue[6]/8;
   cols=vduqueue[7];
   charset=vduqueue[8];
   if ((cols != 0) && (cols != 2) && (cols != 4) && (cols != 16)) return; /* Invalid colours, do nothing */
@@ -1380,7 +1380,6 @@ static void echo_ttext(void) {
 ** start of the line to the current value of the text cursor
 */
 static void echo_text(void) {
-  int ex, sy, ey;
   if (xtext == 0) return;	/* Return if nothing has changed */
   if (screenmode == 7) {
     do_sdl_flip(screen0);
@@ -1418,7 +1417,7 @@ void mode7flipbank() {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, yy, topx, topy, line;
+  int32 y, topx, topy, line;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   topx = xtext*XPPC;
@@ -1729,7 +1728,7 @@ static void move_curup(void) {
 ** when the interpreter supports graphics
 */
 static void vdu_cleartext(void) {
-  int32 left, right, top, bottom, m, n, mxppc, myppc;
+  int32 left, right, top, bottom, mxppc, myppc;
   if (screenmode == 7) {
     mxppc=M7XPPC;
     myppc=M7YPPC;
@@ -2139,7 +2138,6 @@ static void vdu_movetext(void) {
 ** off' commands, are silently ignored.
 */
 void emulate_vdu(int32 charvalue) {
-  uint32 m7col;
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
   if (vduneeded == 0) {			/* VDU queue is empty */
     if (vdu21state) {
@@ -2598,7 +2596,6 @@ int32 emulate_modefn(void) {
 static void flood_fill(int32 x, int y, int colour) {
   int32 sp, fillx[FILLSTACK], filly[FILLSTACK];
   int32 left, right, top, bottom, lleft, lright, pwinleft, pwinright, pwintop, pwinbottom;
-  SDL_Rect plot_rect;
   boolean above, below;
   pwinleft = GXTOPX(gwinleft);		/* Calculate extent of graphics window in pixels */
   pwinright = GXTOPX(gwinright);
