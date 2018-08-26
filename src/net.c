@@ -38,7 +38,7 @@ void brandynet_init() {
 
 int brandynet_connect(char *dest, char type) {
   char *host, *port;
-  int n, mysocket, portnum, ret;
+  int n, mysocket, ret;
   struct addrinfo hints, *addrdata, *rp;
 
   for (n=0; n<MAXNETSOCKETS; n++) {
@@ -61,7 +61,6 @@ int brandynet_connect(char *dest, char type) {
   port=strchr(host,':');
   port[0]='\0';
   port++;
-  portnum=atoi(port);
 
   ret=getaddrinfo(host, port, &hints, &addrdata);
 
