@@ -278,6 +278,9 @@ void show_help(void) {
 #else
   printf("  -ignore        Ignore 'unsupported feature' where possible\n");
 #endif
+#ifdef USE_SDL
+  printf("  -fullscreen    Start Brandy in fullscreen mode\n");
+#endif
   printf("  <file>         Run Basic program <file> and stay in interpreter when it ends\n\n");
 #ifdef HAVE_ZLIB_H
   printf("Basic program files may be gzipped.\n\n");

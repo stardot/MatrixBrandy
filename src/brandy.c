@@ -192,6 +192,11 @@ static void check_cmdline(int argc, char *argv[]) {
         show_help();
         exit(0);
       }
+#ifdef USE_SDL
+      else if (optchar=='f') {		/* -fullscreen */
+        basicvars.runflags.startfullscreen=TRUE;
+      }
+#endif
       else if (optchar == 'c' || optchar == 'q' || (optchar == 'l' && tolower(*(p+2)) == 'o')) {	/* -chain, -quit or -load */
         n++;
         if (n==argc)

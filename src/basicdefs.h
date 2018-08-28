@@ -449,6 +449,7 @@ typedef struct {
     unsigned int outredir:1;		/* TRUE if output is being redirected */
     unsigned int flag_cosmetic:1;	/* TRUE if all unsupported features flagged as errors */
     unsigned int ignore_starcmd:1;	/* TRUE if built-in '*' commands are ignored */
+    unsigned int startfullscreen:1;	/* TRUE if we start in fullscreen in SDL mode */
   } runflags;				/* Various runtime flags */
   struct {
     unsigned int enabled:1;		/* TRUE if any trace options are enabled */

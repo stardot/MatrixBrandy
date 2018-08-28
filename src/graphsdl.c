@@ -3355,6 +3355,7 @@ boolean init_screen(void) {
   }
 
   reset_sysfont(0);
+  if (basicvars.runflags.startfullscreen) flags |= SDL_FULLSCREEN;
   screen0 = SDL_SetVideoMode(640, 512, 32, flags); /* MODE 0 */
   if (!screen0) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
