@@ -2396,7 +2396,7 @@ int32 emulate_vpos(void) {
 static void setup_mode(int32 mode) {
   int32 modecopy;
   Uint32 sx, sy, ox, oy;
-  int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+  int flags = screen0->flags;
   int p;
 
   modecopy = mode;

@@ -140,3 +140,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   static analysis.
 - Brought the text-only builds up to date, brought makefile.text back to
   top level.
+- Changing screen mode no longer clears FULLSCREEN.
