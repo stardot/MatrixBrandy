@@ -1,8 +1,0 @@
-   10X%=OPENIN"makefile"
-   20REPEAT M%=BGET#X%
-   25*FX0
-   30UNTIL 0
-   40DEFPROCerror
-   50PRINT "Caught error ";REPORT$; " error ";ERR
-   60END
-   70ENDPROC
