@@ -997,9 +997,9 @@ void fileio_shutdown(void) {
     }
   }
   if (count==1)
-    error(WARN_ONEFILE);	/* One open file has been closed */
+    emulate_printf("\r\nNote: one open file has been closed\r\n");
   else if (count>1) {
-    error(WARN_MANYFILES, count);	/* Many open files have been closed */
+    emulate_printf("\r\nNote: %d open files have been closed.\r\n", count);
   }
 }
 
