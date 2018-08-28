@@ -34,6 +34,7 @@
 #include "errors.h"
 #include "fileio.h"
 #include "strings.h"
+#include "screen.h"
 #include "net.h"
 
 /* Floating point number format */
