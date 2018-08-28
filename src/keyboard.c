@@ -45,18 +45,14 @@
 #include "errors.h"
 #include "keyboard.h"
 #include "screen.h"
-#include "keyboard-inkey.h"
 #include "mos.h"
 
 #ifdef USE_SDL
 #include "SDL.h"
 #include "SDL_events.h"
+#include "keyboard-inkey.h"
 
 extern void mode7flipbank();
-static int nokeyboard=0;
-
-static int escint=128;
-static int escmul=1;
 
 Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
@@ -74,6 +70,10 @@ Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
   return(0);  /* cancel the timer */
 }
 #endif
+
+static int nokeyboard=0;
+static int escint=128;
+static int escmul=1;
 
 #ifdef TARGET_RISCOS
 
@@ -375,9 +375,9 @@ static int32 pop_key(void) {
 ** purge_keys - Flattens the holding stack
 */
 void purge_keys(void) {
+#ifdef USE_SDL
   SDL_Event ev;
   holdcount = 0;
-#ifdef USE_SDL
   while(SDL_PollEvent(&ev)) ;
 #endif
 }
@@ -955,7 +955,9 @@ int32 emulate_get(void) {
 */
 
 int32 emulate_inkey(int32 arg) {
+#ifdef USE_SDL
   mode7flipbank();
+#endif
   if (arg >= 0) {       /* Timed wait for a key to be hit */
     if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);     /* There is no keyboard to read */
     if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in range 0..32767 centiseconds */

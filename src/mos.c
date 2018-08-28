@@ -1567,7 +1567,9 @@ void mos_final(void) {
 void mos_osword(int32 areg, int32 xreg) {
    switch (areg) {
      case 10:
+#ifdef USE_SDL
        osword10(xreg);
+#endif
        break;
    }
 }
@@ -1851,16 +1853,23 @@ switch (areg) {
 		else error(ERR_MOSVERSION);
 		break;
 	case 20:
+#ifdef USE_SDL
 		reset_sysfont(8);
 		return 0x030114;
+#else
+		return 0xC003FF14;
+#endif
 	case 25:
+#ifdef USE_SDL
 		if ((xreg >= 0) && (xreg <= 7)) {
 		  reset_sysfont(xreg);
 		  return(0x19);
 		} else {
 		  return(0x19 + (xreg << 8));
 		}
-		break;
+#else
+		return 0xC000FF19;
+#endif
 	case 40:
 		set_escint(xreg);
 		break;
@@ -1868,6 +1877,7 @@ switch (areg) {
 		set_escmul(xreg);
 		break;
 	case 42:		// OSBYTE 42 - local to Brandy
+#ifdef USE_SDL
 		if (xreg==0) {	// get/set REFRESH state
 		  return ((get_refreshmode() << 8) + 0x2A);
 		}
@@ -1887,18 +1897,27 @@ switch (areg) {
 		  emulate_vdu(6);
 		}
 		break;
+#else
+		return 0xC000FF2A;
+#endif
 	case 43:
 		printf("%c", xreg);
 		fflush(stdout);
 		break;
 	case 106:
+#ifdef USE_SDL
 		sdl_mouse_onoff(xreg & 0x7);
+#endif
 		break;
 	case 112:
+#ifdef USE_SDL
 		osbyte112(xreg);
+#endif
 		break;
 	case 113:
+#ifdef USE_SDL
 		osbyte113(xreg);
+#endif
 		break;
 	case 128:		// OSBYTE 128 - ADVAL
 		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
@@ -1927,12 +1946,21 @@ switch (areg) {
 //	case 133:		// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 	case 134:		// OSBYTE 134 - Read POS and VPOS
 	case 165:		// Identical, since we don't have an editing cursor
+#ifdef USE_SDL
 		return osbyte134_165(areg);
+#else
+		return 0xC000FFA5;
+#endif
 	case 135:
+#ifdef USE_SDL
 		return osbyte135();
+#else
+		return 0xC000FF87;
+#endif
 	case 160:		// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
 	case 163:		// OSBYTE 163 - Application Support.
+#ifdef USE_SDL
 		if (xreg==1) {	// get/set REFRESH state
 		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
 		  else {
@@ -1952,6 +1980,7 @@ switch (areg) {
 		  osbyte113(1);
 		  emulate_vdu(6);
 		}
+#endif
 		break;
 	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
 		if (xreg & 1) {
@@ -1968,10 +1997,14 @@ switch (areg) {
 		}
 		break;
 	case 250:
+#ifdef USE_SDL
 		if ((xreg == 0) && (yreg == 255)) return osbyte250();
+#endif
 		break;
 	case 251:
+#ifdef USE_SDL
 		if ((xreg == 0) && (yreg == 255)) return osbyte251();
+#endif
 		break;
 	}
 if (areg <= 25 || (areg >= 40 && areg <= 43) || areg >= 106) 

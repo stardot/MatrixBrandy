@@ -131,3 +131,12 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   (as if -quit was set on the command line). This also means a BASIC program
   can be made executable and will run when run as a script, and Brandy will
   exit upon completion.
+* V1.21.12
+- Bug fixed: Closed file warning clobbered ERR value. Thanks to dhg2 @ Stardot
+  for highlighting this one.
+- Bug fixed: OSWORD via &FFF1 wasn't returning the A register. Thanks to
+  luigino @ Github for highlighting this.
+- Bugs fixed: Multiple compiler warnings when compiled with -Wall, and
+  static analysis.
+- Brought the text-only builds up to date, brought makefile.text back to
+  top level.

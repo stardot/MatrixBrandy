@@ -235,6 +235,7 @@ static void assign_dolstrptr(pointers address) {
   if (exprtype!=STACK_STRING && exprtype!=STACK_STRTEMP) error(ERR_TYPESTR);
   result = pop_string();
   check_write(address.offset, result.stringlen);
+#ifdef USE_SDL
   if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
     addr = address.offset - 0xFFFF7C00u;
     for(ptr=0; ptr<result.stringlen; ptr++) {
@@ -250,9 +251,12 @@ static void assign_dolstrptr(pointers address) {
     }
     if (render) mode7renderline(msy);
   } else {
+#endif
     memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
     basicvars.offbase[address.offset+result.stringlen] = CR;
+#ifdef USE_SDL
   }
+#endif
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 

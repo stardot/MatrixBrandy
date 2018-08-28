@@ -105,7 +105,9 @@ static void handle_signal(int signo) {
   case SIGUSR1:
     return;
   case SIGUSR2:
+#ifdef USE_SDL
     mode7renderscreen();
+#endif
     return;
   case SIGPIPE:
     return;
@@ -688,7 +690,9 @@ static void handle_error(errortype severity) {
 void error(int32 errnumber, ...) {
   va_list parms;
   byte *badline;
+#ifdef USE_SDL
   hide_cursor();
+#endif
   if (errnumber<1 || errnumber>HIGHERROR) {
     emulate_printf("Out of range error number %d\r\n", errnumber);
     errnumber = ERR_BROKEN;
@@ -704,7 +708,9 @@ void error(int32 errnumber, ...) {
   vsprintf(errortext, errortable[errnumber].msgtext, parms);
   va_end(parms);
   if (errortable[errnumber].equiverror != -1) basicvars.error_number = errortable[errnumber].equiverror;
+#ifdef USE_SDL
   if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
+#endif
   if (basicvars.current==NIL)           /* Not running a program */
     basicvars.error_line = 0;
   else {

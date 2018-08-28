@@ -1559,8 +1559,9 @@ void emulate_gcol(int32 action, int32 colour, int32 tint) {
 ** to true if the graphics background colour is to be changed
 ** otherwise the foreground colour is altered
 */
-void emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
+int32 emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
   error(ERR_NOGRAPHICS);
+  return 0;
 }
 
 /*
@@ -1597,8 +1598,9 @@ void emulate_mapcolour(int32 colour, int32 physcolour) {
 ** 'emulate_setcolour' handles the Basic 'COLOUR <red>,<green>,<blue>'
 ** statement
 */
-void emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
+int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+  return 0;
 }
 
 /*
