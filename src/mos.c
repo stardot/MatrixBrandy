@@ -1878,24 +1878,7 @@ switch (areg) {
 		break;
 	case 42:		// OSBYTE 42 - local to Brandy
 #ifdef USE_SDL
-		if (xreg==0) {	// get/set REFRESH state
-		  return ((get_refreshmode() << 8) + 0x2A);
-		}
-		if (xreg==1) {
-		  star_refresh(0);
-		}
-		if (xreg==2) {
-		  star_refresh(1);
-		}
-		if (xreg==3) {
-		  star_refresh(2);
-		}
-		if (xreg==255) { // Analogue to 'stty sane'
-		  star_refresh(1);
-		  osbyte112(1);
-		  osbyte113(1);
-		  emulate_vdu(6);
-		}
+		return osbyte42(xreg);
 		break;
 #else
 		return 0xC000FF2A;

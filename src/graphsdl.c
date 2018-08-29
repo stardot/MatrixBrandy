@@ -4109,6 +4109,29 @@ int get_refreshmode(void) {
   return autorefresh;
 }
 
+int32 osbyte42(int x) {
+  int fullscreen=0, ref=(x & 3), fsc=((x & 12) >> 2);
+  int outx;
+  
+  if (screen0->flags & SDL_FULLSCREEN) fullscreen=8;
+  if (x == 0) {
+    outx = fullscreen + (autorefresh+1);
+    return ((outx << 8) + 42);
+  }
+  if (x == 255) {
+    star_refresh(1);
+    osbyte112(1);
+    osbyte113(1);
+    emulate_vdu(6);
+    return 0xFF2A;
+  }
+  /* Handle the lowest 2 bits - REFRESH state */
+  if (ref) star_refresh(ref-1);
+  /* Handle the next 2 bits - FULLSCREEN state */
+  if (fsc) fullscreenmode(fsc-1);
+  return((x << 8) + 42);
+}
+
 void osbyte112(int x) {
   /* OSBYTE 112 selects which bank of video memory is to be written to */
   if (screenmode == 7) return;
