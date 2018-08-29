@@ -3424,9 +3424,7 @@ void end_screen(void) {
 }
 
 static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
-  unsigned int left, right, hmask, cval, val;
-
-  cval = ch - 160;
+  unsigned int left, right, hmask, val;
 
   if (y > 19) return(0); /* out of range */
   val = 0;
