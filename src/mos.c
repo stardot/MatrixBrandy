@@ -1078,13 +1078,15 @@ void cmd_cat(char *command) {
 }
 
 void cmd_wintitle(char *command) {
-#ifdef USE_SDL
   while (*command == ' ') command++;	// Skip spaces
+#ifdef USE_SDL
   if (strlen(command) == 0) {
     emulate_printf("Syntax: WinTitle <window title>\r\n");
   } else {
     set_wintitle(command);
   }
+#else
+  printf("\x1B]0;%s\x07", command);
 #endif
   return;
 }

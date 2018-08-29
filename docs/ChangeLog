@@ -141,3 +141,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Brought the text-only builds up to date, brought makefile.text back to
   top level.
 - Changing screen mode no longer clears FULLSCREEN.
+- Expanded OSBYTE 42 to get or set fullscreen state, and fixed an off-by-one
+  error in returning Refresh state.
