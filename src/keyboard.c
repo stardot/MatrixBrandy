@@ -520,8 +520,8 @@ int escinterval=0;
 int64 esclast=0;
 
 void checkforescape(void) {
-int64 i;
 #ifdef USE_SDL
+int64 i;
   if (basicvars.escape_enabled) {
     if (!escinterval) {
       escinterval=escint+escmul;

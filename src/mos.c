@@ -913,7 +913,9 @@ void mos_waitdelay(int32 time) {
   delay.tv_sec = time/100;		/* Time to wait (seconds) */
   delay.tv_usec = time%100*10000;	/* Time to wait (microseconds) */
   (void) select(0, NIL, NIL, NIL, &delay);
+#ifdef USE_SDL
   if(basicvars.escape_enabled && emulate_inkey(-113)) basicvars.escape=TRUE;
+#endif
 }
 
 #endif
@@ -1910,8 +1912,11 @@ switch (areg) {
 	case 129:		// OSBYTE 129 - INKEY
 		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
 		if ((yreg=255) && (xreg >= 128)) {
+#ifdef USE_SDL
 		  if (emulate_inkey(xreg + 0xFFFFFF00)) return (0xFFFF81);
-		    else return (0x81);
+		    else 
+#endif
+		    return (0x81);
 		}
 		break;
 	case 130:		// OSBYTE 130 - High word of user memory
