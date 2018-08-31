@@ -8,7 +8,7 @@
 CC = gcc
 LD = gcc
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
+CFLAGSDBG += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
 CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP
 
 LDFLAGS +=
@@ -35,8 +35,8 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c
 
-brandy:	$(OBJ)
-	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
+brandyapp:	$(OBJ)
+	$(LD) $(LDFLAGS) -o brandyapp $(OBJ) $(LIBS)
 
 # Build VARIABLES.C
 VARIABLES_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -248,14 +248,14 @@ $(SRCDIR)/assign.o: $(ASSIGN_C) $(SRCDIR)/assign.c
 recompile:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o brandy
 
-nodebug:
-	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy
+debug:
+	$(CC) $(CFLAGSDBG) $(SRC) $(LIBS) -o brandyapp
+	strip brandyapp
 
 check:
-	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy
+	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandyapp
 
 clean:
-	rm -f $(SRCDIR)/*.o brandy
+	rm -f $(SRCDIR)/*.o brandyapp
 
-all:	brandy
+all:	brandyapp

@@ -1,5 +1,6 @@
 # Object files
 brandy
+brandyapp
 sbrandy
 tbrandy
 *.o
