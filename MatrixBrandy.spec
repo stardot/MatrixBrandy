@@ -24,13 +24,18 @@ both of which are used by the bundled "telstar" example.
 chmod 0644 docs/*
 
 %build
+make clean %{?_smp_mflags}
 make %{?_smp_mflags}
+make -f makefile.text clean %{?_smp_mflags}
+make -f makefile.text %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_datadir}/%{name}-%{version}/examples
 install -m 0755 brandy %{buildroot}%{_bindir}
+install -m 0755 sbrandy %{buildroot}%{_bindir}
+install -m 0755 tbrandy %{buildroot}%{_bindir}
 cp -r examples/* %{buildroot}%{_datadir}/%{name}-%{version}/examples
 
 %clean
@@ -39,6 +44,8 @@ rm -rf %{buildroot}
 %files
 %doc COPYING READ.ME docs/ChangeLog docs/README docs/*.txt
 %{_bindir}/brandy
+%{_bindir}/sbrandy
+%{_bindir}/tbrandy
 %{_datadir}/%{name}-%{version}
 
 %changelog
