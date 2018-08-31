@@ -1,0 +1,20 @@
+Building standalone applications written in BASIC with Brandy
+=============================================================
+
+Before you begin, note that the application will exit as soon as the BASIC
+program exits, as if -quit were supplied on the command line for Brandy
+(or *BASIC in RISC OS).
+
+1: Enaure the build area is clean:
+   make -f makefile.app clean
+
+2: The program to be made into an app needs to be called "app" - that's due
+   to the way ld makes the .o file and names the structures inside.
+
+3: Do: ld -r b binary app -o /path/to/MatrixBrandy.build.area/src/app.o
+
+4: Go back to your build area and do:
+   make -f makefile.app
+
+5: The resulting brandyapp binary is the app. It can be renamed and placed
+   somewhere in your $PATH.
