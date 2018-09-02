@@ -1,6 +1,6 @@
 Summary: A BBC BASIC interpreter for Linux
 Name: MatrixBrandy
-Version: 1.21.11
+Version: 1.21.12
 Release: 1
 License: GPLv2+
 Group: Development/Tools
@@ -49,6 +49,8 @@ rm -rf %{buildroot}
 %{_datadir}/%{name}-%{version}
 
 %changelog
+* Sun Sep 02 2018 Michael McConnell <mike@matrixnetwork.co.uk> - 1.21.12
+- Build both SDL and text-mode variants.
 * Thu Aug 23 2018 Michael McConnell <mike@matrixnetwork.co.uk> - 1.21.11
 - Adapted for Matrix Brandy.
 * Fri Nov 18 2016 Huaren Zhong <huaren.zhong@gmail.com> 1.20.1
