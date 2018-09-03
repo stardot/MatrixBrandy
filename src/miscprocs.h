@@ -23,6 +23,7 @@
 
 #ifndef __miscprocs_h
 #define __miscprocs_h
+#include <stdio.h>
 
 #ifdef USE_SDL
 #include <SDL.h>
