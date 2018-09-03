@@ -886,11 +886,15 @@ void read_library(char *name, boolean onheap) {
 /*
 ** 'write_text' is called to save a program in text form
 */
-void write_text(char *name) {
+void write_text(char *name, FILE *fhandle) {
   FILE *savefile;
   byte *bp;
   int32 x;
-  savefile = fopen(name, "w");
+  if (fhandle) {
+    savefile = fhandle;
+  } else {
+    savefile = fopen(name, "w");
+  }
   if (savefile==NIL) error(ERR_NOTCREATED, name);
   bp = basicvars.start;
   while (!AT_PROGEND(bp)) {

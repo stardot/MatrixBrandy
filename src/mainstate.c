@@ -77,7 +77,7 @@ void exec_asmend(void) {
 void exec_oscmd(void) {
   char *p;
   p = CAST(get_srcaddr(basicvars.current), char *);	/* Get the address of the command text */
-  mos_oscli(p, FALSE);		/* Run command but do not capture output */
+  mos_oscli(p, FALSE, NULL);		/* Run command but do not capture output */
   basicvars.current+=1+SIZESIZE;	/* Skip the '*' and the offset after it */
 }
 
@@ -1571,7 +1571,7 @@ void exec_oscli(void) {
   boolean tofile;
   char respname[FNAMESIZE];
   int length, count, n;
-  FILE *respfile;
+  FILE *respfile, *respfh;
   char *p;
   basicarray *ap;
   basicvars.current++;	/* Hop over the OSCLI token */
@@ -1598,17 +1598,18 @@ void exec_oscli(void) {
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
 /* Issue command */
   if (!tofile) {	/* Response not wanted - Run command and go home */
-    mos_oscli(basicvars.stringwork, NIL);
+    mos_oscli(basicvars.stringwork, NIL, NULL);
     return;
   }
 /*
 ** Issue the command and then read the command response
 */
-  if (!secure_tmpnam(respname)) {
+  respfh=secure_tmpnam(respname);
+  if (!respfh) {
     error (ERR_OSCLIFAIL, strerror (errno));
     return;
   }
-  mos_oscli(basicvars.stringwork, respname);
+  mos_oscli(basicvars.stringwork, respname, respfh);
   respfile = fopen(respname, "rb");
   if (respfile == 0) return;
   ap = *response.address.arrayaddr;

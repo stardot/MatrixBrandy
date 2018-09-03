@@ -488,36 +488,16 @@ boolean amend_line(char line[], int32 linelen) {
 }
 
 /*
-** 'secure_tmpnam' generates a temporary filename and ensures that it
-** currently does not exist; if it cannot, it will retry with another name
-** (up to four names will be tried). Returns TRUE on success.
+** 'secure_tmpnam' generates a temporary filename and opens it securely.
+** Returns a FILE * pointer on success, NULL on failure.
 ** ** THE FILENAME BUFFER MUST BE OF SUFFICIENT SIZE FOR USE BY tmpnam.
 ** ** NO CHECK IS MADE.
 */
-boolean secure_tmpnam(char name[])
+FILE *secure_tmpnam(char *name)
 {
-  int retry = 4;
-  do {
-    if (!tmpnam (name))
-      continue;
-    {
-#ifdef TARGET_RISCOS
-      int i = 0;
-      if (!_swix (OS_File, _INR(0,1) | _OUT(0), 17, name, &i) && i == 0)
-        return TRUE;
-#else
-      struct stat info;
-      if (stat (name, &info)) {
-        if (errno == ENOENT)
-          return TRUE;
-      }
-      else {
-        /* An object exists; remove it */
-        if (!remove (name))
-          return TRUE;
-      }
-#endif
-    }
-  } while (--retry);
-  return FALSE;
+  int fdes;
+  strcpy(name, "/tmp/.brandy.XXXXXX");
+  fdes=mkstemp(name);
+  if (!fdes) return NULL;
+  return fdopen(fdes, "w+");
 }

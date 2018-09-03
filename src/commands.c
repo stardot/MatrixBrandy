@@ -469,7 +469,7 @@ static void save_program(void) {
   basicvars.current++;
   np = get_savefile();
   reset_indent();
-  write_text(np);
+  write_text(np, NULL);
   strcpy(basicvars.program, np);        /* Preserve name used when saving program for later */
 }
 
@@ -491,7 +491,7 @@ static void saveo_program(void) {
   basicvars.list_flags.showpage = FALSE;
   basicvars.list_flags.expand = FALSE;
   reset_indent();
-  write_text(np);
+  write_text(np, NULL);
   strcpy(basicvars.program, np);        /* Preserve name used for program for later */
   basicvars.list_flags = basicvars.listo_copy;  /* Restore LISTO flags to original values */
 }
@@ -553,18 +553,20 @@ static void invoke_editor(void) {
   char tempname[FNAMESIZE], savedname[FNAMESIZE];
   int32 retcode, r2byte;
   char *p;
+  FILE *fhandle;
   _kernel_osfile_block now, then;
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
   basicvars.listo_copy = basicvars.list_flags;
   if (basicvars.misc_flags.validedit) basicvars.list_flags = basicvars.edit_flags;
   basicvars.list_flags.lower = FALSE;   /* Changing keyword to lower case is useless here */
   basicvars.list_flags.expand = FALSE;  /* So is adding extra blanks */
-  if (!secure_tmpnam(tempname)) {
+  fhandle=secure_tmpnam(tempname);
+  if (!handle) {
     error(ERR_EDITFAIL, strerror (errno));
     return;
   }
   reset_indent();
-  write_text(tempname);
+  write_text(tempname, fhandle);
   basicvars.list_flags = basicvars.listo_copy;  /* Restore LISTO flags to original values */
   p = getenv("Wimp$State");             /* Is interpreter running under the RISC OS desktop? */
   if (p == NIL || strcmp(p, "desktop") != 0) {  /* Running at F12 command line or outside desktop */
@@ -656,11 +658,13 @@ static void exec_editor(void) {
 static void invoke_editor(void) {
   char tempname[FNAMESIZE], savedname[FNAMESIZE];
   int32 retcode;
+  FILE *fhandle;
 #ifdef TARGET_DJGPP
   char *p;
 #endif
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
-  if (!secure_tmpnam(tempname)) {
+  fhandle=secure_tmpnam(tempname);
+  if (!fhandle) {
     error(ERR_EDITFAIL, strerror (errno));
     return;
   }
@@ -676,7 +680,7 @@ static void invoke_editor(void) {
   basicvars.list_flags.lower = FALSE;   /* Changing keyword to lower case is useless here */
   basicvars.list_flags.expand = FALSE;
   reset_indent();
-  write_text(tempname);
+  write_text(tempname, fhandle); /* This function will close fhandle */
   basicvars.list_flags = basicvars.listo_copy;  /* Restore LISTO flags to original values */
   strcpy(basicvars.stringwork, editname);
   strcat(basicvars.stringwork, " ");

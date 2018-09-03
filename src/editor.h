@@ -38,7 +38,7 @@ extern void clear_tables(void);
 extern void read_basic(char *);
 extern void write_basic(char *);
 extern void read_library(char *, boolean);
-extern void write_text(char *);
+extern void write_text(char *, FILE *);
 extern boolean validate_program(void);
 extern boolean recover_program(void);
 extern void renumber_program(byte *, int32, int32);

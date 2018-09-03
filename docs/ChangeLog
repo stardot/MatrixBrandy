@@ -148,3 +148,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   error in returning Refresh state.
 - RPM SPEC file now builds text builds as well as the graphical build, the
   resulting RPM includes all three builds (graphical, text, simple-text).
+* V1.21.13
+- Rework temp file bits to use mkstemp instead of tmpnam.

@@ -1349,9 +1349,10 @@ int check_command(char *text) {
 ** it should not be a problem unless the size of stringwork is
 ** drastically reduced.)
 */
-void mos_oscli(char *command, char *respfile) {
+void mos_oscli(char *command, char *respfile, FILE *respfh) {
   int cmd, clen;
-  char *cmdbuf, *cmdbufbase;
+  FILE *sout;
+  char buf, *cmdbuf, *cmdbufbase, *pipebuf;
 
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */
@@ -1360,6 +1361,7 @@ void mos_oscli(char *command, char *respfile) {
 
   clen=strlen(command) + 256;
   cmdbufbase=malloc(clen);
+  pipebuf=malloc(4096);
   cmdbuf=cmdbufbase;
   memcpy(cmdbuf, command, clen-1);
 
@@ -1419,8 +1421,6 @@ void mos_oscli(char *command, char *respfile) {
 */
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
-    FILE *sout;
-    char buf;
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
@@ -1439,16 +1439,23 @@ void mos_oscli(char *command, char *respfile) {
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
   } else {				/* Want response back from command */
-    strcat(cmdbuf, " >");
-    strcat(cmdbuf, respfile);
     strcat(cmdbuf, " 2>&1");
-    basicvars.retcode = system(cmdbuf);
-    find_cursor();			/* Figure out where the cursor has gone to */
-    if (basicvars.retcode<0) {
+    sout = popen(cmdbuf, "r");
+    if (sout == NULL) {
+      fclose(respfh);
       remove(respfile);
       error(ERR_CMDFAIL);
+    } else {
+      echo_off();
+      while (fgets(pipebuf, sizeof(pipebuf)-1, sout)) {
+	fprintf(respfh, "%s", pipebuf);
+      }
+      echo_on();
+      pclose(sout);
+      fclose(respfh);
     }
   }
+  free(pipebuf);
   free(cmdbufbase);
 #else
 #error There is no mos_oscli() function for this target
@@ -1505,7 +1512,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=emulate_get(); break;
     case SWI_OS_CLI:
       outregs[0]=inregs[0];
-      mos_oscli((char *)basicvars.offbase+inregs[0], NIL);
+      mos_oscli((char *)basicvars.offbase+inregs[0], NIL, NULL);
       break;
     case SWI_OS_Byte:
       rtn=mos_osbyte(inregs[0], inregs[1], inregs[2]);
