@@ -761,10 +761,9 @@ static void vdu_2318(void) {
   if (vduqueue[1] == 3) {
     mode7black = vduqueue[2] & 1;
   }
-#if 0
   if (vduqueue[1] == 255) { /* Brandy extension - render glyphs 12, 14 or 16 glyphs wide */
     if ((vduqueue[2] == 12) || (vduqueue[2]== 14) || (vduqueue[2] == 16)) {
-      static SDL_Surface *m7fontbuf;
+      SDL_Surface *m7fontbuf;
       M7XPPC = vduqueue[2];
       SDL_FreeSurface(sdl_m7fontbuf);
       m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
@@ -790,7 +789,6 @@ static void vdu_2318(void) {
       }
     }
   }
-#endif
   mode7renderscreen();
 }
 
@@ -2398,7 +2396,16 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int flags = screen0->flags;
   int p;
+  SDL_Surface *m7fontbuf;
 
+  if (mode == 7) { /* Reset width to 16 */
+    M7XPPC=16;
+    m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+    sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, screen0->format, 0);
+    SDL_FreeSurface(m7fontbuf);
+    modetable[7].xres = 40*M7XPPC;
+    modetable[7].xgraphunits = 80*M7XPPC;
+  }
   modecopy = mode;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */

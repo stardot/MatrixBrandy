@@ -6,13 +6,13 @@ allows for existing lines to be modified with control codes, and existing
 characters are changed to reflect the modification.
 
 This is a change to the teletext in 1.21.0 and .1, where streams of characters
-were obeyed correctly, but placed characters would not reflect existing
-codes, nor would placed codes affect existing characters.
+were obeyed and displayed (mostly) correctly, but placed characters would not
+reflect existing codes, nor would placed codes affect existing characters.
 
-Glyphs are using 8x9 character cells, this allows for a decent rendering
+Glyphs are using 16x20 character cells, this allows for a decent rendering
 of mosaic graphics, especially separated graphics.
 
-Direct screen memory access is implmented at addresses &FFFF7C00 to &FFFF7FFF.
+Direct screen memory access is implemented at addresses &FFFF7C00 to &FFFF7FFF.
 
 Some RISC OS 5 extensions are also supported:
   (source: http://beebwiki.mdfs.net/VDU_23)
@@ -31,6 +31,6 @@ VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
               control code &90 selects graphics black.
 Enabling or disabling this will cause an immediate refresh of the display.
 
-A Brandy-specific extension (currently disabled, does a no-op):
+A Brandy-specific extension:
 VDU 23,18,255,width,0,0,0,0,0,0 - Set Teletext character cell width
   Valid values are 12, 14 and 16. All other values are ignored.
