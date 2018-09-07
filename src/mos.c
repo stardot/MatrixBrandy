@@ -1040,6 +1040,7 @@ unsigned int cmd_parse_num(char** text)
 #define CMD_NEWMODE		13
 #define CMD_REFRESH		14
 #define CMD_SCREENSAVE		15
+#define CMD_SCREENLOAD		16
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1111,12 +1112,26 @@ void cmd_fullscreen(char *command) {
 }
 
 void cmd_screensave(char *command) {
-  while (*command == ' ') command++;	// Skip spaces
 #ifdef USE_SDL
+  while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
     emulate_printf("Syntax: ScreenSave <filename.bmp>\r\n");
   } else {
     sdl_screensave(command);
+  }
+#else
+  error(ERR_BADCOMMAND);
+#endif
+  return;
+}
+
+void cmd_screenload(char *command) {
+#ifdef USE_SDL
+  while (*command == ' ') command++;	// Skip spaces
+  if (strlen(command) == 0) {
+    emulate_printf("Syntax: ScreenLoad <filename.bmp>\r\n");
+  } else {
+    sdl_screenload(command);
   }
 #else
   error(ERR_BADCOMMAND);
@@ -1270,6 +1285,7 @@ void cmd_help(char *command)
 		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
 		emulate_printf("  Refresh    [<On|Off>]\r\n");
 		emulate_printf("  ScreenSave <filename.bmp>\r\n");
+		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
 	}
 	if (*command == '.' || *command == '\0')
 		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
@@ -1337,6 +1353,7 @@ int check_command(char *text) {
   if (strcmp(command, "help")   == 0) return CMD_HELP;
   if (strcmp(command, "ver")    == 0) return CMD_VER;
   if (strcmp(command, "screensave") == 0) return CMD_SCREENSAVE;
+  if (strcmp(command, "screenload") == 0) return CMD_SCREENLOAD;
   if (strcmp(command, "wintitle") == 0) return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
   if (strcmp(command, "newmode") == 0) return CMD_NEWMODE;
@@ -1392,6 +1409,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (cmd == CMD_FX)   { cmd_fx(cmdbuf+2); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
   if (cmd == CMD_SCREENSAVE) {cmd_screensave(cmdbuf+10); return; }
+  if (cmd == CMD_SCREENLOAD) {cmd_screenload(cmdbuf+10); return; }
   if (cmd == CMD_WINTITLE) {cmd_wintitle(cmdbuf+8); return; }
   if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(cmdbuf+10); return; }
   if (cmd == CMD_NEWMODE) {cmd_newmode(cmdbuf+7); return; }

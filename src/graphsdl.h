@@ -20,5 +20,6 @@ extern void hide_cursor(void);
 extern void reveal_cursor(void);
 extern void osword10(int32 x);
 extern void sdl_screensave(char *fname);
+extern void sdl_screenload(char *fname);
 
 #endif

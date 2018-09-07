@@ -4191,3 +4191,18 @@ void sdl_screensave(char *fname) {
     error(ERR_CANTWRITE);
   }
 }
+
+void sdl_screenload(char *fname) {
+  SDL_Surface *placeholder;
+  
+  placeholder=SDL_LoadBMP(fname);
+  if(!placeholder) {
+    error(ERR_CANTREAD);
+  } else {
+    SDL_BlitSurface(placeholder, NULL, screenbank[writebank], NULL);
+    if (displaybank == writebank) {
+      SDL_BlitSurface(placeholder, NULL, screen0, NULL);
+      SDL_Flip(screen0);
+    }
+  }
+}
