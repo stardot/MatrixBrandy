@@ -1375,7 +1375,6 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
 
   clen=strlen(command) + 256;
   cmdbufbase=malloc(clen);
-  pipebuf=malloc(4096);
   cmdbuf=cmdbufbase;
   memcpy(cmdbuf, command, clen-1);
 
@@ -1461,6 +1460,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
       remove(respfile);
       error(ERR_CMDFAIL);
     } else {
+      pipebuf=malloc(4096);
       echo_off();
       while (fgets(pipebuf, sizeof(pipebuf)-1, sout)) {
 	fprintf(respfh, "%s", pipebuf);
