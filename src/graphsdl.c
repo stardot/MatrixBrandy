@@ -4186,7 +4186,7 @@ void osword10(int32 x) {
 
 void sdl_screensave(char *fname) {
   /* Blit screen to screen1 as accelerated displays can't be saved directly */
-  SDL_BlitSurface(screen0, NULL, screen1, NULL);
+  SDL_BlitSurface(screenbank[displaybank], NULL, screen1, NULL);
   if (SDL_SaveBMP(screen1, fname)) {
     error(ERR_CANTWRITE);
   }

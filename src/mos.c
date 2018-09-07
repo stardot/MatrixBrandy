@@ -1366,7 +1366,7 @@ int check_command(char *text) {
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
   int cmd, clen;
   FILE *sout;
-  char buf, *cmdbuf, *cmdbufbase, *pipebuf;
+  char buf, *cmdbuf, *cmdbufbase, *pipebuf=NULL;
 
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */
@@ -1470,7 +1470,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
       fclose(respfh);
     }
   }
-  free(pipebuf);
+  if (pipebuf) free(pipebuf);
   free(cmdbufbase);
 #else
 #error There is no mos_oscli() function for this target
