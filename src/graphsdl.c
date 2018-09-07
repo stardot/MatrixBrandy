@@ -4183,3 +4183,11 @@ void osword10(int32 x) {
   if (offset < 0) return;
   for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
 }
+
+void sdl_screensave(char *fname) {
+  /* Blit screen to screen1 as accelerated displays can't be saved directly */
+  SDL_BlitSurface(screen0, NULL, screen1, NULL);
+  if (SDL_SaveBMP(screen1, fname)) {
+    error(ERR_CANTWRITE);
+  }
+}

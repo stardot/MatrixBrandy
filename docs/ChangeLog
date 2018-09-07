@@ -153,3 +153,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Reinstated MODE 7 width setting via VDU23,18,255 (from 1.21.7). Note that
   it does not resize the window, and re-selecting MODE 7 restores the default
   glyph width of 16.
+- Add *ScreenSave - saves the screen as a Windows Bitmap file

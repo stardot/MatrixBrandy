@@ -1039,9 +1039,11 @@ unsigned int cmd_parse_num(char** text)
 #define CMD_FULLSCREEN		12
 #define CMD_NEWMODE		13
 #define CMD_REFRESH		14
+#define CMD_SCREENSAVE		15
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
+#define HELP_MATRIX		131
 
 /*
  * *.(<directory>)
@@ -1104,6 +1106,20 @@ void cmd_fullscreen(char *command) {
   if (strcasecmp(command, "off" ) == 0) flag=0;
   if (flag != 3) fullscreenmode(flag);
   else emulate_printf("Syntax: FullScreen [<ON|OFF|1|0>]\r\nWith no parameter, this command toggles the current setting.\r\n");
+#endif
+  return;
+}
+
+void cmd_screensave(char *command) {
+  while (*command == ' ') command++;	// Skip spaces
+#ifdef USE_SDL
+  if (strlen(command) == 0) {
+    emulate_printf("Syntax: ScreenSave <filename.bmp>\r\n");
+  } else {
+    sdl_screensave(command);
+  }
+#else
+  error(ERR_BADCOMMAND);
 #endif
   return;
 }
@@ -1241,26 +1257,22 @@ void cmd_help(char *command)
 	while (*command == ' ') command++;		// Skip spaces
 	cmd = check_command(command);
 
-//	if (cmd == HELP_MOS) {
-//		emulate_vdu(10); emulate_vdu(13);
-//		cmd_ver();
-//	} else {
-		emulate_printf("\r\n%s\r\n", IDSTRING);
-//	}
+	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
 		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_VERSION, BRANDY_DATE);
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
-		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r\n\r");
+		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r");
+	}
+	if (cmd == HELP_MATRIX) {
 		emulate_printf("  WinTitle   <window title>\r\n  FullScreen [<ON|OFF|1|0>]\n\r");
 		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
 		emulate_printf("  Refresh    [<On|Off>]\r\n");
-//		emulate_printf("  VER\n\r");
+		emulate_printf("  ScreenSave <filename.bmp>\r\n");
 	}
-	if (*command == '.')
-//		emulate_printf("  BASIC\n\r  HOST\n\r  MOS\n\r");
-		emulate_printf("  BASIC\n\r  MOS\n\r");
+	if (*command == '.' || *command == '\0')
+		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
 }
 
 /*
@@ -1324,6 +1336,7 @@ int check_command(char *text) {
 //if (strcmp(command, "title")  == 0) return CMD_TITLE;
   if (strcmp(command, "help")   == 0) return CMD_HELP;
   if (strcmp(command, "ver")    == 0) return CMD_VER;
+  if (strcmp(command, "screensave") == 0) return CMD_SCREENSAVE;
   if (strcmp(command, "wintitle") == 0) return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
   if (strcmp(command, "newmode") == 0) return CMD_NEWMODE;
@@ -1331,6 +1344,7 @@ int check_command(char *text) {
   if (strcmp(command, "basic")  == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
+  if (strcmp(command, "matrix") == 0) return HELP_MATRIX;
   if (strcmp(command, "os")     == 0) return HELP_MOS;
   return CMD_UNKNOWN;
 }
@@ -1378,6 +1392,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (cmd == CMD_CD)   { cmd_cd(cmdbuf+2); return; }
   if (cmd == CMD_FX)   { cmd_fx(cmdbuf+2); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
+  if (cmd == CMD_SCREENSAVE) {cmd_screensave(cmdbuf+10); return; }
   if (cmd == CMD_WINTITLE) {cmd_wintitle(cmdbuf+8); return; }
   if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(cmdbuf+10); return; }
   if (cmd == CMD_NEWMODE) {cmd_newmode(cmdbuf+7); return; }
