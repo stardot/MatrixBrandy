@@ -4209,5 +4209,6 @@ void sdl_screenload(char *fname) {
       SDL_BlitSurface(placeholder, NULL, screen0, NULL);
       SDL_Flip(screen0);
     }
+    SDL_FreeSurface(placeholder);
   }
 }
