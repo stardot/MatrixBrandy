@@ -156,3 +156,4 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Add *ScreenSave - saves the displayed screen as a Windows Bitmap file
 - Add *ScreenLoad - Loads the screen into the currently selected display
   bank for VDU writes
+- Initial makefile for SDL on MinGW. Networking currently does NOT work.

@@ -55,6 +55,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
+#include <unistd.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -884,14 +885,21 @@ void mos_waitdelay(int32 time) {
   delay(time * 10);		/* delay() takes the time in ms */
 }
 
-#elif defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#elif defined(TARGET_WIN32) | defined(TARGET_BCC32)
 
 /*
 ** 'mos_waitdelay' emulate the Basic statement 'WAIT <time>'
-** This is not supported under Windows
+** This is not supported under Windows.
 */
 void mos_waitdelay(int32 time) {
   error(ERR_UNSUPPORTED);	/* Not supported under windows */
+}
+
+#elif defined(TARGET_MINGW)
+
+void mos_waitdelay(int32 time) {
+  sleep(time / 100);
+  usleep((time % 100)*10000);
 }
 
 #elif defined(TARGET_AMIGA)
