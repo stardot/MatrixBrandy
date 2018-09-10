@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
 #ifdef TARGET_MINGW
 int WinMain(void) {
-  int dummy=main(__argc, __argv);
+  return main(__argc, __argv);
 }
 #endif
 
