@@ -1042,7 +1042,7 @@ static byte dostable []  = {
   0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF
 };
 #endif
-
+#ifndef USE_SDL
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
 /*
 ** 'emulate_get' deals with the Basic function 'get'
@@ -1056,30 +1056,6 @@ int32 emulate_get(void) {
  */
   if (fn_string != NIL) return read_fn_string();
   if (holdcount > 0) return pop_key();  /* Return held character if one is present */
-#ifdef USE_SDL
-  ch = read_key();
-  ch = ch & BYTEMASK;
-  if (ch != ESCAPE) return ch;
-  key = decode_sequence();
-  if (key != NUL) return key;
-/* NUL found. Check for function key */
-  key = pop_key();
-  fn_keyno = is_fn_key(key);
-  if (fn_keyno == 0) {	/* Not a function key - Return NUL then key code */
-    push_key(key);
-    return NUL;
-  }
-/* Function key hit. Check if there is a function key string */
-  if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
-    push_key(key);	/* No string is defined for this key */
-    return NUL;
-  }
-/*
- * There is a function key string. Switch input to string
- * and return the first character
- */
-  return switch_fn_string(fn_keyno);
-#else
   ch = getch();
   if (ch == NUL || ch == 0xE0) {        /* DOS escape characters */
     ch = dostable[getch()];
@@ -1102,7 +1078,6 @@ int32 emulate_get(void) {
     return switch_fn_string(fn_keyno);
   }
   return ch & BYTEMASK;
-#endif
 }
 
 /*
@@ -1122,7 +1097,8 @@ int32 emulate_inkey(int32 arg) {
   return 0;
 }
 
-#endif
+#endif /* MINGW etc */
+#endif /* ! USE_SDL */
 
 #ifdef TARGET_DJGPP
 
