@@ -67,12 +67,6 @@ static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 ** (in statement.c) is invoked. 'exec_quit' handles the 'QUIT' command
 */
 
-#ifdef TARGET_MINGW
-void WinMain(void) {
-  int dummy=main(0, NULL);
-}
-#endif
-
 int main(int argc, char *argv[]) {
   init1();
   brandynet_init();
@@ -86,6 +80,12 @@ int main(int argc, char *argv[]) {
   run_interpreter();
   return EXIT_FAILURE;
 }
+
+#ifdef TARGET_MINGW
+int WinMain(void) {
+  int dummy=main(__argc, __argv);
+}
+#endif
 
 /*
 ** add_arg - Add a command line argument to the list accessible
