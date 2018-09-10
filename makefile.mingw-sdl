@@ -251,6 +251,6 @@ check:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy
 
 clean:
-	rm -f $(SRCDIR)/*.o brandy
+	rm -f $(SRCDIR)/*.o brandy.exe
 
 all:	brandy

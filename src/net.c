@@ -47,6 +47,11 @@ int brandynet_connect(char *dest, char type) {
   char *host, *port;
   int n, mysocket, ret;
   struct addrinfo hints, *addrdata, *rp;
+#ifdef TARGET_MINGW
+  WSADATA wsaData;
+  int iResult;
+  unsigned long opt;
+#endif
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     if (!netsockets[n]) break;
@@ -55,6 +60,10 @@ int brandynet_connect(char *dest, char type) {
     error(ERR_NET_MAXSOCKETS);
     return(-1);
   }
+
+#ifdef TARGET_MINGW
+  iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+#endif
 
   memset(&hints, 0, sizeof(hints));
   if (type == '0') hints.ai_family=AF_UNSPEC;
@@ -72,6 +81,7 @@ int brandynet_connect(char *dest, char type) {
   ret=getaddrinfo(host, port, &hints, &addrdata);
 
   if(ret) {
+    printf("getaddrinfo returns: %s\n", gai_strerror(ret));
     error(ERR_NET_NOTFOUND);
     return(-1);
   }
@@ -92,7 +102,10 @@ int brandynet_connect(char *dest, char type) {
   free(host);				/* Don't need this any more */
   freeaddrinfo(addrdata);		/* Don't need this any more either */
 
-#ifndef TARGET_MINGW
+#ifdef TARGET_MINGW
+  opt=1;
+  ioctlsocket(mysocket, FIONBIO, &opt);
+#else
   fcntl(mysocket, F_SETFL, O_NONBLOCK);
 #endif
   netsockets[n] = mysocket;
