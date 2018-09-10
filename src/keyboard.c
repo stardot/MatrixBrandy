@@ -465,7 +465,7 @@ int64 i;
 
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+ | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU) | defined(TARGET_MINGW)
 
 /* ----- Linux-, *BSD- and MACOS-specific keyboard input functions ----- */
 
@@ -475,8 +475,10 @@ int64 i;
 **
 */
 static boolean waitkey(int wait) {
+#ifndef TARGET_MINGW
   fd_set keyset;
   struct timeval waitime;
+#endif
 
 #ifdef USE_SDL
   SDL_Event ev;
@@ -516,6 +518,7 @@ static boolean waitkey(int wait) {
           exit_interpreter(EXIT_SUCCESS);
           break;
       }
+#ifndef TARGET_MINGW
 /*
  * Then for stdin keypresses
 */
@@ -523,7 +526,7 @@ static boolean waitkey(int wait) {
     FD_SET(keyboard, &keyset);
     waitime.tv_sec = waitime.tv_usec = 0;
     if ( select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
-
+#endif
     if (wait == 0) return 0; /* return after one check if wait time = 0 */
     usleep(1000);
   }
@@ -543,10 +546,12 @@ static boolean waitkey(int wait) {
 int32 read_key(void) {
   int errcode;
   byte ch = 0;
-#ifdef USE_SDL
-  SDL_Event ev;
+#ifndef TARGET_MINGW
   fd_set keyset;
   struct timeval waitime;
+#endif
+#ifdef USE_SDL
+  SDL_Event ev;
 
   while (ch == 0) {
 /*
@@ -622,6 +627,7 @@ int32 read_key(void) {
 /*
 ** Then check stdin
 */
+#ifndef TARGET_MINGW
     FD_ZERO(&keyset);
     FD_SET(keyboard, &keyset);
     waitime.tv_sec = waitime.tv_usec = 0; /* Zero wait time */
@@ -633,6 +639,7 @@ int32 read_key(void) {
       }
       else return ch;
     }
+#endif
 /*  If we reach here then nothing happened and so we should sleep */
     SDL_Delay(10);
   }
