@@ -102,6 +102,7 @@ extern void mode7renderscreen(void);
 */
 static void handle_signal(int signo) {
   switch (signo) {
+#ifndef TARGET_MINGW
   case SIGUSR1:
     return;
   case SIGUSR2:
@@ -111,6 +112,7 @@ static void handle_signal(int signo) {
     return;
   case SIGPIPE:
     return;
+#endif
   case SIGINT:
     (void) signal(SIGINT, handle_signal);
     basicvars.escape = TRUE;
@@ -175,11 +177,13 @@ void watch_signals(void) {
 void init_errors(void) {
   errortext[0] = NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
+#ifndef TARGET_MINGW
     (void) signal(SIGUSR1, handle_signal);
     (void) signal(SIGUSR2, handle_signal);
     (void) signal(SIGTTIN, SIG_IGN);
     (void) signal(SIGTTOU, SIG_IGN);
     (void) signal(SIGPIPE, handle_signal);
+#endif
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
     (void) signal(SIGINT, handle_signal);

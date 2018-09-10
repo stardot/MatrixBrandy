@@ -1041,7 +1041,7 @@ static byte dostable []  = {
 ** 'emulate_get' deals with the Basic function 'get'
 */
 int32 emulate_get(void) {
-  int32 ch, fn_keyno;
+  int32 ch, fn_keyno, key;
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* There is no keyboard to read */
 /*
  * Check if characters are being taken from a function
