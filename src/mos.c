@@ -586,6 +586,10 @@ void mos_final(void) {
 ** value of the centisecond clock, but how accurate the value is
 ** depends on the underlying OS.
 */
+int64 mos_centiseconds(void) {
+  return (clock() * 100) / CLOCKS_PER_SEC;
+}
+
 int32 mos_rdtime(void) {
   return (clock() - startime) * 100 / CLOCKS_PER_SEC;
 }

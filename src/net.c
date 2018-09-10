@@ -3,17 +3,24 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "target.h"
+#ifdef TARGET_MINGW
+#include <winsock2.h>
+#include <windows.h>
+#include <wininet.h>
+#include <ws2tcpip.h>
+#else
 #include <arpa/inet.h>
-#include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#endif
+#include <sys/types.h>
 #include <errno.h>
 
 //#include "common.h"
 //#include "basicdefs.h"
 
-#include "target.h"
 #include "errors.h"
 #include "net.h"
 
@@ -85,7 +92,9 @@ int brandynet_connect(char *dest, char type) {
   free(host);				/* Don't need this any more */
   freeaddrinfo(addrdata);		/* Don't need this any more either */
 
+#ifndef TARGET_MINGW
   fcntl(mysocket, F_SETFL, O_NONBLOCK);
+#endif
   netsockets[n] = mysocket;
   return(n);
 }

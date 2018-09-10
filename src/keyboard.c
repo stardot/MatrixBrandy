@@ -433,6 +433,36 @@ static int32 is_fn_key(int32 key) {
   return 0;
 }
 
+void set_escint(int i) {
+  if (i==0) {
+    escint=128;
+    escmul=0;
+  } else escint=i;
+}
+void set_escmul(int i) {
+  escmul=i<<8;
+}
+
+int escinterval=0;
+int64 esclast=0;
+
+void checkforescape(void) {
+#ifdef USE_SDL
+int64 i;
+  if (basicvars.escape_enabled) {
+    if (!escinterval) {
+      escinterval=escint+escmul;
+      i=mos_centiseconds();
+      if (i > esclast) {
+        esclast=i;
+        if(emulate_inkey(-113)) basicvars.escape=TRUE;
+      }
+    } else escinterval--;
+  }
+#endif
+  return;
+}
+
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
  | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
@@ -504,36 +534,6 @@ static boolean waitkey(int wait) {
   waitime.tv_usec = wait%100*10000;
   return select(1, &keyset, NIL, NIL, &waitime) > 0;
 #endif
-}
-
-void set_escint(int i) {
-  if (i==0) {
-    escint=128;
-    escmul=0;
-  } else escint=i;
-}
-void set_escmul(int i) {
-  escmul=i<<8;
-}
-
-int escinterval=0;
-int64 esclast=0;
-
-void checkforescape(void) {
-#ifdef USE_SDL
-int64 i;
-  if (basicvars.escape_enabled) {
-    if (!escinterval) {
-      escinterval=escint+escmul;
-      i=mos_centiseconds();
-      if (i > esclast) {
-        esclast=i;
-        if(emulate_inkey(-113)) basicvars.escape=TRUE;
-      }
-    } else escinterval--;
-  }
-#endif
-  return;
 }
 
 /*
@@ -1049,6 +1049,30 @@ int32 emulate_get(void) {
  */
   if (fn_string != NIL) return read_fn_string();
   if (holdcount > 0) return pop_key();  /* Return held character if one is present */
+#ifdef USE_SDL
+  ch = read_key();
+  ch = ch & BYTEMASK;
+  if (ch != ESCAPE) return ch;
+  key = decode_sequence();
+  if (key != NUL) return key;
+/* NUL found. Check for function key */
+  key = pop_key();
+  fn_keyno = is_fn_key(key);
+  if (fn_keyno == 0) {	/* Not a function key - Return NUL then key code */
+    push_key(key);
+    return NUL;
+  }
+/* Function key hit. Check if there is a function key string */
+  if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
+    push_key(key);	/* No string is defined for this key */
+    return NUL;
+  }
+/*
+ * There is a function key string. Switch input to string
+ * and return the first character
+ */
+  return switch_fn_string(fn_keyno);
+#else
   ch = getch();
   if (ch == NUL || ch == 0xE0) {        /* DOS escape characters */
     ch = dostable[getch()];
@@ -1071,6 +1095,7 @@ int32 emulate_get(void) {
     return switch_fn_string(fn_keyno);
   }
   return ch & BYTEMASK;
+#endif
 }
 
 /*
