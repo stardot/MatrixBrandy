@@ -174,7 +174,7 @@
 #define TOKEN_OF	0xC0u
 #define TOKEN_OFF	0xC1u
 #define TOKEN_ON	0xC2u
-#define TOKEN_ORIGIN	0xC3u
+#define TOKEN_ORIGIN_CMD	0xC3u
 #define TOKEN_OSCLI	0xC4u
 #define TOKEN_XOTHERWISE 0xC5u
 #define TOKEN_OTHERWISE	0xC6u

@@ -101,10 +101,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #ifdef __MINGW32__
 #define TARGET_MINGW
-#if _WIN32_WINNT < 0x0500 /* Require Win2k or later */
 #undef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500
-#endif
+#define _WIN32_WINNT 0x0600 /* Require Win7 or later */
 #define BRANDY_OS "MinGW"
 #endif
 
