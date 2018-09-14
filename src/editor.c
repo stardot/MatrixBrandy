@@ -53,6 +53,11 @@ static byte *last_added;	/* Address of last line added to program */
 static boolean needsnumbers;	/* TRUE if a program need to be renumbered */
 
 #ifdef BRANDYAPP
+#ifdef TARGET_MINGW
+#define _binary_app_start binary_app_start
+#define _binary_app_end binary_app_end
+#define _binary_app_size binary_app_size
+#endif
 extern const char _binary_app_start;
 extern const char _binary_app_end;
 extern const char _binary_app_size;
