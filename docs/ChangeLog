@@ -160,3 +160,5 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - New Mode 7 demo. Some Prestel graphics, and images from the edit.tf online
   Teletext page editor. Unlike the BBCSDL demo this embeds the data in the
   program itself. Apart from pressing R to reveal it isn't Brandy-specific.
+- New Telstar client. Screen updates seem faster, with more convincing
+  double-height.
