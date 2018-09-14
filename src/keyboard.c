@@ -963,15 +963,19 @@ int32 emulate_get(void) {
 */
 
 int32 emulate_inkey(int32 arg) {
+  int32 result;
 #ifdef USE_SDL
   mode7flipbank();
 #endif
   if (arg >= 0) {       /* Timed wait for a key to be hit */
     if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);     /* There is no keyboard to read */
     if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in range 0..32767 centiseconds */
-    if (waitkey(arg))
-      return emulate_get();     /* Fetch the key if one is available */
-    else {
+    if (waitkey(arg)) {
+      do {
+        result=emulate_get();
+      } while (result==0);
+      return result;     /* Fetch the key if one is available */
+    } else {
       return -1;        /* Otherwise return -1 to say that nothing arrived in time */
     }
   }
