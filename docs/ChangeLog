@@ -157,6 +157,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Add *ScreenLoad - Loads the screen into the currently selected display
   bank for VDU writes
 - Initial makefile for SDL on MinGW. Much testing required.
-- New Mode 7 demo. Very similar to the one in BBCSDL, but this embeds the data
-  in the program itself. Apart from pressing R to reveal it isn't Brandy-
-  specific (it even runs in !65Tube on an Arc)
+- New Mode 7 demo. Some Prestel graphics, and images from the edit.tf online
+  Teletext page editor. Unlike the BBCSDL demo this embeds the data in the
+  program itself. Apart from pressing R to reveal it isn't Brandy-specific.
