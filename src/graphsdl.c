@@ -175,7 +175,7 @@ static int32
   gwinbottom,			/* Bottom coordinate of graphics window in RISC OS graphics units */
   xgupp,			/* RISC OS graphic units per pixel in X direction */
   ygupp,			/* RISC OS graphic units per pixel in Y direction */
-  graph_fore_action,		/* Foreground graphics PLOT action (ignored) */
+  graph_fore_action,		/* Foreground graphics PLOT action */
   graph_back_action,		/* Background graphics PLOT action (ignored) */
   graph_forecol,		/* Current graphics foreground logical colour number */
   graph_backcol,		/* Current graphics background logical colour number */
@@ -1821,7 +1821,34 @@ static void vdu_cleargraph(void) {
   if (graphmode == TEXTONLY) return;	/* Ignore command in text-only modes */
   if (graphmode == TEXTMODE) switch_graphics();
   hide_cursor();	/* Remove cursor */
-  SDL_FillRect(modescreen, NULL, gb_colour);
+  if (graph_back_action == 0) {
+    SDL_FillRect(modescreen, NULL, gb_colour);
+  } else {
+    Uint32 left = GXTOPX(gwinleft), top = GYTOPY(gwintop), right = GXTOPX(gwinright), bottom = GYTOPY(gwinbottom);
+    Uint32 xloop, yloop, pxoffset, prevcolour, altcolour;
+    for (yloop=top;yloop<=bottom; yloop++) {
+      for (xloop=left; xloop<=right; xloop++) {
+	pxoffset = xloop + yloop*vscrwidth;
+	prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
+	prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
+	if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
+	switch (graph_back_action) {
+	  case 1:
+	    altcolour=(prevcolour | graph_physbackcol);
+	    break;
+	  case 2:
+	    altcolour=(prevcolour & graph_physbackcol);
+	    break;
+	  case 3:
+	    altcolour=(prevcolour ^ graph_physbackcol);
+	    break;
+	}
+	altcolour=altcolour*3;
+	altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+	*((Uint32*)modescreen->pixels + pxoffset) = altcolour;
+      }
+    }
+  }
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
   reveal_cursor();	/* Redraw cursor */
   do_sdl_flip(screen0);
@@ -2480,6 +2507,7 @@ static void setup_mode(int32 mode) {
   twintop = 0;
   twinbottom = textheight-1;
   xtext = ytext = 0;
+  graph_fore_action = graph_back_action = 0;
   if (graphmode == FULLSCREEN && (!basicvars.runflags.start_graphics)) {
     switch_text();
     graphmode = TEXTONLY;
