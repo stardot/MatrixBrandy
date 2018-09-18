@@ -183,6 +183,7 @@ static int32
   graph_physbackcol,		/* Current graphics background physical colour number */
   graph_foretint,		/* Tint value added to foreground graphics colour in 256 colour modes */
   graph_backtint,		/* Tint value added to background graphics colour in 256 colour modes */
+  plot_inverse,			/* PLOT in inverse colour? */
   xlast,			/* Graphics X coordinate of last point visited */
   ylast,			/* Graphics Y coordinate of last point visited */
   xlast2,			/* Graphics X coordinate of last-but-one point visited */
@@ -2685,30 +2686,36 @@ static void flood_fill(int32 x, int y, int colour) {
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
 void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour) {
-  Uint32 altcolour = 0, prevcolour = 0;
+  Uint32 altcolour = 0, prevcolour = 0, action = graph_fore_action, drawcolour;
+  
+  if (plot_inverse ==1) {
+    action=3;
+    drawcolour=(colourdepth-1);
+  } else {
+    drawcolour=graph_physforecol;
+  }
 
-    if (graph_fore_action==0) {
-      altcolour = colour;
-    } else {
-      prevcolour=*((Uint32*)surface->pixels + offset);
-      prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
-      if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
-      switch (graph_fore_action) {
-	case 1:
-	  altcolour=(prevcolour | graph_physforecol);
-	  break;
-	case 2:
-	  altcolour=(prevcolour & graph_physforecol);
-	  break;
-	case 3:
-	  altcolour=(prevcolour ^ graph_physforecol);
-	  break;
-      }
-      altcolour=altcolour*3;
-      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+  if ((graph_fore_action==0) && (plot_inverse == 0)) {
+    altcolour = colour;
+  } else {
+    prevcolour=*((Uint32*)surface->pixels + offset);
+    prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
+    if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
+    switch (action) {
+      case 1:
+	altcolour=(prevcolour | drawcolour);
+	break;
+      case 2:
+	altcolour=(prevcolour & drawcolour);
+	break;
+      case 3:
+	altcolour=(prevcolour ^ drawcolour);
+	break;
     }
-    *((Uint32*)surface->pixels + offset) = altcolour;
-
+    altcolour=altcolour*3;
+    altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+  }
+  *((Uint32*)surface->pixels + offset) = altcolour;
 }
 
 /*
@@ -2728,6 +2735,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   if (graphmode == TEXTONLY) return;
   if (graphmode == TEXTMODE) switch_graphics();
 /* Decode the command */
+  plot_inverse = 0;
   xlast3 = xlast2;
   ylast3 = ylast2;
   xlast2 = xlast;
@@ -2751,8 +2759,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       colour = gf_colour;
       break;
     case PLOT_INVERSE:		/* Use logical inverse of colour at each point */
-      //error(ERR_UNSUPPORTED);
-      colour = gf_colour; /*not really right, but better than an error*/
+      plot_inverse=1;
+      break;
     case PLOT_BACKGROUND:	/* Use graphics background colour */
       colour = gb_colour;
     }
