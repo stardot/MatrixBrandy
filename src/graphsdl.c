@@ -1209,6 +1209,7 @@ static void set_graphics_colour(boolean background, int colnum) {
   else {
     graph_physforecol = graph_forecol = (colnum & (colourdepth - 1));
   }
+  graph_fore_action = graph_back_action = 0;
   set_rgb();
 }
 
@@ -1825,7 +1826,7 @@ static void vdu_cleargraph(void) {
     SDL_FillRect(modescreen, NULL, gb_colour);
   } else {
     Uint32 left = GXTOPX(gwinleft), top = GYTOPY(gwintop), right = GXTOPX(gwinright), bottom = GYTOPY(gwinbottom);
-    Uint32 xloop, yloop, pxoffset, prevcolour, altcolour;
+    Uint32 xloop, yloop, pxoffset, prevcolour, altcolour = 0;
     for (yloop=top;yloop<=bottom; yloop++) {
       for (xloop=left; xloop<=right; xloop++) {
 	pxoffset = xloop + yloop*vscrwidth;
@@ -3969,7 +3970,6 @@ void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2,
 */
 void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c) {
   int32 x, y, y1, aa, bb, d, g, h;
-  Uint32 *dest;
 
   aa = a * a;
   bb = b * b;
