@@ -1818,7 +1818,6 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
   Uint32 xloop, yloop, pxoffset, prevcolour, altcolour = 0;
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
-  printf("left=%d, top=%d, right=%d, bottom=%d, colour=%d, action=%d\n", left, top, right, bottom, colour, action);
   for (yloop=top;yloop<=bottom; yloop++) {
     for (xloop=left; xloop<=right; xloop++) {
       pxoffset = xloop + yloop*vscrwidth;
@@ -1855,7 +1854,6 @@ static void vdu_cleargraph(void) {
   if (graphmode == TEXTONLY) return;	/* Ignore command in text-only modes */
   if (graphmode == TEXTMODE) switch_graphics();
   hide_cursor();	/* Remove cursor */
-  printf("CLG: colour=%d, graph_back_action=%d\n", gb_colour, graph_back_action);
   if (graph_back_action == 0) {
     SDL_FillRect(modescreen, NULL, gb_colour);
   } else {
