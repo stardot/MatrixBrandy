@@ -117,10 +117,10 @@ Uint32 xor_mask;
 ** function definitions
 */
 
-extern void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32);
-extern void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32);
-extern void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32);
-extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32);
+extern void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
+extern void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
+extern void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
+extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
 static void toggle_cursor(void);
 static void switch_graphics(void);
 static void vdu_cleartext(void);
@@ -1814,6 +1814,39 @@ static void vdu_return(void) {
   }
 }
 
+static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom, Uint32 colour, Uint32 action) {
+  Uint32 xloop, yloop, pxoffset, prevcolour, altcolour = 0;
+
+  colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
+  printf("left=%d, top=%d, right=%d, bottom=%d, colour=%d, action=%d\n", left, top, right, bottom, colour, action);
+  for (yloop=top;yloop<=bottom; yloop++) {
+    for (xloop=left; xloop<=right; xloop++) {
+      pxoffset = xloop + yloop*vscrwidth;
+      prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
+      prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
+      if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
+      switch (graph_back_action) {
+	case 0:
+	  altcolour=colour;
+	  break;
+	case 1:
+	  altcolour=(prevcolour | colour);
+	  break;
+	case 2:
+	  altcolour=(prevcolour & colour);
+	  break;
+	case 3:
+	  altcolour=(prevcolour ^ colour);
+	  break;
+      }
+      altcolour=altcolour*3;
+      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+      *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
+    }
+  }
+
+}
+
 /*
 ** 'vdu_cleargraph' set the entire graphics window to the current graphics
 ** background colour (VDU 16)
@@ -1822,33 +1855,11 @@ static void vdu_cleargraph(void) {
   if (graphmode == TEXTONLY) return;	/* Ignore command in text-only modes */
   if (graphmode == TEXTMODE) switch_graphics();
   hide_cursor();	/* Remove cursor */
+  printf("CLG: colour=%d, graph_back_action=%d\n", gb_colour, graph_back_action);
   if (graph_back_action == 0) {
     SDL_FillRect(modescreen, NULL, gb_colour);
   } else {
-    Uint32 left = GXTOPX(gwinleft), top = GYTOPY(gwintop), right = GXTOPX(gwinright), bottom = GYTOPY(gwinbottom);
-    Uint32 xloop, yloop, pxoffset, prevcolour, altcolour = 0;
-    for (yloop=top;yloop<=bottom; yloop++) {
-      for (xloop=left; xloop<=right; xloop++) {
-	pxoffset = xloop + yloop*vscrwidth;
-	prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
-	prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
-	if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
-	switch (graph_back_action) {
-	  case 1:
-	    altcolour=(prevcolour | graph_physbackcol);
-	    break;
-	  case 2:
-	    altcolour=(prevcolour & graph_physbackcol);
-	    break;
-	  case 3:
-	    altcolour=(prevcolour ^ graph_physbackcol);
-	    break;
-	}
-	altcolour=altcolour*3;
-	altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
-	*((Uint32*)modescreen->pixels + pxoffset) = altcolour;
-      }
-    }
+    fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), graph_physbackcol, graph_back_action);
   }
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
   reveal_cursor();	/* Redraw cursor */
@@ -2626,7 +2637,7 @@ int32 emulate_modefn(void) {
 **
 ** This code is slow but does the job
 */
-static void flood_fill(int32 x, int y, int colour) {
+static void flood_fill(int32 x, int y, int colour, Uint32 action) {
   int32 sp, fillx[FILLSTACK], filly[FILLSTACK];
   int32 left, right, top, bottom, lleft, lright, pwinleft, pwinright, pwintop, pwinbottom;
   boolean above, below;
@@ -2703,7 +2714,7 @@ static void flood_fill(int32 x, int y, int colour) {
       lright++;
     }
     lright--;
-    draw_line(modescreen, lleft, y, lright, y, colour, 0);
+    draw_line(modescreen, lleft, y, lright, y, colour, 0, action);
     if (lleft < left) left = lleft;
     if (lright > right) right = lright;
   } while (sp != 0);
@@ -2714,8 +2725,8 @@ static void flood_fill(int32 x, int y, int colour) {
 
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
-void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour) {
-  Uint32 altcolour = 0, prevcolour = 0, action = graph_fore_action, drawcolour;
+void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
+  Uint32 altcolour = 0, prevcolour = 0, drawcolour;
   
   if (plot_inverse ==1) {
     action=3;
@@ -2724,7 +2735,7 @@ void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour) {
     drawcolour=graph_physforecol;
   }
 
-  if ((graph_fore_action==0) && (plot_inverse == 0)) {
+  if ((action==0) && (plot_inverse == 0)) {
     altcolour = colour;
   } else {
     prevcolour=*((Uint32*)surface->pixels + offset);
@@ -2757,7 +2768,7 @@ void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour) {
 ** for speed as updating the entire screen each time is too slow
 */
 void emulate_plot(int32 code, int32 x, int32 y) {
-  int32 xlast3, ylast3, sx, sy, ex, ey;
+  int32 xlast3, ylast3, sx, sy, ex, ey, action;
   Uint32 colour = 0;
   SDL_Rect plot_rect, temp_rect;
   if (istextonly()) return;
@@ -2765,6 +2776,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   if (graphmode == TEXTMODE) switch_graphics();
 /* Decode the command */
   plot_inverse = 0;
+  action = graph_fore_action;
   xlast3 = xlast2;
   ylast3 = ylast2;
   xlast2 = xlast;
@@ -2792,6 +2804,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       break;
     case PLOT_BACKGROUND:	/* Use graphics background colour */
       colour = gb_colour;
+      action = graph_back_action;
     }
   }
 /* Now carry out the operation */
@@ -2809,7 +2822,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
-    draw_line(modescreen, sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK));
+    draw_line(modescreen, sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK), action);
     hide_cursor();
     blit_scaled(left, top, sx+ex-left, sy+ey-top);
     reveal_cursor();
@@ -2818,13 +2831,13 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case PLOT_POINT:	/* Plot a single point */
     hide_cursor();
     if ((ex < 0) || (ex >= screenwidth) || (ey < 0) || (ey >= screenheight)) break;
-    plot_pixel(modescreen, ex + ey*vscrwidth, colour);
+    plot_pixel(modescreen, ex + ey*vscrwidth, colour, action);
     blit_scaled(ex, ey, ex, ey);
     reveal_cursor();
     break;
   case FILL_TRIANGLE: {		/* Plot a filled triangle */
     int32 left, right, top, bottom;
-    filled_triangle(modescreen, GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour);
+    filled_triangle(modescreen, GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
     left = right = xlast3;
     top = bottom = ylast3;
@@ -2855,7 +2868,11 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.y = top;
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
+    if (action==0) {
     SDL_FillRect(modescreen, &plot_rect, colour);
+    } else {
+      fill_rectangle(left, top, right, bottom, colour, action);
+    }
     hide_cursor();
     blit_scaled(left, top, right, bottom);
     reveal_cursor();
@@ -2863,10 +2880,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
   case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
     int32 vx, vy, left, right, top, bottom;
-    filled_triangle(modescreen, GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour);
+    filled_triangle(modescreen, GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
     vx = xlast3-xlast2+xlast;
     vy = ylast3-ylast2+ylast;
-    filled_triangle(modescreen, ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(xlast3), GYTOPY(ylast3), colour);
+    filled_triangle(modescreen, ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(xlast3), GYTOPY(ylast3), colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the parallelogram */
     left = right = xlast3;
     top = bottom = ylast3;
@@ -2888,7 +2905,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     break;
   }
   case FLOOD_BACKGROUND:	/* Flood fill background with graphics foreground colour */
-    flood_fill(ex, ey, colour);
+    flood_fill(ex, ey, colour, action);
     break;
   case PLOT_CIRCLE:		/* Plot the outline of a circle */
   case FILL_CIRCLE: {		/* Plot a filled circle */
@@ -2902,9 +2919,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     yradius = abs(xlast2-xlast)/ygupp;
     xr=xlast2-xlast;
     if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-      draw_ellipse(modescreen, sx, sy, xradius, yradius, colour);
+      draw_ellipse(modescreen, sx, sy, xradius, yradius, colour, action);
     else {
-      filled_ellipse(modescreen, sx, sy, xradius, yradius, colour);
+      filled_ellipse(modescreen, sx, sy, xradius, yradius, colour, action);
     }
     /* To match RISC OS, xlast needs to be the right-most point not left-most. */
     xlast+=(xr*2);
@@ -3048,9 +3065,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     sx = GXTOPX(xlast3);
     sy = GYTOPY(ylast3);
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-      draw_ellipse(modescreen, sx, sy, semimajor, semiminor, colour);
+      draw_ellipse(modescreen, sx, sy, semimajor, semiminor, colour, action);
     else {
-      filled_ellipse(modescreen, sx, sy, semimajor, semiminor, colour);
+      filled_ellipse(modescreen, sx, sy, semimajor, semiminor, colour, action);
     }
     ex = sx-semimajor;
     ey = sy-semiminor;
@@ -3829,7 +3846,7 @@ void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2)
 /*
 ** Draw a horizontal line
 */
-void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col) {
+void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
   int32 tt, i;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
@@ -3840,14 +3857,14 @@ void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col) {
     if (x2 < 0) x2 = 0;
     if (x2 >= vscrwidth) x2 = vscrwidth-1;
     for (i = x1; i <= x2; i++)
-      plot_pixel(sr, i + y*vscrwidth, col);
+      plot_pixel(sr, i + y*vscrwidth, col, action);
   }
 }
 
 /*
 ** Draw a filled polygon of n vertices
 */
-void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) {
+void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col, Uint32 action) {
   int32 i, iy;
   int32 low = MAX_YRES, high = 0;
 
@@ -3877,7 +3894,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 
   /* fill horizontal spans of pixels from geom_left[] to geom_right[] */
   for (iy = low; iy <= high; iy++)
-    draw_h_line(sr, geom_left[iy], iy, geom_right[iy], col);
+    draw_h_line(sr, geom_left[iy], iy, geom_right[iy], col, action);
 }
 
 /*
@@ -3888,7 +3905,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col) 
 ** Bit 0x10: Draw a dotted line, skipping every other point.
 ** Bit 0x20: Don't plot the start point.
 */
-void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style) {
+void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style, Uint32 action) {
   int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip=0;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
@@ -3912,7 +3929,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
         skip=0;
       } else {
 	if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-	  plot_pixel(sr, x + y*vscrwidth, col);
+	  plot_pixel(sr, x + y*vscrwidth, col, action);
 	if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3929,7 +3946,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
         skip=0;
       } else {
 	if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-	  plot_pixel(sr, x + y*vscrwidth, col);
+	  plot_pixel(sr, x + y*vscrwidth, col, action);
 	if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3942,7 +3959,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
   }
   if ( ! (style & 0x08)) {
     if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-      plot_pixel(sr, x + y*vscrwidth, col);
+      plot_pixel(sr, x + y*vscrwidth, col, action);
   }
 }
 
@@ -3950,7 +3967,7 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
 ** 'filled_triangle' draws a filled triangle in the graphics buffer 'sr'.
 */
 void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2,
-                     int32 x3, int32 y3, Uint32 col)
+                     int32 x3, int32 y3, Uint32 col, Uint32 action)
 {
   int x[3], y[3];
 
@@ -3962,13 +3979,13 @@ void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2,
   y[1]=y2;
   y[2]=y3;
 
-  buff_convex_poly(sr, 3, x, y, col);
+  buff_convex_poly(sr, 3, x, y, col, action);
 }
 
 /*
 ** Draw an ellipse into a buffer
 */
-void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c) {
+void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
   int32 x, y, y1, aa, bb, d, g, h;
 
   aa = a * a;
@@ -3981,12 +3998,12 @@ void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 
 
   while (g < 0) {
     if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x, c);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c);
+      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x, c, action);
+      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
     }
     if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x, c);
+      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
+      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x, c, action);
     }
 
     if (h < 0) {
@@ -4010,12 +4027,12 @@ void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 
 
   while (y <= y1) {
     if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x, c);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c);
+      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x, c, action);
+      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
     } 
     if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x, c);
+      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
+      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x, c, action);
     }
 
     if (h < 0)
@@ -4031,7 +4048,7 @@ void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 
 /*
 ** Draw a filled ellipse into a buffer
 */
-void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c) {
+void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
   int32 x, y, y1, aa, bb, d, g, h;
 
   aa = a * a;
@@ -4043,8 +4060,8 @@ void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint3
   y = b;
 
   while (g < 0) {
-    draw_h_line(sr, x0 - x, y0 + y, x0 + x, c);
-    draw_h_line(sr, x0 - x, y0 - y, x0 + x, c);
+    draw_h_line(sr, x0 - x, y0 + y, x0 + x, c, action);
+    draw_h_line(sr, x0 - x, y0 - y, x0 + x, c, action);
 
     if (h < 0) {
       d = ((FAST_2_MUL(x)) + 3) * bb;
@@ -4066,8 +4083,8 @@ void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint3
   y = 0;
 
   while (y <= y1) {
-    draw_h_line(sr, x0 - x, y0 + y, x0 + x, c);
-    draw_h_line(sr, x0 - x, y0 - y, x0 + x, c);
+    draw_h_line(sr, x0 - x, y0 + y, x0 + x, c, action);
+    draw_h_line(sr, x0 - x, y0 - y, x0 + x, c, action);
 
     if (h < 0)
       h += ((FAST_2_MUL(y)) + 3) * aa;
