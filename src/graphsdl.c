@@ -1851,6 +1851,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 ** background colour (VDU 16)
 */
 static void vdu_cleargraph(void) {
+  if (istextonly()) return;
   if (graphmode == TEXTONLY) return;	/* Ignore command in text-only modes */
   if (graphmode == TEXTMODE) switch_graphics();
   hide_cursor();	/* Remove cursor */
