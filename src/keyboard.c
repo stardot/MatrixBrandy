@@ -1346,7 +1346,7 @@ static void shift_down(char buffer[], int32 offset) {
     emulate_vdu(buffer[offset]);
     offset++;
   }
-  emulate_vdu(DEL);
+  emulate_vdu(32);
   echo_on();
   display(VDU_CURBACK, count);  /* Move cursor back to correct position */
 }
@@ -1434,7 +1434,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       break;
     case CTRL_H: case DEL:      /* Delete character to left of cursor */
       if (place > 0) {
-        emulate_vdu(VDU_CURBACK);
+        emulate_vdu(DEL);
         place--;
         shift_down(buffer, place);
       }

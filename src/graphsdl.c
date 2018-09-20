@@ -543,10 +543,7 @@ static unsigned int mode7font [96][20] = {
 /* | */ {0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0xCC0u, 0u, 0u, 0u, 0u, 0u },
 /* } */ {0u, 0x3C00u, 0x3E00u, 0x700u, 0x700u, 0x3E00u, 0x3E00u, 0x700u, 0x700u, 0x3E30u, 0x3C30u, 0xF0u, 0x1F0u, 0x3B0u, 0x330u, 0x3F0u, 0x3F0u, 0x30u, 0x30u, 0u},
 /* ~ */ {0u, 0u, 0u, 0x300u, 0x300u, 0u, 0u, 0x3FF0u, 0x3FF0u, 0u, 0u, 0x300u, 0x300u, 0u, 0u, 0u, 0u, 0u, 0u, 0u },
-/* DEL */  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
-};
-static unsigned int char255[20] = /* Text-mode CHR$(255) */
-/*255 */  {0u, 0x3FF0u, 0x3FF0u, 0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u, 0u, 0u, 0u, 0u, 0u
+/*255 */  {0u, 0x3FF0u, 0x3FF0u, 0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u, 0u, 0u, 0u, 0u, 0u}
 };
 
 unsigned int XPPC=8;		/* Size of character in pixels in X direction */
@@ -1494,6 +1491,25 @@ static void plot_char(int32 ch) {
   }
 }
 
+static void plot_space_opaque(void) {
+  int32 topx, topy;
+  topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
+  topy = GYTOPY(ylast);	/* top left-hand corner of the character */
+  place_rect.x = topx;
+  place_rect.y = topy;
+  SDL_FillRect(sdl_fontbuf, NULL, gb_colour);
+  SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
+  blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
+
+  cursorstate = SUSPENDED; /* because we just overwrote it */
+  xlast += XPPC*xgupp;	/* Move to next character position in X direction */
+  if (xlast > gwinright) {	/* But position is outside the graphics window */
+    xlast = gwinleft;
+    ylast -= YPPC*ygupp;
+    if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
+  }
+}
+
 /*
 ** 'echo_on' turns on cursor (if in graphics mode) and the immediate
 ** echo of characters to the screen
@@ -2182,6 +2198,8 @@ void emulate_vdu(int32 charvalue) {
       if (screenmode == 7) {
 	if (charvalue == 127) {
 	  mode7frame[ytext][xtext]=32;
+	  move_curback();
+	  move_curback();
 	} else {
 	  mode7frame[ytext][xtext]=charvalue;
 	}
@@ -2203,10 +2221,22 @@ void emulate_vdu(int32 charvalue) {
 	return;
       } else {
 	if (vdu5mode)			    /* Sending text output to graphics cursor */
-          plot_char(charvalue);
+          if (charvalue == 127) {
+	    move_curback();
+	    plot_space_opaque();
+	    move_curback();
+	  } else {
+	    plot_char(charvalue);
+	  }
 	else {
-          write_char(charvalue);
-          reveal_cursor();	/* Redraw the cursor */
+	  if (charvalue == 127) {
+	    move_curback();
+	    write_char(32);
+	    move_curback();
+	  } else {
+	    write_char(charvalue);
+	    reveal_cursor();	/* Redraw the cursor */
+	  }
 	}
       }
       return;
@@ -3626,8 +3656,7 @@ void mode7renderline(int32 ypos) {
         if (ch==163) ch=96;
 	if (ch==223) ch=35;
 	if (ch==224) ch=95;
-	if (ch == 255) ch=256;
-	if (ch < 255) ch = ch & 0x7F;
+	ch = ch & 0x7F;
 	if (ch < 32) ch=32;
       }
     }
@@ -3640,7 +3669,6 @@ void mode7renderline(int32 ypos) {
 	  if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) {
 	    line = teletextgraphic(ch, yy);
 	  } else if ((ch >= 128) && (ch <= 159)) line = 0;
-	  else if (ch == 256) line = char255[yy];
 	  else line = mode7font[ch-' '][yy];
 	} else {
 	  if (vdu141track[ypos] == 2) line = 0;
@@ -3648,7 +3676,6 @@ void mode7renderline(int32 ypos) {
 	    if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) {
 	      line = teletextgraphic(ch, y);
 	    } else if ((ch >= 128) && (ch <= 159)) line = 0;
-	    else if (ch == 256) line = char255[y];
 	    else line = mode7font[ch-' '][y];
 	  }
 	}
