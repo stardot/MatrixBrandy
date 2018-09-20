@@ -1367,7 +1367,9 @@ static void shift_up(char buffer[], int32 offset) {
     n--;
   }
   echo_off();
+  emulate_vdu(VDU_CURFORWARD);
   emulate_vdu(DEL);     /* Where new character goes on screen */
+  emulate_vdu(VDU_CURFORWARD);
   n = offset+1;
   while (n <= highplace) {
     emulate_vdu(buffer[n]);
