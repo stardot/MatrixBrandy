@@ -1236,7 +1236,7 @@ void end_keyboard(void) {
 ** work if echo is off
 */
 static void display(int32 what, int32 count) {
-  if ( what != VDU_CURBACK) echo_off();
+  if ((what != VDU_CURBACK) && (what != DEL)) echo_off();
   while (count > 0) {
     emulate_vdu(what);
     count--;
@@ -1406,6 +1406,7 @@ static void shift_up(char buffer[], int32 offset) {
 */
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   int32 ch, lastplace;
+  int32 count;
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read fron file stdin */
     char *p;
     p = fgets(buffer, length, stdin);
@@ -1448,9 +1449,11 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       highplace = place;
       break;
     case CTRL_U:        /* Delete whole input line */
-      display(VDU_CURBACK, place);      /* Move cursor to start of line */
-      display(DEL, highplace);  /* Overwrite text with blanks */
-      display(VDU_CURBACK, highplace);  /* Move cursor back to start of line */
+      while (place < highplace) {
+        emulate_vdu(buffer[place]);     /* It does the job */
+        place++;
+      }
+      display(DEL, place);  /* Overwrite text with blanks and backspace */
       highplace = place = 0;
       break;
     case CTRL_B:        /* Move cursor left */
