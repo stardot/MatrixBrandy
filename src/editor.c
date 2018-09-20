@@ -533,7 +533,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 #endif
   fseek (textfile, 0, 0);
   tokenline[2] = 0;
-  fread (tokenline, 1, 3, textfile);
+  if (fread(tokenline, 1, 3, textfile) < 3) error(ERR_CANTREAD);
   gzipped = (tokenline[0] == 0x1F && tokenline[1] == 0x8B && tokenline[2] == 8);
   if (gzipped) {
 #ifdef HAVE_ZLIB_H

@@ -491,8 +491,8 @@ static detail errortable [] = {
   {NONFATAL, STRING,   0, "%s"},
   {NONFATAL, NOPARM, 486, "SWI name not known"},
   {NONFATAL, INTEGER,486, "SWI &%X not known"},
+  {NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
 // 05-Mar-2014 JGH:
-  {NONFATAL, NOPARM,  0, "err149"},
   {NONFATAL, NOPARM,  0, "err150"},
 //
 // OSCLI (command line) errors:

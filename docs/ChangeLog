@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   INKEY(delay). This is now fixed.
 - PLOT actions redirected to new primitives that support GCOL action codes,
   both foreground and background codes work.
+- Behaviour of DELETE (and VDU127) is corrected.
 - Telstar client updated, enhancements from gARetH baBB - thank you!
 * V1.21.13
 - Rework temp file bits to use mkstemp instead of tmpnam.

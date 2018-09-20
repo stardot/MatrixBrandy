@@ -1232,7 +1232,7 @@ void cmd_refresh(char *command) {
 void cmd_cd(char *command) {
 	if (*command == 'd') command+=3;	// *CHDIR
 	while (*command == ' ') command++;	// Skip spaces
-	chdir(command);
+	if (chdir(command)) error(ERR_DIRNOTFOUND);
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
 	find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
