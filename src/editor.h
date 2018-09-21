@@ -36,6 +36,9 @@ extern void delete_range(int32, int32);
 extern void clear_program(void);
 extern void clear_tables(void);
 extern void read_basic(char *);
+#ifdef BRANDYAPP
+extern void read_basic_block(void);
+#endif
 extern void write_basic(char *);
 extern void read_library(char *, boolean);
 extern void write_text(char *, FILE *);
