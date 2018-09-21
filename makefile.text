@@ -74,12 +74,6 @@ $(SRCDIR)/textonly.o: $(GSDL_C) $(SRCDIR)/textonly.c
 $(SRCDIR)/simpletext.o: $(GSDL_C) $(SRCDIR)/simpletext.c
 	$(CC) $(CFLAGS) $(SRCDIR)/simpletext.c -c -o $(SRCDIR)/simpletext.o
 
-# Build GEOM.C
-GEOM_C = $(SRCDIR)/target.h
-
-$(SRCDIR)/geom.o: $(GEOM_C) $(SRCDIR)/geom.c
-	$(CC) $(CFLAGS) $(SRCDIR)/geom.c -c -o $(SRCDIR)/geom.o
-
 # Build STRINGS.C
 STRINGS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/strings.h $(SRCDIR)/heap.h $(SRCDIR)/errors.h
