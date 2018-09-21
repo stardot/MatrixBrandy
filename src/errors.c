@@ -316,7 +316,7 @@ void cmderror(int32 errnumber, ...) {
     printf(badcmdtable[errnumber].msgtext, va_arg(parms, char *));
     break;
   case NOPARM:
-    printf(badcmdtable[errnumber].msgtext);
+    fputs(badcmdtable[errnumber].msgtext, stdout);
     break;
   default:
     break;
