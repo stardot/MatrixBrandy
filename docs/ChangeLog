@@ -3,11 +3,16 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.21.14
 - ChangeLog layout change: Most recent release first.
-- Similar to the GET fix in V1.21.11, the same problem was occurring with
-  INKEY(delay). This is now fixed.
+- Similar to the GET fix in V1.21.11, the same problem of spurious zero
+  returns was occurring with INKEY(delay). This is now fixed.
+- Fix more compiler warnings - thanks bakoulis and Coeus at Stardot for
+  highlighting where their compilers were warning where mine wasn't,
+  and for suggesting a fix.
 - PLOT actions redirected to new primitives that support GCOL action codes,
   both foreground and background codes work.
 - Behaviour of DELETE (and VDU127) is corrected.
+- BrandyApp compilation on Linux changed to using a library to simplify
+  the build process.
 - Telstar client updated, enhancements from gARetH baBB - thank you!
 * V1.21.13
 - Rework temp file bits to use mkstemp instead of tmpnam.

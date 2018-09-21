@@ -1132,9 +1132,9 @@ I/O redirection.
 The DOS version of the program does not yet fully support I/O
 redirection. Input can be redirected in the same way as the NetBSD
 and Linux versions but output redirection still needs some work
-done on it in the current version of the interpreter, 1.13.
+done on it in the current version of the interpreter, 1.21.
 (Aside: It works if the program is compiled with textonly.c but
-not if textgraph.c is used. Textgraph.c supports graphics but
+not if graphsdl.c is used. graphsdl.c supports graphics but
 textonly.c does not, so the choice is between a version of the
 program that has graphics and no output redirection or no graphics
 and does support output redirection.)

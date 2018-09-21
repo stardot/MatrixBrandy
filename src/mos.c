@@ -20,7 +20,7 @@
 **
 **	This is one the files that contains functions that emulate
 **	some features of RISC OS such as the VDU drivers. The others
-**	are fileio.c, keyboard.c, textonly.c, textgraph.c and
+**	are fileio.c, keyboard.c, textonly.c, graphsdl.c and
 **	riscos.c All OS-specific items should be put in these files.
 **
 **	Some of the functions provided in here are not supported on

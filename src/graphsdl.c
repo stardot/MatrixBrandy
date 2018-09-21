@@ -47,12 +47,11 @@
 /*
 ** Notes
 ** -----
-**  This is one of the five versions of the VDU driver emulation.
+**  This is one of the four versions of the VDU driver emulation.
 **  It is used by versions of the interpreter where graphics are
 **  supported as well as text output using the SDL library.
 **  The five versions of the VDU driver code are in:
 **	riscos.c
-**	textgraph.c
 **  graphsdl.c
 **	textonly.c
 **	simpletext.c

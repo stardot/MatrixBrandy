@@ -68,7 +68,7 @@
 **
 **  The four versions of the VDU driver code are in:
 **      riscos.c
-**      textgraph.c
+**      graphsdl.c
 **      textonly.c
 **      simpletext.c
 **

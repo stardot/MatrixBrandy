@@ -16,23 +16,23 @@ The source files that make up the interpreter are as follows:
 	commands.c
 	convert.c
 	editor.c
-	emulate.c
 	errors.c
 	evaluate.c
 	fileio.c
 	functions.c
+	graphsdl.c
 	heap.c
 	iostate.c
 	keyboard.c
 	lvalue.c
 	mainstate.c
 	miscprocs.c
+	mos.c
 	riscos.c
 	simpletext.c
 	stack.c
 	statement.c
 	strings.c
-	textgraph.c
 	textonly.c
 	tokens.c
 	variables.c
@@ -72,7 +72,7 @@ RISC OS emulation is carried out in:
 
 	riscos.c	}
 	simpletext.c	} Different flavours of screen output
-	textgraph.c	}
+	graphsdl.c	}
 	textonly.c	}
 
 RISC OS emulation is covered in more detail below.
@@ -286,7 +286,7 @@ Keyboard input:
 Screen output:
 	riscos.c (screen.h)
 	textonly.c (screen.h)
-	textgraph.c (screen.h)
+	graphsdl.c (screen.h)
 	simpletext.c (screen.h)
 	
 File input and output:
@@ -362,21 +362,15 @@ is the more complete but it is tied to DOS. The ANSI-based one can
 be used by Linux and NetBSD or by DOS but the emulation is
 limited.
 
-textgraph.c
+graphsdl.c
 This is used when the interpreter supports graphics. It includes
-both text and graphics output. It uses the platform-independent
-graphics library 'jlib' written by Jonathan Griffiths for all of
+both text and graphics output. It uses the SDL 1.2 for all of
 the graphics functions. Only a subset of the RISC OS graphics
-facilities are supported. When this file is used the interpreter
-normally works in a text output mode, for example, it runs in a
-DOS box under Windows, but when it encounters a graphics command
-it switches to full screen graphics and all output goes to the
-graphics screen. The file therefore contains functions for
-output to the DOS text screen as well as to the graphics screen.
-Text output uses the DOS conio functions so this file is tied
-to DOS.
-
-The jlib web site is at http://www.crosswinds.net/~jlib
+facilities are supported. This runs in a graphics mode at all times
+in the SDL window (including text-only modes 3 and 6, and Teletext
+mode 7), and is platform-independent. As of version 1.21.13 this
+works for both Linux; and Windows via MinGW using Cygwin as a
+build environment.
 
 There are two include files for screen output:
 
