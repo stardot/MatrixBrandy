@@ -1408,7 +1408,6 @@ static void shift_up(char buffer[], int32 offset) {
 */
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   int32 ch, lastplace;
-  int32 count;
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read fron file stdin */
     char *p;
     p = fgets(buffer, length, stdin);

@@ -117,7 +117,7 @@ static int32 emulate_mos(int32 address) {
 #ifdef TARGET_RISCOS
     return ((_kernel_osbyte(areg, xreg, yreg) << 8) | areg);
 #else
-    return mos_osbyte(areg, xreg, yreg);
+    return mos_osbyte(areg, xreg, yreg, 0);
 #endif
     break;
   case BBC_OSWORD:
@@ -1270,7 +1270,7 @@ void cmd_fx(char *command) {
 		}
 	}
 
-	if (mos_osbyte(areg, xreg, yreg) & 0x80000000)
+	if (mos_osbyte(areg, xreg, yreg, 0) & 0x80000000)
 		error(ERR_BADCOMMAND);
 }
 
@@ -1537,7 +1537,7 @@ int32 mos_getswinum(char *name, int32 length) {
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
   int32 ptr, rtn, a;
   char *vptr;
-  int32 xflag;
+  int32 xflag; /* Currently not used, disabled to suppress compiler warnings*/
 
   xflag = swino & 0x20000;	/* Is the X flag set? */
   swino = swino & ~0x20000;		/* Strip off the X flag if set */
@@ -1563,7 +1563,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       mos_oscli((char *)basicvars.offbase+inregs[0], NIL, NULL);
       break;
     case SWI_OS_Byte:
-      rtn=mos_osbyte(inregs[0], inregs[1], inregs[2]);
+      rtn=mos_osbyte(inregs[0], inregs[1], inregs[2], xflag);
       outregs[0]=inregs[0];
       outregs[1]=((rtn >> 8) & 0xFF);
       outregs[2]=((rtn >> 16) & 0xFF);
@@ -1633,7 +1633,7 @@ void mos_osword(int32 areg, int32 xreg) {
    }
 }
 
-int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
+int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 /*
 * OSBYTE < &A6 perform actions
 * OSBYTE < &80 X is only parameter
@@ -1909,7 +1909,7 @@ int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg)
 switch (areg) {
 	case 0:			// OSBYTE 0 - Return machine type
 		if (xreg!=0) return MACTYPE;
-		else error(ERR_MOSVERSION);
+		else if (!xflag) error(ERR_MOSVERSION);
 		break;
 	case 20:
 #ifdef USE_SDL

@@ -902,7 +902,7 @@ static void do_brackets(void) {
 static void do_unaryplus(void) {
   basicvars.current++;		/* Skip '+' */
   (*factor_table[*basicvars.current])();
-  if (!GET_TOPITEM == STACK_INT && !GET_TOPITEM == STACK_FLOAT) error(ERR_TYPENUM);
+  if ((GET_TOPITEM != STACK_INT) && (GET_TOPITEM != STACK_FLOAT)) error(ERR_TYPENUM);
 }
 
 /*
