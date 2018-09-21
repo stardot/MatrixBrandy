@@ -160,7 +160,7 @@ int net_bput(int handle, int32 value) {
 
   minibuf[0]=(value & 0xFFu);
   minibuf[1]=0;
-  retval=send(netsockets[handle], &minibuf, 1, 0);
+  retval=send(netsockets[handle], (const char *)&minibuf, 1, 0);
   if (retval == -1) return(1);
   return(0);
 }
