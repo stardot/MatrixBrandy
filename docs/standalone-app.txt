@@ -5,16 +5,27 @@ Before you begin, note that the application will exit as soon as the BASIC
 program exits, as if -quit were supplied on the command line for Brandy
 (or *BASIC in RISC OS).
 
+This build process is in two stages. First, we build the library:
+
 1: Enaure the build area is clean:
    make -f makefile.app clean
 
-2: The program to be made into an app needs to be called "app" - that's due
-   to the way ld makes the .o file and names the structures inside.
-
-3: Do: ld -r b binary app -o /path/to/MatrixBrandy.build.area/src/app.o
-
-4: Go back to your build area and do:
+2: Build the static library:
    make -f makefile.app
 
-5: The resulting brandyapp binary is the app. It can be renamed and placed
-   somewhere in your $PATH.
+3: Put the brandyapp.a library somewhere, such as /usr/local/lib or $HOME/lib.
+
+Secondly, we make a .o file containing our BASIC application and link to the
+library:
+
+4: The program to be made into an app needs to be called "app" - that's due
+   to the way ld makes the .o file and names the structures inside. I suggest
+   copying the BASIC program to "app" leaving your original file alone.
+
+5: Do: ld -r b binary app -o app.o
+
+6: Link it to the library:
+   gcc -o yourappname app.o /path/to/brandyapp.a -lX11 -lm -lSDL
+
+7: The resulting yourappname binary is the app. It can be placed somewhere in
+   your $PATH.
