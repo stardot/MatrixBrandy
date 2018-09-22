@@ -1097,7 +1097,7 @@ static void print_char(int32 charvalue) {
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
   if (vduneeded==0) {                   /* VDU queue is empty */
-    if (charvalue>=' ') {               /* Most common case - print something */
+    if (charvalue>=' ' && charvalue != DEL) {               /* Most common case - print something */
       print_char(charvalue);
       return;
     }
@@ -1143,6 +1143,7 @@ void emulate_vdu(int32 charvalue) {
       putch('\7');
       break;
     case VDU_CURBACK:   /* 8 - Move cursor left one character */
+    case DEL:		/* 127 - Delete */
       move_curback();
       break;
     case VDU_CURFORWARD:        /* 9 - Move cursor right one character */

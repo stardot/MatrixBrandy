@@ -102,6 +102,7 @@ static void nogo(void) {
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
   if (vduneeded==0) {                   /* VDU queue is empty */
+    if (charvalue == 127) charvalue=8;  /* DEL maps to BACKSPACE */
     if (charvalue>=' ') {               /* Most common case - print something */
       if (charvalue==DEL) charvalue = ' ';
       putchar(charvalue);
