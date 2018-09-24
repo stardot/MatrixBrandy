@@ -5,6 +5,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - ChangeLog layout change: Most recent release first.
 - Similar to the GET fix in V1.21.11, the same problem of spurious zero
   returns was occurring with INKEY(delay). This is now fixed.
+- Bug fix for CLS when a text window is active, the cursor was not being
+  homed.
 - Fix more compiler warnings - thanks bakoulis and Coeus at Stardot for
   highlighting where their compilers were warning where mine wasn't,
   and for suggesting a fix.

@@ -1743,7 +1743,7 @@ static void move_curup(void) {
 ** when the interpreter supports graphics
 */
 static void vdu_cleartext(void) {
-  int32 left, right, top, bottom, mxppc, myppc;
+  int32 left, right, top, bottom, mxppc, myppc, lx, ly;
   if (screenmode == 7) {
     mxppc=M7XPPC;
     myppc=M7YPPC;
@@ -1754,6 +1754,11 @@ static void vdu_cleartext(void) {
   if (graphmode == FULLSCREEN) {
     hide_cursor();	/* Remove cursor if it is being displayed */
     if (textwin) {	/* Text window defined that does not occupy the whole screen */
+      for (ly=twintop; ly <= twinbottom; ly++) {
+        for (lx=twinleft; lx <=twinright; lx++) {
+	  mode7frame[ly][lx]=32;
+	}
+      }
       left = twinleft*mxppc;
       right = twinright*mxppc+mxppc-1;
       top = twintop*myppc;
@@ -1766,6 +1771,7 @@ static void vdu_cleartext(void) {
       SDL_FillRect(screen2, &line_rect, tb_colour);
       SDL_FillRect(screen3, &line_rect, tb_colour);
       blit_scaled(0,0,screenwidth-1,screenheight-1);
+      mode7renderscreen();
     }
     else {	/* Text window is not being used */
       reset_mode7();
