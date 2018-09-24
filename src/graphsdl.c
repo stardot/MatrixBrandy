@@ -2306,13 +2306,11 @@ void emulate_vdu(int32 charvalue) {
     move_curup();
     break;
   case VDU_CLEARTEXT:	/* 12 - Clear text window (formfeed) */
-    if (vdu5mode) {	/* In VDU 5 mode, clear the graphics window */
+    if (vdu5mode)	/* In VDU 5 mode, clear the graphics window */
       vdu_cleargraph();
-      vdu_hometext();
-    }
-    else {		/* In text mode, clear the text window */
+    else		/* In text mode, clear the text window */
       vdu_cleartext();
-    }
+    vdu_hometext();
     break;
   case VDU_RETURN:	/* 13 - Carriage return */
     vdu_return();
