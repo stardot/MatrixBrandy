@@ -325,7 +325,8 @@ follows:
     (except for one specific case, to use OS_Byte call 0 to
     identify the host type). The built-in assembler has not been
     implemented.
-3)  Only the RISC OS version supports the 'SYS' statement.
+3)  Only the RISC OS version fully supports the 'SYS' statement.
+    On other platforms, support is minimal.
 4)  The follow Basic commands have not been implemented: APPEND
     and AUTO.
 5)  The 'OVERLAY' statement has not been implemented.

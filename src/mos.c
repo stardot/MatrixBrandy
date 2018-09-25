@@ -1546,10 +1546,12 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=inregs[0];
       emulate_vdu(inregs[0] & 0xFF);
       break;
-    case SWI_OS_Write0:
+    case SWI_OS_Write0: /* This is extended in Brandy - normally all args apart
+			   from R0 are ignored; in Brandy, if R1 and R2 are set
+			   to 42, the text is output to the controlling terminal. */
       outregs[0]=inregs[0]+1+strlen((char *)basicvars.offbase+inregs[0]);
       if ((inregs[1]==42) && (inregs[2]==42)) {
-        printf("%s\r\n", basicvars.offbase+inregs[0]);
+        fprintf(stderr,"%s\r\n", basicvars.offbase+inregs[0]);
       } else {
         emulate_printf("%s", basicvars.offbase+inregs[0]);
       }

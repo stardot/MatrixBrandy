@@ -1,5 +1,5 @@
 Certain OSBYTE calls are supported by Matrix Brandy, either by
-CALL &FFF4 or result%=USR&FFF4. Use of SYS is NOT supported.
+CALL &FFF4 or result%=USR&FFF4, or SYS "OS_Byte",A[,X[,Y]]
 
 Where a return value is supported, it will be &00YYXXAA.
 

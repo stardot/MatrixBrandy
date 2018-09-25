@@ -3438,9 +3438,10 @@ Syntax: SYS <swi expression>, <expression 1>, ... ,
 		<expression n> [ TO <variable 1> , ... ,
 		<variable n> [ ; <flag variable>] ]
 
-The SYS statement is only supported by the RISC OS version of
-the interpreter. It is used to issue a SWI (RISC OS operating
-system call) from a Basic program.
+The SYS statement is only fully supported by the RISC OS version
+of the interpreter. It is used to issue a SWI (RISC OS operating
+system call) from a Basic program.  On other platforms, support
+is minimal.
 
 <swi expression> identified the SWI to call. This can be a number
 or a string giving the name of the SWI. <expression 1> to
@@ -3459,6 +3460,11 @@ supplied. It is possible to discard values returned by  leaving
 the position for that parameter after the 'TO' empty. The third
 example below illustrates this (the first two values returned by
 the SWI are not wanted).
+
+On Matrix Brandy, calling OS_Write0 with R1 and R2 set to 42 will
+result in the string pointed to in R0 being sent to the
+controlling terminal instead of the SDL window.  This can be
+useful for some debugging scenarios.
 
 Examples:
 	SYS "OS_Write0", "abcdefgh"

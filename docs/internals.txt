@@ -278,7 +278,7 @@ emulation code.
 The emulation functions are spread across the following modules:
 
 General emulation functions:
-	emulate.c (emulate.h)
+	mos.c (mos.h)
 
 Keyboard input:
 	keyboard.c (keyboard.h)
@@ -1418,7 +1418,8 @@ very simple interface that maps directly on to the ARM
 processor's 'SWI' (Software Interrupt) instruction. It
 is envisaged that the SYS statement will also be used to
 make use of the facilities of operating systems other than
-RISC OS.
+RISC OS.  Currently, on non-RISC OS platforms, SYS is only
+minimally supported.
 
 The format of the SYS statement is as follows:
 
@@ -1534,7 +1535,6 @@ its SWI number. Bit masks for the processor flags as stored
 in <flags> are also defined in this file, as well as a macro
 to define the 'X' bit set in the 'X' form SWIs.
 
-emulate_sys() and emulate_getswino() just give an 'unsupported
-feature' error under operating systems other than RISC OS.
-
-
+On platforms other than RISC OS, emulate_sys() and
+emulate_getswino() only support a minimal set of SWIs,
+as listed in mos.c and mos-swinums.h.
