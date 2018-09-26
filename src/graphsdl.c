@@ -1925,7 +1925,7 @@ static void vdu_textcol(void) {
         text_forecol = colnumber & COL256MASK;
         text_physforecol = (text_forecol << COL256SHIFT)+text_foretint;
       } else if (colourdepth == COL24BIT) {
-	text_physforecol=promote6to24bit(text_forecol);
+	text_physforecol = text_forecol = promote6to24bit(colnumber);
       } else {
         text_physforecol = text_forecol = colnumber & colourmask;
       }
@@ -1940,7 +1940,7 @@ static void vdu_textcol(void) {
         text_backcol = colnumber & COL256MASK;
         text_physbackcol = (text_backcol << COL256SHIFT)+text_backtint;
       } else if (colourdepth == COL24BIT) {
-	text_physbackcol=promote6to24bit(text_backcol);
+	text_physbackcol = text_backcol = promote6to24bit(colnumber);
       } else {	/* Operating in text mode */
         text_physbackcol = text_backcol = colnumber & colourmask;
       }
@@ -2027,7 +2027,7 @@ static void vdu_graphcol(void) {
         graph_forecol = colnumber & COL256MASK;
         graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
       } else if (colourdepth == COL24BIT) {
-        graph_physforecol = promote6to24bit(graph_forecol);
+        graph_physforecol = graph_forecol = promote6to24bit(colnumber);
       } else {
         graph_physforecol = graph_forecol = colnumber & colourmask;
       }
@@ -2038,7 +2038,7 @@ static void vdu_graphcol(void) {
       graph_backcol = colnumber & COL256MASK;
       graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
     } else if (colourdepth == COL24BIT) {
-      graph_physbackcol = promote6to24bit(graph_backcol);
+      graph_physbackcol = graph_backcol = promote6to24bit(colnumber);
     } else {	/* Operating in text mode */
       graph_physbackcol = graph_backcol = colnumber & colourmask;
     }
