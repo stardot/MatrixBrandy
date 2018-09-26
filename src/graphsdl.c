@@ -2637,6 +2637,7 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
   case 1: coldepth = 2; break;
   case 2: coldepth = 4; break;
   case 4: coldepth = 16; break;
+  case 24: coldepth = COL24BIT; break;
   default:
     coldepth = 256;
   }
