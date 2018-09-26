@@ -123,6 +123,8 @@ extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Ui
 static void toggle_cursor(void);
 static void switch_graphics(void);
 static void vdu_cleartext(void);
+static void set_text_colour(boolean background, int colnum);
+static void set_graphics_colour(boolean background, int colnum);
 
 extern void mode7renderline(int32 ypos);
 extern void mode7renderscreen(void);
@@ -602,6 +604,19 @@ static int istextonly(void) {
   return ((screenmode == 3 || screenmode == 6 || screenmode == 7));
 }
 
+static int32 riscoscolour(colour) {
+  return (((colour & 0xFF) <<16) + (colour & 0xFF00) + ((colour & 0xFF0000) >> 16));
+}
+
+static int32 promote6to24bit(colour) {
+  return (text_foretint + ((colour & 1) << 2) + ((colour & 1) << 3) + ((colour & 1) << 4)) +
+	 (((colour & 2) << 4) + ((colour & 2) << 5) + ((colour & 2) << 6)) +
+	 ((text_foretint << 8) + ((colour & 4) << 8) + ((colour & 4) << 9) + ((colour & 4) << 10)) +
+	 (((colour & 8) << 10) + ((colour & 8) << 11) + ((colour & 8) << 12)) +
+	 ((text_foretint << 16) + ((colour & 16) << 14) + ((colour & 16) << 15) + ((colour & 16) << 16)) +
+	 (((colour & 32) << 16) + ((colour & 32) << 17) + ((colour & 32) << 18));
+}
+
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
 ** its position is valid, that is, lies within the text window
@@ -615,15 +630,22 @@ void find_cursor(void) {
 
 void set_rgb(void) {
   int j;
-  j = text_physforecol*3;
-  tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
-  j = text_physbackcol*3;
-  tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+  if (colourdepth == COL24BIT) {
+    tf_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physforecol & 0xFF), ((text_physforecol & 0xFF00) >> 8), ((text_physforecol & 0xFF0000) >> 16));
+    tb_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physbackcol & 0xFF), ((text_physbackcol & 0xFF00) >> 8), ((text_physbackcol & 0xFF0000) >> 16));
+    gf_colour = SDL_MapRGB(sdl_fontbuf->format, (graph_physforecol & 0xFF), ((graph_physforecol & 0xFF00) >> 8), ((graph_physforecol & 0xFF0000) >> 16));
+    gb_colour = SDL_MapRGB(sdl_fontbuf->format, (graph_physbackcol & 0xFF), ((graph_physbackcol & 0xFF00) >> 8), ((graph_physbackcol & 0xFF0000) >> 16));
+  } else {
+    j = text_physforecol*3;
+    tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    j = text_physbackcol*3;
+    tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
 
-  j = graph_physforecol*3;
-  gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
-  j = graph_physbackcol*3;
-  gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    j = graph_physforecol*3;
+    gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    j = graph_physbackcol*3;
+    gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+  }
 }
 
 void sdlchar(int32 ch) {
@@ -791,8 +813,6 @@ static void vdu_2318(void) {
 
 /* BB4W/BBCSDL - Define and select custom mode */
 /* Implementation not likely to be exact, char width and height are fixed in Brandy so are /8 to generate xscale and yscale */
-static void set_text_colour(boolean background, int colnum);
-static void set_graphics_colour(boolean background, int colnum);
 static void vdu_2322(void) {
   int32 mwidth, mheight, mxscale, myscale, cols, charset;
   
@@ -1082,7 +1102,9 @@ static void init_palette(void) {
     palette[42] = 0; palette[43] = palette[44] = 160;	/* Cyan */
     palette[45] = palette[46] = palette[47] = 160;	    /* Grey */
     break;
-  case 256: {	/* 256 colour */
+  case 256:
+  case COL15BIT:
+  case COL24BIT: {	/* >= 256 colour */
     int red, green, blue, tint, colour;
 /*
 ** The colour number in 256 colour modes can be seen as a bit map as
@@ -1120,7 +1142,7 @@ static void init_palette(void) {
   default:	/* 32K and 16M colour modes are not supported */
     error(ERR_UNSUPPORTED);
   }
-  if (colourdepth == 256) {
+  if (colourdepth >= 256) {
     text_physforecol = (text_forecol<<COL256SHIFT)+text_foretint;
     text_physbackcol = (text_backcol<<COL256SHIFT)+text_backtint;
     graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
@@ -1163,6 +1185,7 @@ int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
   else if (graphmode == TEXTMODE) {
     switch_graphics();
   }
+  if (colourdepth == COL24BIT) return (red + (green << 8) + (blue << 16));
   distance = 0x7fffffff;
   best = 0;
   for (n = 0; n < colourdepth && distance != 0; n++) {
@@ -1901,8 +1924,9 @@ static void vdu_textcol(void) {
       if (colourdepth == 256) {
         text_forecol = colnumber & COL256MASK;
         text_physforecol = (text_forecol << COL256SHIFT)+text_foretint;
-      }
-      else {
+      } else if (colourdepth == COL24BIT) {
+	text_physforecol=promote6to24bit(text_forecol);
+      } else {
         text_physforecol = text_forecol = colnumber & colourmask;
       }
     }
@@ -1915,8 +1939,9 @@ static void vdu_textcol(void) {
       if (colourdepth == 256) {
         text_backcol = colnumber & COL256MASK;
         text_physbackcol = (text_backcol << COL256SHIFT)+text_backtint;
-      }
-      else {	/* Operating in text mode */
+      } else if (colourdepth == COL24BIT) {
+	text_physbackcol=promote6to24bit(text_backcol);
+      } else {	/* Operating in text mode */
         text_physbackcol = text_backcol = colnumber & colourmask;
       }
     }
@@ -1971,6 +1996,11 @@ static void reset_colours(void) {
     graph_foretint = text_foretint = MAXTINT;
     graph_backtint = text_backtint = 0;
     break;
+  case COL24BIT:
+    text_forecol = graph_forecol = 0xFFFFFF;
+    graph_foretint = text_foretint = MAXTINT;
+    graph_backtint = text_backtint = 0;
+    break;
   default:
     error(ERR_UNSUPPORTED);
   }
@@ -1996,8 +2026,9 @@ static void vdu_graphcol(void) {
       if (colourdepth == 256) {
         graph_forecol = colnumber & COL256MASK;
         graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
-      }
-      else {
+      } else if (colourdepth == COL24BIT) {
+        graph_physforecol = promote6to24bit(graph_forecol);
+      } else {
         graph_physforecol = graph_forecol = colnumber & colourmask;
       }
   }
@@ -2006,8 +2037,9 @@ static void vdu_graphcol(void) {
     if (colourdepth == 256) {
       graph_backcol = colnumber & COL256MASK;
       graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
-    }
-    else {	/* Operating in text mode */
+    } else if (colourdepth == COL24BIT) {
+      graph_physbackcol = promote6to24bit(graph_backcol);
+    } else {	/* Operating in text mode */
       graph_physbackcol = graph_backcol = colnumber & colourmask;
     }
   }
@@ -2633,7 +2665,6 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
     if (xeig==1 && yeig==1 && modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
   }
   if (n > HIGHMODE) {
-    //error(ERR_BADMODE);
     /* Mode isn't predefined. So, let's make it. */
     n=126;
     setupnewmode(n, xres, yres, coldepth, 1, 1, xeig, yeig);
@@ -3122,6 +3153,7 @@ int32 emulate_pointfn(int32 x, int32 y) {
   int32 colour, colnum;
   if (graphmode == FULLSCREEN) {
     colour = *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth);
+    if (colourdepth == COL24BIT) return riscoscolour(colour);
     colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
     if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
     return colnum;
@@ -4179,8 +4211,8 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
     emulate_printf("Warning: *NewMode can only define modes in the range 64 to %d.\r\n", HIGHMODE);
     return;
   }
-  if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256)) {
-    emulate_printf("Warning: *NewMode can only define modes with 2, 4, 16 or 256 colours.\r\n");
+  if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256) && (cols != COL24BIT)) {
+    emulate_printf("Warning: Can only define modes with 2, 4, 16, 256 or 16777216 colours.\r\n");
     return;
   }
   if ((mxscale==0) || (myscale==0)) {

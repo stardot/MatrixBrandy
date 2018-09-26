@@ -29,6 +29,9 @@
 
 #define MAXBYTES	9	/* VDU commands need at most nine bytes of data */
 
+#define COL24BIT 16777216	/* Colour depth for 24-bit (16 million) colours */
+#define COL15BIT 32768		/* Colour depth for 15-bit (32 thousand) colours */
+
 /*
 ** Screen output modes of operation are as follows:
 ** NOGRAPHICS	No graphics possible at all
@@ -159,6 +162,7 @@ static modetails modetable [127] = {
 /* 77 */  {1024, 576,   4, 2048,  1152, 128, 72, 1, 1,  TRUE},
 /* 78 */  {1024, 576,  16, 2048,  1152, 128, 72, 1, 1,  TRUE},
 /* 79 */  {1024, 576, 256, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 80 */  { 640, 256, COL24BIT, 1280,  1024,  80, 32, 1, 2,  TRUE},
 };
 
 #ifndef __riscos
