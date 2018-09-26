@@ -609,12 +609,9 @@ static int32 riscoscolour(colour) {
 }
 
 static int32 promote6to24bit(colour) {
-  return (text_foretint + ((colour & 1) << 2) + ((colour & 1) << 3) + ((colour & 1) << 4)) +
-	 (((colour & 2) << 4) + ((colour & 2) << 5) + ((colour & 2) << 6)) +
-	 ((text_foretint << 8) + ((colour & 4) << 8) + ((colour & 4) << 9) + ((colour & 4) << 10)) +
-	 (((colour & 8) << 10) + ((colour & 8) << 11) + ((colour & 8) << 12)) +
-	 ((text_foretint << 16) + ((colour & 16) << 14) + ((colour & 16) << 15) + ((colour & 16) << 16)) +
-	 (((colour & 32) << 16) + ((colour & 32) << 17) + ((colour & 32) << 18));
+  return ((text_foretint << 4) + ((colour & 1) << 6) + ((colour & 2) << 6)) +
+	 ((text_foretint << 12) + ((colour & 4) << 12) + ((colour & 8) << 12)) +
+	 ((text_foretint << 20) + ((colour & 16) << 18) + ((colour & 32) << 18));
 }
 
 /*
