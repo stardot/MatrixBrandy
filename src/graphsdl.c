@@ -1903,6 +1903,7 @@ static void vdu_textwind(void) {
   bottom = vduqueue[1];
   right = vduqueue[2];
   top = vduqueue[3];
+  if ((left >= textwidth) || (right >= textwidth) || (top >= textheight) || (bottom >= textheight)) return; /* Ignore bad parameters */
   if (left > right) {	/* Ensure right column number > left */
     int32 temp = left;
     left = right;
@@ -1913,7 +1914,6 @@ static void vdu_textwind(void) {
     bottom = top;
     top = temp;
   }
-  if (left >= textwidth || top >= textheight) return;	/* Ignore bad parameters */
   twinleft = left;
   twinright = right;
   twintop = top;
