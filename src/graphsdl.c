@@ -1016,7 +1016,6 @@ static void init_palette(void) {
     palette[45] = palette[46] = palette[47] = 160;	    /* Grey */
     break;
   case 256:
-  case COL15BIT:
   case COL24BIT: {	/* >= 256 colour */
     int red, green, blue, tint, colour;
 /*
@@ -1052,7 +1051,7 @@ static void init_palette(void) {
     }
     break;
   }
-  default:	/* 32K and 16M colour modes are not supported */
+  default:	/* 32K colour modes are not supported */
     error(ERR_UNSUPPORTED);
   }
   if (colourdepth >= 256) {
@@ -1451,9 +1450,6 @@ static void vdu_setpalette(void) {
     palette[2+logcol*3] = hardpalette[2+pmode*3];
   } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
-  else {
-    if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
-  }
   set_rgb();
 }
 
@@ -1763,7 +1759,7 @@ static void reset_colours(void) {
     graph_backtint = text_backtint = 0;
     break;
   default:
-    error(ERR_UNSUPPORTED);
+    error(ERR_UNSUPPORTED); /* 32K colour modes not supported */
   }
   if (colourdepth==256)
     colourmask = COL256MASK;

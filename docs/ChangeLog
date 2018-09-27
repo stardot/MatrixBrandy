@@ -8,12 +8,15 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fix for CLS when a text window is active, the cursor was not being
   homed.
 - Bug fix for VDU28 text windows where bottom or right were out of range.
+- Bug fix for text cursor appearing inappropriately in VDU5 mode.
 - Fix more compiler warnings - thanks bakoulis and Coeus at Stardot for
   highlighting where their compilers were warning where mine wasn't,
   and for suggesting a fix.
 - PLOT actions redirected to new primitives that support GCOL action codes,
   both foreground and background codes work.
 - Behaviour of DELETE (and VDU127) is corrected.
+- WAIT (with no parameters) to wait for VSYNC implemented, as far as is
+  possible in SDL.
 - 24-bit colour support enabled.
 - Code clean-up, "text mode" in SDL screen removed. It's never been used
   since the appearance of MODEs 3 and 6 were corrected.
