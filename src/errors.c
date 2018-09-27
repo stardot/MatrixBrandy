@@ -671,6 +671,9 @@ static void handle_error(errortype severity) {
     emulate_vdu(VDU_ENABLE);    /* Ensure VDU driver is enabled */
     emulate_vdu(VDU_TEXTCURS);  /* And that output goes to the text cursor */
     print_details(severity>WARNING);
+#ifdef USE_SDL
+    mode7renderscreen();
+#endif
     if (basicvars.runflags.closefiles) fileio_shutdown();
     if (basicvars.runflags.quitatend) exit_interpreter(EXIT_FAILURE);   /* Leave interpreter is flag is set */
     basicvars.current = NIL;
