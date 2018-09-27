@@ -685,7 +685,8 @@ void mos_mouse_off(void) {
 */
 void mos_mouse_to(int32 x, int32 y) {
 #ifdef USE_SDL
-  return; // Do nothing, silently.
+  warp_sdlmouse(x,y);
+  return;
 #else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
 #endif

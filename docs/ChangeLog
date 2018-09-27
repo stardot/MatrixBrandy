@@ -18,6 +18,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - WAIT (with no parameters) to wait for VSYNC implemented, as far as is
   possible in SDL.
 - 24-bit colour support enabled.
+- MOUSE TO implemented.
 - Code clean-up, "text mode" in SDL screen removed. It's never been used
   since the appearance of MODEs 3 and 6 were corrected.
 - BrandyApp compilation on Linux changed to using a library to simplify

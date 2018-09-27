@@ -3886,13 +3886,11 @@ void get_sdl_mouse(int32 values[]) {
 
   SDL_PumpEvents();
   b=SDL_GetMouseState(&x, &y);
-  xo = ((2*vscrwidth) - xgraphunits)/2;
-  yo = ((2*vscrheight) - ygraphunits)/2;
-  x=(x*2)-xo;
+  x=(x*2);
   if (x < 0) x = 0;
   if (x >= xgraphunits) x = (xgraphunits - 1);
 
-  y=(2*(vscrheight-y))-yo;
+  y=(2*(vscrheight-y));
   if (y < 0) y = 0;
   if (y >= ygraphunits) y = (ygraphunits - 1);
 
@@ -3903,6 +3901,10 @@ void get_sdl_mouse(int32 values[]) {
   values[1]=y;
   values[2]=xb;
   values[3]=mos_rdtime();
+}
+
+void warp_sdlmouse(int32 x, int32 y) {
+  SDL_WarpMouse(x/2,vscrheight-(y/2));
 }
 
 void sdl_mouse_onoff(int state) {
