@@ -1475,6 +1475,7 @@ static void move_down(void) {
   if (ytext > twinbottom) {	/* Cursor was on last line in window - Scroll window up */
     ytext--;
     scroll(SCROLL_UP);
+    mode7renderline(ytext);
   }
 }
 
