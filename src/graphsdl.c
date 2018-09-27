@@ -3933,7 +3933,7 @@ void fullscreenmode(int onoff) {
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
   if ((mode < 64) || (mode > HIGHMODE)) {
-    emulate_printf("Warning: *NewMode can only define modes in the range 64 to %d.\r\n", HIGHMODE);
+    emulate_printf("Warning: Can only define modes in the range 64 to %d.\r\n", HIGHMODE);
     return;
   }
   if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256) && (cols != COL24BIT)) {
