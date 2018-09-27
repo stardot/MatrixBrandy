@@ -24,9 +24,7 @@
 **	used when graphics output is possible. It uses the SDL graphics library.
 **
 **	MODE 7 implementation by Michael McConnell. It's rather rudimentary, it
-**	supports most codes when output by the VDU driver, however it does NOT
-**	support adding codes in front of existing text to change the nature of
-**	content already on screen.
+**	supports most codes when output by the VDU driver.
 **
 */
 #include <stdio.h>
@@ -121,7 +119,6 @@ extern void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, in
 extern void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
 extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
 static void toggle_cursor(void);
-static void switch_graphics(void);
 static void vdu_cleartext(void);
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
@@ -206,11 +203,9 @@ static boolean
 #define GXTOPX(x) ((x) / xgupp)
 #define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp)
 
-static graphics graphmode;	/* Says whether graphics are possible or not */
-
 /*
-** Built-in ISO Latin-1 font for graphics mode. The first character
-** in the table is a blank.
+** Built-in ISO Latin-1 font for all modes other than Teletext.
+** The first character in the table is a blank.
 */
 static byte sysfont[224][8];
 static byte sysfontbase [224][8] = {
@@ -628,10 +623,7 @@ static int32 colour24bit(colour, tint) {
 ** its position is valid, that is, lies within the text window
 */
 void find_cursor(void) {
-//  if (graphmode!=FULLSCREEN) {
-//    xtext = wherex()-1;
-//    ytext = wherey()-1;
-//  }
+  return;
 }
 
 void set_rgb(void) {
@@ -860,23 +852,21 @@ static void vdu_23command(void) {
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
       if (vduqueue[2] == 32) {
-	if (graphmode == FULLSCREEN) hide_cursor();
+	hide_cursor();
         cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
       } else if (vduqueue[2] == 114) {
         cursorstate = SUSPENDED;
-	if (graphmode == FULLSCREEN) toggle_cursor();
+	toggle_cursor();
         cursorstate = ONSCREEN;
       }
     }
     break;
   case 1:	/* Control the appear of the text cursor */
-    if (graphmode == FULLSCREEN) {
-      if (vduqueue[1] == 0) {
-        hide_cursor();
-        cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
-      }
-      if (vduqueue[1] == 1 && cursorstate != NOCURSOR) cursorstate = ONSCREEN;
+    if (vduqueue[1] == 0) {
+      hide_cursor();
+      cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
     }
+    if (vduqueue[1] == 1 && cursorstate != NOCURSOR) cursorstate = ONSCREEN;
     if (vduqueue[1] == 1) cursorstate = ONSCREEN;
     else cursorstate = HIDDEN;
     break;
@@ -1173,7 +1163,6 @@ static void init_palette(void) {
 ** and blue. The screen is updated by this call
 */
 static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
-  if (graphmode != FULLSCREEN) return;	/* There be no palette to change */
   palette[colour*3] = red;	/* The palette is not structured */
   palette[colour*3+1] = green;
   palette[colour*3+2] = blue;
@@ -1184,17 +1173,10 @@ static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
  * Returns the entry in the palette for the current screen mode
  * that most closely matches the colour with red, green and
  * blue components passed to it.
- * It is assumed that this function will be used for graphics
- * so the screen is switched to graphics mode if it is used
  */
 int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
   int32 n, distance, test, best, dr, dg, db;
 
-  if (graphmode < TEXTMODE)
-    return colourdepth - 1;	/* There is no palette */
-  else if (graphmode == TEXTMODE) {
-    switch_graphics();
-  }
   if (colourdepth == COL24BIT) return (red + (green << 8) + (blue << 16));
   distance = 0x7fffffff;
   best = 0;
@@ -1240,50 +1222,6 @@ static void set_graphics_colour(boolean background, int colnum) {
   }
   graph_fore_action = graph_back_action = 0;
   set_rgb();
-}
-
-/*
-** 'switch_graphics' switches from text output mode to fullscreen graphics
-** mode. Unless the option '-graphics' is specified on the command line,
-** the interpreter remains in fullscreen mode until the next mode change
-** when it switches back to text output mode. If '-graphics' is given
-** then it remains in fullscreen mode
-*/
-static void switch_graphics(void) {
-  SDL_SetClipRect(screen0, NULL);
-  SDL_SetClipRect(modescreen, NULL);
-  SDL_FillRect(screen0, NULL, tb_colour);
-  SDL_FillRect(screen1, NULL, tb_colour);
-  SDL_FillRect(modescreen, NULL, tb_colour);
-  init_palette();
-  graphmode = FULLSCREEN;
-  xtext = twinleft;		/* Send the text cursor to the home position */
-  ytext = twintop;
-#if defined(TARGET_DJGPP) | defined(TARGET_MACOSX)
-  textwidth = modetable[screenmode & MODEMASK].xtext;	/* Hack to set the depth of the graphics screen */
-  textheight = modetable[screenmode & MODEMASK].ytext;
-  if (!textwin) {	/* Text window is the whole screen */
-    twinright = textwidth-1;
-    twinbottom = textheight-1;
-  }
-#endif
-  vdu_cleartext();	/* Clear the graphics screen */
-  if (cursorstate == NOCURSOR) {	/* 'cursorstate' might be set to 'HIDDEN' if OFF used */
-    cursorstate = SUSPENDED;
-    toggle_cursor();
-  }
-}
-
-/*
-** 'switch_text' switches from fullscreen graphics back to text output mode.
-** It does this on a mode change
-*/
-static void switch_text(void) {
-  SDL_SetClipRect(screen0, NULL);
-  SDL_SetClipRect(modescreen, NULL);
-  SDL_FillRect(screen0, NULL, tb_colour);
-  SDL_FillRect(screen1, NULL, tb_colour);
-  SDL_FillRect(modescreen, NULL, tb_colour);
 }
 
 /*
@@ -1543,28 +1481,21 @@ static void plot_space_opaque(void) {
 }
 
 /*
-** 'echo_on' turns on cursor (if in graphics mode) and the immediate
-** echo of characters to the screen
+** 'echo_on' turns on cursor and the immediate echo of characters to the screen
 */
 void echo_on(void) {
   echo = TRUE;
-  if (graphmode == FULLSCREEN) {
-    echo_text();	/* Flush what is in the graphics buffer */
-    reveal_cursor();	/* Display cursor again */
-  }
-  else {
-    echo_ttext();	/* Flush what is in the text buffer */
-  }
+  echo_text();		/* Flush what is in the graphics buffer */
+  reveal_cursor();	/* Display cursor again */
 }
 
 /*
-** 'echo_off' turns off the cursor (if in graphics mode) and the
-** immediate echo of characters to the screen. This is used to
-** make character output more efficient
+** 'echo_off' turns off the cursor and the immediate echo of characters
+** to the screen. This is used to make character output more efficient
 */
 void echo_off(void) {
   echo = FALSE;
-  if (graphmode == FULLSCREEN) hide_cursor();	/* Remove the cursor if it is being displayed */
+  hide_cursor();	/* Remove the cursor if it is being displayed */
 }
 
 /*
@@ -1576,17 +1507,10 @@ void echo_off(void) {
 ** function has to allow for the text window.
 */
 static void move_cursor(int32 column, int32 row) {
-  if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor if in graphics mode */
-    xtext = column;
-    ytext = row;
-    reveal_cursor();	/* Redraw cursor if in graphics mode */
-  }
-  else {
-    toggle_tcursor();
-    xtext = column;
-    ytext = row;
-  }
+  hide_cursor();	/* Remove cursor */
+  xtext = column;
+  ytext = row;
+  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1597,9 +1521,9 @@ static void move_cursor(int32 column, int32 row) {
 ** 'overwrite'.
 */
 void set_cursor(boolean underline) {
-    hide_cursor();	/* Remove old style cursor */
-    cursmode = underline ? UNDERLINE : BLOCK;
-    reveal_cursor();	/* Draw new style cursor */
+  hide_cursor();	/* Remove old style cursor */
+  cursmode = underline ? UNDERLINE : BLOCK;
+  reveal_cursor();	/* Draw new style cursor */
 }
 
 /*
@@ -1631,7 +1555,7 @@ static void vdu_setpalette(void) {
 /*
 ** 'move_down' moves the text cursor down a line within the text
 ** window, scrolling the window up if the cursor is on the last line
-** of the window. This only works in full screen graphics mode.
+** of the window.
 */
 static void move_down(void) {
   ytext++;
@@ -1668,28 +1592,13 @@ static void move_curback(void) {
       }
     }
   }
-  else if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor */
-    xtext--;
-    if (xtext < twinleft) {	/* Cursor is at left-hand edge of text window so move up a line */
-      xtext = twinright;
-      move_up();
-    }
-    reveal_cursor();	/* Redraw cursor */
+  hide_cursor();	/* Remove cursor */
+  xtext--;
+  if (xtext < twinleft) {	/* Cursor is at left-hand edge of text window so move up a line */
+    xtext = twinright;
+    move_up();
   }
-  else {	/* Writing to the text screen */
-    toggle_tcursor();
-    xtext--;
-    if (xtext < twinleft) {	/* Cursor is outside window */
-      xtext = twinright;
-      ytext--;
-      if (ytext < twintop) {	/* Cursor is outside window */
-        ytext++;
-        scroll_text(SCROLL_DOWN);
-      }
-    }
-    if (!vdu5mode) toggle_tcursor();
-  }
+  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1704,25 +1613,13 @@ static void move_curforward(void) {
       if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
     }
   }
-  else if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor */
-    xtext++;
-    if (xtext > twinright) {	/* Cursor is at right-hand edge of text window so move down a line */
-      xtext = twinleft;
-      move_down();
-    }
-    reveal_cursor();	/* Redraw cursor */
+  hide_cursor();	/* Remove cursor */
+  xtext++;
+  if (xtext > twinright) {	/* Cursor is at right-hand edge of text window so move down a line */
+    xtext = twinleft;
+    move_down();
   }
-  else {	/* Writing to text screen */
-    xtext++;
-    if (xtext > twinright) {	/* Cursor has moved outside window - Move to next line */
-      ytext++;
-      if (ytext > twinbottom) {	/* Cursor is outside the window - Move the text window up one line */
-        ytext--;
-        scroll_text(SCROLL_UP);
-      }
-    }
-  }
+  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1734,18 +1631,9 @@ static void move_curdown(void) {
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
   }
-  else if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor */
-    move_down();
-    reveal_cursor();	/* Redraw cursor */
-  }
-  else {		/* Writing to a text window */
-    ytext++;
-    if (ytext > twinbottom)	{ /* Cursor is outside the confines of the window */
-      ytext--;
-      scroll_text(SCROLL_UP);
-    }
-  }
+  hide_cursor();	/* Remove cursor */
+  move_down();
+  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1756,24 +1644,14 @@ static void move_curup(void) {
     ylast += YPPC*ygupp;
     if (ylast > gwintop) ylast = gwinbottom+YPPC*ygupp-1;	/* Move above top of window - Wrap around to bottow */
   }
-  else if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor */
-    move_up();
-    reveal_cursor();	/* Redraw cursor */
-  }
-  else {	/* Writing to text screen */
-    ytext--;
-    if (ytext < twintop) {		/* Cursor lies above the text window */
-      ytext++;
-      scroll_text(SCROLL_DOWN);	/* Scroll the screen down a line */
-    }
-  }
+  hide_cursor();	/* Remove cursor */
+  move_up();
+  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
 ** 'vdu_cleartext' clears the text window. Normally this is the
-** entire screen (VDU 12). This is the version of the function used
-** when the interpreter supports graphics
+** entire screen (VDU 12).
 */
 static void vdu_cleartext(void) {
   int32 left, right, top, bottom, mxppc, myppc, lx, ly;
@@ -1784,59 +1662,40 @@ static void vdu_cleartext(void) {
     mxppc=XPPC;
     myppc=YPPC;
   }
-  if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor if it is being displayed */
-    if (textwin) {	/* Text window defined that does not occupy the whole screen */
-      for (ly=twintop; ly <= twinbottom; ly++) {
-        for (lx=twinleft; lx <=twinright; lx++) {
-	  mode7frame[ly][lx]=32;
-	}
+  hide_cursor();	/* Remove cursor if it is being displayed */
+  if (textwin) {	/* Text window defined that does not occupy the whole screen */
+    for (ly=twintop; ly <= twinbottom; ly++) {
+      for (lx=twinleft; lx <=twinright; lx++) {
+	mode7frame[ly][lx]=32;
       }
-      left = twinleft*mxppc;
-      right = twinright*mxppc+mxppc-1;
-      top = twintop*myppc;
-      bottom = twinbottom*myppc+myppc-1;
-      line_rect.x = left;
-      line_rect.y = top;
-      line_rect.w = right - left +1;
-      line_rect.h = bottom - top +1;
-      SDL_FillRect(modescreen, &line_rect, tb_colour);
-      SDL_FillRect(screen2, &line_rect, tb_colour);
-      SDL_FillRect(screen3, &line_rect, tb_colour);
-      blit_scaled(0,0,screenwidth-1,screenheight-1);
-      mode7renderscreen();
     }
-    else {	/* Text window is not being used */
-      reset_mode7();
-      left = twinleft*mxppc;
-      right = twinright*mxppc+mxppc-1;
-      top = twintop*myppc;
-      bottom = twinbottom*myppc+myppc-1;
-      SDL_FillRect(modescreen, NULL, tb_colour);
-      blit_scaled(left, top, right, bottom);
-      SDL_FillRect(screen2, NULL, tb_colour);
-      SDL_FillRect(screen3, NULL, tb_colour);
-      xtext = twinleft;
-      ytext = twintop;
-      reveal_cursor();	/* Redraw cursor */
-    }
+    left = twinleft*mxppc;
+    right = twinright*mxppc+mxppc-1;
+    top = twintop*myppc;
+    bottom = twinbottom*myppc+myppc-1;
+    line_rect.x = left;
+    line_rect.y = top;
+    line_rect.w = right - left +1;
+    line_rect.h = bottom - top +1;
+    SDL_FillRect(modescreen, &line_rect, tb_colour);
+    SDL_FillRect(screen2, &line_rect, tb_colour);
+    SDL_FillRect(screen3, &line_rect, tb_colour);
+    blit_scaled(0,0,screenwidth-1,screenheight-1);
+    mode7renderscreen();
   }
-  else if (textwin) {	/* Text window defined that does not occupy the whole screen */
-    int32 column, row;
-    echo_off();
-    for (row = twintop; row <= twinbottom; row++) {
-      xtext = twinleft;  /* Go to start of line on screen */
-      ytext = row;
-      for (column = twinleft; column <= twinright;  column++) sdlchar(' ');
-    }
-    echo_on();
+  else {	/* Text window is not being used */
+    reset_mode7();
+    left = twinleft*mxppc;
+    right = twinright*mxppc+mxppc-1;
+    top = twintop*myppc;
+    bottom = twinbottom*myppc+myppc-1;
+    SDL_FillRect(modescreen, NULL, tb_colour);
+    blit_scaled(left, top, right, bottom);
+    SDL_FillRect(screen2, NULL, tb_colour);
+    SDL_FillRect(screen3, NULL, tb_colour);
     xtext = twinleft;
     ytext = twintop;
-  }
-  else {
-    SDL_FillRect(screen0, NULL, tb_colour);
-    xtext = twinleft;
-    ytext = twintop;
+    reveal_cursor();	/* Redraw cursor */
   }
   do_sdl_flip(screen0);
 }
@@ -1845,16 +1704,10 @@ static void vdu_cleartext(void) {
 ** 'vdu_return' deals with the carriage return character (VDU 13)
 */
 static void vdu_return(void) {
-  if (vdu5mode)
-    xlast = gwinleft;
-  else if (graphmode==FULLSCREEN) {
-    hide_cursor();	/* Remove cursor */
-    xtext = twinleft;
-    reveal_cursor();	/* Redraw cursor */
-  }
-  else {
-    move_cursor(twinleft, ytext);
-  }
+  if (vdu5mode) xlast = gwinleft;
+  hide_cursor();	/* Remove cursor */
+  xtext = twinleft;
+  reveal_cursor();	/* Redraw cursor */
   if (screenmode == 7) {
     vdu141on = 0;
     mode7highbit=0;
@@ -1910,8 +1763,6 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 */
 static void vdu_cleargraph(void) {
   if (istextonly()) return;
-  if (graphmode == TEXTONLY) return;	/* Ignore command in text-only modes */
-  if (graphmode == TEXTMODE) switch_graphics();
   hide_cursor();	/* Remove cursor */
   if (graph_back_action == 0) {
     SDL_FillRect(modescreen, NULL, gb_colour);
@@ -1934,33 +1785,23 @@ static void vdu_textcol(void) {
   if (screenmode == 7) return;
   colnumber = vduqueue[0];
   if (colnumber < 128) {	/* Setting foreground colour */
-    if (graphmode == FULLSCREEN) {	/* Operating in full screen graphics mode */
-      if (colourdepth == 256) {
-        text_forecol = colnumber & COL256MASK;
-        text_physforecol = (text_forecol << COL256SHIFT)+text_foretint;
-      } else if (colourdepth == COL24BIT) {
-	text_physforecol = text_forecol = colour24bit(colnumber, text_foretint);
-      } else {
-        text_physforecol = text_forecol = colnumber & colourmask;
-      }
-    }
-    else {	/* Operating in text mode */
+    if (colourdepth == 256) {
+      text_forecol = colnumber & COL256MASK;
+      text_physforecol = (text_forecol << COL256SHIFT)+text_foretint;
+    } else if (colourdepth == COL24BIT) {
+      text_physforecol = text_forecol = colour24bit(colnumber, text_foretint);
+    } else {
       text_physforecol = text_forecol = colnumber & colourmask;
     }
   }
   else {	/* Setting background colour */
-    if (graphmode == FULLSCREEN) {	/* Operating in full screen graphics mode */
-      if (colourdepth == 256) {
-        text_backcol = colnumber & COL256MASK;
-        text_physbackcol = (text_backcol << COL256SHIFT)+text_backtint;
-      } else if (colourdepth == COL24BIT) {
-	text_physbackcol = text_backcol = colour24bit(colnumber, text_backtint);
-      } else {	/* Operating in text mode */
-        text_physbackcol = text_backcol = colnumber & colourmask;
-      }
-    }
-    else {
-      text_physbackcol = text_backcol = (colnumber-128) & colourmask;
+    if (colourdepth == 256) {
+      text_backcol = colnumber & COL256MASK;
+      text_physbackcol = (text_backcol << COL256SHIFT)+text_backtint;
+    } else if (colourdepth == COL24BIT) {
+      text_physbackcol = text_backcol = colour24bit(colnumber, text_backtint);
+    } else {	/* Operating in text mode */
+      text_physbackcol = text_backcol = colnumber & colourmask;
     }
   }
   set_rgb();
@@ -2033,7 +1874,6 @@ static void reset_colours(void) {
 */
 static void vdu_graphcol(void) {
   int32 colnumber;
-  if (graphmode == NOGRAPHICS) error(ERR_NOGRAPHICS);
   colnumber = vduqueue[1];
   if (colnumber < 128) {	/* Setting foreground graphics colour */
       graph_fore_action = vduqueue[0];
@@ -2065,7 +1905,6 @@ static void vdu_graphcol(void) {
 */
 static void vdu_graphwind(void) {
   int32 left, right, top, bottom;
-  if (graphmode != FULLSCREEN) return;
   left = vduqueue[0]+vduqueue[1]*256;		/* Left-hand coordinate */
   if (left > 0x7FFF) left = -(0x10000-left);	/* Coordinate is negative */
   bottom = vduqueue[2]+vduqueue[3]*256;		/* Bottom coordinate */
@@ -2130,15 +1969,9 @@ static void vdu_restwind(void) {
   gwinright = xgraphunits-1;
   gwintop = ygraphunits-1;
   gwinbottom = 0;
-  if (graphmode == FULLSCREEN) {
-    hide_cursor();	/* Remove cursor if in graphics mode */
-    xtext = ytext = 0;
-    reveal_cursor();	/* Redraw cursor if in graphics mode */
-  }
-  else {
-    xtext = ytext = 0;
-    move_cursor(0, 0);
-  }
+  hide_cursor();	/* Remove cursor */
+  xtext = ytext = 0;
+  reveal_cursor();	/* Redraw cursor */
   textwin = FALSE;
   twinleft = 0;
   twinright = textwidth-1;
@@ -2293,12 +2126,7 @@ void emulate_vdu(int32 charvalue) {
       return;
     }
     else {	/* Control character - Found start of new VDU command */
-      if (graphmode==FULLSCREEN) {	/* Flush any buffered text to the screen */
-        if (!echo) echo_text();
-      }
-      else {
-        if (!echo) echo_ttext();
-      }
+      if (!echo) echo_text();
       vducmd = charvalue;
       vduneeded = vdubytes[charvalue];
       vdunext = 0;
@@ -2329,12 +2157,9 @@ void emulate_vdu(int32 charvalue) {
     break;
   case VDU_GRAPHICURS:	/* 5 - Print text at graphics cursor */
     if (!istextonly()) {
-      if (graphmode == TEXTMODE) switch_graphics();		/* Use VDU 5 as a way of switching to graphics mode */
-      if (graphmode == FULLSCREEN) {
-        vdu5mode = TRUE;
-        toggle_cursor();	/* Remove the cursor if it is being displayed */
-        cursorstate = HIDDEN;
-      }
+      vdu5mode = TRUE;
+      toggle_cursor();	/* Remove the cursor if it is being displayed */
+      cursorstate = HIDDEN;
     }
     break;
   case VDU_ENABLE:	/* 6 - Enable the VDU driver (ignored) */
@@ -2456,7 +2281,7 @@ void emulate_printf(char *format, ...) {
 */
 int32 emulate_vdufn(int variable) {
   switch (variable) {
-  case 0: /* ModeFlags */	return graphmode >= TEXTMODE ? 0 : 1;
+  case 0: /* ModeFlags */	return istextonly();
   case 1: /* ScrRCol */		return textwidth - 1;
   case 2: /* ScrBRow */		return textheight - 1;
   case 3: /* NColour */		return colourdepth - 1;
@@ -2576,7 +2401,6 @@ static void setup_mode(int32 mode) {
   xscale = modetable[mode].xscale;
   yscale = modetable[mode].yscale;
   scaled = yscale != 1 || xscale != 1;	/* TRUE if graphics screen is scaled to fit real screen */
-/* If running in text mode, ignore the screen depth */
   enable_vdu = TRUE;
   echo = TRUE;
   vdu5mode = FALSE;
@@ -2598,13 +2422,6 @@ static void setup_mode(int32 mode) {
   twinbottom = textheight-1;
   xtext = ytext = 0;
   graph_fore_action = graph_back_action = 0;
-  if (graphmode == FULLSCREEN && (!basicvars.runflags.start_graphics)) {
-    switch_text();
-    graphmode = TEXTONLY;
-  }
-  if (graphmode != NOGRAPHICS && graphmode != FULLSCREEN) {	/* Decide on current graphics mode */
-    graphmode = TEXTMODE;	/* Output to text screen but can switch to graphics */
-  }
   reset_colours();
   init_palette();
   if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
@@ -2854,8 +2671,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   Uint32 colour = 0;
   SDL_Rect plot_rect, temp_rect;
   if (istextonly()) return;
-  if (graphmode == TEXTONLY) return;
-  if (graphmode == TEXTMODE) switch_graphics();
 /* Decode the command */
   plot_inverse = 0;
   action = graph_fore_action;
@@ -3170,16 +2985,11 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
 int32 emulate_pointfn(int32 x, int32 y) {
   int32 colour, colnum;
-  if (graphmode == FULLSCREEN) {
-    colour = *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth);
-    if (colourdepth == COL24BIT) return riscoscolour(colour);
-    colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
-    if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
-    return colnum;
-  }
-  else {
-    return 0;
-  }
+  colour = *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth);
+  if (colourdepth == COL24BIT) return riscoscolour(colour);
+  colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
+  if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
+  return colnum;
 }
 
 /*
@@ -3188,7 +2998,7 @@ int32 emulate_pointfn(int32 x, int32 y) {
 ** screen. This is one of 0, 0x40, 0x80 or 0xC0
 */
 int32 emulate_tintfn(int32 x, int32 y) {
-  if (graphmode != FULLSCREEN || colourdepth < 256) return 0;
+  if (colourdepth < 256) return 0;
   return *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth)<<TINTSHIFT;
 }
 
@@ -3556,18 +3366,11 @@ boolean init_screen(void) {
   vdunext = 0;
   vduneeded = 0;
   enable_print = FALSE;
-  graphmode = TEXTMODE;         /* Say mode is capable of graphics output but currently set to text */
   xgupp = ygupp = 1;
   SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-  if (basicvars.runflags.start_graphics) {
-    setup_mode(0);
-    switch_graphics();
-  }
-  else {
-    setup_mode(46);	/* Mode 46 - 80 columns by 25 lines by 16 colours */
-  }
+  setup_mode(0);
 
   xor_mask = SDL_MapRGB(sdl_fontbuf->format, 0xff, 0xff, 0xff);
 
@@ -4251,7 +4054,6 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
   modetable[mode].ytext = (yres / 8);
   modetable[mode].xscale = mxscale;
   modetable[mode].yscale = myscale;
-  modetable[mode].graphics = TRUE;
 }
 
 void star_refresh(int flag) {

@@ -134,7 +134,6 @@ static void init1(void) {
   basicvars.runflags.outredir = FALSE;          /* Output is going to the screen */
   basicvars.runflags.loadngo = FALSE;		/* Do not start running program immediately */
   basicvars.runflags.quitatend = FALSE;		/* Do not exit from interpreter when program finishes */
-  basicvars.runflags.start_graphics = TRUE;	/* Start in graphics mode */
   basicvars.runflags.ignore_starcmd = FALSE;	/* Do not ignore built-in '*' commands */
   basicvars.escape_enabled = TRUE;		/* Allow the Escape key to stop execution */
 #ifdef DEFAULT_IGNORE
@@ -194,9 +193,7 @@ static void check_cmdline(int argc, char *argv[]) {
     p = argv[n];
     if (*p=='-') {	/* Got an option */
       optchar = tolower(*(p+1));	/* Get first character of option name */
-      if (optchar=='g')		/* -graphics */
-        basicvars.runflags.start_graphics = FALSE;
-      else if (optchar=='h') {		/* -help */
+      if (optchar=='h') {		/* -help */
         show_help();
         exit(0);
       }

@@ -439,7 +439,6 @@ typedef struct {
     unsigned int running:1;		/* TRUE if program is running */
     unsigned int loadngo:1;		/* TRUE if program should be loaded and run immediately */
     unsigned int quitatend:1;		/* TRUE if interpreter should be exited at end of program */
-    unsigned int start_graphics:1;	/* TRUE if interpreter starts with screen in graphics mode */
     unsigned int outofdata:1;		/* TRUE if program has run out of DATA statements */
     unsigned int has_offsets:1;		/* TRUE if program contains embedded offsets */
     unsigned int has_variables:1;	/* TRUE if any variables have been created */
