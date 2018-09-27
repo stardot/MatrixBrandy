@@ -1676,7 +1676,7 @@ static void vdu_cleargraph(void) {
     fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), graph_physbackcol, graph_back_action);
   }
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
-  reveal_cursor();	/* Redraw cursor */
+  if (!vdu5mode) reveal_cursor();	/* Redraw cursor */
   do_sdl_flip(screen0);
 }
 
