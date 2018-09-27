@@ -30,3 +30,5 @@ tbrandy
 *.rej
 *.orig
 
+# Temporary files
+~*

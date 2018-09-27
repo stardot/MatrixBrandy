@@ -1892,8 +1892,12 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 	  altcolour=(prevcolour ^ colour);
 	  break;
       }
-      altcolour=altcolour*3;
-      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+      if (colourdepth == COL24BIT) {
+        altcolour = altcolour & 0xFFFFFF;
+      } else {
+        altcolour=altcolour*3;
+        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+      }
       *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
     }
   }
@@ -2826,8 +2830,12 @@ void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action
 	altcolour=(prevcolour ^ drawcolour);
 	break;
     }
-    altcolour=altcolour*3;
-    altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+    if (colourdepth == COL24BIT) {
+      altcolour = altcolour & 0xFFFFFF;
+    } else {
+      altcolour=altcolour*3;
+      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+    }
   }
   *((Uint32*)surface->pixels + offset) = altcolour;
 }
