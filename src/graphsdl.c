@@ -620,7 +620,8 @@ static int32 colour24bit(colour, tint) {
 
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
-** its position is valid, that is, lies within the text window
+** its position is valid, that is, lies within the text window.
+** For the SDL display, this is a no-op.
 */
 void find_cursor(void) {
   return;
@@ -643,94 +644,6 @@ void set_rgb(void) {
     gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
     j = graph_physbackcol*3;
     gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
-  }
-}
-
-void sdlchar(int32 ch) {
-  int32 y, line, mxppc, myppc;
-  if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
-  if (screenmode == 7) {
-    mxppc=M7XPPC;
-    myppc=M7YPPC;
-  } else {
-    mxppc=XPPC;
-    myppc=YPPC;
-  }
-  place_rect.x = xtext * mxppc;
-  place_rect.y = ytext * myppc;
-  SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
-  for (y = 0; y < YPPC; y++) {
-    if (screenmode == 7) {
-      line = mode7font[ch-' '][y];
-    } else {
-      line = sysfont[ch-' '][y];
-    }
-    if (line != 0) {
-      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*mxppc) = tf_colour;
-      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*mxppc) = tf_colour;
-      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*mxppc) = tf_colour;
-      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*mxppc) = tf_colour;
-      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*mxppc) = tf_colour;
-      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*mxppc) = tf_colour;
-      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*mxppc) = tf_colour;
-      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*mxppc) = tf_colour;
-    }
-  }
-  SDL_BlitSurface(sdl_fontbuf, &font_rect, screen0, &place_rect);
-  if (echo) do_sdl_updaterect(screen0, xtext * XPPC, ytext * YPPC, XPPC, YPPC);
-}
-
-/*
-** 'scroll_text' is called to move the text window up or down a line.
-** Note that the coordinates here are in RISC OS text coordinates which
-** start at (0, 0) whereas conio's start with (1, 1) at the top left-hand
-** corner of the screen.
-*/
-static void scroll_text(updown direction) {
-  int n, xx, yy;
-  if (!textwin && direction == SCROLL_UP) {	/* Text window is the whole screen and scrolling upwards */
-    scroll_rect.x = 0;
-    scroll_rect.y = YPPC;
-    scroll_rect.w = vscrwidth;
-    scroll_rect.h = YPPC * textheight-1;
-    SDL_BlitSurface(screen0, &scroll_rect, screen1, NULL);
-    line_rect.x = 0;
-    line_rect.y = YPPC * textheight-1;
-    line_rect.w = vscrwidth;
-    line_rect.h = YPPC;
-    SDL_FillRect(screen1, &line_rect, tb_colour);
-    SDL_BlitSurface(screen1, NULL, screen0, NULL);
-    do_sdl_flip(screen0);
-  }
-  else {
-    xx = xtext; yy = ytext;
-    scroll_rect.x = XPPC * twinleft;
-    scroll_rect.w = XPPC * (twinright - twinleft +1);
-    scroll_rect.h = YPPC * (twinbottom - twintop);
-    line_rect.x = 0;
-    if (twintop != twinbottom) {	/* Text window is more than one line high */
-      if (direction == SCROLL_UP) {	/* Scroll text up a line */
-        scroll_rect.y = YPPC * (twintop + 1);
-        line_rect.y = 0;
-      }
-      else {	/* Scroll text down a line */
-        scroll_rect.y = YPPC * twintop;
-        line_rect.y = YPPC;
-      }
-      SDL_BlitSurface(screen0, &scroll_rect, screen1, &line_rect);
-      scroll_rect.x = 0;
-      scroll_rect.y = 0;
-      scroll_rect.w = XPPC * (twinright - twinleft +1);
-      scroll_rect.h = YPPC * (twinbottom - twintop +1);
-      line_rect.x = twinleft * XPPC;
-      line_rect.y = YPPC * twintop;
-      SDL_BlitSurface(screen1, &scroll_rect, screen0, &line_rect);
-    }
-    xtext = twinleft;
-    echo_off();
-    for (n=twinleft; n<=twinright; n++) sdlchar(' ');	/* Clear the vacated line of the window */
-    xtext = xx; ytext = yy;	/* Put the cursor back where it should be */
-    echo_on();
   }
 }
 
@@ -2095,11 +2008,7 @@ void emulate_vdu(int32 charvalue) {
           ytext++;
           if (ytext > twinbottom) {
             ytext--;
-            if (textwin) {
-              scroll_text(SCROLL_UP);
-	    } else {
-	      scroll(SCROLL_UP);
-	    }
+            scroll(SCROLL_UP);
           }
         }
 	return;
