@@ -1247,14 +1247,6 @@ static void scroll(updown direction) {
 }
 
 /*
-** 'echo_ttext' is called to display text held in the screen buffer on the
-** text screen when working in 'no echo' mode. If does the buffer flip.
-*/
-static void echo_ttext(void) {
-  if (xtext != 0) do_sdl_updaterect(screen0, 0, ytext*YPPC, xtext*XPPC, YPPC);
-}
-
-/*
 ** 'echo_text' is called to display text held in the screen buffer on the
 ** graphics screen when working in 'no echo' mode. If displays from the
 ** start of the line to the current value of the text cursor
