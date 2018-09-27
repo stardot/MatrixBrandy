@@ -2009,6 +2009,7 @@ void emulate_vdu(int32 charvalue) {
           if (ytext > twinbottom) {
             ytext--;
             scroll(SCROLL_UP);
+	    mode7renderline(ytext);
           }
         }
 	return;
