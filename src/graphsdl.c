@@ -1994,8 +1994,8 @@ void emulate_vdu(int32 charvalue) {
       /* Handle Mode 7 */
       if (screenmode == 7) {
 	if (charvalue == 127) {
-	  mode7frame[ytext][xtext]=32;
 	  move_curback();
+	  mode7frame[ytext][xtext]=32;
 	  move_curback();
 	} else {
 	  mode7frame[ytext][xtext]=charvalue;

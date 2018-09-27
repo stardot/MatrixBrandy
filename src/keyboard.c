@@ -1241,7 +1241,7 @@ static void display(int32 what, int32 count) {
     emulate_vdu(what);
     count--;
   }
-  if ( what != VDU_CURBACK) echo_on();
+  if ((what != VDU_CURBACK) && (what != DEL)) echo_on();
 }
 
 /*
