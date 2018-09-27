@@ -2913,10 +2913,12 @@ void emulate_pointto(int32 x, int32 y) {
 }
 
 /*
-** 'emulate_wait' deals with the Basic 'WAIT' statement
+** 'emulate_wait' deals with the Basic 'WAIT' statement.
+** From SDL 1.2.15 manual SDL_Flip waits for vertical retrace before updating the screen.
+** This doesn't always work, but better this than a no-op or an Unsupported error message.
 */
 void emulate_wait(void) {
-  if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+  SDL_Flip(screen0);
 }
 
 /*
