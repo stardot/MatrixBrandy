@@ -608,10 +608,19 @@ static int32 riscoscolour(colour) {
   return (((colour & 0xFF) <<16) + (colour & 0xFF00) + ((colour & 0xFF0000) >> 16));
 }
 
-static int32 promote6to24bit(colour) {
-  return ((text_foretint << 4) + ((colour & 1) << 6) + ((colour & 2) << 6)) +
-	 ((text_foretint << 12) + ((colour & 4) << 12) + ((colour & 8) << 12)) +
-	 ((text_foretint << 20) + ((colour & 16) << 18) + ((colour & 32) << 18));
+static int32 tint24bit(colour, tint) {
+  colour=(colour & 0xC0C0C0);
+  colour += ((colour & 0xF0) ? (tint << 4) : 0)+((colour & 0xF000) ? (tint << 12) : 0)+((colour & 0xF00000) ? (tint << 20) : 0);
+  if (colour == 0) colour+=(tint << 4)+(tint << 12)+(tint << 20);
+  return colour + (colour >> 4);
+}
+
+static int32 colour24bit(colour, tint) {
+  int32 col=(((colour & 1) << 6) + ((colour & 2) << 6)) +
+	 (((colour & 4) << 12) + ((colour & 8) << 12)) +
+	 (((colour & 16) << 18) + ((colour & 32) << 18));
+  col = tint24bit(col, tint);
+  return col;
 }
 
 /*
@@ -742,18 +751,22 @@ static void vdu_2317(void) {
   case TINT_FORETEXT:
     text_foretint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;	/* Third byte in queue is new TINT value */
     if (colourdepth==256) text_physforecol = (text_forecol<<COL256SHIFT)+text_foretint;
+    if (colourdepth==COL24BIT) text_physforecol=tint24bit(text_forecol, text_foretint);
     break;
   case TINT_BACKTEXT:
     text_backtint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
     if (colourdepth==256) text_physbackcol = (text_backcol<<COL256SHIFT)+text_backtint;
+    if (colourdepth==COL24BIT) text_physbackcol=tint24bit(text_backcol, text_backtint);
     break;
   case TINT_FOREGRAPH:
     graph_foretint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
     if (colourdepth==256) graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
+    if (colourdepth==COL24BIT) graph_physforecol=tint24bit(graph_forecol, graph_foretint);
     break;
   case TINT_BACKGRAPH:
     graph_backtint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
     if (colourdepth==256) graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
+    if (colourdepth==COL24BIT) graph_physbackcol=tint24bit(graph_backcol, graph_backtint);
     break;
   case EXCH_TEXTCOLS:	/* Exchange text foreground and background colours */
     temp = text_forecol; text_forecol = text_backcol; text_backcol = temp;
@@ -1922,7 +1935,7 @@ static void vdu_textcol(void) {
         text_forecol = colnumber & COL256MASK;
         text_physforecol = (text_forecol << COL256SHIFT)+text_foretint;
       } else if (colourdepth == COL24BIT) {
-	text_physforecol = text_forecol = promote6to24bit(colnumber);
+	text_physforecol = text_forecol = colour24bit(colnumber, text_foretint);
       } else {
         text_physforecol = text_forecol = colnumber & colourmask;
       }
@@ -1937,7 +1950,7 @@ static void vdu_textcol(void) {
         text_backcol = colnumber & COL256MASK;
         text_physbackcol = (text_backcol << COL256SHIFT)+text_backtint;
       } else if (colourdepth == COL24BIT) {
-	text_physbackcol = text_backcol = promote6to24bit(colnumber);
+	text_physbackcol = text_backcol = colour24bit(colnumber, text_backtint);
       } else {	/* Operating in text mode */
         text_physbackcol = text_backcol = colnumber & colourmask;
       }
@@ -2024,7 +2037,7 @@ static void vdu_graphcol(void) {
         graph_forecol = colnumber & COL256MASK;
         graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
       } else if (colourdepth == COL24BIT) {
-        graph_physforecol = graph_forecol = promote6to24bit(colnumber);
+        graph_physforecol = graph_forecol = colour24bit(colnumber, graph_foretint);
       } else {
         graph_physforecol = graph_forecol = colnumber & colourmask;
       }
@@ -2035,7 +2048,7 @@ static void vdu_graphcol(void) {
       graph_backcol = colnumber & COL256MASK;
       graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
     } else if (colourdepth == COL24BIT) {
-      graph_physbackcol = graph_backcol = promote6to24bit(colnumber);
+      graph_physbackcol = graph_backcol = colour24bit(colnumber, graph_backtint);
     } else {	/* Operating in text mode */
       graph_physbackcol = graph_backcol = colnumber & colourmask;
     }
@@ -3167,7 +3180,7 @@ int32 emulate_pointfn(int32 x, int32 y) {
 ** screen. This is one of 0, 0x40, 0x80 or 0xC0
 */
 int32 emulate_tintfn(int32 x, int32 y) {
-  if (graphmode != FULLSCREEN || colourdepth != 256) return 0;
+  if (graphmode != FULLSCREEN || colourdepth < 256) return 0;
   return *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth)<<TINTSHIFT;
 }
 
