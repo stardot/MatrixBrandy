@@ -1437,7 +1437,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
     while (*cmdbuf == ' ') cmdbuf++;	/* And skip any more leading spaces */
   }
 
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
 /* Command is to be sent to underlying DOS-style OS */
   if (respfile==NIL) {			/* Command output goes to normal place */
     basicvars.retcode = system(cmdbuf);
@@ -1462,7 +1462,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
 
 #elif defined(TARGET_NETBSD) | defined(TARGET_LINUX) | defined(TARGET_MACOSX)\
  | defined(TARGET_UNIX) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
- | defined(TARGET_AMIGA) | defined(TARGET_GNUKFREEBSD)
+ | defined(TARGET_AMIGA) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_MINGW)
 /* Command is to be sent to underlying Unix-style OS */
 /* This is the Unix version of the function, where both stdout
 ** and stderr can be redirected to a file

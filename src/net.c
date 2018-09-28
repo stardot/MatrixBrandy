@@ -49,7 +49,6 @@ int brandynet_connect(char *dest, char type) {
   struct addrinfo hints, *addrdata, *rp;
 #ifdef TARGET_MINGW
   WSADATA wsaData;
-  int iResult;
   unsigned long opt;
 #endif
 
@@ -62,7 +61,7 @@ int brandynet_connect(char *dest, char type) {
   }
 
 #ifdef TARGET_MINGW
-  iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+  if(WSAStartup(MAKEWORD(2,2), &wsaData)) return(-1);
 #endif
 
   memset(&hints, 0, sizeof(hints));
