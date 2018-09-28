@@ -1,6 +1,6 @@
 Summary: A BBC BASIC interpreter for Linux
 Name: MatrixBrandy
-Version: 1.21.13
+Version: 1.21.14
 Release: 1
 License: GPLv2+
 Group: Development/Tools
