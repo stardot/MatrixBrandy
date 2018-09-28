@@ -1493,14 +1493,15 @@ static void move_curback(void) {
         ylast = gwinbottom+YPPC*ygupp-1;	/* Wrap around to bottom of window */
       }
     }
-  }
-  hide_cursor();	/* Remove cursor */
-  xtext--;
-  if (xtext < twinleft) {	/* Cursor is at left-hand edge of text window so move up a line */
-    xtext = twinright;
-    move_up();
-  }
-  reveal_cursor();	/* Redraw cursor */
+  } else {
+    hide_cursor();	/* Remove cursor */
+    xtext--;
+    if (xtext < twinleft) {	/* Cursor is at left-hand edge of text window so move up a line */
+      xtext = twinright;
+      move_up();
+    }
+    reveal_cursor();	/* Redraw cursor */
+    }
 }
 
 /*
