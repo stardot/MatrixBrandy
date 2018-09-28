@@ -1,4 +1,5 @@
-# Makefile for brandy under NetBSD and Linux
+# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
+# toolchain
 
 CC = i686-w64-mingw32-gcc
 LD = i686-w64-mingw32-gcc
