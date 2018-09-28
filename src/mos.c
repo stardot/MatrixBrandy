@@ -1092,7 +1092,11 @@ void cmd_cat(char *command) {
     echo_on();
     pclose(sout);
 #else
+#ifdef TARGET_MINGW
+	system("dir");
+#else
 	system("ls -l");
+#endif
 #endif
 #elif defined(TARGET_AMIGA)
 	system("list");
