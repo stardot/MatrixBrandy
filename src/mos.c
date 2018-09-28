@@ -1066,7 +1066,7 @@ unsigned int cmd_parse_num(char** text)
  */
 void cmd_cat(char *command) {
 	while (*command == ' ') command++;	// Skip spaces
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
 	system("dir");
 	find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
@@ -1074,11 +1074,15 @@ void cmd_cat(char *command) {
 #endif
 #elif defined(TARGET_NETBSD) | defined(TARGET_LINUX) | defined(TARGET_MACOSX)\
  | defined(TARGET_UNIX) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
- | defined(TARGET_GNUKFREEBSD)
+ | defined(TARGET_GNUKFREEBSD) | defined(TARGET_MINGW)
 #ifdef USE_SDL
     FILE *sout;
     char buf;
+#ifdef TARGET_MINGW
+    sout = popen("dir", "r");
+#else
     sout = popen("ls -l", "r");
+#endif
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
     while (fread(&buf, 1, 1, sout) > 0) {
