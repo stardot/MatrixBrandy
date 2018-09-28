@@ -4,7 +4,7 @@ CC = i686-w64-mingw32-gcc
 LD = i686-w64-mingw32-gcc
 
 #CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
-CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP
+CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
 
 LDFLAGS +=
 
