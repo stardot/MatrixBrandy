@@ -599,18 +599,18 @@ static int istextonly(void) {
   return ((screenmode == 3 || screenmode == 6 || screenmode == 7));
 }
 
-static int32 riscoscolour(colour) {
+static int32 riscoscolour(int32 colour) {
   return (((colour & 0xFF) <<16) + (colour & 0xFF00) + ((colour & 0xFF0000) >> 16));
 }
 
-static int32 tint24bit(colour, tint) {
+static int32 tint24bit(int32 colour, int32 tint) {
   colour=(colour & 0xC0C0C0);
   colour += ((colour & 0xF0) ? (tint << 4) : 0)+((colour & 0xF000) ? (tint << 12) : 0)+((colour & 0xF00000) ? (tint << 20) : 0);
   if (colour == 0) colour+=(tint << 4)+(tint << 12)+(tint << 20);
   return colour + (colour >> 4);
 }
 
-static int32 colour24bit(colour, tint) {
+static int32 colour24bit(int32 colour, int32 tint) {
   int32 col=(((colour & 1) << 6) + ((colour & 2) << 6)) +
 	 (((colour & 4) << 12) + ((colour & 8) << 12)) +
 	 (((colour & 16) << 18) + ((colour & 32) << 18));
@@ -852,39 +852,6 @@ static void toggle_cursor(void) {
     }
   }
   if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xtext*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
-}
-
-static void toggle_tcursor(void) {
-  int32 x, y, top, bottom, left, right, mxppc, myppc;
-
-  if (screenmode==7) {
-    mxppc=M7XPPC;
-    myppc=M7YPPC;
-  } else {
-    mxppc=XPPC;
-    myppc=YPPC;
-  }
-
-  if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
-    cursorstate = SUSPENDED;
-  else
-    cursorstate = ONSCREEN;
-  left = xtext*mxppc;
-  right = left + mxppc -1;
-  if (cursmode == UNDERLINE) {
-    y = ((ytext+1)*myppc -1) * vscrwidth;
-    for (x=left; x <= right; x++)
-      *((Uint32*)screen0->pixels + x + y) ^= xor_mask;
-  }
-  else if (cursmode == BLOCK) {
-    top = ytext*myppc;
-    bottom = top + myppc -1;
-    for (y = top; y <= bottom; y++) {
-      for (x = left; x <= right; x++)
-        *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
-    }
-  }
-  if (echo) do_sdl_updaterect(screen0, xtext * mxppc, ytext * myppc, mxppc, myppc);
 }
 
 /*
@@ -3882,7 +3849,7 @@ void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint3
 }
 
 void get_sdl_mouse(int32 values[]) {
-  int x, y, xo, yo;
+  int x, y;
   Uint8 b, xb;
 
   SDL_PumpEvents();
