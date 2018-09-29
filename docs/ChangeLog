@@ -4,6 +4,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.21.15
 - Fix compiler warnings for MinGW - and allow DOS-type commands to return
   their output to the SDL window (so *dir works for example).
+- Code cleanup part 1: Identify functions that can be declared static.
+- Code cleanup part 2: Remove static functions that are never called from
+  anywhere.
 * V1.21.14
 - ChangeLog layout change: Most recent release first.
 - Similar to the GET fix in V1.21.11, the same problem of spurious zero
