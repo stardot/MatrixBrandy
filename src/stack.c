@@ -36,6 +36,8 @@
 #include <stdio.h>
 #endif
 
+static void restore(int32 parmcount);
+
 /*
 ** Stack overflow
 ** --------------
@@ -121,7 +123,7 @@ void dump(byte *sp) {
 ** Basic stack to add another 'count' numeric or string items to it.
 ** If gives up on the spot if this would cause stack overflow
 */
-void check_stack(int32 count) {
+static void check_stack(int32 count) {
   if (basicvars.stacktop.bytesp-count*LARGEST_ENTRY<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
 }
 
@@ -399,7 +401,7 @@ void free_stackmem(void) {
 /*
 ** 'free_stackstrmem' reclaims the stack space used for temporary string array
 */
-void free_stackstrmem(void) {
+static void free_stackstrmem(void) {
     discard_strings(basicvars.stacktop.bytesp+ALIGNSIZE(stack_locarray), basicvars.stacktop.locarraysp->arraysize);
     basicvars.stacktop.bytesp+=ALIGNSIZE(stack_locarray)+basicvars.stacktop.locarraysp->arraysize;
 }
@@ -623,7 +625,7 @@ void save_retstring(lvalue retdetails, lvalue details, basicstring thestring) {
 #endif
 }
 
-void save_retarray(lvalue retdetails, lvalue details) {
+static void save_retarray(lvalue retdetails, lvalue details) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
   if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
   basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
@@ -642,7 +644,7 @@ void save_retarray(lvalue retdetails, lvalue details) {
 ** the return parameter address and then returns the local variable to its
 ** correct value
 */
-void restore_retparm(int32 parmcount) {
+static void restore_retparm(int32 parmcount) {
   stack_retparm *p;
   int32 vartype = 0, intvalue = 0;
   float64 floatvalue = 0.0;
@@ -748,7 +750,7 @@ void restore_retparm(int32 parmcount) {
 /*
 ** 'restore' is called to restore a variable to its saved value.
 */
-void restore(int32 parmcount) {
+static void restore(int32 parmcount) {
   stack_local *p;
   stackitem localitem;
   do {

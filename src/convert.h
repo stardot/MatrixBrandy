@@ -29,6 +29,5 @@
 
 int todigit(char);
 char *tonumber(char *, boolean *, int32 *, float64 *);
-int itob(char *, int32, int32);
 
 #endif

@@ -179,11 +179,11 @@ boolean returnable(void *where, int32 size) {
 ** 'mark_basicheap' is called to save the pointer to the top of
 ** the Basic heap
 */
-void mark_basicheap(void) {
+static void mark_basicheap(void) {
   basicvars.lastvartop = basicvars.vartop;
 }
 
-void release_basicheap(void) {
+static void release_basicheap(void) {
   basicvars.vartop = basicvars.lastvartop;
   basicvars.stacklimit.bytesp = basicvars.vartop+STACKBUFFER;
 }

@@ -178,7 +178,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
 ** number. 'width' gives the minimum field width, but this is not
 ** used at present
 */
-int itob(char *dest, int32 value, int32 width) {
+static int itob(char *dest, int32 value, int32 width) {
   int count, n;
   char temp[sizeof(int32)*8];
   for (n=0; n<sizeof(int32)*8; n++) {

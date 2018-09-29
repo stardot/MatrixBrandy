@@ -84,7 +84,9 @@
 #include "graphsdl.h"
 #endif
 
-int check_command(char *text);
+static int check_command(char *text);
+static void mos_osword(int32 areg, int32 xreg);
+static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
 
@@ -948,7 +950,7 @@ void mos_waitdelay(int32 time) {
  *           recognises |<letter> |" || !? |!
  * Bug: hello"there does not give correct result
  */
-char *mos_gstrans(char *instring) {
+static char *mos_gstrans(char *instring) {
 	int quoted=0, escape=0;
 	char *result, *outstring;
 	char ch;
@@ -995,7 +997,7 @@ char *mos_gstrans(char *instring) {
  *           leading and trailing spaces skipped
  *           error if no number or number>255
  */
-unsigned int cmd_parse_dec(char** text)
+static unsigned int cmd_parse_dec(char** text)
 {
 	unsigned int ByteVal;
 	char *command;
@@ -1015,7 +1017,7 @@ unsigned int cmd_parse_dec(char** text)
 	return ByteVal;
 }
 
-unsigned int cmd_parse_num(char** text)
+static unsigned int cmd_parse_num(char** text)
 {
 	unsigned int ByteVal;
 	char *command;
@@ -1061,10 +1063,10 @@ unsigned int cmd_parse_num(char** text)
 
 /*
  * *.(<directory>)
- * Catalog directory
+ * Catalogue directory
  * NB, Only *. does catalog, *CAT passed to host OS
  */
-void cmd_cat(char *command) {
+static void cmd_cat(char *command) {
 	while (*command == ' ') command++;	// Skip spaces
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
 	system("dir");
@@ -1103,7 +1105,7 @@ void cmd_cat(char *command) {
 #endif
 }
 
-void cmd_wintitle(char *command) {
+static void cmd_wintitle(char *command) {
   while (*command == ' ') command++;	// Skip spaces
 #ifdef USE_SDL
   if (strlen(command) == 0) {
@@ -1117,7 +1119,7 @@ void cmd_wintitle(char *command) {
   return;
 }
 
-void cmd_fullscreen(char *command) {
+static void cmd_fullscreen(char *command) {
 #ifdef USE_SDL
   int flag=3;
   while (*command == ' ') command++;	// Skip spaces
@@ -1132,7 +1134,7 @@ void cmd_fullscreen(char *command) {
   return;
 }
 
-void cmd_screensave(char *command) {
+static void cmd_screensave(char *command) {
 #ifdef USE_SDL
   while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
@@ -1146,7 +1148,7 @@ void cmd_screensave(char *command) {
   return;
 }
 
-void cmd_screenload(char *command) {
+static void cmd_screenload(char *command) {
 #ifdef USE_SDL
   while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
@@ -1164,7 +1166,7 @@ static void cmd_newmode_err() {
   emulate_printf("Syntax:\r\n  NewMode <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16, 256 or\r\n16777216..\r\nEigen factors must be in the range 0-3, default 1. yeig=xeig if omitted.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
   return;
 }
-void cmd_newmode(char *command) {
+static void cmd_newmode(char *command) {
 #ifdef USE_SDL
   int mode, xres, yres, cols, xscale, yscale, xeig, yeig;
 
@@ -1208,7 +1210,7 @@ void cmd_newmode(char *command) {
   return;
 }
 
-void cmd_refresh(char *command) {
+static void cmd_refresh(char *command) {
 #ifdef USE_SDL
   int flag=3;
 
@@ -1238,7 +1240,7 @@ void cmd_refresh(char *command) {
  * Change directory
  * Has to be an internal command as CWD is per-process
  */
-void cmd_cd(char *command) {
+static void cmd_cd(char *command) {
 	if (*command == 'd') command+=3;	// *CHDIR
 	while (*command == ' ') command++;	// Skip spaces
 	if (chdir(command)) error(ERR_DIRNOTFOUND);
@@ -1254,7 +1256,7 @@ void cmd_cd(char *command) {
  * *FX num(,num(,num))
  * Make OSBYTE call
  */
-void cmd_fx(char *command) {
+static void cmd_fx(char *command) {
 	// *FX *must* purely and simply parse its parameters and pass them to OSBYTE
 	// *FX *MUST* *NOT* impose any preconceptions
 	// *FX is allowed to test the returned 'unsupported' flag and give a Bad command error
@@ -1286,7 +1288,7 @@ void cmd_fx(char *command) {
 /*
  * *HELP - display help on topic
  */
-void cmd_help(char *command)
+static void cmd_help(char *command)
 {
 	int cmd;
 
@@ -1343,7 +1345,7 @@ static void cmd_key(char *command) {
  * *QUIT
  * Exit interpreter
  */
-void cmd_quit(char *command) {
+static void cmd_quit(char *command) {
 	exit_interpreter(0);
 }
 
@@ -1352,7 +1354,7 @@ void cmd_quit(char *command) {
  * commands emulated by this code.
  * ToDo: replace with proper parser
  */
-int check_command(char *text) {
+static int check_command(char *text) {
   char command[12];
   int length;
 
@@ -1634,7 +1636,7 @@ boolean mos_init(void) {
 void mos_final(void) {
 }
 
-void mos_osword(int32 areg, int32 xreg) {
+static void mos_osword(int32 areg, int32 xreg) {
    switch (areg) {
      case 10:
 #ifdef USE_SDL
@@ -1644,7 +1646,7 @@ void mos_osword(int32 areg, int32 xreg) {
    }
 }
 
-int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
+static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 /*
 * OSBYTE < &A6 perform actions
 * OSBYTE < &80 X is only parameter

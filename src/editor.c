@@ -334,7 +334,7 @@ static void insert_line(byte *line) {
 ** 'delete_line' deletes the line passed to it in 'line', if it
 ** exists
 */
-void delete_line(int32 line) {
+static void delete_line(int32 line) {
   int32 length;
   byte *p;
   p = find_line(line);

@@ -38,7 +38,5 @@ extern void *condalloc(int32);
 extern boolean returnable(void *, int32);
 extern void freemem(void *, int32);
 extern void clear_heap(void);
-extern void mark_basicheap(void);
-extern void release_basicheap(void);
 
 #endif

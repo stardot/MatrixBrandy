@@ -486,7 +486,7 @@ static void fn_atn(void) {
 ** 'fn_beat' is one of the functions associated with the RISC OS sound system.
 ** 'BEAT' returns the current microbeat number.
 */
-void fn_beat(void) {
+static void fn_beat(void) {
   push_int(mos_rdbeat());
 }
 

@@ -375,7 +375,7 @@ void clear_strings(void) {
 #endif
 }
 
-int compare(const void *first, const void *second) {
+static int compare(const void *first, const void *second) {
   return CAST(CAST(first, freeblock *)->freestart, char *)-CAST(CAST(second, freeblock *)->freestart, char *);
 }
 

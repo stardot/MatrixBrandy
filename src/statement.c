@@ -386,7 +386,7 @@ void exec_fnstatements(byte *lp) {
 ** 'exec_statements' deals with the statements in either a procedure
 ** or the main program
 */
-void exec_statements(byte *lp) {
+static void exec_statements(byte *lp) {
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL

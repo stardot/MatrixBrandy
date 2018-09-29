@@ -34,7 +34,6 @@ extern byte ateol[];
 
 extern void init_interpreter(void);
 extern void exec_thisline(void);
-extern void exec_statements(byte *);
 extern void exec_fnstatements(byte *);
 extern void run_program(byte *);
 extern void trace_line(int32);

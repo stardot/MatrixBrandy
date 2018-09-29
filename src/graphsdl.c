@@ -114,10 +114,11 @@ Uint32 xor_mask;
 ** function definitions
 */
 
-extern void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
-extern void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
-extern void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
-extern void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
+static void reveal_cursor(void);
+static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
+static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
+static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
+static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
 static void toggle_cursor(void);
 static void vdu_cleartext(void);
 static void set_text_colour(boolean background, int colnum);
@@ -627,7 +628,7 @@ void find_cursor(void) {
   return;
 }
 
-void set_rgb(void) {
+static void set_rgb(void) {
   int j;
   if (colourdepth == COL24BIT) {
     tf_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physforecol & 0xFF), ((text_physforecol & 0xFF00) >> 8), ((text_physforecol & 0xFF0000) >> 16));
@@ -806,7 +807,7 @@ void hide_cursor() {
   if (cursorstate == ONSCREEN) toggle_cursor();
 }
 
-void reveal_cursor() {
+static void reveal_cursor() {
   if (cursorstate==SUSPENDED) toggle_cursor();
 }
 
@@ -2487,7 +2488,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
 
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
-void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
+static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
   Uint32 altcolour = 0, prevcolour = 0, drawcolour;
   
   if (plot_inverse ==1) {
@@ -3537,8 +3538,7 @@ void mode7renderscreen(void) {
   mode7bitmapupdate=bmpstate;
 }
 
-void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2)
-{
+static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
   int32 dx, dy, xf, yf, a, b, t, i;
 
   if (x1 == x2 && y1 == y2) return;
@@ -3598,7 +3598,7 @@ void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2)
 /*
 ** Draw a horizontal line
 */
-void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
+static void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
   int32 tt, i;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
@@ -3616,7 +3616,7 @@ void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint3
 /*
 ** Draw a filled polygon of n vertices
 */
-void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col, Uint32 action) {
+static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col, Uint32 action) {
   int32 i, iy;
   int32 low = MAX_YRES, high = 0;
 
@@ -3657,7 +3657,7 @@ void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col, 
 ** Bit 0x10: Draw a dotted line, skipping every other point.
 ** Bit 0x20: Don't plot the start point.
 */
-void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style, Uint32 action) {
+static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style, Uint32 action) {
   int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip=0;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
@@ -3718,9 +3718,8 @@ void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 c
 /*
 ** 'filled_triangle' draws a filled triangle in the graphics buffer 'sr'.
 */
-void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2,
-                     int32 x3, int32 y3, Uint32 col, Uint32 action)
-{
+static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2,
+                     int32 x3, int32 y3, Uint32 col, Uint32 action) {
   int x[3], y[3];
 
   x[0]=x1;
@@ -3737,7 +3736,7 @@ void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2,
 /*
 ** Draw an ellipse into a buffer
 */
-void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
+static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
   int32 x, y, y1, aa, bb, d, g, h;
 
   aa = a * a;
@@ -3800,7 +3799,7 @@ void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 
 /*
 ** Draw a filled ellipse into a buffer
 */
-void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
+static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
   int32 x, y, y1, aa, bb, d, g, h;
 
   aa = a * a;

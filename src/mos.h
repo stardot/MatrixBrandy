@@ -26,10 +26,7 @@
 
 #include "common.h"
 
-extern char *mos_gstrans(char *);
 extern void  mos_oscli(char *, char *, FILE *);
-extern int32 mos_osbyte(int32, int32, int32, int32);
-extern void  mos_osword(int32, int32);
 extern int32 mos_adval(int32);
 extern void  mos_sound_on(void);
 extern void  mos_sound_off(void);

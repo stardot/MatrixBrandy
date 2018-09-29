@@ -55,7 +55,7 @@
 
 extern void mode7flipbank();
 
-Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
+static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
   SDL_Event event;
   SDL_UserEvent userevent;

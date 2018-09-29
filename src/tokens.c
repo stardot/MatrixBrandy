@@ -399,7 +399,7 @@ int32 get_lineno(byte *p) {
 ** token. 'p' points at the start of the line. Normally a macro is
 ** used to do this for speed
 */
-int32 get_exec(byte *p) {
+static int32 get_exec(byte *p) {
   return *(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT;
 }
 
@@ -1444,7 +1444,7 @@ byte *skip_name(byte *p) {
 ** Beware of this: the macro version of the function, GET_INTVALUE, expects
 ** a pointer *to the value itself*
 */
-int32 get_intvalue(byte *ip) {
+static int32 get_intvalue(byte *ip) {
   return *(ip+1) | *(ip+2)<<8 | *(ip+3)<<16 | *(ip+4)<<24;
 }
 
@@ -1458,7 +1458,7 @@ int32 get_intvalue(byte *ip) {
 ** this case) could result in negative offsets, which would give sign
 ** problems on machines where an integer is not four bytes long
 */
-byte *get_address(byte *p) {
+static byte *get_address(byte *p) {
   return basicvars.workspace+(*(p+1) | *(p+2)<<8 | *(p+3)<<16 | *(p+4)<<24);
 }
 
@@ -1796,7 +1796,7 @@ static void clear_varaddrs(byte *bp) {
 ** general, assumes that the 'unknown destination' token has a value
 ** one less than the 'offset filled in' version
 */
-void clear_branches(byte *bp) {
+static void clear_branches(byte *bp) {
   byte *tp, *lp;
   int line;
   tp = FIND_EXEC(bp);

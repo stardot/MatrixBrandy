@@ -363,11 +363,8 @@ extern void save_lineno(byte *, int32);
 extern int32 get_lineno(byte *);	/* Returns line number at start of line */
 extern int32 get_linelen(byte *);
 extern int32 get_linenum(byte *);	/* Returns line number after 'linenum' token */
-extern int32 get_intvalue(byte *);
-extern byte *get_address(byte *);
 extern float64 get_fpvalue(byte *);
 extern void clear_varptrs(void);
-extern void clear_branches(byte *);
 extern void clear_linerefs(byte *);
 extern boolean isvalid(byte *);
 extern void reset_indent(void);
