@@ -119,15 +119,6 @@ void dump(byte *sp) {
 #endif
 
 /*
-** 'check_stack' is called to check that there is enough room on the
-** Basic stack to add another 'count' numeric or string items to it.
-** If gives up on the spot if this would cause stack overflow
-*/
-static void check_stack(int32 count) {
-  if (basicvars.stacktop.bytesp-count*LARGEST_ENTRY<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
-}
-
-/*
 ** 'safestack' returns TRUE if it is safe to move the Basic stack.
 ** At the moment this is only allowed if the stack is empty, that is,
 ** the only thing on it is the operator stack and the program is not
@@ -399,14 +390,6 @@ void free_stackmem(void) {
 }
 
 /*
-** 'free_stackstrmem' reclaims the stack space used for temporary string array
-*/
-static void free_stackstrmem(void) {
-    discard_strings(basicvars.stacktop.bytesp+ALIGNSIZE(stack_locarray), basicvars.stacktop.locarraysp->arraysize);
-    basicvars.stacktop.bytesp+=ALIGNSIZE(stack_locarray)+basicvars.stacktop.locarraysp->arraysize;
-}
-
-/*
 ** 'push_while' creates a control block on the Basic stack for a 'WHILE' loop
 */
 void push_while(byte *expr) {
@@ -622,19 +605,6 @@ void save_retstring(lvalue retdetails, lvalue details, basicstring thestring) {
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Saving string variable from %p at %p\n",
    details.address.straddr, basicvars.stacktop.retparmsp);
-#endif
-}
-
-static void save_retarray(lvalue retdetails, lvalue details) {
-  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
-  basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
-  basicvars.stacktop.retparmsp->retdetails = retdetails;
-  basicvars.stacktop.retparmsp->savedetails = details;
-  basicvars.stacktop.retparmsp->value.savedarray = *details.address.arrayaddr;
-#ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving array dimensions from %p at %p\n",
-   details.address.arrayaddr, basicvars.stacktop.retparmsp);
 #endif
 }
 

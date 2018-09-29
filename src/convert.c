@@ -172,28 +172,3 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
   return cp;
 }
 
-/*
-** 'itob' formats the value 'value' as a binary number at 'dest'.
-** It returns a count of the number of characters in the formatted
-** number. 'width' gives the minimum field width, but this is not
-** used at present
-*/
-static int itob(char *dest, int32 value, int32 width) {
-  int count, n;
-  char temp[sizeof(int32)*8];
-  for (n=0; n<sizeof(int32)*8; n++) {
-    temp[n] = (value & 1)+'0';
-    value = value>>1;
-  }
-  n = sizeof(int32)*8-1;
-  while (n>0 && temp[n]=='0') n--;
-  count = n+1;
-  while (n>=0) {
-    *dest = temp[n];
-    dest++;
-    n--;
-  }
-  *dest = NUL;
-  return count;
-}
-

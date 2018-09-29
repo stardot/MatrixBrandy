@@ -1439,16 +1439,6 @@ byte *skip_name(byte *p) {
 }
 
 /*
-** 'get_intvalue' extracts a four byte integer constant from the tokenised
-** form of a Basic statement. 'ip' points at the 'integer constant' token.
-** Beware of this: the macro version of the function, GET_INTVALUE, expects
-** a pointer *to the value itself*
-*/
-static int32 get_intvalue(byte *ip) {
-  return *(ip+1) | *(ip+2)<<8 | *(ip+3)<<16 | *(ip+4)<<24;
-}
-
-/*
 ** 'get_address' returns an address derived from a four byte offset
 ** in the tokenised code. 'p' points at the token *before* the offset.
 ** The offset is a four byte unsigned integer and the offset is from

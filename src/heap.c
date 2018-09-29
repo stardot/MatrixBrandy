@@ -176,19 +176,6 @@ boolean returnable(void *where, int32 size) {
 }
 
 /*
-** 'mark_basicheap' is called to save the pointer to the top of
-** the Basic heap
-*/
-static void mark_basicheap(void) {
-  basicvars.lastvartop = basicvars.vartop;
-}
-
-static void release_basicheap(void) {
-  basicvars.vartop = basicvars.lastvartop;
-  basicvars.stacklimit.bytesp = basicvars.vartop+STACKBUFFER;
-}
-
-/*
 ** 'clear_heap' is used to clear the variable and free string lists
 ** when a 'clear' command is used, a program is edited or 'new' or
 ** 'old' are issued.
