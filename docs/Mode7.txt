@@ -10,7 +10,9 @@ were obeyed and displayed (mostly) correctly, but placed characters would not
 reflect existing codes, nor would placed codes affect existing characters.
 
 Glyphs are using 16x20 character cells, this allows for a decent rendering
-of mosaic graphics, especially separated graphics.
+of mosaic graphics, especially separated graphics. Two fonts are used,
+the main one is the high-res font based on the one from RISC OS 5, the other
+being the classic SAA5050 font.
 
 Direct screen memory access is implemented at addresses &FFFF7C00 to &FFFF7FFF.
 
@@ -32,5 +34,7 @@ VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
 Enabling or disabling this will cause an immediate refresh of the display.
 
 A Brandy-specific extension:
-VDU 23,18,255,width,0,0,0,0,0,0 - Set Teletext character cell width
-  Valid values are 12, 14 and 16. All other values are ignored.
+VDU 23,18,255,width,0,0,0,0,0,0 - Set Teletext character cell width and font.
+  Valid values are 12 - 17. All other values are ignored.
+  Bit 0 sets the font, if set use the classic SAA5050 font, if not set use
+  SAA5050 for width 12, and the RISC OS 5 font for 14 and 16.
