@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   their output to the SDL window (so *dir works for example).
 - Flush SDL queue on INKEY and MOUSE reads, otherwise events start to get
   missed (bonus point: Close window icon is more responsive.)
+- LISTing a program now stops on ESCAPE.
 - Code cleanup part 1: Identify functions that can be declared static.
 - Code cleanup part 2: Remove static functions that are never called from
   anywhere.
