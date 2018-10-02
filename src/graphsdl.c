@@ -3965,6 +3965,7 @@ static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b
 void get_sdl_mouse(int32 values[]) {
   int x, y;
   Uint8 b, xb;
+  SDL_Event ev;
 
   SDL_PumpEvents();
   b=SDL_GetMouseState(&x, &y);
@@ -3983,6 +3984,9 @@ void get_sdl_mouse(int32 values[]) {
   values[1]=y;
   values[2]=xb;
   values[3]=mos_rdtime();
+  while(SDL_PollEvent(&ev)) {
+    if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
+  }
 }
 
 void warp_sdlmouse(int32 x, int32 y) {

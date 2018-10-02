@@ -989,7 +989,7 @@ int32 emulate_inkey(int32 arg) {
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(NULL, NULL);
-    while(SDL_PeepEvents(&ev, 1, SDL_PEEKEVENT, SDL_EVENTMASK(SDL_QUIT))) {
+    while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }
     if ((arg <= -10) && (arg >= -12)) {
