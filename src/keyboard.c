@@ -311,7 +311,7 @@ void end_keyboard(void) {
 #define HISTSIZE 1024           /* Size of command history buffer */
 #define MAXHIST 20              /* Maximum number of entries in history list */
 
-#define FN_KEY_COUNT 15         /* Number of function keys supported (0 to FN_KEY_COUNT) */
+#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
 
 static int32
   place,                        /* Offset where next character will be added to buffer */
