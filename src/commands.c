@@ -384,6 +384,7 @@ static void list_program(void) {
         emulate_printf("\r          \r");       /* Overwrite 'more' */
       }
     }
+    if (emulate_inkey(-113)) basicvars.escape=TRUE;
     if (basicvars.escape) error(ERR_ESCAPE);
   }
 }
