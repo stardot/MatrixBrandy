@@ -444,8 +444,8 @@ static byte sysfontbase [224][8] = {
 /* ÿ */  {0x66u, 0u, 0x66u, 0x66u, 0x66u, 0x3Eu, 0x6u, 0x3Cu}
 };
 
-static unsigned int mode7font[96][20];
-static unsigned int mode7fontsaa5050 [96][20] = {
+static unsigned short mode7font[96][20];
+static unsigned short mode7fontsaa5050 [96][20] = {
 /*   */ {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
 /* ! */ {0u, 0x0300u, 0x0300u, 0x0300u, 0x0300u, 0x0300u, 0x0300u, 0x0300u, 0x0300u, 0x0300u, 0u, 0u, 0x0300u, 0x0300u, 0x0300u, 0u, 0u, 0u, 0u, 0u},
 /* " */ {0u, 0x0CC0u, 0x0CC0u, 0x0CC0u, 0x0CC0u, 0x0CC0u, 0x0CC0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
@@ -543,7 +543,7 @@ static unsigned int mode7fontsaa5050 [96][20] = {
 /* ~ */ {0u, 0u, 0u, 0x300u, 0x300u, 0u, 0u, 0x3FF0u, 0x3FF0u, 0u, 0u, 0x300u, 0x300u, 0u, 0u, 0u, 0u, 0u, 0u, 0u },
 /*255 */  {0u, 0x3FF0u, 0x3FF0u, 0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u,0x3FF0u, 0u, 0u, 0u, 0u, 0u}
 };
-static unsigned int mode7fontro5 [96][20] = {
+static unsigned short mode7fontro5 [96][20] = {
 /*   */ {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
 /* ! */ {0u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0x0180u, 0u, 0u, 0x0180u, 0x0180u, 0u, 0u, 0u, 0u, 0u},
 /* " */ {0u, 0x0C60u, 0x0C60u, 0x0C60u, 0x0C60u, 0x0C60u, 0x0C60u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
