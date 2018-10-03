@@ -113,7 +113,7 @@
  1130PRINT CHR$(134);"  Press CTRL-R to toggle Reveal":
  1140PRINT CHR$(134);"  Press CTRL-X to exit immediately": PRINT
  1150PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1160REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=6 OR A%=23 OR A%=24
+ 1160REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=6 OR A%=24
  1170IF A% = 24 OR A% = 48 THEN ON:END
  1180IF A% = 6 THEN OSCLI"FullScreen": GOTO 1160
  1190IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"

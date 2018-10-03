@@ -1297,7 +1297,7 @@ static void cmd_help(char *command)
 
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
-		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_VERSION, BRANDY_DATE);
+		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, BRANDY_DATE);
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
@@ -1588,7 +1588,15 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
     case SWI_OS_ReadLine:
       vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
       *vptr='\0';
-      rtn=emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4]) : 0);
+      rtn=emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
+      a=outregs[1]=strlen(vptr);
+      /* Hack the output to add the terminating 13 */
+      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
+      break;
+    case SWI_OS_ReadLine32:
+      vptr=(char *)(inregs[0]+basicvars.offbase);
+      *vptr='\0';
+      rtn=emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
@@ -1605,6 +1613,11 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       break;
     case SWI_ColourTrans_SetTextColour:
       outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
+      break;
+    case SWI_Brandy_Version:
+      outregs[0]=atoi(BRANDY_MAJOR);
+      outregs[1]=atoi(BRANDY_MINOR);
+      outregs[2]=atoi(BRANDY_PATCHLEVEL);
       break;
     default:
       error(ERR_SWINUMNOTKNOWN, swino);

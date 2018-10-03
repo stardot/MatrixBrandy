@@ -19,9 +19,12 @@ typedef struct {
 #define SWI_OS_Word			0x07
 #define SWI_OS_ReadLine			0x0E
 #define SWI_OS_SWINumberFromString	0x39
+#define SWI_OS_ReadLine32		0x7D
 
 #define SWI_ColourTrans_SetGCOL		0x40743
 #define SWI_ColourTrans_SetTextColour	0x40761
+
+#define SWI_Brandy_Version		0x140000
 
 static switable swilist[] = {
 	{SWI_OS_WriteC,			"OS_WriteC"},
@@ -33,9 +36,12 @@ static switable swilist[] = {
 	{SWI_OS_Word,			"OS_Word"},
 	{SWI_OS_ReadLine,		"OS_ReadLine"},
 	{SWI_OS_SWINumberFromString,	"OS_SWINumberFromString"},
+	{SWI_OS_ReadLine32,		"OS_ReadLine32"},
 
 	{SWI_ColourTrans_SetGCOL,	"ColourTrans_SetGCOL"},
 	{SWI_ColourTrans_SetTextColour,	"ColourTrans_SetTextColour"},
+
+	{SWI_Brandy_Version,		"Brandy_Version"},
 
 	{0xFFFFFFFF,		"End_of_list"}
 };

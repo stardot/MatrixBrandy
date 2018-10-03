@@ -62,7 +62,7 @@
 ** traps exceptions that happen within its own code).
 */
 
-#define COPYRIGHT "Matrix Brandy " BRANDY_VERSION " is free software;  you can redistribute it and/or modify\r\n" \
+#define COPYRIGHT "Matrix Brandy " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " is free software;  you can redistribute it and/or modify\r\n" \
 	"it under the  terms of the  GNU General Public License as published by the Free\r\n" \
 	"Software  Foundation.   See  the  file  COPYING for further details.\r\n"
 
@@ -504,7 +504,7 @@ static detail errortable [] = {
   {NONFATAL, NOPARM, 250, "Key in use"},
   {NONFATAL, NOPARM, 249, "No language"},
   {NONFATAL, NOPARM, 248, "Bad filing system"},
-  {NONFATAL, NOPARM, 247, "Matrix Brandy MOS V" BRANDY_VERSION " (" BRANDY_DATE ")"},
+  {NONFATAL, NOPARM, 247, "Matrix Brandy MOS V" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"},
   {NONFATAL, STRING, 220, "Syntax: %s"},
 //
 // Network errors
