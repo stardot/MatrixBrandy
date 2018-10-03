@@ -384,9 +384,5 @@ Version 1.20 31/12/06
 -  Resolve minor warnings and missing echo_off echo_on
    in RISC OS version. (patch from Sprow)
 
-Version 1.21 02/07/18
--  Some fixes including RND()
--  Extended character set to include full RISC OS character set
--  Almost complete MODE 7 implementation
-*  NOTE: These have only been built and tested in Linux, but should work
-   on other Unix-like systems with SDL.
+(Subsequent changes as part of the Matrix Brandy fork are documented in
+ChangeLog.)

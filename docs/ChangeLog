@@ -11,6 +11,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Code cleanup part 1: Identify functions that can be declared static.
 - Code cleanup part 2: Remove static functions that are never called from
   anywhere.
+- Updated some of the documentation to reflect the changes introduced in
+  Matrix Brandy.
 - Improved the Mode 7 appearance (thanks to Risc OS 5!) - see docs/Mode7.txt
 * V1.21.14
 - ChangeLog layout change: Most recent release first.
