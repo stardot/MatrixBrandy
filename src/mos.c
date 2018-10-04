@@ -1308,7 +1308,7 @@ static void cmd_help(char *command)
 #ifdef USE_SDL
 		emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
 		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
-		emulate_printf("  Refresh    [<On|Off>]\r\n");
+		emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
 		emulate_printf("  ScreenSave <filename.bmp>\r\n");
 		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
 #endif
@@ -1819,8 +1819,8 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &93 147 Write FRED
 * OSBYTE &94 148 Read JIM
 * OSBYTE &95 149 Write JIM
-* OSBYTE &96 150 Read SHELIA
-* OSBYTE &97 151 Write SHELIA
+* OSBYTE &96 150 Read SHEILA
+* OSBYTE &97 151 Write SHEILA
 * OSBYTE &98 152 Examine Buffer Status
 * OSBYTE &99 153 Write character into input buffer checking for ESCAPE
 * OSBYTE &9A 154 Write to Video ULA control register and RAM copy

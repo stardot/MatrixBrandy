@@ -1373,6 +1373,15 @@ static void write_char(int32 ch) {
   int32 y, topx, topy, line;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
+  if (xtext > twinright) {
+    if (!echo) echo_text();	/* Line is full so flush buffered characters */
+    xtext = twinleft;
+    ytext++;
+    if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
+      scroll(SCROLL_UP);	/* So scroll window up */
+      ytext--;
+    }
+  }
   topx = xtext*XPPC;
   topy = ytext*YPPC;
   place_rect.x = topx;
@@ -1396,15 +1405,6 @@ static void write_char(int32 ch) {
     blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
   xtext++;
-  if (xtext > twinright) {
-    if (!echo) echo_text();	/* Line is full so flush buffered characters */
-    xtext = twinleft;
-    ytext++;
-    if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
-      scroll(SCROLL_UP);	/* So scroll window up */
-      ytext--;
-    }
-  }
 }
 
 /*
@@ -2065,6 +2065,15 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
       if (screenmode == 7) {
+	if (xtext > twinright) {		/* Have reached edge of text window. Skip to next line  */
+	  xtext = twinleft;
+	  ytext++;
+	  if (ytext > twinbottom) {
+	    ytext--;
+	    scroll(SCROLL_UP);
+	    mode7renderline(ytext);
+	  }
+	}
 	if (charvalue == 127) {
 	  move_curback();
 	  mode7frame[ytext][xtext]=32;
@@ -2074,20 +2083,11 @@ void emulate_vdu(int32 charvalue) {
 	}
 	mode7renderline(ytext);
 	/* Set At codes go here, Set After codes are further down. */
-        xtext++;
-        if (xtext > twinright) {		/* Have reached edge of text window. Skip to next line  */
-          xtext = twinleft;
-          ytext++;
-          if (ytext > twinbottom) {
-            ytext--;
-            scroll(SCROLL_UP);
-	    mode7renderline(ytext);
-          }
-        }
+	xtext++;
 	return;
       } else {
 	if (vdu5mode)			    /* Sending text output to graphics cursor */
-          if (charvalue == 127) {
+	  if (charvalue == 127) {
 	    move_curback();
 	    plot_space_opaque();
 	    move_curback();
