@@ -10,7 +10,7 @@
   100*WinTitle Matrix Brandy BASIC Telstar Client
   110REMON ERROR GOTO 320
   120MODE 7:OFF
-  130reveal%=0:scan%=0
+  130reveal%=0:scan%=0:width%=1
   140dh%=0:dhline%=0:borked%=0
   150REM Variables for downloading
   160screen%=0
@@ -27,6 +27,7 @@
   270IF I%=6 THEN OSCLI"FullScreen": GOTO 210
   280IF I%=16 THEN PROCdumpscreen: GOTO 210
   290IF I%=18 THEN PROCreveal: GOTO 210
+  295IF I%=23 THEN PROCwidth: GOTO 210
   300IF I%=24 THEN GOTO 350
   310IF I%=8 AND borked%=1 THEN VDU8,32
   320IF I%>139 AND I%<144 THEN I%=I%-132
@@ -83,7 +84,12 @@
   830reveal% = reveal% EOR 1
   840VDU23,18,2,reveal%|
   850ENDPROC
-  860:
+  851:
+  852DEFPROCwidth
+  853width%=width% EOR 1
+  854VDU23,18,255,12+(width%*4)|
+  855ENDPROC
+  869:
   870DEFPROCdumpscreen: REM For debug purposes, triggered on CTRL-P
   880F$="vt."+STR$screen%+".header"
   890Q%=OPENOUT F$
@@ -98,8 +104,8 @@
   980ENDPROC
   990:
  1000DEFFNwelcome
- 1010PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156);
- 1020PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156);
+ 1010PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
+ 1020PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
  1030PRINT
  1040PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
  1050PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
@@ -114,9 +120,10 @@
  1140PRINT CHR$(134);"  Press CTRL-X to exit immediately": PRINT
  1150PRINT TAB(4,23)CHR$(129);"Please make your selection..."
  1160REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=6 OR A%=24
- 1170IF A% = 24 OR A% = 48 THEN ON:END
- 1180IF A% = 6 THEN OSCLI"FullScreen": GOTO 1160
- 1190IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
+ 1170IF A% = 23 THEN PROCwidth:GOTO 1160
+ 1180IF A% = 24 OR A% = 48 THEN ON:END
+ 1190IF A% = 6 THEN OSCLI"FullScreen": GOTO 1160
+ 1195IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
  1200IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
  1210IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
  1220IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
