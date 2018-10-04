@@ -3422,7 +3422,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 
 void mode7renderline(int32 ypos) {
   int32 ch, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
-  int32 y, yy, topx, topy, line, xch;
+  int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
   
   if (!mode7bitmapupdate || (screenmode != 7)) return;
