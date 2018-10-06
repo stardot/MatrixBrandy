@@ -3,7 +3,12 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.21.15
 - Bug fix: Setting *KEY15 scribbled outside array bounds.
-- Bug fix: Line wrapping behaviour now the same as RISC OS.
+- Enabled VDU23,16, currently only bit 0 is observed. This flag determines
+  whether or not scrolling happens when a character is placed in the right-
+  most character cell of the screen. Default value is 1 (*CONFIGURE NOSCROLL
+  on RISC OS or BBC Master) and the VDU mode when RISC OS Desktop is running
+  (or in a single tasking state from F12 or Exit) regardless of Scroll/NoScroll
+  configuration setting.
 - Fix compiler warnings for MinGW - and allow DOS-type commands to return
   their output to the SDL window (so *dir works for example).
 - Flush SDL queue on INKEY and MOUSE reads, otherwise events start to get

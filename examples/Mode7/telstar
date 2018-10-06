@@ -9,7 +9,7 @@
    90*FX229,1
   100*WinTitle Matrix Brandy BASIC Telstar Client
   110REMON ERROR GOTO 320
-  120MODE 7:OFF
+  120MODE 7:OFF: VDU23,16,1,0|
   130reveal%=0:scan%=0:width%=1
   140dh%=0:dhline%=0:borked%=0
   150REM Variables for downloading

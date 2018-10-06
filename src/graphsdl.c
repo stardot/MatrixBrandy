@@ -131,6 +131,7 @@ static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
 static Uint8 vdu21state = 0;		/* VDU21 - disable all output until VDU6 received */
+static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
 static int autorefresh=1;		/* Refresh screen on updates? */
 
 /* From geom.c */
@@ -756,6 +757,18 @@ static void set_rgb(void) {
 }
 
 /*
+** 'vdu_2316' deals with various flavours of the sequence VDU 23,16,...
+** The spec is awkward: Given VDU 23,16,x,y,0,0,0,0,0,0 the control byte is changed using:
+** ((current byte) AND y) EOR x
+*/
+static void vdu_2316(void) {
+  Uint8 temp;
+
+  temp=vdu2316byte & vduqueue[2];
+  vdu2316byte =temp ^ vduqueue[1];
+}
+
+/*
 ** 'vdu_2317' deals with various flavours of the sequence VDU 23,17,...
 */
 static void vdu_2317(void) {
@@ -899,6 +912,9 @@ static void vdu_23command(void) {
     else cursorstate = HIDDEN;
     break;
   case 8:	/* Clear part of the text window */
+    break;
+  case 16:	/* Controls the movement of the cursor after printing */
+    vdu_2316();
     break;
   case 17:	/* Set the tint value for a colour in 256 colour modes, etc */
     vdu_2317();
@@ -1373,7 +1389,7 @@ static void write_char(int32 ch) {
   int32 y, topx, topy, line;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
-  if (xtext > twinright) {
+  if ((vdu2316byte & 1) && (xtext > twinright)) {  /* Scroll before character if scroll protect enabled */
     if (!echo) echo_text();	/* Line is full so flush buffered characters */
     xtext = twinleft;
     ytext++;
@@ -1405,6 +1421,15 @@ static void write_char(int32 ch) {
     blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
   xtext++;
+  if ((!(vdu2316byte & 1)) && (xtext > twinright)) { /* Scroll after character if no scroll protect */
+    if (!echo) echo_text();	/* Line is full so flush buffered characters */
+    xtext = twinleft;
+    ytext++;
+    if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
+      scroll(SCROLL_UP);	/* So scroll window up */
+      ytext--;
+    }
+  }
 }
 
 /*
@@ -2065,7 +2090,7 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
       if (screenmode == 7) {
-	if (xtext > twinright) {		/* Have reached edge of text window. Skip to next line  */
+	if ((vdu2316byte & 1) && (xtext > twinright)) { /* Have reached edge of text window. Skip to next line  */
 	  xtext = twinleft;
 	  ytext++;
 	  if (ytext > twinbottom) {
@@ -2082,8 +2107,16 @@ void emulate_vdu(int32 charvalue) {
 	  mode7frame[ytext][xtext]=charvalue;
 	}
 	mode7renderline(ytext);
-	/* Set At codes go here, Set After codes are further down. */
 	xtext++;
+	if ((!(vdu2316byte & 1)) && (xtext > twinright)) {
+	  xtext = twinleft;
+	  ytext++;
+	  if (ytext > twinbottom) {
+	    ytext--;
+	    scroll(SCROLL_UP);
+	    mode7renderline(ytext);
+	  }
+	}
 	return;
       } else {
 	if (vdu5mode)			    /* Sending text output to graphics cursor */
