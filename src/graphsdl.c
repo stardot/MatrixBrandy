@@ -762,10 +762,7 @@ static void set_rgb(void) {
 ** ((current byte) AND y) EOR x
 */
 static void vdu_2316(void) {
-  Uint8 temp;
-
-  temp=vdu2316byte & vduqueue[2];
-  vdu2316byte =temp ^ vduqueue[1];
+  vdu2316byte =(vdu2316byte & vduqueue[2]) ^ vduqueue[1];
 }
 
 /*
