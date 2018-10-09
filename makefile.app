@@ -65,7 +65,7 @@ $(SRCDIR)/tokens.o: $(TOKENS_C) $(SRCDIR)/tokens.c
 # Build GRAPHSDL.C
 GSDL_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/scrcommon.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h
+	$(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h $(SRCDIR)/graphsdl-textfonts.h
 
 $(SRCDIR)/graphsdl.o: $(GSDL_C) $(SRCDIR)/graphsdl.c
 	$(CC) $(CFLAGS) $(SRCDIR)/graphsdl.c -c -o $(SRCDIR)/graphsdl.o
