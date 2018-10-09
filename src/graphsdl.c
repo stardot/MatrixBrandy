@@ -290,6 +290,37 @@ static int32 colour24bit(int32 colour, int32 tint) {
   return col;
 }
 
+static int32 textxhome(void) {
+  if (vdu2316byte & 2) return twinright;
+  return twinleft;
+}
+
+static int32 textxedge(void) {
+  if (vdu2316byte & 2) return twinleft;
+  return twinright;
+}
+
+static int32 textxinc(void) {
+  if (vdu2316byte & 32) return 0;
+  if (vdu2316byte & 2) return -1;
+  return 1;
+}
+
+static int32 textyhome(void) {
+  if (vdu2316byte & 4) return twinbottom;
+  return twintop;
+}
+
+static int32 textyedge(void) {
+  if (vdu2316byte & 4) return twintop;
+  return twinbottom;
+}
+
+static int32 textyinc(void) {
+  if (vdu2316byte & 4) return -1;
+  return 1;
+}
+
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
 ** its position is valid, that is, lies within the text window.
@@ -509,7 +540,7 @@ static void reveal_cursor() {
 ** of cursor can be drawn, an underline and a block
 */
 static void toggle_cursor(void) {
-  int32 left, right, top, bottom, x, y, mxppc, myppc;
+  int32 left, right, top, bottom, x, y, mxppc, myppc, xtemp;
 
   if (screenmode==7) {
     mxppc=M7XPPC;
@@ -518,6 +549,8 @@ static void toggle_cursor(void) {
     mxppc=XPPC;
     myppc=YPPC;
   }
+  xtemp = xtext;
+  if (xtemp > twinright) xtemp=twinright;
   if (displaybank != writebank) return;
   curstate instate=cursorstate;
   if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
@@ -525,7 +558,7 @@ static void toggle_cursor(void) {
     cursorstate = SUSPENDED;
   else
     if (!vdu5mode) cursorstate = ONSCREEN;
-  left = xtext*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
+  left = xtemp*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
     y = ((ytext+1)*yscale*myppc - yscale) * vscrwidth;
@@ -542,7 +575,7 @@ static void toggle_cursor(void) {
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xtext*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
 /*
@@ -949,13 +982,25 @@ static void write_char(int32 ch) {
   int32 y, topx, topy, line;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
-  if ((vdu2316byte & 1) && (xtext > twinright)) {  /* Scroll before character if scroll protect enabled */
+  if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!echo) echo_text();	/* Line is full so flush buffered characters */
-    xtext = twinleft;
-    ytext++;
+    xtext = textxhome();
+    ytext+=textyinc();
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
-      scroll(SCROLL_UP);	/* So scroll window up */
-      ytext--;
+      if (vdu2316byte & 16) {
+	ytext=textyhome();
+      } else {
+	scroll(SCROLL_UP);	/* So scroll window up */
+	ytext--;
+      }
+    }
+    if (ytext < twintop) {	/* Text cursor was on the first line of the text window */
+      if (vdu2316byte & 16) {
+	ytext=textyedge();
+      } else {
+	scroll(SCROLL_DOWN);	/* So scroll window down */
+	ytext++;
+      }
     }
   }
   topx = xtext*XPPC;
@@ -977,17 +1022,29 @@ static void write_char(int32 ch) {
     }
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
-  if (echo) {
+  if (echo || (vdu2316byte & 0xFE)) {
     blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
-  xtext++;
-  if ((!(vdu2316byte & 1)) && (xtext > twinright)) { /* Scroll after character if no scroll protect */
+  xtext+=textxinc();
+  if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!echo) echo_text();	/* Line is full so flush buffered characters */
-    xtext = twinleft;
-    ytext++;
+    xtext = textxhome();
+    ytext+=textyinc();
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
-      scroll(SCROLL_UP);	/* So scroll window up */
-      ytext--;
+      if (vdu2316byte & 16) {
+	ytext=textyhome();
+      } else {
+	scroll(SCROLL_UP);	/* So scroll window up */
+	ytext--;
+      }
+    }
+    if (ytext < twintop) {	/* Text cursor was on the first line of the text window */
+      if (vdu2316byte & 16) {
+	ytext=textyedge();
+      } else {
+	scroll(SCROLL_DOWN);	/* So scroll window down */
+	ytext++;
+      }
     }
   }
 }
@@ -1025,7 +1082,7 @@ static void plot_char(int32 ch) {
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
   xlast += XPPC*xgupp;	/* Move to next character position in X direction */
-  if (xlast > gwinright) {	/* But position is outside the graphics window */
+  if ((xlast > gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
     xlast = gwinleft;
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
@@ -1044,7 +1101,7 @@ static void plot_space_opaque(void) {
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
   xlast += XPPC*xgupp;	/* Move to next character position in X direction */
-  if (xlast > gwinright) {	/* But position is outside the graphics window */
+  if ((xlast > gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
     xlast = gwinleft;
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
@@ -1126,11 +1183,22 @@ static void vdu_setpalette(void) {
 ** of the window.
 */
 static void move_down(void) {
-  ytext++;
+  ytext+=textyinc();
   if (ytext > twinbottom) {	/* Cursor was on last line in window - Scroll window up */
-    ytext--;
-    scroll(SCROLL_UP);
-    mode7renderline(ytext);
+    if (vdu2316byte & 16) {
+      ytext=textyhome();
+    } else {
+      scroll(SCROLL_UP);	/* So scroll window up */
+      ytext--;
+    }
+  }
+  if (ytext < twintop) {	/* Cursor was on top line in window - Scroll window down */
+    if (vdu2316byte & 16) {
+      ytext=textyedge();
+    } else {
+      scroll(SCROLL_DOWN);	/* So scroll window down */
+      ytext++;
+    }
   }
 }
 
@@ -1140,10 +1208,22 @@ static void move_down(void) {
 ** window
 */
 static void move_up(void) {
-  ytext--;
+  ytext-=textyinc();
   if (ytext < twintop) {	/* Cursor was on top line in window - Scroll window down */
-    ytext++;
-    scroll(SCROLL_DOWN);
+    if (vdu2316byte & 16) {
+      ytext=textyedge();
+    } else {
+      scroll(SCROLL_DOWN);	/* So scroll window down */
+      ytext++;
+    }
+  }
+  if (ytext > twinbottom) {	/* Cursor was on last line in window - Scroll window up */
+    if (vdu2316byte & 16) {
+      ytext=textyhome();
+    } else {
+      scroll(SCROLL_UP);	/* So scroll window up */
+      ytext--;
+    }
   }
 }
 
@@ -1162,13 +1242,13 @@ static void move_curback(void) {
     }
   } else {
     hide_cursor();	/* Remove cursor */
-    xtext--;
-    if (xtext < twinleft) {	/* Cursor is at left-hand edge of text window so move up a line */
-      xtext = twinright;
+    xtext-=textxinc();
+    if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at left-hand edge of text window so move up a line */
+      xtext = textxedge();
       move_up();
     }
     reveal_cursor();	/* Redraw cursor */
-    }
+  }
 }
 
 /*
@@ -1184,9 +1264,9 @@ static void move_curforward(void) {
     }
   }
   hide_cursor();	/* Remove cursor */
-  xtext++;
-  if (xtext > twinright) {	/* Cursor is at right-hand edge of text window so move down a line */
-    xtext = twinleft;
+  xtext+=textxinc();
+  if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
+    xtext = textxhome();
     move_down();
   }
   reveal_cursor();	/* Redraw cursor */
@@ -1200,10 +1280,11 @@ static void move_curdown(void) {
   if (vdu5mode) {
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
+  } else {
+    hide_cursor();	/* Remove cursor */
+    move_down();
+    reveal_cursor();	/* Redraw cursor */
   }
-  hide_cursor();	/* Remove cursor */
-  move_down();
-  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1213,10 +1294,11 @@ static void move_curup(void) {
   if (vdu5mode) {
     ylast += YPPC*ygupp;
     if (ylast > gwintop) ylast = gwinbottom+YPPC*ygupp-1;	/* Move above top of window - Wrap around to bottow */
+  } else {
+    hide_cursor();	/* Remove cursor */
+    move_up();
+    reveal_cursor();	/* Redraw cursor */
   }
-  hide_cursor();	/* Remove cursor */
-  move_up();
-  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1263,8 +1345,8 @@ static void vdu_cleartext(void) {
     blit_scaled(left, top, right, bottom);
     SDL_FillRect(screen2, NULL, tb_colour);
     SDL_FillRect(screen3, NULL, tb_colour);
-    xtext = twinleft;
-    ytext = twintop;
+    xtext = textxhome();
+    ytext = textyhome();
     reveal_cursor();	/* Redraw cursor */
   }
   do_sdl_flip(screen0);
@@ -1274,20 +1356,23 @@ static void vdu_cleartext(void) {
 ** 'vdu_return' deals with the carriage return character (VDU 13)
 */
 static void vdu_return(void) {
-  if (vdu5mode) xlast = gwinleft;
-  hide_cursor();	/* Remove cursor */
-  xtext = twinleft;
-  reveal_cursor();	/* Redraw cursor */
-  if (screenmode == 7) {
-    vdu141on = 0;
-    mode7highbit=0;
-    mode7flash=0;
-    mode7sepgrp=0;
-    mode7sepreal=0;
-    mode7prevchar=32;
-    text_physforecol = text_forecol = 7;
-    text_physbackcol = text_backcol = 0;
-    set_rgb();
+  if (vdu5mode) {
+    xlast = gwinleft;
+  } else {
+    hide_cursor();	/* Remove cursor */
+    xtext = textxhome();
+    reveal_cursor();	/* Redraw cursor */
+    if (screenmode == 7) {
+      vdu141on = 0;
+      mode7highbit=0;
+      mode7flash=0;
+      mode7sepgrp=0;
+      mode7sepreal=0;
+      mode7prevchar=32;
+      text_physforecol = text_forecol = 7;
+      text_physbackcol = text_backcol = 0;
+      set_rgb();
+    }
   }
 }
 
@@ -1600,7 +1685,7 @@ static void vdu_hometext(void) {
     ylast = gwintop;
   }
   else {	/* Send text cursor to the top left-hand corner of the text window */
-    move_cursor(twinleft, twintop);
+    move_cursor(textxhome(), textyhome());
   }
 }
 
@@ -1650,12 +1735,25 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
       if (screenmode == 7) {
-	if ((vdu2316byte & 1) && (xtext > twinright)) { /* Have reached edge of text window. Skip to next line  */
-	  xtext = twinleft;
-	  ytext++;
+	if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
+	  xtext = textxhome();
+	  ytext+=textyinc();
 	  if (ytext > twinbottom) {
-	    ytext--;
-	    scroll(SCROLL_UP);
+	    if (vdu2316byte & 16) {
+	      ytext=textyhome();
+	    } else {
+	      ytext--;
+	      scroll(SCROLL_UP);
+	    }
+	    mode7renderline(ytext);
+	  }
+	  if (ytext < twintop) {
+	    if (vdu2316byte & 16) {
+	      ytext=textyedge();
+	    } else {
+	      ytext++;
+	      scroll(SCROLL_DOWN);
+	    }
 	    mode7renderline(ytext);
 	  }
 	}
@@ -1667,19 +1765,24 @@ void emulate_vdu(int32 charvalue) {
 	  mode7frame[ytext][xtext]=charvalue;
 	}
 	mode7renderline(ytext);
-	xtext++;
-	if ((!(vdu2316byte & 1)) && (xtext > twinright)) {
-	  xtext = twinleft;
-	  ytext++;
+	xtext+=textxinc();
+	if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
+	  xtext = textxhome();
+	  ytext+=textyinc();
 	  if (ytext > twinbottom) {
 	    ytext--;
 	    scroll(SCROLL_UP);
 	    mode7renderline(ytext);
 	  }
+	  if (ytext < twintop) {
+	    ytext++;
+	    scroll(SCROLL_DOWN);
+	    mode7renderline(ytext);
+	  }
 	}
-	return;
+	return; /* End of MODE 7 block */
       } else {
-	if (vdu5mode)			    /* Sending text output to graphics cursor */
+	if (vdu5mode) {			    /* Sending text output to graphics cursor */
 	  if (charvalue == 127) {
 	    move_curback();
 	    plot_space_opaque();
@@ -1687,7 +1790,7 @@ void emulate_vdu(int32 charvalue) {
 	  } else {
 	    plot_char(charvalue);
 	  }
-	else {
+	} else {
 	  if (charvalue == 127) {
 	    move_curback();
 	    write_char(32);
@@ -1996,7 +2099,8 @@ static void setup_mode(int32 mode) {
   twinright = textwidth-1;
   twintop = 0;
   twinbottom = textheight-1;
-  xtext = ytext = 0;
+  xtext = textxhome();
+  ytext = textyhome();
   graph_fore_action = graph_back_action = 0;
   reset_colours();
   init_palette();
@@ -2026,8 +2130,8 @@ void emulate_mode(int32 mode) {
 /* Reset colours, clear screen and home cursor */
   SDL_FillRect(screen0, NULL, tb_colour);
   SDL_FillRect(modescreen, NULL, tb_colour);
-  xtext = twinleft;
-  ytext = twintop;
+  xtext = textxhome();
+  ytext = textyhome();
   do_sdl_flip(screen0);
   emulate_vdu(VDU_CLEARGRAPH);
 }
