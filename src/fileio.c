@@ -524,8 +524,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   FILE *thefile;
   int32 n;
   char filename [FNAMESIZE];
-  char *sptr;
-  if ((sptr=strchr(name, '"'))) *sptr='\0';
+
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
