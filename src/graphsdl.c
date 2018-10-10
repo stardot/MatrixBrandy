@@ -1840,7 +1840,7 @@ void emulate_vdu(int32 charvalue) {
       cursorstate = HIDDEN;
     }
     break;
-  case VDU_ENABLE:	/* 6 - Enable the VDU driver (ignored) */
+  case VDU_ENABLE:	/* 6 - Enable the VDU driver */
     enable_vdu = TRUE;
     vdu21state=0;
     break;
