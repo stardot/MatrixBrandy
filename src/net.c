@@ -33,14 +33,22 @@ static int bufptr[MAXNETSOCKETS];
 static int bufendptr[MAXNETSOCKETS];
 static int neteof[MAXNETSOCKETS];
 
+static int networking=1;
+
 /* This function only called on startup, cleans the buffer and socket stores */
 void brandynet_init() {
   int n;
+#ifdef TARGET_MINGW
+  WSADATA wsaData;
+#endif
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     netsockets[n]=bufptr[n]=bufendptr[n]=neteof[n]=0;
     memset(netbuffer, 0, (MAXNETSOCKETS * (MAXNETRCVLEN+1)));
   }
+#ifdef TARGET_MINGW
+  if(WSAStartup(MAKEWORD(2,2), &wsaData)) networking=0;
+#endif
 }
 
 int brandynet_connect(char *dest, char type) {
@@ -48,9 +56,13 @@ int brandynet_connect(char *dest, char type) {
   int n, mysocket, ret;
   struct addrinfo hints, *addrdata, *rp;
 #ifdef TARGET_MINGW
-  WSADATA wsaData;
   unsigned long opt;
 #endif
+
+  if(networking==0) {
+    error(ERR_NET_NOTSUPP);
+    return(-1);
+  }
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     if (!netsockets[n]) break;
@@ -60,9 +72,6 @@ int brandynet_connect(char *dest, char type) {
     return(-1);
   }
 
-#ifdef TARGET_MINGW
-  if(WSAStartup(MAKEWORD(2,2), &wsaData)) return(-1);
-#endif
 
   memset(&hints, 0, sizeof(hints));
   if (type == '0') hints.ai_family=AF_UNSPEC;

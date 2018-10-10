@@ -3,6 +3,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.21.15
 - Bug fix: Setting *KEY15 scribbled outside array bounds.
+- Bug fix: Erroneously trimming a string introduced in V1.21.8.
 - Enabled VDU23,16; currently bits other than 3 are observed. This sets the
   scroll protect mode, X and Y cursor movement and whether the   screen is
   overprinted or scrolled when the Y limit is reached, and whether VDU5 mode
