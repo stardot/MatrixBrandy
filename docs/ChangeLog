@@ -6,6 +6,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fix: Erroneously trimming a string introduced in V1.21.8.
 - Improvement: In networking code, move WSAStartup (MinGW) to init, if
   this fails, disable networking.
+- Enabled VDU14/15 scroll paging. Note, hitting CTRL-N and CTRL-O don't
+  enable or disable this, as CTRL-N is used for the line editing.
 - Enabled VDU23,16; currently bits other than 3 are observed. This sets the
   scroll protect mode, X and Y cursor movement and whether the   screen is
   overprinted or scrolled when the Y limit is reached, and whether VDU5 mode
