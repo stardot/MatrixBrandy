@@ -230,17 +230,34 @@ static int32
   xtext,			/* Text cursor X coordinate (real on-screen location) */
   ytext;			/* Text cursor Y coordinate (real on-screen location) */
 
-static boolean
-  enable_vdu,			/* TRUE if VDU driver is enable */
-  enable_print,			/* TRUE if sending characters to the printer stream is enabled */
-  echo,				/* TRUE if character should be echoed on screen immediately */
-  textwin;			/* TRUE if a text window has been defined */
-
 static curstype cursmode;	/* Type of cursor being displayed in graphics mode */
 
 static curstate cursorstate;	/* Whether cursor is shown */
 
 static byte vduqueue[MAXBYTES];	/* Queue to hold data for VDU commands */
+
+static unsigned int vduflags = 0;	/* VDU flags */
+
+/* VDU feature flags */
+#define VDU_FLAG_ENAPRINT	0x00000001	/* VDU 2 mode (enable printer) */
+#define VDU_FLAG_GRAPHICURS	0x00000002	/* VDU 5 mode (text at graphics cursor) */
+#define VDU_FLAG_ENAPAGE	0x00000004	/* VDU 14 mode (page scrolling mode) */
+#define VDU_FLAG_DISABLE	0x00000008	/* VDU 21 mode (disable VDU driver) */
+#define VDU_FLAG_ECHO		0x00000010	/* if character should be echoed on screen immediately */
+#define VDU_FLAG_TEXTWIN	0x00000020	/* if a text window has been defined */
+/* Flags used by the Teletext emulation in graphsdl.c */
+#define MODE7_VDU141ON		0x00010000	/* Mode 7 VDU141 toggle */
+#define MODE7_VDU141MODE	0x00020000	/* Mode 7 VDU141 0=top, 1=bottom */
+#define MODE7_HIGHBIT		0x00040000	/* Use high bits in Mode 7 */
+#define MODE7_CONCEAL		0x00080000	/* CONCEAL teletext flag */
+#define MODE7_SEPGRP		0x00100000	/* Separated graphics in Mode 7 */
+#define MODE7_SEPREAL		0x00200000	/* Separated graphics in Mode 7 */
+#define MODE7_HOLD		0x00400000	/* Hold Graphics flag */
+#define MODE7_FLASH		0x00800000	/* Flash flag */
+#define MODE7_REVEAL		0x01000000	/* RISC OS 5 - reveal content hidden by CONCEAL */
+#define MODE7_BLACK		0x02000000	/* RISC OS 5 - Allow teletext black codes */
+#define MODE7_BANK		0x04000000	/* Bank switching for Mode 7 Flashing */
+#define MODE7_UPDATE		0x08000000	/* RISC OS 5 - do we update bitmap and blit after each character */
 
 /*
 ** The logical-to-physical table maps the RISC OS logical colours to

@@ -56,6 +56,14 @@
 **  SWI OS_WriteC.
 */
 
+static unsigned int vduflag(unsigned int flags) {
+  return (vduflags & flags) ? 1 : 0;
+}
+
+static void write_vduflag(unsigned int flags, int yesno) {
+  vduflags = yesno ? vduflags | flags : vduflags & ~flags;
+}
+
 /*
 ** 'find_cursor' ensures that the position of the text cursor
 ** is known and valid as far as the interpreter is concerned  
@@ -73,7 +81,7 @@ void set_cursor(boolean underline) {
 ** 'echo_on' turns on the immediate echo of characters to the screen
 */
 void echo_on(void) {
-  echo = TRUE;
+  write_vduflag(VDU_FLAG_ECHO,1);
   fflush(stdout);
 }
 
@@ -81,7 +89,7 @@ void echo_on(void) {
 ** 'echo_off' turns off the immediate echo of characters to the screen.
 */
 void echo_off(void) {
-  echo = FALSE;
+  write_vduflag(VDU_FLAG_ECHO,0);
 }
 
 /*
@@ -106,11 +114,11 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue>=' ') {               /* Most common case - print something */
       if (charvalue==DEL) charvalue = ' ';
       putchar(charvalue);
-      if (echo) fflush(stdout);
+      if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
       return;
     }
     else {      /* Control character - Found start of new VDU command */
-      if (!echo) fflush(stdout);
+      if (!vduflag(VDU_FLAG_ECHO)) fflush(stdout);
       vducmd = charvalue;
       vduneeded = vdubytes[charvalue];
       vdunext = 0;

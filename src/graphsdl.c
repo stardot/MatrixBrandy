@@ -131,8 +131,8 @@ extern void mode7renderscreen(void);
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
-static Uint8 vdu21state = 0;		/* VDU21 - disable all output until VDU6 received */
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
+
 static int autorefresh=1;		/* Refresh screen on updates? */
 
 /* From geom.c */
@@ -144,22 +144,10 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_4_MUL(x) ((x)<<2)
 #define FAST_4_DIV(x) ((x)>>2)
 
-/* Flags for controlling MODE 7 operation */
+/* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];	/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
-static Uint8 vdu141on = 0;		/* Mode 7 VDU141 toggle */
-static Uint8 vdu141mode;		/* Mode 7 VDU141 0=top, 1=bottom */
-static Uint8 mode7highbit = 0;		/* Use high bits in Mode 7 */
-static Uint8 mode7sepgrp = 0;		/* Separated graphics in Mode 7 */
-static Uint8 mode7sepreal = 0;		/* Separated graphics in Mode 7 */
-static Uint8 mode7conceal = 0;		/* CONCEAL teletext flag */
-static Uint8 mode7hold = 0;		/* Hold Graphics flag */
-static Uint8 mode7flash = 0;		/* Flash flag */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
-static Uint8 mode7bank = 0;		/* Bank switching for Mode 7 Flashing */
 static int64 mode7timer = 0;	/* Timer for bank switching */
-static Uint8 mode7black = 0;		/* Allow teletext black codes RISC OS 5 */
-static Uint8 mode7reveal = 0;		/* RISC OS 5 - reveal content hidden by CONCEAL */
-static Uint8 mode7bitmapupdate = 2;	/* RISC OS 5 - do we update bitmap and blit after each character */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 
@@ -196,7 +184,6 @@ static int32
 
 static boolean
   scaled,			/* TRUE if screen mode is scaled to fit real screen */
-  vdu5mode,			/* TRUE if text output goes to graphics cursor */
   clipping;			/* TRUE if clipping region is not full screen of a RISC OS mode */
 
 /*
@@ -211,17 +198,25 @@ unsigned int YPPC=8;		/* Size of character in pixels in Y direction */
 unsigned int M7XPPC=16;		/* Size of Mode 7 characters in X direction */
 unsigned int M7YPPC=20;		/* Size of Mode 7 characters in Y direction */
 
+static unsigned int vduflag(unsigned int flags) {
+  return (vduflags & flags) ? 1 : 0;
+}
+
+static void write_vduflag(unsigned int flags, int yesno) {
+  vduflags = yesno ? vduflags | flags : vduflags & ~flags;
+}
+
 static void reset_mode7() {
   int p, q;
-  vdu141mode = 1;
-  vdu141on = 0;
-  mode7highbit = 0;
-  mode7sepgrp = 0;
-  mode7sepreal = 0;
-  mode7conceal = 0;
-  mode7hold = 0;
-  mode7flash = 0;
-  mode7bank = 0;
+  write_vduflag(MODE7_VDU141MODE,1);
+  write_vduflag(MODE7_VDU141ON,0);
+  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_SEPGRP,0);
+  write_vduflag(MODE7_SEPREAL,0);
+  write_vduflag(MODE7_CONCEAL,0);
+  write_vduflag(MODE7_HOLD,0);
+  write_vduflag(MODE7_FLASH,0);
+  write_vduflag(MODE7_BANK,0);
   mode7timer=0;
   mode7prevchar=32;
   place_rect.h=M7YPPC;
@@ -399,13 +394,13 @@ static void vdu_2317(void) {
 /* RISC OS 5 - Set Teletext characteristics */
 static void vdu_2318(void) {
   if (vduqueue[1] == 1) {
-    mode7bitmapupdate=vduqueue[2] & 2;
+    write_vduflag(MODE7_UPDATE, vduqueue[2] & 2);
   }
   if (vduqueue[1] == 2) {
-    mode7reveal=vduqueue[2] & 1;
+    write_vduflag(MODE7_REVEAL, vduqueue[2] & 1);
   }
   if (vduqueue[1] == 3) {
-    mode7black = vduqueue[2] & 1;
+    write_vduflag(MODE7_BLACK, vduqueue[2] & 1);
   }
   if (vduqueue[1] == 255) {
     /* Brandy extension - render glyphs 12, 14 or 16 glyphs wide. If bit 0 set or width = 12 always use SAA5050 font */
@@ -557,7 +552,7 @@ static void toggle_cursor(void) {
   if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
     cursorstate = SUSPENDED;
   else
-    if (!vdu5mode) cursorstate = ONSCREEN;
+    if (!vduflag(VDU_FLAG_GRAPHICURS)) cursorstate = ONSCREEN;
   left = xtemp*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
@@ -575,7 +570,7 @@ static void toggle_cursor(void) {
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (echo && (instate != cursorstate)) do_sdl_updaterect(screen0, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (vduflag(VDU_FLAG_ECHO) && (instate != cursorstate)) do_sdl_updaterect(screen0, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
 /*
@@ -854,7 +849,7 @@ static void scroll(updown direction) {
     scroll_rect.w = mxppc * (twinright - twinleft +1);
     scroll_rect.h = myppc * (twinbottom - twintop);
     if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
-    if (screenmode == 7 && mode7bitmapupdate) {
+    if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
       SDL_BlitSurface(screen0, &scroll_rect, screen1, NULL);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
@@ -863,9 +858,9 @@ static void scroll(updown direction) {
     line_rect.y = myppc * (twinbottom - twintop);
     line_rect.w = mxppc * (twinright - twinleft +1);
     line_rect.h = myppc;
-    if (screenmode != 7 || mode7bitmapupdate) SDL_FillRect(screen1, &line_rect, tb_colour);
+    if (screenmode != 7 || vduflag(MODE7_UPDATE)) SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      if (mode7bitmapupdate) {
+      if (vduflag(MODE7_UPDATE)) {
         SDL_FillRect(screen2A, &line_rect, tb_colour);
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
@@ -892,7 +887,7 @@ static void scroll(updown direction) {
     line_rect.x = 0;
     line_rect.y = myppc;
     if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
-    if (screenmode == 7 && mode7bitmapupdate) {
+    if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
       SDL_BlitSurface(screen0, &scroll_rect, screen1, &line_rect);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
@@ -901,9 +896,9 @@ static void scroll(updown direction) {
     line_rect.y = 0;
     line_rect.w = mxppc * (twinright - twinleft +1);
     line_rect.h = myppc;
-    if (screenmode != 7 || mode7bitmapupdate) SDL_FillRect(screen1, &line_rect, tb_colour);
+    if (screenmode != 7 || vduflag(MODE7_UPDATE)) SDL_FillRect(screen1, &line_rect, tb_colour);
     if (screenmode == 7) {
-      if (mode7bitmapupdate) {
+      if (vduflag(MODE7_UPDATE)) {
         SDL_FillRect(screen2A, &line_rect, tb_colour);
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
@@ -924,12 +919,12 @@ static void scroll(updown direction) {
   scroll_rect.x = left;
   scroll_rect.y = dest;
   if (screenmode != 7) SDL_BlitSurface(screen1, &line_rect, modescreen, &scroll_rect);
-  if (screenmode == 7 && mode7bitmapupdate) {
+  if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
     SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
     SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
   }
   if (screenmode == 7) {
-    if (mode7bitmapupdate) SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
+    if (vduflag(MODE7_UPDATE)) SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
   } else {
     blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
   }
@@ -954,14 +949,14 @@ void mode7flipbank() {
   if (screenmode == 7) {
     if ((mode7timer - mos_centiseconds()) <= 0) {
       hide_cursor();
-      if (!mode7bitmapupdate) mode7renderscreen();
-      if (mode7bank) {
+      if (!vduflag(MODE7_UPDATE)) mode7renderscreen();
+      if (vduflag(MODE7_BANK)) {
 	SDL_BlitSurface(screen2, NULL, screen0, NULL);
-	mode7bank=0;
+	write_vduflag(MODE7_BANK,0);
 	mode7timer=mos_centiseconds() + 100;
       } else {
 	SDL_BlitSurface(screen3, NULL, screen0, NULL);
-	mode7bank=1;
+	write_vduflag(MODE7_BANK,1);
 	mode7timer=mos_centiseconds() + 33;
       }
       do_sdl_updaterect(screen0, 0, 0, 0, 0);
@@ -983,7 +978,7 @@ static void write_char(int32 ch) {
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
-    if (!echo) echo_text();	/* Line is full so flush buffered characters */
+    if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
     ytext+=textyinc();
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
@@ -1022,12 +1017,12 @@ static void write_char(int32 ch) {
     }
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
-  if (echo || (vdu2316byte & 0xFE)) {
+  if (vduflag(VDU_FLAG_ECHO) || (vdu2316byte & 0xFE)) {
     blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
   xtext+=textxinc();
   if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
-    if (!echo) echo_text();	/* Line is full so flush buffered characters */
+    if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
     ytext+=textyinc();
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
@@ -1112,7 +1107,7 @@ static void plot_space_opaque(void) {
 ** 'echo_on' turns on cursor and the immediate echo of characters to the screen
 */
 void echo_on(void) {
-  echo = TRUE;
+  write_vduflag(VDU_FLAG_ECHO,1);
   echo_text();		/* Flush what is in the graphics buffer */
   reveal_cursor();	/* Display cursor again */
 }
@@ -1122,7 +1117,7 @@ void echo_on(void) {
 ** to the screen. This is used to make character output more efficient
 */
 void echo_off(void) {
-  echo = FALSE;
+  write_vduflag(VDU_FLAG_ECHO,0);
   hide_cursor();	/* Remove the cursor if it is being displayed */
 }
 
@@ -1231,7 +1226,7 @@ static void move_up(void) {
 ** 'move_curback' moves the cursor back one character on the screen (VDU 8)
 */
 static void move_curback(void) {
-  if (vdu5mode) {	/* VDU 5 mode - Move graphics cursor back one character */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
     xlast -= XPPC*xgupp;
     if (xlast < gwinleft) {		/* Cursor is outside the graphics window */
       xlast = gwinright-XPPC*xgupp+1;	/* Move back to right edge of previous line */
@@ -1255,7 +1250,7 @@ static void move_curback(void) {
 ** 'move_curforward' moves the cursor forwards one character on the screen (VDU 9)
 */
 static void move_curforward(void) {
-  if (vdu5mode) {	/* VDU 5 mode - Move graphics cursor back one character */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
     xlast += XPPC*xgupp;
     if (xlast > gwinright) {	/* Cursor is outside the graphics window */
       xlast = gwinleft;		/* Move to left side of window on next line */
@@ -1277,7 +1272,7 @@ static void move_curforward(void) {
 ** performs the linefeed operation (VDU 10)
 */
 static void move_curdown(void) {
-  if (vdu5mode) {
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
   } else {
@@ -1291,7 +1286,7 @@ static void move_curdown(void) {
 ** 'move_curup' moves the cursor up a line on the screen (VDU 11)
 */
 static void move_curup(void) {
-  if (vdu5mode) {
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {
     ylast += YPPC*ygupp;
     if (ylast > gwintop) ylast = gwinbottom+YPPC*ygupp-1;	/* Move above top of window - Wrap around to bottow */
   } else {
@@ -1315,7 +1310,7 @@ static void vdu_cleartext(void) {
     myppc=YPPC;
   }
   hide_cursor();	/* Remove cursor if it is being displayed */
-  if (textwin) {	/* Text window defined that does not occupy the whole screen */
+  if (vduflag(VDU_FLAG_TEXTWIN)) {	/* Text window defined that does not occupy the whole screen */
     for (ly=twintop; ly <= twinbottom; ly++) {
       for (lx=twinleft; lx <=twinright; lx++) {
 	mode7frame[ly][lx]=32;
@@ -1356,18 +1351,18 @@ static void vdu_cleartext(void) {
 ** 'vdu_return' deals with the carriage return character (VDU 13)
 */
 static void vdu_return(void) {
-  if (vdu5mode) {
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {
     xlast = gwinleft;
   } else {
     hide_cursor();	/* Remove cursor */
     xtext = textxhome();
     reveal_cursor();	/* Redraw cursor */
     if (screenmode == 7) {
-      vdu141on = 0;
-      mode7highbit=0;
-      mode7flash=0;
-      mode7sepgrp=0;
-      mode7sepreal=0;
+      write_vduflag(MODE7_VDU141ON,0);
+      write_vduflag(MODE7_HIGHBIT,0);
+      write_vduflag(MODE7_FLASH,0);
+      write_vduflag(MODE7_SEPGRP,0);
+      write_vduflag(MODE7_SEPREAL,0);
       mode7prevchar=32;
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
@@ -1425,7 +1420,7 @@ static void vdu_cleargraph(void) {
     fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), graph_physbackcol, graph_back_action);
   }
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
-  if (!vdu5mode) reveal_cursor();	/* Redraw cursor */
+  if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();	/* Redraw cursor */
   do_sdl_flip(screen0);
 }
 
@@ -1617,7 +1612,7 @@ static void vdu_restwind(void) {
     SDL_SetClipRect(modescreen, NULL);
     clipping = FALSE;
   }
-  mode7highbit = 0;
+  write_vduflag(MODE7_HIGHBIT,0);
   xorigin = yorigin = 0;
   xlast = ylast = xlast2 = ylast2 = 0;
   gwinleft = 0;
@@ -1627,7 +1622,7 @@ static void vdu_restwind(void) {
   hide_cursor();	/* Remove cursor */
   xtext = ytext = 0;
   reveal_cursor();	/* Redraw cursor */
-  textwin = FALSE;
+  write_vduflag(VDU_FLAG_TEXTWIN,0);
   twinleft = 0;
   twinright = textwidth-1;
   twintop = 0;
@@ -1639,7 +1634,7 @@ static void vdu_restwind(void) {
 */
 static void vdu_textwind(void) {
   int32 left, right, top, bottom;
-  mode7highbit = 0;
+  write_vduflag(MODE7_HIGHBIT,0);
   left = vduqueue[0];
   bottom = vduqueue[1];
   right = vduqueue[2];
@@ -1660,7 +1655,7 @@ static void vdu_textwind(void) {
   twintop = top;
   twinbottom = bottom;
 /* Set flag to say if text window occupies only a part of the screen */
-  textwin = left > 0 || right < textwidth-1 || top > 0 || bottom < textheight-1;
+  write_vduflag(VDU_FLAG_TEXTWIN,(left > 0 || right < textwidth-1 || top > 0 || bottom < textheight-1));
   move_cursor(twinleft, twintop);	/* Move text cursor to home position in new window */
 }
 
@@ -1680,7 +1675,7 @@ static void vdu_origin(void) {
 ** the text window (VDU 30)
 */
 static void vdu_hometext(void) {
-  if (vdu5mode) {	/* Send graphics cursor to top left-hand corner of graphics window */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Send graphics cursor to top left-hand corner of graphics window */
     xlast = gwinleft;
     ylast = gwintop;
   }
@@ -1695,7 +1690,7 @@ static void vdu_hometext(void) {
 */
 static void vdu_movetext(void) {
   int32 column, row;
-  if (vdu5mode) {	/* Text is going to the graphics cursor */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Text is going to the graphics cursor */
     xlast = gwinleft+vduqueue[0]*XPPC*xgupp;
     ylast = gwintop-vduqueue[1]*YPPC*ygupp+1;
   }
@@ -1706,12 +1701,12 @@ static void vdu_movetext(void) {
     move_cursor(column, row);
   }
   if (screenmode == 7) {
-    vdu141on=0;
-    mode7highbit=0;
-    mode7sepgrp=0;
-    mode7conceal=0;
-    mode7hold=0;
-    mode7flash=0;
+    write_vduflag(MODE7_VDU141ON,0);
+    write_vduflag(MODE7_HIGHBIT,0);
+    write_vduflag(MODE7_SEPGRP,0);
+    write_vduflag(MODE7_CONCEAL,0);
+    write_vduflag(MODE7_HOLD,0);
+    write_vduflag(MODE7_FLASH,0);
     text_physforecol = text_forecol = 7;
     text_physbackcol = text_backcol = 0;
     set_rgb();
@@ -1728,8 +1723,8 @@ static void vdu_movetext(void) {
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
   if (vduneeded == 0) {			/* VDU queue is empty */
-    if (vdu21state) {
-      if (charvalue == VDU_ENABLE) vdu21state=0;
+    if (vduflag(VDU_FLAG_DISABLE)) {
+      if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);
       return;
     }
     if (charvalue >= ' ') {		/* Most common case - print something */
@@ -1782,7 +1777,7 @@ void emulate_vdu(int32 charvalue) {
 	}
 	return; /* End of MODE 7 block */
       } else {
-	if (vdu5mode) {			    /* Sending text output to graphics cursor */
+	if (vduflag(VDU_FLAG_GRAPHICURS)) {			    /* Sending text output to graphics cursor */
 	  if (charvalue == 127) {
 	    move_curback();
 	    plot_space_opaque();
@@ -1804,7 +1799,7 @@ void emulate_vdu(int32 charvalue) {
       return;
     }
     else {	/* Control character - Found start of new VDU command */
-      if (!echo) echo_text();
+      if (!vduflag(VDU_FLAG_ECHO)) echo_text();
       vducmd = charvalue;
       vduneeded = vdubytes[charvalue];
       vdunext = 0;
@@ -1823,11 +1818,15 @@ void emulate_vdu(int32 charvalue) {
   case VDU_NULL:  	/* 0 - Do nothing */
     break;
   case VDU_PRINT:	/* 1 - Send next character to the print stream */
+    break;
   case VDU_ENAPRINT: 	/* 2 - Enable the sending of characters to the printer */
+    write_vduflag(VDU_FLAG_ENAPRINT,1);
+    break;
   case VDU_DISPRINT:	/* 3 - Disable the sending of characters to the printer */
+    write_vduflag(VDU_FLAG_ENAPRINT,0);
     break;
   case VDU_TEXTCURS:	/* 4 - Print text at text cursor */
-    vdu5mode = FALSE;
+    write_vduflag(VDU_FLAG_GRAPHICURS,0);
     if (cursorstate == HIDDEN) {	/* Start displaying the cursor */
       cursorstate = SUSPENDED;
       toggle_cursor();
@@ -1835,18 +1834,17 @@ void emulate_vdu(int32 charvalue) {
     break;
   case VDU_GRAPHICURS:	/* 5 - Print text at graphics cursor */
     if (!istextonly()) {
-      vdu5mode = TRUE;
+      write_vduflag(VDU_FLAG_GRAPHICURS,1);
       toggle_cursor();	/* Remove the cursor if it is being displayed */
       cursorstate = HIDDEN;
     }
     break;
   case VDU_ENABLE:	/* 6 - Enable the VDU driver */
-    enable_vdu = TRUE;
-    vdu21state=0;
+    write_vduflag(VDU_FLAG_DISABLE,0);
     break;
   case VDU_BEEP:	/* 7 - Sound the bell */
     putchar('\7');
-    if (echo) fflush(stdout);
+    if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
     break;
   case VDU_CURBACK:	/* 8 - Move cursor left one character */
     move_curback();
@@ -1861,7 +1859,7 @@ void emulate_vdu(int32 charvalue) {
     move_curup();
     break;
   case VDU_CLEARTEXT:	/* 12 - Clear text window (formfeed) */
-    if (vdu5mode)	/* In VDU 5 mode, clear the graphics window */
+    if (vduflag(VDU_FLAG_GRAPHICURS))	/* In VDU 5 mode, clear the graphics window */
       vdu_cleargraph();
     else		/* In text mode, clear the text window */
       vdu_cleartext();
@@ -1870,8 +1868,11 @@ void emulate_vdu(int32 charvalue) {
   case VDU_RETURN:	/* 13 - Carriage return */
     vdu_return();
     break;
-  case VDU_ENAPAGE:	/* 14 - Enable page mode (ignored) */
-  case VDU_DISPAGE:	/* 15 - Disable page mode (ignored) */
+  case VDU_ENAPAGE:	/* 14 - Enable page mode */
+    write_vduflag(VDU_FLAG_ENAPAGE,1);
+    break;
+  case VDU_DISPAGE:	/* 15 - Disable page mode */
+    write_vduflag(VDU_FLAG_ENAPAGE,0);
     break;
   case VDU_CLEARGRAPH:	/* 16 - Clear graphics window */
     vdu_cleargraph();
@@ -1889,7 +1890,7 @@ void emulate_vdu(int32 charvalue) {
     reset_colours();
     break;
   case VDU_DISABLE:	/* 21 - Disable the VDU driver */
-    vdu21state = 1;
+    write_vduflag(VDU_FLAG_DISABLE,1);
     break;
   case VDU_SCRMODE:	/* 22 - Change screen mode */
     emulate_mode(vduqueue[0]);
@@ -2080,9 +2081,8 @@ static void setup_mode(int32 mode) {
   xscale = modetable[mode].xscale;
   yscale = modetable[mode].yscale;
   scaled = yscale != 1 || xscale != 1;	/* TRUE if graphics screen is scaled to fit real screen */
-  enable_vdu = TRUE;
-  echo = TRUE;
-  vdu5mode = FALSE;
+  write_vduflag(VDU_FLAG_ECHO,1);
+  write_vduflag(VDU_FLAG_GRAPHICURS,0);
   cursmode = UNDERLINE;
   cursorstate = NOCURSOR;	/* Graphics mode text cursor is not being displayed */
   clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
@@ -2094,7 +2094,7 @@ static void setup_mode(int32 mode) {
   gwinright = xgraphunits-1;
   gwintop = ygraphunits-1;
   gwinbottom = 0;
-  textwin = FALSE;		/* A text window has not been created yet */
+  write_vduflag(VDU_FLAG_TEXTWIN,0);		/* A text window has not been created yet */
   twinleft = 0;			/* Set up initial text window to whole screen */
   twinright = textwidth-1;
   twintop = 0;
@@ -3047,7 +3047,7 @@ boolean init_screen(void) {
 
   vdunext = 0;
   vduneeded = 0;
-  enable_print = FALSE;
+  write_vduflag(VDU_FLAG_ENAPRINT,0);
   xgupp = ygupp = 1;
   SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
@@ -3110,7 +3110,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
     if (ch & 16) val=left;
     if (ch & 64) val+=right;
   }
-  if (mode7sepreal) {
+  if (vduflag(MODE7_SEPREAL)) {
     if (y == 0 || y == 6 || y == 7 || y == 13 || y==14 || y == 19) val = 0;
     val = val & hmask;
   }
@@ -3122,7 +3122,7 @@ void mode7renderline(int32 ypos) {
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
   
-  if (!mode7bitmapupdate || (screenmode != 7)) return;
+  if (!vduflag(MODE7_UPDATE) || (screenmode != 7)) return;
   /* Preserve values */
   l_text_physbackcol=text_physbackcol;
   l_text_backcol=text_backcol;
@@ -3135,13 +3135,13 @@ void mode7renderline(int32 ypos) {
   text_physforecol=text_forecol=7;
   set_rgb();
 
-  vdu141mode = 1;
-  vdu141on=0;
-  mode7highbit=0;
-  mode7sepgrp=0;
-  mode7conceal=0;
-  mode7hold = 0;
-  mode7flash=0;
+  write_vduflag(MODE7_VDU141MODE,1);
+  write_vduflag(MODE7_VDU141ON,0);
+  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_SEPGRP,0);
+  write_vduflag(MODE7_CONCEAL,0);
+  write_vduflag(MODE7_HOLD,0);
+  write_vduflag(MODE7_FLASH,0);
   mode7prevchar=32;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
@@ -3150,19 +3150,19 @@ void mode7renderline(int32 ypos) {
     /* Check the Set At codes here */
     switch (ch) {
       case TELETEXT_FLASH_OFF:
-	mode7flash=0;
+	write_vduflag(MODE7_FLASH,0);
 	break;
       case TELETEXT_SIZE_NORMAL:
-	vdu141on=0;
+	write_vduflag(MODE7_VDU141ON,0);
 	break;
       case TELETEXT_CONCEAL:
-	mode7conceal=1;
+	write_vduflag(MODE7_CONCEAL,1);
 	break;
       case TELETEXT_GRAPHICS_CONTIGUOUS:
-	mode7sepgrp=0;
+	write_vduflag(MODE7_SEPGRP,0);
 	break;
       case TELETEXT_GRAPHICS_SEPARATE:
-	mode7sepgrp=1;
+	write_vduflag(MODE7_SEPGRP,1);
 	break;
       case TELETEXT_BACKGROUND_BLACK:
 	text_physbackcol = text_backcol = 0;
@@ -3173,7 +3173,7 @@ void mode7renderline(int32 ypos) {
 	set_rgb();
 	break;
       case TELETEXT_GRAPHICS_HOLD:
-	mode7hold=1;
+	write_vduflag(MODE7_HOLD,1);
 	break;
     }
     /* Now we write the character. Copied and optimised from write_char() above */
@@ -3183,14 +3183,14 @@ void mode7renderline(int32 ypos) {
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     xch=ch;
-    if (mode7hold && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && mode7reveal) || (ch >= 153 && ch <= 159))) {
+    if (vduflag(MODE7_HOLD) && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && vduflag(MODE7_REVEAL)) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
     } else {
-      if (mode7highbit) {
+      if (vduflag(MODE7_HIGHBIT)) {
 	ch = ch | 0x80;
 	if (ch==223) ch=35;
 	if ((ch >= 0xC0) && (ch <= 0xDF)) ch = ch & 0x7F;
-	mode7sepreal=mode7sepgrp;
+	write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
       } else {
         if (ch==163) ch=96;
 	if (ch==223) ch=35;
@@ -3200,11 +3200,11 @@ void mode7renderline(int32 ypos) {
       }
     }
     for (y=0; y < M7YPPC; y++) {
-      if (mode7conceal && !mode7reveal) {
+      if (vduflag(MODE7_CONCEAL) && !vduflag(MODE7_REVEAL)) {
 	line=0;
       } else {
-	if (vdu141on) {
-	  yy=((y/2)+(M7YPPC*vdu141mode/2));
+	if (vduflag(MODE7_VDU141ON)) {
+	  yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
 	  if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) {
 	    line = teletextgraphic(ch, yy);
 	  } else if ((ch >= 128) && (ch <= 159)) line = 0;
@@ -3218,7 +3218,7 @@ void mode7renderline(int32 ypos) {
 	    else line = mode7font[ch-' '][y];
 	  }
 	}
-	if (mode7highbit && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)))
+	if (vduflag(MODE7_HIGHBIT) && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)))
 	  mode7prevchar=ch;
       }
       if (line!=0) {
@@ -3240,17 +3240,17 @@ void mode7renderline(int32 ypos) {
 	if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
       }
     }
-    if(!mode7bank || !mode7flash) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
+    if(!vduflag(MODE7_BANK) || !vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
-    if (mode7flash) SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
+    if (vduflag(MODE7_FLASH)) SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     ch=xch; /* restore value */
     /* And now handle the Set After codes */
     switch (ch) {
       case TELETEXT_ALPHA_BLACK:
-        if (mode7black) {
-	  mode7highbit=0;
-	  mode7conceal=0;
+        if (vduflag(MODE7_BLACK)) {
+	  write_vduflag(MODE7_HIGHBIT,0);
+	  write_vduflag(MODE7_CONCEAL,0);
 	  mode7prevchar=32;
 	  text_physforecol = text_forecol = 0;
 	  set_rgb();
@@ -3263,30 +3263,30 @@ void mode7renderline(int32 ypos) {
       case TELETEXT_ALPHA_MAGENTA:
       case TELETEXT_ALPHA_CYAN:
       case TELETEXT_ALPHA_WHITE:
-	mode7highbit=0;
-	mode7conceal=0;
+	write_vduflag(MODE7_HIGHBIT,0);
+	write_vduflag(MODE7_CONCEAL,0);
 	mode7prevchar=32;
 	text_physforecol = text_forecol = (ch - 128);
 	set_rgb();
 	break;
       case TELETEXT_FLASH_ON:
-	mode7flash=1;
+	write_vduflag(MODE7_FLASH,1);
 	break;
       case TELETEXT_SIZE_DOUBLEHEIGHT:
-	vdu141on = 1;
+	write_vduflag(MODE7_VDU141ON,1);
 	vdu141used=1;
 	if (vdu141track[ypos] < 2) {
 	  vdu141track[ypos] = 1;
 	  vdu141track[ypos+1]=2;
-	  vdu141mode = 0;
+	  write_vduflag(MODE7_VDU141MODE,0);
 	} else {
-	  vdu141mode = 1;
+	  write_vduflag(MODE7_VDU141MODE,1);
 	}
 	break;
       case TELETEXT_GRAPHICS_BLACK:
-	if (mode7black) {
-	  mode7highbit=1;
-	  mode7conceal=0;
+	if (vduflag(MODE7_BLACK)) {
+	  write_vduflag(MODE7_HIGHBIT,1);
+	  write_vduflag(MODE7_CONCEAL,0);
 	  text_physforecol = text_forecol = 0;
 	  set_rgb();
 	}
@@ -3298,8 +3298,8 @@ void mode7renderline(int32 ypos) {
       case TELETEXT_GRAPHICS_MAGENTA:
       case TELETEXT_GRAPHICS_CYAN:
       case TELETEXT_GRAPHICS_WHITE:
-	mode7highbit=1;
-	mode7conceal=0;
+	write_vduflag(MODE7_HIGHBIT,1);
+	write_vduflag(MODE7_CONCEAL,0);
 	text_physforecol = text_forecol = (ch - 144);
 	set_rgb();
 	 break;
@@ -3309,19 +3309,19 @@ void mode7renderline(int32 ypos) {
 	mode7prevchar=32;
 	break;
       case TELETEXT_GRAPHICS_RELEASE:
-	mode7hold=0;
+	write_vduflag(MODE7_HOLD,0);
 	break;
     }
   }
   do_sdl_updaterect(screen0, 0, topy, 640, M7YPPC);
 
-  vdu141on=0;
-  mode7highbit=0;
-  mode7sepgrp=0;
-  mode7sepreal=0;
-  mode7conceal=0;
-  mode7hold=0;
-  mode7flash=0;
+  write_vduflag(MODE7_VDU141ON,0);
+  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_SEPGRP,0);
+  write_vduflag(MODE7_SEPREAL,0);
+  write_vduflag(MODE7_CONCEAL,0);
+  write_vduflag(MODE7_HOLD,0);
+  write_vduflag(MODE7_FLASH,0);
   text_physbackcol=l_text_physbackcol;
   text_backcol=l_text_backcol;
   text_physforecol=l_text_physforecol;
@@ -3340,14 +3340,14 @@ void mode7renderline(int32 ypos) {
 
 void mode7renderscreen(void) {
   int32 ypos;
-  Uint8 bmpstate=mode7bitmapupdate;
+  Uint8 bmpstate=vduflag(MODE7_UPDATE);
   
   if (screenmode != 7) return;
   
-  mode7bitmapupdate=1;
+  write_vduflag(MODE7_UPDATE,1);
   for (ypos=0; ypos < 26;ypos++) vdu141track[ypos]=0;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos);
-  mode7bitmapupdate=bmpstate;
+  write_vduflag(MODE7_UPDATE,bmpstate);
 }
 
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {

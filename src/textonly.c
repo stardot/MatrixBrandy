@@ -175,6 +175,14 @@ static byte colourmap [] = {
 
 #endif
 
+static unsigned int vduflag(unsigned int flags) {
+  return (vduflags & flags) ? 1 : 0;
+}
+
+static void write_vduflag(unsigned int flags, int yesno) {
+  vduflags = yesno ? vduflags | flags : vduflags & ~flags;
+}
+
 #ifdef USE_ANSI
 /*
 ** 'find_cursor' reads the position of the cursor on the text
@@ -225,7 +233,7 @@ void find_cursor(void) {
 ** -- ANSI --
 */
 static void reset_screen(void) {
-  if (textwin) printf("\033[%d;%dr", 1, textheight);    /* Set scrolling region to whole screen */
+  if (vduflag(VDU_FLAG_TEXTWIN)) printf("\033[%d;%dr", 1, textheight);    /* Set scrolling region to whole screen */
 }
 
 /*
@@ -241,7 +249,7 @@ static void reset_screen(void) {
 */
 static void putch(int32 ch) {
   putchar(ch);
-  if (echo) fflush(stdout);
+  if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
 }
 
 /*
@@ -263,7 +271,7 @@ static void gotoxy(int32 x, int32 y) {
 ** -- ANSI --
 */
 static void scroll_text(updown direction) {
-  if (textwin) return;
+  if (vduflag(VDU_FLAG_TEXTWIN)) return;
   if (direction==SCROLL_UP)     /* Move screen up - Output a linefeed */
     printf("\n\033[%d;%dH", ytext+1, xtext+1);  /* Move screen up and move cursor to correct place */
   else {        /* Move screen down */
@@ -312,7 +320,7 @@ void set_cursor(boolean underline) {
 ** -- ANSI --
 */
 void echo_on(void) {
-  echo = TRUE;
+  write_vduflag(VDU_FLAG_ECHO,1);
   fflush(stdout);
 }
 
@@ -321,7 +329,7 @@ void echo_on(void) {
 ** -- ANSI --
 */
 void echo_off(void) {
-  echo = FALSE;
+  write_vduflag(VDU_FLAG_ECHO,0);
 }
 
 #else
@@ -462,7 +470,7 @@ textbackground(int32 colour) {
 */
 static void scroll_text(updown direction) {
   int n;
-  if (!textwin && direction==SCROLL_UP)         /* Text window is the whole screen and scrolling is upwards */
+  if (!vduflag(VDU_FLAG_TEXTWIN) && direction==SCROLL_UP)         /* Text window is the whole screen and scrolling is upwards */
     putch('\n');        /* Output a linefeed */
   else {        /* Writing to a text window */
 #ifdef TARGET_MINGW
@@ -629,7 +637,7 @@ static void vdu_setpalette(void) {
 */
 static void echo_char(void) {
   putchar(vduqueue[0]);
-  if (echo) fflush(stdout);
+  if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
 }
 
 /*
@@ -703,7 +711,7 @@ static void move_curup(void) {
 ** -- ANSI --
 */
 static void vdu_cleartext(void) {
-  if (textwin) {        /* Text window defined that does not occupy the whole screen */
+  if (vduflag(VDU_FLAG_TEXTWIN)) {        /* Text window defined that does not occupy the whole screen */
     int32 row;
     for (row = twintop; row<=twinbottom; row++) {
       printf("\033[%d;%dH\033[%dX", row+1, twinleft+1, twinright-twinleft+1);   /* Clear the line */
@@ -754,14 +762,14 @@ static void vdu_textwind(void) {
   twintop = top;
   twinbottom = bottom;
 /* Set flag to say if text window occupies only a part of the screen */
-  textwin = left>0 || right<textwidth-1 || top>0 || bottom<textheight-1;
+  write_vduflag(VDU_FLAG_TEXTWIN,(left>0 || right<textwidth-1 || top>0 || bottom<textheight-1));
 /*
 ** If the text window is the full width of the screen then it is
 ** possible to set a 'scrolling region' for that part of the screen
 ** using an ANSI control sequence so that the contents of the window
 ** can be scrolled up or down
 */
-  if (textwin && left==0 && right==textwidth-1) printf("\033[%d;%dr", twintop+1, twinbottom+1);
+  if (vduflag(VDU_FLAG_TEXTWIN) && left==0 && right==textwidth-1) printf("\033[%d;%dr", twintop+1, twinbottom+1);
   move_cursor(twinleft, twintop);       /* Move text cursor to home position in new window */
 }
 
@@ -852,7 +860,7 @@ static void move_curup(void) {
 ** -- conio --
 */
 static void vdu_cleartext(void) {
-  if (textwin) {        /* Text window defined that does not occupy the whole screen */
+  if (vduflag(VDU_FLAG_TEXTWIN)) {        /* Text window defined that does not occupy the whole screen */
     int32 column, row;
     for (row = twintop; row<=twinbottom; row++) {
       gotoxy(twinleft+1, row+1);        /* Go to start of line on screen */
@@ -901,7 +909,7 @@ static void vdu_textwind(void) {
   twintop = top;
   twinbottom = bottom;
 /* Set flag to say if text window occupies only a part of the screen */
-  textwin = left>0 || right<textwidth-1 || top>0 || bottom<textheight-1;
+  write_vduflag(VDU_FLAG_TEXTWIN,(left>0 || right<textwidth-1 || top>0 || bottom<textheight-1));
   move_cursor(twinleft, twintop);       /* Move text cursor to home position in new window */
 }
 
@@ -1048,7 +1056,7 @@ static void print_char(int32 charvalue) {
       ytext++;
       printf("\n\033[%dG", xtext+1);
     }
-    if (echo) fflush(stdout);
+    if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
   }
   else {        /* Output is going elsewhere, probably a file */
     putchar(charvalue);
@@ -1072,7 +1080,7 @@ static void print_char(int32 charvalue) {
         gotoxy(xtext+1, ytext+1);
       else {    /* Cursor is on bottom line of screen - Scroll screen up */
         ytext--;
-        if (textwin)
+        if (vduflag(VDU_FLAG_TEXTWIN))
           scroll_text(SCROLL_UP);
         else {
           gotoxy(xtext+1, ytext+1);
@@ -1102,7 +1110,7 @@ void emulate_vdu(int32 charvalue) {
       return;
     }
     else {      /* Control character - Found start of new VDU command */
-      if (!echo) fflush(stdout);
+      if (!vduflag(VDU_FLAG_ECHO)) fflush(stdout);
       vducmd = charvalue;
       vduneeded = vdubytes[charvalue];
       vdunext = 0;
@@ -1348,11 +1356,10 @@ static void setup_mode(int32 mode) {
     textwidth = modetable[mode].xtext;
     textheight = realheight;            /* Ignore the height of the screen as given by the mode def'n */
   }
-  enable_vdu = TRUE;
-  echo = TRUE;
+  write_vduflag(VDU_FLAG_ECHO,1);
   cursmode = UNDERLINE;
   cursorstate = ONSCREEN;      /* Text mode cursor is being displayed */
-  textwin = FALSE;              /* A text window has not been created yet */
+  write_vduflag(VDU_FLAG_TEXTWIN,0);              /* A text window has not been created yet */
   twinleft = 0;                 /* Set up initial text window to whole screen */
   twinright = textwidth-1;
   twintop = 0;
@@ -1783,7 +1790,7 @@ boolean init_screen(void) {
   }
   vdunext = 0;
   vduneeded = 0;
-  enable_print = FALSE;
+  write_vduflag(VDU_FLAG_ENAPRINT,0);
   setup_mode(mode);
   find_cursor();
  
@@ -1795,5 +1802,5 @@ boolean init_screen(void) {
 ** of the run
 */
 void end_screen(void) {
-  if (textwin) reset_screen();
+  if (vduflag(VDU_FLAG_TEXTWIN)) reset_screen();
 }
