@@ -252,11 +252,11 @@ static unsigned int vduflags = 0;	/* VDU flags */
 #define MODE7_CONCEAL		0x00080000	/* CONCEAL teletext flag */
 #define MODE7_SEPGRP		0x00100000	/* Separated graphics in Mode 7 */
 #define MODE7_SEPREAL		0x00200000	/* Separated graphics in Mode 7 */
-#define MODE7_HOLD		0x00400000	/* Hold Graphics flag */
-#define MODE7_FLASH		0x00800000	/* Flash flag */
-#define MODE7_REVEAL		0x01000000	/* RISC OS 5 - reveal content hidden by CONCEAL */
-#define MODE7_BLACK		0x02000000	/* RISC OS 5 - Allow teletext black codes */
-#define MODE7_BANK		0x04000000	/* Bank switching for Mode 7 Flashing */
+#define MODE7_FLASH		0x00400000	/* Flash flag */
+#define MODE7_BANK		0x00800000	/* Bank switching for Mode 7 Flashing */
+#define MODE7_HOLD		0x01000000	/* Hold Graphics flag */
+#define MODE7_REVEAL		0x02000000	/* RISC OS 5 - reveal content hidden by CONCEAL */
+#define MODE7_BLACK		0x04000000	/* RISC OS 5 - Allow teletext black codes */
 #define MODE7_UPDATE		0x08000000	/* RISC OS 5 - do we update bitmap and blit after each character */
 
 /*

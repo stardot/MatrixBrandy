@@ -3048,6 +3048,7 @@ boolean init_screen(void) {
   vdunext = 0;
   vduneeded = 0;
   write_vduflag(VDU_FLAG_ENAPRINT,0);
+  write_vduflag(MODE7_UPDATE,1);
   xgupp = ygupp = 1;
   SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
