@@ -468,6 +468,10 @@ int64 i;
   return;
 }
 
+void osbyte44(int x) {
+  fx44x=x;
+}
+
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
  | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU) | defined(TARGET_MINGW)
@@ -1715,10 +1719,6 @@ boolean init_keyboard(void) {
 
 void end_keyboard(void) {
   (void) tcsetattr(keyboard, TCSADRAIN, &origtty);
-}
-
-void osbyte44(int x) {
-  fx44x=x;
 }
 
 #endif
