@@ -27,6 +27,9 @@ A=42:	[Brandy only] Get or set various states
 	  11: Full Screen Toggle.
 	  Returned values: 00 (off) or 10 (on).
 A=43:	[Brandy only] Perform a VDU X to the controlling Linux terminal.
+A=44:	[Brandy only] X=1: CTRL-N and CTRL-P do line editing (default).
+		      X=0: CTRL-N and CTRL-P just send their codes.
+			   Arrow keys still do line editing.
 A=106	Select mouse pointer. Due to SDL limitations, this simply turns the
 	pointer on or off, and unlinking does nothing.
 A=112:	Selects which video bank the VDU drivers access. 4 available.

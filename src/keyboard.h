@@ -40,5 +40,5 @@ extern void end_keyboard(void);
 extern void checkforescape(void);
 extern void set_escint(int i);
 extern void set_escmul(int i);
-
+extern void osbyte44(int x);
 #endif

@@ -1713,7 +1713,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &29  41 Brandy local - set ESCAPE polling interval, multiplied by 256.
 * OSBYTE &2A  42 Brandy local - Get/set *REFRESH state
 * OSBYTE &2B  43 Brandy local - output X to Linux controlling terminal
-* OSBYTE &2C  44
+* OSBYTE &2C  44 Brandy locak - Enable/disable CTRL-N/CTRL-P for line editing.
 * OSBYTE &2D  45
 * OSBYTE &2E  46
 * OSBYTE &2F  47
@@ -1972,6 +1972,9 @@ switch (areg) {
 		printf("%c", xreg);
 		fflush(stdout);
 		break;
+	case 44:
+		osbyte44(xreg);
+		break; 
 	case 106:
 #ifdef USE_SDL
 		sdl_mouse_onoff(xreg & 0x7);
@@ -2078,7 +2081,7 @@ switch (areg) {
 #endif
 		break;
 	}
-if (areg <= 25 || (areg >= 40 && areg <= 43) || areg >= 106) 
+if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106) 
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
 else
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return

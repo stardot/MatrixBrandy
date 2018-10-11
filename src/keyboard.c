@@ -76,6 +76,7 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 static int nokeyboard=0;
 static int escint=128;
 static int escmul=1;
+static int fx44x=1;
 
 #ifdef TARGET_RISCOS
 
@@ -203,7 +204,9 @@ void end_keyboard(void) {
 #define CTRL_F          6
 #define CTRL_H          8
 #define CTRL_K          0x0B
+#define CTRL_L          0x0C
 #define CTRL_N          0x0E
+#define CTRL_O          0x0F
 #define CTRL_P          0x10
 #define CTRL_U          0x15
 #define ESCAPE          0x1B
@@ -1492,10 +1495,26 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       }
       break;
     case CTRL_P:        /* Move backwards one entry in the history list */
-      recall_histline(buffer, -1);
+      if (fx44x)
+	recall_histline(buffer, -1);
+#ifdef USE_SDL
+      else
+	emulate_vdu(16);
+#endif
       break;
     case CTRL_N:        /* Move forwards one entry in the history list */
-      recall_histline(buffer, 1);
+      if (fx44x)
+	recall_histline(buffer, 1);
+#ifdef USE_SDL
+      else
+	emulate_vdu(14);
+#endif
+      break;
+    case CTRL_O:
+    case CTRL_L:
+#ifdef USE_SDL
+      emulate_vdu(ch);
+#endif
       break;
     case CTRL_A:        /* Move cursor to start of line */
       display(VDU_CURBACK, place);
@@ -1696,6 +1715,10 @@ boolean init_keyboard(void) {
 
 void end_keyboard(void) {
   (void) tcsetattr(keyboard, TCSADRAIN, &origtty);
+}
+
+void osbyte44(int x) {
+  fx44x=x;
 }
 
 #endif
