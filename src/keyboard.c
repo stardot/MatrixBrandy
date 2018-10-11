@@ -54,6 +54,7 @@
 #include "keyboard-inkey.h"
 
 extern void mode7flipbank();
+extern void reset_vdu14lines();
 
 static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
@@ -907,6 +908,7 @@ int32 emulate_get(void) {
 #ifndef USE_SDL
   int32 errcode;
 #endif
+  reset_vdu14lines();
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* Not reading from the keyboard */
 /*
  * Check if characters are being taken from a function
@@ -962,6 +964,8 @@ int32 emulate_get(void) {
 ** appears to be undefined if the wait exceeds 32767 centiseconds.
 */
 
+Uint8 mousestate, *keystate=NULL;
+
 int32 emulate_inkey(int32 arg) {
   int32 result;
 #ifdef USE_SDL
@@ -984,7 +988,6 @@ int32 emulate_inkey(int32 arg) {
   else {        /* Check is a specific key is being pressed */
 #ifdef USE_SDL
     SDL_Event ev;
-    Uint8 mousestate, *keystate;
     if (arg < -128) return -1;
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
@@ -1007,6 +1010,25 @@ int32 emulate_inkey(int32 arg) {
 #endif
   }
   return 0;
+}
+
+/* This uses existing values of keystate and mousestate */
+int32 emulate_inkey2(int32 arg) {
+#ifdef USE_SDL
+  if (!keystate) return 0; /* Be nice if we've not called emulate_inkey earlier */
+  if ((arg <= -10) && (arg >= -12)) {
+    /* Mouse button INKEYs */
+    if ((arg == -10) && (mousestate & 1)) return -1;
+    if ((arg == -11) && (mousestate & 2)) return -1;
+    if ((arg == -12) && (mousestate & 4)) return -1;
+  }
+  if (keystate[inkeylookup[(arg * -1) -1]])
+    return -1;
+  else
+    return 0;
+#else
+  error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
+#endif
 }
 
 #endif

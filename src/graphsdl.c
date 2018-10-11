@@ -28,6 +28,7 @@
 **
 */
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -40,6 +41,7 @@
 #include "scrcommon.h"
 #include "screen.h"
 #include "mos.h"
+#include "keyboard.h"
 #include "graphsdl.h"
 #include "graphsdl-textfonts.h"
 
@@ -133,6 +135,8 @@ static Uint8 hardpalette[24];		/* palette for screen */
 
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
 
+static unsigned int vdu14lines = 0;	/* Line counter for VDU14 page mode */
+
 static int autorefresh=1;		/* Refresh screen on updates? */
 
 /* From geom.c */
@@ -145,9 +149,9 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_4_DIV(x) ((x)>>2)
 
 /* Data stores for controlling MODE 7 operation */
-Uint8 mode7frame[25][40];	/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
+Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
-static int64 mode7timer = 0;	/* Timer for bank switching */
+static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 
@@ -234,6 +238,10 @@ static void setm7font12() {
 
 static void setm7font16() {
   memcpy(mode7font, mode7fontro5, sizeof(mode7font));
+}
+
+void reset_vdu14lines(void) {
+  vdu14lines=0;
 }
 
 void reset_sysfont(int x) {
@@ -981,6 +989,14 @@ static void write_char(int32 ch) {
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
     ytext+=textyinc();
+    /* VDU14 check here */
+    if (vduflag(VDU_FLAG_ENAPAGE)) {
+      vdu14lines++;
+      if (vdu14lines > (twinbottom-twintop)) {
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	vdu14lines=0;
+      }
+    }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
       if (vdu2316byte & 16) {
 	ytext=textyhome();
@@ -1025,6 +1041,14 @@ static void write_char(int32 ch) {
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
     ytext+=textyinc();
+    /* VDU14 check here */
+    if (vduflag(VDU_FLAG_ENAPAGE)) {
+      vdu14lines++;
+      if (vdu14lines > (twinbottom-twintop)) {
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	vdu14lines=0;
+      }
+    }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
       if (vdu2316byte & 16) {
 	ytext=textyhome();
@@ -1276,6 +1300,14 @@ static void move_curdown(void) {
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
   } else {
+    /* VDU14 check here */
+    if (vduflag(VDU_FLAG_ENAPAGE)) {
+      vdu14lines++;
+      if (vdu14lines > (twinbottom-twintop)) {
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	vdu14lines=0;
+      }
+    }
     hide_cursor();	/* Remove cursor */
     move_down();
     reveal_cursor();	/* Redraw cursor */
@@ -1290,6 +1322,14 @@ static void move_curup(void) {
     ylast += YPPC*ygupp;
     if (ylast > gwintop) ylast = gwinbottom+YPPC*ygupp-1;	/* Move above top of window - Wrap around to bottow */
   } else {
+    /* VDU14 check here */
+    if (vduflag(VDU_FLAG_ENAPAGE)) {
+      vdu14lines++;
+      if (vdu14lines > (twinbottom-twintop)) {
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	vdu14lines=0;
+      }
+    }
     hide_cursor();	/* Remove cursor */
     move_up();
     reveal_cursor();	/* Redraw cursor */
@@ -1733,6 +1773,14 @@ void emulate_vdu(int32 charvalue) {
 	if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
 	  xtext = textxhome();
 	  ytext+=textyinc();
+	  /* VDU14 check here */
+	  if (vduflag(VDU_FLAG_ENAPAGE)) {
+	    vdu14lines++;
+	    if (vdu14lines > (twinbottom-twintop)) {
+	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	      vdu14lines=0;
+	    }
+	  }
 	  if (ytext > twinbottom) {
 	    if (vdu2316byte & 16) {
 	      ytext=textyhome();
@@ -1764,6 +1812,14 @@ void emulate_vdu(int32 charvalue) {
 	if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
 	  xtext = textxhome();
 	  ytext+=textyinc();
+	  /* VDU14 check here */
+	  if (vduflag(VDU_FLAG_ENAPAGE)) {
+	    vdu14lines++;
+	    if (vdu14lines > (twinbottom-twintop)) {
+	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	      vdu14lines=0;
+	    }
+	  }
 	  if (ytext > twinbottom) {
 	    ytext--;
 	    scroll(SCROLL_UP);
@@ -2104,6 +2160,7 @@ static void setup_mode(int32 mode) {
   graph_fore_action = graph_back_action = 0;
   reset_colours();
   init_palette();
+  write_vduflag(VDU_FLAG_ENAPAGE,0);
   if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
   SDL_FillRect(screen0, NULL, tb_colour);
   SDL_FillRect(modescreen, NULL, tb_colour);
