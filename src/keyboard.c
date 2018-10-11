@@ -915,7 +915,10 @@ int32 emulate_get(void) {
 #ifndef USE_SDL
   int32 errcode;
 #endif
+
+#ifdef USE_SDL
   reset_vdu14lines();
+#endif
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* Not reading from the keyboard */
 /*
  * Check if characters are being taken from a function
@@ -971,7 +974,9 @@ int32 emulate_get(void) {
 ** appears to be undefined if the wait exceeds 32767 centiseconds.
 */
 
+#ifdef USE_SDL
 Uint8 mousestate, *keystate=NULL;
+#endif
 
 int32 emulate_inkey(int32 arg) {
   int32 result;
