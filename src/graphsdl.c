@@ -150,7 +150,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
-static Uint8 mode7changed[25];			/* Marks changed lines */
+static Uint8 mode7changed[26];		/* Marks changed lines */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -227,7 +227,7 @@ static void reset_mode7() {
   place_rect.h=M7YPPC;
   font_rect.h=M7YPPC;
 
-  for(p=0;p<26;p++) vdu141track[p]=0;
+  for(p=0;p<26;p++) mode7changed[p]=vdu141track[p]=0;
   for (p=0; p<25; p++) {
     for (q=0; q<40; q++) mode7frame[p][q]=32;
   }
