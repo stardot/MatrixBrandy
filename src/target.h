@@ -27,8 +27,8 @@
 
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "14"
-#define BRANDY_DATE    "28 Sep 2018"
+#define BRANDY_PATCHLEVEL "15"
+#define BRANDY_DATE    "12 Oct 2018"
 
 #ifndef __target_h
 #define __target_h
