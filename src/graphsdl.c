@@ -104,7 +104,7 @@ static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 
-static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
+static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
 Uint32 tf_colour,       /* text foreground SDL rgb triple */
        tb_colour,       /* text background SDL rgb triple */
@@ -150,6 +150,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
+static Uint8 mode7changed[25];			/* Marks changed lines */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -872,7 +873,10 @@ static void scroll(updown direction) {
         SDL_FillRect(screen2A, &line_rect, tb_colour);
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
-      for(n=2; n<=25; n++) vdu141track[n-1]=vdu141track[n];
+      for(n=2; n<=25; n++) { 
+	vdu141track[n-1]=vdu141track[n];
+	mode7changed[n-1]=mode7changed[n];
+      }
       vdu141track[25]=0;
       vdu141track[0]=0;
       /* Scroll the Mode 7 text buffer */
@@ -910,7 +914,10 @@ static void scroll(updown direction) {
         SDL_FillRect(screen2A, &line_rect, tb_colour);
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
-      for(n=0; n<=24; n++) vdu141track[n+1]=vdu141track[n];
+      for(n=0; n<=24; n++) {
+	vdu141track[n+1]=vdu141track[n];
+	mode7changed[n+1]=mode7changed[n];
+      }
       vdu141track[0]=0; vdu141track[1]=0;
       /* Scroll the Mode 7 text buffer */
       for (m=twintop; m<=twinbottom-1; m++) {
@@ -953,19 +960,28 @@ static void echo_text(void) {
     blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
 }
 
+unsigned long m7updatetimer=0;
 void mode7flipbank() {
+  unsigned long mytime;
+  int32 ypos;
+  
   if (screenmode == 7) {
-    if ((mode7timer - mos_centiseconds()) <= 0) {
+    mytime=mos_centiseconds();
+    if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
+      for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
+      m7updatetimer=mytime;
+    }
+    if ((mode7timer - mytime) <= 0) {
       hide_cursor();
       if (!vduflag(MODE7_UPDATE)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
 	SDL_BlitSurface(screen2, NULL, screen0, NULL);
 	write_vduflag(MODE7_BANK,0);
-	mode7timer=mos_centiseconds() + 100;
+	mode7timer=mytime + 100;
       } else {
 	SDL_BlitSurface(screen3, NULL, screen0, NULL);
 	write_vduflag(MODE7_BANK,1);
-	mode7timer=mos_centiseconds() + 33;
+	mode7timer=mytime + 33;
       }
       do_sdl_updaterect(screen0, 0, 0, 0, 0);
       reveal_cursor();
@@ -1807,7 +1823,8 @@ void emulate_vdu(int32 charvalue) {
 	} else {
 	  mode7frame[ytext][xtext]=charvalue;
 	}
-	mode7renderline(ytext);
+	mode7changed[ytext]=1;
+	//mode7renderline(ytext);
 	xtext+=textxinc();
 	if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
 	  xtext = textxhome();
@@ -3202,6 +3219,11 @@ void mode7renderline(int32 ypos) {
   write_vduflag(MODE7_FLASH,0);
   mode7prevchar=32;
 
+  m7_rect.x=0;
+  m7_rect.w=40*M7XPPC;
+  m7_rect.y=ypos*M7YPPC;
+  m7_rect.h=M7YPPC;
+
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   for (xtext=0; xtext<=39; xtext++) {
     ch=mode7frame[ypos][xtext];
@@ -3298,7 +3320,6 @@ void mode7renderline(int32 ypos) {
 	if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
       }
     }
-    if(!vduflag(MODE7_BANK) || !vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen0, &place_rect);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
     if (vduflag(MODE7_FLASH)) SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
@@ -3371,7 +3392,8 @@ void mode7renderline(int32 ypos) {
 	break;
     }
   }
-  do_sdl_updaterect(screen0, 0, topy, 640, M7YPPC);
+  SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, screen0, &m7_rect);
+  do_sdl_updaterect(screen0, 0, topy, 40*M7XPPC, M7YPPC);
 
   write_vduflag(MODE7_VDU141ON,0);
   write_vduflag(MODE7_HIGHBIT,0);
@@ -3387,6 +3409,7 @@ void mode7renderline(int32 ypos) {
   set_rgb();
   xtext=xt;
   ytext=yt;
+  mode7changed[ypos]=0;
 
   /* Cascade VDU141 changes */
   if ((!vdu141used) && vdu141track[ypos]==1) vdu141track[ypos]=0;
