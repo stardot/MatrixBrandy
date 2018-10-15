@@ -23,9 +23,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <setjmp.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "common.h"
 #include "target.h"
 #include "basicdefs.h"
@@ -45,11 +50,13 @@
 /* #define DEBUG */
 
 workspace basicvars;		/* This contains all the important interpreter variables */
+matrixbits matrixflags;		/* This contains flags used by Matrix Brandy extensions */
 
 /* Forward references */
 
 static void init1(void);
 static void init2(void);
+static void gpio_init(void);
 static void check_cmdline(int, char *[]);
 static void run_interpreter(void);
 
@@ -77,6 +84,7 @@ int main(int argc, char *argv[]) {
   check_cmdline(argc, argv);
 #endif
   init2();
+  gpio_init();
   run_interpreter();
   return EXIT_FAILURE;
 }
@@ -157,6 +165,25 @@ static void init1(void) {
  * This is the Basic program's name
  */
   add_arg("");
+}
+
+static void gpio_init() {
+  int fd;
+
+  matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
+  matrixflags.gpiomem = basicvars.offbase-1;	/* Initialise, will internally return &FFFFFFFF */
+  fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
+  if (fd == -1) return;				/* Couldn't open /dev/gpiomem - exit quietly */
+
+  matrixflags.gpiomem=mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+  close(fd);
+  if (matrixflags.gpiomem == MAP_FAILED) {
+    matrixflags.gpiomem = NULL;
+    return;
+  }
+  /* If we got here, mmap succeeded. */
+  matrixflags.gpio = 1;
+  return;
 }
 
 /*

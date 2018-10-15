@@ -503,6 +503,13 @@ typedef struct {
 
 extern workspace basicvars;		/* Interpreter variables for the Basic program */
 
+/* Flags used by Matrix Brandy extensions, that need to be available in more than one place */
+typedef struct {
+  int gpio;				/* TRUE if RPi GPIO present and usable */
+  byte *gpiomem;		/* Pointer for where mmap() places /dev/gpiomem */
+} matrixbits;
+extern matrixbits matrixflags;
+
 extern void exit_interpreter(int);
 
 #endif

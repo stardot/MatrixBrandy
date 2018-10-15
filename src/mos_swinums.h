@@ -26,6 +26,8 @@ typedef struct {
 
 #define SWI_Brandy_Version		0x140000
 
+#define SWI_RaspberryPi_GPIOInfo	0x140100
+
 static switable swilist[] = {
 	{SWI_OS_WriteC,			"OS_WriteC"},
 	{SWI_OS_Write0,			"OS_Write0"},
@@ -42,6 +44,8 @@ static switable swilist[] = {
 	{SWI_ColourTrans_SetTextColour,	"ColourTrans_SetTextColour"},
 
 	{SWI_Brandy_Version,		"Brandy_Version"},
+
+	{SWI_RaspberryPi_GPIOInfo,	"RaspberryPi_GPIOInfo"},
 
 	{0xFFFFFFFF,		"End_of_list"}
 };

@@ -104,6 +104,9 @@ byte *alignaddr(byte *addr) {
 void check_read(uint32 low, uint32 size) {
 #ifndef TARGET_RISCOS
   byte *lowaddr = basicvars.offbase+low;
+  if (matrixflags.gpio) {
+    if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
+  }
   if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
 #endif
@@ -126,6 +129,9 @@ void check_write(uint32 low, uint32 size) {
   lowaddr = basicvars.offbase+low;
   highaddr = lowaddr+size;
 
+  if (matrixflags.gpio) {
+    if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
+  }
 #if 1
 /*
  * Quick hack to fix the DIM LOCAL problem. I must think of a

@@ -1619,6 +1619,10 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[1]=atoi(BRANDY_MINOR);
       outregs[2]=atoi(BRANDY_PATCHLEVEL);
       break;
+    case SWI_RaspberryPi_GPIOInfo:
+      outregs[0]=matrixflags.gpio;
+      outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
+      break;
     default:
       error(ERR_SWINUMNOTKNOWN, swino);
   }
