@@ -384,7 +384,9 @@ static void list_program(void) {
         emulate_printf("\r          \r");       /* Overwrite 'more' */
       }
     }
+#ifdef USE_SDL
     if (emulate_inkey(-113)) basicvars.escape=TRUE;
+#endif
     if (basicvars.escape) error(ERR_ESCAPE);
   }
 }
