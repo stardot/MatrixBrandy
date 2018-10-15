@@ -376,13 +376,13 @@ void show_byte(int32 low, int32 high) {
   count = high-low;
   check_read(low,count);
   for (n=0; n<count; n+=16) {
-    emulate_printf("%06x  ", low);
+    emulate_printf("%06X  ", low);
     x = 0;
     for (ll=0; ll<16; ll++) {
       if (n+ll>=count)
         emulate_printf("   ");
       else {
-        emulate_printf("%02x ", basicvars.offbase[low+ll]);
+        emulate_printf("%02X ", basicvars.offbase[low+ll]);
       }
       x++;
       if (x==4) {
@@ -423,7 +423,7 @@ void show_word(int32 low, int32 high) {
   count = high-low;
   check_read(low,count);
   for (n=0; n<count; n+=16) {
-    emulate_printf("%06x  +%04x  %08x  %08x  %08x  %08x  ",
+    emulate_printf("%06X  +%04X  %08X  %08X  %08X  %08X  ",
      low, n, get_integer(low), get_integer(low+4), get_integer(low+8), get_integer(low+12));
     for (ll = 0; ll<16; ll++) {
       if (n+ll>=count)
