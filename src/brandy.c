@@ -171,13 +171,13 @@ static void gpio_init() {
   int fd;
   char *test="Hello World\r";
 
-  matrixflags.gpio = 1;				/* Initialise the flag to 0 (not enabled) */
+  matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
   //matrixflags.gpiomem = (basicvars.offbase-1;	/* Initialise, will internally return &FFFFFFFF */
   matrixflags.gpiomem = (byte *)test;	/* Initialise, will internally return &FFFFFFFF */
   fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
   if (fd == -1) return;				/* Couldn't open /dev/gpiomem - exit quietly */
 
-  matrixflags.gpiomem=mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+  matrixflags.gpiomem=(byte *)mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
   close(fd);
   if (matrixflags.gpiomem == MAP_FAILED) {
     matrixflags.gpiomem = NULL;
