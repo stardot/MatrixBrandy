@@ -172,6 +172,7 @@ static void gpio_init() {
 
   matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
   matrixflags.gpiomem = basicvars.offbase-1;	/* Initialise, will internally return &FFFFFFFF */
+#ifndef TARGET_MINGW
   fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
   if (fd == -1) return;				/* Couldn't open /dev/gpiomem - exit quietly */
 
@@ -183,6 +184,7 @@ static void gpio_init() {
   }
   /* If we got here, mmap succeeded. */
   matrixflags.gpio = 1;
+#endif
   return;
 }
 
