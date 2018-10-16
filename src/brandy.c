@@ -184,6 +184,7 @@ static void gpio_init() {
   }
   /* If we got here, mmap succeeded. */
   matrixflags.gpio = 1;
+  matrixflags.gpiomemint=(uint32 *)matrixflags.gpiomem;
 #endif
   return;
 }
