@@ -512,6 +512,7 @@ static detail errortable [] = {
   {NONFATAL, NOPARM, 246, "Host not found"},
   {NONFATAL, NOPARM, 246, "The maximum allowed number of sockets is already open"},
   {NONFATAL, NOPARM, 246, "Network operation not supported"},
+  {NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
   {NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
 };
 

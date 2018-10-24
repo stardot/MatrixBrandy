@@ -194,6 +194,7 @@ typedef enum {
     ERR_NET_NOTFOUND,	/* 246, Host not found */
     ERR_NET_MAXSOCKETS,	/* 246, Maximum number of sockets already open */
     ERR_NET_NOTSUPP,	/* 246, Network operation not supported */
+    ERR_NO_RPI_GPIO,	/* 510, Raspberry Pi GPIO not available */
     HIGHERROR		/* Leave last, dummy error */
 } errnum;
 

@@ -104,6 +104,9 @@ byte *alignaddr(byte *addr) {
 void check_read(uint32 low, uint32 size) {
 #ifndef TARGET_RISCOS
   byte *lowaddr = basicvars.offbase+low;
+  if (matrixflags.gpio) {
+    if ((lowaddr >= matrixflags.gpiomem) && (lowaddr+size < (0x1000 + matrixflags.gpiomem))) return;
+  }
   if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
 #endif
@@ -126,6 +129,9 @@ void check_write(uint32 low, uint32 size) {
   lowaddr = basicvars.offbase+low;
   highaddr = lowaddr+size;
 
+  if (matrixflags.gpio) {
+    if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
+  }
 #if 1
 /*
  * Quick hack to fix the DIM LOCAL problem. I must think of a
@@ -364,17 +370,19 @@ byte *find_line(int32 lineno) {
 void show_byte(int32 low, int32 high) {
   int32 n, x, ll, count;
   byte ch;
-  if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
-  if (high>basicvars.worksize) high = basicvars.worksize-1;
+  //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
+  if (low>high) return;
+  //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
+  check_read(low,count);
   for (n=0; n<count; n+=16) {
-    emulate_printf("%06x  ", low);
+    emulate_printf("%06X  ", low);
     x = 0;
     for (ll=0; ll<16; ll++) {
       if (n+ll>=count)
         emulate_printf("   ");
       else {
-        emulate_printf("%02x ", basicvars.offbase[low+ll]);
+        emulate_printf("%02X ", basicvars.offbase[low+ll]);
       }
       x++;
       if (x==4) {
@@ -409,11 +417,13 @@ void show_word(int32 low, int32 high) {
   byte ch;
   low = ALIGN(low);
   high = ALIGN(high);
-  if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
-  if (high>basicvars.worksize) high = basicvars.worksize;
+  //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
+  if (low>high) return;
+  //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
+  check_read(low,count);
   for (n=0; n<count; n+=16) {
-    emulate_printf("%06x  +%04x  %08x  %08x  %08x  %08x  ",
+    emulate_printf("%06X  +%04X  %08X  %08X  %08X  %08X  ",
      low, n, get_integer(low), get_integer(low+4), get_integer(low+8), get_integer(low+12));
     for (ll = 0; ll<16; ll++) {
       if (n+ll>=count)

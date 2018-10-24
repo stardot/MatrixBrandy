@@ -99,6 +99,33 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 #define BBC_OSWORD 0xFFF1
 #define BBC_OSBYTE 0xFFF4
 
+/* Some defines for the Raspberry Pi GPIO support */
+#define GPSET0 7
+#define GPSET1 8
+
+#define GPCLR0 10
+#define GPCLR1 11
+
+#define GPLEV0 13
+#define GPLEV1 14
+
+#define GPPUD     37
+#define GPPUDCLK0 38
+#define GPPUDCLK1 39
+
+#define PI_BANK (inregs[0]>>5)
+#define PI_BIT  (1<<(inregs[0]&0x1F))
+
+#define PI_INPUT  0
+#define PI_OUTPUT 1
+#define PI_ALT0   4
+#define PI_ALT1   5
+#define PI_ALT2   6
+#define PI_ALT3   7
+#define PI_ALT4   3
+#define PI_ALT5   2
+
+
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
 /* =================================================================== */
@@ -1618,6 +1645,48 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=atoi(BRANDY_MAJOR);
       outregs[1]=atoi(BRANDY_MINOR);
       outregs[2]=atoi(BRANDY_PATCHLEVEL);
+      break;
+    case SWI_RaspberryPi_GPIOInfo:
+      outregs[0]=matrixflags.gpio;
+      outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
+      break;
+    case SWI_RaspberryPi_GetGPIOPinMode:
+      if (!matrixflags.gpio) {
+	if (!xflag) error(ERR_NO_RPI_GPIO);
+	return;
+      }
+      outregs[0]=(*(matrixflags.gpiomemint + (inregs[0]/10)) >> ((inregs[0]%10)*3)) & 7;
+      break;
+    case SWI_RaspberryPi_SetGPIOPinMode:
+      if (!matrixflags.gpio) {
+	if (!xflag) error(ERR_NO_RPI_GPIO);
+	return;
+      }
+      matrixflags.gpiomemint[(inregs[0]/10)] = (matrixflags.gpiomemint[(inregs[0]/10)] & ~(7<<((inregs[0]%10)*3))) | (inregs[1]<<((inregs[0]%10)*3));
+      break;
+    case SWI_RaspberryPi_SetGPIOPinPullUpDownMode:
+      if (!matrixflags.gpio) {
+	if (!xflag) error(ERR_NO_RPI_GPIO);
+	return;
+      }
+      matrixflags.gpiomemint[37] = inregs[1];
+      usleep(50);
+      matrixflags.gpiomemint[38+(inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
+      break;
+    case SWI_RaspberryPi_ReadGPIOPin:
+      if (!matrixflags.gpio) {
+	if (!xflag) error(ERR_NO_RPI_GPIO);
+	return;
+      }
+      outregs[0]=(matrixflags.gpiomemint[13 + (inregs[0]>>5)] & (1<<(inregs[0]&0x1F))) ? 1 : 0;
+      break;
+    case SWI_RaspberryPi_WriteGPIOPin:
+      if (!matrixflags.gpio) {
+	if (!xflag) error(ERR_NO_RPI_GPIO);
+	return;
+      }
+      if (inregs[1] == 0) matrixflags.gpiomemint[10 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
+      else                matrixflags.gpiomemint[7 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
       break;
     default:
       error(ERR_SWINUMNOTKNOWN, swino);
