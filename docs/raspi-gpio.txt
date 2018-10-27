@@ -16,11 +16,11 @@ With the exception of the above SYS call, all the other GPIO calls report the
 error "Raspberry Pi GPIO not available" if present% is 0 (and it wasn't called
 as an X call).
 
-The remaining SYS calls all take the GPIO pin number in R0 and the parameter,
+The remaining SYS calls all take the GPIO port number in R0 and the parameter,
 if required, in R1. Those that return a value do so in R0.
 
 The other GPIO calls are:
-RaspberryPi_GetGPIOPinMode: R0=pin
+RaspberryPi_GetGPIOPortMode: R0=port
 	Returns a value from 0 to 7:
 		0: Input
 		1: Output
@@ -31,16 +31,16 @@ RaspberryPi_GetGPIOPinMode: R0=pin
 		6: ALT2
 		7: ALT3
 
-RaspberryPi_SetGPIOPinMode: R0=pin, R1=mode (as above).
+RaspberryPi_SetGPIOPortMode: R0=port, R1=mode (as above).
 
-RaspberryPi_SetGPIOPinPullUpDownMode: R0=pin, R1=mode
+RaspberryPi_SetGPIOPortPullUpDownMode: R0=port, R1=mode
 		0: Off
 		1: Down
 		2: Up
 
-RaspberryPi_ReadGPIOPin: R0=pin. Value returned in R0.
+RaspberryPi_ReadGPIOPort: R0=port. Value returned in R0.
 
-RaspberryPi_WriteGPIOPin: R0=pin, R1=value
+RaspberryPi_WriteGPIOPort: R0=port, R1=value
 
 As an alternative to the SYS calls, a slightly modified version of BBCSDL's
 gpiolib.bbc by Richard Russell should also work, with the following change:

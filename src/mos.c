@@ -1650,21 +1650,21 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=matrixflags.gpio;
       outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;
-    case SWI_RaspberryPi_GetGPIOPinMode:
+    case SWI_RaspberryPi_GetGPIOPortMode:
       if (!matrixflags.gpio) {
 	if (!xflag) error(ERR_NO_RPI_GPIO);
 	return;
       }
       outregs[0]=(*(matrixflags.gpiomemint + (inregs[0]/10)) >> ((inregs[0]%10)*3)) & 7;
       break;
-    case SWI_RaspberryPi_SetGPIOPinMode:
+    case SWI_RaspberryPi_SetGPIOPortMode:
       if (!matrixflags.gpio) {
 	if (!xflag) error(ERR_NO_RPI_GPIO);
 	return;
       }
       matrixflags.gpiomemint[(inregs[0]/10)] = (matrixflags.gpiomemint[(inregs[0]/10)] & ~(7<<((inregs[0]%10)*3))) | (inregs[1]<<((inregs[0]%10)*3));
       break;
-    case SWI_RaspberryPi_SetGPIOPinPullUpDownMode:
+    case SWI_RaspberryPi_SetGPIOPortPullUpDownMode:
       if (!matrixflags.gpio) {
 	if (!xflag) error(ERR_NO_RPI_GPIO);
 	return;
@@ -1673,14 +1673,14 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       usleep(50);
       matrixflags.gpiomemint[38+(inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
       break;
-    case SWI_RaspberryPi_ReadGPIOPin:
+    case SWI_RaspberryPi_ReadGPIOPort:
       if (!matrixflags.gpio) {
 	if (!xflag) error(ERR_NO_RPI_GPIO);
 	return;
       }
       outregs[0]=(matrixflags.gpiomemint[13 + (inregs[0]>>5)] & (1<<(inregs[0]&0x1F))) ? 1 : 0;
       break;
-    case SWI_RaspberryPi_WriteGPIOPin:
+    case SWI_RaspberryPi_WriteGPIOPort:
       if (!matrixflags.gpio) {
 	if (!xflag) error(ERR_NO_RPI_GPIO);
 	return;

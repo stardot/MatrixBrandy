@@ -27,11 +27,11 @@ typedef struct {
 #define SWI_Brandy_Version				0x140000
 
 #define SWI_RaspberryPi_GPIOInfo			0x140100
-#define SWI_RaspberryPi_GetGPIOPinMode			0x140101
-#define SWI_RaspberryPi_SetGPIOPinMode			0x140102
-#define SWI_RaspberryPi_SetGPIOPinPullUpDownMode	0x140103
-#define SWI_RaspberryPi_ReadGPIOPin			0x140104
-#define SWI_RaspberryPi_WriteGPIOPin			0x140105
+#define SWI_RaspberryPi_GetGPIOPortMode			0x140101
+#define SWI_RaspberryPi_SetGPIOPortMode			0x140102
+#define SWI_RaspberryPi_SetGPIOPortPullUpDownMode	0x140103
+#define SWI_RaspberryPi_ReadGPIOPort			0x140104
+#define SWI_RaspberryPi_WriteGPIOPort			0x140105
 
 static switable swilist[] = {
 	{SWI_OS_WriteC,					"OS_WriteC"},
@@ -51,11 +51,11 @@ static switable swilist[] = {
 	{SWI_Brandy_Version,				"Brandy_Version"},
 
 	{SWI_RaspberryPi_GPIOInfo,			"RaspberryPi_GPIOInfo"},
-	{SWI_RaspberryPi_GetGPIOPinMode,		"RaspberryPi_GetGPIOPinMode"},
-	{SWI_RaspberryPi_SetGPIOPinMode,		"RaspberryPi_SetGPIOPinMode"},
-	{SWI_RaspberryPi_SetGPIOPinPullUpDownMode,	"RaspberryPi_SetGPIOPinPullUpDownMode"},
-	{SWI_RaspberryPi_ReadGPIOPin,			"RaspberryPi_ReadGPIOPin"},
-	{SWI_RaspberryPi_WriteGPIOPin,			"RaspberryPi_WriteGPIOPin"},
+	{SWI_RaspberryPi_GetGPIOPortMode,		"RaspberryPi_GetGPIOPortMode"},
+	{SWI_RaspberryPi_SetGPIOPortMode,		"RaspberryPi_SetGPIOPortMode"},
+	{SWI_RaspberryPi_SetGPIOPortPullUpDownMode,	"RaspberryPi_SetGPIOPortPullUpDownMode"},
+	{SWI_RaspberryPi_ReadGPIOPort,			"RaspberryPi_ReadGPIOPort"},
+	{SWI_RaspberryPi_WriteGPIOPort,			"RaspberryPi_WriteGPIOPort"},
 
 	{0xFFFFFFFF,		"End_of_list"}
 };
