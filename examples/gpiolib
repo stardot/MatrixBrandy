@@ -1,0 +1,28 @@
+REM GPIO library for the Raspberry Pi 2, RPi 3 or RPi Zero
+REM Michael McConnell for Matrix Brandy http://brandy.matrixnetwork.co.uk/
+REM Interface compatible with Richard Russell's gpiolib.bbc from BBCSDL
+:
+REM Setup GPIO, call once during initialisation:
+DEF FN_gpio_setup
+LOCAL present%
+SYS "RaspberryPi_GPIOInfo" TO present%,G%
+IF present%=0 THEN ERROR 0, "GPIO not present or usable"
+=G%
+REM Always use PROC_gpio_inp() before using PROC_gpio_out() or PROC_gpio_alt()
+DEF PROC_gpio_inp(G%,P%) : SYS "RaspberryPi_SetGPIOPortMode",P%,0 : ENDPROC : REM Set to input
+DEF PROC_gpio_out(G%,P%) : SYS "RaspberryPi_SetGPIOPortMode",P%,1 : ENDPROC : REM Set to output
+:
+REM Alternative pin functions; A% = 4 to 7 (alt 0 to 3), 3 (alt 4) or 2 (alt 5):
+DEF PROC_gpio_alt(G%,P%,A%) : SYS "RaspberryPi_SetGPIOPortMode",P%,A% : ENDPROC : REM Set alt function
+:
+REM Set or clear one or more pins, D% is a bit mask:
+DEF PROC_gpio_set(G%,D%)
+FOR l%=0 TO 31: IF D% AND (1<<l%) THEN SYS "RaspberryPi_WriteGPIOPort",l%,1
+NEXT: ENDPROC
+DEF PROC_gpio_clr(G%,D%)
+FOR l%=0 TO 31: IF D% AND (1<<l%) THEN SYS "RaspberryPi_WriteGPIOPort",l%,0
+NEXT: ENDPROC
+:
+REM Configure pull-ups or pull-downs, D% is a bit mask:
+DEF PROC_gpio_pull(G%,P%) : G%!&94 = P% : ENDPROC : REM Pull up (2), down (1), neither (0)
+DEF PROC_gpio_pullclk0(G%,D%) : G%!&98 = D% : ENDPROC : REM Clock Pull up / down to pin(s)

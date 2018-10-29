@@ -1672,6 +1672,10 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       matrixflags.gpiomemint[37] = inregs[1];
       usleep(50);
       matrixflags.gpiomemint[38+(inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
+      usleep(50);
+      matrixflags.gpiomemint[37] = 0;
+      usleep(50);
+      matrixflags.gpiomemint[38+(inregs[0]>>5)] = 0;
       break;
     case SWI_RaspberryPi_ReadGPIOPort:
       if (!matrixflags.gpio) {
