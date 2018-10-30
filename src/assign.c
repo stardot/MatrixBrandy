@@ -816,7 +816,7 @@ static void assiminus_float(pointers address) {
 }
 
 /*
-** 'addass_intbyteptr' handles the '-=' assignment operator for single
+** 'assiminus_intbyteptr' handles the '-=' assignment operator for single
 ** byte integer indirect variables
 */
 static void assiminus_intbyteptr(pointers address) {
@@ -926,6 +926,250 @@ static void assiminus_badtype(pointers address) {
   error(ERR_BADARITH);	/* Cannot use '-=' on string operands */
 }
 
+static void assibit_badtype(pointers address) {
+  error(ERR_BADBITWISE);	/* Cannot use bitwise operations on these operands */
+}
+
+/*
+** 'assiand_intword' handles the 'AND=' assignment operator for integer
+** variables
+*/
+static void assiand_intword(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.intaddr&=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    *address.intaddr&=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assiand_intbyteptr' handles the 'AND=' assignment operator for single
+** byte integer indirect variables
+*/
+static void assiand_intbyteptr(pointers address) {
+  stackitem exprtype;
+  check_write(address.offset, sizeof(byte));
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    basicvars.offbase[address.offset]&=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    basicvars.offbase[address.offset]&=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assiand_intwordptr' handles the 'AND=' assignment operator for word
+** indirect integer variables
+*/
+static void assiand_intwordptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_integer(address.offset, get_integer(address.offset) & pop_int());
+  else if (exprtype==STACK_FLOAT)
+    store_integer(address.offset, get_integer(address.offset) & TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assior_intword' handles the 'OR=' assignment operator for integer
+** variables
+*/
+static void assior_intword(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.intaddr|=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    *address.intaddr|=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assior_intbyteptr' handles the 'OR=' assignment operator for single
+** byte integer indirect variables
+*/
+static void assior_intbyteptr(pointers address) {
+  stackitem exprtype;
+  check_write(address.offset, sizeof(byte));
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    basicvars.offbase[address.offset]|=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    basicvars.offbase[address.offset]|=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assior_intwordptr' handles the 'OR=' assignment operator for word
+** indirect integer variables
+*/
+static void assior_intwordptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_integer(address.offset, get_integer(address.offset) | pop_int());
+  else if (exprtype==STACK_FLOAT)
+    store_integer(address.offset, get_integer(address.offset) | TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_intword' handles the 'EOR=' assignment operator for integer
+** variables
+*/
+static void assieor_intword(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.intaddr^=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    *address.intaddr^=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_intbyteptr' handles the 'EOR=' assignment operator for single
+** byte integer indirect variables
+*/
+static void assieor_intbyteptr(pointers address) {
+  stackitem exprtype;
+  check_write(address.offset, sizeof(byte));
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    basicvars.offbase[address.offset]^=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    basicvars.offbase[address.offset]^=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_intwordptr' handles the 'EOR=' assignment operator for word
+** indirect integer variables
+*/
+static void assieor_intwordptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_integer(address.offset, get_integer(address.offset) ^ pop_int());
+  else if (exprtype==STACK_FLOAT)
+    store_integer(address.offset, get_integer(address.offset) ^ TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assimod_intword' handles the 'MOD=' assignment operator for integer
+** variables
+*/
+static void assimod_intword(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.intaddr%=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    *address.intaddr%=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assimod_intbyteptr' handles the 'MOD=' assignment operator for single
+** byte integer indirect variables
+*/
+static void assimod_intbyteptr(pointers address) {
+  stackitem exprtype;
+  check_write(address.offset, sizeof(byte));
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    basicvars.offbase[address.offset]%=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    basicvars.offbase[address.offset]%=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assimod_intwordptr' handles the 'MOD=' assignment operator for word
+** indirect integer variables
+*/
+static void assimod_intwordptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_integer(address.offset, get_integer(address.offset) % pop_int());
+  else if (exprtype==STACK_FLOAT)
+    store_integer(address.offset, get_integer(address.offset) % TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assidiv_intword' handles the 'DIV=' assignment operator for integer
+** variables
+*/
+static void assidiv_intword(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.intaddr/=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    *address.intaddr/=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assidiv_intbyteptr' handles the 'DIV=' assignment operator for single
+** byte integer indirect variables
+*/
+static void assidiv_intbyteptr(pointers address) {
+  stackitem exprtype;
+  check_write(address.offset, sizeof(byte));
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    basicvars.offbase[address.offset]/=pop_int();
+  else if (exprtype==STACK_FLOAT)
+    basicvars.offbase[address.offset]/=TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assidiv_intwordptr' handles the 'DIV=' assignment operator for word
+** indirect integer variables
+*/
+static void assidiv_intwordptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_integer(address.offset, get_integer(address.offset) / pop_int());
+  else if (exprtype==STACK_FLOAT)
+    store_integer(address.offset, get_integer(address.offset) / TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
 static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intword, assign_float,
   assign_stringdol, assignment_invalid, assignment_invalid, assignment_invalid,
@@ -951,6 +1195,51 @@ static void (*assiminus_table[])(pointers) = {
   assiminus_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
   assignment_invalid, assiminus_intbyteptr, assiminus_intwordptr, assiminus_floatptr,
   assignment_invalid, assiminus_badtype, assignment_invalid, assignment_invalid
+};
+
+static void (*assiand_table[])(pointers) = {
+  assignment_invalid, assignment_invalid, assiand_intword, assibit_badtype,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assibit_badtype,
+  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+};
+
+static void (*assior_table[])(pointers) = {
+  assignment_invalid, assignment_invalid, assior_intword, assibit_badtype,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assior_intbyteptr, assior_intwordptr, assibit_badtype,
+  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+};
+
+static void (*assieor_table[])(pointers) = {
+  assignment_invalid, assignment_invalid, assieor_intword, assibit_badtype,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assibit_badtype,
+  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+};
+
+static void (*assimod_table[])(pointers) = {
+  assignment_invalid, assignment_invalid, assimod_intword, assibit_badtype,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assibit_badtype,
+  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+};
+
+static void (*assidiv_table[])(pointers) = {
+  assignment_invalid, assignment_invalid, assidiv_intword, assibit_badtype,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assibit_badtype,
+  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
 
 /*
@@ -988,6 +1277,36 @@ void exec_assignment(void) {
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assiminus_table[destination.typeinfo])(destination.address);
+  }
+  else if (assignop==TOKEN_AND) {
+    basicvars.current++; basicvars.current++;
+    expression();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    (*assiand_table[destination.typeinfo])(destination.address);
+  }
+  else if (assignop==TOKEN_OR) {
+    basicvars.current++; basicvars.current++;
+    expression();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    (*assior_table[destination.typeinfo])(destination.address);
+  }
+  else if (assignop==TOKEN_EOR) {
+    basicvars.current++; basicvars.current++;
+    expression();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    (*assieor_table[destination.typeinfo])(destination.address);
+  }
+  else if (assignop==TOKEN_MOD) {
+    basicvars.current++; basicvars.current++;
+    expression();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    (*assimod_table[destination.typeinfo])(destination.address);
+  }
+  else if (assignop==TOKEN_DIV) {
+    basicvars.current++; basicvars.current++;
+    expression();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    (*assidiv_table[destination.typeinfo])(destination.address);
   }
   else {
     error(ERR_EQMISS);
@@ -1075,7 +1394,8 @@ void assign_staticvar(void) {
   basicvars.current++;		/* Skip index */
   assignop = *basicvars.current;
   basicvars.current++;
-  if (assignop!='=' && assignop!=TOKEN_PLUSAB && assignop!=TOKEN_MINUSAB) error(ERR_EQMISS);
+  if (assignop!='=' && assignop!=TOKEN_PLUSAB && assignop!=TOKEN_MINUSAB && assignop!=TOKEN_AND && assignop!=TOKEN_OR && assignop!=TOKEN_EOR && assignop!=TOKEN_MOD && assignop!=TOKEN_DIV) error(ERR_EQMISS);
+  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) basicvars.current++;
   expression();
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   exprtype = GET_TOPITEM;
@@ -1103,6 +1423,16 @@ void assign_staticvar(void) {
       basicvars.staticvars[varindex].varentry.varinteger = value;
     else if (assignop==TOKEN_PLUSAB)
       basicvars.staticvars[varindex].varentry.varinteger+=value;
+    else if (assignop==TOKEN_AND)
+      basicvars.staticvars[varindex].varentry.varinteger &= value;
+    else if (assignop==TOKEN_OR)
+      basicvars.staticvars[varindex].varentry.varinteger |= value;
+    else if (assignop==TOKEN_EOR)
+      basicvars.staticvars[varindex].varentry.varinteger ^= value;
+    else if (assignop==TOKEN_MOD)
+      basicvars.staticvars[varindex].varentry.varinteger %= value;
+    else if (assignop==TOKEN_DIV)
+      basicvars.staticvars[varindex].varentry.varinteger /= value;
     else {
       basicvars.staticvars[varindex].varentry.varinteger-=value;
     }
@@ -1131,6 +1461,7 @@ void assign_intvar(void) {
   basicvars.current+=1+LOFFSIZE;	/* Skip the pointer to the variable */
   assignop = *basicvars.current;
   basicvars.current++;
+  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) basicvars.current++;
   expression();
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
@@ -1144,6 +1475,16 @@ void assign_intvar(void) {
     *ip = value;
   else if (assignop==TOKEN_PLUSAB)
     *ip+=value;
+  else if (assignop==TOKEN_AND)
+    *ip &= value;
+  else if (assignop==TOKEN_OR)
+    *ip |= value;
+  else if (assignop==TOKEN_EOR)
+    *ip ^= value;
+  else if (assignop==TOKEN_MOD)
+    *ip %= value;
+  else if (assignop==TOKEN_DIV)
+    *ip /= value;
   else {
     *ip-=value;
   }

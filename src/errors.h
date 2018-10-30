@@ -177,8 +177,8 @@ typedef enum {
     ERR_SWINAMENOTKNOWN,/* SWI name not known */
     ERR_SWINUMNOTKNOWN,	/* SWI &xxx not known */
     ERR_DIRNOTFOUND,	/* Directory not found */
+    ERR_BADBITWISE,	/* 6, Bitwise operations cannot be performed on these operands */
 // From JGH's Banana Brandy fork
-    ERR_PLACE150,	/* Placeholder */
     ERR_BADCOMMAND,	/* 254, Bad command */
     ERR_BADSTRING,	/* 253, Bad string */
     ERR_BADADDRESS,	/* 252, Bad address */

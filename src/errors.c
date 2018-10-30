@@ -492,8 +492,7 @@ static detail errortable [] = {
   {NONFATAL, NOPARM, 486, "SWI name not known"},
   {NONFATAL, INTEGER,486, "SWI &%X not known"},
   {NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
-// 05-Mar-2014 JGH:
-  {NONFATAL, NOPARM,  0, "err150"},
+  {NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
 //
 // OSCLI (command line) errors:
   {NONFATAL, NOPARM, 254, "Bad command"},
