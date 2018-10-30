@@ -33,6 +33,7 @@ typedef struct {
 #define SWI_RaspberryPi_ReadGPIOPort			0x140104
 #define SWI_RaspberryPi_WriteGPIOPort			0x140105
 
+#ifdef _MOS_C
 static switable swilist[] = {
 	{SWI_OS_WriteC,					"OS_WriteC"},
 	{SWI_OS_Write0,					"OS_Write0"},
@@ -59,5 +60,6 @@ static switable swilist[] = {
 
 	{0xFFFFFFFF,		"End_of_list"}
 };
+#endif
 
 #endif

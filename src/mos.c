@@ -48,14 +48,14 @@
 **
 */
 
+#define _MOS_C
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
+//#include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
-#include <unistd.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -87,6 +87,8 @@
 static int check_command(char *text);
 static void mos_osword(int32 areg, int32 xreg);
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
+
+extern void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags);
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
 
@@ -1571,33 +1573,16 @@ int32 mos_getswinum(char *name, int32 length) {
 /*
 ** 'mos_sys' issues a SWI call and returns the result. On
 ** platforms other than RISC OS this is emulated.
+** Most SWI calls are defined in mos_sys.c except the few that
+** call other functions in this file.
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
-  int32 ptr, rtn, a;
-  char *vptr;
-  int32 xflag; /* Currently not used, disabled to suppress compiler warnings*/
+  int32 ptr, rtn;
+  int32 xflag;
 
   xflag = swino & 0x20000;	/* Is the X flag set? */
   swino = swino & ~0x20000;		/* Strip off the X flag if set */
   switch (swino) {
-    case SWI_OS_WriteC:
-      outregs[0]=inregs[0];
-      emulate_vdu(inregs[0] & 0xFF);
-      break;
-    case SWI_OS_Write0: /* This is extended in Brandy - normally all args apart
-			   from R0 are ignored; in Brandy, if R1 and R2 are set
-			   to 42, the text is output to the controlling terminal. */
-      outregs[0]=inregs[0]+1+strlen((char *)basicvars.offbase+inregs[0]);
-      if ((inregs[1]==42) && (inregs[2]==42)) {
-        fprintf(stderr,"%s\r\n", basicvars.offbase+inregs[0]);
-      } else {
-        emulate_printf("%s", basicvars.offbase+inregs[0]);
-      }
-      break;
-    case SWI_OS_NewLine:
-      emulate_printf("\r\n"); break;
-    case SWI_OS_ReadC:
-      outregs[0]=emulate_get(); break;
     case SWI_OS_CLI:
       outregs[0]=inregs[0];
       mos_oscli((char *)basicvars.offbase+inregs[0], NIL, NULL);
@@ -1612,88 +1597,14 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       mos_osword(inregs[0], inregs[1]);
       outregs[0]=inregs[0];
       break;
-    case SWI_OS_ReadLine:
-      vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
-      *vptr='\0';
-      rtn=emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
-      a=outregs[1]=strlen(vptr);
-      /* Hack the output to add the terminating 13 */
-      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      break;
-    case SWI_OS_ReadLine32:
-      vptr=(char *)(inregs[0]+basicvars.offbase);
-      *vptr='\0';
-      rtn=emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
-      a=outregs[1]=strlen(vptr);
-      /* Hack the output to add the terminating 13 */
-      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
       for(ptr=0;*(basicvars.offbase+inregs[1]+ptr) >=32; ptr++) ;
       *(basicvars.offbase+inregs[1]+ptr)='\0';
       outregs[0]=mos_getswinum((char *)basicvars.offbase+inregs[1], strlen((char *)basicvars.offbase+inregs[1]));
       break;
-    case SWI_ColourTrans_SetGCOL:
-      outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
-      outregs[2]=0; outregs[3]=inregs[3] & 0x80; outregs[4]=inregs[4];
-      break;
-    case SWI_ColourTrans_SetTextColour:
-      outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
-      break;
-    case SWI_Brandy_Version:
-      outregs[0]=atoi(BRANDY_MAJOR);
-      outregs[1]=atoi(BRANDY_MINOR);
-      outregs[2]=atoi(BRANDY_PATCHLEVEL);
-      break;
-    case SWI_RaspberryPi_GPIOInfo:
-      outregs[0]=matrixflags.gpio;
-      outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
-      break;
-    case SWI_RaspberryPi_GetGPIOPortMode:
-      if (!matrixflags.gpio) {
-	if (!xflag) error(ERR_NO_RPI_GPIO);
-	return;
-      }
-      outregs[0]=(*(matrixflags.gpiomemint + (inregs[0]/10)) >> ((inregs[0]%10)*3)) & 7;
-      break;
-    case SWI_RaspberryPi_SetGPIOPortMode:
-      if (!matrixflags.gpio) {
-	if (!xflag) error(ERR_NO_RPI_GPIO);
-	return;
-      }
-      matrixflags.gpiomemint[(inregs[0]/10)] = (matrixflags.gpiomemint[(inregs[0]/10)] & ~(7<<((inregs[0]%10)*3))) | (inregs[1]<<((inregs[0]%10)*3));
-      break;
-    case SWI_RaspberryPi_SetGPIOPortPullUpDownMode:
-      if (!matrixflags.gpio) {
-	if (!xflag) error(ERR_NO_RPI_GPIO);
-	return;
-      }
-      matrixflags.gpiomemint[37] = inregs[1];
-      usleep(50);
-      matrixflags.gpiomemint[38+(inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
-      usleep(50);
-      matrixflags.gpiomemint[37] = 0;
-      usleep(50);
-      matrixflags.gpiomemint[38+(inregs[0]>>5)] = 0;
-      break;
-    case SWI_RaspberryPi_ReadGPIOPort:
-      if (!matrixflags.gpio) {
-	if (!xflag) error(ERR_NO_RPI_GPIO);
-	return;
-      }
-      outregs[0]=(matrixflags.gpiomemint[13 + (inregs[0]>>5)] & (1<<(inregs[0]&0x1F))) ? 1 : 0;
-      break;
-    case SWI_RaspberryPi_WriteGPIOPort:
-      if (!matrixflags.gpio) {
-	if (!xflag) error(ERR_NO_RPI_GPIO);
-	return;
-      }
-      if (inregs[1] == 0) matrixflags.gpiomemint[10 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
-      else                matrixflags.gpiomemint[7 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
-      break;
     default:
-      error(ERR_SWINUMNOTKNOWN, swino);
+      mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */
   }
 }
 

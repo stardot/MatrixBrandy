@@ -20,7 +20,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o $(SRCDIR)/net.o
+	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
@@ -29,7 +29,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/net.c
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
@@ -193,6 +193,14 @@ MOS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 
 $(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
 	$(CC) $(CFLAGS) $(SRCDIR)/mos.c -c -o $(SRCDIR)/mos.o
+
+# Build MOS_SYS.C
+MOS_SYS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
+	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h \
+	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
+
+$(SRCDIR)/mos_sys.o: $(MOS_SYS_C) $(SRCDIR)/mos_sys.c
+	$(CC) $(CFLAGS) $(SRCDIR)/mos_sys.c -c -o $(SRCDIR)/mos_sys.o
 
 # Build EDITOR.C
 EDITOR_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
