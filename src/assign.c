@@ -1279,31 +1279,41 @@ void exec_assignment(void) {
     (*assiminus_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==TOKEN_AND) {
-    basicvars.current++; basicvars.current++;
+    basicvars.current++;
+    if (*basicvars.current != '=') error(ERR_EQMISS);
+    basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assiand_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==TOKEN_OR) {
-    basicvars.current++; basicvars.current++;
+    basicvars.current++;
+    if (*basicvars.current != '=') error(ERR_EQMISS);
+    basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assior_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==TOKEN_EOR) {
-    basicvars.current++; basicvars.current++;
+    basicvars.current++;
+    if (*basicvars.current != '=') error(ERR_EQMISS);
+    basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assieor_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==TOKEN_MOD) {
-    basicvars.current++; basicvars.current++;
+    basicvars.current++;
+    if (*basicvars.current != '=') error(ERR_EQMISS);
+    basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assimod_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==TOKEN_DIV) {
-    basicvars.current++; basicvars.current++;
+    basicvars.current++;
+    if (*basicvars.current != '=') error(ERR_EQMISS);
+    basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assidiv_table[destination.typeinfo])(destination.address);
@@ -1395,7 +1405,10 @@ void assign_staticvar(void) {
   assignop = *basicvars.current;
   basicvars.current++;
   if (assignop!='=' && assignop!=TOKEN_PLUSAB && assignop!=TOKEN_MINUSAB && assignop!=TOKEN_AND && assignop!=TOKEN_OR && assignop!=TOKEN_EOR && assignop!=TOKEN_MOD && assignop!=TOKEN_DIV) error(ERR_EQMISS);
-  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) basicvars.current++;
+  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) {
+    if (*basicvars.current != '=') error(ERR_EQMISS);
+    basicvars.current++;
+  }
   expression();
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   exprtype = GET_TOPITEM;
