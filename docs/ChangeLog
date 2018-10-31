@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   builds, it's only active on the Raspberry Pi.
 - Bug fix (regression): LIST in text builds would error after one line.
 - Code refactor - SYS calls are now (with a few exceptions) in their own file.
+- Implemented AND=, OR=, EOR=, MOD= and DIV= for integer variables.
 * V1.21.15
 - Bug fix: Setting *KEY15 scribbled outside array bounds.
 - Bug fix: Erroneously trimming a string introduced in V1.21.8.

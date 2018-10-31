@@ -53,7 +53,7 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
-  int32 rtn, a;
+  int32 a;
   char *vptr;
 
   switch (swino) {
@@ -78,7 +78,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_OS_ReadLine:
       vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
       *vptr='\0';
-      rtn=emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
+      (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
@@ -86,7 +86,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_OS_ReadLine32:
       vptr=(char *)(inregs[0]+basicvars.offbase);
       *vptr='\0';
-      rtn=emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
+      (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
