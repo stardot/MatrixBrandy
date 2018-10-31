@@ -947,6 +947,22 @@ static void assiand_intword(pointers address) {
 }
 
 /*
+** 'assiand_float' handles the 'AND=' assignment operator for floating point
+** variables
+*/
+static void assiand_float(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) & pop_int());
+  else if (exprtype==STACK_FLOAT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) & TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
 ** 'assiand_intbyteptr' handles the 'AND=' assignment operator for single
 ** byte integer indirect variables
 */
@@ -973,6 +989,81 @@ static void assiand_intwordptr(pointers address) {
     store_integer(address.offset, get_integer(address.offset) & pop_int());
   else if (exprtype==STACK_FLOAT)
     store_integer(address.offset, get_integer(address.offset) & TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assiand_floatptr' handles the 'AND=' assignment operator for indirect
+** floating point variables
+*/
+static void assiand_floatptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & pop_int()));
+  else if (exprtype==STACK_FLOAT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & TOINT(pop_float())));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assiand_intarray' handles the 'AND=' assignment operator for integer
+** arrays
+*/
+static void assiand_intarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 *p, *p2, n, value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()&=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]&=value;
+  }
+  else if (exprtype==STACK_INTARRAY) {	/* array1()&=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    p2 =ap2->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]&=p2[n];
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assiand_floatarray' handles the 'AND=' assignment operator for
+** floating point arrays
+*/
+static void assiand_floatarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  float64 *p, *p2;
+  int32 n;
+  int32 value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()&=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) & value);
+  }
+  else if (exprtype==STACK_FLOATARRAY) {	/* array1()&=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    p2 = ap2->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) & TOINT(p2[n]));
+  }
   else {
     error(ERR_TYPENUM);
   }
@@ -1027,6 +1118,97 @@ static void assior_intwordptr(pointers address) {
 }
 
 /*
+** 'assior_float' handles the 'OR=' assignment operator for floating point
+** variables
+*/
+static void assior_float(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) | pop_int());
+  else if (exprtype==STACK_FLOAT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) | TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assior_floatptr' handles the 'OR=' assignment operator for indirect
+** floating point variables
+*/
+static void assior_floatptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) | pop_int()));
+  else if (exprtype==STACK_FLOAT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) | TOINT(pop_float())));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assior_intarray' handles the 'OR=' assignment operator for integer
+** arrays
+*/
+static void assior_intarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 *p, *p2, n, value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()|=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]|=value;
+  }
+  else if (exprtype==STACK_INTARRAY) {	/* array1()|=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    p2 =ap2->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]|=p2[n];
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assior_floatarray' handles the 'OR=' assignment operator for
+** floating point arrays
+*/
+static void assior_floatarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  float64 *p, *p2;
+  int32 n;
+  int32 value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()|=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) | value);
+  }
+  else if (exprtype==STACK_FLOATARRAY) {	/* array1()|=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    p2 = ap2->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) | TOINT(p2[n]));
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
 ** 'assieor_intword' handles the 'EOR=' assignment operator for integer
 ** variables
 */
@@ -1069,6 +1251,97 @@ static void assieor_intwordptr(pointers address) {
     store_integer(address.offset, get_integer(address.offset) ^ pop_int());
   else if (exprtype==STACK_FLOAT)
     store_integer(address.offset, get_integer(address.offset) ^ TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_float' handles the 'EOR=' assignment operator for floating point
+** variables
+*/
+static void assieor_float(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) ^ pop_int());
+  else if (exprtype==STACK_FLOAT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) ^ TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_floatptr' handles the 'EOR=' assignment operator for indirect
+** floating point variables
+*/
+static void assieor_floatptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) ^ pop_int()));
+  else if (exprtype==STACK_FLOAT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) ^ TOINT(pop_float())));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_intarray' handles the 'EOR=' assignment operator for integer
+** arrays
+*/
+static void assieor_intarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 *p, *p2, n, value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()^=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]^=value;
+  }
+  else if (exprtype==STACK_INTARRAY) {	/* array1()^=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    p2 =ap2->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]^=p2[n];
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assieor_floatarray' handles the 'EOR=' assignment operator for
+** floating point arrays
+*/
+static void assieor_floatarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  float64 *p, *p2;
+  int32 n;
+  int32 value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()^=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) ^ value);
+  }
+  else if (exprtype==STACK_FLOATARRAY) {	/* array1()^=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    p2 = ap2->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) ^ TOINT(p2[n]));
+  }
   else {
     error(ERR_TYPENUM);
   }
@@ -1123,6 +1396,97 @@ static void assimod_intwordptr(pointers address) {
 }
 
 /*
+** 'assimod_float' handles the 'MOD=' assignment operator for floating point
+** variables
+*/
+static void assimod_float(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % pop_int());
+  else if (exprtype==STACK_FLOAT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assimod_floatptr' handles the 'MOD=' assignment operator for indirect
+** floating point variables
+*/
+static void assimod_floatptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % pop_int()));
+  else if (exprtype==STACK_FLOAT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % TOINT(pop_float())));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assimod_intarray' handles the 'MOD=' assignment operator for integer
+** arrays
+*/
+static void assimod_intarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 *p, *p2, n, value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()%=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]%=value;
+  }
+  else if (exprtype==STACK_INTARRAY) {	/* array1()%=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    p2 =ap2->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]%=p2[n];
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assimod_floatarray' handles the 'MOD=' assignment operator for
+** floating point arrays
+*/
+static void assimod_floatarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  float64 *p, *p2;
+  int32 n;
+  int32 value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()%=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) % value);
+  }
+  else if (exprtype==STACK_FLOATARRAY) {	/* array1()%=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    p2 = ap2->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) % TOINT(p2[n]));
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
 ** 'assidiv_intword' handles the 'DIV=' assignment operator for integer
 ** variables
 */
@@ -1170,6 +1534,97 @@ static void assidiv_intwordptr(pointers address) {
   }
 }
 
+/*
+** 'assidiv_float' handles the 'DIV=' assignment operator for floating point
+** variables
+*/
+static void assidiv_float(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / pop_int());
+  else if (exprtype==STACK_FLOAT)
+    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / TOINT(pop_float()));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assidiv_floatptr' handles the 'DIV=' assignment operator for indirect
+** floating point variables
+*/
+static void assidiv_floatptr(pointers address) {
+  stackitem exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / pop_int()));
+  else if (exprtype==STACK_FLOAT)
+    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / TOINT(pop_float())));
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assidiv_intarray' handles the 'DIV=' assignment operator for integer
+** arrays
+*/
+static void assidiv_intarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 *p, *p2, n, value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()/=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]/=value;
+  }
+  else if (exprtype==STACK_INTARRAY) {	/* array1()/=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    p2 =ap2->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'assidiv_floatarray' handles the 'DIV=' assignment operator for
+** floating point arrays
+*/
+static void assidiv_floatarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  float64 *p, *p2;
+  int32 n;
+  int32 value;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_FLOAT) {	/* array()DIV=<value> */
+    value = exprtype==STACK_INT ? pop_int() : TOINT(pop_float());
+    p = ap->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) / value);
+  }
+  else if (exprtype==STACK_FLOATARRAY) {	/* array1()DIV=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    p2 = ap2->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT(p[n]) / TOINT(p2[n]));
+  }
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
 static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intword, assign_float,
   assign_stringdol, assignment_invalid, assignment_invalid, assignment_invalid,
@@ -1198,47 +1653,47 @@ static void (*assiminus_table[])(pointers) = {
 };
 
 static void (*assiand_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assiand_intword, assibit_badtype,
+  assignment_invalid, assignment_invalid, assiand_intword, assiand_float,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assiand_intarray, assiand_floatarray,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assibit_badtype,
+  assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assiand_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
 
 static void (*assior_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assior_intword, assibit_badtype,
+  assignment_invalid, assignment_invalid, assior_intword, assior_float,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assior_intarray, assior_floatarray,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assior_intbyteptr, assior_intwordptr, assibit_badtype,
+  assignment_invalid, assior_intbyteptr, assior_intwordptr, assior_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
 
 static void (*assieor_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assieor_intword, assibit_badtype,
+  assignment_invalid, assignment_invalid, assieor_intword, assieor_float,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assieor_intarray, assieor_floatarray,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assibit_badtype,
+  assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assieor_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
 
 static void (*assimod_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assimod_intword, assibit_badtype,
+  assignment_invalid, assignment_invalid, assimod_intword, assimod_float,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assimod_intarray, assimod_floatarray,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assibit_badtype,
+  assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assimod_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
 
 static void (*assidiv_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assidiv_intword, assibit_badtype,
+  assignment_invalid, assignment_invalid, assidiv_intword, assidiv_float,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assignment_invalid, assignment_invalid, assignment_invalid,
+  assignment_invalid, assignment_invalid, assidiv_intarray, assidiv_floatarray,
   assibit_badtype, assignment_invalid, assignment_invalid, assignment_invalid,
-  assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assibit_badtype,
+  assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assidiv_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
 
