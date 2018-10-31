@@ -1047,14 +1047,15 @@ ARRAYVAR, will continue to go via exec_assignment() as the processing required
 is much greater for these.
 
 exec_assignment() uses tables of functions to deal with the individual types of
-assignment. There are three tables for the three assignment operators, '=', '+='
-and '-=', indexed by the type of the operand on the left-hand side of the
-expression, for example, assignments to whole integer arrays is handled by
-assign_intarray(). There is a large number of functions like assign_intarray()
-and some of them appear to duplicate existing functions, for example,
-assign_intword() could be confused with assign_intvar(). The difference is that
-assign_intvar() is specifically for integer variables whereas assign_intword()
-is a general 'store a four byte integer on a word boundary' routine.
+assignment. There are eight tables for the eight assignment operators, '=',
+'+=', '-=', 'AND=', 'OR=', 'EOR=', 'MOD=' and 'DIV=', indexed by the type of
+the operand on the left-hand side of the expression, for example, assignments
+to whole integer arrays is handled by assign_intarray(). There is a large
+number of functions like assign_intarray() and some of them appear to duplicate
+existing functions, for example, assign_intword() could be confused with
+assign_intvar(). The difference is that assign_intvar() is specifically for
+integer variables whereas assign_intword() is a general 'store a four byte
+integer on a word boundary' routine.
 
 Static variables always use their own assignment function as they can be
 identified when the program is tokenised. Static variables followed by

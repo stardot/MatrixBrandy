@@ -299,7 +299,22 @@ Examples:
 	xyz$ += "abcd"
 	table%!offset% -= X%
 	$(table%+name%) += "xyz"
-	
+
+Brandy offers 5 more from BB4W and BBCSDL, and JGH's ARM BBC BASIC Plus.
+These are:
+	<variable> AND= <expression>
+	<variable> OR= <expression>
+	<variable> EOR= <expression>
+	<variable> MOD= <expression>
+	<variable> DIV= <expression>
+
+Examples:
+	a% AND=&7F
+	a OR=128
+
+These five all operate on integers, and where float values are supplied
+will be truncated to integers.  Of the eight assignment operators,
+only = and += are valid for string types.
 
 Indirection Operators
 ~~~~~~~~~~~~~~~~~~~~~
