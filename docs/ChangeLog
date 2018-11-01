@@ -7,7 +7,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   builds, it's only active on the Raspberry Pi.
 - Bug fix (regression): LIST in text builds would error after one line.
 - Adjust graphsdl.c:buff_convex_poly bounds checking to allow off-screen
-  drawing (we limit this elsewhere). For example, triangles drawn offscreen
+  drawing (we limit this elsewhere). For example, triangles drawn offscreen.
+- Bug fix for out-of-bounds array scribbling when off screen.
   will now appear to be chopped off, rather than squashed into the screen.
 - Code refactor - SYS calls are now (with a few exceptions) in their own file.
 - Implemented AND=, OR=, EOR=, MOD= and DIV= from BB4W/BBCSDL and JGH's

@@ -99,10 +99,10 @@ static int writebank=0;
 /*
 ** SDL related defines, Variables and params
 */
-static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *screenbank[MAXBANKS];
-static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
+static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
+static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
@@ -140,7 +140,7 @@ static unsigned int vdu14lines = 0;	/* Line counter for VDU14 page mode */
 static int autorefresh=1;		/* Refresh screen on updates? */
 
 /* From geom.c */
-#define MAX_YRES 1280
+#define MAX_YRES 16384
 #define MAX_XRES 16384
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_2_MUL(x) ((x)<<1)
@@ -608,6 +608,11 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
+  if (left >= screenwidth || right < 0 || top >= screenheight || bottom < 0) return;	/* Is off screen completely */
+  if (left < 0) left = 0;		/* Clip the rectangle as necessary */
+  if (right >= screenwidth) right = screenwidth-1;
+  if (top < 0) top = 0;
+  if (bottom >= screenheight) bottom = screenheight-1;
   if(!scaled) {
     scale_rect.x = left;
     scale_rect.y = top;
@@ -616,11 +621,6 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     SDL_BlitSurface(modescreen, &scale_rect, screenbank[writebank], &scale_rect);
     if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
   } else {
-    if (left >= screenwidth || right < 0 || top >= screenheight || bottom < 0) return;	/* Is off screen completely */
-    if (left < 0) left = 0;		/* Clip the rectangle as necessary */
-    if (right >= screenwidth) right = screenwidth-1;
-    if (top < 0) top = 0;
-    if (bottom >= screenheight) bottom = screenheight-1;
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
     yy = dtop;
@@ -3459,8 +3459,8 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
     t = a - dx;
     b = t - dx;
     for (i = 0; i <= dx; i++) {
-      if (x1 < geom_left[y1]) geom_left[y1] = x1;
-      if (x1 > geom_right[y1]) geom_right[y1] = x1;
+      if (y1 >= 0 && x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (y1 >= 0 && x1 > geom_right[y1]) geom_right[y1] = x1;
       x1 += xf;
       if (t < 0)
         t += a;
@@ -3475,8 +3475,8 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
     t = a - dy;
     b = t - dy;
     for (i = 0; i <= dy; i++) {
-      if (x1 < geom_left[y1]) geom_left[y1] = x1;
-      if (x1 > geom_right[y1]) geom_right[y1] = x1;
+      if (y1 >= 0 && x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (y1 >= 0 && x1 > geom_right[y1]) geom_right[y1] = x1;
       y1 += yf;
       if (t < 0)
         t += a;
@@ -3493,6 +3493,7 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
   int32 tt, i;
+  if ((x1 < 0 && x2 < 0) || (x1 >= vscrwidth && x2 >= vscrwidth )) return;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
   }
@@ -3530,7 +3531,7 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
 #endif
   }
   /* reset the minumum amount of the edge tables */
-  for (iy = low; iy <= high; iy++) {
+  for (iy = (low < 0) ? 0: low; iy <= high; iy++) {
     geom_left[iy] = MAX_XRES + 1;
     geom_right[iy] = - 1;
   }
