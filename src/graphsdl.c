@@ -3515,6 +3515,10 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
 
   /* set highest and lowest points to visit */
   for (i = 0; i < n; i++) {
+#if 1
+    if (y[i] > high) high = y[i];
+    if (y[i] < low) low = y[i];
+#else
     if (y[i] > MAX_YRES)
       y[i] = high = MAX_YRES;
     else if (y[i] > high)
@@ -3523,8 +3527,8 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
       y[i] = low = 0;
     else if (y[i] < low)
       low = y[i];
+#endif
   }
-
   /* reset the minumum amount of the edge tables */
   for (iy = low; iy <= high; iy++) {
     geom_left[iy] = MAX_XRES + 1;
