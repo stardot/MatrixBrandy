@@ -454,16 +454,14 @@ int64 esclast=0;
 void checkforescape(void) {
 #ifdef USE_SDL
 int64 i;
-  if (basicvars.escape_enabled) {
-    if (!escinterval) {
-      escinterval=escint+escmul;
-      i=mos_centiseconds();
-      if (i > esclast) {
-        esclast=i;
-        if(emulate_inkey(-113)) basicvars.escape=TRUE;
-      }
-    } else escinterval--;
-  }
+  if (!escinterval) {
+    escinterval=escint+escmul;
+    i=mos_centiseconds();
+    if (i > esclast) {
+      esclast=i;
+      if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+    }
+  } else escinterval--;
 #endif
   return;
 }

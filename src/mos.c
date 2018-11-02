@@ -932,6 +932,9 @@ void mos_waitdelay(int32 time) {
 void mos_waitdelay(int32 time) {
   sleep(time / 100);
   usleep((time % 100)*10000);
+#ifdef USE_SDL
+  if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+#endif
 }
 
 #elif defined(TARGET_AMIGA)
@@ -958,7 +961,7 @@ void mos_waitdelay(int32 time) {
   delay.tv_usec = time%100*10000;	/* Time to wait (microseconds) */
   (void) select(0, NIL, NIL, NIL, &delay);
 #ifdef USE_SDL
-  if(basicvars.escape_enabled && emulate_inkey(-113)) basicvars.escape=TRUE;
+  if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
 #endif
 }
 

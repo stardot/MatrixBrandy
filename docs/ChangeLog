@@ -11,6 +11,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fix for out-of-bounds array scribbling when off screen.
   will now appear to be chopped off, rather than squashed into the screen.
 - Code refactor - SYS calls are now (with a few exceptions) in their own file.
+- Performance improvements to Mode 7, and fix rendering bug when ESCAPE was
+  disabled.
+- Telstar client now includes Authentic mode, where a delay is added to each
+  character rendering to simulate (approximately) a 1200baud modem.
 - Implemented AND=, OR=, EOR=, MOD= and DIV= from BB4W/BBCSDL and JGH's
   ARM BBC BASIC Plus.
 * V1.21.15
