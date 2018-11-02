@@ -21,6 +21,7 @@
 **	This file contains the main interpreter command loop
 */
 
+#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -34,7 +35,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "common.h"
-#include "target.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "errors.h"
