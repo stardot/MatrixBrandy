@@ -49,7 +49,7 @@
 #endif
 
 #ifdef USE_SDL
-extern void mode7renderline(int32 ypos);
+extern Uint8 mode7changed[26];
 #endif
 
 /*
@@ -144,7 +144,7 @@ static void assign_intbyteptr(pointers address) {
 	error(ERR_TYPENUM);
       }
       mode7frame[msy][msx] = value;
-      mode7renderline(msy);
+      mode7changed[msy]=1;
     }
     return;
   }
@@ -192,7 +192,7 @@ static void assign_intwordptr(pointers address) {
 	addr++;
 	value = value >> 8;
       }
-      mode7renderline(msy);
+      mode7changed[msy]=1;
     }
     return;
   }
@@ -227,7 +227,7 @@ static void assign_floatptr(pointers address) {
 }
 
 static void assign_dolstrptr(pointers address) {
-  uint32 ptr, msx, msy, addr, render=0;
+  uint32 ptr, msx, msy, addr;
   stackitem exprtype;
   basicstring result;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -239,17 +239,14 @@ static void assign_dolstrptr(pointers address) {
   if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
     addr = address.offset - 0xFFFF7C00u;
     for(ptr=0; ptr<result.stringlen; ptr++) {
-      render=1;
       msy = addr / 40;
       msx = addr % 40;
-      if (msy < 25) mode7frame[msy][msx]=result.stringaddr[ptr];
-      addr++;
-      if (msx==39) {
-	mode7renderline(msy);
-	render=0;
+      if (msy < 25) {
+	mode7frame[msy][msx]=result.stringaddr[ptr];
+	mode7changed[msy]=1;
       }
+      addr++;
     }
-    if (render) mode7renderline(msy);
   } else {
 #endif
     memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);

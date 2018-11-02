@@ -127,7 +127,7 @@ static void vdu_cleartext(void);
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
 
-extern void mode7renderline(int32 ypos);
+static void mode7renderline(int32 ypos);
 extern void mode7renderscreen(void);
 
 static Uint8 palette[768];		/* palette for screen */
@@ -150,7 +150,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
-static Uint8 mode7changed[26];		/* Marks changed lines */
+Uint8 mode7changed[26];		/* Marks changed lines */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -3192,7 +3192,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   return(val);
 }
 
-void mode7renderline(int32 ypos) {
+static void mode7renderline(int32 ypos) {
   int32 ch, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
