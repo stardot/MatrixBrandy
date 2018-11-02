@@ -27,7 +27,9 @@
 #include <setjmp.h>
 #include <string.h>
 #include <ctype.h>
+#ifndef TARGET_MINGW
 #include <sys/mman.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
