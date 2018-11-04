@@ -646,20 +646,15 @@ void mos_wrtime(int32 time) {
 */
 
 int64 mos_centiseconds(void) {
-  unsigned long int rc;
   struct timeval tv;
   struct timezone tzp;
 
   gettimeofday (&tv, &tzp);
 
-  /* tv -> tv_sec = Seconds since 1970 */
-  /* tv -> tv_usec = and microseconds */
+  /* tv.tv_sec  = Seconds since 1970 */
+  /* tv.tv_usec = and microseconds */
 
-  rc = tv.tv_sec;
-  rc = rc * 100;
-  rc = rc + (tv.tv_usec / 10000);
-
-  return (rc);
+  return ((tv.tv_sec * 100) + (tv.tv_usec / 10000));
 }
 
 int32 mos_rdtime(void) {
