@@ -2405,7 +2405,7 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
       case 3:
 	altcolour=(prevcolour ^ drawcolour);
 	break;
-      case 5:
+      case 4:
 	altcolour=(prevcolour ^ (colourdepth-1));
 	break;
     }
