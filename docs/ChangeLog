@@ -1,6 +1,9 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.21.17
+- Fix memory leak in MODE change
+- Fix CLG with GCOL actions, previously implemented and broken...
 * V1.21.16
 - Added auto-sensing support for the Raspberry Pi's GPIO interface, with
   memory-mapped I/O and SYS calls. While the calls are recognised on all

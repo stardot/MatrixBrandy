@@ -1450,6 +1450,9 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 	case 3:
 	  altcolour=(prevcolour ^ colour);
 	  break;
+	case 4:
+	  altcolour=(prevcolour ^ (colourdepth-1));
+	  break;
       }
       if (colourdepth == COL24BIT) {
         altcolour = altcolour & 0xFFFFFF;
@@ -1473,7 +1476,7 @@ static void vdu_cleargraph(void) {
   if (graph_back_action == 0) {
     SDL_FillRect(modescreen, NULL, gb_colour);
   } else {
-    fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), graph_physbackcol, graph_back_action);
+    fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), gb_colour, graph_back_action);
   }
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
   if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();	/* Redraw cursor */
@@ -2401,6 +2404,9 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
 	break;
       case 3:
 	altcolour=(prevcolour ^ drawcolour);
+	break;
+      case 5:
+	altcolour=(prevcolour ^ (colourdepth-1));
 	break;
     }
     if (colourdepth == COL24BIT) {
