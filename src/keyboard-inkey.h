@@ -105,7 +105,7 @@ int32 inkeylookup[] = {
   SDLK_COLON,		/*  72  :             */
   SDLK_RETURN,		/*  73  Return        */
   SDLK_KP_DIVIDE,	/*  74  Keypad /      */
-  SDLK_KP_BACKSPACE,	/*  75  Keypad Del - only on Master */
+  -1, /* SDLK_KP_BACKSPACE, */	/*  75  Keypad Del - only on Master */
   SDLK_KP_PERIOD,	/*  76  Keypad .      */
   SDLK_NUMLOCK,		/*  77  Num Lock      */
   SDLK_PAGEDOWN,	/*  78  PgDn          */
@@ -120,12 +120,12 @@ int32 inkeylookup[] = {
   SDLK_SEMICOLON,	/*  87  ;             */
   SDLK_RIGHTBRACKET,	/*  88  ]             */
   SDLK_DELETE,		/*  89  Delete        */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),	/*  90  Keypad #  #/~ CHECK  USB &32 */
+  -1, /* SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),*/	/*  90  Keypad #  #/~ CHECK  USB &32 */
   SDLK_KP_MULTIPLY,	/*  91  Keypad *      */
-  SDLK_KP_COMMA,	/*  92  Keypad ,  - only on Master */
+  -1, /* SDLK_KP_COMMA, */	/*  92  Keypad ,  - only on Master */
   SDLK_EQUALS,		/*  93  =/+           */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSBACKSLASH),	/*  94  Left  \|  - between Shift and Z, USB &64  CHECK with US keyboard */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL1),	/*  95  Right |_  - between ? and Shift, USB &87  CHECK with JP keyboard */
+  -1, /* SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSBACKSLASH), */	/*  94  Left  \|  - between Shift and Z, USB &64  CHECK with US keyboard */
+  -1, /* SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL1), */	/*  95  Right |_  - between ? and Shift, USB &87  CHECK with JP keyboard */
   SDLK_TAB,		/*  96  TAB           */
   SDLK_z,		/*  97  Z             */
   SDLK_SPACE,		/*  98  Space         */
@@ -155,8 +155,8 @@ int32 inkeylookup[] = {
   SDLK_KP4,		/* 122  Keypad 4      */
   SDLK_KP5,		/* 123  Keypad 5      */
   SDLK_KP2,		/* 124  Keypad 2      */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL5),	/* 125  No Convert  CHECK with JP keyboard, USB &8B */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL4),	/* 126  Convert     CHECK with JP keyboard, USB &8A */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL2),	/* 127  Kana        CHECK with JP keyboard, USB &88 */
+  -1, /* SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL5),*/	/* 125  No Convert  CHECK with JP keyboard, USB &8B */
+  -1, /* SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL4),*/	/* 126  Convert     CHECK with JP keyboard, USB &8A */
+  -1, /* SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL2),*/	/* 127  Kana        CHECK with JP keyboard, USB &88 */
   -1			/* 128  No key        */
 };
