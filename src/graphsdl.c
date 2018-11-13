@@ -1453,6 +1453,8 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 	case 4:
 	  altcolour=(prevcolour ^ (colourdepth-1));
 	  break;
+	default:
+	  altcolour=colour;
       }
       if (colourdepth == COL24BIT) {
         altcolour = altcolour & 0xFFFFFF;
@@ -2408,6 +2410,8 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
       case 4:
 	altcolour=(prevcolour ^ (colourdepth-1));
 	break;
+      default:
+	altcolour=drawcolour; /* Invalid GCOL action code handled as 0 */
     }
     if (colourdepth == COL24BIT) {
       altcolour = altcolour & 0xFFFFFF;
