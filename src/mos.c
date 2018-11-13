@@ -654,7 +654,7 @@ int64 mos_centiseconds(void) {
   /* tv.tv_sec  = Seconds since 1970 */
   /* tv.tv_usec = and microseconds */
 
-  return ((tv.tv_sec * 100) + (tv.tv_usec / 10000));
+  return (((unsigned int)tv.tv_sec * 100) + (tv.tv_usec / 10000));
 }
 
 int32 mos_rdtime(void) {
