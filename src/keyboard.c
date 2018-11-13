@@ -34,6 +34,8 @@
 **      Included Mac OS X target in conditional compilation.
 **
 ** 06-Mar-2014 JGH: Zero-length function key strings handled correctly.
+** 13-Nov-2018 JGH: SDL INKEY-1/2/3 checks for either modifier key.
+**                  Bug: Caps/Num returns lock state, not key state.
 **
 */
 
@@ -1011,6 +1013,16 @@ int32 emulate_inkey(int32 arg) {
       if ((arg == -11) && (mousestate & 2)) return -1;
       if ((arg == -12) && (mousestate & 4)) return -1;
     }
+    if (arg >= -3) {
+      /* Either modifier key */
+      if (
+      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
+      ||
+      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
+      ) return -1;
+      else
+        return 0;
+    }
     if (keystate[inkeylookup[(arg * -1) -1]])
       return -1;
     else
@@ -1032,6 +1044,16 @@ int32 emulate_inkey2(int32 arg) {
     if ((arg == -11) && (mousestate & 2)) return -1;
     if ((arg == -12) && (mousestate & 4)) return -1;
   }
+    if (arg >= -3) {
+      /* Either modifier key */
+      if (
+      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
+      ||
+      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
+      ) return -1;
+      else
+        return 0;
+    }
   if (keystate[inkeylookup[(arg * -1) -1]])
     return -1;
   else
