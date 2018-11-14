@@ -962,7 +962,7 @@ static void echo_text(void) {
 
 unsigned long m7updatetimer=0;
 void mode7flipbank() {
-  unsigned long mytime;
+  int64 mytime;
   int32 ypos;
   
   if (screenmode == 7) {
