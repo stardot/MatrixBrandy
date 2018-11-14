@@ -52,6 +52,18 @@
 #define MAXWHENS 500		/* maximum number of WHENs allowed per CASE statement */
 #define MAXSYSPARMS 10		/* Maximum number of parameters allowed in a 'SYS' statement */
 
+/* Replacement for memmove where we dedupe pairs of double quotes */
+static void memcpydedupe(char *dest, const unsigned char *src, size_t len, char dedupe) {
+  int sptr = 0, dptr=0;
+  
+  while (sptr < len) {
+    *(dest+dptr) = *(src+sptr);
+    if (*(src+sptr)==dedupe && *(src+sptr+1)==dedupe) sptr++;
+    sptr++;
+    dptr++;
+  }
+}
+
 /*
 ** 'exec_assembler' is invoked when a '[' is found. This version of
 ** the interpreter does not include an assembler
@@ -1885,7 +1897,7 @@ static void read_string(lvalue destination) {
       destination.address.straddr->stringlen = length;
       destination.address.straddr->stringaddr = alloc_string(length);
     }
-    if (length != 0) memmove(destination.address.straddr->stringaddr, start, length);
+    if (length != 0) memcpydedupe(destination.address.straddr->stringaddr, start, length, '"');
     break;
   case VAR_DOLSTRPTR:	/* Pointer to '$<string>' */
     check_write(destination.address.offset, length+1);   /* +1 for CR at end */
