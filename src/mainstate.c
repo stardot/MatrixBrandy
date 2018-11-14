@@ -1863,9 +1863,10 @@ static void read_string(lvalue destination) {
   start = cp = skip(basicvars.datacur);
   if (*cp == '\"') {	/* String is in quotes */
     start++;
-    do
+    do {
       cp++;
-    while (*cp != NUL && *cp != '\"');
+      if (*cp == '\"' && *(cp+1) == '\"') cp+=2;
+    } while (*cp != NUL && *cp != '\"');
     if (*cp != '\"') error(ERR_QUOTEMISS);	/* " missing */
     length = cp-start;
     do	/* Skip '"' and find next field */
