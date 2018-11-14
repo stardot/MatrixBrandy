@@ -25,6 +25,8 @@
 ** 
 ** 13-Nov-2018 JGH: Swapped Windows/Kana to correct positions
 **                  Updated 46, 72, 90, 92, 94, 95, 125, 126, 127.
+** 14-Nov-2018 JGH: Turns out Windows/Kana were correct way around
+**                  See RiscOs/Sources/Internat/IntKey/Source/IntKeyBody
 */
 #include "SDL.h"
 #include "SDL_keysym.h"
@@ -120,12 +122,12 @@ int32 inkeylookup[] = {
   SDLK_SEMICOLON,	/*  87  ;             */
   SDLK_RIGHTBRACKET,	/*  88  ]             */
   SDLK_DELETE,		/*  89  Delete        */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),	/*  90  Keypad #  #/~ CHECK  USB &32 */
+  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),	/*  90  Keypad #  #/~ CHECK  USB &32 */
   SDLK_KP_MULTIPLY,	/*  91  Keypad *      */
   SDLK_KP_COMMA,	/*  92  Keypad ,  - only on Master */
   SDLK_EQUALS,		/*  93  =/+           */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSBACKSLASH),	/*  94  Left  \|  - between Shift and Z, USB &64  CHECK with US keyboard */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL1),	/*  95  Right |_  - between ? and Shift, USB &87  CHECK with JP keyboard */
+  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSBACKSLASH),	/*  94  Left  \|  - between Shift and Z, USB &64  CHECK with US keyboard */
+  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL1),	/*  95  Right |_  - between ? and Shift, USB &87  CHECK with JP keyboard */
   SDLK_TAB,		/*  96  TAB           */
   SDLK_z,		/*  97  Z             */
   SDLK_SPACE,		/*  98  Space         */
@@ -139,9 +141,9 @@ int32 inkeylookup[] = {
   SDLK_KP0,		/* 106  Keypad 0      */
   SDLK_KP1,		/* 107  Keypad 1      */
   SDLK_KP3,		/* 108  Keypad 3      */
-  SDLK_LSUPER,		/* 109  Left Windows  */
-  SDLK_RSUPER,		/* 110  Right Windows */
-  SDLK_MENU,		/* 111  Windows Menu  */
+  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL5),	/* 109  No Convert  CHECK with JP keyboard, USB &8B */
+  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL4),	/* 110  Convert     CHECK with JP keyboard, USB &8A */
+  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL2),	/* 111  Kana        CHECK with JP keyboard, USB &88 */
   SDLK_ESCAPE,		/* 112  Escape        */
   SDLK_F1,		/* 113  F1            */
   SDLK_F2,		/* 114  F2            */
@@ -155,8 +157,8 @@ int32 inkeylookup[] = {
   SDLK_KP4,		/* 122  Keypad 4      */
   SDLK_KP5,		/* 123  Keypad 5      */
   SDLK_KP2,		/* 124  Keypad 2      */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL5),	/* 125  No Convert  CHECK with JP keyboard, USB &8B */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL4),	/* 126  Convert     CHECK with JP keyboard, USB &8A */
-  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL2),	/* 127  Kana        CHECK with JP keyboard, USB &88 */
+  SDLK_LSUPER,		/* 125  Left Windows  */
+  SDLK_RSUPER,		/* 126  Right Windows */
+  SDLK_MENU,		/* 127  Windows Menu  */
   -1			/* 128  No key        */
 };
