@@ -5,6 +5,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fix memory leak in MODE change
 - Fix Filled Rectangles and CLG with GCOL actions, previously implemented
   and rather promptly broken.
+- Fixed Flash on Mode 7 on 64-bit machines.
+- Fixed Escape on 32-bit machines.
+- Improved INKEY(negative) handling, thank you JGHarston
 * V1.21.16
 - Added auto-sensing support for the Raspberry Pi's GPIO interface, with
   memory-mapped I/O and SYS calls. While the calls are recognised on all
