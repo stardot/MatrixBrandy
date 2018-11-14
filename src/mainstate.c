@@ -53,15 +53,19 @@
 #define MAXSYSPARMS 10		/* Maximum number of parameters allowed in a 'SYS' statement */
 
 /* Replacement for memmove where we dedupe pairs of double quotes */
-static void memcpydedupe(char *dest, const unsigned char *src, size_t len, char dedupe) {
-  int sptr = 0, dptr=0;
+static int memcpydedupe(char *dest, const unsigned char *src, size_t len, char dedupe) {
+  int sptr = 0, dptr=0, shorten=0;
   
   while (sptr < len) {
     *(dest+dptr) = *(src+sptr);
-    if (*(src+sptr)==dedupe && *(src+sptr+1)==dedupe) sptr++;
+    if (*(src+sptr)==dedupe && *(src+sptr+1)==dedupe) {
+      sptr++;
+      shorten++;
+    }
     sptr++;
     dptr++;
   }
+  return(shorten);
 }
 
 /*
@@ -1870,7 +1874,7 @@ static void read_numeric(lvalue destination) {
 ** or NUL at the end of the line after the field
 */
 static void read_string(lvalue destination) {
-  int32 length;
+  int32 length, shorten=0;
   byte *start, *cp;
   start = cp = skip(basicvars.datacur);
   if (*cp == '\"') {	/* String is in quotes */
@@ -1897,12 +1901,12 @@ static void read_string(lvalue destination) {
       destination.address.straddr->stringlen = length;
       destination.address.straddr->stringaddr = alloc_string(length);
     }
-    if (length != 0) memcpydedupe(destination.address.straddr->stringaddr, start, length, '"');
+    if (length != 0) shorten=memcpydedupe(destination.address.straddr->stringaddr, start, length, '"');
     break;
   case VAR_DOLSTRPTR:	/* Pointer to '$<string>' */
     check_write(destination.address.offset, length+1);   /* +1 for CR at end */
-    if (length != 0) memmove(&basicvars.offbase[destination.address.offset], start, length);
-    basicvars.offbase[destination.address.offset+length] = CR;
+    if (length != 0) shorten=memcpydedupe((char *)&basicvars.offbase[destination.address.offset], start, length, '"');
+    basicvars.offbase[destination.address.offset+length-shorten] = CR;
     break;
   default:
     error(ERR_VARNUMSTR);
