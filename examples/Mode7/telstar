@@ -15,7 +15,7 @@
   150REM Variables for downloading
   160screen%=0
   170download%=0
-  180X%=OPENUP FNwelcome
+  180X%=OPENUP(FNwelcome)
   190BPUT#X%,13
   200REPEAT
   210M%=BGET#X%: IF M%=-2 THEN GOTO 360
@@ -127,7 +127,7 @@
  1270REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=1 OR A%=6 OR A%=24
  1280IF A% = 23 THEN PROCwidth:GOTO 1270
  1290IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
- 1300IF A% = 1 THEN auth% EOR=1
+ 1300IF A% = 1 THEN auth% EOR=1: GOTO 1270
  1310IF A% = 6 THEN OSCLI"FullScreen": GOTO 1270
  1320IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
  1330IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
