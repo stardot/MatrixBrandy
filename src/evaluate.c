@@ -2712,14 +2712,21 @@ static void eval_fvpow(void) {
 */
 static void eval_ivlsl(void) {
   stackitem lhitem;
-  int32 rhint = pop_int();
+  int32 lhint = 0;
+  int32 rhint = (pop_int() % 256);
+  if (rhint < 0) rhint += 256;
   lhitem = GET_TOPITEM;	/* Branch according to type of left-hand operand */
-  if (lhitem == STACK_INT)
-    LSL_INT(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) << rhint);
-  else {
+  if (lhitem == STACK_INT) {
+    lhint = pop_int();
+  } else if (lhitem == STACK_FLOAT) {
+    lhint = TOINT(pop_float());
+  } else {
     want_number();
+  }
+  if (rhint < 32) {
+    push_int(lhint << rhint);
+  } else {
+    push_int(0);
   }
 }
 
@@ -2729,14 +2736,21 @@ static void eval_ivlsl(void) {
 */
 static void eval_fvlsl(void) {
   stackitem lhitem;
-  int32 rhint = TOINT(pop_float());
+  int32 lhint = 0;
+  int32 rhint = (TOINT(pop_float()) % 256);
+  if (rhint < 0) rhint += 256;
   lhitem = GET_TOPITEM;	/* Branch according to type of left-hand operand */
-  if (lhitem == STACK_INT)
-    LSL_INT(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) << rhint);
-  else {
+  if (lhitem == STACK_INT) {
+    lhint = pop_int();
+  } else if (lhitem == STACK_FLOAT) {
+    lhint = TOINT(pop_float());
+  } else {
     want_number();
+  }
+  if (rhint < 32) {
+    push_int(lhint << rhint);
+  } else {
+    push_int(0);
   }
 }
 
@@ -2750,19 +2764,23 @@ static void eval_fvlsl(void) {
 */
 static void eval_ivlsr(void) {
   stackitem lhitem;
-  uint32 lhuint, rhuint;
+  uint32 lhuint=0, rhuint;
   rhuint = pop_int();
+  rhuint %= 256;
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
     lhuint = pop_int();
-    push_int(lhuint >> rhuint);
   }
   else if (lhitem == STACK_FLOAT) {
     lhuint = TOINT(pop_float());
-    push_int(lhuint >> rhuint);
   }
   else {
     want_number();
+  }
+  if (rhuint < 32) {
+    push_int(lhuint >> rhuint);
+  } else {
+    push_int(0);
   }
 }
 
@@ -2772,19 +2790,23 @@ static void eval_ivlsr(void) {
 */
 static void eval_fvlsr(void) {
   stackitem lhitem;
-  uint32 lhuint, rhuint;
+  uint32 lhuint=0, rhuint;
   rhuint = TOINT(pop_float());
+  rhuint %= 256;
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
     lhuint = pop_int();
-    push_int(lhuint >> rhuint);
   }
   else if (lhitem == STACK_FLOAT) {
     lhuint = TOINT(pop_float());
-    push_int(lhuint >> rhuint);
   }
   else {
     want_number();
+  }
+  if (rhuint < 32) {
+    push_int(lhuint >> rhuint);
+  } else {
+    push_int(0);
   }
 }
 
@@ -2794,14 +2816,21 @@ static void eval_fvlsr(void) {
 */
 static void eval_ivasr(void) {
   stackitem lhitem;
-  int32 rhint = pop_int();
+  int32 lhint = 0;
+  int32 rhint = (pop_int() % 256);
+  if (rhint < 0) rhint += 256;
   lhitem = GET_TOPITEM;	/* Branch according to type of left-hand operand */
-  if (lhitem == STACK_INT)
-    ASR_INT(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) >> rhint);
-  else {
+  if (lhitem == STACK_INT) {
+    lhint = pop_int();
+  } else if (lhitem == STACK_FLOAT) {
+    lhint = TOINT(pop_float());
+  } else {
     want_number();
+  }
+  if (rhint < 32) {
+    push_int(lhint >> rhint);
+  } else {
+    push_int(0);
   }
 }
 
@@ -2811,14 +2840,21 @@ static void eval_ivasr(void) {
 */
 static void eval_fvasr(void) {
   stackitem lhitem;
-  int32 rhint = TOINT(pop_float());
+  int32 lhint = 0;
+  int32 rhint = (TOINT(pop_float()) % 256);
+  if (rhint < 0) rhint += 256;
   lhitem = GET_TOPITEM;	/* Branch according to type of left-hand operand */
-  if (lhitem == STACK_INT)
-    ASR_INT(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) >> rhint);
-  else {
+  if (lhitem == STACK_INT) {
+    lhint = pop_int();
+  } else if (lhitem == STACK_FLOAT) {
+    lhint = TOINT(pop_float());
+  } else {
     want_number();
+  }
+  if (rhint < 32) {
+    push_int(lhint >> rhint);
+  } else {
+    push_int(0);
   }
 }
 
