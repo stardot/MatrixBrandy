@@ -9,6 +9,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fixed Escape on 32-bit machines.
 - Improved INKEY(negative) handling, thank you JGHarston.
 - Fix reading strings from DATA with included quote marks.
+- Fix LSL (<<), ASR (>>) and LSR (>>>) to replicate RISC OS behaviour.
 * V1.21.16
 - Added auto-sensing support for the Raspberry Pi's GPIO interface, with
   memory-mapped I/O and SYS calls. While the calls are recognised on all
