@@ -1024,9 +1024,9 @@ int32 emulate_inkey(int32 arg) {
     if (arg >= -3) {
       /* Either modifier key */
       if (
-      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
+      (keystate[inkeylookup[(arg * -1) +3-1]]) /* left key  */
       ||
-      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
+      (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
       else
         return 0;
@@ -1055,9 +1055,9 @@ int32 emulate_inkey2(int32 arg) {
     if (arg >= -3) {
       /* Either modifier key */
       if (
-      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
+      (keystate[inkeylookup[(arg * -1) +3-1]]) /* left key  */
       ||
-      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
+      (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
       else
         return 0;
