@@ -1000,13 +1000,21 @@ int32 emulate_inkey(int32 arg) {
   else {        /* Check is a specific key is being pressed */
 #ifdef USE_SDL
     SDL_Event ev;
-    if (arg < -128) return -1;
+//    if (arg < -128) return -1; //JGH: test
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(NULL, NULL);
     while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }
+// JGH: test code
+    if ((arg & 0xF000) == 0x8000) {
+    if (keystate[arg & 0x7FFF])	// do raw API test
+      return -1;
+    else
+      return 0;
+    }
+// JGH ^^^^^
     if ((arg <= -10) && (arg >= -12)) {
       /* Mouse button INKEYs */
       if ((arg == -10) && (mousestate & 1)) return -1;
@@ -1016,9 +1024,9 @@ int32 emulate_inkey(int32 arg) {
     if (arg >= -3) {
       /* Either modifier key */
       if (
-      (keystate[inkeylookup[(arg * -1) +3-1]]) /* left key  */
+      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
       ||
-      (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
+      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
       ) return -1;
       else
         return 0;
@@ -1047,9 +1055,9 @@ int32 emulate_inkey2(int32 arg) {
     if (arg >= -3) {
       /* Either modifier key */
       if (
-      (keystate[inkeylookup[(arg * -1) +3-1]]) /* left key  */
+      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
       ||
-      (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
+      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
       ) return -1;
       else
         return 0;

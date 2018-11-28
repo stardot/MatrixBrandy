@@ -26,7 +26,11 @@
 ** 13-Nov-2018 JGH: Swapped Windows/Kana to correct positions
 **                  Updated 46, 72, 90, 92, 94, 95, 125, 126, 127.
 ** 14-Nov-2018 JGH: Turns out Windows/Kana were correct way around
-**                  See RiscOs/Sources/Internat/IntKey/Source/IntKeyBody
+**                  See RiscOs/Sources/Internat/IntKey/Source/IntKeyBody.
+** 28-Nov-2018 JGH: Some updates from testing, the updates need testing.
+** Difficult to do as need SDL equivalent of mdfs.net/Software/BBCBasic/Testing/KeyScanWin.bbc
+** to work out what the exact values need to be. Documentation is huuugely vague.
+**
 */
 #include "SDL.h"
 #include "SDL_keysym.h"
@@ -55,8 +59,9 @@ int32 inkeylookup[] = {
   SDLK_F4,		/*  20  F4            */
   SDLK_8,		/*  21  8             */
   SDLK_F7,		/*  22  F7            */
-  SDLK_MINUS,		/*  23  -             */
-  SDLK_CARET,		/*  24  ^             */
+  SDLK_MINUS,		/*  23  -             CHECK VK_0xBD - EN:ok JP:ok */
+//SDLK_CARET,		/*  24  ^             CHECK VK_0xDE - EN:?? JP:wrong */
+  SDLK_EQUALS,		/*  24  ^             CHECK VK_0xDE */
   SDLK_LEFT,		/*  25  Left          */
   SDLK_KP6,		/*  26  Keypad 6      */
   SDLK_KP7,		/*  27  Keypad 7      */
@@ -72,13 +77,15 @@ int32 inkeylookup[] = {
   SDLK_i,		/*  37  I             */
   SDLK_9,		/*  38  9             */
   SDLK_0,		/*  39  0             */
-  SDLK_UNDERSCORE,	/*  40  _             */
+//SDLK_UNDERSCORE,	/*  40  _             CHECK VK_0xBD */
+  SDLK_MINUS,		/*  40  _             CHECK VK_0xBD */
   SDLK_DOWN,		/*  41  Down          */
   SDLK_KP8,		/*  42  Keypad 8      */
   SDLK_KP9,		/*  43  Keypad 9      */
   SDLK_BREAK,		/*  44  Break         */
-  SDLK_BACKQUOTE,	/*  45  `/~/¬         */
-  SDLK_HASH,		/*  46  £/Yen  #/~    CHECK  USB: &32 or &64 or &89 */
+  SDLK_BACKQUOTE,	/*  45  `/~/¬         CHECK VK_0xDF EN:ok JP:ok */
+//SDLK_HASH,		/*  46  £/Yen  #/~    CHECK VK_0xDC EN:wrong JP:wrong */
+  SDLK_BACKSLASH,	/*  46  £/Yen  #/~    CHECK VK_0xDC */
   SDLK_BACKSPACE,	/*  47  Backspace     */
   SDLK_1,		/*  48  1             */
   SDLK_2,		/*  49  2             */
@@ -88,7 +95,7 @@ int32 inkeylookup[] = {
   SDLK_u,		/*  53  U             */
   SDLK_o,		/*  54  O             */
   SDLK_p,		/*  55  P             */
-  SDLK_LEFTBRACKET,	/*  56  [             */
+  SDLK_LEFTBRACKET,	/*  56  [             CHECK VK_0xDB EN:ok JP:wrong */
   SDLK_UP,		/*  57  Up            */
   SDLK_KP_PLUS,		/*  58  Keypad +      */
   SDLK_KP_MINUS,	/*  59  Keypad -      */
@@ -103,15 +110,16 @@ int32 inkeylookup[] = {
   SDLK_y,		/*  68  Y             */
   SDLK_j,		/*  69  J             */
   SDLK_k,		/*  70  K             */
-  SDLK_AT,		/*  71  @             */
-  SDLK_COLON,		/*  72  :             */
+  SDLK_AT,		/*  71  @             CHECK VK_C0 EN:wrong JP:wrong */
+//SDLK_COLON,		/*  72  :             CHECK VK_BA JP:wrong */
+  SDLK_QUOTE,		/*  72  :             CHECK VK_BA */
   SDLK_RETURN,		/*  73  Return        */
   SDLK_KP_DIVIDE,	/*  74  Keypad /      */
-  -1, /* SDLK_KP_BACKSPACE, */	/*  75  Keypad Del - only on Master */
+  SDLK_KP_PERIOD,	/*  75  Keypad Del - same as Keypad . on non-Master */
   SDLK_KP_PERIOD,	/*  76  Keypad .      */
   SDLK_NUMLOCK,		/*  77  Num Lock      */
   SDLK_PAGEDOWN,	/*  78  PgDn          */
-  SDLK_QUOTE,		/*  79  '/"  '/@      */
+  SDLK_QUOTE,		/*  79  '/"  '/@      CHECK VK_0xC0 EN:ok JP:nokey */
   -1,			/*  80  Shift Lock - only on BBC/Master */
   SDLK_s,		/*  81  S             */
   SDLK_c,		/*  82  C             */
@@ -119,15 +127,16 @@ int32 inkeylookup[] = {
   SDLK_h,		/*  84  H             */
   SDLK_n,		/*  85  N             */
   SDLK_l,		/*  86  L             */
-  SDLK_SEMICOLON,	/*  87  ;             */
-  SDLK_RIGHTBRACKET,	/*  88  ]             */
+  SDLK_SEMICOLON,	/*  87  ;             CHECK VK_0xBB EN:wrong JP:ok*/
+  SDLK_RIGHTBRACKET,	/*  88  ]             CHECK VK_0xDD EN:ok JP:wrong */
   SDLK_DELETE,		/*  89  Delete        */
-  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),	/*  90  Keypad #  #/~ CHECK  USB &32 */
-  SDLK_KP_MULTIPLY,	/*  91  Keypad *      */
-  -1, /* SDLK_KP_COMMA, */	/*  92  Keypad ,  - only on Master */
-  SDLK_EQUALS,		/*  93  =/+           */
-  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSBACKSLASH),	/*  94  Left  \|  - between Shift and Z, USB &64  CHECK with US keyboard */
-  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL1),	/*  95  Right |_  - between ? and Shift, USB &87  CHECK with JP keyboard */
+//-1, // 			CHECK VK_0xDE EN:wrong JP:wrong  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),	/*  90  Keypad #  #/~ */
+  SDLK_BACKSLASH,	//	CHECK VK_0xDE                    SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSHASH),	/*  90  Keypad #  #/~ */
+  SDLK_KP_MULTIPLY,	/*  91  Keypad *      EN:ok JP:ok*/
+  -1, // 			CHECK VK_SEPARATOR SDLK_KP_COMMA,							/*  92  Keypad ,      */
+  SDLK_EQUALS,	/*  93  =/+	CHECK VK_0xBB EN:ok JP:wrong */
+  -1, // 			CHECK VK_0xDC EN:wrong JP:wrong  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NONUSBACKSLASH),	/*  94  Left  \|  - between Shift and Z */
+  -1, // 			CHECK VK_0xE2 EN:wrong JP:wrong  SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL1),	/*  95  Right |_  - between ? and Shift */
   SDLK_TAB,		/*  96  TAB           */
   SDLK_z,		/*  97  Z             */
   SDLK_SPACE,		/*  98  Space         */
@@ -141,9 +150,9 @@ int32 inkeylookup[] = {
   SDLK_KP0,		/* 106  Keypad 0      */
   SDLK_KP1,		/* 107  Keypad 1      */
   SDLK_KP3,		/* 108  Keypad 3      */
-  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL5),	/* 109  No Convert  CHECK with JP keyboard, USB &8B */
-  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL4),	/* 110  Convert     CHECK with JP keyboard, USB &8A */
-  -1, // SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL2),	/* 111  Kana        CHECK with JP keyboard, USB &88 */
+  -1, // CHECK VK_NONCONVERT SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL5),	/* 109  No Convert  */
+  -1, // CHECK VK_CONVERT    SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL4),	/* 110  Convert     */
+  -1, // CHECK VK_KANA       SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INTERNATIONAL2),	/* 111  Kana        */
   SDLK_ESCAPE,		/* 112  Escape        */
   SDLK_F1,		/* 113  F1            */
   SDLK_F2,		/* 114  F2            */
@@ -152,7 +161,7 @@ int32 inkeylookup[] = {
   SDLK_F6,		/* 117  F6            */
   SDLK_F8,		/* 118  F8            */
   SDLK_F9,		/* 119  F9            */
-  SDLK_BACKSLASH,	/* 120  \|            */
+  SDLK_BACKSLASH,	/* 120  \|            CHECK VK_DC EN:wrong JP:wrong */
   SDLK_RIGHT,		/* 121  Right         */
   SDLK_KP4,		/* 122  Keypad 4      */
   SDLK_KP5,		/* 123  Keypad 5      */
