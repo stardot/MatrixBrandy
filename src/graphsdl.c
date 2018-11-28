@@ -2191,7 +2191,11 @@ static void setup_mode(int32 mode) {
   SDL_FillRect(screen2, NULL, tb_colour);
   SDL_FillRect(screen3, NULL, tb_colour);
   SDL_SetClipRect(screen0, NULL);
+#ifdef SHOWMOUSE
+  sdl_mouse_onoff(1);
+#else
   sdl_mouse_onoff(0);
+#endif
   if (screenmode == 7) {
     font_rect.w = place_rect.w = M7XPPC;
     font_rect.h = place_rect.h = M7YPPC;
