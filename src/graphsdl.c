@@ -1434,7 +1434,7 @@ static void vdu_return(void) {
 }
 
 static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom, Uint32 colour, Uint32 action) {
-  Uint32 xloop, yloop, pxoffset, prevcolour, altcolour = 0;
+  Uint32 xloop, yloop, pxoffset, prevcolour, a, altcolour = 0;
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   for (yloop=top;yloop<=bottom; yloop++) {
@@ -1465,8 +1465,9 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
       if (colourdepth == COL24BIT) {
         altcolour = altcolour & 0xFFFFFF;
       } else {
-        altcolour=altcolour*3;
-        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+        a=altcolour;
+	altcolour=altcolour*3;
+        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
       *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
     }
@@ -2392,7 +2393,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
 static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
-  Uint32 altcolour = 0, prevcolour = 0, drawcolour;
+  Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
   
   if (plot_inverse ==1) {
     action=3;
@@ -2426,8 +2427,9 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
     if (colourdepth == COL24BIT) {
       altcolour = altcolour & 0xFFFFFF;
     } else {
+      a=altcolour;
       altcolour=altcolour*3;
-      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
     }
   }
   *((Uint32*)surface->pixels + offset) = altcolour;
