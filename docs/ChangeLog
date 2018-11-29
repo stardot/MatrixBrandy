@@ -10,6 +10,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Improved INKEY(negative) handling, thank you JGHarston.
 - Fix reading strings from DATA with included quote marks.
 - Fix LSL (<<), ASR (>>) and LSR (>>>) to replicate RISC OS behaviour.
+- VDU19 palette changes now update the screen immediately.
 - New compile-time option, add -DSHOWMOUSE to makefile to make mouse pointer
   displayed upon startup and mode change. Not enabled by default as this
   contradicts RISC OS behaviour.
