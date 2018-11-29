@@ -343,14 +343,14 @@ static void set_rgb(void) {
     gb_colour = SDL_MapRGB(sdl_fontbuf->format, (graph_physbackcol & 0xFF), ((graph_physbackcol & 0xFF00) >> 8), ((graph_physbackcol & 0xFF0000) >> 16));
   } else {
     j = text_physforecol*3;
-    tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_forecol << 24);
     j = text_physbackcol*3;
-    tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_backcol << 24);
 
     j = graph_physforecol*3;
-    gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_forecol << 24);
     j = graph_physbackcol*3;
-    gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_backcol << 24);
   }
 }
 
@@ -1189,6 +1189,21 @@ void set_cursor(boolean underline) {
   reveal_cursor();	/* Draw new style cursor */
 }
 
+static void replot_pixels(int32 logcol){
+  int32 offset, col, c, pcol, newcol;
+
+  pcol = logtophys[logcol];
+  c = logcol * 3;
+  newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c], palette[c+1], palette[c+2]) + (logcol << 24);
+  for (offset=0; offset < (screenheight*screenwidth); offset++) {
+    col = *((Uint32*)modescreen->pixels + offset) >> 24;
+    if (col == logcol) {
+      *((Uint32*)modescreen->pixels + offset) = newcol;
+    }
+  }
+  blit_scaled(0,0,screenwidth-1,screenheight-1);
+}
+
 /*
 ** 'vdu_setpalette' changes one of the logical to physical colour map
 ** entries (VDU 19). When the interpreter is in full screen mode it
@@ -1210,6 +1225,8 @@ static void vdu_setpalette(void) {
   } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
   set_rgb();
+  /* Now, go through the framebuffer and change the pixels */
+  replot_pixels(logcol);
 }
 
 /*
