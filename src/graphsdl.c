@@ -1193,9 +1193,6 @@ void set_cursor(boolean underline) {
 ** 'vdu_setpalette' changes one of the logical to physical colour map
 ** entries (VDU 19). When the interpreter is in full screen mode it
 ** can also redefine colours for in the palette.
-** Note that when working in text mode, this function should have the
-** side effect of changing all pixels of logical colour number 'logcol'
-** to the physical colour given by 'mode' but the code does not do this.
 */
 static void vdu_setpalette(void) {
   int32 logcol, pmode, mode, offset, c, newcol;
