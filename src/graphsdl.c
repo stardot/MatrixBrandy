@@ -1189,21 +1189,6 @@ void set_cursor(boolean underline) {
   reveal_cursor();	/* Draw new style cursor */
 }
 
-static void replot_pixels(int32 logcol){
-  int32 offset, col, c, pcol, newcol;
-
-  pcol = logtophys[logcol];
-  c = logcol * 3;
-  newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c], palette[c+1], palette[c+2]) + (logcol << 24);
-  for (offset=0; offset < (screenheight*screenwidth); offset++) {
-    col = *((Uint32*)modescreen->pixels + offset) >> 24;
-    if (col == logcol) {
-      *((Uint32*)modescreen->pixels + offset) = newcol;
-    }
-  }
-  blit_scaled(0,0,screenwidth-1,screenheight-1);
-}
-
 /*
 ** 'vdu_setpalette' changes one of the logical to physical colour map
 ** entries (VDU 19). When the interpreter is in full screen mode it
@@ -1213,7 +1198,7 @@ static void replot_pixels(int32 logcol){
 ** to the physical colour given by 'mode' but the code does not do this.
 */
 static void vdu_setpalette(void) {
-  int32 logcol, pmode, mode;
+  int32 logcol, pmode, mode, offset, c, newcol;
   logcol = vduqueue[0] & colourmask;
   mode = vduqueue[1];
   pmode = mode % 16;
@@ -1226,7 +1211,14 @@ static void vdu_setpalette(void) {
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
   set_rgb();
   /* Now, go through the framebuffer and change the pixels */
-  replot_pixels(logcol);
+  if (colourdepth <= 256) {
+    c = logcol * 3;
+    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c], palette[c+1], palette[c+2]) + (logcol << 24);
+    for (offset=0; offset < (screenheight*screenwidth); offset++) {
+      if ((*((Uint32*)modescreen->pixels + offset) >> 24) == logcol) *((Uint32*)modescreen->pixels + offset) = newcol;
+    }
+    blit_scaled(0,0,screenwidth-1,screenheight-1);
+  }
 }
 
 /*
