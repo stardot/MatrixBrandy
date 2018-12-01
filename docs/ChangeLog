@@ -11,9 +11,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fix reading strings from DATA with included quote marks.
 - Fix LSL (<<), ASR (>>) and LSR (>>>) to replicate RISC OS behaviour.
 - VDU19 palette changes now update the screen immediately.
-- New compile-time option, add -DSHOWMOUSE to makefile to make mouse pointer
-  displayed upon startup and mode change. Not enabled by default as this
-  contradicts RISC OS behaviour.
+- Mouse display behaviour changed - if fullscreen mode enabled, mouse is off
+  upon mode change or startup; if windowed, mouse is on.
 * V1.21.16
 - Added auto-sensing support for the Raspberry Pi's GPIO interface, with
   memory-mapped I/O and SYS calls. While the calls are recognised on all
