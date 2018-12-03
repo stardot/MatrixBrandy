@@ -2778,7 +2778,7 @@ static void eval_ivlsr(void) {
     want_number();
   }
   if (rhuint < 32) {
-    push_int(lhuint >> rhuint);
+    push_int((lhuint >> rhuint) & 0x7FFFFFFF);
   } else {
     push_int(0);
   }
@@ -2804,7 +2804,7 @@ static void eval_fvlsr(void) {
     want_number();
   }
   if (rhuint < 32) {
-    push_int(lhuint >> rhuint);
+    push_int((lhuint >> rhuint) & 0x7FFFFFFF);
   } else {
     push_int(0);
   }
@@ -2828,7 +2828,7 @@ static void eval_ivasr(void) {
     want_number();
   }
   if (rhint < 32) {
-    push_int(lhint >> rhint);
+    push_int((lhint >> rhint) | (lhint & 0x80000000));
   } else {
     push_int(0);
   }
@@ -2852,7 +2852,7 @@ static void eval_fvasr(void) {
     want_number();
   }
   if (rhint < 32) {
-    push_int(lhint >> rhint);
+    push_int((lhint >> rhint) | (lhint & 0x80000000));
   } else {
     push_int(0);
   }
