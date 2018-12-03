@@ -10,7 +10,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Improved INKEY(negative) handling, thank you JGHarston.
 - Fix reading strings from DATA with included quote marks.
 - Fix LSL (<<), ASR (>>) and LSR (>>>) to replicate RISC OS behaviour.
-- VDU19 palette changes now update the screen immediately.
+- VDU19 palette changes now update the screen immediately. Also, now has
+  no effect in MODE 7.
 - Mouse display behaviour changed - if fullscreen mode enabled, mouse is off
   upon mode change or startup; if windowed, mouse is on.
 * V1.21.16

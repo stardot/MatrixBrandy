@@ -1196,6 +1196,7 @@ void set_cursor(boolean underline) {
 */
 static void vdu_setpalette(void) {
   int32 logcol, pmode, mode, offset, c, newcol;
+  if (screenmode == 7) return;
   logcol = vduqueue[0] & colourmask;
   mode = vduqueue[1];
   pmode = mode % 16;
