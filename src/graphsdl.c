@@ -343,14 +343,14 @@ static void set_rgb(void) {
     gb_colour = SDL_MapRGB(sdl_fontbuf->format, (graph_physbackcol & 0xFF), ((graph_physbackcol & 0xFF00) >> 8), ((graph_physbackcol & 0xFF0000) >> 16));
   } else {
     j = text_physforecol*3;
-    tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_forecol << 24);
     j = text_physbackcol*3;
-    tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_backcol << 24);
 
     j = graph_physforecol*3;
-    gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_forecol << 24);
     j = graph_physbackcol*3;
-    gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]);
+    gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_backcol << 24);
   }
 }
 
@@ -1193,12 +1193,10 @@ void set_cursor(boolean underline) {
 ** 'vdu_setpalette' changes one of the logical to physical colour map
 ** entries (VDU 19). When the interpreter is in full screen mode it
 ** can also redefine colours for in the palette.
-** Note that when working in text mode, this function should have the
-** side effect of changing all pixels of logical colour number 'logcol'
-** to the physical colour given by 'mode' but the code does not do this.
 */
 static void vdu_setpalette(void) {
-  int32 logcol, pmode, mode;
+  int32 logcol, pmode, mode, offset, c, newcol;
+  if (screenmode == 7) return;
   logcol = vduqueue[0] & colourmask;
   mode = vduqueue[1];
   pmode = mode % 16;
@@ -1210,6 +1208,15 @@ static void vdu_setpalette(void) {
   } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
   set_rgb();
+  /* Now, go through the framebuffer and change the pixels */
+  if (colourdepth <= 256) {
+    c = logcol * 3;
+    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c], palette[c+1], palette[c+2]) + (logcol << 24);
+    for (offset=0; offset < (screenheight*screenwidth*xscale); offset++) {
+      if ((*((Uint32*)modescreen->pixels + offset) >> 24) == logcol) *((Uint32*)modescreen->pixels + offset) = newcol;
+    }
+    blit_scaled(0,0,screenwidth-1,screenheight-1);
+  }
 }
 
 /*
@@ -1428,7 +1435,7 @@ static void vdu_return(void) {
 }
 
 static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom, Uint32 colour, Uint32 action) {
-  Uint32 xloop, yloop, pxoffset, prevcolour, altcolour = 0;
+  Uint32 xloop, yloop, pxoffset, prevcolour, a, altcolour = 0;
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   for (yloop=top;yloop<=bottom; yloop++) {
@@ -1459,8 +1466,9 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
       if (colourdepth == COL24BIT) {
         altcolour = altcolour & 0xFFFFFF;
       } else {
-        altcolour=altcolour*3;
-        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+        a=altcolour;
+	altcolour=altcolour*3;
+        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
       *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
     }
@@ -2191,7 +2199,7 @@ static void setup_mode(int32 mode) {
   SDL_FillRect(screen2, NULL, tb_colour);
   SDL_FillRect(screen3, NULL, tb_colour);
   SDL_SetClipRect(screen0, NULL);
-  sdl_mouse_onoff(0);
+  sdl_mouse_onoff((screen0->flags & SDL_FULLSCREEN) ? 0 : 1);
   if (screenmode == 7) {
     font_rect.w = place_rect.w = M7XPPC;
     font_rect.h = place_rect.h = M7YPPC;
@@ -2382,7 +2390,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
 static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
-  Uint32 altcolour = 0, prevcolour = 0, drawcolour;
+  Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
   
   if (plot_inverse ==1) {
     action=3;
@@ -2416,8 +2424,9 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
     if (colourdepth == COL24BIT) {
       altcolour = altcolour & 0xFFFFFF;
     } else {
+      a=altcolour;
       altcolour=altcolour*3;
-      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]);
+      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
     }
   }
   *((Uint32*)surface->pixels + offset) = altcolour;
