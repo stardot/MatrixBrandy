@@ -24,18 +24,19 @@
 **      When running under operating systems other than RISC OS the
 **      interpreter uses its own keyboard handling functions to
 **      provide both line editing and a line recall feature
-*/
-/*
-** Colin Tuckley December 2006:
-**  Rewrite to use SDL library Event handling.
-*/
-/*
-** Crispian Daniels August 20th 2002:
+**
+**
+** 20th August 2002 Crispian Daniels:
 **      Included Mac OS X target in conditional compilation.
+**
+** December 2006 Colin Tuckley:
+**      Rewrite to use SDL library Event handling.
 **
 ** 06-Mar-2014 JGH: Zero-length function key strings handled correctly.
 ** 13-Nov-2018 JGH: SDL INKEY-1/2/3 checks for either modifier key.
 **                  Bug: Caps/Num returns lock state, not key state.
+** 03-Dec-2018 JGH: SDL wasn't detecting DELETE. Non-function special
+**                  keys modified correctly.
 **
 */
 
@@ -244,6 +245,9 @@ void end_keyboard(void) {
 
 /* Function key codes */
 
+#define KEY_F0          0x80
+#define SHIFT_F0        0x90
+#define CTRL_F0         0xA0
 #define KEY_F1          0x81
 #define SHIFT_F1        0x91
 #define CTRL_F1         0xA1
@@ -480,7 +484,7 @@ void osbyte44(int x) {
 
 /*
 ** 'waitkey' is called to wait for up to 'wait' centiseconds for
-** keyboard input. It returns 'true' if there is a character available
+** keyboard input. It returns non-false if there is a character available
 **
 */
 static boolean waitkey(int wait) {
@@ -582,46 +586,79 @@ int32 read_key(void) {
             case SDLK_RALT:
             case SDLK_LALT:
               break;
+
+/* There is a better way to do this */
+            case SDLK_PRINT:
+            case SDLK_END:
             case SDLK_LEFT:
-              push_key(LEFT);
-              return NUL;
             case SDLK_RIGHT:
-              push_key(RIGHT);
-              return NUL;
-            case SDLK_UP:
-              push_key(UP);
-              return NUL;
             case SDLK_DOWN:
-              push_key(DOWN);
+            case SDLK_UP:
+            case SDLK_PAGEUP:
+            case SDLK_PAGEDOWN:
+            case SDLK_INSERT:
+              switch(ev.key.keysym.sym) {
+                case SDLK_PRINT:    ch=KEY_F0; break;
+                case SDLK_END:      ch=END;    break;
+                case SDLK_LEFT:     ch=LEFT;   break;
+                case SDLK_RIGHT:    ch=RIGHT;  break;
+                case SDLK_DOWN:     ch=DOWN;   break;
+                case SDLK_UP:       ch=UP;     break;
+                case SDLK_PAGEUP:   ch=PGUP;   break;
+                case SDLK_PAGEDOWN: ch=PGDOWN; break;
+                case SDLK_INSERT:   ch=INSERT; break;
+              }
+              if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
+              if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
+              if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
+              push_key(ch);
               return NUL;
+
+//          case SDLK_LEFT:
+//            push_key(LEFT);
+//            return NUL;
+//          case SDLK_RIGHT:
+//            push_key(RIGHT);
+//            return NUL;
+//          case SDLK_UP:
+//            push_key(UP);
+//            return NUL;
+//          case SDLK_DOWN:
+//            push_key(DOWN);
+//            return NUL;
+//          case SDLK_END:
+//            push_key(END);
+//            return NUL;
+//          case SDLK_PAGEUP:
+//            push_key(PGUP);
+//            return NUL;
+//          case SDLK_PAGEDOWN:
+//            push_key(PGDOWN);
+//            return NUL;
+//          case SDLK_INSERT:
+//            push_key(INSERT);
+//            return NUL;
+
             case SDLK_HOME:
               return HOME;
-            case SDLK_END:
-              push_key(END);
-              return NUL;
-            case SDLK_PAGEUP:
-              push_key(PGUP);
-              return NUL;
-            case SDLK_PAGEDOWN:
-              push_key(PGDOWN);
-              return NUL;
-            case SDLK_INSERT:
-              push_key(INSERT);
-              return NUL;
+            case SDLK_DELETE:
+              return DELETE;
             case SDLK_ESCAPE:
 	      if (basicvars.escape_enabled) error(ERR_ESCAPE);
 	      return ESCAPE;
             case SDLK_F1: case SDLK_F2: case SDLK_F3: case SDLK_F4: case SDLK_F5:
             case SDLK_F6: case SDLK_F7: case SDLK_F8: case SDLK_F9:
               ch = KEY_F1 + ev.key.keysym.sym - SDLK_F1;
-              if (ev.key.keysym.mod & KMOD_SHIFT) ch += 0x10;
-              if (ev.key.keysym.mod & KMOD_CTRL)  ch += 0x20;
+              if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
+              if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
+              if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
               return NUL;
             case SDLK_F10: case SDLK_F11: case SDLK_F12:
               ch = KEY_F10 + ev.key.keysym.sym - SDLK_F10;
-              if (ev.key.keysym.mod & KMOD_SHIFT) ch += 0x10;
-              if (ev.key.keysym.mod & KMOD_CTRL)  ch += 0x20;
+              if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
+              if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
+              if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
               return NUL;
             default:
@@ -983,30 +1020,38 @@ int32 emulate_inkey(int32 arg) {
 #ifdef USE_SDL
   mode7flipbank();
 #endif
-  if (arg >= 0) {       /* Timed wait for a key to be hit */
+  if (arg >= 0) {	/* Timed wait for a key to be pressed */
     if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);     /* There is no keyboard to read */
     if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in range 0..32767 centiseconds */
     if (waitkey(arg)) {
       do {
         result=emulate_get();
       } while (result==0);
-      return result;     /* Fetch the key if one is available */
+      return result;	/* Fetch the key if one is available */
     } else {
-      return -1;        /* Otherwise return -1 to say that nothing arrived in time */
+      return -1;	/* Otherwise return -1 to say that nothing arrived in time */
     }
   }
-  else if (arg == -256)         /* Return version of operating system */
+  else if (arg == -256)	/* Return version of operating system */
     return OSVERSION;
-  else {        /* Check is a specific key is being pressed */
+  else {		/* Check is a specific key is being pressed */
 #ifdef USE_SDL
     SDL_Event ev;
-    if (arg < -128) return -1;
+    if ((arg < -128) && (arg > -256)) return -1;	/* Scan range unimplemented */
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(NULL, NULL);
     while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }
+// JGH: test code
+    if ((arg & 0xF000) == 0x8000) {
+    if (keystate[arg & 0x7FFF])	// do raw API test, caution: can cause address error
+      return -1;
+    else
+      return 0;
+    }
+// JGH ^^^^^
     if ((arg <= -10) && (arg >= -12)) {
       /* Mouse button INKEYs */
       if ((arg == -10) && (mousestate & 1)) return -1;
@@ -1016,9 +1061,9 @@ int32 emulate_inkey(int32 arg) {
     if (arg >= -3) {
       /* Either modifier key */
       if (
-      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
+      (keystate[inkeylookup[(arg * -1) +3-1]]) /* left key  */
       ||
-      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
+      (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
       else
         return 0;
@@ -1047,9 +1092,9 @@ int32 emulate_inkey2(int32 arg) {
     if (arg >= -3) {
       /* Either modifier key */
       if (
-      (keystate[inkeylookup[(arg * -1) +3-1]])) /* left key  */
+      (keystate[inkeylookup[(arg * -1) +3-1]]) /* left key  */
       ||
-      (keystate[inkeylookup[(arg * -1) +6-1]])) /* right key */
+      (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
       else
         return 0;
@@ -1244,6 +1289,7 @@ int32 emulate_inkey(int32 arg) {
 
 #ifdef TARGET_AMIGA
 
+// Why is this here?
 #ifndef __AMIGADATE__
 #define __AMIGADATE__ "("__DATE__")"
 #endif
@@ -1480,7 +1526,8 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   do {
     ch = emulate_get();
     watch_signals();           /* Let asynchronous signals catch up */
-    if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;      /* Check if the escape key has been pressed and bail out if it has */
+    if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;
+	/* Check if the escape key has been pressed and bail out if it has */
     switch (ch) {       /* Normal keys */
     case CR: case LF:   /* End of line */
       emulate_vdu('\r');
