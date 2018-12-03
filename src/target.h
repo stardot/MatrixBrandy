@@ -25,6 +25,9 @@
 **	Included a Mac OS X target for conditional compilation.
 */
 
+#define NONET 1
+#define JGHBODGE 1
+
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
 #define BRANDY_PATCHLEVEL "16"
@@ -133,7 +136,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #error Target operating system for interpreter is either missing or not supported
 #endif
 
+#ifdef USE_SDL
+#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/SDL) " BRANDY_DATE
+#else
 #define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS ") " BRANDY_DATE
+#endif
 
 /*
 ** MAXSTRING is the length of the longest string the interpreter
