@@ -1605,9 +1605,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=mos_getswinum((char *)basicvars.offbase+inregs[1], strlen((char *)basicvars.offbase+inregs[1]));
       break;
     default:
-#ifndef NONET
       mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */
-#endif
       break;
   }
 }
