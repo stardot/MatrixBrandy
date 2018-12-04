@@ -19,19 +19,22 @@
 **
 **
 **	Target-specific declarations
-*/
-/*
-** Crispian Daniels August 20th 2002:
+**
+** 20th August 2002 Crispian Daniels:
 **	Included a Mac OS X target for conditional compilation.
+**
+** 04-Dec-2018 JGH: Rearranged to make for easier human parsing.
+**
 */
 
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "16"
-#define BRANDY_DATE    "04 Nov 2018"
+#define BRANDY_PATCHLEVEL "17"
+#define BRANDY_DATE  "04 Dec 2018"
 
 #ifndef __target_h
 #define __target_h
+
 
 /*
 ** Define the operating system-specific types used for integer
@@ -46,42 +49,89 @@ typedef double float64;			/* Type for 64-bit floating point variables in Basic *
 typedef long long int int64;		/* Type for 64-bit integer variables */
 typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
+
 /*
 ** The following macros define the OS under which the program is being
 ** compiled and run. It uses macros predefined in various compilers to
 ** figure this out. Alternatively, the 'TARGET_xxx' macro can be hard-
 ** coded here. This is the most important macro and is used to control
 ** the compilation of OS-specific parts of the program.
+**
+** BRANDY_OS is displayed by the startup and *HELP string
+** MACTYPE indicates the filing system type, returned by OSBYTE 0
+**  0x0600 for directory.file/ext (eg RISC OS)
+**  0x0800 for directory/file.ext (eg UNIX)
+**  0x2000 for directory\file.ext (eg Win/DOS)
+** OSVERSION indicates the host OS, returned by INKEY-256 and OSBYTE 129,-256.
+**  These values are made up, but see beebwiki.mdfs.net/OSBYTE_&81
+**
+** Name of editor invoked by Basic 'EDIT' command
+** EDITOR_VARIABLE is the name of an environment variable that can be
+**		read to find the name of the editor to use.
+** DEFAULT_EDITOR is the name of the editor to use if there is no
+**		environment variable.
+**
+** Characters used to separate directories in names of files
+** DIR_SEPS	is a string containing all the characters that can be
+** 	    	be used to separate components of a file name (apart
+**		from the file name's extension)
+** DIR_SEP	gives the character to be used to separate directory names.
 */
-
-#ifdef __unix
-#define TARGET_UNIX
-#endif
 
 #ifdef __riscos
 #define TARGET_RISCOS
 #define BRANDY_OS "RISC OS"
+// OSVERSION returned by OS call
+#define MACTYPE   0x0600
+#define EDITOR_VARIABLE "Brandy$Editor"
+#define DEFAULT_EDITOR  "Filer_Run"
+#define DIR_SEPS ".:"
+#define DIR_SEP  '.'
 #endif
 
 #ifdef __NetBSD__
 #define TARGET_NETBSD
 #define BRANDY_OS "NetBSD"
+#define OSVERSION 0xFE
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 #ifdef __FreeBSD__
 #define TARGET_FREEBSD
 #define BRANDY_OS "FreeBSD"
+#define OSVERSION 0xF7
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 #ifdef __OpenBSD__
 #define TARGET_OPENBSD
 #define TARGET_UNIX
 #define BRANDY_OS "OpenBSD"
+#define OSVERSION 0xF6
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 #ifdef linux
 #define TARGET_LINUX
 #define BRANDY_OS "Linux"
+#define OSVERSION 0xF9
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 /* Same as Linux, but can be treated exactly like it, see the Linux specific
@@ -89,45 +139,92 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #if (defined __FreeBSD_kernel__)
 #define TARGET_GNUKFREEBSD
 #define BRANDY_OS "GNU/kFreeBSD"
+#define OSVERSION 0xF4
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 #if (defined __GNU__)
 #define TARGET_GNU
 #define BRANDY_OS "GNU/Hurd"
+#define OSVERSION 0xF3
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 #ifdef DJGPP
 #define TARGET_DJGPP
 #define BRANDY_OS "DJGPP"
+#define OSVERSION 0xFA
+#define MACTYPE   0x2000
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "edit"
+#define DIR_SEPS "\\/:"
+#define DIR_SEP  '\\'
 #endif
 
 #ifdef __MINGW32__
-#define TARGET_MINGW
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600 /* Require Win7 or later */
+#define TARGET_MINGW
 #define BRANDY_OS "MinGW"
+#define OSVERSION 0xFC
+#define MACTYPE   0x2000
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "edit"
+#define DIR_SEPS "\\/:"
+#define DIR_SEP  '\\'
 #endif
 
 #if defined(__LCC__) & defined(WIN32)
 #define TARGET_WIN32
 #define BRANDY_OS "LCC-WIN32"
+#define OSVERSION 0xFC
+#define MACTYPE   0x2000
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "edit"
+#define DIR_SEPS "\\/:"
+#define DIR_SEP  '\\'
 #endif
 
 #ifdef __BORLANDC__
 #define TARGET_BCC32
 #define BRANDY_OS "BCC"
+#define OSVERSION 0xFC
+#define MACTYPE   0x2000
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "edit"
+#define DIR_SEPS "\\/:"
+#define DIR_SEP  '\\'
 #endif
 
 #if defined(__GNUC__) && ( defined(__APPLE_CPP__) || defined(__APPLE_CC__) )
 #define TARGET_MACOSX
 #define BRANDY_OS "MacOS X"
+#define OSVERSION 0xF8
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
 #endif
 
 #if defined(_AMIGA) || defined(__amigaos__)
 #define TARGET_AMIGA
 #define BRANDY_OS "Amiga"
+#define OSVERSION 0xF5
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "ed"
+#define DIR_SEPS "/:"
+#define DIR_SEP  '/'
 #endif
-
 
 #ifndef BRANDY_OS
 #error Target operating system for interpreter is either missing or not supported
@@ -139,6 +236,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS ") " BRANDY_DATE
 #endif
 
+
 /*
 ** MAXSTRING is the length of the longest string the interpreter
 ** allows. This value can be safely reduced but not increased
@@ -147,6 +245,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 */
 
 #define MAXSTRING 65536
+
 
 /*
 ** DEFAULTSIZE and MINSIZE give the default and minimum Basic
@@ -159,6 +258,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULTSIZE 651516
 #define MINSIZE (10*1024)
 
+
 /*
 ** The ALIGN macro is used to control the sizes of blocks of
 ** memory allocated from the heap. They are always a multiple
@@ -170,66 +270,70 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define ALIGN(x) ((x+sizeof(int32)-1) & -(int)sizeof(int32))
 #endif
 
-/*
-** Name of editor invoked by Basic 'EDIT' command
-** EDITOR_VARIABLE is the name of an environment variable that can be
-**		read to find the name of the editor to use.
-** DEFAULT_EDITOR is the name of the editor to use if there is no
-**		environment variable.
-*/
 
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
-#define DEFAULT_EDITOR "edit"
-#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_FREEBSD)\
- | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
-#define DEFAULT_EDITOR "vi"
-#elif defined(TARGET_MACOSX)
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
-#define DEFAULT_EDITOR "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
-#elif defined(TARGET_RISCOS)
-#define EDITOR_VARIABLE "Brandy$Editor"
-#define DEFAULT_EDITOR "Filer_Run"
-#elif defined(TARGET_AMIGA)
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
-#define DEFAULT_EDITOR "ed"
-#endif
+// Moved to top
+///*
+//** Name of editor invoked by Basic 'EDIT' command
+//** EDITOR_VARIABLE is the name of an environment variable that can be
+//**		read to find the name of the editor to use.
+//** DEFAULT_EDITOR is the name of the editor to use if there is no
+//**		environment variable.
+//*/
+//
+//#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+//#define EDITOR_VARIABLE "BRANDY$EDITOR"
+//#define DEFAULT_EDITOR "edit"
+//#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_FREEBSD)\
+// | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+//#define EDITOR_VARIABLE "BRANDY$EDITOR"
+//#define DEFAULT_EDITOR "vi"
+//#elif defined(TARGET_MACOSX)
+//#define EDITOR_VARIABLE "BRANDY$EDITOR"
+//#define DEFAULT_EDITOR "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
+//#elif defined(TARGET_RISCOS)
+//#define EDITOR_VARIABLE "Brandy$Editor"
+//#define DEFAULT_EDITOR "Filer_Run"
+//#elif defined(TARGET_AMIGA)
+//#define EDITOR_VARIABLE "BRANDY$EDITOR"
+//#define DEFAULT_EDITOR "ed"
+//#endif
 
-/*
-** Characters used to separate directories in names of files
-** DIR_SEPS	is a string containing all the characters that can be
-** 	    	be used to separate components of a file name (apart
-**		from the file name's extension)
-** DIR_SEP	gives the character to be used to separate directory names.
-*/
+// Moved to top
+///*
+//** Characters used to separate directories in names of files
+//** DIR_SEPS	is a string containing all the characters that can be
+//** 	    	be used to separate components of a file name (apart
+//**		from the file name's extension)
+//** DIR_SEP	gives the character to be used to separate directory names.
+//*/
+//
+//#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+//#define DIR_SEPS "\\/:"
+//#define DIR_SEP '\\'
+//#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
+// | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+//#define DIR_SEPS "/"
+//#define DIR_SEP '/'
+//#elif defined(TARGET_RISCOS)
+//#define DIR_SEPS ".:"
+//#define DIR_SEP '.'
+//#elif defined(TARGET_AMIGA)
+//#define DIR_SEPS "/:"
+//#define DIR_SEP '/'
+//#endif
 
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-#define DIR_SEPS "\\/:"
-#define DIR_SEP '\\'
-#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
-#define DIR_SEPS "/"
-#define DIR_SEP '/'
-#elif defined(TARGET_RISCOS)
-#define DIR_SEPS ".:"
-#define DIR_SEP '.'
-#elif defined(TARGET_AMIGA)
-#define DIR_SEPS "/:"
-#define DIR_SEP '/'
-#endif
-
-/* Host type values returned by OSBYTE 0 */
-
-#if defined(TARGET_RISCOS)
-#define MACTYPE 0x600
-// Note - ARM running on *nix must return 8 not 6. It specifies the platform not the CPU.
-#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
-#define MACTYPE 0x800
-#elif defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-#define MACTYPE 0x2000
-#endif
+// Moved to top
+//* Host type values returned by OSBYTE 0 */
+//
+//#if defined(TARGET_RISCOS)
+//#define MACTYPE 0x600
+//// Note - ARM running on *nix must return 8 not 6. It specifies the platform not the CPU.
+//#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
+// | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA)\
+// | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+//#define MACTYPE 0x800
+//#elif defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+//#define MACTYPE 0x2000
+//#endif
 
 #endif
