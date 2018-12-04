@@ -37,6 +37,8 @@
 **                  Bug: Caps/Num returns lock state, not key state.
 ** 03-Dec-2018 JGH: SDL wasn't detecting DELETE. Non-function special
 **                  keys modified correctly.
+** 04-Dec-2018 JGH: set_fn_string checks if function key in use.
+**                  Some tidying up before deeper work.
 **
 */
 
@@ -50,6 +52,126 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "mos.h"
+
+
+/* ASCII codes of various useful characters */
+
+#define CTRL_A          0x01
+#define CTRL_B          0x02
+#define CTRL_C          0x03
+#define CTRL_D          0x04
+#define CTRL_E          0x05
+#define CTRL_F          0x06
+#define CTRL_H          0x08
+#define CTRL_K          0x0B
+#define CTRL_L          0x0C
+#define CTRL_N          0x0E
+#define CTRL_O          0x0F
+#define CTRL_P          0x10
+#define CTRL_U          0x15
+#define ESCAPE          0x1B
+#define DEL             0x7F
+
+/*
+** Following are the key codes given in the RISC OS PRMs for the various
+** special keys of interest to this program. RISC OS sequences for these
+** keys consists of a NUL followed by one of these values. They are used
+** internally when processing the keys. The key codes returned by foreign
+** operating systems are mapped on to these values where possible.
+*/
+#define HOME            0x1E
+#define CTRL_HOME       0x1E
+#define END             0x8B
+#define CTRL_END        0xAB
+#define UP              0x8F
+#define CTRL_UP         0xAF
+#define DOWN            0x8E
+#define CTRL_DOWN       0xAE
+#define LEFT            0x8C
+#define CTRL_LEFT       0xAC
+#define RIGHT           0x8D
+#define CTRL_RIGHT      0xAD
+#define PGUP            0x9F
+#define CTRL_PGUP       0xBF
+#define PGDOWN          0x9E
+#define CTRL_PGDOWN     0xBE
+#define INSERT          0xCD
+#define CTRL_INSERT     0xED
+#define DELETE          0x7F
+#define CTRL_DELETE     0x7F
+
+/* Function key codes */
+#define KEY_F0          0x80
+#define SHIFT_F0        0x90
+#define CTRL_F0         0xA0
+#define KEY_F1          0x81
+#define SHIFT_F1        0x91
+#define CTRL_F1         0xA1
+#define KEY_F2          0x82
+#define SHIFT_F2        0x92
+#define CTRL_F2         0xA2
+#define KEY_F3          0x83
+#define SHIFT_F3        0x93
+#define CTRL_F3         0xA3
+#define KEY_F4          0x84
+#define SHIFT_F4        0x94
+#define CTRL_F4         0xA4
+#define KEY_F5          0x85
+#define SHIFT_F5        0x95
+#define CTRL_F5         0xA5
+#define KEY_F6          0x86
+#define SHIFT_F6        0x96
+#define CTRL_F6         0xA6
+#define KEY_F7          0x87
+#define SHIFT_F7        0x97
+#define CTRL_F7         0xA7
+#define KEY_F8          0x88
+#define SHIFT_F8        0x98
+#define CTRL_F8         0xA8
+#define KEY_F9          0x89
+#define SHIFT_F9        0x99
+#define CTRL_F9         0xA9
+#define KEY_F10         0xCA
+#define SHIFT_F10       0xDA
+#define CTRL_F10        0xEA
+#define KEY_F11         0xCB
+#define SHIFT_F11       0xDB
+#define CTRL_F11        0xEB
+#define KEY_F12         0xCC
+#define SHIFT_F12       0xDC
+#define CTRL_F12        0xEC
+
+// Moved to target.h
+///*
+//** Operating system version number returned by 'INKEY'. These values
+//** are made up
+//*/
+//#if defined(TARGET_NETBSD)
+//#define OSVERSION 0xFE
+//#elif defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+//#define OSVERSION 0xFC
+//#elif defined(TARGET_BEOS)
+//#define OSVERSION 0xFB
+//#elif defined(TARGET_DJGPP)
+//#define OSVERSION 0xFA
+//#elif defined(TARGET_LINUX)
+//#define OSVERSION 0xF9
+//#elif defined(TARGET_MACOSX)
+//#define OSVERSION 0xF8
+//#elif defined(TARGET_FREEBSD)
+//#define OSVERSION 0xF7
+//#elif defined(TARGET_OPENBSD)
+//#define OSVERSION 0xF6
+//#elif defined(TARGET_AMIGA)
+//#define OSVERSION 0xF5
+//#elif defined(TARGET_GNUKFREEBSD)
+//#define OSVERSION 0xF4
+//#elif defined(TARGET_GNU)
+//#define OSVERSION 0xF3
+//#else
+//#error Target operating system is either not defined or not supported
+//#endif
+
 
 #ifdef USE_SDL
 #include "SDL.h"
@@ -158,8 +280,9 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 /*
  * set_fn_string - Define a function key string
  */
-void set_fn_string(int key, char *string, int length) {
+int set_fn_string(int key, char *string, int length) {
   printf("Key = %d  String = '%s'\n", key, string);
+  return 0;
 }
 
 boolean init_keyboard(void) {
@@ -195,124 +318,6 @@ void end_keyboard(void) {
 #ifdef TARGET_DJGPP
 #include <pc.h>
 #include <keys.h>
-#endif
-
-/* ASCII codes of various useful characters */
-
-#define CTRL_A          1
-#define CTRL_B          2
-#define CTRL_C          3
-#define CTRL_D          4
-#define CTRL_E          5
-#define CTRL_F          6
-#define CTRL_H          8
-#define CTRL_K          0x0B
-#define CTRL_L          0x0C
-#define CTRL_N          0x0E
-#define CTRL_O          0x0F
-#define CTRL_P          0x10
-#define CTRL_U          0x15
-#define ESCAPE          0x1B
-#define DEL             0x7F
-
-/*
-** Following are the key codes given in the RISC OS PRMs for the various
-** special keys of interest to this program. RISC OS sequences for these
-** keys consists of a NUL followed by one of these values. They are used
-** internally when processing the keys. The key codes returned by foreign
-** operating systems are mapped on to these values where possible.
-*/
-#define HOME            0x1E
-#define CTRL_HOME       0x1E
-#define END             0x8B
-#define CTRL_END        0xAB
-#define UP              0x8F
-#define CTRL_UP         0xAF
-#define DOWN            0x8E
-#define CTRL_DOWN       0xAE
-#define LEFT            0x8C
-#define CTRL_LEFT       0xAC
-#define RIGHT           0x8D
-#define CTRL_RIGHT      0xAD
-#define PGUP            0x9F
-#define CTRL_PGUP       0xBF
-#define PGDOWN          0x9E
-#define CTRL_PGDOWN     0xBE
-#define INSERT          0xCD
-#define CTRL_INSERT     0xED
-#define DELETE          0x7F
-#define CTRL_DELETE     0x7F
-
-/* Function key codes */
-
-#define KEY_F0          0x80
-#define SHIFT_F0        0x90
-#define CTRL_F0         0xA0
-#define KEY_F1          0x81
-#define SHIFT_F1        0x91
-#define CTRL_F1         0xA1
-#define KEY_F2          0x82
-#define SHIFT_F2        0x92
-#define CTRL_F2         0xA2
-#define KEY_F3          0x83
-#define SHIFT_F3        0x93
-#define CTRL_F3         0xA3
-#define KEY_F4          0x84
-#define SHIFT_F4        0x94
-#define CTRL_F4         0xA4
-#define KEY_F5          0x85
-#define SHIFT_F5        0x95
-#define CTRL_F5         0xA5
-#define KEY_F6          0x86
-#define SHIFT_F6        0x96
-#define CTRL_F6         0xA6
-#define KEY_F7          0x87
-#define SHIFT_F7        0x97
-#define CTRL_F7         0xA7
-#define KEY_F8          0x88
-#define SHIFT_F8        0x98
-#define CTRL_F8         0xA8
-#define KEY_F9          0x89
-#define SHIFT_F9        0x99
-#define CTRL_F9         0xA9
-#define KEY_F10         0xCA
-#define SHIFT_F10       0xDA
-#define CTRL_F10        0xEA
-#define KEY_F11         0xCB
-#define SHIFT_F11       0xDB
-#define CTRL_F11        0xEB
-#define KEY_F12         0xCC
-#define SHIFT_F12       0xDC
-#define CTRL_F12        0xEC
-
-/*
-** Operating system version number returned by 'INKEY'. These values
-** are made up
-*/
-#if defined(TARGET_NETBSD)
-#define OSVERSION 0xFE
-#elif defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-#define OSVERSION 0xFC
-#elif defined(TARGET_BEOS)
-#define OSVERSION 0xFB
-#elif defined(TARGET_DJGPP)
-#define OSVERSION 0xFA
-#elif defined(TARGET_LINUX)
-#define OSVERSION 0xF9
-#elif defined(TARGET_MACOSX)
-#define OSVERSION 0xF8
-#elif defined(TARGET_FREEBSD)
-#define OSVERSION 0xF7
-#elif defined(TARGET_OPENBSD)
-#define OSVERSION 0xF6
-#elif defined(TARGET_AMIGA)
-#define OSVERSION 0xF5
-#elif defined(TARGET_GNUKFREEBSD)
-#define OSVERSION 0xF4
-#elif defined(TARGET_GNU)
-#define OSVERSION 0xF3
-#else
-#error Target operating system is either not defined or not supported
 #endif
 
 #define INKEYMAX 0x7FFF         /* Maximum wait time for INKEY */
@@ -396,11 +401,13 @@ void purge_keys(void) {
 /*
 ** set_fn_string - Define a function key string
 */
-void set_fn_string(int key, char *string, int length) {
+int set_fn_string(int key, char *string, int length) {
+  if (fn_string_count) return fn_string_count;
   if (fn_key[key].text != NIL) free(fn_key[key].text);
   fn_key[key].length = length;
   fn_key[key].text = malloc(length);
   if (fn_key[key].text != NIL) memcpy(fn_key[key].text, string, length);
+  return 0;
 }
 
 /*
@@ -607,39 +614,12 @@ int32 read_key(void) {
                 case SDLK_PAGEUP:   ch=PGUP;   break;
                 case SDLK_PAGEDOWN: ch=PGDOWN; break;
                 case SDLK_INSERT:   ch=INSERT; break;
-		default: break;
               }
               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
               return NUL;
-
-//          case SDLK_LEFT:
-//            push_key(LEFT);
-//            return NUL;
-//          case SDLK_RIGHT:
-//            push_key(RIGHT);
-//            return NUL;
-//          case SDLK_UP:
-//            push_key(UP);
-//            return NUL;
-//          case SDLK_DOWN:
-//            push_key(DOWN);
-//            return NUL;
-//          case SDLK_END:
-//            push_key(END);
-//            return NUL;
-//          case SDLK_PAGEUP:
-//            push_key(PGUP);
-//            return NUL;
-//          case SDLK_PAGEDOWN:
-//            push_key(PGDOWN);
-//            return NUL;
-//          case SDLK_INSERT:
-//            push_key(INSERT);
-//            return NUL;
-
             case SDLK_HOME:
               return HOME;
             case SDLK_DELETE:
@@ -955,7 +935,7 @@ int32 emulate_get(void) {
 #endif
 
 #ifdef USE_SDL
-  reset_vdu14lines();
+  reset_vdu14lines();	/* I think this should be done in INPUT not in GET */
 #endif
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* Not reading from the keyboard */
 /*
@@ -974,7 +954,7 @@ int32 emulate_get(void) {
   }
 #endif
   ch = ch & BYTEMASK;
-  if (ch != ESCAPE) return ch;
+  if ((ch != ESCAPE) && (ch != 0)) return ch;
 /*
  * Either ESC was pressed or it marks the start of an ANSI
  * escape sequence for a function key, cursor key or somesuch.
@@ -984,7 +964,8 @@ int32 emulate_get(void) {
  * the string otherwise return a NUL. (The next character
  * returned will be the RISC OS key code in this case)
  */
-  key = decode_sequence();
+  key = ch;
+  if (ch == ESCAPE) key = decode_sequence();
   if (key != NUL) return key;
 /* NUL found. Check for function key */
   key = pop_key();

@@ -45,6 +45,7 @@
 ** 29-Mar-2014 JGH: MinGW needs cursor restoring after system().
 ** 05-Apr-2014 JGH: Combined all the oscli() functions together.
 **                  BEATS returns number of beats instead of current beat.
+** 04-Dec-2018 JGH: *KEY checks if redefining the key currently being expanded.
 **
 */
 
@@ -654,7 +655,7 @@ int64 mos_centiseconds(void) {
   /* tv.tv_sec  = Seconds since 1970 */
   /* tv.tv_usec = and microseconds */
 
-  return (((unsigned int)tv.tv_sec * 100) + (tv.tv_usec / 10000));
+  return ((tv.tv_sec * 100) + (tv.tv_usec / 10000));
 }
 
 int32 mos_rdtime(void) {
@@ -926,7 +927,9 @@ void mos_waitdelay(int32 time) {
 #elif defined(TARGET_MINGW)
 
 void mos_waitdelay(int32 time) {
+#ifndef JGHBODGE
   sleep(time / 100);
+#endif
   usleep((time % 100)*10000);
 #ifdef USE_SDL
   if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
@@ -1349,8 +1352,6 @@ static void cmd_help(char *command)
  * *KEY - define a function key string.
  * The string parameter is GSTransed so that '|' escape sequences
  * can be used.
- * Bug: Does not check if redefining the key currently being
- * expanded.
  * On entry, 'command' points at the start of the command.
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
@@ -1366,7 +1367,8 @@ static void cmd_key(char *command) {
 	if (*command == ',') command++;			// Step past any comma
 
 	command=mos_gstrans(command);			// Get GSTRANS string
-	set_fn_string(key, command, strlen(command));
+	if (set_fn_string(key, command, strlen(command)))
+		error(ERR_KEYINUSE);
 }
 
 /*
@@ -1603,7 +1605,10 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=mos_getswinum((char *)basicvars.offbase+inregs[1], strlen((char *)basicvars.offbase+inregs[1]));
       break;
     default:
+#ifndef NONET
       mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */
+#endif
+      break;
   }
 }
 
