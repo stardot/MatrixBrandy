@@ -25,9 +25,6 @@
 **	Included a Mac OS X target for conditional compilation.
 */
 
-#define NONET 1
-#define JGHBODGE 1
-
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
 #define BRANDY_PATCHLEVEL "16"

@@ -15,7 +15,7 @@
   150REM Variables for downloading
   160screen%=0
   170download%=0
-  180X%=OPENUP FNwelcome
+  180X%=OPENUP(FNwelcome)
   190BPUT#X%,13
   200REPEAT
   210M%=BGET#X%: IF M%=-2 THEN GOTO 360
@@ -25,7 +25,7 @@
   250IF I%=127 THEN I%=8
   260IF I%=-1 THEN GOTO 360
   270IF I%=1 THEN auth% EOR=1:GOTO 210
-  280IF I%=6 THEN OSCLI"FullScreen": GOTO 210
+  280IF I%=6 THEN PROCtogglescreen: GOTO 210
   290IF I%=16 THEN PROCdumpscreen: GOTO 210
   300IF I%=18 THEN PROCreveal: GOTO 210
   310IF I%=23 THEN PROCwidth: GOTO 210
@@ -107,31 +107,37 @@
  1070NEXT:CLOSE#Q%:screen%+=1
  1080ENDPROC
  1090:
- 1100DEFFNwelcome
- 1110PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
- 1120PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
- 1130PRINT
- 1140PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
- 1150PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
- 1160PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
- 1170PRINT
- 1180PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
+ 1100DEFPROCtogglescreen
+ 1110OSCLI"Fullscreen"
+ 1120SYS"OS_Byte",42 TO ,fs%
+ 1130IF fs% AND 8 THEN MOUSE OFF ELSE MOUSE ON
+ 1140ENDPROC
+ 1150:
+ 1160DEFFNwelcome
+ 1170PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
+ 1180PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
  1190PRINT
- 1200PRINT CHR$(129);"0 - Exit"
- 1210PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
- 1220PRINT CHR$(134);" Press CTRL-A to toggle Authentic Mode":
- 1230PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
- 1240PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
- 1250PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
- 1260PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1270REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=1 OR A%=6 OR A%=24
- 1280IF A% = 23 THEN PROCwidth:GOTO 1270
- 1290IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
- 1300IF A% = 1 THEN auth% EOR=1
- 1310IF A% = 6 THEN OSCLI"FullScreen": GOTO 1270
- 1320IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
- 1330IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
- 1340IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
- 1350IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
- 1360CLS
- 1370="ip0:"+S$
+ 1200PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
+ 1210PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+ 1220PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+ 1230PRINT
+ 1240PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
+ 1250PRINT
+ 1260PRINT CHR$(129);"0 - Exit"
+ 1270PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+ 1280PRINT CHR$(134);" Press CTRL-A to toggle Authentic Mode":
+ 1290PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
+ 1300PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
+ 1310PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
+ 1320PRINT TAB(4,23)CHR$(129);"Please make your selection..."
+ 1330REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=1 OR A%=6 OR A%=24
+ 1340IF A% = 23 THEN PROCwidth:GOTO 1330
+ 1350IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
+ 1360IF A% = 1 THEN auth% EOR=1: GOTO 1330
+ 1370IF A% = 6 THEN PROCtogglescreen: GOTO 1330
+ 1380IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
+ 1390IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
+ 1400IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1410IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
+ 1420CLS
+ 1430="ip0:"+S$
