@@ -614,6 +614,7 @@ int32 read_key(void) {
                 case SDLK_PAGEUP:   ch=PGUP;   break;
                 case SDLK_PAGEDOWN: ch=PGDOWN; break;
                 case SDLK_INSERT:   ch=INSERT; break;
+		default: break;
               }
               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
