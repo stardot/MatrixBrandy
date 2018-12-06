@@ -21,10 +21,11 @@
 **      This file contains the VDU driver emulation for the interpreter.
 **      This version of the code is used on targets which do not
 **      support graphics
-*/
-/*
+**
 ** Crispian Daniels August 20th 2002:
 **      Included Mac OS X target in conditional compilation.
+** 06-Dec-2018 JGH: DEL expects 0 command bytes
+**
 */
 
 #include <stdio.h>
@@ -1112,7 +1113,7 @@ void emulate_vdu(int32 charvalue) {
     else {      /* Control character - Found start of new VDU command */
       if (!vduflag(VDU_FLAG_ECHO)) fflush(stdout);
       vducmd = charvalue;
-      vduneeded = vdubytes[charvalue];
+      if (charvalue == DEL) vduneeded=0; else vduneeded = vdubytes[charvalue];
       vdunext = 0;
     }
   }
