@@ -42,7 +42,7 @@
   420DEFPROCvdu(M%)
   430PROCauth:IF M% >= 32 THEN PROCactvdu: ENDPROC
   440CASE M% OF
-  450WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: PROCauth:VDU (N%+64): PROCcheckdh: ENDPROC
+  450WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: N%=(N% MOD 32)+128: PROCauth:VDU N%: PROCcheckdh: ENDPROC
   460WHEN 8: IF POS=0 AND VPOS=0 THEN VDU31,39,23 ELSE VDU 8
   470WHEN 9: IF POS=39 AND VPOS=23 THEN VDU30 ELSE VDU9
   480WHEN 10: dh%=0: IF VPOS<23 THEN VDU10 ELSE VDU 31,POS,0
@@ -55,9 +55,9 @@
   550ENDPROC
   560:
   570DEFPROCcheckdh
-  580IFN%=77THEN dh%=1:dhline%=VPOS:scan%=1
-  590IFN%=76THEN dh%=0
-  600IFN%=77ORN%=76THENVDU8,10,N%+64,11
+  580IFN%=141THEN dh%=1:dhline%=VPOS:scan%=1
+  590IFN%=140THEN dh%=0
+  600IFN%=141ORN%=140THENVDU8,10,N%,11
   610ENDPROC
   620:
   630DEFPROCactvdu
@@ -122,22 +122,24 @@
  1220PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
  1230PRINT
  1240PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
- 1250PRINT
- 1260PRINT CHR$(129);"0 - Exit"
- 1270PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
- 1280PRINT CHR$(134);" Press CTRL-A to toggle Authentic Mode":
- 1290PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
- 1300PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
- 1310PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
- 1320PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1330REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 52) OR A%=1 OR A%=6 OR A%=24
- 1340IF A% = 23 THEN PROCwidth:GOTO 1330
- 1350IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
- 1360IF A% = 1 THEN auth% EOR=1: GOTO 1330
- 1370IF A% = 6 THEN PROCtogglescreen: GOTO 1330
- 1380IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
- 1390IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
- 1400IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
- 1410IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
- 1420CLS
- 1430="ip0:"+S$
+ 1250PRINT CHR$(131);"5 - NXtel"
+ 1260PRINT
+ 1270PRINT CHR$(129);"0 - Exit"
+ 1280PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+ 1290PRINT CHR$(134);" Press CTRL-A to toggle Authentic Mode":
+ 1300PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
+ 1310PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
+ 1320PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
+ 1330PRINT TAB(4,23)CHR$(129);"Please make your selection..."
+ 1340REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 53) OR A%=1 OR A%=6 OR A%=24
+ 1350IF A% = 23 THEN PROCwidth:GOTO 1340
+ 1360IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
+ 1370IF A% = 1 THEN auth% EOR=1: GOTO 1340
+ 1380IF A% = 6 THEN PROCtogglescreen: GOTO 1340
+ 1390IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
+ 1400IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
+ 1410IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1420IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
+ 1430IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
+ 1440CLS
+ 1450="ip0:"+S$

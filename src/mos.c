@@ -659,7 +659,7 @@ int64 mos_centiseconds(void) {
   /* tv.tv_sec  = Seconds since 1970 */
   /* tv.tv_usec = and microseconds */
 
-  return ((tv.tv_sec * 100) + (tv.tv_usec / 10000));
+  return (((unsigned)tv.tv_sec * 100) + ((unsigned)tv.tv_usec / 10000));
 }
 
 int32 mos_rdtime(void) {
@@ -1349,18 +1349,20 @@ static void cmd_help(char *command)
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
 	}
-#ifdef USE_SDL
+#if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {
 		emulate_printf("  WinTitle   <window title>\r\n");
+#ifdef USE_SDL
 		emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
 		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
 		emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
 		emulate_printf("  ScreenSave <filename.bmp>\r\n");
 		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+#endif
 	}
 #endif
 	if (*command == '.' || *command == '\0')
-#ifdef USE_SDL
+#if defined(USE_SDL) | defined(TARGET_UNIX)
 		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
 #else
 		emulate_printf("  BASIC\r\n  MOS\r\n");
@@ -1653,9 +1655,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
       outregs[0]=mos_getswinum((char *)basicvars.offbase+inregs[1], strlen((char *)basicvars.offbase+inregs[1]));
       break;
     default:
-#ifndef NONET
       mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */
-#endif
       break;
   }
 }
