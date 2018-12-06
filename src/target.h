@@ -91,6 +91,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #ifdef __NetBSD__
 #define TARGET_NETBSD
+#define TARGET_UNIX
 #define BRANDY_OS "NetBSD"
 #define OSVERSION 0xFE
 #define MACTYPE   0x0800
@@ -102,6 +103,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #ifdef __FreeBSD__
 #define TARGET_FREEBSD
+#define TARGET_UNIX
 #define BRANDY_OS "FreeBSD"
 #define OSVERSION 0xF7
 #define MACTYPE   0x0800
@@ -139,6 +141,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
  * XCASE in src/keyboard.c */
 #if (defined __FreeBSD_kernel__)
 #define TARGET_GNUKFREEBSD
+#define TARGET_UNIX
 #define BRANDY_OS "GNU/kFreeBSD"
 #define OSVERSION 0xF4
 #define MACTYPE   0x0800

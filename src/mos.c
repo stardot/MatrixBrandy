@@ -1349,18 +1349,20 @@ static void cmd_help(char *command)
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
 	}
-#ifdef USE_SDL
+#if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {
 		emulate_printf("  WinTitle   <window title>\r\n");
+#ifdef USE_SDL
 		emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
 		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
 		emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
 		emulate_printf("  ScreenSave <filename.bmp>\r\n");
 		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+#endif
 	}
 #endif
 	if (*command == '.' || *command == '\0')
-#ifdef USE_SDL
+#if defined(USE_SDL) | defined(TARGET_UNIX)
 		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
 #else
 		emulate_printf("  BASIC\r\n  MOS\r\n");
