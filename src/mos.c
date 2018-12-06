@@ -46,7 +46,11 @@
 ** 05-Apr-2014 JGH: Combined all the oscli() functions together.
 **                  BEATS returns number of beats instead of current beat.
 ** 04-Dec-2018 JGH: *KEY checks if redefining the key currently being expanded.
+** 05-Dec-2018 JGH: Added *SHOW, passes on keyboard.c for display.
+** 06-Dec-2018 JGH: *cd, *badcommand cursor position restored.
 **
+** Note to developers: after calling external command that generates screen output,
+** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
 */
 
 #define _MOS_C
@@ -927,7 +931,8 @@ void mos_waitdelay(int32 time) {
 #elif defined(TARGET_MINGW)
 
 void mos_waitdelay(int32 time) {
-#ifndef JGHBODGE
+#if defined(BODGEMGW) | defined(BODGESDL)
+#else
   sleep(time / 100);
 #endif
   usleep((time % 100)*10000);
@@ -1087,6 +1092,7 @@ static unsigned int cmd_parse_num(char** text)
 #define CMD_REFRESH		14
 #define CMD_SCREENSAVE		15
 #define CMD_SCREENLOAD		16
+#define CMD_SHOW		17
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1100,7 +1106,7 @@ static unsigned int cmd_parse_num(char** text)
 static void cmd_cat(char *command) {
 	while (*command == ' ') command++;	// Skip spaces
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
-	system("dir");
+	system("dir /w");
 	find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
 	emulate_printf("\r\n");			// Restore cursor position
@@ -1126,7 +1132,8 @@ static void cmd_cat(char *command) {
     pclose(sout);
 #else
 #ifdef TARGET_MINGW
-	system("dir");
+	system("dir /w");
+	find_cursor();				// Figure out where the cursor has gone to
 #else
 	system("ls -l");
 #endif
@@ -1140,7 +1147,7 @@ static void cmd_wintitle(char *command) {
   while (*command == ' ') command++;	// Skip spaces
 #ifdef USE_SDL
   if (strlen(command) == 0) {
-    emulate_printf("Syntax: WinTitle <window title>\r\n");
+    emulate_printf("Syntax: WinTitle <window title>\r\n");	// This should be an error
   } else {
     set_wintitle(command);
   }
@@ -1169,7 +1176,7 @@ static void cmd_screensave(char *command) {
 #ifdef USE_SDL
   while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
-    emulate_printf("Syntax: ScreenSave <filename.bmp>\r\n");
+    emulate_printf("Syntax: ScreenSave <filename.bmp>\r\n");	// This should be an error
   } else {
     sdl_screensave(command);
   }
@@ -1183,7 +1190,7 @@ static void cmd_screenload(char *command) {
 #ifdef USE_SDL
   while (*command == ' ') command++;	// Skip spaces
   if (strlen(command) == 0) {
-    emulate_printf("Syntax: ScreenLoad <filename.bmp>\r\n");
+    emulate_printf("Syntax: ScreenLoad <filename.bmp>\r\n");	// This should be an error
   } else {
     sdl_screenload(command);
   }
@@ -1195,8 +1202,9 @@ static void cmd_screenload(char *command) {
 
 static void cmd_newmode_err() {
   emulate_printf("Syntax:\r\n  NewMode <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16, 256 or\r\n16777216.\r\nEigen factors must be in the range 0-3, default 1. yeig=xeig if omitted.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
-  return;
+  return;							// This should be an error
 }
+
 static void cmd_newmode(char *command) {
 #ifdef USE_SDL
   int mode, xres, yres, cols, xscale, yscale, xeig, yeig;
@@ -1207,23 +1215,23 @@ static void cmd_newmode(char *command) {
   } else {
     mode=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     xres=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yres=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     cols=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     xscale=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yscale=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
@@ -1257,7 +1265,7 @@ static void cmd_refresh(char *command) {
       flag=0;
     }
     if (flag == 3) {
-      emulate_printf("Syntax: Refresh [<On|Off|OnError>]\r\n");
+      emulate_printf("Syntax: Refresh [<On|Off|OnError>]\r\n");	// This should be an error
       return;
     }
     star_refresh(flag);
@@ -1270,17 +1278,23 @@ static void cmd_refresh(char *command) {
  * *CD / *CHDIR <directory>
  * Change directory
  * Has to be an internal command as CWD is per-process
+ * BUG: MinGW build throws cursor awry
  */
 static void cmd_cd(char *command) {
+	int err=0;
+
 	if (*command == 'd') command+=3;	// *CHDIR
 	while (*command == ' ') command++;	// Skip spaces
-	if (chdir(command)) error(ERR_DIRNOTFOUND);
+	err=chdir(command);
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
 	find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
+#ifndef USE_SDL
 	emulate_printf("\r\n");			// Restore cursor position
 #endif
 #endif
+#endif
+	if (err) error(ERR_DIRNOTFOUND);
 }
 
 /*
@@ -1325,34 +1339,40 @@ static void cmd_help(char *command)
 
 	while (*command == ' ') command++;		// Skip spaces
 	cmd = check_command(command);
-
+#ifdef TARGET_MINGW
+	find_cursor();
+#endif
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
 		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, BRANDY_DATE);
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
-		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  QUIT\n\r");
+		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
 	}
+#ifdef USE_SDL
 	if (cmd == HELP_MATRIX) {
 		emulate_printf("  WinTitle   <window title>\r\n");
-#ifdef USE_SDL
 		emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
 		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
 		emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
 		emulate_printf("  ScreenSave <filename.bmp>\r\n");
 		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
-#endif
 	}
+#endif
 	if (*command == '.' || *command == '\0')
+#ifdef USE_SDL
 		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
+#else
+		emulate_printf("  BASIC\r\n  MOS\r\n");
+#endif
 }
 
 /*
  * *KEY - define a function key string.
  * The string parameter is GSTransed so that '|' escape sequences
  * can be used.
- * On entry, 'command' points at the start of the command.
+ * On entry, 'command' points at the start of the parameter string.
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
 static void cmd_key(char *command) {
@@ -1369,6 +1389,30 @@ static void cmd_key(char *command) {
 	command=mos_gstrans(command);			// Get GSTRANS string
 	if (set_fn_string(key, command, strlen(command)))
 		error(ERR_KEYINUSE);
+}
+
+/*
+ * *SHOW - show function key definition
+ * Currently relies on keyboard.c to display the string
+ */
+static void cmd_show(char *command) {
+	unsigned int key;
+
+	while (*command == ' ') command++;		// Skip spaces
+	if (*command == 0) {
+		key = -1;
+	} else {
+	key=cmd_parse_dec(&command);			// Get key number
+	if (key > HIGH_FNKEY)
+		error(ERR_BADKEY);
+	}
+	if (key != -1 ) {
+//		show_fn_string(key);			// Show one key
+	} else {
+		for(key=0; key<16; key++) {
+//			show_fn_string(key);		// Show all keys
+		}
+	}
 }
 
 /*
@@ -1410,10 +1454,11 @@ static int check_command(char *text) {
   if (strcmp(command, "ver")    == 0) return CMD_VER;
   if (strcmp(command, "screensave") == 0) return CMD_SCREENSAVE;
   if (strcmp(command, "screenload") == 0) return CMD_SCREENLOAD;
-  if (strcmp(command, "wintitle") == 0) return CMD_WINTITLE;
+  if (strcmp(command, "wintitle") == 0)   return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
-  if (strcmp(command, "newmode") == 0) return CMD_NEWMODE;
-  if (strcmp(command, "refresh") == 0) return CMD_REFRESH;
+  if (strcmp(command, "newmode") == 0)    return CMD_NEWMODE;
+  if (strcmp(command, "refresh") == 0)    return CMD_REFRESH;
+  if (strcmp(command, "show")   == 0) return CMD_SHOW;
   if (strcmp(command, "basic")  == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
@@ -1463,16 +1508,17 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (cmd == CMD_HELP) { cmd_help(cmdbuf+4); return; }
   if (cmd == CMD_CD)   { cmd_cd(cmdbuf+2); return; }
   if (cmd == CMD_FX)   { cmd_fx(cmdbuf+2); return; }
+  if (cmd == CMD_SHOW) { cmd_show(cmdbuf+4); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
   if (cmd == CMD_SCREENSAVE) {cmd_screensave(cmdbuf+10); return; }
   if (cmd == CMD_SCREENLOAD) {cmd_screenload(cmdbuf+10); return; }
-  if (cmd == CMD_WINTITLE) {cmd_wintitle(cmdbuf+8); return; }
+  if (cmd == CMD_WINTITLE)   {cmd_wintitle(cmdbuf+8); return; }
   if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(cmdbuf+10); return; }
   if (cmd == CMD_NEWMODE) {cmd_newmode(cmdbuf+7); return; }
   if (cmd == CMD_REFRESH) {cmd_refresh(cmdbuf+7); return; }
   }
 
-  if (*cmdbuf == '/') {		/* Run file, so just pass to OS     */
+  if (*cmdbuf == '/') {			/* Run file, so just pass to OS     */
     cmdbuf++;				/* Step past '/'                    */
     while (*cmdbuf == ' ') cmdbuf++;	/* And skip any more leading spaces */
   }
@@ -1524,6 +1570,9 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
     fflush(stderr);
     basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
+#if defined(TARGET_MINGW)
+    emulate_printf("\r\n");		/* Restore cursor position */
+#endif
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
   } else {				/* Want response back from command */
