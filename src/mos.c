@@ -1215,23 +1215,23 @@ static void cmd_newmode(char *command) {
   } else {
     mode=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;			// Skip spaces
+    while (*command == ' ') command++;		// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     xres=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;			// Skip spaces
+    while (*command == ' ') command++;		// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yres=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;			// Skip spaces
+    while (*command == ' ') command++;		// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     cols=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;			// Skip spaces
+    while (*command == ' ') command++;		// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     xscale=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;			// Skip spaces
+    while (*command == ' ') command++;		// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yscale=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
@@ -1278,7 +1278,6 @@ static void cmd_refresh(char *command) {
  * *CD / *CHDIR <directory>
  * Change directory
  * Has to be an internal command as CWD is per-process
- * BUG: MinGW build throws cursor awry
  */
 static void cmd_cd(char *command) {
 	int err=0;
