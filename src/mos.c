@@ -1400,7 +1400,7 @@ static void cmd_key(char *command) {
  * *SHOW - show function key definition
  */
 static void cmd_show(char *command) {
-	unsigned int key1, key2, len;
+	int key1, key2, len;
 	char *string;
 	char c;
 
