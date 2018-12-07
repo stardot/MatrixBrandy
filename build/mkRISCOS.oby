@@ -1,0 +1,13 @@
+| Make Brandy Basic for RISC OS with GCC compiler
+|
+| This worked with Banana Brandy, now fails with Matrix Brandy
+|
+Echo
+WimpSlot -min 4000K
+Dir <Obey$Dir>.^.riscos
+Spool listing
+/GCCbin:make -f ^.build.makeROgcc nodebug
+Spool
+SetType listing Text
+IfThere brandy Then Delete listing
+IfThere brandy Then Copy brandy ^.binaries.brandyRO ~CDF~V
