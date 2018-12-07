@@ -46,8 +46,10 @@
 ** 05-Apr-2014 JGH: Combined all the oscli() functions together.
 **                  BEATS returns number of beats instead of current beat.
 ** 04-Dec-2018 JGH: *KEY checks if redefining the key currently being expanded.
-** 05-Dec-2018 JGH: Added *SHOW, passes on keyboard.c for display.
+** 05-Dec-2018 JGH: Added *SHOW, action currently commented out.
 ** 06-Dec-2018 JGH: *cd, *badcommand cursor position restored.
+** 07-Dec-2018 JGH: *SHOW displays key string.
+**                  Have removed some BODGE conditions.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -984,7 +986,8 @@ void mos_waitdelay(int32 time) {
  * On entry: pointer to string to convert
  * On exit:  pointer to converted string, overwriting input string
  *           recognises |<letter> |" || !? |!
- * Bug: hello"there does not give correct result
+ * Bug: hello"there does not give correct result - fixed
+ * Bug: string terminated with /0 so cannot embed |@ in string
  */
 static char *mos_gstrans(char *instring) {
 	int quoted=0, escape=0;
@@ -1215,23 +1218,23 @@ static void cmd_newmode(char *command) {
   } else {
     mode=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     xres=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yres=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     cols=cmd_parse_num(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     xscale=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
-    while (*command == ' ') command++;		// Skip spaces
+    while (*command == ' ') command++;			// Skip spaces
     if (!*command) {cmd_newmode_err(); return;}
     yscale=cmd_parse_dec(&command);
     if (*command == ',') command++;			// Step past any comma
@@ -1374,6 +1377,7 @@ static void cmd_help(char *command)
  * The string parameter is GSTransed so that '|' escape sequences
  * can be used.
  * On entry, 'command' points at the start of the parameter string.
+ * Bug: as uses 0-terminated strings, cannot embed |@ in string.
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
 static void cmd_key(char *command) {
@@ -1394,25 +1398,39 @@ static void cmd_key(char *command) {
 
 /*
  * *SHOW - show function key definition
- * Currently relies on keyboard.c to display the string
  */
 static void cmd_show(char *command) {
-	unsigned int key;
+	unsigned int key1, key2, len;
+	char *string;
+	char c;
 
 	while (*command == ' ') command++;		// Skip spaces
 	if (*command == 0) {
-		key = -1;
+		key1 = 0; key2 = HIGH_FNKEY;		// All keys
 	} else {
-	key=cmd_parse_dec(&command);			// Get key number
-	if (key > HIGH_FNKEY)
-		error(ERR_BADKEY);
+	key2=(key1=cmd_parse_dec(&command));		// Get key number
+	if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
 	}
-	if (key != -1 ) {
-//		show_fn_string(key);			// Show one key
-	} else {
-		for(key=0; key<16; key++) {
-//			show_fn_string(key);		// Show all keys
+	while (*command == ' ') command++;		// Skip spaces
+	if (*command != 0) error(ERR_BADCOMMAND);
+
+	for (; key1 <= key2; key1++) {
+		string=get_fn_string(key1, &len);
+		emulate_printf("*Key %d \x22", key1);
+		while (len--) {
+			c=*string++;
+			if (c&128) { emulate_printf("|!"); c=c&127; }
+			if (c<32 || c==127) {
+				emulate_printf("|%c",c^64);
+			} else {
+				if (c==34 || c==124) {
+					emulate_printf("|%c",c);
+				} else {
+					emulate_printf("%c",c);
+				}
+			}
 		}
+		emulate_printf("\x22\r\n");
 	}
 }
 
@@ -1641,8 +1659,8 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
     case SWI_OS_Byte:
       rtn=mos_osbyte(inregs[0], inregs[1], inregs[2], xflag);
       outregs[0]=inregs[0];
-      outregs[1]=((rtn >> 8) & 0xFF);
-      outregs[2]=((rtn >> 16) & 0xFF);
+      outregs[1]=((rtn >> 8) & 0xFF);	// check
+      outregs[2]=((rtn >> 16) & 0xFF);	// check
       break;
     case SWI_OS_Word:
       mos_osword(inregs[0], inregs[1]);
@@ -1972,6 +1990,7 @@ switch (areg) {
 	case 0:			// OSBYTE 0 - Return machine type
 		if (xreg!=0) return MACTYPE;
 		else if (!xflag) error(ERR_MOSVERSION);
+// else return pointer to error block
 		break;
 	case 20:
 #ifdef USE_SDL
@@ -2120,6 +2139,6 @@ switch (areg) {
 if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106) 
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
 else
-	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;		// Default null return
+	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;	// Default null return
 }
 #endif

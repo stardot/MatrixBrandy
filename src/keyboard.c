@@ -39,6 +39,8 @@
 **                  keys modified correctly.
 ** 04-Dec-2018 JGH: set_fn_string checks if function key in use.
 **                  Some tidying up before deeper work.
+** 07-Dec-2018 JGH: get_fn_string returns function key string for *SHOW.
+**                  Have removed some BODGE conditions.
 **
 */
 
@@ -141,37 +143,6 @@
 #define SHIFT_F12       0xDC
 #define CTRL_F12        0xEC
 
-// Moved to target.h
-///*
-//** Operating system version number returned by 'INKEY'. These values
-//** are made up
-//*/
-//#if defined(TARGET_NETBSD)
-//#define OSVERSION 0xFE
-//#elif defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-//#define OSVERSION 0xFC
-//#elif defined(TARGET_BEOS)
-//#define OSVERSION 0xFB
-//#elif defined(TARGET_DJGPP)
-//#define OSVERSION 0xFA
-//#elif defined(TARGET_LINUX)
-//#define OSVERSION 0xF9
-//#elif defined(TARGET_MACOSX)
-//#define OSVERSION 0xF8
-//#elif defined(TARGET_FREEBSD)
-//#define OSVERSION 0xF7
-//#elif defined(TARGET_OPENBSD)
-//#define OSVERSION 0xF6
-//#elif defined(TARGET_AMIGA)
-//#define OSVERSION 0xF5
-//#elif defined(TARGET_GNUKFREEBSD)
-//#define OSVERSION 0xF4
-//#elif defined(TARGET_GNU)
-//#define OSVERSION 0xF3
-//#else
-//#error Target operating system is either not defined or not supported
-//#endif
-
 
 #ifdef USE_SDL
 #include "SDL.h"
@@ -225,13 +196,13 @@ int32 emulate_get(void) {
 int32 emulate_inkey(int32 arg) {
   _kernel_oserror *oserror;     /* Use OS_Byte 129 to obtain the info */
   _kernel_swi_regs regs;
-  regs.r[0] = 129;      /* Use OS_Byte 129 for this */
+  regs.r[0] = 129;      	/* Use OS_Byte 129 for this */
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
   if (arg >= 0) {               /* +ve argument = read keyboard with time limit */
-    if (regs.r[2] == 0) /* Character was read successfully */
+    if (regs.r[2] == 0) 	/* Character was read successfully */
       return (regs.r[1]);
     else if (regs.r[2] == 0xFF) /* Timed out */
       return -1;
@@ -411,6 +382,14 @@ int set_fn_string(int key, char *string, int length) {
 }
 
 /*
+** get_fn_string - Get a function key string for *SHOW
+*/
+char *get_fn_string(int key, int *len) {
+  *len=fn_key[key].length;
+  return fn_key[key].text;
+}
+
+/*
 ** switch_fn_string - Called to switch input to a function
 ** key string. It returns the first character of the string
 */
@@ -542,8 +521,10 @@ static boolean waitkey(int wait) {
 /*
  * Then for stdin keypresses
 */
+#ifndef BODGEMGW
     FD_ZERO(&keyset);
     FD_SET(keyboard, &keyset);
+#endif
     waitime.tv_sec = waitime.tv_usec = 0;
     if ( select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
 #endif
@@ -551,11 +532,13 @@ static boolean waitkey(int wait) {
     usleep(1000);
   }
 #else
+#ifndef BODGEMGW
   FD_ZERO(&keyset);
   FD_SET(keyboard, &keyset);
   waitime.tv_sec = wait/100;    /* Convert wait time to seconds and microseconds */
   waitime.tv_usec = wait%100*10000;
   return select(1, &keyset, NIL, NIL, &waitime) > 0;
+#endif
 #endif
 }
 
@@ -660,7 +643,9 @@ int32 read_key(void) {
     FD_SET(keyboard, &keyset);
     waitime.tv_sec = waitime.tv_usec = 0; /* Zero wait time */
     if ( !nokeyboard && ( select(1, &keyset, NIL, NIL, &waitime) > 0 )) {
+#ifndef BODGEMGW
       errcode = read(keyboard, &ch, 1);
+#endif
       if (errcode < 0) {                /* read() returned an error */
         if ((errno == EINTR) && basicvars.escape_enabled) error(ERR_ESCAPE);  /* Assume Ctrl-C was pressed */
         error(ERR_BROKEN, __LINE__, "keyboard");        /* Otherwise roll over and die */
@@ -672,9 +657,13 @@ int32 read_key(void) {
     SDL_Delay(10);
   }
 #else
+#ifndef BODGEMGW
   errcode = read(keyboard, &ch, 1);
+#endif
   if (errcode < 0) {            /* read() returned an error */
+#ifndef BODGEMGW
     if (basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);      /* Assume Ctrl-C was pressed */
+#endif
     error(ERR_BROKEN, __LINE__, "keyboard");    /* Otherwise roll over and die */
   }
 #endif
@@ -924,6 +913,7 @@ static int32 decode_sequence(void) {
   return ESCAPE;
 }
 
+#ifndef BODGEMGW
 /*
 ** 'emulate_get' emulates the Basic function 'get'. It is also the
 ** input routine used when reading a line from the keyboard
@@ -1028,8 +1018,8 @@ int32 emulate_inkey(int32 arg) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }
 // JGH: test code
-    if ((arg & 0xF000) == 0x8000) {
-    if (keystate[arg & 0x7FFF])	// do raw API test, caution: can cause address error
+    if ((arg & 0xFE00) == 0xFC00) {
+    if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
       return -1;
     else
       return 0;
@@ -1061,6 +1051,7 @@ int32 emulate_inkey(int32 arg) {
   }
   return 0;
 }
+#endif
 
 /* This uses existing values of keystate and mousestate */
 int32 emulate_inkey2(int32 arg) {
@@ -1172,13 +1163,13 @@ int32 emulate_get(void) {
 ** version' flavour of the function are supported
 */
 int32 emulate_inkey(int32 arg) {
-  if (arg >= 0) {       /* Timed wait for a key to be hit */
+  if (arg >= 0) {       	/* Timed wait for a key to be hit */
     if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in range 0..32767 centiseconds */
     error(ERR_UNSUPPORTED);
   }
   else if (arg == -256)         /* Return version of operating system */
     return OSVERSION;
-  else {        /* Check is a specific key is being pressed */
+  else {        		/* Check if a specific key is being pressed */
     error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
   }
   return 0;
