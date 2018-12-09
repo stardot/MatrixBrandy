@@ -77,8 +77,14 @@ static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 */
 
 int main(int argc, char *argv[]) {
+// Hmmm. Why doesn't this work?
+//#ifdef TARGET_RISCOS
+//  _kernel_oscli("WimpSlot 1600K");
+//#endif
   init1();
+#ifndef NONET
   brandynet_init();
+#endif
 #ifdef BRANDYAPP
    basicvars.runflags.quitatend = TRUE;
    basicvars.runflags.loadngo = TRUE;
@@ -175,6 +181,9 @@ static void gpio_init() {
   matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
   matrixflags.gpiomem = basicvars.offbase-1;	/* Initialise, will internally return &FFFFFFFF */
 #ifndef TARGET_MINGW
+#ifndef BODGEDJP
+#ifndef TARGET_RISCOS
+
   fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
   if (fd == -1) return;				/* Couldn't open /dev/gpiomem - exit quietly */
 
@@ -187,6 +196,8 @@ static void gpio_init() {
   /* If we got here, mmap succeeded. */
   matrixflags.gpio = 1;
   matrixflags.gpiomemint=(uint32 *)matrixflags.gpiomem;
+#endif
+#endif
 #endif
   return;
 }

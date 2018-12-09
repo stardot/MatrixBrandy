@@ -564,7 +564,7 @@ static void invoke_editor(void) {
   basicvars.list_flags.lower = FALSE;   /* Changing keyword to lower case is useless here */
   basicvars.list_flags.expand = FALSE;  /* So is adding extra blanks */
   fhandle=secure_tmpnam(tempname);
-  if (!handle) {
+  if (!fhandle) {
     error(ERR_EDITFAIL, strerror (errno));
     return;
   }
