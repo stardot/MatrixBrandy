@@ -1148,7 +1148,9 @@ static void cmd_cat(char *command) {
 #endif
 }
 
+/* Sets the window title. Only for SDL or UNIX builds */
 static void cmd_wintitle(char *command) {
+#if defined(USE_SDL) | defined(TARGET_UNIX)
   while (*command == ' ') command++;	// Skip spaces
 #ifdef USE_SDL
   if (strlen(command) == 0) {
@@ -1160,8 +1162,9 @@ static void cmd_wintitle(char *command) {
 // DJPP   -> unsupported
 // MinGW  -> unsupported
 // Others -> untested
-  printf("\x1B]0;%s\x07", command);
-#endif
+  printf("\x1B]0;%s\x07", command);		// This is an xterm escape sequence, recognised by most terminals on Linux
+#endif /* USE_SDL */
+#endif /* USE_SDL or TARGET_UNIX */
   return;
 }
 
