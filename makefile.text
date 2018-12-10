@@ -3,7 +3,7 @@
 CC = gcc
 LD = gcc
 
-gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2) on $(shell git status | head -1  | cut -d ' ' -f 3-4)"\"
+gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2) on branch $(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
 gitdate=\""$(shell git log --abbrev-commit -1 | head -3 | tail -1 | cut -d ' ' -f 4-9)"\"
 
 #Debug
