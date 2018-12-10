@@ -3,8 +3,15 @@
 CC = gcc
 LD = gcc
 
+gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2) on $(shell git status | head -1  | cut -d ' ' -f 3-4)"\"
+gitdate=\""$(shell git log --abbrev-commit -1 | head -3 | tail -1 | cut -d ' ' -f 4-9)"\"
+
+#Debug
 #CFLAGS += -g -DDEBUG -DNO_SDL -DDEFAULT_IGNORE
-CFLAGS = -O2 -DNO_SDL -DDEFAULT_IGNORE
+#Release
+#CFLAGS = -O2 -DNO_SDL -DDEFAULT_IGNORE
+#Patch build
+CFLAGS = -O2 -DNO_SDL -DDEFAULT_IGNORE -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITDATE=$(gitdate)
 
 LDFLAGS =
 
