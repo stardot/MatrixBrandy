@@ -1,3 +1,4 @@
+#include "target.h"
 #ifndef NONET
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,6 @@
 #include <sys/types.h>
 #include <errno.h>
 #endif /* NONET */
-#include "target.h"
 
 //#include "common.h"
 //#include "basicdefs.h"
