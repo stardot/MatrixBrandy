@@ -14,12 +14,12 @@ LIBS = gcclib:unixlib gcclib:libscl gcclib:libgcc
 OBJ = o.variables o.tokens o.riscos o.strings o.statement\
 	o.stack o.miscprocs o.mainstate o.lvalue o.keyboard o.iostate\
 	o.heap o.functions o.fileio o.evaluate o.errors o.mos o.editor\
-	o.convert o.commands o.assign o.brandy
+	o.convert o.commands o.assign o.brandy o.net
 
 SRC = c.variables c.tokens c.riscos c.strings c.statement\
 	c.stack c.miscprocs c.mainstate c.lvalue c.keyboard c.iostate\
 	c.heap c.functions c.fileio c.evaluate c.errors c.mos c.editor\
-	c.convert c.commands c.assign c.brandy
+	c.convert c.commands c.assign c.brandy c.net
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS1) $(OBJ) $(LIBS) -o brandy
@@ -221,6 +221,12 @@ BRANDY_C = h.common h.target h.basicdefs\
 
 o.brandy: $(BRANDY_C) c.brandy
 	$(CC) $(CFLAGS1) c.brandy
+
+# Build NET.C
+NET_C = h.target h.errors h.net
+
+o.net: $(NET_C) c.net
+	$(CC) $(CFLAGS1) c.net
 
 recompile:
 	$(CC) $(CFLAGS1) $(SRC)

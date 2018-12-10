@@ -129,9 +129,15 @@ int32 fileio_openup(char *name, int32 namelen) {
   char filename [FNAMESIZE];
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
-  handle = _kernel_osfind(OPEN_UPDATE, filename);
-  if (handle==_kernel_ERROR) report();
-  return handle;
+  /* Check, does it start "ip4:" if so use network handler to open it. */
+  if (!strncmp(filename, "ip0:", 4) || !strncmp(filename, "ip4:", 4) || !strncmp(filename, "ip6:", 4)) {
+    error(ERR_NET_NOTSUPP);
+    return(0);
+  } else {
+    handle = _kernel_osfind(OPEN_UPDATE, filename);
+    if (handle==_kernel_ERROR) report();
+    return handle;
+  }
 }
 
 /*
