@@ -3,7 +3,8 @@
 CC = gcc
 LD = gcc
 
-gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2) on branch $(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
+gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2)"\"
+gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
 gitdate=\""$(shell git log --abbrev-commit -1 | head -3 | tail -1 | cut -d ' ' -f 4-9)"\"
 
 #Debug
@@ -12,7 +13,7 @@ gitdate=\""$(shell git log --abbrev-commit -1 | head -3 | tail -1 | cut -d ' ' -
 #CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall
 #Patch build
 CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall \
-  -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITDATE=$(gitdate)
+  -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
 
 LDFLAGS +=
 

@@ -1352,7 +1352,7 @@ static void cmd_help(char *command)
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
 #ifdef BRANDY_GITCOMMIT
-		emulate_printf("  Git commit %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITDATE);
+		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
 		// Try to get attributions correct, as per license.
 		emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
