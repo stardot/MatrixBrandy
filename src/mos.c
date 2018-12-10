@@ -1159,9 +1159,6 @@ static void cmd_wintitle(char *command) {
     set_wintitle(command);
   }
 #else
-// DJPP   -> unsupported
-// MinGW  -> unsupported
-// Others -> untested
   printf("\x1B]0;%s\x07", command);		// This is an xterm escape sequence, recognised by most terminals on Linux
 #endif /* USE_SDL */
 #endif /* USE_SDL or TARGET_UNIX */
@@ -1355,7 +1352,7 @@ static void cmd_help(char *command)
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
 		// Try to get attributions correct, as per license.
-		emulate_printf("  Forked from Brandy Basic   v1.20 (26 Dec 2007)\r\n");
+		emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
 		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
 		emulate_printf("  Matrix Brandy Basic patch  v0.%s (%s)\r\n", BRANDY_PATCHLEVEL, BRANDY_PATCHDATE);
