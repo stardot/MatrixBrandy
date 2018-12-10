@@ -1,9 +1,9 @@
+#ifndef NONET
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "target.h"
 #ifdef TARGET_MINGW
 #include <winsock2.h>
 #include <windows.h>
@@ -17,6 +17,8 @@
 #endif
 #include <sys/types.h>
 #include <errno.h>
+#endif /* NONET */
+#include "target.h"
 
 //#include "common.h"
 //#include "basicdefs.h"
@@ -27,16 +29,21 @@
 #define MAXNETRCVLEN 65536
 #define MAXNETSOCKETS 4
 
-static char netbuffer[MAXNETSOCKETS][MAXNETRCVLEN + 1];
 static int netsockets[MAXNETSOCKETS];
+#ifndef NONET
+static char netbuffer[MAXNETSOCKETS][MAXNETRCVLEN + 1];
 static int bufptr[MAXNETSOCKETS];
 static int bufendptr[MAXNETSOCKETS];
+#endif /* NONET */
 static int neteof[MAXNETSOCKETS];
 
 static int networking=1;
 
 /* This function only called on startup, cleans the buffer and socket stores */
 void brandynet_init() {
+#ifdef NONET /* Used by RISC OS and other targets that don't support POSIX network sockets */
+  networking=0;
+#else
   int n;
 #ifdef TARGET_MINGW
   WSADATA wsaData;
@@ -49,9 +56,14 @@ void brandynet_init() {
 #ifdef TARGET_MINGW
   if(WSAStartup(MAKEWORD(2,2), &wsaData)) networking=0;
 #endif
+#endif /* NONET */
 }
 
 int brandynet_connect(char *dest, char type) {
+#ifdef NONET
+  error(ERR_NET_NOTSUPP);
+  return(-1);
+#else
   char *host, *port;
   int n, mysocket, ret;
   struct addrinfo hints, *addrdata, *rp;
@@ -118,6 +130,7 @@ int brandynet_connect(char *dest, char type) {
 #endif
   netsockets[n] = mysocket;
   return(n);
+#endif /* NONET */
 }
 
 int brandynet_close(int handle) {
@@ -126,6 +139,7 @@ int brandynet_close(int handle) {
   return(0);
 }
 
+#ifndef NONET
 static int net_get_something(int handle) {
   int retval = 0;
 
@@ -142,8 +156,13 @@ static int net_get_something(int handle) {
   bufptr[handle] = 0;
   return(retval);
 }
+#endif /* NONET */
 
 int32 net_bget(int handle) {
+#ifdef NONET
+  error(ERR_NET_NOTSUPP);
+  return(-1);
+#else
   int value;
   int retval=0;
 
@@ -156,6 +175,7 @@ int32 net_bget(int handle) {
   value=netbuffer[handle][(bufptr[handle])];
   bufptr[handle]++;
   return(value);
+#endif /* NONET */
 }
 
 boolean net_eof(int handle) {
@@ -163,6 +183,10 @@ boolean net_eof(int handle) {
 }
 
 int net_bput(int handle, int32 value) {
+#ifdef NONET
+  error(ERR_NET_NOTSUPP);
+  return(-1);
+#else
   char minibuf[2];
   int retval;
 
@@ -171,12 +195,18 @@ int net_bput(int handle, int32 value) {
   retval=send(netsockets[handle], (const char *)&minibuf, 1, 0);
   if (retval == -1) return(1);
   return(0);
+#endif /* NONET */
 }
 
 int net_bputstr(int handle, char *string, int32 length) {
+#ifdef NONET
+  error(ERR_NET_NOTSUPP);
+  return(-1);
+#else
   int retval;
 
   retval=send(netsockets[handle], string, length, 0);
   if (retval == -1) return(1);
   return(0);
+#endif /* NONET */
 }
