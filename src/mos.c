@@ -50,6 +50,7 @@
 ** 06-Dec-2018 JGH: *cd, *badcommand cursor position restored.
 ** 07-Dec-2018 JGH: *SHOW displays key string.
 **                  Have removed some BODGE conditions.
+** 09-Dec-2018 JGH: *HELP BASIC lists attributions, as per license.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -546,7 +547,7 @@ void mos_setend(int32 newend) {
 ** it should not be a problem unless the size of stringwork is
 ** drastically reduced.)
 */
-void mos_oscli(char *command, char *respfile) {
+void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (respfile==NIL) {	/* Command output goes to normal place */
     basicvars.retcode = _kernel_oscli(command);
     if (basicvars.retcode<0) error(ERR_CMDFAIL, _kernel_last_oserror()->errmess);
@@ -1137,6 +1138,7 @@ static void cmd_cat(char *command) {
 #ifdef TARGET_MINGW
 	system("dir /w");
 	find_cursor();				// Figure out where the cursor has gone to
+	emulate_printf("\r\n");			// Restore cursor position
 #else
 	system("ls -l");
 #endif
@@ -1155,6 +1157,9 @@ static void cmd_wintitle(char *command) {
     set_wintitle(command);
   }
 #else
+// DJPP   -> unsupported
+// MinGW  -> unsupported
+// Others -> untested
   printf("\x1B]0;%s\x07", command);
 #endif
   return;
@@ -1346,11 +1351,23 @@ static void cmd_help(char *command)
 #endif
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
-		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, BRANDY_DATE);
+		// Try to get attributions correct, as per license.
+		emulate_printf("  Forked from Brandy Basic   v1.20 (26 Dec 2007)\r\n");
+		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
+#ifdef BRANDY_PATCHDATE
+		emulate_printf("  Matrix Brandy Basic patch  v0.%s (%s)\r\n", BRANDY_PATCHLEVEL, BRANDY_PATCHDATE);
+#endif
+		// NB: Adjust spaces in above to align version and date strings correctly
+
+///		emulate_printf("  Matrix Brandy Basic fork v%s.%s (%s)\r\n", BRANDY_MAJOR, BRANDY_MINOR, BRANDY_DATE);
+///		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, BRANDY_DATE);
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
+//#if defined(USE_SDL) | defined(TARGET_UNIX)
+//		emulate_printf("  WINTITLE <window title>\r\n");
+//#endif
 	}
 #if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {
