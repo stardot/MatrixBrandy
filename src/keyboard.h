@@ -42,4 +42,7 @@ extern void checkforescape(void);
 extern void set_escint(int i);
 extern void set_escmul(int i);
 extern void osbyte44(int x);
+#ifdef NEWKBD
+extern int32 kbd_inkey(int32);
+#endif
 #endif
