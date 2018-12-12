@@ -5,7 +5,7 @@ LD = gcc
 
 gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2)"\"
 gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
-gitdate=\""$(shell git log --abbrev-commit -1 | head -3 | tail -1 | cut -d ' ' -f 4-9)"\"
+gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
 
 #Debug
 #CFLAGS += -g -DDEBUG -DNO_SDL -DDEFAULT_IGNORE
