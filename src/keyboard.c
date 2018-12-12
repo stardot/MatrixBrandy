@@ -41,6 +41,14 @@
 **                  Some tidying up before deeper work.
 ** 07-Dec-2018 JGH: get_fn_string returns function key string for *SHOW.
 **                  Have removed some BODGE conditions.
+** 11-Dec-2018 JGH: Gradually moving multiple emulate_inkey() functions into
+**                  one kbd_inkey() function. First result is that all platforms
+**                  now support INKEY-256 properly.
+** Requires: updated function.c
+** kbd_inkey(): -256: all platforms
+**              +ve:  RISCOS:ok, WinSDL:ok, MGW:ok, DJP:ok
+**              -ve:  RISCOS:ok, WinSDL:ok, MGW:ok, DJP:to do
+** Credit: con_keyscan() from JGH 'console' library
 **
 */
 
@@ -54,10 +62,10 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "mos.h"
+#include "keyboard-inkey.h"
 
 
 /* ASCII codes of various useful characters */
-
 #define CTRL_A          0x01
 #define CTRL_B          0x02
 #define CTRL_C          0x03
@@ -144,13 +152,267 @@
 #define CTRL_F12        0xEC
 
 
+#ifndef TARGET_RISCOS
+/*
+** holdcount and holdstack are used when decoding ANSI key sequences. If a
+** sequence is read that does not correspond to an ANSI sequence the
+** characters are stored here so that they can be returned by future calls
+** to 'emulate_get'. Note that this is a *stack* not a queue.
+*/
+static int32 holdcount;         /* Number of characters held on stack */
+static int32 holdstack[8];      /* Hold stack - Characters waiting to be passed back via 'get' */
+
+/*
+** fn_string and fn_string_count are used when expanding a function
+** key string. Effectively input switches to the string after a
+** function key with a string associated with it is pressed.
+*/
+static char *fn_string;         /* Non-NULL if taking chars from a function key string */
+static int fn_string_count;     /* Count of characters left in function key string */ 
+
+/* function key strings */
+#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
+static struct {int length; char *text;} fn_key[FN_KEY_COUNT];
+
+#define INKEYMAX 0x7FFF		/* Maximum wait time for INKEY */
+#endif
+
+
 #ifdef USE_SDL
 #include "SDL.h"
 #include "SDL_events.h"
-#include "keyboard-inkey.h"
-
 extern void mode7flipbank();
 extern void reset_vdu14lines();
+Uint8 mousestate, *keystate=NULL;
+#endif
+
+
+#ifdef NEWKBD
+/* New keyboard routines */
+/* --------------------- */
+
+#ifdef TARGET_RISCOS
+ #include "kernel.h"
+ #include "swis.h"
+#else
+ #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+  #include <windows.h>
+  #include <keysym.h>
+ #endif
+#endif
+
+static boolean waitkey(int wait);		/* To prevent a forward reference	*/
+static int32 pop_key(void);			/* To prevent a forward reference	*/
+
+/* Veneers, fill in later */
+boolean kbd_init() { return init_keyboard(); }
+void    kbd_end()  { end_keyboard(); }
+int     kbd_setfkey(int key, char *string, int length) {
+		return set_fn_string(key, string, length); }
+char   *kbd_getfkey(int key, int *len) {
+		return get_fn_string(key, len); }
+readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
+		return emulate_readline(&buffer[0], length, echochar); }
+
+
+/* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
+/* -------------------------------------------------------------- */
+int32 kbd_inkey(int32 arg) {
+
+#ifdef TARGET_RISCOS
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
+  regs.r[1] = arg & BYTEMASK;
+  regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
+  oserror = _kernel_swi(OS_Byte, &regs, &regs);
+  if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
+  if (regs.r[2] == 0)	return regs.r[1];	/* Character was read successfully	*/
+  else			return -1;		/* Timed out				*/
+
+#else /* !RISCOS */
+  // Non-RISC OS, perform the action manually
+  // ----------------------------------------
+  arg = arg & 0xFFFF;				/* Argument is a 16-bit number		*/
+
+  // Return host operating system
+  // ----------------------------
+  if (arg == 0xFF00) return OSVERSION;
+
+  // Timed wait for keypress
+  // -----------------------
+  if (arg < 0x8000) {
+#ifdef USE_SDL
+    mode7flipbank();
+#endif
+    if (basicvars.runflags.inredir		/* Input redirected (equiv. of *EXEC)	*/
+      || fn_string_count) return kbd_get();	/* Function key active			*/
+    if (holdcount > 0)	return pop_key();	/* Character waiting so return it	*/
+    if (waitkey(arg))	return kbd_get();	/* Wait for keypress and return it	*/
+    else		return -1;		/* Otherwise return -1 for nothing	*/
+
+  // Negative INKEY - scan for keypress
+  // ----------------------------------
+  } else {
+    arg = arg ^ 0xFFFF;				/* Convert to keyscan number		*/
+
+#ifdef USE_SDL
+    SDL_Event ev;
+    SDL_PumpEvents();
+    keystate = SDL_GetKeyState(NULL);
+    mousestate = SDL_GetMouseState(NULL, NULL);
+    while(SDL_PollEvent(&ev)) {
+      if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
+    }
+
+    if (arg <= 2) {				/* Test either modifier key		*/
+      if (
+      (keystate[inkeylookup[arg + 3]])		/* left key  */
+      ||
+      (keystate[inkeylookup[arg + 6]])		/* right key */
+      ) return -1;
+      else
+        return 0;
+    }
+
+    if ((arg >= 9) && (arg <= 11)) {		/* Test mouse buttons			*/
+      if ((arg ==  9) && (mousestate & 1)) return -1;
+      if ((arg == 10) && (mousestate & 2)) return -1;
+      if ((arg == 11) && (mousestate & 4)) return -1;
+    }
+
+    if (arg < 128) {				/* Test for single keypress		*/
+      switch (arg) {				/* Not visible from SDL keyscan		*/
+        case 32:  return (GetAsyncKeyState(0x2C)<0 ? -1 : 0);		/* F0/PRINT	*/
+        case 95:  return (GetAsyncKeyState(0xE2)<0 ||
+			  GetAsyncKeyState(0xC1)<0 ? -1 : 0);		/* Right \_	*/
+        case 109: return (GetAsyncKeyState(0x1D)<0 ||
+			  GetAsyncKeyState(0xEB)<0 ? -1 : 0);		/* NoConvert	*/
+        case 110: return (GetAsyncKeyState(0x1C)<0 ? -1 : 0);		/* Convert	*/
+				/* Kana is fiddly as it toggles between F0, F1, F2	*/
+        case 111: return (GetAsyncKeyState(0x15)<0 ? -1 : 0);		/* Kana		*/
+
+						/* Exceptions from SDL keyscan		*/
+        case 46:  return (keystate[0x5C] !=0 &&
+			  GetAsyncKeyState(0xDC) < 0  ? -1 : 0);	/* £/Y/etc	*/
+        case 90:  return (keystate[0x5C] !=0 &&
+			  GetAsyncKeyState(0xDC) == 0 ? -1 : 0);	/* K#  #~	*/
+
+						/* Translate SDL keyscan		*/
+        default:  return ((keystate[inkeylookup[arg]] != 0) ? -1 : 0);
+      }
+    }
+
+    if (arg < 256) return -1;			/* Scan range - unimplemented		*/
+
+    if ((arg & 0xFE00) == 0x0200) {		/* Direct API keyscan, INKEY(&FC00+nn)	*/
+      return (keystate[arg ^ 0x3FF] != 0) ? -1 : 0);
+    }
+
+    return 0;					/* Anything else, return FALSE		*/
+
+#else /* !USE_SDL */
+
+#ifdef VK_SHIFT
+    /* adapted from con_keyscan() from JGH 'console' library */
+    if (arg <0x080) {				/* Test for single keypress		*/
+#ifndef TARGET_DJGPP				/* DJGPP doesn't support GetKbdLayout	*/
+      if (((int)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {	/* BBC layout keyboard	*/
+	/* Note: as a console app, this is the ID from when the program started		*/
+        switch (arg) {
+          case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);	/* ^~      */
+          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);	/* £/Y/etc */
+          case 72: return (GetAsyncKeyState(0xBA)<0 ? -1 : 0);	/* :       */
+          case 87: return (GetAsyncKeyState(0xBB)<0 ? -1 : 0);	/* ;       */
+          case 90:						/* #~      */
+          case 93:						/* =+      */
+          case 94:						/* Left \| */
+          case 120:						/* \|      */
+            return 0;
+        }
+      }
+#endif /* !DJGPP */
+      arg=inkeylookup[arg];			/* Get translated keyscan code		*/
+      if (arg) {
+        if (GetAsyncKeyState(arg)<0) return -1; /* Translated key pressed		*/
+        else			     return 0;  /* Translated key not pressed		*/
+      }
+      return 0;					/* No translated key to test		*/
+    }
+
+    if (arg < 0x100) return -1;			/* Scan range - unimplemented		*/
+
+    if (arg < 0x200) {				/* Direct API keyscan, INKEY(&FE00+nn)	*/
+      if (GetAsyncKeyState(arg ^ 0x1ff)<0) return -1;	/* Key pressed			*/
+      else				   return 0;	/* Key not pressed		*/
+    }
+
+    return 0;					/* Anything else, return FALSE		*/
+#endif /* VK_SHIFT */
+
+#endif /* !USE_SDL */
+    return emulate_inkey(arg ^ -1);		/* Drop through to legacy call		*/
+  }
+
+#endif /* !RISCOS */
+}
+
+
+#ifdef TARGET_DJGPP
+/* GetAsyncKeyState for DJGPP target */
+
+static int32 vecGetAsyncKeyState=0;
+int GetAsyncKeyState(int x) {
+  int y=0;
+  __asm__ __volatile__(
+    "cld\n"
+    "movw %w1,  %%ax\n"
+    "andw $255, %%ax\n"
+//  "push %%ax\n"
+//  "call [vecGetAsyncKeyState]\n"
+    "movw %%ax, %w0\n"
+    : "=r" (y)
+    : "r" (x)
+  );
+  return y;
+}
+#endif
+
+
+/* kbd_get called to implement Basic GET and GET$ functions */
+/* -------------------------------------------------------- */
+int32 kbd_get() {
+
+#ifdef TARGET_RISCOS
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  oserror = _kernel_swi(OS_ReadC, &regs, &regs);
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  return regs.r[0];
+
+#else /* !RISCOS */
+  return emulate_get();				/* Drop through to legacy call		*/
+
+#endif /* !RISCOS */
+}
+
+#endif /* NEWKBD */
+
+
+
+/* Legacy code from here onwards */
+/* ----------------------------- */
+#ifdef USE_SDL
+//#include "SDL.h"
+//#include "SDL_events.h"
+//#include "keyboard-inkey.h"
+
+//extern void mode7flipbank();
+//extern void reset_vdu14lines();
 
 static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
@@ -256,6 +518,9 @@ int set_fn_string(int key, char *string, int length) {
   return 0;
 }
 
+char *get_fn_string(int key, int *len) {
+}
+
 boolean init_keyboard(void) {
   return TRUE;
 }
@@ -283,6 +548,7 @@ void end_keyboard(void) {
 #endif
 
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#include <sys/time.h>
 #include <conio.h>
 #endif
 
@@ -291,13 +557,12 @@ void end_keyboard(void) {
 #include <keys.h>
 #endif
 
-#define INKEYMAX 0x7FFF         /* Maximum wait time for INKEY */
 #define WAITIME 10              /* Time to wait in centiseconds when dealing with ANSI key sequences */
 
 #define HISTSIZE 1024           /* Size of command history buffer */
 #define MAXHIST 20              /* Maximum number of entries in history list */
 
-#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
+//#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
 
 static int32
   place,                        /* Offset where next character will be added to buffer */
@@ -311,26 +576,25 @@ static boolean enable_insert;   /* TRUE if keyboard input code is in insert mode
 static char histbuffer[HISTSIZE];       /* Command history buffer */
 static int32 histlength[MAXHIST];       /* Table of sizes of entries in history buffer */
 
-/* function key strings */
-
-static struct {int length; char *text;} fn_key[FN_KEY_COUNT];
-
-/*
-** holdcount and holdstack are used when decoding ANSI key sequences. If a
-** sequence is read that does not correspond to an ANSI sequence the
-** characters are stored here so that they can be returned by future calls
-** to 'emulate_get'. Note that this is a *stack* not a queue
-*/
-static int32 holdcount;         /* Number of characters held on stack */
-static int32 holdstack[8];      /* Hold stack - Characters waiting to be passed back via 'get' */
-
-/*
-** fn_string and fn_string_count are used when expanding a function
-** key string. Effectively input switches to the string after a
-** function key with a string associated with it is pressed
-*/
-static char *fn_string;         /* Non-NULL if taking chars from a function key string */
-static int fn_string_count;     /* Count of characters left in function key string */ 
+///* function key strings */
+//static struct {int length; char *text;} fn_key[FN_KEY_COUNT];
+//
+///*
+//** holdcount and holdstack are used when decoding ANSI key sequences. If a
+//** sequence is read that does not correspond to an ANSI sequence the
+//** characters are stored here so that they can be returned by future calls
+//** to 'emulate_get'. Note that this is a *stack* not a queue
+//*/
+//static int32 holdcount;         /* Number of characters held on stack */
+//static int32 holdstack[8];      /* Hold stack - Characters waiting to be passed back via 'get' */
+//
+///*
+//** fn_string and fn_string_count are used when expanding a function
+//** key string. Effectively input switches to the string after a
+//** function key with a string associated with it is pressed
+//*/
+//static char *fn_string;         /* Non-NULL if taking chars from a function key string */
+//static int fn_string_count;     /* Count of characters left in function key string */ 
 
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
@@ -451,7 +715,11 @@ int64 i;
     i=mos_centiseconds();
     if (i > esclast) {
       esclast=i;
+#ifdef NEWKBD
+      if(kbd_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+#else
       if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+#endif
     }
   } else escinterval--;
 #endif
@@ -461,6 +729,16 @@ int64 i;
 void osbyte44(int x) {
   fx44x=x;
 }
+
+#if defined(TARGET_DJGPP)
+// Should be merged with following
+static boolean waitkey(int wait) {
+  int tmp;
+  tmp=clock()+wait; //*(CLOCKS_PER_SEC/100);
+  for(;;) { if(kbhit() || (clock()>tmp)) break; }
+  return kbhit();
+}
+#endif
 
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
@@ -477,6 +755,9 @@ static boolean waitkey(int wait) {
 #ifndef TARGET_MINGW
   fd_set keyset;
   struct timeval waitime;
+#endif
+#ifdef BODGEMGW
+  int tmp;
 #endif
 
 #ifdef USE_SDL
@@ -532,7 +813,11 @@ static boolean waitkey(int wait) {
     usleep(1000);
   }
 #else
-#ifndef BODGEMGW
+#ifdef BODGEMGW
+  tmp=clock()+wait*(CLOCKS_PER_SEC/100);
+  for(;;) { if(kbhit() || (clock()>tmp)) break; }
+  return kbhit();
+#else
   FD_ZERO(&keyset);
   FD_SET(keyboard, &keyset);
   waitime.tv_sec = wait/100;    /* Convert wait time to seconds and microseconds */
@@ -984,9 +1269,9 @@ int32 emulate_get(void) {
 ** appears to be undefined if the wait exceeds 32767 centiseconds.
 */
 
-#ifdef USE_SDL
-Uint8 mousestate, *keystate=NULL;
-#endif
+//#ifdef USE_SDL
+//Uint8 mousestate, *keystate=NULL;
+//#endif
 
 int32 emulate_inkey(int32 arg) {
   int32 result;
@@ -1017,14 +1302,14 @@ int32 emulate_inkey(int32 arg) {
     while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }
-// JGH: test code
+
     if ((arg & 0xFE00) == 0xFC00) {
     if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
       return -1;
     else
       return 0;
     }
-// JGH ^^^^^
+
     if ((arg <= -10) && (arg >= -12)) {
       /* Mouse button INKEYs */
       if ((arg == -10) && (mousestate & 1)) return -1;
@@ -1239,7 +1524,7 @@ int32 emulate_inkey(int32 arg) {
   }
   else if (arg == -256)         /* Return version of operating system */
     return OSVERSION;
-  else {        /* Check is a specific key is being pressed */
+  else {        		/* Check if a specific key is being pressed */
     error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
   }
   return 0;
@@ -1264,10 +1549,11 @@ int32 emulate_inkey(int32 arg) {
 #ifdef TARGET_AMIGA
 
 // Why is this here?
-#ifndef __AMIGADATE__
-#define __AMIGADATE__ "("__DATE__")"
-#endif
-const char *VERsion = "$VER: Brandy 1.19 "__AMIGADATE__" $";
+// Moved to target.h
+//#ifndef __AMIGADATE__
+//#define __AMIGADATE__ "("__DATE__")"
+//#endif
+//const char *VERsion = "$VER: Brandy 1.19 "__AMIGADATE__" $";
 
 #ifdef __SASC
 long __stack = 67000;
@@ -1498,7 +1784,11 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   lastplace = length-2;         /* Index of last position that can be used in buffer */
   init_recall();
   do {
+#ifdef NEWKBD
+    ch = kbd_get();
+#else
     ch = emulate_get();
+#endif
     watch_signals();           /* Let asynchronous signals catch up */
     if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;
 	/* Check if the escape key has been pressed and bail out if it has */
@@ -1583,7 +1873,11 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       place = 0;
       break;
     case NUL:                   /* Function or special key follows */
+#ifdef NEWKBD
+      ch = kbd_get();           /* Fetch the key details */
+#else
       ch = emulate_get();       /* Fetch the key details */
+#endif
       switch (ch) {
       case END:                 /* Move cursor to end of line */
         echo_off();

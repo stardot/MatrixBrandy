@@ -32,13 +32,17 @@
 **                  mdfs.net/Software/BBCBasic/Testing/KeyScanWin.bbc to work out
 **                  what the exact values need to be. Documentation is huuugely vague.
 ** 03-Dec-2018 JGH: Tested and updated keys as marked. EN also covers US,CN,KO.
-**                  Probably impossible to get [ ] correct on non-JP keyboard layout.
+**                  Probably impossible to get [ ] correct on JP keyboard layout.
 **                  Some keys not visible through SDL: YEN \ KanaKeys, though they do
 **                  give keypresses to GET.
+** 09-Dec-2018 JGH: Added DOS/Windows VK keytable from JGH 'console' library.
 **
 */
+
+#ifdef USE_SDL
 #include "SDL.h"
 #include "SDL_keysym.h"
+#define KBD_SDL 1
 
 int32 inkeylookup[] = {
   SDLK_LSHIFT,		/*   0  done at a higher level */
@@ -87,7 +91,7 @@ int32 inkeylookup[] = {
   SDLK_KP9,		/*  43  Keypad 9      */
   SDLK_BREAK,		/*  44  Break         */
   SDLK_BACKQUOTE,	/*  45  `/~/?         EN:ok          JP:ok,locks */
-  SDLK_BACKSLASH,	/*  46  ?/Yen  #/~    EN:ok,SDL_5C   JP:ok,SLD_5C */
+  SDLK_BACKSLASH,	/*  46  UKP/Yen/etc   EN:ok,SDL_5C   JP:ok,SLD_5C */
   SDLK_BACKSPACE,	/*  47  Backspace     */
   SDLK_1,		/*  48  1             */
   SDLK_2,		/*  49  2             */
@@ -171,3 +175,144 @@ int32 inkeylookup[] = {
   SDLK_MENU,		/* 127  Windows Menu  */
   -1			/* 128  No key        */
 };
+#else
+
+#if defined(TARGET_DJGPP) || defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+#define KBD_PC 1
+#ifndef VK_SHIFT
+#include "keysym.h"
+#endif
+
+/* Lookup table from jgh 'console' library */
+unsigned char inkeylookup[]={
+VK_SHIFT,	/* -001  Shift        */
+VK_CONTROL,	/* -002  Ctrl         */
+VK_MENU,	/* -003  Alt          */
+VK_LSHIFT,	/* -004  Left Shift   */
+VK_LCONTROL,	/* -005  Left Ctrl    */
+VK_LMENU,	/* -006  Left Alt     */
+VK_RSHIFT,	/* -007  Right Shift  */
+VK_RCONTROL,	/* -008  Right Ctrl   */
+VK_RMENU,	/* -009  Right Alt    */
+VK_LBUTTON,	/* -010  Mouse Select */
+VK_RBUTTON,	/* -011  Mouse Menu   */
+VK_MBUTTON,	/* -012  Mouse Adjust */
+0,		/* -013  FN           */
+0,		/* -014               */
+0,		/* -015               */
+0,		/* -016               */
+'Q',		/* -017  Q            */
+'3',		/* -018  3            */
+'4',		/* -019  4            */
+'5',		/* -020  5            */
+VK_F4,		/* -021  F4           */
+'8',		/* -022  8            */
+VK_F7,		/* -023  F7           */
+0xbd,		/* -024  -            */
+0,		/* -025  ^            */
+VK_LEFT,	/* -026  Left         */
+VK_NUMPAD6,	/* -027  Keypad 6     */
+VK_NUMPAD7,	/* -028  Keypad 7     */
+VK_F11,		/* -029  F11          */
+VK_F12,		/* -030  F12          */
+VK_F10,		/* -031  F10          */
+VK_SCROLL,	/* -032  Scroll Lock  */
+VK_SNAPSHOT,	/* -033  F0/Print     */
+'W',		/* -034  W            */
+'E',		/* -035  E            */
+'T',		/* -036  T            */
+'7',		/* -037  7            */
+'I',		/* -038  I            */
+'9',		/* -039  9            */
+'0',		/* -040  0            */
+0xbd,		/* -041  _            */
+VK_DOWN,	/* -042  Down         */
+VK_NUMPAD8,	/* -043  Keypad 8     */
+VK_NUMPAD9,	/* -044  Keypad 9     */
+VK_PAUSE,	/* -045  Break        */
+0xdf,		/* -046  `/~/?        */
+0,		/* -047  UKP/Yen      */
+VK_BACK,	/* -048  Backspace    */
+'1',		/* -049  1            */
+'2',		/* -050  2            */
+'D',		/* -051  D            */
+'R',		/* -052  R            */
+'6',		/* -053  6            */
+'U',		/* -054  U            */
+'O',		/* -055  O            */
+'P',		/* -056  P            */
+0xdb,		/* -057  [            */
+VK_UP,		/* -058  Up           */
+VK_ADD,		/* -059  Keypad +     */
+VK_SUBTRACT,	/* -060  Keypad -     */
+VK_RETURN,	/* -061  Keypad Enter - same as Return */
+VK_INSERT,	/* -062  Insert       */
+VK_HOME,	/* -063  Home         */
+VK_PRIOR,	/* -064  PgUp         */
+VK_CAPITAL,	/* -065  Caps Lock    */
+'A',		/* -066  A            */
+'X',		/* -067  X            */
+'F',		/* -068  F            */
+'Y',		/* -069  Y            */
+'J',		/* -070  J            */
+'K',		/* -071  K            */
+0xc0,		/* -072  @            */
+0,		/* -073  :            */
+VK_RETURN,	/* -074  Return - Same as Keypad Enter */
+VK_DIVIDE,	/* -075  Keypad /     */
+VK_DECIMAL,	/* -076  Keypad Del   */
+VK_DECIMAL,	/* -077  Keypad .     */
+VK_NUMLOCK,	/* -078  Num Lock     */
+VK_NEXT,	/* -079  PgDn         */
+0xc0,		/* -080  '/"  '/@     */
+0,		/* -081  Shift Lock   */
+'S',		/* -082  S            */
+'C',		/* -083  C            */
+'G',		/* -084  G            */
+'H',		/* -085  H            */
+'N',		/* -086  N            */
+'L',		/* -087  L            */
+0xba,		/* -088  ;            */
+0xdd,		/* -089  ]            */
+VK_DELETE,	/* -090  Delete       */
+0xde,		/* -091  Keypad # #/~ */
+VK_MULTIPLY,	/* -092  Keypad *     */
+VK_SEPARATOR,	/* -093  Keypad ,     */
+0xbb,		/* -094  =/+          */
+0xdc,		/* -095  Left \ |     */
+0xe2,		/* -096  Right \ _    */
+VK_TAB,		/* -097  TAB          */
+'Z',		/* -098  Z            */
+' ',		/* -099  Space        */
+'V',		/* -100  V            */
+'B',		/* -101  B            */
+'M',		/* -102  M            */
+0xbc,		/* -103  ,            */
+0xbe,		/* -104  .            */
+0xbf,		/* -105  /            */
+VK_END,		/* -106  Copy/End     */
+VK_NUMPAD0,	/* -107  Keypad 0     */
+VK_NUMPAD1,	/* -108  Keypad 1     */
+VK_NUMPAD3,	/* -109  Keypad 3     */
+VK_NONCONVERT,	/* -110  NoConvert    */
+VK_CONVERT,	/* -111  Convert      */
+VK_KANA,	/* -112  Kana         */
+VK_ESCAPE,	/* -113  Escape       */
+VK_F1,		/* -114  F1           */
+VK_F2,		/* -115  F2           */
+VK_F3,		/* -116  F3           */
+VK_F5,		/* -117  F5           */
+VK_F6,		/* -118  F6           */
+VK_F8,		/* -119  F8           */
+VK_F9,		/* -120  F9           */
+0xdc,		/* -121  \ |          */
+VK_RIGHT,	/* -122  Right        */
+VK_NUMPAD4,	/* -123  Keypad 4     */
+VK_NUMPAD5,	/* -124  Keypad 5     */
+VK_NUMPAD2,	/* -125  Keypad 2     */
+VK_LWIN,	/* -126  WinLeft      */
+VK_RWIN,	/* -127  WinRight     */
+VK_APPS};	/* -128  WinMenu      */
+#endif
+
+#endif
