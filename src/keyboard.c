@@ -383,7 +383,7 @@ int GetAsyncKeyState(int x) {
 
 /* kbd_get called to implement Basic GET and GET$ functions */
 /* -------------------------------------------------------- */
-int32 kbd_get() {
+int32 kbd_get(void) {
 
 #ifdef TARGET_RISCOS
   // RISC OS, pass directly to MOS
