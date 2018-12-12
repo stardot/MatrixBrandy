@@ -747,7 +747,11 @@ void fn_false(void) {
 static void fn_get(void) {
   int ch;
   do {
-    ch=emulate_get() & 0xFF;
+#ifdef NEWKBD
+      ch=kbd_get() & 0xFF;
+#else
+      ch=emulate_get() & 0xFF;
+#endif
   } while (ch==0);
   push_int(ch);
 }
@@ -771,7 +775,11 @@ static void fn_getdol(void) {
   else {	/* Normal 'GET$' - Return character read as a string */
     cp = alloc_string(1);
     do {
+#ifdef NEWKBD
+      ch=kbd_get() & 0xFF;
+#else
       ch=emulate_get() & 0xFF;
+#endif
     } while (ch==0);
     *cp = ch;
     push_strtemp(1, cp);
@@ -783,7 +791,11 @@ static void fn_getdol(void) {
 ** OS_Byte 129 under a different name.
 */
 static void fn_inkey(void) {
+#ifdef NEWKBD
+  push_int(kbd_inkey(eval_intfactor()));
+#else
   push_int(emulate_inkey(eval_intfactor()));
+#endif
 }
 
 /*
@@ -794,7 +806,11 @@ static void fn_inkey(void) {
 static void fn_inkeydol(void) {
   int32 result;
   char *cp;
-  result = emulate_inkey(eval_intfactor());
+#ifdef NEWKBD
+  result=kbd_inkey(eval_intfactor());
+#else
+  result=emulate_inkey(eval_intfactor());
+#endif
   if (result == -1) {
     cp = alloc_string(0);
     push_strtemp(0, cp);
