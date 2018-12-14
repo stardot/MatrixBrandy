@@ -15,14 +15,16 @@ CC = gcc
 LD = gcc
 AR = ar
 
-gitcommit=\""$(shell git log --abbrev-commit -1 | head -1 |cut -d ' ' -f 2)"\"
-gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
-gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
-
-CFLAGSDBG += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
-#CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
-CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall \
-  -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+gitcommit=\""$(shell git log --abbrev-commit -1 2>/dev/null| head -1 |cut -d ' ' -f 2)"\"
+ifeq ($(gitcommit),\"""\")
+  #CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall
+  CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall
+else
+  gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
+  gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
+  #CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+  CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+endif
 
 LDFLAGS +=
 
