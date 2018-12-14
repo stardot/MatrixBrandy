@@ -29,8 +29,9 @@
 
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "17"
 #define BRANDY_DATE  "05 Dec 2018"
+#define BRANDY_NAME  "Matrix"
+#define BRANDY_PATCHLEVEL "17"
 
 #ifndef __target_h
 #define __target_h
@@ -57,15 +58,15 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** coded here. This is the most important macro and is used to control
 ** the compilation of OS-specific parts of the program.
 **
-** BRANDY_OS is displayed by the startup and *HELP string
-** MACTYPE indicates the filing system type, returned by OSBYTE 0
+** BRANDY_OS is displayed by the startup and *HELP string.
+** MACTYPE indicates the system, returned by OSBYTE 0, and indicates the filing system type.
 **  0x0600 for directory.file/ext (eg RISC OS)
 **  0x0800 for directory/file.ext (eg UNIX)
 **  0x2000 for directory\file.ext (eg Win/DOS)
 ** OSVERSION indicates the host OS, returned by INKEY-256 and OSBYTE 129,-256.
 **  These values are made up, but see beebwiki.mdfs.net/OSBYTE_&81
 **
-** Name of editor invoked by Basic 'EDIT' command
+** Name of editor invoked by Basic 'EDIT' command.
 ** EDITOR_VARIABLE is the name of an environment variable that can be
 **		read to find the name of the editor to use.
 ** DEFAULT_EDITOR is the name of the editor to use if there is no
@@ -74,7 +75,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** Characters used to separate directories in names of files
 ** DIR_SEPS	is a string containing all the characters that can be
 ** 	    	be used to separate components of a file name (apart
-**		from the file name's extension)
+**		from the file name's extension).
 ** DIR_SEP	gives the character to be used to separate directory names.
 */
 
@@ -164,6 +165,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #ifdef DJGPP
 #define TARGET_DJGPP
+#define TARGET_DOSWIN
 #define BRANDY_OS "DJGPP"
 #define OSVERSION 0xFA
 #define MACTYPE   0x2000
@@ -177,6 +179,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0600 /* Require Win7 or later */
 #define TARGET_MINGW
+#define TARGET_DOSWIN
 #define BRANDY_OS "MinGW"
 #define OSVERSION 0xFC
 #define MACTYPE   0x2000
@@ -188,6 +191,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #if defined(__LCC__) & defined(WIN32)
 #define TARGET_WIN32
+#define TARGET_DOSWIN
 #define BRANDY_OS "LCC-WIN32"
 #define OSVERSION 0xFC
 #define MACTYPE   0x2000
@@ -199,6 +203,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #ifdef __BORLANDC__
 #define TARGET_BCC32
+#define TARGET_DOSWIN
 #define BRANDY_OS "BCC"
 #define OSVERSION 0xFC
 #define MACTYPE   0x2000
@@ -234,11 +239,21 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #error Target operating system for interpreter is either missing or not supported
 #endif
 
-#ifdef USE_SDL
-#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/SDL) " BRANDY_DATE
+#ifdef NEWKBD
+ #ifdef USE_SDL
+  #define SUFFIX "/SDL/NEWKBD) "
+ #else
+  #define SUFFIX "/NEWKBD) "
+ #endif
 #else
-#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS ") " BRANDY_DATE
+ #ifdef USE_SDL
+  #define SUFFIX "/SDL) "
+ #else
+  #define SUFFIX ") "
+ #endif
 #endif
+
+#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
 
 
 /*
