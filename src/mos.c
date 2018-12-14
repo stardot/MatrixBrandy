@@ -32,8 +32,8 @@
 **	allow the use of these features to be silently ignored rather
 **	than flagging them and bringing the program to a halt. The
 **	results might not look pretty but the program will run.
-*/
-/*
+**
+**
 ** Crispian Daniels August 20th 2002:
 **	Included Mac OS X target in conditional compilation.
 **
@@ -1122,9 +1122,10 @@ static void cmd_cat(char *command) {
     FILE *sout;
     char buf;
 #ifdef TARGET_MINGW
-    sout = popen("dir", "r");
+    sout = popen("dir /w", "r");		// Impossible to get here?
 #else
     sout = popen("ls -l", "r");
+//  sout = popen("ls -C", "r");
 #endif
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
@@ -1362,8 +1363,6 @@ static void cmd_help(char *command)
 #endif
 		// NB: Adjust spaces in above to align version and date strings correctly
 
-///		emulate_printf("  Matrix Brandy Basic fork v%s.%s (%s)\r\n", BRANDY_MAJOR, BRANDY_MINOR, BRANDY_DATE);
-///		emulate_printf("  Fork of Brandy BASIC\r\n", BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, BRANDY_DATE);
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");

@@ -285,6 +285,7 @@ int32 kbd_inkey(int32 arg) {
 
     if (arg < 128) {				/* Test for single keypress		*/
       switch (arg) {				/* Not visible from SDL keyscan		*/
+#ifdef TARGET_DOSWIN
         case 32:  return (GetAsyncKeyState(0x2C)<0 ? -1 : 0);		/* F0/PRINT	*/
         case 95:  return (GetAsyncKeyState(0xE2)<0 ||
 			  GetAsyncKeyState(0xC1)<0 ? -1 : 0);		/* Right \_	*/
@@ -296,10 +297,10 @@ int32 kbd_inkey(int32 arg) {
 
 						/* Exceptions from SDL keyscan		*/
         case 46:  return (keystate[0x5C] !=0 &&
-			  GetAsyncKeyState(0xDC) < 0  ? -1 : 0);	/* £/Y/etc	*/
+			  GetAsyncKeyState(0xDC) < 0  ? -1 : 0);	/* ?/Y/etc	*/
         case 90:  return (keystate[0x5C] !=0 &&
 			  GetAsyncKeyState(0xDC) == 0 ? -1 : 0);	/* K#  #~	*/
-
+#endif
 						/* Translate SDL keyscan		*/
         default:  return ((keystate[inkeylookup[arg]] != 0) ? -1 : 0);
       }
@@ -308,7 +309,7 @@ int32 kbd_inkey(int32 arg) {
     if (arg < 256) return -1;			/* Scan range - unimplemented		*/
 
     if ((arg & 0xFE00) == 0x0200) {		/* Direct API keyscan, INKEY(&FC00+nn)	*/
-      return (keystate[arg ^ 0x3FF] != 0) ? -1 : 0);
+      return ((keystate[arg ^ 0x3FF] != 0) ? -1 : 0);
     }
 
     return 0;					/* Anything else, return FALSE		*/
@@ -323,7 +324,7 @@ int32 kbd_inkey(int32 arg) {
 	/* Note: as a console app, this is the ID from when the program started		*/
         switch (arg) {
           case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);	/* ^~      */
-          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);	/* £/Y/etc */
+          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);	/* ?/Y/etc */
           case 72: return (GetAsyncKeyState(0xBA)<0 ? -1 : 0);	/* :       */
           case 87: return (GetAsyncKeyState(0xBB)<0 ? -1 : 0);	/* ;       */
           case 90:						/* #~      */
@@ -357,6 +358,19 @@ int32 kbd_inkey(int32 arg) {
   }
 
 #endif /* !RISCOS */
+}
+
+
+/* kbd_modkeys - fast read state of modifier keys */
+/* ---------------------------------------------- */
+/* Currently, only SHIFT tested by SDL for VDU paged scrolling */
+int32 kbd_modkeys(int32 arg) {
+#ifdef USE_SDL
+  if (keystate==NULL) return 0;				/* Not yet been initialised	*/
+  if (keystate[SDLK_LSHIFT] || keystate[SDLK_RSHIFT])	/* Either SHIFT key		*/
+    return -1;
+#endif
+  return 0;
 }
 
 
@@ -1339,6 +1353,7 @@ int32 emulate_inkey(int32 arg) {
 #endif
 
 /* This uses existing values of keystate and mousestate */
+/* This is only ever called to check for SHIFT key for paged scrolling */
 int32 emulate_inkey2(int32 arg) {
 #ifdef USE_SDL
   if (!keystate) return 0; /* Be nice if we've not called emulate_inkey earlier */
