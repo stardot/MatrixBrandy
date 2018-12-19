@@ -53,7 +53,7 @@
 **  supported as well as text output using the SDL library.
 **  The five versions of the VDU driver code are in:
 **	riscos.c
-**  graphsdl.c
+**	graphsdl.c
 **	textonly.c
 **	simpletext.c
 **
@@ -150,7 +150,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
-Uint8 mode7changed[26];		/* Marks changed lines */
+Uint8 mode7changed[26];			/* Marks changed lines */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -1009,7 +1009,11 @@ static void write_char(int32 ch) {
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
+#ifdef NEWKBD
+	while (kbd_modkeys(1)==0) usleep(1000);
+#else
 	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+#endif
 	vdu14lines=0;
       }
     }
@@ -1061,7 +1065,11 @@ static void write_char(int32 ch) {
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
+#ifdef NEWKBD
+	while (kbd_modkeys(1)==0) usleep(1000);
+#else
 	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+#endif
 	vdu14lines=0;
       }
     }
@@ -1323,11 +1331,15 @@ static void move_curdown(void) {
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
   } else {
-    /* VDU14 check here */
+    /* VDU14 check here - all these should be optimisable */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
+#ifdef NEWKBD
+	while (kbd_modkeys(1)==0) usleep(1000);
+#else
 	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+#endif
 	vdu14lines=0;
       }
     }
@@ -1348,8 +1360,13 @@ static void move_curup(void) {
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       vdu14lines++;
+// BUG: paged mode should not stop scrolling upwards
       if (vdu14lines > (twinbottom-twintop)) {
+#ifdef NEWKBD
+	while (kbd_modkeys(1)==0) usleep(1000);
+#else
 	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+#endif
 	vdu14lines=0;
       }
     }
@@ -1806,7 +1823,11 @@ void emulate_vdu(int32 charvalue) {
 	  if (vduflag(VDU_FLAG_ENAPAGE)) {
 	    vdu14lines++;
 	    if (vdu14lines > (twinbottom-twintop)) {
+#ifdef NEWKBD
+	      while (kbd_modkeys(1)==0) usleep(1000);
+#else
 	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+#endif
 	      vdu14lines=0;
 	    }
 	  }
@@ -1846,7 +1867,11 @@ void emulate_vdu(int32 charvalue) {
 	  if (vduflag(VDU_FLAG_ENAPAGE)) {
 	    vdu14lines++;
 	    if (vdu14lines > (twinbottom-twintop)) {
+#ifdef NEWKBD
+	      while (kbd_modkeys(1)==0) usleep(1000);
+#else
 	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+#endif
 	      vdu14lines=0;
 	    }
 	  }
