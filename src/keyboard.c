@@ -205,7 +205,7 @@ static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
 
 /* Veneers, fill in later */
-void  kbd_init() { return init_keyboard(); }
+boolean  kbd_init() { return init_keyboard(); }
 void  kbd_quit() { end_keyboard(); }
 int   kbd_fkeyset(int key, char *string, int length) {
 		return set_fn_string(key, string, length); }
