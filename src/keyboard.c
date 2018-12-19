@@ -62,7 +62,7 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "mos.h"
-#include "keyboard-inkey.h"
+#include "inkey.h"
 
 
 /* ASCII codes of various useful characters */
@@ -205,11 +205,11 @@ static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
 
 /* Veneers, fill in later */
-boolean kbd_init() { return init_keyboard(); }
-void    kbd_end()  { end_keyboard(); }
-int     kbd_setfkey(int key, char *string, int length) {
+boolean  kbd_init() { return init_keyboard(); }
+void  kbd_quit() { end_keyboard(); }
+int   kbd_fkeyset(int key, char *string, int length) {
 		return set_fn_string(key, string, length); }
-char   *kbd_getfkey(int key, int *len) {
+char *kbd_fkeyget(int key, int *len) {
 		return get_fn_string(key, len); }
 readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
 		return emulate_readline(&buffer[0], length, echochar); }
@@ -363,7 +363,8 @@ int32 kbd_inkey(int32 arg) {
 
 /* kbd_modkeys - fast read state of modifier keys */
 /* ---------------------------------------------- */
-/* Currently, only SHIFT tested by SDL for VDU paged scrolling */
+/* Currently, only SHIFT tested by SDL for VDU paged scrolling		*/
+/* Need to decide what arg means. keynum? bitmap? eg %11=Ctrl+Shift	*/
 int32 kbd_modkeys(int32 arg) {
 #ifdef USE_SDL
   if (keystate==NULL) return 0;				/* Not yet been initialised	*/
