@@ -4,8 +4,16 @@
 CC = i686-w64-mingw32-gcc
 LD = i686-w64-mingw32-gcc
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
-CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
+gitcommit=\""$(shell git log --abbrev-commit -1 2>/dev/null| head -1 |cut -d ' ' -f 2)"\"
+ifeq ($(gitcommit),\"""\")
+  #CFLAGS = -g -DDEBUG -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
+  CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
+else
+  gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
+  gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
+  #CFLAGS = -g -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall -DBRANDYAPP -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+  CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall -DBRANDYAPP -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+endif
 
 LDFLAGS +=
 
@@ -119,7 +127,7 @@ $(SRCDIR)/lvalue.o: $(LVALUE_C) $(SRCDIR)/lvalue.c
 # Build KEYBOARD.C
 KEYBOARD_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/keyboard-inkey.h
+	$(SRCDIR)/inkey.h
 
 $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
 	$(CC) $(CFLAGS) $(SRCDIR)/keyboard.c -c -o $(SRCDIR)/keyboard.o

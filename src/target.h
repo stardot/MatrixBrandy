@@ -27,11 +27,11 @@
 **
 */
 
+#define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_DATE  "05 Dec 2018"
-#define BRANDY_NAME  "Matrix"
 #define BRANDY_PATCHLEVEL "17"
+#define BRANDY_DATE  "05 Dec 2018"
 
 #ifndef __target_h
 #define __target_h

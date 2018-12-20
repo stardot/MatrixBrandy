@@ -100,6 +100,9 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       break;
     case SWI_Brandy_Version:
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
+#ifdef BRANDY_GITCOMMIT
+      outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
+#endif
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);

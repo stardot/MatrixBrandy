@@ -3,8 +3,16 @@
 CC = gcc
 LD = gcc
 
-#CFLAGS += -g -DDEBUG -DNO_SDL -DDEFAULT_IGNORE
-CFLAGS = -O2 -DNO_SDL -DDEFAULT_IGNORE
+gitcommit=\""$(shell git log --abbrev-commit -1 2>/dev/null| head -1 |cut -d ' ' -f 2)"\"
+ifeq ($(gitcommit),\"""\")
+  #CFLAGS = -g -DDEBUG -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall
+  CFLAGS = -O2 -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall
+else
+  gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
+  gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
+  #CFLAGS = -g -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+  CFLAGS = -O2 -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
+endif
 
 LDFLAGS =
 
@@ -133,7 +141,7 @@ $(SRCDIR)/lvalue.o: $(LVALUE_C) $(SRCDIR)/lvalue.c
 # Build KEYBOARD.C
 KEYBOARD_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/keyboard-inkey.h
+	$(SRCDIR)/inkey.h
 
 $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
 	$(CC) $(CFLAGS) $(SRCDIR)/keyboard.c -c -o $(SRCDIR)/keyboard.o

@@ -243,7 +243,11 @@ void announce(void) {
 ** and debugging options in effect
 */
 void show_options(void) {
+#ifdef BRANDY_GITCOMMIT
+  emulate_printf("%s\r\n  Git commit %s on branch %s (%s)\r\n\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+#else
   emulate_printf("%s\r\n\n", IDSTRING);
+#endif
   if (basicvars.program[0] != NUL) emulate_printf("Program name: %s\r\n\n", basicvars.program);
   if (basicvars.loadpath != NIL) emulate_printf("Directory search list for libraries: %s\r\n\n", basicvars.loadpath);
   emulate_printf("The program starts at &%X and is %d bytes long.\r\nVariables start at &%X and occupy %d bytes. %d bytes of memory remain\r\n",

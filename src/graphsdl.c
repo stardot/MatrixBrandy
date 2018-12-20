@@ -969,6 +969,7 @@ void mode7flipbank() {
     mytime=mos_centiseconds();
     if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 1)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
+      do_sdl_updaterect(screen0, 0, 0, 0, 0);
       m7updatetimer=mytime;
     }
     if ((mode7timer - mytime) <= 0) {
@@ -983,7 +984,6 @@ void mode7flipbank() {
 	write_vduflag(MODE7_BANK,1);
 	mode7timer=mytime + 33;
       }
-      do_sdl_updaterect(screen0, 0, 0, 0, 0);
       reveal_cursor();
     }
   }
@@ -1447,6 +1447,7 @@ static void vdu_return(void) {
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
       set_rgb();
+      mode7flipbank();
     }
   }
 }
