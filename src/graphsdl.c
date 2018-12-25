@@ -2128,6 +2128,8 @@ static void setup_mode(int32 mode) {
   int p;
   SDL_Surface *m7fontbuf;
 
+  mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
+  modecopy = mode;
   if (mode == 7) { /* Reset width to 16 */
     M7XPPC=16;
     setm7font16();
@@ -2138,8 +2140,6 @@ static void setup_mode(int32 mode) {
     modetable[7].xres = 40*M7XPPC;
     modetable[7].xgraphunits = 80*M7XPPC;
   }
-  modecopy = mode;
-  mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
   ox=vscrwidth;
   oy=vscrheight;
