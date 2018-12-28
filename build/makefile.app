@@ -1,19 +1,28 @@
-# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
-# toolchain
+# Makefile for brandy under NetBSD and Linux
+
+# This makefile builds a static library, brandyapp.a.
+
+# Use the following to generate your app.o:
+# ld -r -b binary app -o app.o
+# where 'app' is the name of the BASIC program.
+# Since 'ld' uses the source name (app) to build its symbol table,
+# the code has to assume the name "app" - so copy it first!
+
+# Then, you can build your standalone app with:
+# gcc -o yourapp app.o /path/to/brandyapp.a -lX11 -lm -lSDL
 
 CC = gcc
 LD = gcc
+AR = ar
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
-CFLAGS  = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -Wall
-CFLAGS2 = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -w
+CFLAGSDBG += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
+CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall
 
 LDFLAGS +=
 
-#LIBS = -lm C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libSDL.a -lws2_32 -mwindows C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libdxguid.a C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libwinmm.a
-LIBS  = -lm C:/Apps/Programming/TDM-GCC-32/lib/SDL12/libSDL.dll.a
+LIBS = -lX11 -lm -lSDL
 
-SRCDIR = ../src
+SRCDIR = src
 
 OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
@@ -33,8 +42,8 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
-brandy:	$(OBJ)
-	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
+brandyapp.a:	$(OBJ)
+	$(AR) rcs brandyapp.a $(OBJ)
 
 # Build VARIABLES.C
 VARIABLES_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -120,7 +129,7 @@ $(SRCDIR)/lvalue.o: $(LVALUE_C) $(SRCDIR)/lvalue.c
 # Build KEYBOARD.C
 KEYBOARD_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/inkey.h
+	$(SRCDIR)/keyboard-inkey.h
 
 $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
 	$(CC) $(CFLAGS) $(SRCDIR)/keyboard.c -c -o $(SRCDIR)/keyboard.o
@@ -251,17 +260,7 @@ ASSIGN_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 $(SRCDIR)/assign.o: $(ASSIGN_C) $(SRCDIR)/assign.c
 	$(CC) $(CFLAGS) $(SRCDIR)/assign.c -c -o $(SRCDIR)/assign.o
 
-recompile:
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o brandy
-
-nodebug:
-	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy.exe
-
-check:
-	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy
-
 clean:
-	rm -f $(SRCDIR)/*.o brandy.exe
+	rm -f $(SRCDIR)/*.o brandyapp.a
 
-all:	brandy
+all:	brandyapp.a

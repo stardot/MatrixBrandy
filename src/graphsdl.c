@@ -51,7 +51,7 @@
 **  This is one of the four versions of the VDU driver emulation.
 **  It is used by versions of the interpreter where graphics are
 **  supported as well as text output using the SDL library.
-**  The five versions of the VDU driver code are in:
+**  The four versions of the VDU driver code are in:
 **	riscos.c
 **	graphsdl.c
 **	textonly.c
@@ -687,28 +687,38 @@ static void init_palette(void) {
     palette[3] = palette[4] = palette[5] = 255;
     break;
   case 4:	/* Four colour - Black, red, yellow and white */
-    palette[0] = palette[1] = palette[2] = 0;		/* Black */
-    palette[3] = 255; palette[4] = palette[5] = 0;	/* Red */
-    palette[6] = palette[7] = 255; palette[8] = 0;	/* Yellow */
-    palette[9] = palette[10] = palette[11] = 255;	/* White */
+    palette[0] =      palette[1]  =      palette[2]  = 0;	/* Black */
+    palette[3] = 255; palette[4]  =      palette[5]  = 0;	/* Red */
+    palette[6] =      palette[7]  = 255; palette[8]  = 0;	/* Yellow */
+    palette[9] =      palette[10] =      palette[11] = 255;	/* White */
+    break;
+  case 8:	/* Eight colour */
+    palette[0]  =      palette[1]  =      palette[2]  = 0;	/* Black */
+    palette[3]  = 255; palette[4]  =      palette[5]  = 0;	/* Red */
+    palette[6]  = 0;   palette[7]  = 255; palette[8]  = 0;	/* Green */
+    palette[9]  =      palette[10] = 255; palette[11] = 0;	/* Yellow */
+    palette[12] =      palette[13] = 0;   palette[14] = 255;	/* Blue */
+    palette[15] = 255; palette[16] = 0;   palette[17] = 255;	/* Magenta */
+    palette[18] = 0;   palette[19] =      palette[20] = 255;	/* Cyan */
+    palette[21] =      palette[22] =      palette[23] = 255;	/* White */
     break;
   case 16:	/* Sixteen colour */
-    palette[0] = palette[1] = palette[2] = 0;		    /* Black */
-    palette[3] = 255; palette[4] = palette[5] = 0;	    /* Red */
-    palette[6] = 0; palette[7] = 255; palette[8] = 0;	/* Green */
-    palette[9] = palette[10] = 255; palette[11] = 0;	/* Yellow */
-    palette[12] = palette[13] = 0; palette[14] = 255;	/* Blue */
-    palette[15] = 255; palette[16] = 0; palette[17] = 255;	/* Magenta */
-    palette[18] = 0; palette[19] = palette[20] = 255;	/* Cyan */
-    palette[21] = palette[22] = palette[23] = 255;	    /* White */
-    palette[24] = palette[25] = palette[26] = 0;	    /* Black */
-    palette[27] = 160; palette[28] = palette[29] = 0;	/* Dark red */
-    palette[30] = 0; palette[31] = 160; palette[32] = 0;/* Dark green */
-    palette[33] = palette[34] = 160; palette[35] = 0;	/* Khaki */
-    palette[36] = palette[37] = 0; palette[38] = 160;	/* Navy blue */
-    palette[39] = 160; palette[40] = 0; palette[41] = 160;	/* Purple */
-    palette[42] = 0; palette[43] = palette[44] = 160;	/* Cyan */
-    palette[45] = palette[46] = palette[47] = 160;	    /* Grey */
+    palette[0] =       palette[1]  =      palette[2]  = 0;	/* Black */
+    palette[3] = 160;  palette[4]  =      palette[5]  = 0;	/* Dark red */
+    palette[6] = 0;    palette[7]  = 160; palette[8]  = 0;	/* Dark green */
+    palette[9] =       palette[10] = 160; palette[11] = 0;	/* Khaki */
+    palette[12] =      palette[13] = 0;   palette[14] = 160;	/* Navy blue */
+    palette[15] = 160; palette[16] = 0;   palette[17] = 160;	/* Purple */
+    palette[18] = 0;   palette[19] =      palette[20] = 160;	/* Cyan */
+    palette[21] =      palette[22] =      palette[23] = 160;	/* Grey */
+    palette[24] =      palette[25] =      palette[26] = 80;	/* Black */
+    palette[27] = 255; palette[28] =      palette[29] = 0;	/* Red */
+    palette[30] = 0;   palette[31] = 255; palette[32] = 0;	/* Green */
+    palette[33] =      palette[34] = 255; palette[35] = 0;	/* Yellow */
+    palette[36] =      palette[37] = 0;   palette[38] = 255;	/* Blue */
+    palette[39] = 255; palette[40] = 0;   palette[41] = 255;	/* Magenta */
+    palette[42] = 0;   palette[43] =      palette[44] = 255;	/* Cyan */
+    palette[45] =      palette[46] =      palette[47] = 255;	/* White */
     break;
   case 256:
   case COL24BIT: {	/* >= 256 colour */
@@ -736,7 +746,7 @@ static void init_palette(void) {
       for (green = 0; green <= COLOURSTEP * 3; green += COLOURSTEP) {
         for (red = 0; red <= COLOURSTEP * 3; red += COLOURSTEP) {
           for (tint = 0; tint <= TINTSTEP * 3; tint += TINTSTEP) {
-            palette[colour] = red+tint;
+            palette[colour+0] = red+tint;
             palette[colour+1] = green+tint;
             palette[colour+2] = blue+tint;
             colour += 3;
@@ -770,7 +780,7 @@ static void init_palette(void) {
 ** and blue. The screen is updated by this call
 */
 static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
-  palette[colour*3] = red;	/* The palette is not structured */
+  palette[colour*3+0] = red;	/* The palette is not structured */
   palette[colour*3+1] = green;
   palette[colour*3+2] = blue;
 }
@@ -788,7 +798,7 @@ int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
   distance = 0x7fffffff;
   best = 0;
   for (n = 0; n < colourdepth && distance != 0; n++) {
-    dr = palette[n * 3] - red;
+    dr = palette[n * 3 + 0] - red;
     dg = palette[n * 3 + 1] - green;
     db = palette[n * 3 + 2] - blue;
     test = 2 * dr * dr + 4 * dg * dg + db * db;
@@ -1210,16 +1220,16 @@ static void vdu_setpalette(void) {
   pmode = mode % 16;
   if (mode < 16 && colourdepth <= 16) {	/* Just change the RISC OS logical to physical colour mapping */
     logtophys[logcol] = mode;
-    palette[logcol*3] = hardpalette[pmode*3];
-    palette[1+logcol*3] = hardpalette[1+pmode*3];
-    palette[2+logcol*3] = hardpalette[2+pmode*3];
+    palette[logcol*3+0] = hardpalette[pmode*3+0];
+    palette[logcol*3+1] = hardpalette[pmode*3+1];
+    palette[logcol*3+2] = hardpalette[pmode*3+2];
   } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
   set_rgb();
   /* Now, go through the framebuffer and change the pixels */
   if (colourdepth <= 256) {
     c = logcol * 3;
-    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c], palette[c+1], palette[c+2]) + (logcol << 24);
+    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
     for (offset=0; offset < (screenheight*screenwidth*xscale); offset++) {
       if ((*((Uint32*)modescreen->pixels + offset) >> 24) == logcol) *((Uint32*)modescreen->pixels + offset) = newcol;
     }
@@ -1486,7 +1496,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
       } else {
         a=altcolour;
 	altcolour=altcolour*3;
-        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
+        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
       *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
     }
@@ -1572,7 +1582,7 @@ static void reset_colours(void) {
     logtophys[4] = VDU_BLUE;
     logtophys[5] = VDU_MAGENTA;
     logtophys[6] = VDU_CYAN;
-    logtophys[7]  = VDU_WHITE;
+    logtophys[7] = VDU_WHITE;
     logtophys[8] = FLASH_BLAWHITE;
     logtophys[9] = FLASH_REDCYAN;
     logtophys[10] = FLASH_GREENMAG;
@@ -1580,7 +1590,7 @@ static void reset_colours(void) {
     logtophys[12] = FLASH_BLUEYEL;
     logtophys[13] = FLASH_MAGREEN;
     logtophys[14] = FLASH_CYANRED;
-    logtophys[15]  = FLASH_WHITEBLA;
+    logtophys[15] = FLASH_WHITEBLA;
     text_forecol = graph_forecol = 7;
     break;
   case 256:
@@ -2128,8 +2138,12 @@ static void setup_mode(int32 mode) {
   int p;
   SDL_Surface *m7fontbuf;
 
-  if (mode == 7) { /* Reset width to 16 */
-    M7XPPC=16;
+  modecopy = mode;
+  mode = mode & MODEMASK;			/* Lose 'shadow mode' bit */
+  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
+
+  if (mode == 7) {
+    M7XPPC=16;					/* Reset width to 16 */
     setm7font16();
     SDL_FreeSurface(sdl_m7fontbuf);
     m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
@@ -2138,9 +2152,7 @@ static void setup_mode(int32 mode) {
     modetable[7].xres = 40*M7XPPC;
     modetable[7].xgraphunits = 80*M7XPPC;
   }
-  modecopy = mode;
-  mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
-  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
+
   ox=vscrwidth;
   oy=vscrheight;
   /* Try to catch an undefined mode */
@@ -2452,7 +2464,7 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
     } else {
       a=altcolour;
       altcolour=altcolour*3;
-      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
+      altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
     }
   }
   *((Uint32*)surface->pixels + offset) = altcolour;
@@ -3934,7 +3946,7 @@ int32 osbyte134_165(int32 a) {
 
 int32 osbyte135() {
   if (screenmode == 7) {
-    printf("Mode 7\n");
+//    printf("Mode 7\n");
     return ((screenmode << 16) + (mode7frame[ytext][xtext] << 8) + 135);
   } else {
     return ((screenmode << 16) + 135);

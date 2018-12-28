@@ -1,19 +1,17 @@
 # Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
 # toolchain
 
-CC = gcc
-LD = gcc
+CC = i686-w64-mingw32-gcc
+LD = i686-w64-mingw32-gcc
 
 #CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
-CFLAGS  = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -Wall
-CFLAGS2 = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -w
+CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall
 
 LDFLAGS +=
 
-#LIBS = -lm C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libSDL.a -lws2_32 -mwindows C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libdxguid.a C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libwinmm.a
-LIBS  = -lm C:/Apps/Programming/TDM-GCC-32/lib/SDL12/libSDL.dll.a
+LIBS = -lm /usr/i686-w64-mingw32/sys-root/mingw/lib/libSDL.a -lws2_32 -mwindows /usr/i686-w64-mingw32/sys-root/mingw/lib/libdxguid.a /usr/i686-w64-mingw32/sys-root/mingw/lib/libwinmm.a
 
-SRCDIR = ../src
+SRCDIR = src
 
 OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
@@ -120,7 +118,7 @@ $(SRCDIR)/lvalue.o: $(LVALUE_C) $(SRCDIR)/lvalue.c
 # Build KEYBOARD.C
 KEYBOARD_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/inkey.h
+	$(SRCDIR)/keyboard-inkey.h
 
 $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
 	$(CC) $(CFLAGS) $(SRCDIR)/keyboard.c -c -o $(SRCDIR)/keyboard.o
@@ -256,7 +254,7 @@ recompile:
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy.exe
+	strip brandy
 
 check:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy

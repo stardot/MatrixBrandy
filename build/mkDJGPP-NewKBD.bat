@@ -5,7 +5,7 @@
 @set PATH=C:\Apps\Programming\djgpp\bin;%PATH%
 @
 @cd %0\..
-@make -f makefile.djgpp nodebug
+@make -f makefile.djgppKBD nodebug
 @mkdir ..\binaries >NUL: 2>NUL:
 @if exist brandy.exe copy brandy.exe ..\binaries\brandyDJP.exe >NUL:
 @if exist brandy del brandy

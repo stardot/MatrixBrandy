@@ -1,0 +1,20 @@
+DefChar
+  SDL Brandy: works
+  DJP Brandy: does not work due to graphics to draw character box
+  MGW Brandy: does not work due to graphics to draw character box
+
+KeyScan
+  Displays negative INKEY values with a text-only display
+  Works on: RISC OS, WinSDL, MinGW, DJGPP, Linux
+
+KeyTest
+  Displays negative INKEY values with a graphics display
+  RISC OS, WinSDL: works
+  MinGW, DJGPP:    does not work due to graphics needed
+  Lunix:           untested
+
+KBDTest
+  Displays keyboard buffer insert codes
+
+ClockSp
+  Fails on DJGPP, issues with TIME

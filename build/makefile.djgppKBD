@@ -1,37 +1,34 @@
-# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
-# toolchain
+# Makefile for Brandy under DOS (using gcc and DJGPP)
 
 CC = gcc
 LD = gcc
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
-CFLAGS  = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -Wall
-CFLAGS2 = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -w
+CFLAGS1 = -march=i586 -c -g -DDEBUG -DNONET -DNEWKBD -DBODGEDJP
+CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DNEWKBD -DBODGEDJP
 
-LDFLAGS +=
+LDFLAGS =
 
-#LIBS = -lm C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libSDL.a -lws2_32 -mwindows C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libdxguid.a C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libwinmm.a
-LIBS  = -lm C:/Apps/Programming/TDM-GCC-32/lib/SDL12/libSDL.dll.a
+LIBS = -lm
 
 SRCDIR = ../src
 
-OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
+OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/textonly.o \
 	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
 	$(SRCDIR)/miscprocs.o $(SRCDIR)/mainstate.o $(SRCDIR)/lvalue.o \
 	$(SRCDIR)/keyboard.o $(SRCDIR)/iostate.o $(SRCDIR)/heap.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
+	$(SRCDIR)/assign.o $(SRCDIR)/mos_sys.o
 
-SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
+SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/textonly.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
 	$(SRCDIR)/miscprocs.c $(SRCDIR)/mainstate.c $(SRCDIR)/lvalue.c \
 	$(SRCDIR)/keyboard.c $(SRCDIR)/iostate.c $(SRCDIR)/heap.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
+	$(SRCDIR)/assign.c $(SRCDIR)/mos_sys.c
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
@@ -43,7 +40,7 @@ VARIABLES_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/miscprocs.h $(SRCDIR)/screen.h $(SRCDIR)/lvalue.h
 
 $(SRCDIR)/variables.o: $(VARIABLES_C) $(SRCDIR)/variables.c
-	$(CC) $(CFLAGS) $(SRCDIR)/variables.c -c -o $(SRCDIR)/variables.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/variables.c -o $(SRCDIR)/variables.o
 
 # Build TOKENS.C
 TOKENS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -51,22 +48,22 @@ TOKENS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h
 
 $(SRCDIR)/tokens.o: $(TOKENS_C) $(SRCDIR)/tokens.c
-	$(CC) $(CFLAGS) $(SRCDIR)/tokens.c -c -o $(SRCDIR)/tokens.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/tokens.c -o $(SRCDIR)/tokens.o
 
-# Build GRAPHSDL.C
-GSDL_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
+# Build TEXTONLY.C
+TEXTONLY_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/scrcommon.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h $(SRCDIR)/graphsdl-textfonts.h
+	$(SRCDIR)/keyboard.h
 
-$(SRCDIR)/graphsdl.o: $(GSDL_C) $(SRCDIR)/graphsdl.c
-	$(CC) $(CFLAGS) $(SRCDIR)/graphsdl.c -c -o $(SRCDIR)/graphsdl.o
+$(SRCDIR)/textonly.o: $(TEXTONLY_C) $(SRCDIR)/textonly.c
+	$(CC) $(CFLAGS1) $(SRCDIR)/textonly.c -o $(SRCDIR)/textonly.o
 
 # Build STRINGS.C
 STRINGS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/strings.h $(SRCDIR)/heap.h $(SRCDIR)/errors.h
 
 $(SRCDIR)/strings.o: $(STRINGS_C) $(SRCDIR)/strings.c
-	$(CC) $(CFLAGS) $(SRCDIR)/strings.c -c -o $(SRCDIR)/strings.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/strings.c -o $(SRCDIR)/strings.o
 
 # Build STATEMENT.C
 STATEMENT_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -78,7 +75,7 @@ STATEMENT_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/statement.h
 
 $(SRCDIR)/statement.o: $(STATEMENT_C) $(SRCDIR)/statement.c
-	$(CC) $(CFLAGS) $(SRCDIR)/statement.c -c -o $(SRCDIR)/statement.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/statement.c -o $(SRCDIR)/statement.o
 
 # Build STACK.C
 STACK_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -86,7 +83,7 @@ STACK_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/errors.h
 
 $(SRCDIR)/stack.o: $(STACK_C) $(SRCDIR)/stack.c
-	$(CC) $(CFLAGS) $(SRCDIR)/stack.c -c -o $(SRCDIR)/stack.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/stack.c -o $(SRCDIR)/stack.o
 
 # Build MISCPROCS.C
 MISCPROCS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -94,7 +91,7 @@ MISCPROCS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h
 
 $(SRCDIR)/miscprocs.o: $(MISCPROCS_C) $(SRCDIR)/miscprocs.c
-	$(CC) $(CFLAGS) $(SRCDIR)/miscprocs.c -c -o $(SRCDIR)/miscprocs.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/miscprocs.c -o $(SRCDIR)/miscprocs.o
 
 # Build MAINSTATE.C
 MAINSTATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -106,7 +103,7 @@ MAINSTATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/mainstate.h
 
 $(SRCDIR)/mainstate.o: $(MAINSTATE_C) $(SRCDIR)/mainstate.c
-	$(CC) $(CFLAGS) $(SRCDIR)/mainstate.c -c -o $(SRCDIR)/mainstate.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/mainstate.c -o $(SRCDIR)/mainstate.o
 
 # Build LVALUE.C
 LVALUE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -115,15 +112,14 @@ LVALUE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/lvalue.h
 
 $(SRCDIR)/lvalue.o: $(LVALUE_C) $(SRCDIR)/lvalue.c
-	$(CC) $(CFLAGS) $(SRCDIR)/lvalue.c -c -o $(SRCDIR)/lvalue.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/lvalue.c -o $(SRCDIR)/lvalue.o
 
 # Build KEYBOARD.C
 KEYBOARD_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
-	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/inkey.h
+	$(SRCDIR)/errors.h $(SRCDIR)/keyboard.h $(SRCDIR)/screen.h
 
 $(SRCDIR)/keyboard.o: $(KEYBOARD_C) $(SRCDIR)/keyboard.c
-	$(CC) $(CFLAGS) $(SRCDIR)/keyboard.c -c -o $(SRCDIR)/keyboard.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/keyboard.c -o $(SRCDIR)/keyboard.o
 
 # Build IOSTATE.C
 IOSTATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -134,7 +130,7 @@ IOSTATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/iostate.h
 
 $(SRCDIR)/iostate.o: $(IOSTATE_C) $(SRCDIR)/iostate.c
-	$(CC) $(CFLAGS) $(SRCDIR)/iostate.c -c -o $(SRCDIR)/iostate.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/iostate.c -o $(SRCDIR)/iostate.o
 
 # Build HEAP.C
 HEAP_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -142,7 +138,7 @@ HEAP_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/miscprocs.h
 
 $(SRCDIR)/heap.o: $(HEAP_C) $(SRCDIR)/heap.c
-	$(CC) $(CFLAGS) $(SRCDIR)/heap.c -c -o $(SRCDIR)/heap.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/heap.c -o $(SRCDIR)/heap.o
 
 # Build FUNCTIONS.C
 FUNCTIONS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -153,21 +149,14 @@ FUNCTIONS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/functions.h
 
 $(SRCDIR)/functions.o: $(FUNCTIONS_C) $(SRCDIR)/functions.c
-	$(CC) $(CFLAGS) $(SRCDIR)/functions.c -c -o $(SRCDIR)/functions.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/functions.c -o $(SRCDIR)/functions.o
 
 # Build FILEIO.C
 FILEIO_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
-	$(SRCDIR)/errors.h $(SRCDIR)/fileio.h $(SRCDIR)/strings.h \
-	$(SRCDIR)/net.h
+	$(SRCDIR)/errors.h $(SRCDIR)/fileio.h $(SRCDIR)/strings.h
 
 $(SRCDIR)/fileio.o: $(FILEIO_C) $(SRCDIR)/fileio.c
-	$(CC) $(CFLAGS) $(SRCDIR)/fileio.c -c -o $(SRCDIR)/fileio.o
-
-# Build NET.C
-NET_C = $(SRCDIR)/net.h $(SRCDIR)/errors.h
-
-$(SRCDIR)/net.o: $(NET_C) $(SRCDIR)/net.c
-	$(CC) $(CFLAGS) $(SRCDIR)/net.c -c -o $(SRCDIR)/net.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/fileio.c -o $(SRCDIR)/fileio.o
 
 # Build EVALUATE.C
 EVALUATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -177,24 +166,23 @@ EVALUATE_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/functions.h
 
 $(SRCDIR)/evaluate.o: $(EVALUATE_C) $(SRCDIR)/evaluate.c
-	$(CC) $(CFLAGS) $(SRCDIR)/evaluate.c -c -o $(SRCDIR)/evaluate.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/evaluate.c -o $(SRCDIR)/evaluate.o
 
 # Build ERRORS.C
 ERRORS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/stack.h $(SRCDIR)/fileio.h \
-	$(SRCDIR)/tokens.h $(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h \
-	$(SRCDIR)/keyboard.h $(SRCDIR)/graphsdl.h
+	$(SRCDIR)/tokens.h $(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h
 
 $(SRCDIR)/errors.o: $(ERRORS_C) $(SRCDIR)/errors.c
-	$(CC) $(CFLAGS) $(SRCDIR)/errors.c -c -o $(SRCDIR)/errors.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/errors.c -o $(SRCDIR)/errors.o
 
 # Build MOS.C
 MOS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
-	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
+	$(SRCDIR)/basicdefs.h $(SRCDIR)/target.h $(SRCDIR)/mos.h \
+	$(SRCDIR)/screen.h
 
 $(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
-	$(CC) $(CFLAGS) $(SRCDIR)/mos.c -c -o $(SRCDIR)/mos.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/mos.c -o $(SRCDIR)/mos.o
 
 # Build MOS_SYS.C
 MOS_SYS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
@@ -202,7 +190,7 @@ MOS_SYS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
 
 $(SRCDIR)/mos_sys.o: $(MOS_SYS_C) $(SRCDIR)/mos_sys.c
-	$(CC) $(CFLAGS) $(SRCDIR)/mos_sys.c -c -o $(SRCDIR)/mos_sys.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/mos_sys.c -c -o $(SRCDIR)/mos_sys.o
 
 # Build EDITOR.C
 EDITOR_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -211,14 +199,14 @@ EDITOR_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/stack.h $(SRCDIR)/fileio.h
 
 $(SRCDIR)/editor.o: $(EDITOR_C) $(SRCDIR)/editor.c
-	$(CC) $(CFLAGS) $(SRCDIR)/editor.c -c -o $(SRCDIR)/editor.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/editor.c -o $(SRCDIR)/editor.o
 
 # Build CONVERT.C
 CONVERT_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/convert.h $(SRCDIR)/errors.h $(SRCDIR)/miscprocs.h
 
 $(SRCDIR)/convert.o: $(CONVERT_C) $(SRCDIR)/convert.c
-	$(CC) $(CFLAGS) $(SRCDIR)/convert.c -c -o $(SRCDIR)/convert.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/convert.c -o $(SRCDIR)/convert.o
 
 # Build COMMANDS.C
 COMMANDS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -228,17 +216,17 @@ COMMANDS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/evaluate.h $(SRCDIR)/screen.h $(SRCDIR)/keyboard.h
 
 $(SRCDIR)/commands.o: $(COMMANDS_C) $(SRCDIR)/commands.c
-	$(CC) $(CFLAGS) $(SRCDIR)/commands.c -c -o $(SRCDIR)/commands.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/commands.c -o $(SRCDIR)/commands.o
 
 # Build BRANDY.C
 BRANDY_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/tokens.h $(SRCDIR)/errors.h $(SRCDIR)/heap.h \
 	$(SRCDIR)/editor.h $(SRCDIR)/commands.h $(SRCDIR)/statement.h \
 	$(SRCDIR)/fileio.h $(SRCDIR)/mos.h $(SRCDIR)/keyboard.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h $(SRCDIR)/net.h
+	$(SRCDIR)/screen.h $(SRCDIR)/miscprocs.h
 
 $(SRCDIR)/brandy.o: $(BRANDY_C) $(SRCDIR)/brandy.c
-	$(CC) $(CFLAGS) $(SRCDIR)/brandy.c -c -o $(SRCDIR)/brandy.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/brandy.c -o $(SRCDIR)/brandy.o
 
 # Build ASSIGN.C
 ASSIGN_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
@@ -249,19 +237,19 @@ ASSIGN_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/assign.h $(SRCDIR)/fileio.h $(SRCDIR)/mos.h
 
 $(SRCDIR)/assign.o: $(ASSIGN_C) $(SRCDIR)/assign.c
-	$(CC) $(CFLAGS) $(SRCDIR)/assign.c -c -o $(SRCDIR)/assign.o
+	$(CC) $(CFLAGS1) $(SRCDIR)/assign.c -o $(SRCDIR)/assign.o
 
 recompile:
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o brandy
+	$(CC) $(CFLAGS1) $(SRC) $(LIBS) -o brandy
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy.exe
+	strip brandy
 
 check:
-	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy
+	$(CC) $(CFLAGS1) -Wall $(SRC) $(LIBS) -o brandy
 
 clean:
-	rm -f $(SRCDIR)/*.o brandy.exe
+	rm $(SRCDIR)/*.o brandy
 
 all:	brandy

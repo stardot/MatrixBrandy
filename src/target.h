@@ -30,8 +30,9 @@
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "17"
-#define BRANDY_DATE  "05 Dec 2018"
+#define BRANDY_DATE  "28 Dec 2018"
+#define BRANDY_PATCHLEVEL "18"
+#define BRANDY_PATCHDATE  "JGH181228"
 
 #ifndef __target_h
 #define __target_h
@@ -140,7 +141,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 /* Same as Linux, but can be treated exactly like it, see the Linux specific
  * XCASE in src/keyboard.c */
-#if (defined __FreeBSD_kernel__)
+#ifdef __FreeBSD_kernel__
 #define TARGET_GNUKFREEBSD
 #define TARGET_UNIX
 #define BRANDY_OS "GNU/kFreeBSD"
@@ -152,7 +153,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DIR_SEP  '/'
 #endif
 
-#if (defined __GNU__)
+#ifdef __GNU__
 #define TARGET_GNU
 #define BRANDY_OS "GNU/Hurd"
 #define OSVERSION 0xF3

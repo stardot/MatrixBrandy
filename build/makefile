@@ -1,17 +1,14 @@
-# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
-# toolchain
+# Makefile for Brandy under NetBSD and Linux
 
 CC = gcc
 LD = gcc
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
-CFLAGS  = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -Wall
-CFLAGS2 = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -w
+#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall
+CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall
 
 LDFLAGS +=
 
-#LIBS = -lm C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libSDL.a -lws2_32 -mwindows C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libdxguid.a C:/Apps/Programming/TDM-GCC-32/SDL12/lib/libwinmm.a
-LIBS  = -lm C:/Apps/Programming/TDM-GCC-32/lib/SDL12/libSDL.dll.a
+LIBS = -lX11 -lm -lSDL
 
 SRCDIR = ../src
 
@@ -253,15 +250,19 @@ $(SRCDIR)/assign.o: $(ASSIGN_C) $(SRCDIR)/assign.c
 
 recompile:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o brandy
+	cp -f brandy ../binaries/brandy
+	rm -f brandy
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy.exe
+	strip brandy
+	cp -f brandy ../binaries/brandy
+	rm -f brandy
 
 check:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy
 
 clean:
-	rm -f $(SRCDIR)/*.o brandy.exe
+	rm -f $(SRCDIR)/*.o brandy
 
 all:	brandy
