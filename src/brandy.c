@@ -82,9 +82,7 @@ int main(int argc, char *argv[]) {
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
   init1();
-#ifndef NONET
   brandynet_init();
-#endif
 #ifdef BRANDYAPP
    basicvars.runflags.quitatend = TRUE;
    basicvars.runflags.loadngo = TRUE;
@@ -210,11 +208,7 @@ static void init2(void) {
     cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
     exit(EXIT_FAILURE);
   }
-#ifdef NEWKBD
-  if (!mos_init() || !kbd_init() || !init_screen()) {
-#else
   if (!mos_init() || !init_keyboard() || !init_screen()) {
-#endif
     cmderror(CMD_INITFAIL);	/* Initialisation failed */
     exit_interpreter(EXIT_FAILURE);	/* End run */
   }
@@ -420,11 +414,7 @@ static void run_interpreter(void) {
 void exit_interpreter(int retcode) {
   fileio_shutdown();
   end_screen();
-#ifdef NEWKBD
-  kbd_quit();
-#else
   end_keyboard();
-#endif
   mos_final();
   restore_handlers();
   release_heap();

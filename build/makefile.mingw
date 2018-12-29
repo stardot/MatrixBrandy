@@ -3,8 +3,8 @@
 CC = gcc
 LD = gcc
 
-CFLAGS =  -march=i586 -c -g -DDEBUG -DNONET -DBODGEMGW -w
-CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DBODGEMGW -w
+CFLAGS =  -march=i586 -c -g -DDEBUG -DNONET -DBODGEMGW
+CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DBODGEMGW
 
 LDFLAGS =
 

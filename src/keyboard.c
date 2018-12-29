@@ -48,9 +48,7 @@
 ** kbd_inkey(): -256: all platforms
 **              +ve:  RISCOS:ok, WinSDL:ok, MGW:ok, DJP:ok
 **              -ve:  RISCOS:ok, WinSDL:ok, MGW:ok, DJP:to do
-**              Credit: con_keyscan() from JGH 'console' library
-** 27-Dec-2018 JGH: DOS target can detect Shift/Ctrl/Alt as that's the only DOS API.
-** 28-Dec-2018 JGH: kbd_init(), kbd_quit() all consolidated.
+** Credit: con_keyscan() from JGH 'console' library
 **
 */
 
@@ -65,13 +63,7 @@
 #include "screen.h"
 #include "mos.h"
 #include "inkey.h"
-#ifdef TARGET_DJGPP
-#include <pc.h>
-#include <keys.h>
-#include <bios.h>
-#include <errno.h>
-#include <termios.h>
-#endif
+
 
 /* ASCII codes of various useful characters */
 #define CTRL_A          0x01
@@ -161,41 +153,28 @@
 
 
 #ifndef TARGET_RISCOS
-/* holdcount and holdstack are used when decoding ANSI key sequences. If a
+/*
+** holdcount and holdstack are used when decoding ANSI key sequences. If a
 ** sequence is read that does not correspond to an ANSI sequence the
 ** characters are stored here so that they can be returned by future calls
-** to 'kbd_get'. Note that this is a *stack* not a queue.
+** to 'emulate_get'. Note that this is a *stack* not a queue.
 */
-static int32 holdcount;		/* Number of characters held on stack			*/
-static int32 holdstack[8];	/* Hold stack - Characters waiting to be passed back via 'get' */
+static int32 holdcount;         /* Number of characters held on stack */
+static int32 holdstack[8];      /* Hold stack - Characters waiting to be passed back via 'get' */
 
-#define INKEYMAX 0x7FFF		/* Maximum wait time for INKEY				*/
-
-/* fn_string and fn_string_count are used when expanding a function key string.
-** Effectively input switches to the string after a function key with a string
-** associated with it is pressed.
+/*
+** fn_string and fn_string_count are used when expanding a function
+** key string. Effectively input switches to the string after a
+** function key with a string associated with it is pressed.
 */
-static char *fn_string;		/* Non-NULL if taking chars from a function key string	*/
-static int fn_string_count;	/* Count of characters left in function key string	*/
+static char *fn_string;         /* Non-NULL if taking chars from a function key string */
+static int fn_string_count;     /* Count of characters left in function key string */ 
 
 /* function key strings */
-#define FN_KEY_COUNT 16		/* Number of function keys supported (0 to FN_KEY_COUNT-1) */
+#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
 static struct {int length; char *text;} fn_key[FN_KEY_COUNT];
 
-/* Line editor history */
-#define HISTSIZE 1024		/* Size of command history buffer			*/
-#define MAXHIST 20		/* Maximum number of entries in history list		*/
-
-static int32
-  place,			/* Offset where next character will be added to buffer	*/
-  highplace,			/* Highest value of 'place' (= number of characters in buffer) */
-  histindex,			/* Index of next entry to fill in in history list	*/
-  highbuffer,			/* Index of first free character in 'histbuffer'	*/
-  recalline;			/* Index of last line recalled from history display	*/
-
-static boolean enable_insert;     /* TRUE if keyboard input code is in insert mode	*/
-static char histbuffer[HISTSIZE]; /* Command history buffer				*/
-static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
+#define INKEYMAX 0x7FFF		/* Maximum wait time for INKEY */
 #endif
 
 
@@ -226,143 +205,14 @@ static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
 
 /* Veneers, fill in later */
+boolean  kbd_init() { return init_keyboard(); }
+void  kbd_quit() { end_keyboard(); }
 int   kbd_fkeyset(int key, char *string, int length) {
 		return set_fn_string(key, string, length); }
 char *kbd_fkeyget(int key, int *len) {
 		return get_fn_string(key, len); }
 readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
 		return emulate_readline(&buffer[0], length, echochar); }
-
-
-/* kbd_init called to initialise the keyboard code
-** --------------------------------------------------------------
-** Clears the function key strings, checks if stdin is connected
-** to the keyboard or not. If it is then the keyboard functions
-** are used to read keypresses. If not, then standard C functions
-** are used instead, the assumption being that stdin is taking
-** input from a file, similar to *EXEC.
-** -------------------------------------------------------------- */
-boolean kbd_init() {
-#ifdef TARGET_RISCOS
-  // RISC OS, nothing to do
-  // ----------------------
-  return TRUE;
-#else /* !RISCOS */
-
-  // Non-RISC OS, perform the action manually
-  // ----------------------------------------
-  int n;
-
-  /* We do function key processing outselves */
-  for (n = 0; n < FN_KEY_COUNT; n++) fn_key[n].text = NIL;
-  fn_string_count = 0;
-  fn_string = NIL;
-
-  /* We provide a line editor */
-  holdcount = 0;
-  histindex = 0;
-  highbuffer = 0;
-  enable_insert = TRUE;
-  set_cursor(enable_insert);
-
-#ifdef TARGET_DOSWIN
-
-#ifdef TARGET_DJGPP
-  // DOS target
-  // ----------
-  struct termios tty;
-
-  if (tcgetattr(fileno(stdin), &tty) == 0) return TRUE;		/* Keyboard being used */
-/* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
-** a keyboard and so the program does simple reads from stdin rather than use the custom
-** keyboard code. If the error is not ENOTTY then something has gone wrong so we abort
-** the program
-*/
-  if (errno != ENOTTY) return FALSE;    /* tcgetattr() returned an error we cannot handle */
-  basicvars.runflags.inredir = TRUE;    /* tcgetattr() returned ENOTTY - use C functions for input */
-  return TRUE;
-#else /* !DOS */
-
-  // Windows target, nothing to do
-  // -----------------------------
-  return TRUE;
-
-#endif
-#endif /* DOSWIN */
-
-#ifdef TARGET_UNIX
-  // Unix target
-  // -----------
-  struct termios tty;
-
-/* Set up keyboard for unbuffered I/O */
-  if (tcgetattr(fileno(stdin), &tty) < 0) {	/* Could not obtain keyboard parameters	*/
-    nokeyboard=1;
-/* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
-** a keyboard and so the program does simple reads from stdin rather than use the custom
-** keyboard code.
-*/
-#ifndef USE_SDL				/* if SDL the window can still poll for keyboard input	*/
-    if (errno != ENOTTY) return FALSE;  /* tcgetattr() returned an error we cannot handle	*/
-    basicvars.runflags.inredir = TRUE;	/* tcgetattr() returned ENOTTY - use C functions for input */
-#endif
-    return TRUE;
-  }
-
-/* We are connected to a keyboard, so set it up for unbuffered input */
-  origtty = tty;			/* Preserve original settings for later	*/
-#ifdef TARGET_LINUX
-  tty.c_lflag &= ~(XCASE|ECHONL|NOFLSH); /* Case off, EchoNL off, Flush off	*/
-#else
-  tty.c_lflag &= ~(ECHONL|NOFLSH);	 /* EchoNL off, Flush off		*/
-#endif
-  tty.c_lflag &= ~(ICANON|ECHO);	/* Line editor off, Echo off		*/
-  tty.c_iflag &= ~(ICRNL|INLCR);	/* Raw LF and CR			*/
-  tty.c_cflag |= CREAD;			/* Enable reading			*/
-  tty.c_cc[VTIME] = 1;			/* 1cs timeout				*/
-  tty.c_cc[VMIN] = 1;			/* One character at a time		*/
-  if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
-					/* Could not set up keyboard in the way desired	*/
-  return TRUE;
-}
-#endif /* UNIX */
-
-#ifdef TARGET_AMIGA
-  // AMIGA target - just turn Console on
-  // -----------------------------------
-  rawcon(1);
-  return TRUE;
-#endif /* AMIGA */
-#endif
-}
-
-
-/* kbd_quit called to terminate keyboard control on termination */
-/* ------------------------------------------------------------ */
-void kbd_quit() {
-#ifdef TARGET_RISCOS
-  // RISC OS, nothing to do
-  // ----------------------
-#else /* !RISCOS */
-
-#ifdef TARGET_DOSWIN
-  // DOS/Windows target, nothing to do
-  // ---------------------------------
-#endif /* DOSWIN */
-
-#ifdef TARGET_UNIX
-  // Unix target
-  // -----------
-  (void) tcsetattr(keyboard, TCSADRAIN, &origtty);
-#endif /* UNIX */
-
-#ifdef TARGET_AMIGA
-  // AMIGA target
-  // ------------
-  rawcon(0);
-#endif /* AMIGA */
-#endif
-}
 
 
 /* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
@@ -469,7 +319,7 @@ int32 kbd_inkey(int32 arg) {
 #ifdef VK_SHIFT
     /* adapted from con_keyscan() from JGH 'console' library */
     if (arg <0x080) {				/* Test for single keypress		*/
-#ifndef TARGET_DJGPP				/* DOS doesn't support GetKbdLayout	*/
+#ifndef TARGET_DJGPP				/* DJGPP doesn't support GetKbdLayout	*/
       if (((int)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {	/* BBC layout keyboard	*/
 	/* Note: as a console app, this is the ID from when the program started		*/
         switch (arg) {
@@ -504,14 +354,6 @@ int32 kbd_inkey(int32 arg) {
 #endif /* VK_SHIFT */
 
 #endif /* !USE_SDL */
-
-#ifdef TARGET_AMIGA
-/* I think only AMIGA left by now. A KeyIO call with command KBD_READMATRIX reads the
- * keyboard matrix to a 16-byte buffer, one bit per keystate, similar to the SDL
- * GetKeyState call.
- */
-    return 0;
-#endif
     return emulate_inkey(arg ^ -1);		/* Drop through to legacy call		*/
   }
 
@@ -534,45 +376,23 @@ int32 kbd_modkeys(int32 arg) {
 
 
 #ifdef TARGET_DJGPP
-/* GetAsyncKeyState is a Windows API call, DOS only has API call to read Shift/Ctrl/Alt.
- * So, we fake an API just for those keys, useful for programs that do
- *  ON ERROR IF INKEY-1 THEN REPORT:END ELSE something else
- * If running in DOSBOX on Windows would be able to call Windows API, but simpler to
- * just run a Windows target. Somebody with more skill than me could write the code
- * to call Windows from DOS to implement this.
- */
+/* GetAsyncKeyState for DJGPP target */
 
-//static int32 vecGetAsyncKeyState=0;
-int GetAsyncKeyState(int key) {
+static int32 vecGetAsyncKeyState=0;
+int GetAsyncKeyState(int x) {
   int y=0;
-
-  y=_bios_keybrd(_NKEYBRD_SHIFTSTATUS);
-  switch (key) {
-    case VK_SHIFT:    y=(y & 0x003); break;	/* SHIFT	*/
-    case VK_CONTROL:  y=(y & 0x004); break;	/* CTRL		*/
-    case VK_MENU:     y=(y & 0x008); break;	/* ALT		*/
-    case VK_LSHIFT:   y=(y & 0x002); break;	/* Left SHIFT	*/
-    case VK_LCONTROL: y=(y & 0x100); break;	/* Left CTRL	*/
-    case VK_LMENU:    y=(y & 0x200); break;	/* Left ALT	*/
-    case VK_RSHIFT:   y=(y & 0x001); break;	/* Right SHIFT	*/
-    case VK_RCONTROL: y=(y & 0x400); break;	/* Right CTRL	*/
-    case VK_RMENU:    y=(y & 0x800); break;	/* Right ALT	*/
-    default: y=0;
-  }
-  return (y ? -1 : 0);
-}
-//  __asm__ __volatile__(
-//  "cld\n"
-//  "movw %w1,  %%ax\n"
-//  "andw $255, %%ax\n"
+  __asm__ __volatile__(
+    "cld\n"
+    "movw %w1,  %%ax\n"
+    "andw $255, %%ax\n"
 //  "push %%ax\n"
 //  "call [vecGetAsyncKeyState]\n"
-//  "movw %%ax, %w0\n"
-//  : "=r" (y)
-//  : "r" (x)
-//  );
-//  return y;
-//}
+    "movw %%ax, %w0\n"
+    : "=r" (y)
+    : "r" (x)
+  );
+  return y;
+}
 #endif
 
 
@@ -754,22 +574,22 @@ void end_keyboard(void) {
 
 #define WAITIME 10              /* Time to wait in centiseconds when dealing with ANSI key sequences */
 
-// #define HISTSIZE 1024           /* Size of command history buffer */
-// #define MAXHIST 20              /* Maximum number of entries in history list */
-//
-// static int32
-//   place,                        /* Offset where next character will be added to buffer */
-//   highplace,                    /* Highest value of 'place' (= number of characters in buffer) */
-//   histindex,                    /* Index of next entry to fill in in history list */
-//   highbuffer,                   /* Index of first free character in 'histbuffer' */
-//   recalline;                    /* Index of last line recalled from history display */
-//
-// static boolean enable_insert;   /* TRUE if keyboard input code is in insert mode */
-//
-// static char histbuffer[HISTSIZE];       /* Command history buffer */
-// static int32 histlength[MAXHIST];       /* Table of sizes of entries in history buffer */
+#define HISTSIZE 1024           /* Size of command history buffer */
+#define MAXHIST 20              /* Maximum number of entries in history list */
 
 //#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
+
+static int32
+  place,                        /* Offset where next character will be added to buffer */
+  highplace,                    /* Highest value of 'place' (= number of characters in buffer) */
+  histindex,                    /* Index of next entry to fill in in history list */
+  highbuffer,                   /* Index of first free character in 'histbuffer' */
+  recalline;                    /* Index of last line recalled from history display */
+
+static boolean enable_insert;   /* TRUE if keyboard input code is in insert mode */
+
+static char histbuffer[HISTSIZE];       /* Command history buffer */
+static int32 histlength[MAXHIST];       /* Table of sizes of entries in history buffer */
 
 ///* function key strings */
 //static struct {int length; char *text;} fn_key[FN_KEY_COUNT];

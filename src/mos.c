@@ -51,7 +51,6 @@
 ** 07-Dec-2018 JGH: *SHOW displays key string.
 **                  Have removed some BODGE conditions.
 ** 09-Dec-2018 JGH: *HELP BASIC lists attributions, as per license.
-**                  Layout and content needs a bit of tidying up.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -1342,9 +1341,6 @@ static void cmd_fx(char *command) {
 /*
  * *HELP - display help on topic
  */
-#ifdef BRANDY_PATCHDATE
-char mos_patchdate[]=__DATE__;
-#endif
 static void cmd_help(char *command)
 {
 	int cmd;
@@ -1356,14 +1352,6 @@ static void cmd_help(char *command)
 #endif
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
-// Need to think about making this neat but informative
-// Matrix Brandy Basic V version 1.21.18 (DJGPP/NEWKBD) 05 Dec 2018
-//   Git commit 1234567890 on branch master (25 Dec 2018)
-//   Forked from Brandy Basic v1.20.1 (24 Sep 2014)
-//   Merged Banana Brandy Basic v0.02 (05 Apr 2014)
-//   Matrix Brandy Basic patch  v0.17 (28 Dec 2018)
-//   Patch JGH181228 compiled at 07:09:59 on 28 Dec 2018
-
 #ifdef BRANDY_GITCOMMIT
 		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
@@ -1371,9 +1359,7 @@ static void cmd_help(char *command)
 		emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
 		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
-		emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
-		emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
-			mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+		emulate_printf("  Matrix Brandy Basic patch  v0.%s (%s)\r\n", BRANDY_PATCHLEVEL, BRANDY_PATCHDATE);
 #endif
 		// NB: Adjust spaces in above to align version and date strings correctly
 
@@ -1506,7 +1492,7 @@ static int check_command(char *text) {
   if (strcmp(command, "ver")    == 0) return CMD_VER;
   if (strcmp(command, "screensave") == 0) return CMD_SCREENSAVE;
   if (strcmp(command, "screenload") == 0) return CMD_SCREENLOAD;
-  if (strcmp(command, "wintitle")   == 0) return CMD_WINTITLE;
+  if (strcmp(command, "wintitle") == 0)   return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
   if (strcmp(command, "newmode") == 0)    return CMD_NEWMODE;
   if (strcmp(command, "refresh") == 0)    return CMD_REFRESH;
@@ -1718,6 +1704,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
 ** 'FALSE' if it failed (in which case it is not safe for the
 ** interpreter to run)
 */
+
 boolean mos_init(void) {
   (void) clock();	/* This might be needed to start the clock */
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
