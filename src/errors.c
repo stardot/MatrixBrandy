@@ -127,7 +127,11 @@ static void handle_signal(int signo) {
  | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
   case SIGCONT:
     (void) signal(SIGCONT, handle_signal);
+#ifdef NEWKBD
+    kbd_init();
+#else
     init_keyboard();
+#endif
     return;
 #endif
   default:
@@ -180,8 +184,10 @@ void init_errors(void) {
 #ifndef TARGET_MINGW
     (void) signal(SIGUSR1, handle_signal);
     (void) signal(SIGUSR2, handle_signal);
+#ifndef BODGEDJP
     (void) signal(SIGTTIN, SIG_IGN);
     (void) signal(SIGTTOU, SIG_IGN);
+#endif
     (void) signal(SIGPIPE, handle_signal);
 #endif
     (void) signal(SIGFPE, handle_signal);
