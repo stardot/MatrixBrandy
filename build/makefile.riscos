@@ -1,0 +1,238 @@
+# Makefile for brandy under RISC OS (using Norcroft tools)
+
+CC = cc
+LD = link
+
+CFLAGS =  -c -Wc -IC: -g  -throwback -DDEBUG
+CFLAGS2 = -c -Wc -IC: -throwback
+
+LDFLAGS = -debug
+
+LIBS = C:o.stubs
+
+OBJ = variables.o tokens.o riscos.o strings.o statement.o \
+	stack.o miscprocs.o mainstate.o lvalue.o keyboard.o iostate.o \
+	heap.o functions.o fileio.o evaluate.o errors.o emulate.o editor.o \
+	convert.o commands.o brandy.o assign.o
+
+SRC = variables.c tokens.c riscos.c strings.c statement.c \
+	stack.c miscprocs.c mainstate.c lvalue.c keyboard.c iostate.c \
+	heap.c functions.c fileio.c evaluate.c errors.c emulate.c editor.c \
+	convert.c commands.c brandy.c assign.c
+
+brandy:	$(OBJ)
+	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
+
+# Build VARIABLES.C
+VARIABLES_C = common.h target.h basicdefs.h \
+	variables.h evaluate.h tokens.h \
+	stack.h heap.h errors.h \
+	miscprocs.h screen.h lvalue.h
+
+variables.o: $(VARIABLES_C) variables.c
+	$(CC) $(CFLAGS) variables.c
+
+# Build TOKENS.C
+TOKENS_C = common.h target.h basicdefs.h \
+	tokens.h miscprocs.h convert.h \
+	errors.h
+
+tokens.o: $(TOKENS_C) tokens.c
+	$(CC) $(CFLAGS) tokens.c
+
+# Build RISCOS.C
+RISCOS_C = common.h target.h basicdefs.h \
+	errors.h scrcommon.h screen.h \
+	keyboard.h
+
+riscos.o: $(RISCOS_C) riscos.c
+	$(CC) $(CFLAGS) riscos.c
+
+# Build STRINGS.C
+STRINGS_C = common.h target.h basicdefs.h \
+	strings.h heap.h errors.h
+
+strings.o: $(STRINGS_C) strings.c
+	$(CC) $(CFLAGS) strings.c
+
+# Build STATEMENT.C
+STATEMENT_C = common.h target.h basicdefs.h \
+	tokens.h commands.h stack.h \
+	heap.h errors.h editor.h \
+	miscprocs.h variables.h evaluate.h \
+	screen.h fileio.h strings.h \
+	iostate.h mainstate.h assign.h \
+	statement.h
+
+statement.o: $(STATEMENT_C) statement.c
+	$(CC) $(CFLAGS) statement.c
+
+# Build STACK.C
+STACK_C = common.h target.h basicdefs.h \
+	stack.h miscprocs.h strings.h \
+	tokens.h errors.h
+
+stack.o: $(STACK_C) stack.c
+	$(CC) $(CFLAGS) stack.c
+
+# Build MISCPROCS.C
+MISCPROCS_C = common.h target.h basicdefs.h \
+	tokens.h errors.h keyboard.h \
+	screen.h miscprocs.h
+
+miscprocs.o: $(MISCPROCS_C) miscprocs.c
+	$(CC) $(CFLAGS) miscprocs.c
+
+# Build MAINSTATE.C
+MAINSTATE_C = common.h target.h basicdefs.h \
+	tokens.h variables.h stack.h \
+	heap.h strings.h errors.h \
+	statement.h evaluate.h convert.h \
+	miscprocs.h editor.h emulate.h \
+	screen.h lvalue.h fileio.h \
+	mainstate.h
+
+mainstate.o: $(MAINSTATE_C) mainstate.c
+	$(CC) $(CFLAGS) mainstate.c
+
+# Build LVALUE.C
+LVALUE_C = common.h target.h basicdefs.h \
+	tokens.h evaluate.h stack.h \
+	errors.h variables.h miscprocs.h \
+	lvalue.h
+
+lvalue.o: $(LVALUE_C) lvalue.c
+	$(CC) $(CFLAGS) lvalue.c
+
+# Build KEYBOARD.C
+KEYBOARD_C = common.h target.h basicdefs.h \
+	errors.h keyboard.h screen.h
+
+keyboard.o: $(KEYBOARD_C) keyboard.c
+	$(CC) $(CFLAGS) keyboard.c
+
+# Build IOSTATE.C
+IOSTATE_C = common.h target.h basicdefs.h \
+	tokens.h stack.h strings.h \
+	errors.h miscprocs.h evaluate.h \
+	convert.h emulate.h fileio.h \
+	screen.h lvalue.h statement.h \
+	iostate.h
+
+iostate.o: $(IOSTATE_C) iostate.c
+	$(CC) $(CFLAGS) iostate.c
+
+# Build HEAP.C
+HEAP_C = common.h target.h basicdefs.h \
+	heap.h target.h errors.h \
+	miscprocs.h
+
+heap.o: $(HEAP_C) heap.c
+	$(CC) $(CFLAGS) heap.c
+
+# Build FUNCTIONS.C
+FUNCTIONS_C = common.h target.h basicdefs.h \
+	tokens.h variables.h strings.h \
+	convert.h stack.h errors.h \
+	evaluate.h keyboard.h screen.h \
+	emulate.h miscprocs.h fileio.h \
+	functions.h
+
+functions.o: $(FUNCTIONS_C) functions.c
+	$(CC) $(CFLAGS) functions.c
+
+# Build FILEIO.C
+FILEIO_C = common.h target.h basicdefs.h \
+	errors.h fileio.h strings.h
+
+fileio.o: $(FILEIO_C) fileio.c
+	$(CC) $(CFLAGS) fileio.c
+
+# Build EVALUATE.C
+EVALUATE_C = common.h target.h basicdefs.h \
+	tokens.h variables.h lvalue.h \
+	strings.h stack.h errors.h \
+	evaluate.h statement.h miscprocs.h \
+	functions.h
+
+evaluate.o: $(EVALUATE_C) evaluate.c
+	$(CC) $(CFLAGS) evaluate.c
+
+# Build ERRORS.C
+ERRORS_C = common.h target.h basicdefs.h \
+	errors.h stack.h fileio.h keyboard.h \
+	tokens.h screen.h miscprocs.h
+
+errors.o: $(ERRORS_C) errors.c
+	$(CC) $(CFLAGS) errors.c
+
+# Build EMULATE.C
+EMULATE_C = common.h target.h errors.h \
+	basicdefs.h target.h emulate.h \
+	screen.h
+
+emulate.o: $(EMULATE_C) emulate.c
+	$(CC) $(CFLAGS) emulate.c
+
+# Build EDITOR.C
+EDITOR_C = common.h target.h basicdefs.h \
+	errors.h variables.h heap.h \
+	tokens.h strings.h miscprocs.h \
+	stack.h fileio.h
+
+editor.o: $(EDITOR_C) editor.c
+	$(CC) $(CFLAGS) editor.c
+
+# Build CONVERT.C
+CONVERT_C = common.h target.h basicdefs.h \
+	convert.h errors.h miscprocs.h
+
+convert.o: $(CONVERT_C) convert.c
+	$(CC) $(CFLAGS) convert.c
+
+# Build COMMANDS.C
+COMMANDS_C = common.h target.h basicdefs.h \
+	miscprocs.h tokens.h statement.h \
+	variables.h editor.h errors.h \
+	heap.h stack.h strings.h \
+	evaluate.h screen.h keyboard.h
+
+commands.o: $(COMMANDS_C) commands.c
+	$(CC) $(CFLAGS) commands.c
+
+# Build BRANDY.C
+BRANDY_C = common.h target.h basicdefs.h \
+	tokens.h errors.h heap.h \
+	editor.h commands.h statement.h \
+	fileio.h emulate.h keyboard.h \
+	screen.h miscprocs.h
+
+brandy.o: $(BRANDY_C) brandy.c
+	$(CC) $(CFLAGS) brandy.c
+
+# Build ASSIGN.C
+ASSIGN_C = common.h target.h basicdefs.h \
+	target.h tokens.h heap.h \
+	stack.h strings.h variables.h \
+	errors.h miscprocs.h editor.h \
+	evaluate.h lvalue.h statement.h \
+	assign.h fileio.h emulate.h
+
+assign.o: $(ASSIGN_C) assign.c
+	$(CC) $(CFLAGS) assign.c
+
+recompile:
+	$(CC) $(CFLAGS) $(SRC)
+	$(LD) $(LDFLAGS) $(OBJ) $(LIBS) -o brandy
+
+clean:
+	wipe o.* ~CF~R~V
+	wipe brandy ~CF~R~V
+	wipe map ~CF~R~V
+
+nodebug:
+	$(CC) $(CFLAGS2) $(SRC)
+	$(LD) $(OBJ) $(LIBS) -o brandy -sym map
+	squeeze brandy
+
+all: brandy

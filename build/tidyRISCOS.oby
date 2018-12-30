@@ -1,0 +1,5 @@
+| > TidyRISCOS
+| Remove RISC OS source files
+| This file needs to be SetTyped to OBEY
+|
+Wipe <Obey$Dir>.^.riscos ~CFR~V
