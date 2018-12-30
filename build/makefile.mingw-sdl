@@ -1,4 +1,4 @@
-# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
+# Makefile for brandy under Windows x86 with MinGW, not using Cygwin as the 
 # toolchain
 
 CC = gcc

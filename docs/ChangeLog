@@ -6,6 +6,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fix for DEL in text-only builds (JGHarston)
 - Limit *WinTitle to SDL and UNIX builds - it's a no-op otherwise.
 - MODE 7 scrolling text fix
+- MODE 135 now selects MODE 7.
 - New keyboard handler (JGHarston) - add -DNEWKBD to makefile to CFLAGS to use.
 * V1.21.17
 - Fix memory leak in MODE change
