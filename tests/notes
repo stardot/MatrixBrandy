@@ -11,7 +11,7 @@ KeyTest
   Displays negative INKEY values with a graphics display
   RISC OS, WinSDL: works
   MinGW, DJGPP:    does not work due to graphics needed
-  Lunix:           untested
+  Linux:           untested
 
 KBDTest
   Displays keyboard buffer insert codes
