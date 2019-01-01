@@ -3996,3 +3996,15 @@ void sdl_screenload(char *fname) {
     SDL_FreeSurface(placeholder);
   }
 }
+
+void swi_swap16palette() {
+  Uint8 place = 0;
+  int ptr = 0;
+  if (colourdepth != 16) return;
+  for (ptr=0; ptr < 24; ptr++) {
+    place=palette[ptr];
+    palette[ptr]=palette[ptr+24];
+    palette[ptr+24]=place;
+  }
+  set_rgb();
+}

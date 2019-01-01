@@ -25,6 +25,7 @@ typedef struct {
 #define SWI_ColourTrans_SetTextColour			0x40761
 
 #define SWI_Brandy_Version				0x140000
+#define SWI_Brandy_Swap16Palette			0x140001
 
 #define SWI_RaspberryPi_GPIOInfo			0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode			0x140101
@@ -50,6 +51,7 @@ static switable swilist[] = {
 	{SWI_ColourTrans_SetTextColour,			"ColourTrans_SetTextColour"},
 
 	{SWI_Brandy_Version,				"Brandy_Version"},
+	{SWI_Brandy_Swap16Palette,			"Brandy_Swap16Palette"},
 
 	{SWI_RaspberryPi_GPIOInfo,			"RaspberryPi_GPIOInfo"},
 	{SWI_RaspberryPi_GetGPIOPortMode,		"RaspberryPi_GetGPIOPortMode"},
