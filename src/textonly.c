@@ -1184,6 +1184,8 @@ void emulate_vdu(int32 charvalue) {
       break;
     case VDU_RESTCOL:   /* 20 - Restore logical colours to default values */
       reset_colours();
+      textcolor(text_physforecol);
+      textbackground(text_physbackcol);
       break;
     case VDU_SCRMODE:   /* 22 - Change screen mode */
       emulate_mode(vduqueue[0]);
