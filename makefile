@@ -196,7 +196,7 @@ $(SRCDIR)/errors.o: $(ERRORS_C) $(SRCDIR)/errors.c
 # Build MOS.C
 MOS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
+	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_sys.h
 
 $(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
 	$(CC) $(CFLAGS) $(SRCDIR)/mos.c -c -o $(SRCDIR)/mos.o
@@ -204,7 +204,7 @@ $(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
 # Build MOS_SYS.C
 MOS_SYS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
+	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_sys.h
 
 $(SRCDIR)/mos_sys.o: $(MOS_SYS_C) $(SRCDIR)/mos_sys.c
 	$(CC) $(CFLAGS) $(SRCDIR)/mos_sys.c -c -o $(SRCDIR)/mos_sys.o

@@ -1372,4 +1372,4 @@ processor flags as stored in <flags> are also defined in this file, as well as
 a macro to define the 'X' bit set in the 'X' form SWIs.
 
 On platforms other than RISC OS, emulate_sys() and emulate_getswino() only
-support a minimal set of SWIs, as listed in mos.c and mos_swinums.h.
+support a minimal set of SWIs, as listed in mos.c and mos_sys.h.
