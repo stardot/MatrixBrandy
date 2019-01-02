@@ -43,7 +43,7 @@
 #include "mos.h"
 #include "keyboard.h"
 #include "graphsdl.h"
-#include "graphsdl-textfonts.h"
+#include "textfonts.h"
 
 /*
 ** Notes
