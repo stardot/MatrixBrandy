@@ -227,7 +227,9 @@ static void assign_floatptr(pointers address) {
 }
 
 static void assign_dolstrptr(pointers address) {
+#ifdef USE_SDL
   uint32 ptr, msx, msy, addr;
+#endif
   stackitem exprtype;
   basicstring result;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);

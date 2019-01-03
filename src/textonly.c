@@ -763,7 +763,7 @@ static void vdu_textwind(void) {
     bottom = top;
     top = temp;
   }
-  if (left>=textwidth || SCRHEIGHT!=0 && top>=textheight) return;       /* Ignore bad parameters */
+  if (left>=textwidth || (SCRHEIGHT!=0 && top>=textheight)) return;       /* Ignore bad parameters */
   twinleft = left;
   twinright = right;
   twintop = top;
@@ -1032,7 +1032,7 @@ static void vdu_movetext(void) {
   int32 column, row;
   column = vduqueue[0]+twinleft;
   row = vduqueue[1]+twintop;
-  if (column>twinright || SCRHEIGHT!=0 && row>twinbottom) return;       /* Ignore command if values are out of range */
+  if (column>twinright || (SCRHEIGHT!=0 && row>twinbottom)) return;       /* Ignore command if values are out of range */
   move_cursor(column, row);
 }
 

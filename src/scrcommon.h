@@ -79,6 +79,7 @@ typedef struct {
 ** screen modes. The Mode 7 line is faked to allow a decent scaling on Teletext.
 ** The values for modes 3 and 6 are to size the window accordingly.
 */
+#ifndef SIMPLETEXT_BUILD
 static modetails modetable [127] = {
 /*  0 */  { 640, 256,   2, 1280,  1024,  80, 32, 1, 2,  TRUE},
 /*  1 */  { 320, 256,   4, 1280,  1024,  40, 32, 2, 2,  TRUE},
@@ -164,6 +165,7 @@ static modetails modetable [127] = {
 /* 79 */  {1024, 576, 256, 2048,  1152, 128, 72, 1, 1,  TRUE},
 /* 80 */  { 640, 256, COL24BIT, 1280,  1024,  80, 32, 1, 2,  TRUE},
 };
+#endif /* SIMPLETEXT_BUILD */
 
 #ifndef __riscos
 static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU command */
@@ -208,7 +210,9 @@ static int32
   vducmd,			/* Current VDU command */
   vdunext,			/* Index of next entry in VDU queue */
   vduneeded,			/* Number of bytes needed for current VDU command */
-  screenmode,			/* Current screen mode */
+  screenmode;			/* Current screen mode */
+#ifndef SIMPLETEXT_BUILD
+static int32
   colourdepth,			/* Number of colours allowed in current screen mode */
   colourmask,			/* Mask to isolate logical colour number */
   text_forecol,			/* Current text foreground logical colour number */
@@ -231,8 +235,8 @@ static int32
   ytext;			/* Text cursor Y coordinate (real on-screen location) */
 
 static curstype cursmode;	/* Type of cursor being displayed in graphics mode */
-
 static curstate cursorstate;	/* Whether cursor is shown */
+#endif /* SIMPLETEXT_BUILD */
 
 static byte vduqueue[MAXBYTES];	/* Queue to hold data for VDU commands */
 
@@ -266,7 +270,9 @@ static unsigned int vduflags = 0;	/* VDU flags */
 ** is required to go from RISC OS physical colour numbers to their
 ** equivalents under the other OSes.
 */
+#ifndef SIMPLETEXT_BUILD
 static int32 logtophys[16];
+#endif
 
 #endif
 

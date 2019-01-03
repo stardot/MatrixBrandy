@@ -1058,6 +1058,7 @@ static unsigned int cmd_parse_dec(char** text)
 	return ByteVal;
 }
 
+#ifdef USE_SDL /* This code doesn't depend on SDL, but it's currently only called by code that does depend on it */
 static unsigned int cmd_parse_num(char** text)
 {
 	unsigned int ByteVal;
@@ -1075,7 +1076,7 @@ static unsigned int cmd_parse_num(char** text)
 	*text=command;
 	return ByteVal;
 }
-
+#endif
 
 #ifndef TARGET_RISCOS
 /*
@@ -1210,10 +1211,12 @@ static void cmd_screenload(char *command) {
   return;
 }
 
+#ifdef USE_SDL
 static void cmd_newmode_err() {
   emulate_printf("Syntax:\r\n  NewMode <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16, 256 or\r\n16777216.\r\nEigen factors must be in the range 0-3, default 1. yeig=xeig if omitted.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
   return;							// This should be an error
 }
+#endif
 
 static void cmd_newmode(char *command) {
 #ifdef USE_SDL
@@ -1536,7 +1539,10 @@ static int check_command(char *text) {
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
   int cmd, clen;
   FILE *sout;
-  char buf, *cmdbuf, *cmdbufbase, *pipebuf=NULL;
+  char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
+#ifdef USE_SDL
+  char buf;
+#endif
 
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */

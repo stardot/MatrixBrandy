@@ -253,8 +253,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
  #endif
 #endif
 
+#ifdef NODISPLAYOS
+#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
+#else
 #define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
-
+#endif
 
 /*
 ** MAXSTRING is the length of the longest string the interpreter

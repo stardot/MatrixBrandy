@@ -1029,11 +1029,11 @@ static boolean waitkey(int wait) {
 int32 read_key(void) {
   int errcode;
   byte ch = 0;
+#ifdef USE_SDL
 #ifndef TARGET_MINGW
   fd_set keyset;
   struct timeval waitime;
 #endif
-#ifdef USE_SDL
   SDL_Event ev;
 
   while (ch == 0) {
@@ -1132,11 +1132,11 @@ int32 read_key(void) {
       }
       else return ch;
     }
-#endif
+#endif /* TARGET_MINGW */
 /*  If we reach here then nothing happened and so we should sleep */
     SDL_Delay(10);
   }
-#else
+#else /* ! USE_SDL */
 #ifndef BODGEMGW
   errcode = read(keyboard, &ch, 1);
 #endif
@@ -1560,6 +1560,7 @@ int32 emulate_inkey2(int32 arg) {
     return 0;
 #else
   error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
+  return 0; /* Control never reaches here, but keeps the compiler happy */
 #endif
 }
 
