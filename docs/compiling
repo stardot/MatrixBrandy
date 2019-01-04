@@ -15,6 +15,7 @@ Mac OS X	Objective C
 Amiga		SAS C
 DOS		gcc, Jacob Navia's version of lcc and Borland C++
 		version 5.5.
+Windows		gcc (mingw under Cygwin)
 
 It has also been compiled under Beos using gcc but this was just
 a test to make sure it worked.
@@ -22,8 +23,9 @@ a test to make sure it worked.
 Hopefully the program will compile under other operating systems
 without any changes but it has only been tried on the above.
  
-The RISC OS version of the program is the main one. It was largely
-developed under RISC OS except for the OS-specific parts.
+The Linux version of the program is the main one. Earlier versions were
+largely developed under RISC OS except for the OS-specific parts. More
+recently the development focus has been for SDL under Linux.
 
 Under RISC OS, the source is found in the 'C' and 'H'
 subdirectories in the interpreter's directory in the normal way.
@@ -126,11 +128,7 @@ Richard Atterer's raFS will have to be used.
 There are no problems compiling the program under either of these
 operating systems. 
 
-It is in theory possible to compile a version of the program that
-supports graphics using Jonathan Griffith's platform-independent
-graphics library 'JLib' and svgalib. This did not work when tried,
-though.
-Some Linux and BSD targets implement graphics using the SDL libraries.
+Linux and BSD targets implement graphics using the SDL libraries.
 Other targets can be made to support SDL by adding "#define USE_SDL"
 in the appropriate place in src/target.h.  If graphics are not
 required, then see the "No Graphics" section of this file.
