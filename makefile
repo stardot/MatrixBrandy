@@ -2,6 +2,7 @@
 
 CC = gcc
 LD = gcc
+ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 gitcommit=\""$(shell git log --abbrev-commit -1 2>/dev/null| head -1 |cut -d ' ' -f 2)"\"
 ifeq ($(gitcommit),\"""\")
