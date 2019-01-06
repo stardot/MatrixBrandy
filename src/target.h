@@ -32,7 +32,7 @@
 #define BRANDY_MINOR "21"
 #define BRANDY_DATE  "28 Dec 2018"
 #define BRANDY_PATCHLEVEL "18"
-#define BRANDY_PATCHDATE  "JGH181228"
+#define BRANDY_PATCHDATE  "JGH190107-50BIRTHDAY"
 
 #ifndef __target_h
 #define __target_h
@@ -241,7 +241,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_BEOS
 #define BRANDY_OS "BEOS"
 #define OSVERSION 0xFB
-// BEOS uses dir/file.ext filesystem, so MACTYPE must be %00001xxx
+// BEOS uses dir/file.ext filesystem, so MACTYPE must be %000x1xxx
 // We use 8 because it is Unix-y
 #define MACTYPE   0x0800
 // Don't really know what the editor should be

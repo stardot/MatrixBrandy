@@ -428,7 +428,7 @@ void init_fileio(void) {
 ** modes with these operating systems. This is what we want as Basic
 ** does not distinguish between these two types of file. Unfortunately
 ** DOS has to be different. In character mode the DOS libraries I have
-** seen like to stick 'carriage return' characters in the output
+** seen to like to stick 'carriage return' characters in the output
 ** stream whenever they see a 'linefeed' when writing to a file. Under
 ** DOS files are always treated as binary.
 */
@@ -584,7 +584,7 @@ static void close_file(int32 handle) {
 }
 
 /*
-** 'fileio_close' closes the fie given by 'handle' or all open files
+** 'fileio_close' closes the file given by 'handle' or all open files
 ** if 'handle' is zero
 */
 void fileio_close(int32 handle) {
@@ -609,6 +609,7 @@ void fileio_close(int32 handle) {
 int32 fileio_bget(int32 handle) {
   int32 ch;
 
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
@@ -659,6 +660,8 @@ int32 fileio_bget(int32 handle) {
 int32 fileio_getdol(int32 handle, char *buffer) {
   char *p;
   int32 length;
+
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending or EOF, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
@@ -811,6 +814,8 @@ static void write(FILE *stream, int32 value) {
 */
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
+
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
@@ -832,6 +837,8 @@ void fileio_bput(int32 handle, int32 value) {
 */
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   int32 result;
+
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
@@ -939,6 +946,8 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 */
 void fileio_setptr(int32 handle, int32 newoffset) {
   int32 result;
+
+  if (handle==0) return;	/* to do */
   handle = map_handle(handle);
   result = fseek(fileinfo[handle].stream, newoffset, SEEK_SET);
   if (result==-1) error(ERR_SETPTRFAIL);	/* File pointer cannot be set */
@@ -950,6 +959,8 @@ void fileio_setptr(int32 handle, int32 newoffset) {
 */
 int32 fileio_getptr(int32 handle) {
   int32 result;
+
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
   result = TOINT(ftell(fileinfo[handle].stream));
   if (result==-1) error(ERR_GETPTRFAIL);	/* File pointer cannot be read */
@@ -962,11 +973,13 @@ int32 fileio_getptr(int32 handle) {
 int32 fileio_getext(int32 handle) {
   long int position, length;
   FILE *stream;
+
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
   stream = fileinfo[handle].stream;
   position = ftell(stream);
   if (position==-1) error(ERR_GETEXTFAIL);	/* Cannot find size of file */
-  fseek(stream, 0, SEEK_END);	/* Find the end of the file */
+  fseek(stream, 0, SEEK_END);			/* Find the end of the file */
   length = ftell(stream);
   fseek(stream, position, SEEK_SET);	/* Restore file to its original file pointer position */
   return TOINT(length);
@@ -978,7 +991,7 @@ int32 fileio_getext(int32 handle) {
 */
 void fileio_setext(int32 handle, int32 newsize) {
   handle = map_handle(handle);
-  error(ERR_UNSUPPORTED);
+//error(ERR_UNSUPPORTED);
 }
 
 /*
@@ -995,6 +1008,8 @@ int32 fileio_eof(int32 handle) {
   long position;
   FILE *stream;
   boolean ateof;
+
+  if (handle==0) return 0;	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {

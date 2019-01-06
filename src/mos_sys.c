@@ -84,15 +84,16 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_OS_ReadLine:
 // RISC OS method is to tweek entry parameters then drop into ReadLine32
 // R0=b31-b28=flags, b27-b0=address
-// R1=length
+// R1=length (buffer size-1)
 // R2=lowest acceptable character
 // R3=highest acceptable character
 // R4=b31-b24=reserved, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
+//
       inregs[4]=(inregs[4] & 0x00FFFFFF) | (inregs[0] & 0xFF000000);
       inregs[0]=(inregs[0] & 0x00FFFFFF);	/* Move flags to R4			*/
     case SWI_OS_ReadLine32:
 // R0=address
-// R1=length
+// R1=length (buffer size-1)
 // R2=lowest acceptable character
 // R3=highest acceptable character
 // R4=b31-b24=flags, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
@@ -100,9 +101,10 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       vptr=(char *)(inregs[0]+basicvars.offbase);
       *vptr='\0';
 //                       addr   length        lochar           hichar                     flags  echo
-      (void)kbd_readline(vptr, inregs[1], (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
-      a=outregs[1]=strlen(vptr);		/* Added expected terminating <cr>	*/
-      *(char *)(vptr+a)=13;			/* Should also set Carry if Escape	*/
+      a=kbd_readline(vptr, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
+      outregs[1]=a;				/* Returned length			*/
+      *(char *)(vptr+a)=13;			/* Added expected terminating <cr>	*/
+						/* Should also set Carry if Escape	*/
       break;
 #else
     case SWI_OS_ReadLine:

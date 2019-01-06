@@ -2103,10 +2103,14 @@ switch (areg) {
 		osbyte113(xreg);
 #endif
 		break;
+
 	case 128:		// OSBYTE 128 - ADVAL
-		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
+		return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
 
 	case 129:		// OSBYTE 129 - INKEY
+#ifdef NEWKBD
+		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
+#else
 		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
 		if ((yreg=255) && (xreg >= 128)) {
 #ifdef USE_SDL
@@ -2115,6 +2119,7 @@ switch (areg) {
 #endif
 		    return (0x81);
 		}
+#endif
 		break;
 	case 130:		// OSBYTE 130 - High word of user memory
 		areg = basicvars.workspace - basicvars.offbase;
@@ -2133,6 +2138,7 @@ switch (areg) {
 //	case 133:		// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 	case 134:		// OSBYTE 134 - Read POS and VPOS
 	case 165:		// Identical, since we don't have an editing cursor
+// The ifdefs here should be devolved into the called functions
 #ifdef USE_SDL
 		return osbyte134_165(areg);
 #else

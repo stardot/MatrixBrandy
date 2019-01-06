@@ -52,6 +52,7 @@
 ** 27-Dec-2018 JGH: DOS target can detect Shift/Ctrl/Alt as that's the only DOS API.
 ** 28-Dec-2018 JGH: kbd_init(), kbd_quit() all consolidated.
 ** 05-Jan-2019 JGH: kbd_fnkeyget(), kbd_fnkeyset().
+** 06-Jan-2019 JGH: Started on kbd_readline().
 **
 ** Note: This is the only file that tests for BEOS.
 **
@@ -229,10 +230,6 @@ Uint8 mousestate, *keystate=NULL;
 static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
 static int32 read_fn_string(void);		/* To prevent a forward reference	*/
-
-/* Veneer, fill in later */
-readstate kbd_readline(char *buffer, int32 length, int32 chars) {
-		return emulate_readline(&buffer[0], length, chars & 0xFF); }
 
 
 /* kbd_init called to initialise the keyboard code
@@ -606,7 +603,6 @@ int GetAsyncKeyState(int key) {
 //  : "r" (x)
 //  );
 //  return y;
-//}
 #endif
 
 
@@ -636,6 +632,92 @@ int32 kbd_get(void) {
 
   // Now it gets rather complicated
   return emulate_get();				/* Drop through to legacy call		*/
+
+#endif /* !RISCOS */
+}
+
+
+/* kbd_readline - read a line of text from input stream
+** --------------------------------------------------------------------
+** On entry:
+** char *buffer - address to place text
+** int32 length - size of buffer, maximum line length-1
+** int32 chars  - processing characters:
+**       b0-b7:   echo character
+**       b8-b15:  lowest acceptable character
+**       b16-b23: highest acceptable character
+**       b24-b31: flags: b31=use echo character
+** Returns:
+**       int32:   >=0 - line length read, also offset to terminator
+**                 <0 - failed
+**
+** The data input is stored at 'buffer'. Up to 'length' characters
+** can be read. A 'null' is added after the last character. 'buffer'
+** can be prefilled with characters if required to allow existing text
+** to be edited. Note that memory after the 'null' may be overwritten
+** up to the maximum size of the buffer.
+**
+** Note that 'length' is defined differently to BBC/RISC OS, where 'length'
+** is the buffer size-1. That is, the length is the highest possible offset
+** to the terminator, where a 'length' of zero requires a buffer size of
+** one to allow the terminator to be at buffer[0]. In Brandy, 'length' is
+** the size of the buffer, so a 'length' of one results in the terminator
+** being at buffer[0], and a 'length' of zero is illegal.
+**
+** The readline function provides both DOS and Unix style line editing
+** facilities and line history, for example, both 'HOME' and control 'A'
+** move the cursor to the start of the line.
+**
+** There is a problem with LCC-WIN32 running under Windows 98 in that the
+** extended key codes for the cursor movement keys (insert, left arrow
+** and so on) are not returned correctly by 'getch()'. In theory they
+** should appear as a two byte sequence of 0xE0 followed by the key code.
+** Only the 0xE0 is returned. This appears to be a bug in the C runtime
+** library.
+** -------------------------------------------------------------------- */
+int32 kbd_readline(char *buffer, int32 length, int32 chars) {
+
+#ifdef TARGET_RISCOS
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  int32 carry;
+
+// RISC OS compiler doesn't like code before variable declaration, so have to duplicate
+  if (length==0 || length<0) return 0;		/* Filter out impossible or daft calls	*/
+  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+
+  regs.r[0] = TOINT(&buffer[0]);
+  regs.r[1] = length - 1;			/* Subtract one to allow for terminator	*/
+  regs.r[2] = (chars >> 8) & 0xFF;		/* Lowest acceptable character		*/
+  regs.r[3] = (chars >> 16) & 0xFF;		/* Highest acceptable character		*/
+
+  if (regs.r[0] & 0xFF000000) {			/* High memory				*/
+    regs.r[4] = chars & 0xFF0000FF;		/* R4=Echo character and flags		*/
+    oserror = _kernel_swi_c(0x00007D, &regs, &regs, &carry);	/* OS_ReadLine32	*/
+    /* If OS_ReadLine32 doesn't exist, we don't have high memory anyway, so safe	*/
+
+  } else {					/* Low memory				*/
+    regs.r[0]=regs.r[0] | (chars & 0xFF000000);	/* R0=Flags and address			*/
+    regs.r[4]=chars & 0x000000FF;		/* R4=Echo character			*/
+    oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
+  }
+
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (carry) buffer[0] = NUL;			/* Carry is set - 'Escape' was pressed	*/
+  else       buffer[regs.r[1]] = NUL;		/* Number of characters returned in R1	*/
+
+  return carry == 0 ? regs.r[1] : -1;		/* To do: -1=READ_ESC			*/
+#else /* !RISCOS */
+
+  if (length==0 || length<0) return 0;		/* Filter out impossible or daft calls	*/
+  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+
+  length=(int32)emulate_readline(&buffer[0], length, chars & 0xFF);
+  if (length==READ_OK) return strlen(buffer);
+  if (length==READ_ESC) return -1;
+  return -2;
 
 #endif /* !RISCOS */
 }
