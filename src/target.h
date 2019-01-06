@@ -30,8 +30,9 @@
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "17"
-#define BRANDY_DATE  "05 Dec 2018"
+#define BRANDY_DATE  "28 Dec 2018"
+#define BRANDY_PATCHLEVEL "18"
+#define BRANDY_PATCHDATE  "JGH181228"
 
 #ifndef __target_h
 #define __target_h
@@ -140,7 +141,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 /* Same as Linux, but can be treated exactly like it, see the Linux specific
  * XCASE in src/keyboard.c */
-#if (defined __FreeBSD_kernel__)
+#ifdef __FreeBSD_kernel__
 #define TARGET_GNUKFREEBSD
 #define TARGET_UNIX
 #define BRANDY_OS "GNU/kFreeBSD"
@@ -152,7 +153,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DIR_SEP  '/'
 #endif
 
-#if (defined __GNU__)
+#ifdef __GNU__
 #define TARGET_GNU
 #define BRANDY_OS "GNU/Hurd"
 #define OSVERSION 0xF3
@@ -235,6 +236,21 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DIR_SEP  '/'
 #endif
 
+// Nothing tests for BEOS, but set up defines here to claim OSVER=&FB.
+#ifdef __BEOS__
+#define TARGET_BEOS
+#define BRANDY_OS "BEOS"
+#define OSVERSION 0xFB
+// BEOS uses dir/file.ext filesystem, so MACTYPE must be %00001xxx
+// We use 8 because it is Unix-y
+#define MACTYPE   0x0800
+// Don't really know what the editor should be
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
+#endif
+
 #ifndef BRANDY_OS
 #error Target operating system for interpreter is either missing or not supported
 #endif
@@ -253,8 +269,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
  #endif
 #endif
 
+#ifdef NODISPLAYOS
+#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
+#else
 #define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
-
+#endif
 
 /*
 ** MAXSTRING is the length of the longest string the interpreter

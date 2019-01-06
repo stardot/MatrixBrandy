@@ -472,7 +472,11 @@ static void strip(char line[]) {
 boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = NUL;
+#ifdef NEWKBD
+  result = kbd_readline(line, linelen, 0);
+#else
   result = emulate_readline(line, linelen, 0);
+#endif
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
@@ -491,7 +495,11 @@ boolean read_line(char line[], int32 linelen) {
 */
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
+#ifdef NEWKBD
+  result = kbd_readline(line, linelen,0);
+#else
   result = emulate_readline(line, linelen,0);
+#endif
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
@@ -508,7 +516,12 @@ FILE *secure_tmpnam(char *name)
 {
   int fdes;
   strcpy(name, "/tmp/.brandy.XXXXXX");
+// Needs to use tmpnam()
+#if defined(BODGEMGW) | defined(BODGESDL)
+  return fopen(name, "w+");
+#else
   fdes=mkstemp(name);
   if (!fdes) return NULL;
   return fdopen(fdes, "w+");
+#endif
 }

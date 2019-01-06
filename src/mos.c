@@ -51,6 +51,8 @@
 ** 07-Dec-2018 JGH: *SHOW displays key string.
 **                  Have removed some BODGE conditions.
 ** 09-Dec-2018 JGH: *HELP BASIC lists attributions, as per license.
+**                  Layout and content needs a bit of tidying up.
+** 05-Jan-2019 JGH: GSTrans returns string+length, so embedded |@ allowed in *KEY.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -70,7 +72,7 @@
 #include "errors.h"
 #include "basicdefs.h"
 #include "mos.h"
-#include "mos_swinums.h"
+#include "mos_sys.h"
 #include "screen.h"
 #include "keyboard.h"
 
@@ -815,6 +817,8 @@ int32 mos_adval(int32 x) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
+  if (x==16) return kbd_get(); /* test */
+
   return 0;
 }
 
@@ -988,9 +992,9 @@ void mos_waitdelay(int32 time) {
  * On exit:  pointer to converted string, overwriting input string
  *           recognises |<letter> |" || !? |!
  * Bug: hello"there does not give correct result - fixed
- * Bug: string terminated with /0 so cannot embed |@ in string
+ * Bug: string terminated with /0 so cannot embed |@ in string - fixed
  */
-static char *mos_gstrans(char *instring) {
+static char *mos_gstrans(char *instring, int *len) {
 	int quoted=0, escape=0;
 	char *result, *outstring;
 	char ch;
@@ -1025,6 +1029,7 @@ static char *mos_gstrans(char *instring) {
 	*outstring=0;
 	if (quoted && *(instring-1) != '"')
 		error(ERR_BADSTRING);
+	*len=outstring-result;
 	return result;
 }
 
@@ -1057,6 +1062,7 @@ static unsigned int cmd_parse_dec(char** text)
 	return ByteVal;
 }
 
+#ifdef USE_SDL /* This code doesn't depend on SDL, but it's currently only called by code that does depend on it */
 static unsigned int cmd_parse_num(char** text)
 {
 	unsigned int ByteVal;
@@ -1074,7 +1080,7 @@ static unsigned int cmd_parse_num(char** text)
 	*text=command;
 	return ByteVal;
 }
-
+#endif
 
 #ifndef TARGET_RISCOS
 /*
@@ -1209,10 +1215,12 @@ static void cmd_screenload(char *command) {
   return;
 }
 
+#ifdef USE_SDL
 static void cmd_newmode_err() {
   emulate_printf("Syntax:\r\n  NewMode <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\nMode must be between 64 and 126, and colours must be one of 2, 4, 16, 256 or\r\n16777216.\r\nEigen factors must be in the range 0-3, default 1. yeig=xeig if omitted.\r\nExample: *NewMode 80 640 256 2 1 2 recreates MODE 0 as MODE 80.\r\n");
   return;							// This should be an error
 }
+#endif
 
 static void cmd_newmode(char *command) {
 #ifdef USE_SDL
@@ -1341,6 +1349,9 @@ static void cmd_fx(char *command) {
 /*
  * *HELP - display help on topic
  */
+#ifdef BRANDY_PATCHDATE
+char mos_patchdate[]=__DATE__;
+#endif
 static void cmd_help(char *command)
 {
 	int cmd;
@@ -1352,6 +1363,21 @@ static void cmd_help(char *command)
 #endif
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
+// Need to think about making this neat but informative
+// Something along the lines of
+//
+// Matrix Brandy Basic V version 1.21.18 (DJGPP) 05 Dec 2018
+//   Forked from Brandy Basic v1.20.1 (24 Sep 2014)
+//   Incorporating code from
+//    Banana Brandy Basic v0.02 (05 Apr 2014)
+//    WinCE Brandy Basic v1.23 (12 XYZ 9999)
+//    Leopard Brandy Basic v9.87 (99 ABC 0000)
+//    JGH Console Library v0.14 (31 Dec 9999)
+//    Git commit 1234567890 on branch master (25 Dec 2018) <--- when???
+//    Patch JGH181228 compiled at 07:09:59 on 28 Dec 2018 <--- only during test builds
+//
+// Or, put most in READ.ME. Add to READ.ME: 'Use *HELP BASIC' for...
+
 #ifdef BRANDY_GITCOMMIT
 		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
@@ -1359,7 +1385,9 @@ static void cmd_help(char *command)
 		emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
 		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
-		emulate_printf("  Matrix Brandy Basic patch  v0.%s (%s)\r\n", BRANDY_PATCHLEVEL, BRANDY_PATCHDATE);
+		emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
+		emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4] == ' ' ? '0' : mos_patchdate[4],
+		mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 #endif
 		// NB: Adjust spaces in above to align version and date strings correctly
 
@@ -1396,11 +1424,11 @@ static void cmd_help(char *command)
  * The string parameter is GSTransed so that '|' escape sequences
  * can be used.
  * On entry, 'command' points at the start of the parameter string.
- * Bug: as uses 0-terminated strings, cannot embed |@ in string.
+ * Bug: as uses 0-terminated strings, cannot embed |@ in string. - fixed
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
 static void cmd_key(char *command) {
-	unsigned int key;
+	unsigned int key, len;
 
 	while (*command == ' ') command++;		// Skip spaces
 	if (*command == 0)
@@ -1410,9 +1438,14 @@ static void cmd_key(char *command) {
 		error(ERR_BADKEY);
 	if (*command == ',') command++;			// Step past any comma
 
-	command=mos_gstrans(command);			// Get GSTRANS string
-	if (set_fn_string(key, command, strlen(command)))
+	command=mos_gstrans(command, &len);		// Get GSTRANS string
+#ifdef NEWKBD
+	if (kbd_fnkeyset(key, command, len))
 		error(ERR_KEYINUSE);
+#else
+	if (set_fn_string(key, command, len))
+		error(ERR_KEYINUSE);
+#endif
 }
 
 /*
@@ -1434,7 +1467,11 @@ static void cmd_show(char *command) {
 	if (*command != 0) error(ERR_BADCOMMAND);
 
 	for (; key1 <= key2; key1++) {
+#ifdef NEWKBD
+		string=kbd_fnkeyget(key1, &len);
+#else
 		string=get_fn_string(key1, &len);
+#endif
 		emulate_printf("*Key %d \x22", key1);
 		while (len--) {
 			c=*string++;
@@ -1492,7 +1529,7 @@ static int check_command(char *text) {
   if (strcmp(command, "ver")    == 0) return CMD_VER;
   if (strcmp(command, "screensave") == 0) return CMD_SCREENSAVE;
   if (strcmp(command, "screenload") == 0) return CMD_SCREENLOAD;
-  if (strcmp(command, "wintitle") == 0)   return CMD_WINTITLE;
+  if (strcmp(command, "wintitle")   == 0) return CMD_WINTITLE;
   if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
   if (strcmp(command, "newmode") == 0)    return CMD_NEWMODE;
   if (strcmp(command, "refresh") == 0)    return CMD_REFRESH;
@@ -1522,7 +1559,10 @@ static int check_command(char *text) {
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
   int cmd, clen;
   FILE *sout;
-  char buf, *cmdbuf, *cmdbufbase, *pipebuf=NULL;
+  char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
+#ifdef USE_SDL
+  char buf;
+#endif
 
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */
@@ -1704,7 +1744,6 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
 ** 'FALSE' if it failed (in which case it is not safe for the
 ** interpreter to run)
 */
-
 boolean mos_init(void) {
   (void) clock();	/* This might be needed to start the clock */
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)

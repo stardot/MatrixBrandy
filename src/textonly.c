@@ -24,7 +24,8 @@
 **
 ** Crispian Daniels August 20th 2002:
 **      Included Mac OS X target in conditional compilation.
-** 06-Dec-2018 JGH: DEL expects 0 command bytes
+** 06-Dec-2018 JGH: DEL expects 0 command bytes.
+** 28-Dec-2018 JGH: Corrected physical colour numbers.
 **
 */
 
@@ -157,20 +158,19 @@ static int wherey(void);
 #error "Check assumption about foreground & background"
 #endif
 static byte colourmap [] = {
-  BLACK, FOREGROUND_RED | FOREGROUND_INTENSITY, FOREGROUND_GREEN | FOREGROUND_INTENSITY,
+  BLACK, FOREGROUND_RED, FOREGROUND_GREEN, FOREGROUND_RED | FOREGROUND_GREEN, FOREGROUND_BLUE,
+  FOREGROUND_RED | FOREGROUND_BLUE, FOREGROUND_GREEN | FOREGROUND_BLUE,
+  FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE,
+  FOREGROUND_INTENSITY, FOREGROUND_RED | FOREGROUND_INTENSITY, FOREGROUND_GREEN | FOREGROUND_INTENSITY,
   FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY, FOREGROUND_BLUE | FOREGROUND_INTENSITY,
-  FOREGROUND_BLUE | FOREGROUND_RED | FOREGROUND_INTENSITY,
-  FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY,
-  FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
-  FOREGROUND_INTENSITY, FOREGROUND_RED, FOREGROUND_GREEN, FOREGROUND_RED | FOREGROUND_GREEN,
-  FOREGROUND_BLUE, FOREGROUND_BLUE | FOREGROUND_RED,
-  FOREGROUND_BLUE | FOREGROUND_GREEN, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE 
+  FOREGROUND_RED | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+  FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY,
+  FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
 };
 #else
 static byte colourmap [] = {
-  BLACK, LIGHTRED, LIGHTGREEN, YELLOW, LIGHTBLUE, LIGHTMAGENTA,
-  LIGHTCYAN, WHITE, DARKGRAY, RED, GREEN, BROWN, BLUE, MAGENTA,
-  CYAN, LIGHTGRAY
+  BLACK,    RED,      GREEN,      BROWN,  BLUE,      MAGENTA,      CYAN,      LIGHTGRAY,
+  DARKGRAY, LIGHTRED, LIGHTGREEN, YELLOW, LIGHTBLUE, LIGHTMAGENTA, LIGHTCYAN, WHITE
 };
 #endif
 
@@ -286,7 +286,10 @@ static void scroll_text(updown direction) {
 ** -- ANSI --
 */
 static void textcolor(int32 colour) {
-  printf("\033[1;%dm", colour+ANSI_FOREGROUND); /* VTxxx/ANSI sequence to set the foreground colour */
+  printf("\033[");
+  if (colour & 8) printf("1;");		  /* bright     */
+  else            printf("11;");	  /* non-bright */
+  printf("%dm", colour+ANSI_FOREGROUND);  /* VTxxx/ANSI sequence to set the foreground colour */
 }
 
 /*
@@ -596,10 +599,13 @@ static void move_cursor(int32 column, int32 row) {
 ** job
 */
 static int32 map_colour(int32 colour) {
-  if (colourdepth<=16)
-    return colourmap[logtophys[colour]];
-  else {        /* Map a 256 colour colour number to a sixteen bit one */
-    int32 temp = 0;
+  int32 temp=0;
+
+  if (colourdepth<=16) {
+    temp=colourmap[logtophys[colour]];
+    if (temp) temp=temp | (((colourdepth<16)&1)*8);
+    return temp;
+  } else {        /* Map a 256-colour colour number to a sixteen-bit one */
     if (colour & C256_REDBIT) temp+=VDU_RED;
     if (colour & C256_GREENBIT) temp+=VDU_GREEN;
     if (colour & C256_BLUEBIT) temp+=VDU_BLUE;
@@ -757,7 +763,7 @@ static void vdu_textwind(void) {
     bottom = top;
     top = temp;
   }
-  if (left>=textwidth || SCRHEIGHT!=0 && top>=textheight) return;       /* Ignore bad parameters */
+  if (left>=textwidth || (SCRHEIGHT!=0 && top>=textheight)) return;       /* Ignore bad parameters */
   twinleft = left;
   twinright = right;
   twintop = top;
@@ -966,7 +972,7 @@ static void reset_colours(void) {
     logtophys[4] = VDU_BLUE;
     logtophys[5] = VDU_MAGENTA;
     logtophys[6] = VDU_CYAN;
-    logtophys[7]  = VDU_WHITE;
+    logtophys[7] = VDU_WHITE;
     logtophys[8] = FLASH_BLAWHITE;
     logtophys[9] = FLASH_REDCYAN;
     logtophys[10] = FLASH_GREENMAG;
@@ -974,7 +980,7 @@ static void reset_colours(void) {
     logtophys[12] = FLASH_BLUEYEL;
     logtophys[13] = FLASH_MAGREEN;
     logtophys[14] = FLASH_CYANRED;
-    logtophys[15]  = FLASH_WHITEBLA;
+    logtophys[15] = FLASH_WHITEBLA;
     text_forecol = 7;
     break;
   case 256:
@@ -1026,7 +1032,7 @@ static void vdu_movetext(void) {
   int32 column, row;
   column = vduqueue[0]+twinleft;
   row = vduqueue[1]+twintop;
-  if (column>twinright || SCRHEIGHT!=0 && row>twinbottom) return;       /* Ignore command if values are out of range */
+  if (column>twinright || (SCRHEIGHT!=0 && row>twinbottom)) return;       /* Ignore command if values are out of range */
   move_cursor(column, row);
 }
 
@@ -1178,6 +1184,8 @@ void emulate_vdu(int32 charvalue) {
       break;
     case VDU_RESTCOL:   /* 20 - Restore logical colours to default values */
       reset_colours();
+      textcolor(text_physforecol);
+      textbackground(text_physbackcol);
       break;
     case VDU_SCRMODE:   /* 22 - Change screen mode */
       emulate_mode(vduqueue[0]);

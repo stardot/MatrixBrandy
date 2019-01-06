@@ -926,7 +926,10 @@ static void do_unaryminus(void) {
 ** the stack
 */
 static void do_getbyte(void) {
-  uint32 offset = 0, msx, msy;
+  uint32 offset = 0;
+#ifdef USE_SDL
+  uint32 msx, msy;
+#endif
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
@@ -962,7 +965,10 @@ static void do_getbyte(void) {
 ** the stack. The address of the word to be pushed is byte-aligned
 */
 static void do_getword(void) {
-  int32 offset = 0, msx, msy, loop, val = 0;
+  int32 offset = 0;
+#ifdef USE_SDL
+  int32 msx, msy, loop, val = 0;
+#endif
   basicvars.current++;		/* Skip '!' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)

@@ -130,7 +130,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
   /* Check, does it start "ip4:" if so use network handler to open it. */
-  if (!strncmp(filename, "ip0:", 4) || !strncmp(filename, "ip4:", 4) || !strncmp(filename, "ip6:", 4)) {
+  if (strncmp(filename, "ip0:", 4)==0 || strncmp(filename, "ip4:", 4)==0 || strncmp(filename, "ip6:", 4)==0) {
     error(ERR_NET_NOTSUPP);
     return(0);
   } else {
@@ -535,6 +535,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
+#ifndef NONET
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (!strncmp(filename, "ip0:", 4) || !strncmp(filename, "ip4:", 4) || !strncmp(filename, "ip6:", 4)) {
     int handle;
@@ -547,6 +548,7 @@ int32 fileio_openup(char *name, int32 namelen) {
     fileinfo[n].nethandle = handle;
     return FIRSTHANDLE-n;
   } else {
+#endif
     thefile = fopen(filename, UPMODE);
     if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
     fileinfo[n].stream = thefile;
@@ -554,13 +556,16 @@ int32 fileio_openup(char *name, int32 namelen) {
     fileinfo[n].eofstatus = OKAY;
     fileinfo[n].lastwaswrite = FALSE;
     return FIRSTHANDLE-n;
+#ifndef NONET
   }
+#endif
 }
 
 /*
 ** 'close_file' is a function used locally to close a file or network channel
 */
 static void close_file(int32 handle) {
+#ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
     brandynet_close(fileinfo[handle].nethandle);
     fileinfo[handle].stream = NIL;
@@ -568,11 +573,14 @@ static void close_file(int32 handle) {
     fileinfo[handle].lastwaswrite = FALSE;
     fileinfo[handle].nethandle = -1;
   } else {
+#endif
     fclose(fileinfo[handle].stream);
     fileinfo[handle].stream = NIL;
     fileinfo[handle].filetype = CLOSED;
     fileinfo[handle].lastwaswrite = FALSE;
+#ifndef NONET
   }
+#endif
 }
 
 /*
@@ -602,6 +610,7 @@ int32 fileio_bget(int32 handle) {
   int32 ch;
 
   handle = map_handle(handle);
+#ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
     ch=net_bget(fileinfo[handle].nethandle);
     if (ch == -2) {
@@ -613,6 +622,7 @@ int32 fileio_bget(int32 handle) {
       }
     }
   } else {
+#endif
     if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
       fileinfo[handle].eofstatus = ATEOF;
       error(ERR_HITEOF);
@@ -631,7 +641,9 @@ int32 fileio_bget(int32 handle) {
       ch = 0;
     }
     fileinfo[handle].lastwaswrite = FALSE;
+#ifndef NONET
   }
+#endif
   return ch;
 }
 
@@ -800,15 +812,19 @@ static void write(FILE *stream, int32 value) {
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
   handle = map_handle(handle);
+#ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
     if(net_bput(fileinfo[handle].nethandle, value)) error(ERR_CANTWRITE);
   } else {
+#endif
     if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
     fileinfo[handle].eofstatus = OKAY;
     result = fputc(value, fileinfo[handle].stream);
     if (result==EOF) error(ERR_CANTWRITE);
     fileinfo[handle].lastwaswrite = TRUE;
+#ifndef NONET
   }
+#endif
 }
 
 /*
@@ -817,15 +833,19 @@ void fileio_bput(int32 handle, int32 value) {
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   int32 result;
   handle = map_handle(handle);
+#ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
     if(net_bputstr(fileinfo[handle].nethandle, string, length)) error(ERR_CANTWRITE);
   } else {
+#endif
     if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
     fileinfo[handle].eofstatus = OKAY;
     result = fwrite(string, sizeof(char), length, fileinfo[handle].stream);
     if (result!=length) error(ERR_CANTWRITE);
     fileinfo[handle].lastwaswrite = TRUE;
+#ifndef NONET
   }
+#endif
 }
 
 /*
@@ -976,9 +996,11 @@ int32 fileio_eof(int32 handle) {
   FILE *stream;
   boolean ateof;
   handle = map_handle(handle);
+#ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
     return net_eof(fileinfo[handle].nethandle);
   } else {
+#endif
   stream = fileinfo[handle].stream;
   position = ftell(stream);
   if (position==-1) return feof(stream) ? TRUE : FALSE;
@@ -986,7 +1008,9 @@ int32 fileio_eof(int32 handle) {
   ateof = ftell(stream)==position;
   fseek(stream, position, SEEK_SET);
   return ateof;
+#ifndef NONET
   }
+#endif
 }
 
 /*
