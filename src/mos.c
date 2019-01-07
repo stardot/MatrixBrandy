@@ -817,7 +817,9 @@ int32 mos_adval(int32 x) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
+#ifdef NEWKBD
   if (x==16) return kbd_get(); /* test */
+#endif
 
   return 0;
 }
@@ -991,10 +993,8 @@ void mos_waitdelay(int32 time) {
  * On entry: pointer to string to convert
  * On exit:  pointer to converted string, overwriting input string
  *           recognises |<letter> |" || !? |!
- * Bug: hello"there does not give correct result - fixed
- * Bug: string terminated with /0 so cannot embed |@ in string - fixed
  */
-static char *mos_gstrans(char *instring, int *len) {
+static char *mos_gstrans(char *instring, unsigned int *len) {
 	int quoted=0, escape=0;
 	char *result, *outstring;
 	char ch;
@@ -1364,20 +1364,6 @@ static void cmd_help(char *command)
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
 // Need to think about making this neat but informative
-// Something along the lines of
-//
-// Matrix Brandy Basic V version 1.21.18 (DJGPP) 05 Dec 2018
-//   Forked from Brandy Basic v1.20.1 (24 Sep 2014)
-//   Incorporating code from
-//    Banana Brandy Basic v0.02 (05 Apr 2014)
-//    WinCE Brandy Basic v1.23 (12 XYZ 9999)
-//    Leopard Brandy Basic v9.87 (99 ABC 0000)
-//    JGH Console Library v0.14 (31 Dec 9999)
-//    Git commit 1234567890 on branch master (25 Dec 2018) <--- when???
-//    Patch JGH181228 compiled at 07:09:59 on 28 Dec 2018 <--- only during test builds
-//
-// Or, put most in READ.ME. Add to READ.ME: 'Use *HELP BASIC' for...
-
 #ifdef BRANDY_GITCOMMIT
 		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
@@ -1386,8 +1372,8 @@ static void cmd_help(char *command)
 		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
 		emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
-		emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4] == ' ' ? '0' : mos_patchdate[4],
-		mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+		emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
+			mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 #endif
 		// NB: Adjust spaces in above to align version and date strings correctly
 
@@ -1395,9 +1381,9 @@ static void cmd_help(char *command)
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
-//#if defined(USE_SDL) | defined(TARGET_UNIX)
-//		emulate_printf("  WINTITLE <window title>\r\n");
-//#endif
+#if defined(USE_SDL) | defined(TARGET_UNIX)
+		emulate_printf("  WINTITLE <window title>\r\n");
+#endif
 	}
 #if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {

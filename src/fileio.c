@@ -815,7 +815,7 @@ static void write(FILE *stream, int32 value) {
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) return;	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
@@ -838,7 +838,7 @@ void fileio_bput(int32 handle, int32 value) {
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   int32 result;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) return;	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {

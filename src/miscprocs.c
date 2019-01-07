@@ -527,8 +527,12 @@ FILE *secure_tmpnam(char *name)
 #else
   int fdes;
   strcpy(name, "/tmp/.brandy.XXXXXX");
+#if defined(BODGEMGW) | defined(BODGESDL)
+  return fopen(name, "w+");
+#else
   fdes=mkstemp(name);
   if (!fdes) return NULL;
   return fdopen(fdes, "w+");
 #endif
+#endif /* TARGET_MINGW */
 }

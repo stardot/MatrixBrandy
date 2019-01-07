@@ -168,7 +168,11 @@
 /* holdcount and holdstack are used when decoding ANSI key sequences. If a
 ** sequence is read that does not correspond to an ANSI sequence the
 ** characters are stored here so that they can be returned by future calls
+<<<<<<< HEAD
+** to 'kbd_get'. Note that this is a *stack* not a queue.
+=======
 ** to 'kbd_get()'. Note that this is a *stack* not a queue.
+>>>>>>> jgh-keyboard
 */
 static int32 holdcount;		/* Number of characters held on stack			*/
 static int32 holdstack[8];	/* Hold stack - Characters waiting to be passed back via 'get' */
@@ -292,6 +296,15 @@ boolean kbd_init() {
   // -----------
   struct termios tty;
 
+<<<<<<< HEAD
+/* Veneers, fill in later */
+int   kbd_fkeyset(int key, char *string, int length) {
+		return set_fn_string(key, string, length); }
+char *kbd_fkeyget(int key, int *len) {
+		return get_fn_string(key, len); }
+readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
+		return emulate_readline(&buffer[0], length, echochar); }
+=======
 /* Set up keyboard for unbuffered I/O */
   if (tcgetattr(fileno(stdin), &tty) < 0) {	/* Could not obtain keyboard parameters	*/
     nokeyboard=1;
@@ -388,6 +401,138 @@ char *kbd_fnkeyget(int key, int *len) {
   return fn_key[key].text;
 }
 #endif /* RISCOS */
+>>>>>>> jgh-keyboard
+
+
+/* kbd_init called to initialise the keyboard code
+** --------------------------------------------------------------
+** Clears the function key strings, checks if stdin is connected
+** to the keyboard or not. If it is then the keyboard functions
+** are used to read keypresses. If not, then standard C functions
+** are used instead, the assumption being that stdin is taking
+** input from a file, similar to *EXEC.
+** -------------------------------------------------------------- */
+boolean kbd_init() {
+#ifdef TARGET_RISCOS
+  // RISC OS, nothing to do
+  // ----------------------
+  return TRUE;
+#else /* !RISCOS */
+
+  // Non-RISC OS, perform the action manually
+  // ----------------------------------------
+  int n;
+
+  /* We do function key processing outselves */
+  for (n = 0; n < FN_KEY_COUNT; n++) fn_key[n].text = NIL;
+  fn_string_count = 0;
+  fn_string = NIL;
+
+  /* We provide a line editor */
+  holdcount = 0;
+  histindex = 0;
+  highbuffer = 0;
+  enable_insert = TRUE;
+  set_cursor(enable_insert);
+
+#ifdef TARGET_DOSWIN
+
+#ifdef TARGET_DJGPP
+  // DOS target
+  // ----------
+  struct termios tty;
+
+  if (tcgetattr(fileno(stdin), &tty) == 0) return TRUE;		/* Keyboard being used */
+/* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
+** a keyboard and so the program does simple reads from stdin rather than use the custom
+** keyboard code. If the error is not ENOTTY then something has gone wrong so we abort
+** the program
+*/
+  if (errno != ENOTTY) return FALSE;    /* tcgetattr() returned an error we cannot handle */
+  basicvars.runflags.inredir = TRUE;    /* tcgetattr() returned ENOTTY - use C functions for input */
+  return TRUE;
+#else /* !DOS */
+
+  // Windows target, nothing to do
+  // -----------------------------
+  return TRUE;
+
+#endif
+#endif /* DOSWIN */
+
+#ifdef TARGET_UNIX
+  // Unix target
+  // -----------
+  struct termios tty;
+
+/* Set up keyboard for unbuffered I/O */
+  if (tcgetattr(fileno(stdin), &tty) < 0) {	/* Could not obtain keyboard parameters	*/
+    nokeyboard=1;
+/* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
+** a keyboard and so the program does simple reads from stdin rather than use the custom
+** keyboard code.
+*/
+#ifndef USE_SDL				/* if SDL the window can still poll for keyboard input	*/
+    if (errno != ENOTTY) return FALSE;  /* tcgetattr() returned an error we cannot handle	*/
+    basicvars.runflags.inredir = TRUE;	/* tcgetattr() returned ENOTTY - use C functions for input */
+#endif
+    return TRUE;
+  }
+
+/* We are connected to a keyboard, so set it up for unbuffered input */
+  origtty = tty;			/* Preserve original settings for later	*/
+#ifdef TARGET_LINUX
+  tty.c_lflag &= ~(XCASE|ECHONL|NOFLSH); /* Case off, EchoNL off, Flush off	*/
+#else
+  tty.c_lflag &= ~(ECHONL|NOFLSH);	 /* EchoNL off, Flush off		*/
+#endif
+  tty.c_lflag &= ~(ICANON|ECHO);	/* Line editor off, Echo off		*/
+  tty.c_iflag &= ~(ICRNL|INLCR);	/* Raw LF and CR			*/
+  tty.c_cflag |= CREAD;			/* Enable reading			*/
+  tty.c_cc[VTIME] = 1;			/* 1cs timeout				*/
+  tty.c_cc[VMIN] = 1;			/* One character at a time		*/
+  if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
+					/* Could not set up keyboard in the way desired	*/
+  return TRUE;
+}
+#endif /* UNIX */
+
+#ifdef TARGET_AMIGA
+  // AMIGA target - just turn Console on
+  // -----------------------------------
+  rawcon(1);
+  return TRUE;
+#endif /* AMIGA */
+#endif
+}
+
+
+/* kbd_quit called to terminate keyboard control on termination */
+/* ------------------------------------------------------------ */
+void kbd_quit() {
+#ifdef TARGET_RISCOS
+  // RISC OS, nothing to do
+  // ----------------------
+#else /* !RISCOS */
+
+#ifdef TARGET_DOSWIN
+  // DOS/Windows target, nothing to do
+  // ---------------------------------
+#endif /* DOSWIN */
+
+#ifdef TARGET_UNIX
+  // Unix target
+  // -----------
+  (void) tcsetattr(keyboard, TCSADRAIN, &origtty);
+#endif /* UNIX */
+
+#ifdef TARGET_AMIGA
+  // AMIGA target
+  // ------------
+  rawcon(0);
+#endif /* AMIGA */
+#endif
+}
 
 
 /* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
@@ -530,6 +675,16 @@ int32 kbd_inkey(int32 arg) {
 
 #endif /* !USE_SDL */
 
+<<<<<<< HEAD
+#ifdef TARGET_AMIGA
+/* I think only AMIGA left by now. A KeyIO call with command KBD_READMATRIX reads the
+ * keyboard matrix to a 16-byte buffer, one bit per keystate, similar to the SDL
+ * GetKeyState call.
+ */
+    return 0;
+#endif
+    return emulate_inkey(arg ^ -1);		/* Drop through to legacy call		*/
+=======
 /* AMIGA, BEOS, non-SDL UNIX remaining */
 #ifdef TARGET_AMIGA
 /* A KeyIO call with command KBD_READMATRIX reads the keyboard matrix to a 16-byte buffer,
@@ -541,6 +696,7 @@ int32 kbd_inkey(int32 arg) {
     return 0;					/* For now, return NOT PRESSED		*/
 #endif
     return 0;					/* Everything else, return NOT PRESSED	*/
+>>>>>>> jgh-keyboard
   }
 
 #endif /* !RISCOS */
@@ -550,7 +706,7 @@ int32 kbd_inkey(int32 arg) {
 /* kbd_modkeys - do a fast read of state of modifier keys */
 /* ------------------------------------------------------ */
 /* Equivalent to the BBC MOS OSBYTE 118/KEYV call
-/* arg is a bitmap of modifier keys to test for
+ * arg is a bitmap of modifier keys to test for
  *  bit<n> tests key<n>, ie b0=Shift, b1=Ctrl, b2=Alt, etc.
  * Currently, only SHIFT tested by SDL for VDU paged scrolling
  */
@@ -603,6 +759,10 @@ int GetAsyncKeyState(int key) {
 //  : "r" (x)
 //  );
 //  return y;
+<<<<<<< HEAD
+//}
+=======
+>>>>>>> jgh-keyboard
 #endif
 
 
