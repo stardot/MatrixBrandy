@@ -31,8 +31,8 @@
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
 #define BRANDY_PATCHLEVEL "17"
-#define BRANDY_DATE  "28 Dec 2018"
-#define BRANDY_PATCHDATE  "JGH190107-50BIRTHDAY"
+#define BRANDY_DATE  "05 Dec 2018"
+//#define BRANDY_PATCHDATE  "JGH190107-50BIRTHDAY"
 
 #ifndef __target_h
 #define __target_h
