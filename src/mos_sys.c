@@ -75,7 +75,38 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_OS_NewLine:
       emulate_printf("\r\n"); break;
     case SWI_OS_ReadC:
+#ifdef NEWKBD
+      outregs[0]=kbd_get(); break;
+#else
       outregs[0]=emulate_get(); break;
+#endif
+#ifdef NEWKBD
+    case SWI_OS_ReadLine:
+// RISC OS method is to tweek entry parameters then drop into ReadLine32
+// R0=b31-b28=flags, b27-b0=address
+// R1=length (buffer size-1)
+// R2=lowest acceptable character
+// R3=highest acceptable character
+// R4=b31-b24=reserved, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
+//
+      inregs[4]=(inregs[4] & 0x00FFFFFF) | (inregs[0] & 0xFF000000);
+      inregs[0]=(inregs[0] & 0x00FFFFFF);	/* Move flags to R4			*/
+    case SWI_OS_ReadLine32:
+// R0=address
+// R1=length (buffer size-1)
+// R2=lowest acceptable character
+// R3=highest acceptable character
+// R4=b31-b24=flags, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
+//
+      vptr=(char *)(inregs[0]+basicvars.offbase);
+      *vptr='\0';
+//                       addr   length        lochar           hichar                     flags  echo
+      a=kbd_readline(vptr, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
+      outregs[1]=a;				/* Returned length			*/
+      *(char *)(vptr+a)=13;			/* Added expected terminating <cr>	*/
+						/* Should also set Carry if Escape	*/
+      break;
+#else
     case SWI_OS_ReadLine:
       vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
       *vptr='\0';
@@ -92,6 +123,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
       break;
+#endif
     case SWI_ColourTrans_SetGCOL:
       outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       outregs[2]=0; outregs[3]=inregs[3] & 0x80; outregs[4]=inregs[4];

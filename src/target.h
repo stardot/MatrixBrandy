@@ -30,8 +30,9 @@
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "17"
-#define BRANDY_DATE  "05 Dec 2018"
+#define BRANDY_DATE  "28 Dec 2018"
+#define BRANDY_PATCHLEVEL "18"
+#define BRANDY_PATCHDATE  "JGH190107-50BIRTHDAY"
 
 #ifndef __target_h
 #define __target_h
@@ -232,6 +233,21 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR  "ed"
 #define DIR_SEPS "/:"
+#define DIR_SEP  '/'
+#endif
+
+// Nothing tests for BEOS, but set up defines here to claim OSVER=&FB.
+#ifdef __BEOS__
+#define TARGET_BEOS
+#define BRANDY_OS "BEOS"
+#define OSVERSION 0xFB
+// BEOS uses dir/file.ext filesystem, so MACTYPE must be %000x1xxx
+// We use 8 because it is Unix-y
+#define MACTYPE   0x0800
+// Don't really know what the editor should be
+#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
 #define DIR_SEP  '/'
 #endif
 

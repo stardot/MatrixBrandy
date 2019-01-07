@@ -800,8 +800,8 @@ static void fn_inkey(void) {
 
 /*
 ** 'fn_inkeydol' carries out the same functions as 'fn_inkey' except that the
-** result is returned as a string. Where the result would be -1, a null
-** string is saved on the Basic stack instead
+** result is returned as a string. Where the result is -1, a null string is
+** saved on the Basic stack.
 */
 static void fn_inkeydol(void) {
   int32 result;

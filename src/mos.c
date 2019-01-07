@@ -52,6 +52,7 @@
 **                  Have removed some BODGE conditions.
 ** 09-Dec-2018 JGH: *HELP BASIC lists attributions, as per license.
 **                  Layout and content needs a bit of tidying up.
+** 05-Jan-2019 JGH: GSTrans returns string+length, so embedded |@ allowed in *KEY.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -816,6 +817,10 @@ int32 mos_adval(int32 x) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
+#ifdef NEWKBD
+  if (x==16) return kbd_get(); /* test */
+#endif
+
   return 0;
 }
 
@@ -988,10 +993,8 @@ void mos_waitdelay(int32 time) {
  * On entry: pointer to string to convert
  * On exit:  pointer to converted string, overwriting input string
  *           recognises |<letter> |" || !? |!
- * Bug: hello"there does not give correct result - fixed
- * Bug: string terminated with /0 so cannot embed |@ in string
  */
-static char *mos_gstrans(char *instring) {
+static char *mos_gstrans(char *instring, unsigned int *len) {
 	int quoted=0, escape=0;
 	char *result, *outstring;
 	char ch;
@@ -1026,6 +1029,7 @@ static char *mos_gstrans(char *instring) {
 	*outstring=0;
 	if (quoted && *(instring-1) != '"')
 		error(ERR_BADSTRING);
+	*len=outstring-result;
 	return result;
 }
 
@@ -1360,13 +1364,6 @@ static void cmd_help(char *command)
 	emulate_printf("\r\n%s\r\n", IDSTRING);
 	if (cmd == HELP_BASIC) {
 // Need to think about making this neat but informative
-// Matrix Brandy Basic V version 1.21.18 (DJGPP/NEWKBD) 05 Dec 2018
-//   Git commit 1234567890 on branch master (25 Dec 2018)
-//   Forked from Brandy Basic v1.20.1 (24 Sep 2014)
-//   Merged Banana Brandy Basic v0.02 (05 Apr 2014)
-//   Matrix Brandy Basic patch  v0.17 (28 Dec 2018)
-//   Patch JGH181228 compiled at 07:09:59 on 28 Dec 2018
-
 #ifdef BRANDY_GITCOMMIT
 		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
@@ -1384,9 +1381,9 @@ static void cmd_help(char *command)
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
 		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
 		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
-//#if defined(USE_SDL) | defined(TARGET_UNIX)
-//		emulate_printf("  WINTITLE <window title>\r\n");
-//#endif
+#if defined(USE_SDL) | defined(TARGET_UNIX)
+		emulate_printf("  WINTITLE <window title>\r\n");
+#endif
 	}
 #if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {
@@ -1413,11 +1410,11 @@ static void cmd_help(char *command)
  * The string parameter is GSTransed so that '|' escape sequences
  * can be used.
  * On entry, 'command' points at the start of the parameter string.
- * Bug: as uses 0-terminated strings, cannot embed |@ in string.
+ * Bug: as uses 0-terminated strings, cannot embed |@ in string. - fixed
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
 static void cmd_key(char *command) {
-	unsigned int key;
+	unsigned int key, len;
 
 	while (*command == ' ') command++;		// Skip spaces
 	if (*command == 0)
@@ -1427,9 +1424,14 @@ static void cmd_key(char *command) {
 		error(ERR_BADKEY);
 	if (*command == ',') command++;			// Step past any comma
 
-	command=mos_gstrans(command);			// Get GSTRANS string
-	if (set_fn_string(key, command, strlen(command)))
+	command=mos_gstrans(command, &len);		// Get GSTRANS string
+#ifdef NEWKBD
+	if (kbd_fnkeyset(key, command, len))
 		error(ERR_KEYINUSE);
+#else
+	if (set_fn_string(key, command, len))
+		error(ERR_KEYINUSE);
+#endif
 }
 
 /*
@@ -1451,7 +1453,11 @@ static void cmd_show(char *command) {
 	if (*command != 0) error(ERR_BADCOMMAND);
 
 	for (; key1 <= key2; key1++) {
+#ifdef NEWKBD
+		string=kbd_fnkeyget(key1, &len);
+#else
 		string=get_fn_string(key1, &len);
+#endif
 		emulate_printf("*Key %d \x22", key1);
 		while (len--) {
 			c=*string++;
@@ -2083,10 +2089,14 @@ switch (areg) {
 		osbyte113(xreg);
 #endif
 		break;
+
 	case 128:		// OSBYTE 128 - ADVAL
-		return (mos_adval((yreg << 8) | xreg) << 8) | 128;
+		return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
 
 	case 129:		// OSBYTE 129 - INKEY
+#ifdef NEWKBD
+		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
+#else
 		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
 		if ((yreg=255) && (xreg >= 128)) {
 #ifdef USE_SDL
@@ -2095,6 +2105,7 @@ switch (areg) {
 #endif
 		    return (0x81);
 		}
+#endif
 		break;
 	case 130:		// OSBYTE 130 - High word of user memory
 		areg = basicvars.workspace - basicvars.offbase;
@@ -2113,6 +2124,7 @@ switch (areg) {
 //	case 133:		// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 	case 134:		// OSBYTE 134 - Read POS and VPOS
 	case 165:		// Identical, since we don't have an editing cursor
+// The ifdefs here should be devolved into the called functions
 #ifdef USE_SDL
 		return osbyte134_165(areg);
 #else

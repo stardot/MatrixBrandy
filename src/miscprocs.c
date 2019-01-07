@@ -19,6 +19,9 @@
 **
 **
 **	This module contains a selection of miscellaneous functions
+**
+** 06-Jan-2019 JGH: secure_tmpnam() tweeked.
+**
 */
 
 #include <stdio.h>
@@ -472,7 +475,12 @@ static void strip(char line[]) {
 boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = NUL;
+#ifdef NEWKBD
+  result = kbd_readline(line, linelen, 0);
+  result = READ_OK;	/* temp'y bodge */
+#else
   result = emulate_readline(line, linelen, 0);
+#endif
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
@@ -491,7 +499,12 @@ boolean read_line(char line[], int32 linelen) {
 */
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
+#ifdef NEWKBD
+  result = kbd_readline(line, linelen,0);
+  result = READ_OK;	/* temp'y bodge */
+#else
   result = emulate_readline(line, linelen,0);
+#endif
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
@@ -506,6 +519,12 @@ boolean amend_line(char line[], int32 linelen) {
 */
 FILE *secure_tmpnam(char *name)
 {
+#ifdef TARGET_MINGW
+  FILE *fdes;
+  fdes=tmpfile();
+  if (!fdes) return NULL;
+  return fdes;
+#else
   int fdes;
   strcpy(name, "/tmp/.brandy.XXXXXX");
 #if defined(BODGEMGW) | defined(BODGESDL)
@@ -515,4 +534,5 @@ FILE *secure_tmpnam(char *name)
   if (!fdes) return NULL;
   return fdopen(fdes, "w+");
 #endif
+#endif /* TARGET_MINGW */
 }

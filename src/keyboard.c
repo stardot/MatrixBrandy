@@ -51,6 +51,10 @@
 **              Credit: con_keyscan() from JGH 'console' library
 ** 27-Dec-2018 JGH: DOS target can detect Shift/Ctrl/Alt as that's the only DOS API.
 ** 28-Dec-2018 JGH: kbd_init(), kbd_quit() all consolidated.
+** 05-Jan-2019 JGH: kbd_fnkeyget(), kbd_fnkeyset().
+** 06-Jan-2019 JGH: Started on kbd_readline().
+**
+** Note: This is the only file that tests for BEOS.
 **
 */
 
@@ -164,7 +168,11 @@
 /* holdcount and holdstack are used when decoding ANSI key sequences. If a
 ** sequence is read that does not correspond to an ANSI sequence the
 ** characters are stored here so that they can be returned by future calls
+<<<<<<< HEAD
 ** to 'kbd_get'. Note that this is a *stack* not a queue.
+=======
+** to 'kbd_get()'. Note that this is a *stack* not a queue.
+>>>>>>> jgh-keyboard
 */
 static int32 holdcount;		/* Number of characters held on stack			*/
 static int32 holdstack[8];	/* Hold stack - Characters waiting to be passed back via 'get' */
@@ -216,6 +224,7 @@ Uint8 mousestate, *keystate=NULL;
  #include "kernel.h"
  #include "swis.h"
 #else
+ #include <stdlib.h>
  #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
   #include <windows.h>
   #include <keysym.h>
@@ -224,7 +233,70 @@ Uint8 mousestate, *keystate=NULL;
 
 static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
+static int32 read_fn_string(void);		/* To prevent a forward reference	*/
 
+
+/* kbd_init called to initialise the keyboard code
+** --------------------------------------------------------------
+** Clears the function key strings, checks if stdin is connected
+** to the keyboard or not. If it is then the keyboard functions
+** are used to read keypresses. If not, then standard C functions
+** are used instead, the assumption being that stdin is taking
+** input from a file, similar to *EXEC.
+** -------------------------------------------------------------- */
+boolean kbd_init() {
+#ifdef TARGET_RISCOS
+  // RISC OS, nothing to do
+  // ----------------------
+  return TRUE;
+#else /* !RISCOS */
+
+  // Non-RISC OS, perform the action manually
+  // ----------------------------------------
+  int n;
+
+  /* We do function key processing outselves */
+  for (n = 0; n < FN_KEY_COUNT; n++) fn_key[n].text = NIL;
+  fn_string_count = 0;
+  fn_string = NIL;
+
+  /* We provide a line editor */
+  holdcount = 0;
+  histindex = 0;
+  highbuffer = 0;
+  enable_insert = TRUE;
+  set_cursor(enable_insert);
+
+#ifdef TARGET_DOSWIN
+#ifdef TARGET_DJGPP
+  // DOS target
+  // ----------
+  struct termios tty;
+
+  if (tcgetattr(fileno(stdin), &tty) == 0) return TRUE;		/* Keyboard being used */
+/* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
+** a keyboard and so the program does simple reads from stdin rather than use the custom
+** keyboard code. If the error is not ENOTTY then something has gone wrong so we abort
+** the program
+*/
+  if (errno != ENOTTY) return FALSE;    /* tcgetattr() returned an error we cannot handle */
+  basicvars.runflags.inredir = TRUE;    /* tcgetattr() returned ENOTTY - use C functions for input */
+  return TRUE;
+#else /* !DOS */
+
+  // Windows target, nothing to do
+  // -----------------------------
+  return TRUE;
+
+#endif
+#endif /* DOSWIN */
+
+#ifdef TARGET_UNIX
+  // Unix target
+  // -----------
+  struct termios tty;
+
+<<<<<<< HEAD
 /* Veneers, fill in later */
 int   kbd_fkeyset(int key, char *string, int length) {
 		return set_fn_string(key, string, length); }
@@ -232,6 +304,104 @@ char *kbd_fkeyget(int key, int *len) {
 		return get_fn_string(key, len); }
 readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
 		return emulate_readline(&buffer[0], length, echochar); }
+=======
+/* Set up keyboard for unbuffered I/O */
+  if (tcgetattr(fileno(stdin), &tty) < 0) {	/* Could not obtain keyboard parameters	*/
+    nokeyboard=1;
+/* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
+** a keyboard and so the program does simple reads from stdin rather than use the custom
+** keyboard code.
+*/
+#ifndef USE_SDL				/* if SDL the window can still poll for keyboard input	*/
+    if (errno != ENOTTY) return FALSE;  /* tcgetattr() returned an error we cannot handle	*/
+    basicvars.runflags.inredir = TRUE;	/* tcgetattr() returned ENOTTY - use C functions for input */
+#endif
+    return TRUE;
+  }
+
+/* We are connected to a keyboard, so set it up for unbuffered input */
+  origtty = tty;			/* Preserve original settings for later	*/
+#ifdef TARGET_LINUX
+  tty.c_lflag &= ~(XCASE|ECHONL|NOFLSH); /* Case off, EchoNL off, Flush off	*/
+#else
+  tty.c_lflag &= ~(ECHONL|NOFLSH);	 /* EchoNL off, Flush off		*/
+#endif
+  tty.c_lflag &= ~(ICANON|ECHO);	/* Line editor off, Echo off		*/
+  tty.c_iflag &= ~(ICRNL|INLCR);	/* Raw LF and CR			*/
+  tty.c_cflag |= CREAD;			/* Enable reading			*/
+  tty.c_cc[VTIME] = 1;			/* 1cs timeout				*/
+  tty.c_cc[VMIN] = 1;			/* One character at a time		*/
+  if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
+					/* Could not set up keyboard in the way desired	*/
+  return TRUE;
+}
+#endif /* UNIX */
+
+#ifdef TARGET_AMIGA
+  // AMIGA target - just turn Console on
+  // -----------------------------------
+  rawcon(1);
+  return TRUE;
+#endif /* AMIGA */
+#endif
+}
+
+
+/* kbd_quit called to terminate keyboard control on termination */
+/* ------------------------------------------------------------ */
+void kbd_quit() {
+#ifdef TARGET_RISCOS
+  // RISC OS, nothing to do
+  // ----------------------
+#else /* !RISCOS */
+
+#ifdef TARGET_DOSWIN
+  // DOS/Windows target, nothing to do
+  // ---------------------------------
+#endif /* DOSWIN */
+
+#ifdef TARGET_UNIX
+  // Unix target
+  // -----------
+  (void) tcsetattr(keyboard, TCSADRAIN, &origtty);
+#endif /* UNIX */
+
+#ifdef TARGET_AMIGA
+  // AMIGA target
+  // ------------
+  rawcon(0);
+#endif /* AMIGA */
+#endif
+}
+
+
+#ifndef TARGET_RISCOS
+/* kbd_fnkeyset - define a function key string */
+/* ------------------------------------------- */
+/* Definition is defined by length, so can contain NULs
+ * Returns:   0 if ok
+ *          <>0 if can't set because key is in use
+ */
+int kbd_fnkeyset(int key, char *string, int length) {
+  if (fn_string_count) return fn_string_count;		/* Key in use			*/
+  if (fn_key[key].text != NIL) free(fn_key[key].text);	/* Remove existing definition	*/
+  fn_key[key].length = length;
+  fn_key[key].text = malloc(length);			/* Get space for new definition	*/
+  if (fn_key[key].text != NIL) memcpy(fn_key[key].text, string, length);
+  return 0;						/* Ok				*/
+}
+
+/* kbd_fnkeyget - get a function key string for *SHOW */
+/* -------------------------------------------------- */
+/* Returns: string which can include NULs
+ *          len updated with length of string
+ */
+char *kbd_fnkeyget(int key, int *len) {
+  *len=fn_key[key].length;
+  return fn_key[key].text;
+}
+#endif /* RISCOS */
+>>>>>>> jgh-keyboard
 
 
 /* kbd_init called to initialise the keyboard code
@@ -447,7 +617,7 @@ int32 kbd_inkey(int32 arg) {
 
 						/* Exceptions from SDL keyscan		*/
         case 46:  return (keystate[0x5C] !=0 &&
-			  GetAsyncKeyState(0xDC) < 0  ? -1 : 0);	/* ?/Y/etc	*/
+			  GetAsyncKeyState(0xDC) < 0  ? -1 : 0);	/* UKP/Y/etc	*/
         case 90:  return (keystate[0x5C] !=0 &&
 			  GetAsyncKeyState(0xDC) == 0 ? -1 : 0);	/* K#  #~	*/
 #endif
@@ -473,14 +643,14 @@ int32 kbd_inkey(int32 arg) {
       if (((int)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {	/* BBC layout keyboard	*/
 	/* Note: as a console app, this is the ID from when the program started		*/
         switch (arg) {
-          case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);	/* ^~      */
-          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);	/* ?/Y/etc */
-          case 72: return (GetAsyncKeyState(0xBA)<0 ? -1 : 0);	/* :       */
-          case 87: return (GetAsyncKeyState(0xBB)<0 ? -1 : 0);	/* ;       */
-          case 90:						/* #~      */
-          case 93:						/* =+      */
-          case 94:						/* Left \| */
-          case 120:						/* \|      */
+          case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);	/* ^~        */
+          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);	/* UKP/Y/etc */
+          case 72: return (GetAsyncKeyState(0xBA)<0 ? -1 : 0);	/* :         */
+          case 87: return (GetAsyncKeyState(0xBB)<0 ? -1 : 0);	/* ;         */
+          case 90:						/* #~  K#    */
+          case 93:						/* =+        */
+          case 94:						/* Left \|   */
+          case 120:						/* \|        */
             return 0;
         }
       }
@@ -505,6 +675,7 @@ int32 kbd_inkey(int32 arg) {
 
 #endif /* !USE_SDL */
 
+<<<<<<< HEAD
 #ifdef TARGET_AMIGA
 /* I think only AMIGA left by now. A KeyIO call with command KBD_READMATRIX reads the
  * keyboard matrix to a 16-byte buffer, one bit per keystate, similar to the SDL
@@ -513,23 +684,39 @@ int32 kbd_inkey(int32 arg) {
     return 0;
 #endif
     return emulate_inkey(arg ^ -1);		/* Drop through to legacy call		*/
+=======
+/* AMIGA, BEOS, non-SDL UNIX remaining */
+#ifdef TARGET_AMIGA
+/* A KeyIO call with command KBD_READMATRIX reads the keyboard matrix to a 16-byte buffer,
+ * one bit per keystate, similar to the SDL GetKeyState call.
+ */
+    return 0;					/* For now, return NOT PRESSED		*/
+#endif
+#ifdef TARGET_BEOS
+    return 0;					/* For now, return NOT PRESSED		*/
+#endif
+    return 0;					/* Everything else, return NOT PRESSED	*/
+>>>>>>> jgh-keyboard
   }
 
 #endif /* !RISCOS */
 }
 
 
-/* kbd_modkeys - fast read state of modifier keys */
-/* ---------------------------------------------- */
-/* Currently, only SHIFT tested by SDL for VDU paged scrolling		*/
-/* Need to decide what arg means. keynum? bitmap? eg %11=Ctrl+Shift	*/
+/* kbd_modkeys - do a fast read of state of modifier keys */
+/* ------------------------------------------------------ */
+/* Equivalent to the BBC MOS OSBYTE 118/KEYV call
+ * arg is a bitmap of modifier keys to test for
+ *  bit<n> tests key<n>, ie b0=Shift, b1=Ctrl, b2=Alt, etc.
+ * Currently, only SHIFT tested by SDL for VDU paged scrolling
+ */
 int32 kbd_modkeys(int32 arg) {
 #ifdef USE_SDL
   if (keystate==NULL) return 0;				/* Not yet been initialised	*/
   if (keystate[SDLK_LSHIFT] || keystate[SDLK_RSHIFT])	/* Either SHIFT key		*/
     return -1;
 #endif
-  return 0;
+  return kbd_inkey(-1);					/* Just test SHIFT for now	*/
 }
 
 
@@ -572,7 +759,10 @@ int GetAsyncKeyState(int key) {
 //  : "r" (x)
 //  );
 //  return y;
+<<<<<<< HEAD
 //}
+=======
+>>>>>>> jgh-keyboard
 #endif
 
 
@@ -590,7 +780,104 @@ int32 kbd_get(void) {
   return regs.r[0];
 
 #else /* !RISCOS */
+
+  int ch;
+
+  if (basicvars.runflags.inredir) {		/* Input redirected (equiv. of *EXEC)	*/
+    if ((ch=getch()) != EOF) return ch;
+    else error(ERR_READFAIL);			/* I/O error occured on STDIN		*/
+  }
+  if (fn_string != NIL) return read_fn_string(); /* Function key active			*/
+  if (holdcount > 0) return pop_key();		/* Return held character if one is held	*/
+
+  // Now it gets rather complicated
   return emulate_get();				/* Drop through to legacy call		*/
+
+#endif /* !RISCOS */
+}
+
+
+/* kbd_readline - read a line of text from input stream
+** --------------------------------------------------------------------
+** On entry:
+** char *buffer - address to place text
+** int32 length - size of buffer, maximum line length-1
+** int32 chars  - processing characters:
+**       b0-b7:   echo character
+**       b8-b15:  lowest acceptable character
+**       b16-b23: highest acceptable character
+**       b24-b31: flags: b31=use echo character
+** Returns:
+**       int32:   >=0 - line length read, also offset to terminator
+**                 <0 - failed
+**
+** The data input is stored at 'buffer'. Up to 'length' characters
+** can be read. A 'null' is added after the last character. 'buffer'
+** can be prefilled with characters if required to allow existing text
+** to be edited. Note that memory after the 'null' may be overwritten
+** up to the maximum size of the buffer.
+**
+** Note that 'length' is defined differently to BBC/RISC OS, where 'length'
+** is the buffer size-1. That is, the length is the highest possible offset
+** to the terminator, where a 'length' of zero requires a buffer size of
+** one to allow the terminator to be at buffer[0]. In Brandy, 'length' is
+** the size of the buffer, so a 'length' of one results in the terminator
+** being at buffer[0], and a 'length' of zero is illegal.
+**
+** The readline function provides both DOS and Unix style line editing
+** facilities and line history, for example, both 'HOME' and control 'A'
+** move the cursor to the start of the line.
+**
+** There is a problem with LCC-WIN32 running under Windows 98 in that the
+** extended key codes for the cursor movement keys (insert, left arrow
+** and so on) are not returned correctly by 'getch()'. In theory they
+** should appear as a two byte sequence of 0xE0 followed by the key code.
+** Only the 0xE0 is returned. This appears to be a bug in the C runtime
+** library.
+** -------------------------------------------------------------------- */
+int32 kbd_readline(char *buffer, int32 length, int32 chars) {
+
+#ifdef TARGET_RISCOS
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  int32 carry;
+
+// RISC OS compiler doesn't like code before variable declaration, so have to duplicate
+  if (length==0 || length<0) return 0;		/* Filter out impossible or daft calls	*/
+  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+
+  regs.r[0] = TOINT(&buffer[0]);
+  regs.r[1] = length - 1;			/* Subtract one to allow for terminator	*/
+  regs.r[2] = (chars >> 8) & 0xFF;		/* Lowest acceptable character		*/
+  regs.r[3] = (chars >> 16) & 0xFF;		/* Highest acceptable character		*/
+
+  if (regs.r[0] & 0xFF000000) {			/* High memory				*/
+    regs.r[4] = chars & 0xFF0000FF;		/* R4=Echo character and flags		*/
+    oserror = _kernel_swi_c(0x00007D, &regs, &regs, &carry);	/* OS_ReadLine32	*/
+    /* If OS_ReadLine32 doesn't exist, we don't have high memory anyway, so safe	*/
+
+  } else {					/* Low memory				*/
+    regs.r[0]=regs.r[0] | (chars & 0xFF000000);	/* R0=Flags and address			*/
+    regs.r[4]=chars & 0x000000FF;		/* R4=Echo character			*/
+    oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
+  }
+
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (carry) buffer[0] = NUL;			/* Carry is set - 'Escape' was pressed	*/
+  else       buffer[regs.r[1]] = NUL;		/* Number of characters returned in R1	*/
+
+  return carry == 0 ? regs.r[1] : -1;		/* To do: -1=READ_ESC			*/
+#else /* !RISCOS */
+
+  if (length==0 || length<0) return 0;		/* Filter out impossible or daft calls	*/
+  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+
+  length=(int32)emulate_readline(&buffer[0], length, chars & 0xFF);
+  if (length==READ_OK) return strlen(buffer);
+  if (length==READ_ESC) return -1;
+  return -2;
 
 #endif /* !RISCOS */
 }
@@ -693,7 +980,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   int32 carry;
   regs.r[0] = TOINT(&buffer[0]);
   regs.r[1] = length-1;         /* -1 to allow for a NULL to be added at the end in all cases */
-  regs.r[2] = 0;                /* Allow any character to be input */
+  regs.r[2] = 32;               /* Allow any character to be input */
   regs.r[3] = 255;
   oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
@@ -1397,6 +1684,7 @@ static int32 decode_sequence(void) {
 /*
 ** 'emulate_get' emulates the Basic function 'get'. It is also the
 ** input routine used when reading a line from the keyboard
+** Returns 00,nn for special keys, nn for normal keys.
 */
 int32 emulate_get(void) {
   byte ch;
@@ -1405,9 +1693,9 @@ int32 emulate_get(void) {
   int32 errcode;
 #endif
 
-#ifdef USE_SDL
-  reset_vdu14lines();	/* I think this should be done in INPUT not in GET */
-#endif
+// #ifdef USE_SDL
+//   reset_vdu14lines();	/* This should be done in INPUT not in GET */
+// #endif
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* Not reading from the keyboard */
 /*
  * Check if characters are being taken from a function
@@ -1965,9 +2253,10 @@ static void shift_up(char buffer[], int32 offset) {
 */
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   int32 ch, lastplace;
-  if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read fron file stdin */
+
+  if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
-    p = fgets(buffer, length, stdin);
+    p = fgets(buffer, length, stdin);	/* Get all in one go */
     if (p == NIL) {     /* Call failed */
       if (ferror(stdin)) error(ERR_READFAIL);   /* I/O error occured on stdin */
       buffer[0] = NUL;          /* End of file */
@@ -1975,6 +2264,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     }
     return READ_OK;
   }
+
+#ifdef USE_SDL
+  reset_vdu14lines();	/* This should be done in INPUT not in GET */
+#endif
   highplace = strlen(buffer);
   if (highplace > 0) emulate_vdustr(buffer, highplace);
   place = highplace;

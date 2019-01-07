@@ -48,6 +48,8 @@ extern void  kbd_quit();
 extern int32 kbd_get(void);
 extern int32 kbd_inkey(int32);
 extern int32 kbd_modkeys(int32);
-extern int32 kbd_get(void);
+extern int   kbd_fnkeyset(int key, char *string, int length);
+extern char *kbd_fnkeyget(int key, int *len);
+extern int32 kbd_readline(char *buffer, int32 length, int32 chars);
 #endif
 #endif

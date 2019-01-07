@@ -82,7 +82,9 @@ int main(int argc, char *argv[]) {
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
   init1();
+#ifndef NONET
   brandynet_init();
+#endif
 #ifdef BRANDYAPP
    basicvars.runflags.quitatend = TRUE;
    basicvars.runflags.loadngo = TRUE;
