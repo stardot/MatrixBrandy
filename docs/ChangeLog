@@ -8,9 +8,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MODE 7 scrolling text fix
 - MODE 135 now selects MODE 7.
 - Fix VDU20 for text-mode UNIX build
-- New keyboard handler (JGHarston) - add -DNEWKBD to makefile to CFLAGS to use.
 - Top-level makefiles now read BRANDY_BUILD_FLAGS environment variable for
   additional build flags
+- New keyboard handler (JGHarston) - add -DNEWKBD to makefile to CFLAGS or
+  define BRANDY_BUILD_FLAGS=-DNEWKBD in your shell environment to use.
 * V1.21.17
 - Fix memory leak in MODE change
 - Fix Filled Rectangles and CLG with GCOL actions, previously implemented
