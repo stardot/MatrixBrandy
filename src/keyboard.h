@@ -46,6 +46,7 @@ extern void osbyte44(int x);
 extern boolean kbd_init();
 extern void  kbd_quit();
 extern int32 kbd_get(void);
+extern int32 kbd_get0(void);
 extern int32 kbd_inkey(int32);
 extern int32 kbd_modkeys(int32);
 extern int   kbd_fnkeyset(int key, char *string, int length);

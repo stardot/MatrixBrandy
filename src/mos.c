@@ -817,8 +817,8 @@ int32 mos_adval(int32 x) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
-  if (x==16) return kbd_get(); /* test */
-
+  if (x==16) return kbd_get0();	/* Read directly from KBD */
+  
   return 0;
 }
 

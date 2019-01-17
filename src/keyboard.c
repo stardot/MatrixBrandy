@@ -53,6 +53,10 @@
 ** 28-Dec-2018 JGH: kbd_init(), kbd_quit() all consolidated.
 ** 05-Jan-2019 JGH: kbd_fnkeyget(), kbd_fnkeyset().
 ** 06-Jan-2019 JGH: Started on kbd_readline().
+** 17-Jan-2019 JGH: Merged common MinGW and DJGPP kbd_get() code. Modifiers fully
+**                  work with non-function special keys. Some temporary scaffolding
+**                  in readline().
+**                  Tested on: MinGW
 **
 ** Note: This is the only file that tests for BEOS.
 **
@@ -230,6 +234,8 @@ Uint8 mousestate, *keystate=NULL;
 static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
 static int32 read_fn_string(void);		/* To prevent a forward reference	*/
+//static int32 is_fn_key(int32 key);		/* To prevent a forward reference	*/
+static int32 switch_fn_string(int32 key);	/* To prevent a forward reference	*/
 
 
 /* kbd_init called to initialise the keyboard code
@@ -387,6 +393,20 @@ char *kbd_fnkeyget(int key, int *len) {
   *len=fn_key[key].length;
   return fn_key[key].text;
 }
+
+/* kbd_isfnkey - check if keycode is a function key */
+/* ------------------------------------------------ */
+// NB: INSERT is actually function key 13.
+int32 kbd_isfnkey(int32 key) {
+  if (key & 0x100) {
+    key = key & 0xFF;
+    if (key >= KEY_F0 && key <= KEY_F9) return key - KEY_F0;
+    if (key >= KEY_F10 && key <= KEY_F12) return key - KEY_F10 + 10;
+  }
+  return -1;						/* Not a function key		*/
+}
+
+// To do: move remaining function key code here
 #endif /* RISCOS */
 
 
@@ -552,7 +572,8 @@ int32 kbd_inkey(int32 arg) {
 /* Equivalent to the BBC MOS OSBYTE 118/KEYV call
 /* arg is a bitmap of modifier keys to test for
  *  bit<n> tests key<n>, ie b0=Shift, b1=Ctrl, b2=Alt, etc.
- * Currently, only SHIFT tested by SDL for VDU paged scrolling
+ * Currently, only SHIFT tested by SDL for VDU paged scrolling.
+ * To do: need S/C/A for modifying special keypresses.
  */
 int32 kbd_modkeys(int32 arg) {
 #ifdef USE_SDL
@@ -621,7 +642,7 @@ int32 kbd_get(void) {
 
 #else /* !RISCOS */
 
-  int ch;
+  int ch, fnkey;
 
   if (basicvars.runflags.inredir) {		/* Input redirected (equiv. of *EXEC)	*/
     if ((ch=getch()) != EOF) return ch;
@@ -630,10 +651,108 @@ int32 kbd_get(void) {
   if (fn_string != NIL) return read_fn_string(); /* Function key active			*/
   if (holdcount > 0) return pop_key();		/* Return held character if one is held	*/
 
-  // Now it gets rather complicated
-  return emulate_get();				/* Drop through to legacy call		*/
+// To do, allow *FX221-8 to specify special keypress expansion and *FX4 cursor key control
+// For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
+  if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
+#if defined(TARGET_DOSWIN) && !defined(USE_SDL)
+    if ((ch & 0x00F) >= 10) ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
+    if ((ch & 0x0CF) == 0xc6) ch=ch + 7;	/* INSERT */
+    if (ch == 0x1C7) ch=127;			/* DELETE */
+    if (ch == 0x1c8) ch=30;			/* HOME   */
+#endif
+  }
+  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key			*/
+  if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined		*/
+  return switch_fn_string(fnkey);		/* Switch to fnkey and return first char*/
 
 #endif /* !RISCOS */
+}
+
+
+/*
+** This table gives the mapping from DOS extended key codes to modified RISC OS equivalents.
+** These 'keyboard buffer' values are slightly different to RISC OS values to make them
+** easier to translate from host values. The low level 'buffer' values are the regular
+** 'Console library' values where all function keys are 0x180+n and non-function special
+** keys are all 0x1C0+n. They are then translated higher up to the RISC OS values documented
+** in the PRMs.
+**
+** Under DOS, the special keys, for example, 'Home', 'Page Up', 'F1' and so forth, appear
+** as a two byte sequence where the first byte is an escape character and the second
+** denotes the key. The escape character for DJGPP is always a null. The LCC-WIN32
+** version of 'getch' uses the value 0xE0 for keys such as 'Home' but zero for the
+** function keys. It also uses zero for the 'alt' versions of the keys.
+*/
+static byte dostable[] = {
+0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07, /* 00-07			*/
+0xc4,0xc1,0xc5,0x0b,0x0c,0x0d,0x0e,0x0f, /* sBS,sTAB,sRET,0C-0F		*/
+0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17, /* 10-17			*/
+0x18,0x19,0x1a,0xc3,0x1c,0x1d,0x1e,0x1f, /* 18-1A,sESC,1C-1F		*/
+0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27, /* 20-27			*/
+0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f, /* 28-2F			*/
+0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37, /* 30-37			*/
+0x38,0x39,0x3a,0x81,0x82,0x83,0x84,0x85, /* 38-3A,F1-F5			*/
+0x86,0x87,0x88,0x89,0x8a,0x45,0x46,0xc8, /* F6-F10,45,46,Home		*/
+0xcf,0xdf,0x4a,0xcc,0x4c,0xcd,0x4e,0xcb, /* Up,PgUp,4A,<-,4C,->,4E,End	*/
+0xce,0xde,0xc6,0xc7,0x91,0x92,0x93,0x94, /* Down,PgDn,Ins,Del,sF1-sF4	*/
+0x95,0x96,0x97,0x98,0x99,0x9a,0xa1,0xa2, /* sF5-sF10,cF1,cF2		*/
+0xa3,0xa4,0xa5,0xa6,0xa7,0xa8,0xa9,0xaa, /* cF3-cF10			*/
+0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7,0xb8, /* aF1-aF8			*/
+0xb9,0xba,0xa0,0xcc,0xcd,0xcb,0xde,0xc8, /* aF9-aF10,cPrint,c<-,c->,cEnd,cPgDn,cHome */
+0xdf,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0x7f, /* cPgUp,79-7F				*/
+0x80,0x81,0x82,0x83,0x84,0x8b,0x8c,0x9b, /* 80-84,F11-12,sF11			*/
+0x9c,0xab,0xac,0xbb,0xbc,0xcf,0x8e,0x8f, /* sF12,cF11-12,aF11-12,cUp,8E-8F	*/
+0x90,0xce,0xc6,0xc7,0xc1,0x95,0x96,0xc8, /* 90,cDown,cIns,cDel,cTab,95,96,aHome	*/
+0xcf,0xdf,0x9a,0xcc,0x9c,0xcd,0x9e,0xcb, /* aUp,aPgUp,9A,a<-,9C,a->,9E,aEnd	*/
+0xce,0xde,0xc6,0xc7,0xa4,0xc1,0xa6,0xa7, /* aDn,aPgDn,aIns,aDel,A4,aTab,A6-A7	*/
+0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xaf, /* A8-AF				*/
+0xb0,0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7,
+0xb8,0xb9,0xba,0xbb,0xbc,0xbd,0xbe,0xbf,
+0xc0,0xc1,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7,
+0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,
+0xd0,0xd1,0xd2,0xd3,0xd4,0xd5,0xd6,0xd7,
+0xd8,0xd9,0xda,0xdb,0xdc,0xdd,0xde,0xdf,
+0xe0,0xe1,0xe2,0xe3,0xe4,0xe5,0xe6,0xe7,
+0xe8,0xe9,0xea,0xeb,0xec,0xed,0xee,0xef,
+0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,
+0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff };
+
+
+int32 kbd_get0(void) {
+  int ch,s,c,a;
+
+// Keyboard buffer NULL prefixing is the opposite to RISC OS.
+// So, swap the prefixing around to convert to RISC OS mapping.
+// Extracting more guts from JGH Console library.
+// Tweek a bit to regularise low-level keycodes before being converted to RISC OS codes.
+#if defined(TARGET_DOSWIN) && !defined(USE_SDL)
+  ch=getch();
+  if (ch == NUL || ch == 0xE0) {		/* DOS escaped characters		*/
+    // When kbd_modkeys() returns all keys, change this to call it
+    s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
+    c=(GetAsyncKeyState(VK_CONTROL)<0);
+    a=(GetAsyncKeyState(VK_MENU)<0);
+    ch=getch();					/* Get second key byte			*/
+    if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
+    ch=dostable[ch];				/* Translate escaped character		*/
+    if ((ch & 0xC0) == 0xC0) {			/* Non-function keys need extra help	*/
+      if (s) ch=ch ^ 0x10;			/* SHIFT pressed			*/
+      if (c) ch=ch ^ 0x20;			/* CTRL pressed				*/
+      if (a) ch=ch ^ 0x30;			/* ALT pressed				*/
+    }
+    return ch | 0x100;				/* 0x100+nn - top-bit special keys	*/
+  }
+  return ch;					/* 0x00+nn - normal keypress		*/
+#else
+
+// Win+SDL, Unix+SDL, Unix+NoSDL, Amiga, BEOS, MacOS
+  ch=emulate_get();				/* Call legacy code			*/
+  if (ch == 0) {
+    ch=emulate_get();				/* Call legacy code			*/
+    if (ch & 0x80) ch = ch | 0x100;
+  }						/* 0x000+n=raw key, 0x100+n=special key	*/
+  return ch;
+#endif
 }
 
 
@@ -685,7 +804,7 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
   int32 carry;
 
 // RISC OS compiler doesn't like code before variable declaration, so have to duplicate
-  if (length==0 || length<0) return 0;		/* Filter out impossible or daft calls	*/
+  if (length<1) return 0;			/* Filter out impossible or daft calls	*/
   chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
 
   regs.r[0] = TOINT(&buffer[0]);
@@ -711,7 +830,7 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
   return carry == 0 ? regs.r[1] : -1;		/* To do: -1=READ_ESC			*/
 #else /* !RISCOS */
 
-  if (length==0 || length<0) return 0;		/* Filter out impossible or daft calls	*/
+  if (length<1) return 0;			/* Filter out impossible or daft calls	*/
   chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
 
   length=(int32)emulate_readline(&buffer[0], length, chars & 0xFF);
@@ -1711,6 +1830,7 @@ int32 emulate_inkey2(int32 arg) {
 ** for the 'alt' versions of the keys. Only unshifted, control- or alt-
 ** versions of the specials keys can be detected by this code
 */
+#ifndef NEWKBD
 static byte dostable []  = {
   0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
@@ -1730,6 +1850,7 @@ static byte dostable []  = {
   0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF
 };
 #endif
+#endif
 #ifndef USE_SDL
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
 /*
@@ -1737,6 +1858,7 @@ static byte dostable []  = {
 */
 int32 emulate_get(void) {
   int32 ch, fn_keyno, key;
+  
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* There is no keyboard to read */
 /*
  * Check if characters are being taken from a function
@@ -2092,7 +2214,7 @@ static void shift_up(char buffer[], int32 offset) {
 ** library.
 */
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
-  int32 ch, lastplace;
+  int32 ch, lastplace, pendch;
 
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
@@ -2116,6 +2238,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   do {
 #ifdef NEWKBD
     ch = kbd_get();
+    if ((ch & 0x100) || (ch == DEL)) {
+      pendch=ch & 0xFF;		/* temp */
+      ch = NUL;
+    }
 #else
     ch = emulate_get();
 #endif
@@ -2204,7 +2330,8 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       break;
     case NUL:                   /* Function or special key follows */
 #ifdef NEWKBD
-      ch = kbd_get();           /* Fetch the key details */
+//    ch = kbd_get();           /* Fetch the key details */
+      ch = pendch; /* temp */
 #else
       ch = emulate_get();       /* Fetch the key details */
 #endif
