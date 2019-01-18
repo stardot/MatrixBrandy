@@ -1,6 +1,9 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.21.19
+- Hopefully fixed the spurious cursor remnants.
+
 * V1.21.18
 - *SHOW implemented (JGHarston)
 - Bug fix for DEL in text-only builds (JGHarston)
@@ -9,9 +12,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MODE 135 now selects MODE 7.
 - Fix VDU20 for text-mode UNIX build
 - Top-level makefiles now read BRANDY_BUILD_FLAGS environment variable for
-  additional build flags, and if available, include git commit info in build.
+  additional build flags
 - New keyboard handler (JGHarston) - add -DNEWKBD to makefile to CFLAGS or
-  define BRANDY_BUILD_FLAGS environment variable to use.
+  define BRANDY_BUILD_FLAGS=-DNEWKBD in your shell environment to use.
+
 * V1.21.17
 - Fix memory leak in MODE change
 - Fix Filled Rectangles and CLG with GCOL actions, previously implemented
@@ -29,6 +33,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Telstar client now includes NXtel, and a new, more robust, mechanism of
   calculating high-bit escaped characters, as NXtel did it differently to
   Telstar or CCl4.
+
 * V1.21.16
 - Added auto-sensing support for the Raspberry Pi's GPIO interface, with
   memory-mapped I/O and SYS calls. While the calls are recognised on all
@@ -45,6 +50,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   character rendering to simulate (approximately) a 1200baud modem.
 - Implemented AND=, OR=, EOR=, MOD= and DIV= from BB4W/BBCSDL and JGH's
   ARM BBC BASIC Plus.
+
 * V1.21.15
 - Bug fix: Setting *KEY15 scribbled outside array bounds.
 - Bug fix: Erroneously trimming a string introduced in V1.21.8.
@@ -74,6 +80,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Updated some of the documentation to reflect the changes introduced in
   Matrix Brandy.
 - Improved the Mode 7 appearance (thanks to Risc OS 5!) - see docs/Mode7.txt
+
 * V1.21.14
 - ChangeLog layout change: Most recent release first.
 - Similar to the GET fix in V1.21.11, the same problem of spurious zero
@@ -97,6 +104,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BrandyApp compilation on Linux changed to using a library to simplify
   the build process.
 - Telstar client updated, enhancements from gARetH baBB - thank you!
+
 * V1.21.13
 - Rework temp file bits to use mkstemp instead of tmpnam.
 - Reinstated MODE 7 width setting via VDU23,18,255 (from 1.21.7). Note that
@@ -111,6 +119,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   program itself. Apart from pressing R to reveal it isn't Brandy-specific.
 - New Telstar client. Screen updates seem faster, with more convincing
   double-height.
+
 * V1.21.12
 - Bug fixed: Closed file warning clobbered ERR value. Thanks to dhg2 @ Stardot
   for highlighting this one.
@@ -128,6 +137,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   error in returning Refresh state.
 - RPM SPEC file now builds text builds as well as the graphical build, the
   resulting RPM includes all three builds (graphical, text, simple-text).
+
 * V1.21.11
 - Bug fixed: POINT(x,y) should return the logical mode-specific colour number
   rather than an RGB value.
@@ -148,6 +158,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   (as if -quit was set on the command line). This also means a BASIC program
   can be made executable and will run when run as a script, and Brandy will
   exit upon completion.
+
 * V1.21.10
 - *REFRESH now follows BB4W/BBCSDL behaviour, with extension *REFRESH ONERROR
   which uses the behaviour from V1.21.9 (disabled, re-enabled on error)
@@ -174,6 +185,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   to provide an element of graphics.  This has been updated to use OSBYTE 43
   to send characters to the controlling terminal, so if run from an xterm,
   the old Tek demos once again run correctly as intended.
+
 * V1.21.9
 - Implement *REFRESH (based on RTR's BB4W/BBCSDL).
   Possible divergence: An error condition will re-enable Refresh.
@@ -185,6 +197,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MODE 7 flash now locked to the centisecond timer.
 - MODE 7 screen memory: An earlier omission meant only the byte pointer
   functions worked, now word pointer functions also work.
+
 * V1.21.8
 - Networking: Uses getaddrinfo instead of gethostbyname, this also means we
   can connect to IPv6 hosts. The port can be specified by name (as per
@@ -198,6 +211,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   This has broken the teletext aspect control, so that is for now disabled.
 - Can now define your own screen modes with *NewMode.
 - INKEY now working with multiple keys.
+
 * V1.21.7
 - Bug fixes for Mode 7 flash and Networking
 - String handling was not 64-bit clean. Bins are now multiples of 64-bits long.
@@ -210,11 +224,13 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - New command *WINTITLE - sets the SDL window title bar amd icon text.
 - Background operation now working, as is launching from a non-console source
   for example a Window Manager launcher icon.
+
 * V1.21.6
 - Implemented some network connectivity. Connect using OPENUP"ip4:host:port".
   Currently only EOF#, BGET# and BPUT# work (both bytes and strings for BPUT)
 - New demo: examples/Mode7/telstar - a client for Telstar!
 - Fix for bad plotting, again from Coeus @ Stardot. Thank you!
+
 * V1.21.5
 - Merged J.G.Harston's "Banana Brandy" fork, and cleaned up some breakages
   caused by this.
@@ -223,6 +239,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   and end points as required.
 - Fix behaviour of OPENUP for file not found - thanks Phlamethrower @ *. for
   the pointer.
+
 * V1.21.4
 - Slight rename of application to Matrix Brandy, to distinguish between this
   and the "base" version from Sourceforge, and other forks.
@@ -231,6 +248,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   C contains a centisecond counter.
   (In this implementation, it equals the value of TIME).
 - INKEY with negative argument partially supported. (-129 to -255 not supported)
+
 * V1.21.3
 - Teletext fixes for edge cases
 - Big performance enhancement when running in Mode 7 no-update mode
@@ -245,14 +263,17 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   the screen, the top left character cell will ALWAYS be at &FFFF7C00.
 - Fix for PLOTting out of range causing a segfault.
 - Fix for DRAWing out of bounds on non-scaled modes with < 800x600 resolution.
+
 * V1.21.2
 - Mode 7 character frame buffer implemented, line and screen recalculation
   implemented.
 - Glyph size changed to 8x9 (was 8x8).
 - Implemented some of RISC OS 5's Teletext extensions on VDU23,18. See
   docs/Mode7 for more details.
+
 * V1.21.1
 - Software double buffering implemented, Mode 7 Flash supported.
+
 * V1.21.0
 - Replaced system font with hand-reconstructed Acorn system font based on that
   found in RISC OS 3.1

@@ -579,7 +579,7 @@ static void toggle_cursor(void) {
         *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (vduflag(VDU_FLAG_ECHO) && (instate != cursorstate)) do_sdl_updaterect(screen0, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (instate != cursorstate) do_sdl_updaterect(screen0, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
 /*
@@ -2208,7 +2208,7 @@ static void setup_mode(int32 mode) {
   write_vduflag(VDU_FLAG_ECHO,1);
   write_vduflag(VDU_FLAG_GRAPHICURS,0);
   cursmode = UNDERLINE;
-  cursorstate = NOCURSOR;	/* Graphics mode text cursor is not being displayed */
+  cursorstate = ONSCREEN;	/* Graphics mode text cursor is not being displayed */
   clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
   xgupp = xgraphunits/screenwidth;	/* Graphics units per pixel in X direction */
   ygupp = ygraphunits/screenheight;	/* Graphics units per pixel in Y direction */
@@ -2243,6 +2243,7 @@ static void setup_mode(int32 mode) {
     font_rect.w = place_rect.w = XPPC;
     font_rect.h = place_rect.h = YPPC;
   }
+  hide_cursor();
 }
 
 /*

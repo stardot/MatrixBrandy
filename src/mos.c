@@ -818,7 +818,7 @@ int32 mos_adval(int32 x) {
     return inputvalues[x-7];
   }
 #ifdef NEWKBD
-  if (x==16) return kbd_get(); /* test */
+  if (x==16) return kbd_get0(); /* test */
 #endif
 
   return 0;
