@@ -1216,7 +1216,7 @@ void osbyte44(int x) {
 // Should be merged with following
 static boolean waitkey(int wait) {
   int tmp;
-  tmp=clock()+wait; //*(CLOCKS_PER_SEC/100);
+  tmp=clock()+wait; // *(CLOCKS_PER_SEC/100);
   for(;;) { if(kbhit() || (clock()>tmp)) break; }
   return kbhit();
 }
@@ -1289,12 +1289,12 @@ static boolean waitkey(int wait) {
     FD_SET(keyboard, &keyset);
 #endif
     waitime.tv_sec = waitime.tv_usec = 0;
-    if ( select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
-#endif
+    if ( !nokeyboard && (select(1, &keyset, NIL, NIL, &waitime) > 0 )) return 1;
+#endif /* !TARGET_MINGW */
     if (wait == 0) return 0; /* return after one check if wait time = 0 */
     usleep(1000);
   }
-#else
+#else /* !SDL */
 #ifdef BODGEMGW
   tmp=clock()+wait*(CLOCKS_PER_SEC/100);
   for(;;) { if(kbhit() || (clock()>tmp)) break; }
@@ -1305,8 +1305,8 @@ static boolean waitkey(int wait) {
   waitime.tv_sec = wait/100;    /* Convert wait time to seconds and microseconds */
   waitime.tv_usec = wait%100*10000;
   return select(1, &keyset, NIL, NIL, &waitime) > 0;
-#endif
-#endif
+#endif /* BODGEMGW */
+#endif /* UNIX and friends */
 }
 
 /*
