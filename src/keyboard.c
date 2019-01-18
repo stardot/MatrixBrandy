@@ -78,6 +78,8 @@
 #include <keys.h>
 #include <bios.h>
 #include <errno.h>
+#endif
+#ifdef NEWKBD
 #include <termios.h>
 #endif
 
@@ -168,15 +170,16 @@
 #define CTRL_F12        0xEC
 
 
+static int nokeyboard=0;
+static int escint=128;
+static int escmul=1;
+static int fx44x=1;
+
 #ifndef TARGET_RISCOS
 /* holdcount and holdstack are used when decoding ANSI key sequences. If a
 ** sequence is read that does not correspond to an ANSI sequence the
 ** characters are stored here so that they can be returned by future calls
-<<<<<<< HEAD
-** to 'kbd_get'. Note that this is a *stack* not a queue.
-=======
 ** to 'kbd_get()'. Note that this is a *stack* not a queue.
->>>>>>> jgh-keyboard
 */
 static int32 holdcount;		/* Number of characters held on stack			*/
 static int32 holdstack[8];	/* Hold stack - Characters waiting to be passed back via 'get' */
@@ -210,6 +213,14 @@ static char histbuffer[HISTSIZE]; /* Command history buffer				*/
 static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
 #endif
 
+#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
+ | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
+ | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+
+static struct termios origtty;  /* Copy of original keyboard parameters */
+static int32 keyboard;          /* File descriptor for keyboard */
+
+#endif
 
 #ifdef USE_SDL
 #include "SDL.h"
@@ -233,7 +244,7 @@ Uint8 mousestate, *keystate=NULL;
   #include <windows.h>
   #include <keysym.h>
  #endif
-#endif
+#endif /* TARGET_RISCOS */
 
 static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
@@ -302,15 +313,6 @@ boolean kbd_init() {
   // -----------
   struct termios tty;
 
-<<<<<<< HEAD
-/* Veneers, fill in later */
-int   kbd_fkeyset(int key, char *string, int length) {
-		return set_fn_string(key, string, length); }
-char *kbd_fkeyget(int key, int *len) {
-		return get_fn_string(key, len); }
-readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
-		return emulate_readline(&buffer[0], length, echochar); }
-=======
 /* Set up keyboard for unbuffered I/O */
   if (tcgetattr(fileno(stdin), &tty) < 0) {	/* Could not obtain keyboard parameters	*/
     nokeyboard=1;
@@ -340,7 +342,6 @@ readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
   if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
 					/* Could not set up keyboard in the way desired	*/
   return TRUE;
-}
 #endif /* UNIX */
 
 #ifdef TARGET_AMIGA
@@ -349,7 +350,7 @@ readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
   rawcon(1);
   return TRUE;
 #endif /* AMIGA */
-#endif
+#endif /* TARGET_RISCOS */
 }
 
 
@@ -377,7 +378,7 @@ void kbd_quit() {
   // ------------
   rawcon(0);
 #endif /* AMIGA */
-#endif
+#endif /* TARGET_RISCOS */
 }
 
 
@@ -421,9 +422,9 @@ int32 kbd_isfnkey(int32 key) {
 
 // To do: move remaining function key code here
 #endif /* RISCOS */
->>>>>>> jgh-keyboard
 
 
+#ifndef NEWKBD
 /* kbd_init called to initialise the keyboard code
 ** --------------------------------------------------------------
 ** Clears the function key strings, checks if stdin is connected
@@ -526,7 +527,6 @@ boolean kbd_init() {
 #endif
 }
 
-
 /* kbd_quit called to terminate keyboard control on termination */
 /* ------------------------------------------------------------ */
 void kbd_quit() {
@@ -551,8 +551,9 @@ void kbd_quit() {
   // ------------
   rawcon(0);
 #endif /* AMIGA */
-#endif
+#endif /* TARGET_RISCOS */
 }
+#endif /* !NEWKBD */
 
 
 /* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
@@ -695,16 +696,6 @@ int32 kbd_inkey(int32 arg) {
 
 #endif /* !USE_SDL */
 
-<<<<<<< HEAD
-#ifdef TARGET_AMIGA
-/* I think only AMIGA left by now. A KeyIO call with command KBD_READMATRIX reads the
- * keyboard matrix to a 16-byte buffer, one bit per keystate, similar to the SDL
- * GetKeyState call.
- */
-    return 0;
-#endif
-    return emulate_inkey(arg ^ -1);		/* Drop through to legacy call		*/
-=======
 /* AMIGA, BEOS, non-SDL UNIX remaining */
 #ifdef TARGET_AMIGA
 /* A KeyIO call with command KBD_READMATRIX reads the keyboard matrix to a 16-byte buffer,
@@ -716,7 +707,6 @@ int32 kbd_inkey(int32 arg) {
     return 0;					/* For now, return NOT PRESSED		*/
 #endif
     return 0;					/* Everything else, return NOT PRESSED	*/
->>>>>>> jgh-keyboard
   }
 
 #endif /* !RISCOS */
@@ -780,10 +770,7 @@ int GetAsyncKeyState(int key) {
 //  : "r" (x)
 //  );
 //  return y;
-<<<<<<< HEAD
 //}
-=======
->>>>>>> jgh-keyboard
 #endif
 
 
@@ -1032,11 +1019,6 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 }
 #endif
 
-static int nokeyboard=0;
-static int escint=128;
-static int escmul=1;
-static int fx44x=1;
-
 #ifdef TARGET_RISCOS
 
 /* ================================================================= */
@@ -1196,15 +1178,6 @@ void end_keyboard(void) {
 //*/
 //static char *fn_string;         /* Non-NULL if taking chars from a function key string */
 //static int fn_string_count;     /* Count of characters left in function key string */ 
-
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
-
-static struct termios origtty;  /* Copy of original keyboard parameters */
-static int32 keyboard;          /* File descriptor for keyboard */
-
-#endif
 
 /* The following functions are common to all operating systems */
 
@@ -2374,7 +2347,10 @@ static void shift_up(char buffer[], int32 offset) {
 ** library.
 */
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
-  int32 ch, lastplace, pendch;
+  int32 ch, lastplace;
+#ifdef NEWKBD
+  int32 pendch;
+#endif
 
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
