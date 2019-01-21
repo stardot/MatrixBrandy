@@ -34,6 +34,7 @@
 #include <stdarg.h>
 #include <SDL.h>
 #include <sys/time.h>
+#include <math.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -120,8 +121,8 @@ Uint32 xor_mask;
 static void reveal_cursor(void);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
 static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
-static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, Uint32, Uint32);
+static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
+static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void toggle_cursor(void);
 static void vdu_cleartext(void);
 static void set_text_colour(boolean background, int colnum);
@@ -2628,9 +2629,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     yradius = abs(xlast2-xlast)/ygupp;
     xr=xlast2-xlast;
     if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-      draw_ellipse(modescreen, sx, sy, xradius, yradius, colour, action);
+      draw_ellipse(modescreen, sx, sy, xradius, yradius, 0, colour, action);
     else {
-      filled_ellipse(modescreen, sx, sy, xradius, yradius, colour, action);
+      filled_ellipse(modescreen, sx, sy, xradius, yradius, 0, colour, action);
     }
     /* To match RISC OS, xlast needs to be the right-most point not left-most. */
     xlast+=(xr*2);
@@ -2763,7 +2764,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
   case PLOT_ELLIPSE:		/* Draw an ellipse outline */
   case FILL_ELLIPSE: {		/* Draw a filled ellipse */
-    int32 semimajor, semiminor;
+    int32 semimajor, semiminor, shearx;
 /*
 ** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
 ** point on the circumference in the +ve X direction and (xlast, ylast)
@@ -2773,16 +2774,19 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     semiminor = abs(ylast-ylast3)/ygupp;
     sx = GXTOPX(xlast3);
     sy = GYTOPY(ylast3);
+    shearx=GXTOPX(xlast)-sx;
+
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-      draw_ellipse(modescreen, sx, sy, semimajor, semiminor, colour, action);
+      draw_ellipse(modescreen, sx, sy, semimajor, semiminor, shearx, colour, action);
     else {
-      filled_ellipse(modescreen, sx, sy, semimajor, semiminor, colour, action);
+      filled_ellipse(modescreen, sx, sy, semimajor, semiminor, shearx, colour, action);
     }
     ex = sx-semimajor;
     ey = sy-semiminor;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     hide_cursor();
-    blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
+    blit_scaled(0,0,vscrwidth,vscrheight);
+    //blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
     reveal_cursor();
     break;
   }
@@ -3692,114 +3696,33 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 /*
 ** Draw an ellipse into a buffer
 */
-static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
-  int32 x, y, y1, aa, bb, d, g, h;
+static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
+  int32 x, y;
+  double angle, t;
 
-  aa = a * a;
-  bb = b * b;
-
-  h = (FAST_4_DIV(aa)) - b * aa + bb;
-  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
-  x = 0;
-  y = b;
-
-  while (g < 0) {
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x, c, action);
+  for (t=0; t < 180; t+=0.1) {
+    angle=(t * M_PI / 180.0);
+    x=a*cos(angle)+(shearx * sin(angle));
+    y=b*sin(angle);
+    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
       if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
-    }
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
+    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight))
       if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x, c, action);
-    }
-
-    if (h < 0) {
-      d = ((FAST_2_MUL(x)) + 3) * bb;
-      g += d;
-    }
-    else {
-      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
-      g += (d + (FAST_2_MUL(aa)));
-      --y;
-    }
-
-    h += d;
-    ++x;
-  }
-
-  y1 = y;
-  h = (FAST_4_DIV(bb)) - a * bb + aa;
-  x = a;
-  y = 0;
-
-  while (y <= y1) {
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x, c, action);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
-    } 
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x, c, action);
-    }
-
-    if (h < 0)
-      h += ((FAST_2_MUL(y)) + 3) * aa;
-    else {
-      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
-      --x;
-    }
-    ++y;
   }
 }
 
 /*
 ** Draw a filled ellipse into a buffer
 */
-static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, Uint32 c, Uint32 action) {
-  int32 x, y, y1, aa, bb, d, g, h;
+static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
+  int32 x, y;
+  double angle, t;
 
-  aa = a * a;
-  bb = b * b;
-
-  h = (FAST_4_DIV(aa)) - b * aa + bb;
-  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
-  x = 0;
-  y = b;
-
-  while (g < 0) {
-    draw_h_line(sr, x0 - x, y0 + y, x0 + x, c, action);
-    draw_h_line(sr, x0 - x, y0 - y, x0 + x, c, action);
-
-    if (h < 0) {
-      d = ((FAST_2_MUL(x)) + 3) * bb;
-      g += d;
-    }
-    else {
-      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
-      g += (d + (FAST_2_MUL(aa)));
-      --y;
-    }
-
-    h += d;
-    ++x;
-  }
-
-  y1 = y;
-  h = (FAST_4_DIV(bb)) - a * bb + aa;
-  x = a;
-  y = 0;
-
-  while (y <= y1) {
-    draw_h_line(sr, x0 - x, y0 + y, x0 + x, c, action);
-    draw_h_line(sr, x0 - x, y0 - y, x0 + x, c, action);
-
-    if (h < 0)
-      h += ((FAST_2_MUL(y)) + 3) * aa;
-    else {
-      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
-      --x;
-    }
-    ++y;
+  for (t=0; t < 360; t+=0.1) {
+    angle=(t * M_PI / 180.0);
+    x=a*cos(angle)+(shearx * sin(angle));
+    y=b*sin(angle);
+    draw_line(modescreen,x0,y0,x0+x,y0-y,c,0,action);
   }
 }
 

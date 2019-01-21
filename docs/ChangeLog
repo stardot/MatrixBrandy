@@ -3,6 +3,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.21.19
 - Hopefully fixed the spurious cursor remnants.
+- Ellipses with shears now implemented, PLOT &C5 and PLOT &CD now work
+  correctly. Other variants to be tested.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)
