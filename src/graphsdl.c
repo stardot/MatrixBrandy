@@ -3737,7 +3737,7 @@ static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b
   for (t=0; t < 360; t+=(0.05*scale)) {
     angle=(t * M_PI / 180.0);
     for (yptr=0; yptr<=b; yptr+=(0.0625*scale)) {
-      x=((yptr/b)*a)*cos(angle)+(shearx * sin(angle));
+      x=((a*cos(angle))+(shearx * sin(angle)))*(yptr/b);
       y=yptr*sin(angle);
       if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
         if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
