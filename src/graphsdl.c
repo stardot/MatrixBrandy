@@ -3711,13 +3711,16 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 ** Draw an ellipse into a buffer
 */
 static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
-  int32 x, y;
-  float64 angle, t;
+  int32 x, y, scale;
+  float64 angle, sa, step;
 
-  for (t=0; t < 180; t+=0.1) {
-    angle=(t * M_PI / 180.0);
-    x=a*cos(angle)+(shearx * sin(angle));
-    y=b*sin(angle);
+  scale=xscale;
+  if (yscale > scale) scale=yscale;
+  step=((M_PI / 180.0)*0.0625)*scale;
+  for (angle=0; angle < M_PI; angle+=step) {
+    sa=sin(angle);
+    x=a*cos(angle)+(shearx * sa);
+    y=b*sa;
     if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
       if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
     if (((y0 + y) >= 0) && ((y0 + y) < vscrheight))
@@ -3730,17 +3733,20 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
 */
 static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
   int32 x, y, scale;
-  float64 angle, t, yptr;
+  float64 angle, yptr, sa, step;
 
   scale=xscale;
-  if (yscale < scale) scale=yscale;
-  for (t=0; t < 360; t+=(0.05*scale)) {
-    angle=(t * M_PI / 180.0);
+  if (yscale > scale) scale=yscale;
+  step=((M_PI / 180.0)*0.0625)*scale;
+  for (angle=0; angle < M_PI; angle+=step) {
     for (yptr=0; yptr<=b; yptr+=(0.0625*scale)) {
-      x=((a*cos(angle))+(shearx * sin(angle)))*(yptr/b);
-      y=yptr*sin(angle);
+      sa=sin(angle);
+      x=((a*cos(angle))+(shearx * sa))*(yptr/b);
+      y=yptr*sa;
       if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
-        if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
+	if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
+      if (((y0 + y) >= 0) && ((y0 + y) < vscrheight))
+	if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
     }
   }
 }
