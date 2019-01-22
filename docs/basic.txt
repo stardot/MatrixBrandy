@@ -1811,10 +1811,6 @@ centre are (<x expression>, <y expression>). <semi-major> and
 respectively. <angle> is the angle between the semi-major axis and
 the x axis in radians.
 
-Note that values other than zero for the angle only work in the
-RISC OS version of the program in the current version of the
-interpreter.
-
 a) This draws an ellipse outline.
 
 b) This draws a filled ellipse.

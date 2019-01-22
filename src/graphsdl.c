@@ -3047,20 +3047,34 @@ void emulate_pointby(int32 x, int32 y) {
 /*
 ** 'emulate_ellipse' handles the Basic statement 'ELLIPSE'. This one is
 ** a little more complex than a straight call to a SWI as it plots the
-** ellipse with the semi-major axis at any angle. However, as the graphics
-** library used only supports drawing an ellipse whose semimajor axis is
-** parallel to the X axis, values of angle other 0.0 radians are not
-** supported by this version of the code. Angle!=0.0 could be supported
-** under RISC OS if I knew the maths...
+** ellipse with the semi-major axis at any angle.
+** The RISC OS 5 BASIC source code has the algorithm as:
+** cos = COS(angle)
+** sin = SIN(angle)
+** slicet = min*maj
+** temp = (min*cos)^2
+** temp2 = (maj*sin)^2
+** maxy = SQR(temp+temp2)
+** slicew = slicet/maxy
+** sheart = cos*sin*((maj^2)-(min^2))
+** shearx = sheart/maxy
+** MOVE x,y
+** MOVE x+slicew,y
+** PLOT XXX,x+shearx,y+maxy
 */
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
-  if (angle != 0.0) error(ERR_UNSUPPORTED);	/* Graphics library limitation */
+  int32 maxy, slicew, shearx;
+
+  maxy=sqrt(pow(minorlen*cos(angle),2)+pow(majorlen*sin(angle),2));
+  slicew=(minorlen*majorlen)/maxy;
+  shearx=(cos(angle)*sin(angle)*(pow(majorlen,2)-pow(minorlen,2)))/maxy;
+
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+majorlen, y);	/* Find a point on the circumference */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
   if (isfilled)
-    emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x, y+minorlen);
+    emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+minorlen);
   else {
-    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x, y+minorlen);
+    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   }
 }
 
@@ -3698,7 +3712,7 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 */
 static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
   int32 x, y;
-  double angle, t;
+  float64 angle, t;
 
   for (t=0; t < 180; t+=0.1) {
     angle=(t * M_PI / 180.0);
@@ -3715,14 +3729,19 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
 ** Draw a filled ellipse into a buffer
 */
 static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
-  int32 x, y;
-  double angle, t;
+  int32 x, y, scale;
+  float64 angle, t, yptr;
 
-  for (t=0; t < 360; t+=0.1) {
+  scale=xscale;
+  if (yscale < scale) scale=yscale;
+  for (t=0; t < 360; t+=(0.05*scale)) {
     angle=(t * M_PI / 180.0);
-    x=a*cos(angle)+(shearx * sin(angle));
-    y=b*sin(angle);
-    draw_line(modescreen,x0,y0,x0+x,y0-y,c,0,action);
+    for (yptr=0; yptr<=b; yptr+=(0.0625*scale)) {
+      x=((yptr/b)*a)*cos(angle)+(shearx * sin(angle));
+      y=yptr*sin(angle);
+      if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
+        if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
+    }
   }
 }
 
