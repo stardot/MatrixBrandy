@@ -1402,9 +1402,11 @@ static void vdu_cleartext(void) {
   }
   hide_cursor();	/* Remove cursor if it is being displayed */
   if (vduflag(VDU_FLAG_TEXTWIN)) {	/* Text window defined that does not occupy the whole screen */
-    for (ly=twintop; ly <= twinbottom; ly++) {
-      for (lx=twinleft; lx <=twinright; lx++) {
-	mode7frame[ly][lx]=32;
+    if (screenmode == 7) {
+      for (ly=twintop; ly <= twinbottom; ly++) {
+	for (lx=twinleft; lx <=twinright; lx++) {
+	  mode7frame[ly][lx]=32;
+	}
       }
     }
     left = twinleft*mxppc;
