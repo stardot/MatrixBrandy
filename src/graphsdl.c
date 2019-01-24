@@ -1011,7 +1011,7 @@ void mode7flipbank() {
 static void write_char(int32 ch) {
   int32 y, topx, topy, line;
 
-  if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
+  if (cursorstate == ONSCREEN) toggle_cursor();
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
