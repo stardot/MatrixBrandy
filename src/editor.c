@@ -550,7 +550,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   tokenline[2] = 0;
   if (fread(tokenline, 1, 3, textfile) < 3) error(ERR_CANTREAD);
   matrixflags.scrunge = (tokenline[0] == '#' && tokenline[1] == 'U' && tokenline[2] == 'K');
-  if (matrixflags.scrunge == 1 && basicvars.runflags.quitatend == 0) error(ERR_UNSUPPORTED);
+  if (matrixflags.scrunge == 1 && basicvars.runflags.quitatend == 0) error(ERR_BADPROG);
   gzipped = (tokenline[0] == 0x1F && tokenline[1] == 0x8B && tokenline[2] == 8);
   if (gzipped) {
 #ifdef HAVE_ZLIB_H
