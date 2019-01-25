@@ -9,6 +9,8 @@ extern void fullscreenmode(int onoff);
 extern void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig);
 extern void star_refresh(int flag);
 extern int get_refreshmode(void);
+extern void mode7flipbank(void);
+extern void mode7renderscreen(void);
 extern int32 osbyte42(int x);
 extern void osbyte112(int x);
 extern void osbyte113(int x);

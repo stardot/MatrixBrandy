@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   correctly (fill implementation could possibly be improved). Other variants
   to be tested.
 - ELLIPSE [FILL] command with non-zero angle now supported.
+- MODE 7: Update screen on WAIT-delay.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)

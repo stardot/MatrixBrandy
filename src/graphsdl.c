@@ -129,7 +129,6 @@ static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
 
 static void mode7renderline(int32 ypos);
-extern void mode7renderscreen(void);
 
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */

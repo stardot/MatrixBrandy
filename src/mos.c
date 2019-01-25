@@ -942,6 +942,9 @@ void mos_waitdelay(int32 time) {
 void mos_waitdelay(int32 time) {
 #if defined(BODGEMGW) | defined(BODGESDL)
 #else
+#ifdef USE_SDL
+  mode7renderscreen();
+#endif
   sleep(time / 100);
 #endif
   usleep((time % 100)*10000);
@@ -969,6 +972,9 @@ void mos_waitdelay(int32 time) {
 */
 void mos_waitdelay(int32 time) {
   struct timeval delay;
+#ifdef USE_SDL
+  mode7renderscreen();
+#endif
   if (time<=0) return;			/* Nothing to do */
   delay.tv_sec = time/100;		/* Time to wait (seconds) */
   delay.tv_usec = time%100*10000;	/* Time to wait (microseconds) */
