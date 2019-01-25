@@ -149,6 +149,21 @@ static void reinstate(void) {
   for (n=0; n<PRESERVED; n++) basicvars.start[n] = basicvars.savedstart[n];
 }
 
+static char cscrunge(char c) {
+  char *ctable=" !\"#$%&'(]*<,-./9876543210:;+=>?@mLkJiHgFeDcBaZyXwVuTsRqPoN{\\)^_`MlKjIhGfEdCbAzYxWvUtSrQpOn[|}~";
+  if (c < 32 || c > 126) return c;
+  return ctable[c-32];
+}
+static void do_scrunge(int len, char *buf)
+{
+  int offset=0;
+  while (offset < len) {
+    buf[offset]=cscrunge(buf[offset]);
+    offset++;
+  }
+}
+
+
 /*
 ** 'clear_program' is called when a 'NEW' command is issued to clear the old
 ** program from memory. The start of an existing program is preserved in
@@ -534,6 +549,8 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   fseek (textfile, 0, 0);
   tokenline[2] = 0;
   if (fread(tokenline, 1, 3, textfile) < 3) error(ERR_CANTREAD);
+  matrixflags.scrunge = (tokenline[0] == '#' && tokenline[1] == 'U' && tokenline[2] == 'K');
+  if (matrixflags.scrunge == 1 && basicvars.runflags.quitatend == 0) error(ERR_UNSUPPORTED);
   gzipped = (tokenline[0] == 0x1F && tokenline[1] == 0x8B && tokenline[2] == 8);
   if (gzipped) {
 #ifdef HAVE_ZLIB_H
@@ -557,7 +574,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   else
 #endif
   result = fgets(basicvars.stringwork, INPUTLEN, textfile);
-  if (result!=NIL && basicvars.stringwork[0]=='#') {	/* Ignore first line if it starts with a '#' */
+    if (result!=NIL && basicvars.stringwork[0]=='#') {	/* Ignore first line if it starts with a '#' */
     basicvars.runflags.quitatend=basicvars.runflags.loadngo;
 #ifdef HAVE_ZLIB_H
     if (gzipped)
@@ -569,6 +586,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   while (result!=NIL) {
     basicvars.linecount++;
     length = strlen(basicvars.stringwork);
+    if (matrixflags.scrunge) do_scrunge(length, basicvars.stringwork);
 /* First, get rid of any trailing blanks, line feeds and so forth */
     do
       length--;
@@ -626,6 +644,7 @@ static void blockread(void *ptr, size_t size, size_t nmemb) {
   unsigned long int blobsize = (unsigned long int)&_binary_app_size;
 
   memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
+  if (matrixflags.scrunge) do_scrunge(size*nmemb, ptr);
   blockptr += (size*nmemb);
 }
 
@@ -656,6 +675,7 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
   blockptr = 0; // fseek (textfile, 0, 0);
   tokenline[2] = 0;
   blockread (tokenline, 1, 3);
+  matrixflags.scrunge = (tokenline[0] == '#' && tokenline[1] == 'U' && tokenline[2] == 'K');
   blockptr = 0;  /* Close and reopen the file as a text file */
   needsnumbers = FALSE;		/* This will be set by tokenise_line() above */
   basicvars.linecount = 0;	/* Number of line being read from file */

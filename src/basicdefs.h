@@ -508,6 +508,7 @@ typedef struct {
   int gpio;				/* TRUE if RPi GPIO present and usable */
   byte *gpiomem;			/* Pointer for where mmap() places /dev/gpiomem */
   uint32 *gpiomemint;			/* Unsigned int32 version of gpiomem */
+  unsigned int scrunge;			/* Is the BASIC program scrunged? */
 } matrixbits;
 extern matrixbits matrixflags;
 
