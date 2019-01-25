@@ -662,6 +662,7 @@ static char *blockgets(char *s, int size) {
     p++; blockptr++;
   }
   *(s+p)='\0';
+  if (matrixflags.scrunge) do_scrunge(p, s);
   if (blob+blockptr <= blobend) return s;
   return NULL;
 }
