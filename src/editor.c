@@ -150,7 +150,7 @@ static void reinstate(void) {
 }
 
 static char cscrunge(char c) {
-  char *ctable=" !\"#$%&'(]*<,-./9876543210:;+=>?@mLkJiHgFeDcBaZyXwVuTsRqPoN{\\)^_`MlKjIhGfEdCbAzYxWvUtSrQpOn[|}~";
+  char *ctable=" 2\"#$%1'(]*<,-./@&!76|43=^:;+8>?0mLkJiHgFeDcBaZyXwVuTsRqPoN{\\)9_`MlKjIhGfEdCbAzYxWvUtSrQpOn[5}~";
   if (c < 32 || c > 126) return c;
   return ctable[c-32];
 }
