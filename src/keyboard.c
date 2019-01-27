@@ -57,6 +57,8 @@
 **                  work with non-function special keys. Some temporary scaffolding
 **                  in readline().
 **                  Tested on: MinGW
+** 27-Jan-2019 JGH: Unix build works again, missed a #ifdef block.
+**                  Tested on: CentOS, DJGPP, MinGW, WinSDL, RISCOS.
 **
 ** Note: This is the only file that tests for BEOS.
 **
@@ -79,6 +81,19 @@
 #include <bios.h>
 #include <errno.h>
 #include <termios.h>
+#endif
+#ifdef TARGET_UNIX
+
+//#include <sys/time.h>
+//#include <sys/types.h>
+//#include <errno.h>
+//#include <unistd.h>
+#include <termios.h>
+
+// Move these later
+static struct termios origtty;  /* Copy of original keyboard parameters */
+static int32 keyboard;          /* File descriptor for keyboard */
+
 #endif
 
 /* ASCII codes of various useful characters */
@@ -204,6 +219,11 @@ static int32
 static boolean enable_insert;     /* TRUE if keyboard input code is in insert mode	*/
 static char histbuffer[HISTSIZE]; /* Command history buffer				*/
 static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
+
+static int nokeyboard=0;
+static int escint=128;
+static int escmul=1;
+static int fx44x=1;
 #endif
 
 
@@ -327,7 +347,6 @@ boolean kbd_init() {
   if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
 					/* Could not set up keyboard in the way desired	*/
   return TRUE;
-}
 #endif /* UNIX */
 
 #ifdef TARGET_AMIGA
@@ -570,7 +589,7 @@ int32 kbd_inkey(int32 arg) {
 /* kbd_modkeys - do a fast read of state of modifier keys */
 /* ------------------------------------------------------ */
 /* Equivalent to the BBC MOS OSBYTE 118/KEYV call
-/* arg is a bitmap of modifier keys to test for
+ * arg is a bitmap of modifier keys to test for
  *  bit<n> tests key<n>, ie b0=Shift, b1=Ctrl, b2=Alt, etc.
  * Currently, only SHIFT tested by SDL for VDU paged scrolling.
  * To do: need S/C/A for modifying special keypresses.
@@ -645,7 +664,11 @@ int32 kbd_get(void) {
   int ch, fnkey;
 
   if (basicvars.runflags.inredir) {		/* Input redirected (equiv. of *EXEC)	*/
+#ifdef TARGET_UNIX
+    if ((ch=getchar()) != EOF) return ch;
+#else
     if ((ch=getch()) != EOF) return ch;
+#endif
     else error(ERR_READFAIL);			/* I/O error occured on STDIN		*/
   }
   if (fn_string != NIL) return read_fn_string(); /* Function key active			*/
@@ -872,10 +895,10 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 }
 #endif
 
-static int nokeyboard=0;
-static int escint=128;
-static int escmul=1;
-static int fx44x=1;
+//static int nokeyboard=0;
+//static int escint=128;
+//static int escmul=1;
+//static int fx44x=1;
 
 #ifdef TARGET_RISCOS
 
@@ -2214,7 +2237,8 @@ static void shift_up(char buffer[], int32 offset) {
 ** library.
 */
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
-  int32 ch, lastplace, pendch;
+  int32 ch, lastplace;
+  int32 pendch=0;
 
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
