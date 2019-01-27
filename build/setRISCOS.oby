@@ -1,2 +1,3 @@
 Dir <Obey$Dir>
-If "<GCC$Dir>" = "" Then Filer_Run $.Apps.Programer.CandC++.GCC.!gcc
+If "<GCC$Dir>" = "" Then Filer_Run $.Apps.Programmer.CandC++.GCC.!gcc.!Boot
+If "<GCC$Dir>" = "" Then Filer_Run $.Apps.Programmer.CandC++.GCC.!gcc.!Run

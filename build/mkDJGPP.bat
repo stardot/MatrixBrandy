@@ -1,6 +1,6 @@
 @rem Make Brandy Basic for DOS with DJGPP compiler
 @rem Edit DJGPP and PATH paths to match your installation
-@
+
 @set DJGPP=C:\Apps\Programming\djgpp\djgpp.env
 @set PATH=C:\Apps\Programming\djgpp\bin;%PATH%
 @

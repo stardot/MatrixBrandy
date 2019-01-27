@@ -2,9 +2,10 @@
 
 CC = gcc
 LD = gcc
+BUILDFLAGS = ${BRANDY_BUILD_FLAGS}
 
-CFLAGS =  -march=i586 -c -g -DDEBUG -DNONET -DBODGEMGW
-CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DBODGEMGW
+CFLAGS =  -march=i586 -c -g -DDEBUG -DNONET -DBODGEMGW -w $(BUILDFLAGS)
+CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DBODGEMGW -w $(BUILDFLAGS)
 
 LDFLAGS =
 

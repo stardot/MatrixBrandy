@@ -4,7 +4,7 @@ CC = gcc
 LD = gcc
 
 #CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall
-CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall
+CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -W
 
 LDFLAGS +=
 
@@ -53,7 +53,7 @@ $(SRCDIR)/tokens.o: $(TOKENS_C) $(SRCDIR)/tokens.c
 # Build GRAPHSDL.C
 GSDL_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/basicdefs.h \
 	$(SRCDIR)/errors.h $(SRCDIR)/scrcommon.h $(SRCDIR)/screen.h \
-	$(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h $(SRCDIR)/graphsdl-textfonts.h
+	$(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h $(SRCDIR)/textfonts.h
 
 $(SRCDIR)/graphsdl.o: $(GSDL_C) $(SRCDIR)/graphsdl.c
 	$(CC) $(CFLAGS) $(SRCDIR)/graphsdl.c -c -o $(SRCDIR)/graphsdl.o
@@ -188,7 +188,7 @@ $(SRCDIR)/errors.o: $(ERRORS_C) $(SRCDIR)/errors.c
 # Build MOS.C
 MOS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h $(SRCDIR)/graphsdl.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
+	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_sys.h
 
 $(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
 	$(CC) $(CFLAGS) $(SRCDIR)/mos.c -c -o $(SRCDIR)/mos.o
@@ -196,7 +196,7 @@ $(SRCDIR)/mos.o: $(MOS_C) $(SRCDIR)/mos.c
 # Build MOS_SYS.C
 MOS_SYS_C = $(SRCDIR)/common.h $(SRCDIR)/target.h $(SRCDIR)/errors.h \
 	$(SRCDIR)/basicdefs.h $(SRCDIR)/mos.h \
-	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_swinums.h
+	$(SRCDIR)/screen.h $(SRCDIR)/keyboard.h $(SRCDIR)/mos_sys.h
 
 $(SRCDIR)/mos_sys.o: $(MOS_SYS_C) $(SRCDIR)/mos_sys.c
 	$(CC) $(CFLAGS) $(SRCDIR)/mos_sys.c -c -o $(SRCDIR)/mos_sys.o
