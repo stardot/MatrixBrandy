@@ -3712,20 +3712,67 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 ** Draw an ellipse into a buffer
 */
 static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
-  int32 x, y, scale;
-  float64 angle, sa, step;
+  int32 x, y, y1, aa, bb, d, g, h, ym, si;
+  float64 s;
 
-  scale=xscale;
-  if (yscale > scale) scale=yscale;
-  step=((M_PI / 180.0)*0.0625)*scale;
-  for (angle=0; angle < M_PI; angle+=step) {
-    sa=sin(angle);
-    x=a*cos(angle)+(shearx * sa);
-    y=b*sa;
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
-      if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight))
-      if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
+  aa = a * a;
+  bb = b * b;
+
+  h = (FAST_4_DIV(aa)) - b * aa + bb;
+  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
+  x = 0;
+  ym = y = b;
+
+  while (g < 0) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x + si, c, action);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x + si, c, action);
+    }
+    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x - si, c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x - si, c, action);
+    }
+
+    if (h < 0) {
+      d = ((FAST_2_MUL(x)) + 3) * bb;
+      g += d;
+    }
+    else {
+      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
+      g += (d + (FAST_2_MUL(aa)));
+      --y;
+    }
+
+    h += d;
+    ++x;
+  }
+
+  y1 = y;
+  h = (FAST_4_DIV(bb)) - a * bb + aa;
+  x = a;
+  y = 0;
+
+  while (y <= y1) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x + si, c, action);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x + si, c, action);
+    } 
+    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x - si, c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x - si, c, action);
+    }
+
+    if (h < 0)
+      h += ((FAST_2_MUL(y)) + 3) * aa;
+    else {
+      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
+      --x;
+    }
+    ++y;
   }
 }
 
@@ -3733,22 +3780,54 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
 ** Draw a filled ellipse into a buffer
 */
 static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
-  int32 x, y, scale;
-  float64 angle, yptr, sa, step;
+  int32 x, y, y1, aa, bb, d, g, h, ym, si;
+  float64 s;
 
-  scale=xscale;
-  if (yscale > scale) scale=yscale;
-  step=((M_PI / 180.0)*0.0625)*scale;
-  for (angle=0; angle < M_PI; angle+=step) {
-    for (yptr=0; yptr<=b; yptr+=(0.0625*scale)) {
-      sa=sin(angle);
-      x=((a*cos(angle))+(shearx * sa))*(yptr/b);
-      y=yptr*sa;
-      if (((y0 - y) >= 0) && ((y0 - y) < vscrheight))
-	if (((x0 + x) >= 0) && ((x0 + x) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x, c, action);
-      if (((y0 + y) >= 0) && ((y0 + y) < vscrheight))
-	if (((x0 - x) >= 0) && ((x0 - x) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x, c, action);
+  aa = a * a;
+  bb = b * b;
+
+  h = (FAST_4_DIV(aa)) - b * aa + bb;
+  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
+  x = 0;
+  ym = y = b;
+
+  while (g < 0) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    draw_h_line(sr, x0 - x - si, y0 + y, x0 + x - si, c, action);
+    draw_h_line(sr, x0 - x + si, y0 - y, x0 + x + si, c, action);
+
+    if (h < 0) {
+      d = ((FAST_2_MUL(x)) + 3) * bb;
+      g += d;
     }
+    else {
+      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
+      g += (d + (FAST_2_MUL(aa)));
+      --y;
+    }
+
+    h += d;
+    ++x;
+  }
+  y1 = y;
+  h = (FAST_4_DIV(bb)) - a * bb + aa;
+  x = a;
+  y = 0;
+
+  while (y <= y1) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    draw_h_line(sr, x0 - x - si, y0 + y, x0 + x - si, c, action);
+    draw_h_line(sr, x0 - x + si, y0 - y, x0 + x + si, c, action);
+
+    if (h < 0)
+      h += ((FAST_2_MUL(y)) + 3) * aa;
+    else {
+      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
+      --x;
+    }
+    ++y;
   }
 }
 
