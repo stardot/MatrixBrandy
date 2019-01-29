@@ -328,7 +328,7 @@ static void check_cmdline(int argc, char *argv[]) {
     else {	/* Name of file to run supplied */
       if (loadfile==NIL) {
         loadfile = p;	/* Make note of name of file to load */
-        basicvars.runflags.loadngo = TRUE;
+        basicvars.runflags.quitatend = basicvars.runflags.loadngo = TRUE;
       }
       else {	/* Assume anything else is for the Basic program */
         add_arg(argv[n]);

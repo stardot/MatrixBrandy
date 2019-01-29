@@ -295,7 +295,7 @@ void show_help(void) {
 #ifdef USE_SDL
   printf("  -fullscreen    Start Brandy in fullscreen mode\n");
 #endif
-  printf("  <file>         Run Basic program <file> and stay in interpreter when it ends\n\n");
+  printf("  <file>         Run Basic program <file> and leave interpreter when it ends\n\n");
 #ifdef HAVE_ZLIB_H
   printf("Basic program files may be gzipped.\n\n");
 #endif

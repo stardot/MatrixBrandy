@@ -8,6 +8,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   to be tested.
 - ELLIPSE [FILL] command with non-zero angle now supported.
 - MODE 7: Update screen on WAIT-delay.
+- Invocation behaviour change: brandy <filename> now assumes -quit instead
+  of -chain.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)
