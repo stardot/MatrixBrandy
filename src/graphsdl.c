@@ -3064,18 +3064,22 @@ void emulate_pointby(int32 x, int32 y) {
 ** PLOT XXX,x+shearx,y+maxy
 */
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
-  int32 maxy, slicew, shearx;
-
-  maxy=sqrt(pow(minorlen*cos(angle),2)+pow(majorlen*sin(angle),2));
-  slicew=(minorlen*majorlen)/maxy;
-  shearx=(cos(angle)*sin(angle)*(pow(majorlen,2)-pow(minorlen,2)))/maxy;
+  int32 slicew, shearx, maxy;
+  
+  float64 cosv, sinv;
+  
+  cosv = cos(angle);
+  sinv = sin(angle);
+  maxy = sqrt(((minorlen*cosv)*(minorlen*cosv))+((majorlen*sinv)*(majorlen*sinv)));
+  slicew = (minorlen*majorlen)/maxy;
+  shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
 
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
   if (isfilled)
-    emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+minorlen);
+    emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   else {
-    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+minorlen);
+    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   }
 }
 
