@@ -3075,7 +3075,7 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
   if (isfilled)
     emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+minorlen);
   else {
-    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
+    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+minorlen);
   }
 }
 
@@ -3794,8 +3794,8 @@ static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b
   while (g < 0) {
     s=shearx*(1.0*y/ym);
     si=s;
-    draw_h_line(sr, x0 - x - si, y0 + y, x0 + x - si, c, action);
     draw_h_line(sr, x0 - x + si, y0 - y, x0 + x + si, c, action);
+    draw_h_line(sr, x0 - x - si, y0 + y, x0 + x - si, c, action);
 
     if (h < 0) {
       d = ((FAST_2_MUL(x)) + 3) * bb;
