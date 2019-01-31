@@ -16,7 +16,7 @@
   160screen%=0
   170download%=0
   180X%=OPENUP(FNwelcome)
-  190BPUT#X%,13
+  190FOR l%=1TO6: READ v%:BPUT#X%,v%:NEXT
   200REPEAT
   210M%=BGET#X%: IF M%=-2 THEN GOTO 360
   220IF M% >= 0 THEN PROCvdu(M%): GOTO 360
@@ -143,3 +143,5 @@
  1430IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
  1440CLS
  1450="ip0:"+S$
+ 2000REM Telnet init data
+ 2010DATA&FF,&FD,&03,&FF,&FD,&01
