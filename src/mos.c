@@ -937,22 +937,6 @@ void mos_waitdelay(int32 time) {
   error(ERR_UNSUPPORTED);	/* Not supported under windows */
 }
 
-#elif defined(TARGET_MINGW)
-
-void mos_waitdelay(int32 time) {
-#if defined(BODGEMGW) | defined(BODGESDL)
-#else
-#ifdef USE_SDL
-  mode7renderscreen();
-#endif
-  sleep(time / 100);
-#endif
-  usleep((time % 100)*10000);
-#ifdef USE_SDL
-  if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
-#endif
-}
-
 #elif defined(TARGET_AMIGA)
 
 /*
@@ -973,16 +957,15 @@ void mos_waitdelay(int32 time) {
 void mos_waitdelay(int32 time) {
   int32 tbase;
 
-#ifdef USE_SDL
-  mode7renderscreen();
-#endif
   if (time<=0) return;			/* Nothing to do */
   tbase=mos_centiseconds();
-
   while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
-  mode7flipbank();
-  if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+    mode7flipbank();
+    if(basicvars.escape_enabled && emulate_inkey(-113)) {
+      basicvars.escape=TRUE;
+      time=0;
+    }
 #endif
     usleep(1000);
   }
