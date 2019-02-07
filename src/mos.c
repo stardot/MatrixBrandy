@@ -971,19 +971,22 @@ void mos_waitdelay(int32 time) {
 ** 'time' is the time to wait in centiseconds.
 */
 void mos_waitdelay(int32 time) {
-  struct timeval delay;
+  int32 tbase;
+
 #ifdef USE_SDL
   mode7renderscreen();
 #endif
   if (time<=0) return;			/* Nothing to do */
-  delay.tv_sec = time/100;		/* Time to wait (seconds) */
-  delay.tv_usec = time%100*10000;	/* Time to wait (microseconds) */
-  (void) select(0, NIL, NIL, NIL, &delay);
+  tbase=mos_centiseconds();
+
+  while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
+  mode7flipbank();
   if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
 #endif
+    usleep(1000);
+  }
 }
-
 #endif
 #endif
 

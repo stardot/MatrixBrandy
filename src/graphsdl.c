@@ -977,7 +977,7 @@ void mode7flipbank() {
   
   if (screenmode == 7) {
     mytime=mos_centiseconds();
-    if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 1)) {
+    if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
       do_sdl_updaterect(screen0, 0, 0, 0, 0);
       m7updatetimer=mytime;
