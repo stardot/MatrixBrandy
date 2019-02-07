@@ -965,6 +965,7 @@ void mos_waitdelay(int32 time) {
     if(basicvars.escape_enabled && emulate_inkey(-113)) {
       basicvars.escape=TRUE;
       time=0;
+      error(ERR_ESCAPE);
     }
 #endif
     usleep(1000);
