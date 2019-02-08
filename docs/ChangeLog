@@ -7,9 +7,13 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   correctly (fill implementation could possibly be improved). Other variants
   to be tested.
 - ELLIPSE [FILL] command with non-zero angle now supported.
-- MODE 7: Update screen on WAIT-delay.
+- MODE 7: Update screen on WAIT-delay, and flash continues during WAIT.
+- WAIT can now be interrupted with ESCAPE.
 - Invocation behaviour change: brandy <filename> now assumes -quit instead
   of -chain.
+- Support for shrouded BASIC programs, examples/shroud will shroud a program
+  hiding the source code. It is itself shrouded. A shrouded program cannot be
+  LOADed or CHAINed, and can only be invoked from the command line.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)
