@@ -1275,12 +1275,12 @@ static boolean waitkey(int wait) {
     FD_SET(keyboard, &keyset);
 #endif
     waitime.tv_sec = waitime.tv_usec = 0;
-    if ( select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
-#endif
+    if (!nokeyboard && select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
+#endif /* !TARGET_MINGW */
     if (wait == 0) return 0; /* return after one check if wait time = 0 */
     usleep(1000);
   }
-#else
+#else /* !USE_SDL */
 #ifdef BODGEMGW
   tmp=clock()+wait*(CLOCKS_PER_SEC/100);
   for(;;) { if(kbhit() || (clock()>tmp)) break; }
