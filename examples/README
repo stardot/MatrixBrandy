@@ -5,11 +5,15 @@ cmdline		Reads parameters from the command line used to
 combsort	Compares a comb sort and a bubble sort
 cricket		Simulates a game of cricket
 dow		Prints the day of the week for the given date
+gpiolib		GPIO library for Raspberry Pi, interface-compatible with
+		BBCSDL's gpiolib.bbc by Richard Russell.
 graphdemo	Plots a graph
 hanoi		Solves the 'Ttowers of Hanoi' puzzle
 hex		Solves the 'hex' puzzle
 lands		Plots a simple fractal landscape
+mouse-doodle	Simple mouse-driven drawing program.
 pastriang	Draws Pascal's triangle
+shroud		A tool for shrouding programs. It is itself shrouded.
 sieve		Sieve of Eratosthenes
 tekdemo1	Graphics demo using the Tektronics terminal
 		emulation in xterm under NetBSD and Linux
