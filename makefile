@@ -4,16 +4,11 @@ CC = gcc
 LD = gcc
 ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
-gitcommit=\""$(shell git log --abbrev-commit -1 2>/dev/null| head -1 |cut -d ' ' -f 2)"\"
-ifeq ($(gitcommit),\"""\")
-  #CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(ADDFLAGS)
-  CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(ADDFLAGS)
-else
-  gitbranch=\""$(shell git status | head -1 | rev | cut -d ' ' -f 1 | rev)"\"
-  gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
-  #CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate) $(ADDFLAGS)
-  CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate) $(ADDFLAGS)
-endif
+include build/git.mk
+
+#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS +=
 
