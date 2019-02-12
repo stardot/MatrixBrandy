@@ -99,6 +99,8 @@ static int check_command(char *text);
 static void mos_osword(int32 areg, int32 xreg);
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
+void native_oscli(char *command, char *respfile, FILE *respfh);
+
 extern void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags);
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
@@ -1108,43 +1110,13 @@ static unsigned int cmd_parse_num(char** text)
  */
 static void cmd_cat(char *command) {
 	while (*command == ' ') command++;	// Skip spaces
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
-	system("dir /w");
-	find_cursor();				// Figure out where the cursor has gone to
-#if defined(TARGET_MINGW)
-	emulate_printf("\r\n");			// Restore cursor position
-#endif
-#elif defined(TARGET_NETBSD) | defined(TARGET_LINUX) | defined(TARGET_MACOSX)\
- | defined(TARGET_UNIX) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_MINGW)
-#ifdef USE_SDL
-    FILE *sout;
-    char buf;
-#ifdef TARGET_MINGW
-    sout = popen("dir /w", "r");		// Impossible to get here?
-#else
-    sout = popen("ls -l", "r");
-//  sout = popen("ls -C", "r");
-#endif
-    if (sout == NULL) error(ERR_CMDFAIL);
-    echo_off();
-    while (fread(&buf, 1, 1, sout) > 0) {
-      if (buf == '\n') emulate_vdu('\r');
-      emulate_vdu(buf);
-    }
-    echo_on();
-    pclose(sout);
-#else
-#ifdef TARGET_MINGW
-	system("dir /w");
-	find_cursor();				// Figure out where the cursor has gone to
-	emulate_printf("\r\n");			// Restore cursor position
-#else
-	system("ls -l");
-#endif
-#endif
+#if defined(TARGET_DOSWIN)
+	native_oscli("dir /w", NIL, NULL);
+#elif defined(TARGET_MACOSX) | defined(TARGET_UNIX)
+	native_oscli("ls -l", NIL, NULL);
+	// native_oscli("ls -C", NIL, NULL);
 #elif defined(TARGET_AMIGA)
-	system("list");
+	native_oscli("list", NIL, NULL);
 #endif
 }
 
@@ -1536,49 +1508,55 @@ static int check_command(char *text) {
 ** drastically reduced.)
 */
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
-  int cmd, clen;
-  FILE *sout;
-  char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
-#ifdef USE_SDL
-  char buf;
-#endif
+  int cmd;
 
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */
   if (*command == (char)124 || *command == (char)221) return;	/* Comment     */
 //if (*command == '\\') { }					/* Extension   */
 
-  clen=strlen(command) + 256;
-  cmdbufbase=malloc(clen);
-  cmdbuf=cmdbufbase;
-  memcpy(cmdbuf, command, clen-1);
-
   if (!basicvars.runflags.ignore_starcmd) {
 /*
  * Check if command is one of the *commands implemented
  * by this code.
  */
-  cmd = check_command(cmdbuf);
-  if (cmd == CMD_KEY)  { cmd_key(cmdbuf+3); return; } 
-  if (cmd == CMD_CAT)  { cmd_cat(cmdbuf); return; }
-  if (cmd == CMD_QUIT) { cmd_quit(cmdbuf+4); return; }
-  if (cmd == CMD_HELP) { cmd_help(cmdbuf+4); return; }
-  if (cmd == CMD_CD)   { cmd_cd(cmdbuf+2); return; }
-  if (cmd == CMD_FX)   { cmd_fx(cmdbuf+2); return; }
-  if (cmd == CMD_SHOW) { cmd_show(cmdbuf+4); return; }
+  cmd = check_command(command);
+  if (cmd == CMD_KEY)  { cmd_key(command+3); return; }
+  if (cmd == CMD_CAT)  { cmd_cat(command); return; }
+  if (cmd == CMD_QUIT) { cmd_quit(command+4); return; }
+  if (cmd == CMD_HELP) { cmd_help(command+4); return; }
+  if (cmd == CMD_CD)   { cmd_cd(command+2); return; }
+  if (cmd == CMD_FX)   { cmd_fx(command+2); return; }
+  if (cmd == CMD_SHOW) { cmd_show(command+4); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
-  if (cmd == CMD_SCREENSAVE) {cmd_screensave(cmdbuf+10); return; }
-  if (cmd == CMD_SCREENLOAD) {cmd_screenload(cmdbuf+10); return; }
-  if (cmd == CMD_WINTITLE)   {cmd_wintitle(cmdbuf+8); return; }
-  if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(cmdbuf+10); return; }
-  if (cmd == CMD_NEWMODE) {cmd_newmode(cmdbuf+7); return; }
-  if (cmd == CMD_REFRESH) {cmd_refresh(cmdbuf+7); return; }
+  if (cmd == CMD_SCREENSAVE) {cmd_screensave(command+10); return; }
+  if (cmd == CMD_SCREENLOAD) {cmd_screenload(command+10); return; }
+  if (cmd == CMD_WINTITLE)   {cmd_wintitle(command+8); return; }
+  if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(command+10); return; }
+  if (cmd == CMD_NEWMODE) {cmd_newmode(command+7); return; }
+  if (cmd == CMD_REFRESH) {cmd_refresh(command+7); return; }
   }
 
-  if (*cmdbuf == '/') {			/* Run file, so just pass to OS     */
-    cmdbuf++;				/* Step past '/'                    */
-    while (*cmdbuf == ' ') cmdbuf++;	/* And skip any more leading spaces */
+  if (*command == '/') {		/* Run file, so just pass to OS     */
+    command++;				/* Step past '/'                    */
+    while (*command == ' ') command++;	/* And skip any more leading spaces */
   }
+
+  native_oscli(command, respfile, respfh);
+}
+
+void native_oscli(char *command, char *respfile, FILE *respfh) {
+  int clen;
+  FILE *sout;
+  char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
+#ifdef USE_SDL
+  char buf;
+#endif
+
+  clen=strlen(command) + 256;
+  cmdbufbase=malloc(clen);
+  cmdbuf=cmdbufbase;
+  memcpy(cmdbuf, command, clen-1);
 
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
 /* Command is to be sent to underlying DOS-style OS */
@@ -1603,9 +1581,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
     }
   }
 
-#elif defined(TARGET_NETBSD) | defined(TARGET_LINUX) | defined(TARGET_MACOSX)\
- | defined(TARGET_UNIX) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
- | defined(TARGET_AMIGA) | defined(TARGET_GNUKFREEBSD) | defined(TARGET_MINGW)
+#elif defined(TARGET_MACOSX) | defined(TARGET_UNIX) | defined(TARGET_AMIGA) | defined(TARGET_MINGW)
 /* Command is to be sent to underlying Unix-style OS */
 /* This is the Unix version of the function, where both stdout
 ** and stderr can be redirected to a file
@@ -1651,10 +1627,10 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
     }
   }
   if (pipebuf) free(pipebuf);
-  free(cmdbufbase);
 #else
 #error There is no mos_oscli() function for this target
 #endif
+  free(cmdbufbase);
 }
 
 
