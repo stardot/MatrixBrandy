@@ -99,7 +99,7 @@ static int check_command(char *text);
 static void mos_osword(int32 areg, int32 xreg);
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
-void native_oscli(char *command, char *respfile, FILE *respfh);
+static void native_oscli(char *command, char *respfile, FILE *respfh);
 
 extern void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags);
 
@@ -1545,7 +1545,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   native_oscli(command, respfile, respfh);
 }
 
-void native_oscli(char *command, char *respfile, FILE *respfh) {
+static void native_oscli(char *command, char *respfile, FILE *respfh) {
   int clen;
   FILE *sout;
   char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
