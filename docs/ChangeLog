@@ -14,6 +14,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Support for shrouded BASIC programs, examples/shroud will shroud a program
   hiding the source code. It is itself shrouded. A shrouded program cannot be
   LOADed or CHAINed, and can only be invoked from the command line.
+- Makefile and code improvement contributions from ccawley2011 @ github.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)
