@@ -1009,7 +1009,7 @@ int32 fileio_eof(int32 handle) {
   FILE *stream;
   boolean ateof;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);	/* to do */
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
