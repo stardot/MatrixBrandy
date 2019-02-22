@@ -609,7 +609,7 @@ void fileio_close(int32 handle) {
 int32 fileio_bget(int32 handle) {
   int32 ch;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
@@ -661,7 +661,7 @@ int32 fileio_getdol(int32 handle, char *buffer) {
   char *p;
   int32 length;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending or EOF, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
@@ -708,6 +708,8 @@ void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
   FILE *stream;
   int32 n, marker;
   char temp[sizeof(float64)];
+
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
@@ -776,6 +778,8 @@ void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
 int32 fileio_getstring(int32 handle, char *p) {
   FILE *stream;
   int32 marker, length = 0, n;
+
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
@@ -815,7 +819,7 @@ static void write(FILE *stream, int32 value) {
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
 
-  if (handle==0) return;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
@@ -838,7 +842,7 @@ void fileio_bput(int32 handle, int32 value) {
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   int32 result;
 
-  if (handle==0) return;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
@@ -864,6 +868,8 @@ void fileio_bputstr(int32 handle, char *string, int32 length) {
 void fileio_printint(int32 handle, int32 value) {
   FILE *stream;
   int32 n;
+
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
@@ -885,6 +891,8 @@ void fileio_printfloat(int32 handle, float64 value) {
   FILE *stream;
   int32 n;
   char temp[sizeof(float64)];
+
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
@@ -919,6 +927,8 @@ void fileio_printfloat(int32 handle, float64 value) {
 void fileio_printstring(int32 handle, char *string, int32 length) {
   FILE *stream;
   int32 n, temp, result;
+
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
@@ -947,7 +957,7 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 void fileio_setptr(int32 handle, int32 newoffset) {
   int32 result;
 
-  if (handle==0) return;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   result = fseek(fileinfo[handle].stream, newoffset, SEEK_SET);
   if (result==-1) error(ERR_SETPTRFAIL);	/* File pointer cannot be set */
@@ -960,7 +970,7 @@ void fileio_setptr(int32 handle, int32 newoffset) {
 int32 fileio_getptr(int32 handle) {
   int32 result;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   result = TOINT(ftell(fileinfo[handle].stream));
   if (result==-1) error(ERR_GETPTRFAIL);	/* File pointer cannot be read */
@@ -974,7 +984,7 @@ int32 fileio_getext(int32 handle) {
   long int position, length;
   FILE *stream;
 
-  if (handle==0) return 0;	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   stream = fileinfo[handle].stream;
   position = ftell(stream);
@@ -1009,7 +1019,7 @@ int32 fileio_eof(int32 handle) {
   FILE *stream;
   boolean ateof;
 
-  if (handle==0) error(ERR_BADHANDLE);	/* to do */
+  if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
