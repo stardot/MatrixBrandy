@@ -1345,11 +1345,8 @@ static void cmd_help(char *command)
 
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
-		emulate_printf("  CD   <dir>\n\r  FX   <num>(,<num>(,<num>))\n\r");
-		emulate_printf("  KEY  <num> <string>\n\r  HELP <text>\n\r  SHOW (<num>)\n\r  QUIT\n\r");
-#if defined(USE_SDL) | defined(TARGET_UNIX)
-		emulate_printf("  WINTITLE <window title>\r\n");
-#endif
+		emulate_printf("  CD   <dir>\r\n  EXEC <filename>\r\n  FX   <num>(,<num>(,<num>))\r\n");
+		emulate_printf("  KEY  <num> <string>\r\n  HELP <text>\r\n  SHOW (<num>)\r\n  QUIT\r\n");
 	}
 #if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {
