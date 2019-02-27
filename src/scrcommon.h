@@ -250,18 +250,19 @@ static unsigned int vduflags = 0;	/* VDU flags */
 #define VDU_FLAG_ECHO		0x00000010	/* if character should be echoed on screen immediately */
 #define VDU_FLAG_TEXTWIN	0x00000020	/* if a text window has been defined */
 /* Flags used by the Teletext emulation in graphsdl.c */
-#define MODE7_VDU141ON		0x00010000	/* Mode 7 VDU141 toggle */
-#define MODE7_VDU141MODE	0x00020000	/* Mode 7 VDU141 0=top, 1=bottom */
-#define MODE7_HIGHBIT		0x00040000	/* Use high bits in Mode 7 */
-#define MODE7_CONCEAL		0x00080000	/* CONCEAL teletext flag */
-#define MODE7_SEPGRP		0x00100000	/* Separated graphics in Mode 7 */
-#define MODE7_SEPREAL		0x00200000	/* Separated graphics in Mode 7 */
-#define MODE7_FLASH		0x00400000	/* Flash flag */
-#define MODE7_BANK		0x00800000	/* Bank switching for Mode 7 Flashing */
-#define MODE7_HOLD		0x01000000	/* Hold Graphics flag */
-#define MODE7_REVEAL		0x02000000	/* RISC OS 5 - reveal content hidden by CONCEAL */
-#define MODE7_BLACK		0x04000000	/* RISC OS 5 - Allow teletext black codes */
-#define MODE7_UPDATE		0x08000000	/* RISC OS 5 - do we update bitmap and blit after each character */
+#define MODE7_VDU141ON		0x00001000	/* Mode 7 VDU141 toggle */
+#define MODE7_VDU141MODE	0x00002000	/* Mode 7 VDU141 0=top, 1=bottom */
+#define MODE7_HIGHBIT		0x00004000	/* Use high bits in Mode 7 */
+#define MODE7_CONCEAL		0x00008000	/* CONCEAL teletext flag */
+#define MODE7_SEPGRP		0x00010000	/* Separated graphics in Mode 7 */
+#define MODE7_SEPREAL		0x00020000	/* Separated graphics in Mode 7 */
+#define MODE7_FLASH		0x00040000	/* Flash flag */
+#define MODE7_BANK		0x00080000	/* Bank switching for Mode 7 Flashing */
+#define MODE7_HOLD		0x00100000	/* Hold Graphics flag */
+#define MODE7_REVEAL		0x00200000	/* RISC OS 5 - reveal content hidden by CONCEAL */
+#define MODE7_BLACK		0x00400000	/* RISC OS 5 - Allow teletext black codes */
+#define MODE7_UPDATE		0x00800000	/* RISC OS 5 - do we update bitmap and blit after each character. */
+#define MODE7_UPDATE_HIGHACC	0x01000000	/* RISC OS 5 - most accurate updates. */
 
 /*
 ** The logical-to-physical table maps the RISC OS logical colours to

@@ -203,9 +203,10 @@ unsigned int YPPC=8;		/* Size of character in pixels in Y direction */
 unsigned int M7XPPC=16;		/* Size of Mode 7 characters in X direction */
 unsigned int M7YPPC=20;		/* Size of Mode 7 characters in Y direction */
 
-static unsigned int vduflag(unsigned int flags) {
-  return (vduflags & flags) ? 1 : 0;
-}
+//static unsigned int vduflag(unsigned int flags) {
+//  return (vduflags & flags) ? 1 : 0;
+//}
+#define vduflag(flags) ((vduflags & flags) ? 1 : 0)
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
@@ -403,7 +404,8 @@ static void vdu_2317(void) {
 /* RISC OS 5 - Set Teletext characteristics */
 static void vdu_2318(void) {
   if (vduqueue[1] == 1) {
-    write_vduflag(MODE7_UPDATE, vduqueue[2] & 2);
+    write_vduflag(MODE7_UPDATE_HIGHACC, vduqueue[2] & 2);
+    write_vduflag(MODE7_UPDATE, (vduqueue[2] & 1)==0);
   }
   if (vduqueue[1] == 2) {
     write_vduflag(MODE7_REVEAL, vduqueue[2] & 1);
@@ -1871,7 +1873,7 @@ void emulate_vdu(int32 charvalue) {
 	  mode7frame[ytext][xtext]=charvalue;
 	}
 	mode7changed[ytext]=1;
-	//mode7renderline(ytext);
+	if (vduflag(MODE7_UPDATE_HIGHACC)) mode7renderline(ytext);
 	xtext+=textxinc();
 	if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
 	  xtext = textxhome();
@@ -3204,6 +3206,7 @@ boolean init_screen(void) {
   vduneeded = 0;
   write_vduflag(VDU_FLAG_ENAPRINT,0);
   write_vduflag(MODE7_UPDATE,1);
+  write_vduflag(MODE7_UPDATE_HIGHACC,1);
   xgupp = ygupp = 1;
   SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
@@ -3923,8 +3926,12 @@ void star_refresh(int flag) {
     autorefresh=flag;
   }
   if (flag & 1) {
-    SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
-    SDL_Flip(screen0);
+    if (screenmode == 7) {
+      mode7renderscreen();
+    } else {
+      SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+      SDL_Flip(screen0);
+    }
   }
 }
 

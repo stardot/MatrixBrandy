@@ -19,8 +19,12 @@ Direct screen memory access is implemented at addresses &FFFF7C00 to &FFFF7FFF.
 Some RISC OS 5 extensions are also supported:
   (source: http://beebwiki.mdfs.net/VDU_23)
 VDU 23,18,1,flags,0,0,0,0,0,0 - Set Teletext display update
-  bit 0 - suspend immediate updates of display bitmap (not implemented)
+  bit 0 - suspend immediate updates of display bitmap (default: unset)
   bit 1 - update display after every character (default: set)
+  
+  Note: The defaults are the most accurate, but slowest setting. For
+        performance, unset bit 1 first, then set bit 0 for the maximum
+        performance at the expense of screen updates.
 
 VDU 23,18,2,flags,0,0,0,0,0,0 - Set Teletext reveal state
   bit 0 - if set, any concealed text will be displayed. If cleared, concealed

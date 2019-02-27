@@ -8,6 +8,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   to be tested.
 - ELLIPSE [FILL] command with non-zero angle now supported.
 - MODE 7: Update screen on WAIT-delay, and flash continues during WAIT.
+- MODE 7: Increase display accuracy at the expense of performance, switchable
+  via VDU23,18,1,x| - bit 0 is also now implemented.
+- MODE 7: *REFRESH now does the right thing.
 - WAIT can now be interrupted with ESCAPE.
 - Invocation behaviour change: brandy <filename> now assumes -quit instead
   of -chain.
