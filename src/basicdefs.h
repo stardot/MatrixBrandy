@@ -25,6 +25,7 @@
 #define __basicdefs_h
 
 #include <setjmp.h>
+#include <stdio.h>
 #include "common.h"
 #include "target.h"
 
@@ -444,7 +445,7 @@ typedef struct {
     unsigned int has_variables:1;	/* TRUE if any variables have been created */
     unsigned int make_array:1;		/* TRUE if missing arrays should be created */
     unsigned int closefiles:1;		/* TRUE if any open files are closed at the end of the run */
-    unsigned int inredir:1;		/* TRUE if input is being taken from s file */
+    unsigned int inredir:1;		/* TRUE if input is being taken from a file */
     unsigned int outredir:1;		/* TRUE if output is being redirected */
     unsigned int flag_cosmetic:1;	/* TRUE if all unsupported features flagged as errors */
     unsigned int ignore_starcmd:1;	/* TRUE if built-in '*' commands are ignored */
@@ -509,6 +510,7 @@ typedef struct {
   byte *gpiomem;			/* Pointer for where mmap() places /dev/gpiomem */
   uint32 *gpiomemint;			/* Unsigned int32 version of gpiomem */
   unsigned int scrunge;			/* Is the BASIC program scrunged? */
+  FILE *doexec;				/* Are we doing a *EXEC? */
 } matrixbits;
 extern matrixbits matrixflags;
 

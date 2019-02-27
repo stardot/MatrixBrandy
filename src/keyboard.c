@@ -2266,15 +2266,23 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   lastplace = length-2;         /* Index of last position that can be used in buffer */
   init_recall();
   do {
+    if (matrixflags.doexec) {
+      ch=fgetc(matrixflags.doexec);
+      if (feof(matrixflags.doexec)) {
+	fclose(matrixflags.doexec);
+	matrixflags.doexec=NULL;
+      }
+    } else {
 #ifdef NEWKBD
-    ch = kbd_get();
-    if ((ch & 0x100) || (ch == DEL)) {
-      pendch=ch & 0xFF;		/* temp */
-      ch = NUL;
-    }
+      ch = kbd_get();
+      if ((ch & 0x100) || (ch == DEL)) {
+	pendch=ch & 0xFF;		/* temp */
+	ch = NUL;
+      }
 #else
-    ch = emulate_get();
+      ch = emulate_get();
 #endif
+    }
     watch_signals();           /* Let asynchronous signals catch up */
     if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;
 	/* Check if the escape key has been pressed and bail out if it has */

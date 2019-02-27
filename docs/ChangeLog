@@ -19,6 +19,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   LOADed or CHAINed, and can only be invoked from the command line.
 - Makefile and code improvement contributions from ccawley2011 @ github.
 - Corrected behaviour of EOF#0, BPUT#0, BGET#0 etc, thanks dhg2 @ Stardot.
+- *EXEC implemented. Idea from Richard Russell.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)

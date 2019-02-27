@@ -1098,6 +1098,7 @@ static unsigned int cmd_parse_num(char** text)
 #define CMD_SCREENSAVE		15
 #define CMD_SCREENLOAD		16
 #define CMD_SHOW		17
+#define CMD_EXEC		18
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1442,6 +1443,19 @@ static void cmd_show(char *command) {
 }
 
 /*
+ * *EXEC - Part of the implementation for *EXEC
+ */
+static void cmd_exec(char *command) {
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    emulate_printf("Syntax: *EXEC <filename>\r\n");
+  } else {
+    matrixflags.doexec=fopen(command, "r");
+    if (!matrixflags.doexec) error(ERR_NOTFOUND, command);
+  }
+}
+
+/*
  * *QUIT
  * Exit interpreter
  */
@@ -1485,6 +1499,7 @@ static int check_command(char *text) {
   if (strcmp(command, "newmode") == 0)    return CMD_NEWMODE;
   if (strcmp(command, "refresh") == 0)    return CMD_REFRESH;
   if (strcmp(command, "show")   == 0) return CMD_SHOW;
+  if (strcmp(command, "exec")   == 0) return CMD_EXEC;
   if (strcmp(command, "basic")  == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
@@ -1528,6 +1543,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (cmd == CMD_CD)   { cmd_cd(command+2); return; }
   if (cmd == CMD_FX)   { cmd_fx(command+2); return; }
   if (cmd == CMD_SHOW) { cmd_show(command+4); return; }
+  if (cmd == CMD_EXEC) { cmd_exec(command+4); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
   if (cmd == CMD_SCREENSAVE) {cmd_screensave(command+10); return; }
   if (cmd == CMD_SCREENLOAD) {cmd_screenload(command+10); return; }

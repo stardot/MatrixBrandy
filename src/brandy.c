@@ -168,6 +168,8 @@ static void init1(void) {
   liblist = liblast = NIL;		/* List of libraries to load when interpreter starts */
   worksize = 0;				/* Use default workspace size */
 
+  matrixflags.doexec = NULL;		/* We're not doing a *EXEC to begin with */
+
 /*
  * Add dummy first parameter for Basic program command line.
  * This is the Basic program's name
