@@ -92,6 +92,7 @@
 #endif
 
 #ifdef USE_SDL
+#include "SDL.h"
 #include "graphsdl.h"
 #endif
 
@@ -1291,7 +1292,7 @@ static void cmd_fx(char *command) {
 	// Yes, RISC OS gets this wrong.
 
 	unsigned int areg=0, xreg=0, yreg=0;		// Default parameters
-		
+
 	while (*command == ' ') command++;		// Skip spaces
 	if (*command == 0)
 		{ error(ERR_BADSYNTAX, "FX <num> (,<num> (,<num>))"); return; }
@@ -1611,6 +1612,8 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
     echo_on();
     pclose(sout);
+    SDL_EnableKeyRepeat(0,0);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #else
     fflush(stdout);			/* Make sure everything has been output */
     fflush(stderr);
@@ -1876,7 +1879,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &7C 124 Clear ESCAPE condition
 * OSBYTE &7D 125 Set ESCAPE conditon
 * OSBYTE &7E 126 Acknowledge ESCAPE condition
-* OSBYTE &7F 127 Check for EOF 
+* OSBYTE &7F 127 Check for EOF
 * OSBYTE &80 128 Read ADC Channel/Buffer/Mouse/Device status
 * OSBYTE &81 129 Read Key with Time Limit/Scan for any keys/Read OS version
 * OSBYTE &82 130 Read High Order Address
@@ -1908,7 +1911,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &9C 156 Read/write ACIA control registers
 * OSBYTE &9D 157 Fast Tube BPUT
 * OSBYTE &9E 158 Read from Speech Processor
-* OSBYTE &9F 159 Write to Speech Processor 
+* OSBYTE &9F 159 Write to Speech Processor
 * OSBYTE &A0 160 Read VDU Variable
 * OSBYTE &A1 161 Read CMOS RAM
 * OSBYTE &A2 162 Write CMOS RAM
@@ -1936,7 +1939,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &B8 184 Read/Write MOS copy of Video ULA control register
 * OSBYTE &B9 185 Read/Write MOS copy of palette register/ROM polling semaphore
 * OSBYTE &BA 186 Read/Write ROM active on last BRK
-* OSBYTE &BB 187 Read/Write ROM number of BASIC 
+* OSBYTE &BB 187 Read/Write ROM number of BASIC
 * OSBYTE &BC 188 Read/Write current ADC channel number
 * OSBYTE &BD 189 Read/Write highest ADC channel number
 * OSBYTE &BE 190 Read/Write ADC resolution
@@ -1996,7 +1999,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &F4 244 Read/Write soft key consistency flag
 * OSBYTE &F5 245 Read/Write printer Type (FX5)
 * OSBYTE &F6 246 Read/Write printer Ignore character (FX6)
-* OSBYTE &F7 247 Read/Write Intercept BREAK/Define action of BREAK key  
+* OSBYTE &F7 247 Read/Write Intercept BREAK/Define action of BREAK key
 * OSBYTE &F8 248 Read/Write LSB BREAK intercepter jump address
 * OSBYTE &F9 249 Read/Write MSB BREAK intercepter jump address
 * OSBYTE &FA 250 Read/Write RAM used for VDU access, Watford RAM board status
@@ -2055,7 +2058,7 @@ switch (areg) {
 		break;
 	case 44:
 		osbyte44(xreg);
-		break; 
+		break;
 	case 106:
 #ifdef USE_SDL
 		sdl_mouse_onoff(xreg & 0x7);
@@ -2083,7 +2086,7 @@ switch (areg) {
 		if ((yreg=255) && (xreg >= 128)) {
 #ifdef USE_SDL
 		  if (emulate_inkey(xreg + 0xFFFFFF00)) return (0xFFFF81);
-		    else 
+		    else
 #endif
 		    return (0x81);
 		}
@@ -2168,7 +2171,7 @@ switch (areg) {
 #endif
 		break;
 	}
-if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106) 
+if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
 else
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;	// Default null return
