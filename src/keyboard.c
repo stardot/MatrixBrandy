@@ -663,7 +663,13 @@ int32 kbd_get(void) {
 
   int ch, fnkey;
 
-  if (basicvars.runflags.inredir) {		/* Input redirected (equiv. of *EXEC)	*/
+  if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
+    ch=fgetc(matrixflags.doexec);
+    if (!feof(matrixflags.doexec)) return (ch & BYTEMASK);
+    fclose(matrixflags.doexec);
+    matrixflags.doexec=NULL;
+  }
+  if (basicvars.runflags.inredir) {		/* Input redirected at CLI		*/
 #ifdef TARGET_UNIX
     if ((ch=getchar()) != EOF) return ch;
 #else
@@ -1679,9 +1685,12 @@ int32 emulate_get(void) {
   int32 errcode;
 #endif
 
-// #ifdef USE_SDL
-//   reset_vdu14lines();	/* This should be done in INPUT not in GET */
-// #endif
+  if (matrixflags.doexec) {			/* Are we doing *EXEC?	*/
+    ch=fgetc(matrixflags.doexec);
+    if (!feof(matrixflags.doexec)) return (ch & BYTEMASK);
+    fclose(matrixflags.doexec);
+    matrixflags.doexec=NULL;
+  }
   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* Not reading from the keyboard */
 /*
  * Check if characters are being taken from a function
@@ -2258,7 +2267,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   }
 
 #ifdef USE_SDL
-  reset_vdu14lines();	/* This should be done in INPUT not in GET */
+  reset_vdu14lines();
 #endif
   highplace = strlen(buffer);
   if (highplace > 0) emulate_vdustr(buffer, highplace);
@@ -2266,23 +2275,15 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   lastplace = length-2;         /* Index of last position that can be used in buffer */
   init_recall();
   do {
-    if (matrixflags.doexec) {
-      ch=fgetc(matrixflags.doexec);
-      if (feof(matrixflags.doexec)) {
-	fclose(matrixflags.doexec);
-	matrixflags.doexec=NULL;
-      }
-    } else {
 #ifdef NEWKBD
-      ch = kbd_get();
-      if ((ch & 0x100) || (ch == DEL)) {
-	pendch=ch & 0xFF;		/* temp */
-	ch = NUL;
-      }
-#else
-      ch = emulate_get();
-#endif
+    ch = kbd_get();
+    if ((ch & 0x100) || (ch == DEL)) {
+      pendch=ch & 0xFF;		/* temp */
+      ch = NUL;
     }
+#else
+    ch = emulate_get();
+#endif
     watch_signals();           /* Let asynchronous signals catch up */
     if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;
 	/* Check if the escape key has been pressed and bail out if it has */
