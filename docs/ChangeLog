@@ -20,6 +20,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Makefile and code improvement contributions from ccawley2011 @ github.
 - Corrected behaviour of EOF#0, BPUT#0, BGET#0 etc, thanks dhg2 @ Stardot.
 - *EXEC implemented. Idea from Richard Russell.
+- *-commands that call out to external commands from Windows no longer cause
+  a CMD window to open, also fixing the "stuck key" problem associated with
+  this. Thanks to Richard Russell for the guidance here.
 
 * V1.21.18
 - *SHOW implemented (JGHarston)
