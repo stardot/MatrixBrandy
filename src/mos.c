@@ -1603,7 +1603,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
     strcat(cmdbuf, " 2>&1");
+#ifdef TARGET_MINGW
+    /* Stuck ENTER key workaround for Windows boxes */
     while (emulate_inkey(-74)) usleep(1000);
+#endif
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
