@@ -1603,6 +1603,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
     strcat(cmdbuf, " 2>&1");
+    while (emulate_inkey(-74)) usleep(1000);
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
@@ -1612,8 +1613,6 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
     echo_on();
     pclose(sout);
-    SDL_EnableKeyRepeat(0,0);
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 #else
     fflush(stdout);			/* Make sure everything has been output */
     fflush(stderr);
