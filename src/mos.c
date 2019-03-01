@@ -85,6 +85,12 @@
 #include "dos.h"
 #endif
 
+#ifdef TARGET_MINGW
+#include <windows.h>
+#include <tchar.h>
+//#include <strsafe.h>
+#endif
+
 #if defined(TARGET_UNIX) || defined(TARGET_MACOSX)
 #include <sys/time.h>
 #include <sys/types.h>
@@ -1559,12 +1565,97 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   native_oscli(command, respfile, respfh);
 }
 
+#ifdef TARGET_MINGW
+/* Code from Microsoft example code of how to do popen without using popen */
+HANDLE g_hChildStd_IN_Rd = NULL;
+HANDLE g_hChildStd_IN_Wr = NULL;
+HANDLE g_hChildStd_OUT_Rd = NULL;
+HANDLE g_hChildStd_OUT_Wr = NULL;
+HANDLE g_hInputFile = NULL;
+
+/* Create a child process that uses the previously created pipes for STDIN and STDOUT. */
+void CreateChildProcess(char *procname) {
+   char cmdLine[256];
+   PROCESS_INFORMATION piProcInfo;
+   STARTUPINFO siStartInfo;
+   BOOL bSuccess = FALSE;
+
+   *cmdLine='\0';
+   strcat(cmdLine, "cmd /c ");
+   strncat(cmdLine, procname, 247);
+
+// Set up members of the PROCESS_INFORMATION structure.
+   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
+
+// Set up members of the STARTUPINFO structure.
+// This structure specifies the STDIN and STDOUT handles for redirection.
+   ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
+   siStartInfo.cb = sizeof(STARTUPINFO);
+   siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+   siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
+   siStartInfo.hStdInput = g_hChildStd_IN_Rd;
+   siStartInfo.dwFlags |= (STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW);
+   siStartInfo.wShowWindow = SW_HIDE;
+
+
+// Create the child process.
+   bSuccess = CreateProcess(NULL,
+      cmdLine,       // command line
+      NULL,          // process security attributes
+      NULL,          // primary thread security attributes
+      TRUE,          // handles are inherited
+      0,             // creation flags
+      NULL,          // use parent's environment
+      NULL,          // use parent's current directory
+      &siStartInfo,  // STARTUPINFO pointer
+      &piProcInfo);  // receives PROCESS_INFORMATION
+
+   // If an error occurs, complain.
+   if (!bSuccess)
+      error(ERR_CMDFAIL);
+   else {
+      // Close handles to the child process and its primary thread.
+      // Some applications might keep these handles to monitor the status
+      // of the child process, for example.
+      CloseHandle(piProcInfo.hProcess);
+      CloseHandle(piProcInfo.hThread);
+      CloseHandle(g_hChildStd_IN_Wr);
+      CloseHandle(g_hChildStd_OUT_Wr);
+   }
+}
+
+// Read output from the child process's pipe for STDOUT
+// Stop when there is no more data.
+int ReadFromPipe(void) {
+   DWORD dwRead;
+   char buf;
+   BOOL bSuccess = FALSE;
+
+   bSuccess = ReadFile(g_hChildStd_OUT_Rd, &buf, 1, &dwRead, NULL);
+   if (!bSuccess || dwRead == 0) {
+	 CloseHandle(g_hChildStd_OUT_Rd);
+	 return(-1);
+   }
+   return buf;
+}
+#endif /* TARGET_MINGW */
+
 static void native_oscli(char *command, char *respfile, FILE *respfh) {
   int clen;
   FILE *sout;
   char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
 #ifdef USE_SDL
+#ifndef TARGET_MINGW
   char buf;
+#endif
+#endif
+#ifdef TARGET_MINGW
+  int getChar;
+  SECURITY_ATTRIBUTES saAttr;
+
+  saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+  saAttr.bInheritHandle = TRUE;
+  saAttr.lpSecurityDescriptor = NULL;
 #endif
 
   clen=strlen(command) + 256;
@@ -1646,11 +1737,26 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 */
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
-    strcat(cmdbuf, " 2>&1");
+    //strcat(cmdbuf, " 2>&1");
 
-    /* Stuck ENTER key workaround for Windows boxes, while using popen() */
-    while (emulate_inkey(-74)) usleep(1000); /* INKEY(-74) is the RETURN key */
-    
+// Create a pipe for the child process's STDOUT.
+    if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0)) error(ERR_CMDFAIL);
+// Ensure the read handle to the pipe for STDOUT is not inherited.
+    if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0)) error(ERR_CMDFAIL);
+// Create a pipe for the child process's STDIN.
+    if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0))  error(ERR_CMDFAIL);
+// Ensure the write handle to the pipe for STDIN is not inherited.
+    if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0)) error(ERR_CMDFAIL);
+// Create the child process.
+    CreateChildProcess(cmdbuf);
+
+    echo_off();
+    while((getChar=ReadFromPipe()) >0) {
+      if (getChar == '\n') emulate_vdu('\r');
+      emulate_vdu(getChar);
+    }
+    echo_on();
+#if 0
     /* This really needs to be redone using Windows API calls instead of popen() */
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
@@ -1661,6 +1767,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
     echo_on();
     pclose(sout);
+#endif
 #else
     fflush(stdout);			/* Make sure everything has been output */
     fflush(stderr);
