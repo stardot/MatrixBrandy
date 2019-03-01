@@ -1595,18 +1595,14 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
   }
 
-#elif defined(TARGET_MACOSX) | defined(TARGET_UNIX) | defined(TARGET_AMIGA) | defined(TARGET_MINGW)
-/* Command is to be sent to underlying Unix-style OS */
+#elif defined(TARGET_MACOSX) | defined(TARGET_UNIX) | defined(TARGET_AMIGA)
+/* Command is to be sent to underlying Unix-style OS, excluding MinGW */
 /* This is the Unix version of the function, where both stdout
 ** and stderr can be redirected to a file
 */
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
     strcat(cmdbuf, " 2>&1");
-#ifdef TARGET_MINGW
-    /* Stuck ENTER key workaround for Windows boxes */
-    while (emulate_inkey(-74)) usleep(1000);
-#endif
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
     echo_off();
@@ -1621,9 +1617,56 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     fflush(stderr);
     basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
-#if defined(TARGET_MINGW)
-    emulate_printf("\r\n");		/* Restore cursor position */
+    if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
+  } else {				/* Want response back from command */
+    strcat(cmdbuf, " 2>&1");
+    sout = popen(cmdbuf, "r");
+    if (sout == NULL) {
+      fclose(respfh);
+      remove(respfile);
+      error(ERR_CMDFAIL);
+    } else {
+      pipebuf=malloc(4096);
+      echo_off();
+      while (fgets(pipebuf, sizeof(pipebuf)-1, sout)) {
+	fprintf(respfh, "%s", pipebuf);
+      }
+      echo_on();
+      pclose(sout);
+      fclose(respfh);
+    }
+  }
+  if (pipebuf) free(pipebuf);
+
+#elif defined(TARGET_MINGW)
+/* Command is to be sent to underlying Windows OS via MinGW */
+/* This is the Windows/MinGW version of the function, where both
+** stdout and stderr can be redirected to a file
+*/
+  if (respfile == NIL) {		/* Command output goes to normal place */
+#ifdef USE_SDL
+    strcat(cmdbuf, " 2>&1");
+
+    /* Stuck ENTER key workaround for Windows boxes, while using popen() */
+    while (emulate_inkey(-74)) usleep(1000); /* INKEY(-74) is the RETURN key */
+    
+    /* This really needs to be redone using Windows API calls instead of popen() */
+    sout = popen(cmdbuf, "r");
+    if (sout == NULL) error(ERR_CMDFAIL);
+    echo_off();
+    while (fread(&buf, 1, 1, sout) > 0) {
+      if (buf == '\n') emulate_vdu('\r');
+      emulate_vdu(buf);
+    }
+    echo_on();
+    pclose(sout);
+#else
+    fflush(stdout);			/* Make sure everything has been output */
+    fflush(stderr);
+    basicvars.retcode = system(cmdbuf);
+    find_cursor();			/* Figure out where the cursor has gone to */
+    emulate_printf("\r\n");		/* Restore cursor position */
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
   } else {				/* Want response back from command */
