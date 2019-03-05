@@ -10,13 +10,13 @@
   100*WinTitle Matrix Brandy BASIC Telstar Client
   110REMON ERROR GOTO 320
   120MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
-  130reveal%=0:scan%=0:width%=1:auth%=0
+  130reveal%=0:scan%=0:width%=1:auth%=0:t%=0
   140dh%=0:dhline%=0:borked%=0
   150REM Variables for downloading
   160screen%=0
   170download%=0
   180X%=OPENUP(FNwelcome)
-  190FOR l%=1TO6: READ v%:BPUT#X%,v%:NEXT
+  190IF t%=1 THEN FOR l%=1TO6: READ v%:BPUT#X%,v%:NEXT
   200REPEAT
   210M%=BGET#X%: IF M%=-2 THEN GOTO 360
   220IF M% >= 0 THEN PROCvdu(M%): GOTO 360
@@ -123,6 +123,7 @@
  1230PRINT
  1240PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1250PRINT CHR$(131);"5 - NXtel"
+ 1251PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
  1260PRINT
  1270PRINT CHR$(129);"0 - Exit"
  1280PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
@@ -131,16 +132,17 @@
  1310PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
  1320PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
  1330PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1340REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 53) OR A%=1 OR A%=6 OR A%=24
+ 1340REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=1 OR A%=6 OR A%=24
  1350IF A% = 23 THEN PROCwidth:GOTO 1340
  1360IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
  1370IF A% = 1 THEN auth% EOR=1: GOTO 1340
  1380IF A% = 6 THEN PROCtogglescreen: GOTO 1340
- 1390IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
- 1400IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
- 1410IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1390IF A% = 49 THEN borked%=1: t%=1: S$ = "glasstty.com:6502"
+ 1400IF A% = 50 THEN borked%=1: t%=1: S$ = "glasstty.com:6503"
+ 1410IF A% = 51 THEN borked%=1: t%=1: S$ = "glasstty.com:6504"
  1420IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
  1430IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
+ 1431IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
  1440CLS
  1450="ip0:"+S$
  2000REM Telnet init data
