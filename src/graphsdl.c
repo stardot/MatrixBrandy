@@ -3786,56 +3786,42 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
 /*
 ** Draw a filled ellipse into a buffer
 */
-static void filled_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
-  int32 x, y, y1, aa, bb, d, g, h, ym, si;
+
+static void filled_ellipse(SDL_Surface *sr, 
+  int32 x0, /* Centre X */
+  int32 y0, /* Centre Y */
+  int32 a, /* Width */
+  int32 b, /* Height */
+  int32 shearx, /* X shear */
+  Uint32 c, Uint32 action
+) {
+
+  int32 x, y, width, aa, bb, aabb, ym, dx, si;
   float64 s;
 
   aa = a * a;
   bb = b * b;
+  aabb=aa*bb;
 
-  h = (FAST_4_DIV(aa)) - b * aa + bb;
-  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
   x = 0;
+  width=a;
+  dx = 0;
   ym = y = b;
 
-  while (g < 0) {
+  draw_h_line(sr, x0-a, y0, x0 + a, c, action);
+
+  for (y=1; y <= b; y++) {
     s=shearx*(1.0*y/ym);
     si=s;
-    draw_h_line(sr, x0 - x + si, y0 - y, x0 + x + si, c, action);
-    draw_h_line(sr, x0 - x - si, y0 + y, x0 + x - si, c, action);
-
-    if (h < 0) {
-      d = ((FAST_2_MUL(x)) + 3) * bb;
-      g += d;
-    }
-    else {
-      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
-      g += (d + (FAST_2_MUL(aa)));
-      --y;
-    }
-
-    h += d;
-    ++x;
+    x=width-(dx-1);
+    for (;x>0; x--)
+      if (x*x*bb + y*y*aa < aabb) break;
+    dx = width -x;
+    width = x;
+    draw_h_line(sr,x0-width+si, y0-y, x0+width+si, c, action);
+    draw_h_line(sr,x0-width-si, y0+y, x0+width-si, c, action);
   }
-  y1 = y;
-  h = (FAST_4_DIV(bb)) - a * bb + aa;
-  x = a;
-  y = 0;
 
-  while (y <= y1) {
-    s=shearx*(1.0*y/ym);
-    si=s;
-    draw_h_line(sr, x0 - x - si, y0 + y, x0 + x - si, c, action);
-    draw_h_line(sr, x0 - x + si, y0 - y, x0 + x + si, c, action);
-
-    if (h < 0)
-      h += ((FAST_2_MUL(y)) + 3) * aa;
-    else {
-      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
-      --x;
-    }
-    ++y;
-  }
 }
 
 void get_sdl_mouse(int32 values[]) {
