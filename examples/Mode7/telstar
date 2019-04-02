@@ -8,73 +8,73 @@
    80:
    90*FX229,1
   100*WinTitle Matrix Brandy BASIC Telstar Client
-  110REMON ERROR GOTO 320
+  110ON ERROR GOTO 360
   120MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
-  130reveal%=0:scan%=0:width%=1:auth%=0:t%=0
+  130reveal%=0:scan%=0:width%=1:auth%=0
   140dh%=0:dhline%=0:borked%=0
   150REM Variables for downloading
   160screen%=0
   170download%=0
   180X%=OPENUP(FNwelcome)
-  190IF t%=1 THEN FOR l%=1TO6: READ v%:BPUT#X%,v%:NEXT
+  190FOR l%=1TO6: READ v%:BPUT#X%,v%:NEXT
   200REPEAT
-  210M%=BGET#X%: IF M%=-2 THEN GOTO 360
-  220IF M% >= 0 THEN PROCvdu(M%): GOTO 360
-  230PROCdhscan
-  240I%=INKEY(10):IF I%=35 OR I%=13 THEN I%=95
+  210M%=BGET#X%: IF M%=-2 THEN GOTO 350
+  220IF M% >= 0 THEN PROCvdu(M%): GOTO 350
+  230I%=INKEY(10):IF I%=-1 THEN PROCdhscan: GOTO 350
+  240IF I%=35 OR I%=13 THEN I%=95
   250IF I%=127 THEN I%=8
-  260IF I%=-1 THEN GOTO 360
-  270IF I%=1 THEN auth% EOR=1:GOTO 210
-  280IF I%=6 THEN PROCtogglescreen: GOTO 210
-  290IF I%=16 THEN PROCdumpscreen: GOTO 210
-  300IF I%=18 THEN PROCreveal: GOTO 210
-  310IF I%=23 THEN PROCwidth: GOTO 210
-  320IF I%=24 THEN GOTO 370
-  330IF I%=8 AND borked%=1 THEN VDU8,32
-  340IF I%>139 AND I%<144 THEN I%-=132
-  350IF I% > 0 THEN BPUT#X%,I%
-  360UNTIL M%=-2
-  370CLOSE#X%:
-  380PRINTTAB(9,24)CHR$(128+RND(7));"Press any key to exit.";
-  390A=GET: PRINT: ON: OSCLI"FX229"
-  400END
-  410:
-  420DEFPROCvdu(M%)
-  430PROCauth:IF M% >= 32 THEN PROCactvdu: ENDPROC
-  440CASE M% OF
-  450WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: N%=(N% MOD 32)+128: PROCauth:VDU N%: PROCcheckdh: ENDPROC
-  460WHEN 8: IF POS=0 AND VPOS=0 THEN VDU31,39,23 ELSE VDU 8
-  470WHEN 9: IF POS=39 AND VPOS=23 THEN VDU30 ELSE VDU9
-  480WHEN 10: dh%=0: IF VPOS<23 THEN VDU10 ELSE VDU 31,POS,0
-  490WHEN 11: IF VPOS > 0 THEN VDU11 ELSE VDU31,POS,23
-  500WHEN 12, 13, 30: VDU M%
-  510WHEN 17: ON
-  520WHEN 20: OFF
-  530ENDCASE
-  540IF VPOS=24 THEN VDU31,POS,0
-  550ENDPROC
-  560:
-  570DEFPROCcheckdh
-  580IFN%=141THEN dh%=1:dhline%=VPOS:scan%=1
-  590IFN%=140THEN dh%=0
-  600IFN%=141ORN%=140THENVDU8,10,N%,11
-  610ENDPROC
-  620:
-  630DEFPROCactvdu
-  640IFdhline%<>VPOS THEN dh%=0
-  650VDU (M% OR 128)
-  660IFdh%=1 THEN VDU8,10,(M% OR 128),11
-  670ENDPROC
-  680:
-  690DEFPROCdhscan
-  700IFscan%=0THEN ENDPROC
-  710FOR N%=0 TO 24: FOR P%=0 TO 39
-  720IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%+=1
-  730NEXT P%, N%
-  740scan%=0
-  750ENDPROC
-  760:
-  770DEFPROCcopyline
+  260IF I%=1 THEN auth% EOR=1:GOTO 210
+  270IF I%=6 THEN PROCtogglescreen: GOTO 210
+  280IF I%=16 THEN PROCdumpscreen: GOTO 210
+  290IF I%=18 THEN PROCreveal: GOTO 210
+  300IF I%=23 THEN PROCwidth: GOTO 210
+  310IF I%=24 THEN GOTO 360
+  320IF I%=8 AND borked%=1 THEN VDU8,32
+  330IF I%>139 AND I%<144 THEN I%-=132
+  340IF I% > 0 THEN BPUT#X%,I%
+  350UNTIL M%=-2
+  360CLOSE#X%
+  370PRINTTAB(9,24)CHR$(128+RND(7));"Press any key to exit.";
+  380A=GET: PRINT: ON: OSCLI"FX229"
+  390END
+  400:
+  410DEFPROCvdu(M%)
+  420PROCauth:IF M% >= 32 THEN PROCactvdu: ENDPROC
+  430CASE M% OF
+  440WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: N%=(N% MOD 32)+128: PROCauth:VDU N%: PROCcheckdh: ENDPROC
+  450WHEN 8: IF POS=0 AND VPOS=0 THEN VDU31,39,23 ELSE VDU 8
+  460WHEN 9: IF POS=39 AND VPOS=23 THEN VDU30 ELSE VDU9
+  470WHEN 10: dh%=0: IF VPOS<23 THEN VDU10 ELSE VDU 31,POS,0
+  480WHEN 11: IF VPOS > 0 THEN VDU11 ELSE VDU31,POS,23
+  490WHEN 12, 13, 30: VDU M%
+  500WHEN 17: ON
+  510WHEN 20: OFF
+  520ENDCASE
+  530IF VPOS=24 THEN VDU31,POS,0
+  540ENDPROC
+  550:
+  560DEFPROCcheckdh
+  570IFN%=141THEN dh%=1:dhline%=VPOS:scan%=1
+  580IFN%=140THEN dh%=0
+  590IFN%=141ORN%=140THENVDU8,10,N%,11
+  600ENDPROC
+  610:
+  620DEFPROCactvdu
+  630IFdhline%<>VPOS THEN dh%=0
+  640VDU (M% OR 128)
+  650IFdh%=1 THEN VDU8,10,(M% OR 128),11
+  660ENDPROC
+  670:
+  680DEFPROCdhscan
+  690IFscan%=0ENDPROC
+  700FOR N%=0 TO 23: FOR P%=0 TO 39
+  710IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%+=1
+  720NEXT P%, N%
+  730scan%=0
+  740ENDPROC
+  750:
+  760DEFPROCcopyline
+  770IF N% > 23 THEN ENDPROC
   780FOR P%=0 TO 36 STEP 4
   790!(&FFFF7C00+(40*(N%+1))+P%) = !(&FFFF7C00+(40*N%)+P%)
   800NEXT P%
@@ -123,27 +123,27 @@
  1230PRINT
  1240PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1250PRINT CHR$(131);"5 - NXtel"
- 1251PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
- 1260PRINT
- 1270PRINT CHR$(129);"0 - Exit"
- 1280PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
- 1290PRINT CHR$(134);" Press CTRL-A to toggle Authentic Mode":
- 1300PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
- 1310PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
- 1320PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
- 1330PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1340REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=1 OR A%=6 OR A%=24
- 1350IF A% = 23 THEN PROCwidth:GOTO 1340
- 1360IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
- 1370IF A% = 1 THEN auth% EOR=1: GOTO 1340
- 1380IF A% = 6 THEN PROCtogglescreen: GOTO 1340
- 1390IF A% = 49 THEN borked%=1: t%=1: S$ = "glasstty.com:6502"
- 1400IF A% = 50 THEN borked%=1: t%=1: S$ = "glasstty.com:6503"
- 1410IF A% = 51 THEN borked%=1: t%=1: S$ = "glasstty.com:6504"
- 1420IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
- 1430IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
- 1431IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
- 1440CLS
- 1450="ip0:"+S$
- 2000REM Telnet init data
- 2010DATA&FF,&FD,&03,&FF,&FD,&01
+ 1260PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
+ 1270PRINT
+ 1280PRINT CHR$(129);"0 - Exit"
+ 1290PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+ 1300PRINT CHR$(134);" Press CTRL-A to toggle Authentic Mode":
+ 1310PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
+ 1320PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
+ 1330PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
+ 1340PRINT TAB(4,23)CHR$(129);"Please make your selection..."
+ 1350REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=1 OR A%=6 OR A%=24
+ 1360IF A% = 23 THEN PROCwidth:GOTO 1350
+ 1370IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
+ 1380IF A% = 1 THEN auth% EOR=1: GOTO 1350
+ 1390IF A% = 6 THEN PROCtogglescreen: GOTO 1350
+ 1400IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
+ 1410IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
+ 1420IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1430IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
+ 1440IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
+ 1450IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
+ 1460CLS
+ 1470="ip0:"+S$
+ 1480REM Telnet init data
+ 1490DATA&FF,&FD,&03,&FF,&FD,&01
