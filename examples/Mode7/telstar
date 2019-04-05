@@ -125,7 +125,6 @@
  1250PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1260PRINT CHR$(131);"5 - NXtel"
  1270PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
- 1280PRINT CHR$(131);"7 - TEEFAX - Test"
  1290PRINT
  1300PRINT CHR$(129);"0 - Exit"
  1310PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
