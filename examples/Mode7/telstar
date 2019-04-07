@@ -16,7 +16,7 @@
   160screen%=0
   170download%=0
   180X%=OPENUP(FNwelcome)
-  190FOR l%=1TO6: READ v%:BPUT#X%,v%:NEXT
+  190FOR l%=1TO3: READ v%:BPUT#X%,v%:NEXT
   200REPEAT
   210M%=BGET#X%: IF M%=-2 THEN GOTO 340
   220IF M% >= 0 THEN PROCvdu(M%): GOTO 340
@@ -141,4 +141,4 @@
  1470CLS
  1480="ip0:"+S$
  2000REM Telnet init data
- 2010DATA&FF,&FD,&03,&FF,&FD,&01
+ 2010DATA&FF,&FD,&03
