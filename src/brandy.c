@@ -246,6 +246,10 @@ static void check_cmdline(int argc, char *argv[]) {
         show_help();
         exit(0);
       }
+      else if (optchar == 'v') {
+        printf("%s\n", IDSTRING);
+        exit(0);
+      }
 #ifdef USE_SDL
       else if (optchar=='f') {		/* -fullscreen */
         basicvars.runflags.startfullscreen=TRUE;
