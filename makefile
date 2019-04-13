@@ -2,6 +2,7 @@
 
 CC = gcc
 LD = gcc
+STRIP = strip
 ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
@@ -47,7 +48,7 @@ recompile:
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy
+	$(STRIP) brandy
 
 check:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandy
