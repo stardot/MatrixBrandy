@@ -281,6 +281,7 @@ void show_help(void) {
   printf("    brandy [<options>]\n\n");
   printf("where <options> is one or more of the following options:\n");
   printf("  -help          Print this message\n");
+  printf("  -version       Print version\n");
   printf("  -size <size>   Set Basic workspace size to <size> bytes when starting\n");
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");

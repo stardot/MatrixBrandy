@@ -3,6 +3,7 @@
 
 CC = i686-w64-mingw32-gcc
 LD = i686-w64-mingw32-gcc
+STRIP = strip
 ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
@@ -49,7 +50,7 @@ recompile:
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandyapp.exe
+	$(STRIP) brandyapp.exe
 
 check:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandyapp

@@ -2,6 +2,7 @@
 
 CC = gcc
 LD = gcc
+STRIP = strip
 ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
@@ -63,11 +64,11 @@ srecompile:
 
 tnodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
-	strip tbrandy
+	$(STRIP) tbrandy
 
 snodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(SIMPLETEXTSRC) $(LIBS) -o sbrandy
-	strip sbrandy
+	$(STRIP) sbrandy
 
 tcheck:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
