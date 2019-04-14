@@ -247,7 +247,11 @@ static void check_cmdline(int argc, char *argv[]) {
         exit(0);
       }
       else if (optchar == 'v') {
-        printf("%s\n", IDSTRING);
+#ifdef BRANDY_GITCOMMIT
+	printf("%s\n  Git commit %s on branch %s (%s)\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+#else
+	printf("%s\n", IDSTRING);
+#endif
         exit(0);
       }
 #ifdef USE_SDL

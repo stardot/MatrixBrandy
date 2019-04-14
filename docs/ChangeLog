@@ -3,6 +3,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.21.20
 - Improved CIRCLE FILL and ELLIPSE FILL routines.
+- Added -v CLI option - thanks TheBrokenRail @ Github.
 
 * V1.21.19
 - Hopefully fixed the spurious cursor remnants.
