@@ -16,9 +16,7 @@ set(SRC ${SRCDIR}/variables.c ${SRCDIR}/tokens.c ${SRCDIR}/strings.c
 
 if(BRANDY_USE_GRAPHICS)
 	set(SRC ${SRC} ${SRCDIR}/graphsdl.c)
-	if(WIN32)
-  		link_libraries(wsock32 ws2_32)
-	else()
+	if(NOT WIN32)
 		find_package(X11 REQUIRED)
 		include_directories(${X11_INCLUDE_DIR})
 		link_libraries(${X11_LIBRARIES})
@@ -34,6 +32,10 @@ else()
 		set(SRC ${SRC} ${SRCDIR}/simpletext.c)
 	endif()
 	add_definitions(-DNO_SDL)
+endif()
+if(WIN32)
+	link_libraries(wsock32 ws2_32)
+	add_definitions(-DBODGEMGW)
 endif()
 
 execute_process(

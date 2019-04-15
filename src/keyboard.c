@@ -74,6 +74,11 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "mos.h"
+
+#if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+ #include <windows.h>
+#endif
+
 #include "inkey.h"
 #ifdef TARGET_DJGPP
 #include <pc.h>
@@ -138,7 +143,8 @@ static int32 keyboard;          /* File descriptor for keyboard */
 #define CTRL_PGDOWN     0xBE
 #define INSERT          0xCD
 #define CTRL_INSERT     0xED
-#define DELETE          0x7F
+/* DELETE is already defined in MinGW */
+#define KEY_DELETE          0x7F
 #define CTRL_DELETE     0x7F
 
 /* Function key codes */
@@ -246,7 +252,6 @@ Uint8 mousestate, *keystate=NULL;
 #else
  #include <stdlib.h>
  #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
-  #include <windows.h>
   #include <keysym.h>
  #endif
 #endif
@@ -1366,7 +1371,7 @@ int32 read_key(void) {
             case SDLK_HOME:
               return HOME;
             case SDLK_DELETE:
-              return DELETE;
+              return KEY_DELETE;
             case SDLK_ESCAPE:
 	      if (basicvars.escape_enabled) error(ERR_ESCAPE);
 	      return ESCAPE;
@@ -2401,7 +2406,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
           place++;
         }
         break;
-      case DELETE:      /* Delete character at the cursor */
+      case KEY_DELETE:      /* Delete character at the cursor */
         if (place < highplace) shift_down(buffer, place);
         break;
       case INSERT:      /* Toggle between 'insert' and 'overwrite' mode */
