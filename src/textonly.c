@@ -454,12 +454,12 @@ void clrscr(void) {
 ** global for the opposite of their own name
 ** -- conio (Win32) --
 */
-textcolor(int32 colour) {
+void textcolor(int32 colour) {
   SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (colour << FG_TEXT_ATTRIB_SHIFT) |
                                                            (text_physbackcol << BG_TEXT_ATTRIB_SHIFT));
 }
 
-textbackground(int32 colour) {
+void textbackground(int32 colour) {
   SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (text_physforecol << FG_TEXT_ATTRIB_SHIFT) |
                                                            (colour << BG_TEXT_ATTRIB_SHIFT));
 }

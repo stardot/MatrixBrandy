@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include "common.h"
 #include "target.h"
@@ -254,7 +255,7 @@ static void next_line(void) {
 
 void store_value(lvalue destination, int32 valuex, boolean nostring) {
   int32 length;
-  long int value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
+  intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
   switch (destination.typeinfo) {
   case VAR_INTWORD:
