@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include "common.h"
@@ -656,7 +657,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 static void blockread(void *ptr, size_t size, size_t nmemb) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
   unsigned char *blobend = (unsigned char *)&_binary_app_end;
-  unsigned long int blobsize = (unsigned long int)&_binary_app_size;
+  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
   if (matrixflags.scrunge) do_scrunge(size*nmemb, ptr);
@@ -666,7 +667,7 @@ static void blockread(void *ptr, size_t size, size_t nmemb) {
 static char *blockgets(char *s, int size) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
   unsigned char *blobend = (unsigned char *)&_binary_app_end;
-  unsigned long int blobsize = (unsigned long int)&_binary_app_size;
+  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   unsigned int p = 0;
   int l = 1;
