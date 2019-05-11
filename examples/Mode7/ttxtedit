@@ -1,0 +1,310 @@
+REM>ttxtedit
+REM Teletext Editor for Matrix Brandy
+REM Unlikely work on any other platform as it uses
+REM Matrix-specific functionality. It MAY work on
+REM a BBC or Master but some bits won't work.
+
+ON ERROR PROCmain
+PROCinit
+PROChelp
+
+PROCmain
+END
+
+DEFPROCmain
+PROCbuf2scr:PROCplacecursor
+REPEAT
+k%=GET
+IF k%>=32 AND k%<=126 THEN PROCprintable
+IF k%=143 THEN PROCcur_up
+IF k%=142 THEN PROCcur_down
+IF k%=140 THEN PROCcur_left
+IF k%=141 THEN PROCcur_right
+IF k%=13 THEN x%=0:PROCcur_down
+IF k%=30 THEN x%=0: REM HOME key
+IF k%=139 THEN x%=39: REM END key
+IF k%=159 THEN y%=0: REM PgUp key
+IF k%=158 THEN y%=24: REM PgDn key
+IF k%=8 THEN PROCdelete
+IF k%=127 THEN PROCcur_right:PROCdelete
+IF k%=9 THEN PROCshoveright
+IF k%=205 THEN PROCshovedown: REM Insert key
+IF k%=237 THEN PROCdeleterow: REM CTRL+Insert
+IF k%=31 THEN PROChelp
+IF k%=3 THEN PROCinsert(FNcolourcode):PROCcur_right
+IF k%=7 THEN PROCinsert(16+FNcolourcode):PROCcur_right
+IF k%=24 THEN PROCinsert(FNothercode):PROCcur_right
+IF k%=20 THEN PROCtoggletwiddle
+IF k%=18 THEN PROCtogglereveal
+IF k%=11 THEN PROCtoggleblack
+IF k%=2 THEN PROCtogglestatusbar
+IF k%=12 THEN PROCloadbuf
+IF k%=19 THEN PROCsavebuf
+IF k%=17 THEN MODE 7:END
+PROCbuf2scr:PROCplacecursor
+UNTIL FALSE
+ENDPROC
+
+DEFPROCinit
+MODE 7
+DIM t% 1000:FORp%=0TO999:t%?p%=32:NEXTp%
+x%=0: y%=0: REM pointer on screen
+twiddlemode%=0:black%=0:reveal%=0:statusbar%=0
+ENDPROC
+
+DEFPROCcur_right
+x%=x%+1
+IF x%=40THENx%=0:PROCcur_down
+ENDPROC
+
+DEFPROCcur_left
+x%=x%-1
+IF x%=-1THENx%=39:PROCcur_up
+ENDPROC
+
+DEFPROCcur_down
+y%=y%+1
+IF y%=25THENy%=0
+ENDPROC
+
+DEFPROCcur_up
+y%=y%-1
+IF y%=-1THENy%=24
+ENDPROC
+
+DEFPROCinsert(i%)
+IF i% > 31 THEN ?FNlinear=i%
+ENDPROC
+
+DEFPROCtoggletwiddle
+twiddlemode%=twiddlemode% EOR 1
+ENDPROC
+
+DEFPROCtogglereveal
+reveal%=reveal% EOR 1:VDU23,18,2,reveal%,0|
+ENDPROC
+
+DEFPROCtoggleblack
+black%=black% EOR 1: VDU23,18,3,black%,0|
+ENDPROC
+
+DEFPROCtogglestatusbar
+statusbar%=(statusbar%+1) MOD 3
+ENDPROC
+
+DEFPROCshoveright
+IF x%=39 THEN ?FNlinear=32:ENDPROC
+FOR p%=38 TO x% STEP -1
+?(t%+(40*y%)+(p%+1))=?(t%+(40*y%)+p%):NEXT
+?FNlinear=32
+ENDPROC
+
+DEFPROCwipeline(o%,l%)
+FOR p%=0 TO 39: ?(o%+(l%*40)+p%)=32:NEXT
+ENDPROC
+
+DEFPROCshovedown
+IF y%<24 THEN FOR p%=((24*40)-1) TO (y%*40) STEP -1:?(t%+p%+40)=?(t%+p%):NEXT
+PROCwipeline(t%,y%)
+ENDPROC
+
+DEFPROCdeleterow
+FOR p%=((y%+1)*40) TO ((25*40)-1): ?(t%+p%-40)=?(t%+p%):NEXT
+PROCwipeline(t%,24)
+ENDPROC
+
+DEFPROCdelete
+IF x%=0 THEN ENDPROC
+FOR p%=x% TO 39
+?(t%+(40*y%)+(p%-1))=?(t%+(40*y%)+p%):NEXT
+?(t%+(40*y%)+39)=32
+PROCcur_left
+ENDPROC
+
+DEFFNlinear:=t%+x%+(40*y%)
+
+DEFPROCplacecursor
+IF statusbar%=1THENVDU31,0,0:PROCwipeline(&FFFF7C00,0)
+IF statusbar%=2THENVDU31,0,24:PROCwipeline(&FFFF7C00,24)
+IF statusbar%<>0THENVDU132,157,135:PRINT"X=";x%;" Y=";y%;" Char=";?FNlinear;" ";FNdecode(?FNlinear);
+VDU31,x%,y%
+ENDPROC
+
+DEF FNdecode(d%)
+IF d%<32THEN="Invalid"
+IF (d%>=32 AND d%<=126) OR d%>=160 THEN =CHR$(d%)+CHR$(151)+CHR$(d%)
+IF d%=128 THEN ="Alpha Black"
+IF d%=129 THEN ="Alpha Red"
+IF d%=130 THEN ="Alpha Green"
+IF d%=131 THEN ="Alpha Yellow"
+IF d%=132 THEN ="Alpha Blue"
+IF d%=133 THEN ="Alpha Magenta"
+IF d%=134 THEN ="Alpha Cyan"
+IF d%=135 THEN ="Alpha White"
+IF d%=136 THEN ="Flash On"
+IF d%=137 THEN ="Flash Off"
+IF d%=138 THEN ="End Box-NOP"
+IF d%=139 THEN ="Start Box-NOP"
+IF d%=140 THEN ="Normal Size"
+IF d%=141 THEN ="Double Height"
+IF d%=142 THEN ="Double Width-NOP"
+IF d%=143 THEN ="Double Size-NOP"
+IF d%=144 THEN ="Graphics Black"
+IF d%=145 THEN ="Graphics Red"
+IF d%=146 THEN ="Graphics Green"
+IF d%=147 THEN ="Graphics Yellow"
+IF d%=148 THEN ="Graphics Blue"
+IF d%=149 THEN ="Graphics Magenta"
+IF d%=150 THEN ="Graphics Cyan"
+IF d%=151 THEN ="Graphics White"
+IF d%=152 THEN ="Conceal"
+IF d%=153 THEN ="Grp Contiguous"
+IF d%=154 THEN ="Grp Separated"
+IF d%=155 THEN ="Escape-NOP"
+IF d%=156 THEN ="Background Black"
+IF d%=157 THEN ="Background to Col"
+IF d%=158 THEN ="Graphics Hold"
+IF d%=159 THEN ="Graphics Release"
+="Unrecognised"
+
+DEFPROCbuf2scr
+FOR p%=0 TO 999:?(&FFFF7C00+p%)=t%?p%:NEXT p%
+ENDPROC
+
+DEFPROCsavebuf
+CLS
+VDU141,134:PRINT"  Save screen"
+VDU141,134:PRINT"  Save screen"
+INPUTLINE"Filename >"fn$
+f%=OPENOUT(fn$)
+FOR p%=0TO999:BPUT#f%,t%?p%: NEXTp%
+CLOSE#f%
+ENDPROC
+
+DEFPROCloadbuf
+CLS
+VDU141,134:PRINT"  Load screen"
+VDU141,134:PRINT"  Load screen"
+INPUTLINE"Filename >"fn$
+f%=OPENIN(fn$)
+FOR p%=0TO999:t%?p%=BGET#f%: NEXTp%
+CLOSE#f%
+ENDPROC
+
+DEFPROCprintable
+IF twiddlemode%=1 THEN PROCtwiddle:ENDPROC
+PROCinsert(k%): PROCcur_right
+ENDPROC
+
+DEFPROCtwiddle
+c%=(?FNlinear AND &5F) OR &20
+IF k%=ASC("Q") OR k%=ASC("q") THEN c%=c% EOR 1
+IF k%=ASC("W") OR k%=ASC("w") THEN c%=c% EOR 2
+IF k%=ASC("A") OR k%=ASC("a") THEN c%=c% EOR 4
+IF k%=ASC("S") OR k%=ASC("s") THEN c%=c% EOR 8
+IF k%=ASC("Z") OR k%=ASC("z") THEN c%=c% EOR 16
+IF k%=ASC("X") OR k%=ASC("x") THEN c%=c% EOR 64
+IF k%=ASC("I") OR k%=ASC("i") THEN c%=c% EOR 95
+IF k%=32 THEN c%=32: REM Empty the sixel
+?FNlinear=c%
+PROCbuf2scr
+ENDPROC
+
+DEFPROChelp
+CLS
+VDU141,134:PRINT"   Matrix Teletext Editor V0.01"
+VDU141,134:PRINT"   Matrix Teletext Editor V0.01"
+PRINT
+VDU130:PRINT"This is a quick hack of a teletext"
+VDU130:PRINT"editor for Matrix Brandy BASIC.":PRINT
+VDU129:PRINT"Special keypresses:"
+VDU131:PRINT"CTRL-?: redisplay this help."
+VDU131:PRINT"CTRL-C: Enter text colour code"
+VDU131:PRINT"CTRL-G: Enter graphics colour code"
+VDU131:PRINT"CTRL-X: Enter other control codes"
+VDU131:PRINT"CTRL-T: Toggle pixel twiddling mode"
+VDU131:PRINT"CTRL-R: Toggle Reveal state"
+VDU131:PRINT"CTRL-K: Toggle Black availability"
+VDU131:PRINT"CTRL-B: Toggle the status bar"
+VDU131:PRINT"CTRL-L: Load screen buffer"
+VDU131:PRINT"CTRL-S: Save screen buffer"
+VDU131:PRINT"CTRL-Q: Exit the editor"
+PRINT
+PRINT" Colours for CTRL-C and CTRL-G are:"
+PRINT " Blac(K)";CHR$(129);"(R)ed";CHR$(130);"(G)reen";CHR$(131);"(Y)ellow";CHR$(132);"(B)lue"
+PRINTCHR$(133);"(M)agenta";CHR$(134);"(C)yan";CHR$(135);"(W)hite"
+PRINT
+VDU130:PRINT"Press";CHR$(134);"ESC";CHR$(130);"to start playing, or any"
+VDU130:PRINT"other key for more help.";
+dummy%=GET
+CLS
+VDU141,134:PRINT"   Matrix Teletext Editor V0.01"
+VDU141,134:PRINT"   Matrix Teletext Editor V0.01"
+PRINT
+VDU131:PRINT"In Twiddle mode pixels are flipped with"
+VDU131:PRINT"the Q, A, Z, W, S and X keys. I inverts"
+VDU131:PRINT"the sixel in its entirety and SPACE"
+VDU131:PRINT"clears the sixel."
+PRINT
+VDU130:PRINT"Delete and Backspace work as they"
+VDU130:PRINT"do on PC systems. TAB inserts a"
+VDU130:PRINT"character space at the cursor."
+PRINT
+VDU131:PRINT"NOTE that characters fall off the right"
+VDU131:PRINT"and are";CHR$(129);"NOT";CHR$(131);"wrapped to the next line."
+PRINT
+VDU130:PRINT"Insert inserts a blank row at the"
+VDU130:PRINT"cursor, shoving the rows below down."
+VDU130:PRINT"CTRL-Insert deletes the current row"
+VDU130:PRINT"and pulls the rows below up."
+dummy%=GET
+ENDPROC
+
+DEFFNothercode
+CLS
+VDU141,134:PRINT"   Matrix Teletext Editor V0.01"
+VDU141,134:PRINT"   Matrix Teletext Editor V0.01"
+PRINT
+VDU130:PRINT"The following codes can be entered"
+VDU130:PRINT"after CTRL-X:"
+VDU131:PRINT"1: Flash On           ";CHR$(132);"(136)"
+VDU131:PRINT"2: Flash Off          ";CHR$(132);"(137)"
+VDU131:PRINT"3: Double Height On   ";CHR$(132);"(141)"
+VDU131:PRINT"4: Double Height Off  ";CHR$(132);"(140)"
+VDU131:PRINT"5: Conceal            ";CHR$(132);"(152)"
+VDU131:PRINT"6: Contiguous Graphics";CHR$(132);"(153)"
+VDU131:PRINT"7: Separated Graphics ";CHR$(132);"(154)"
+VDU131:PRINT"8: Black background   ";CHR$(132);"(156)"
+VDU131:PRINT"9: Set background     ";CHR$(132);"(157)"
+VDU131:PRINT"0: Graphics Hold      ";CHR$(132);"(158)"
+VDU131:PRINT"-: Graphics Release   ";CHR$(132);"(159)"
+VDU131:PRINT"=: Insert";CHR$(135);CHR$(255);CHR$(131);"character ";CHR$(132);"(255)"
+k%=GET
+REM PROCbuf2scr:PROCplacecursor
+IF k%=45 =159
+IF k%=48 =158
+IF k%=49 =136
+IF k%=50 =137
+IF k%=51 =141
+IF k%=52 =140
+IF k%=53 =152
+IF k%=54 =153
+IF k%=55 =154
+IF k%=56 =156
+IF k%=57 =157
+IF k%=61 =255
+=0
+
+DEFFNcolourcode
+VDU31,0,24,129,157,135:PRINT"Press colour key...";
+k%=GET
+PROCbuf2scr:PROCplacecursor
+IF k%=ASC("K") OR k%=ASC("k") =128
+IF k%=ASC("R") OR k%=ASC("r") =129
+IF k%=ASC("G") OR k%=ASC("g") =130
+IF k%=ASC("Y") OR k%=ASC("y") =131
+IF k%=ASC("B") OR k%=ASC("b") =132
+IF k%=ASC("M") OR k%=ASC("m") =133
+IF k%=ASC("C") OR k%=ASC("c") =134
+IF k%=ASC("Y") OR k%=ASC("w") =135
+=0
