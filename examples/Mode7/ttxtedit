@@ -296,6 +296,7 @@ IF k%=61 =255
 =0
 
 DEFFNcolourcode
+PROCwipeline(&FFFF7C00,24)
 VDU31,0,24,129,157,135:PRINT"Press colour key...";
 k%=GET
 PROCbuf2scr:PROCplacecursor
