@@ -1011,7 +1011,7 @@ void mode7flipbank() {
 */
 static void write_char(int32 ch) {
   int32 y, topx, topy, line;
-
+  
   if (cursorstate == ONSCREEN) toggle_cursor();
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
@@ -1688,7 +1688,6 @@ static void vdu_graphwind(void) {
   line_rect.y = GYTOPY(top);
   line_rect.w = right - left +1;
   line_rect.h = bottom - top +1;
-  SDL_SetClipRect(modescreen, &line_rect);
   clipping = TRUE;
 }
 
@@ -1709,10 +1708,7 @@ static void vdu_plot(void) {
 ** graphics windows (VDU 26)
 */
 static void vdu_restwind(void) {
-  if (clipping) {	/* Restore graphics clipping region to entire screen area for mode */
-    SDL_SetClipRect(modescreen, NULL);
-    clipping = FALSE;
-  }
+  clipping = FALSE;
   write_vduflag(MODE7_HIGHBIT,0);
   xorigin = yorigin = 0;
   xlast = ylast = xlast2 = ylast2 = 0;
@@ -2432,7 +2428,13 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
    takes into account the GCOL foreground action code */
 static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
   Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
-  
+  int32 rox = 0, roy = 0;
+
+  if (clipping) {
+    rox = (offset % screenwidth)*xgupp;
+    roy = ygraphunits - ygupp - (offset / screenwidth)*ygupp/yscale;
+    if ((rox < gwinleft) || (rox > gwinright) || (roy < gwinbottom) || (roy > gwintop)) return;
+  }
   if (plot_inverse ==1) {
     action=3;
     drawcolour=(colourdepth-1);
