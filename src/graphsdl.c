@@ -1114,6 +1114,14 @@ static void write_char(int32 ch) {
 */
 static void plot_char(int32 ch) {
   int32 y, topx, topy, line;
+  SDL_Rect clip_rect;
+  if (clipping) {
+    clip_rect.x = GXTOPX(gwinleft);
+    clip_rect.y = GYTOPY(gwintop);
+    clip_rect.w = gwinright - gwinleft +1;
+    clip_rect.h = gwinbottom - gwintop +1;
+    SDL_SetClipRect(modescreen, &clip_rect);
+  }
   topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
   topy = GYTOPY(ylast);	/* top left-hand corner of the character */
   place_rect.x = topx;
@@ -1141,6 +1149,9 @@ static void plot_char(int32 ch) {
     xlast = gwinleft;
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
+  }
+  if (clipping) {
+    SDL_SetClipRect(modescreen, NULL);
   }
 }
 
@@ -1684,10 +1695,6 @@ static void vdu_graphwind(void) {
   gwinright = right;
   gwintop = top;
   gwinbottom = bottom;
-  line_rect.x = GXTOPX(left);
-  line_rect.y = GYTOPY(top);
-  line_rect.w = right - left +1;
-  line_rect.h = bottom - top +1;
   clipping = TRUE;
 }
 
