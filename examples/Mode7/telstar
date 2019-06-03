@@ -21,14 +21,15 @@
   210M%=BGET#X%: IF M%=-2 THEN GOTO 340
   220IF M% >= 0 THEN PROCvdu(M%): GOTO 340
   230I%=INKEY(10):IF I%=-1 THEN PROCdhscan: GOTO 340
-  240IF I%=35 OR I%=13 THEN I%=95
-  250IF I%=127 THEN I%=8
+  235IF I%>=32 AND I%<=126THENGOTO330
+  240IF I%=35 OR I%=13 THEN I%=95:GOTO330
+  250IF I%=127 THEN I%=8:GOTO310
   260IF I%=6 THEN PROCtogglescreen: GOTO 210
   270IF I%=16 THEN PROCdumpscreen: GOTO 210
   280IF I%=18 THEN PROCreveal: GOTO 210
   290IF I%=23 THEN PROCwidth: GOTO 210
   300IF I%=24 THEN GOTO 350
-  310IF I%=8 AND borked%=1 THEN VDU8,32
+  310IF I%=8 AND borked%=1 THEN VDU8,32:GOTO330
   320IF I%>139 AND I%<144 THEN I%-=132
   330IF I% > 0 THEN BPUT#X%,I%
   340UNTIL M%=-2
@@ -127,7 +128,7 @@
  1330PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
  1340PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
  1350PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1360REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 55) OR A%=6 OR A%=24
+ 1360REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24
  1370IF A% = 23 THEN PROCwidth:GOTO 1360
  1380IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
  1390IF A% = 6 THEN PROCtogglescreen: GOTO 1360
@@ -137,7 +138,6 @@
  1430IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
  1440IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
  1450IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
- 1460IF A% = 55 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6503"
  1470CLS
  1480="ip0:"+S$
  2000REM Telnet init data
