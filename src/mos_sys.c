@@ -15,6 +15,7 @@
 #include "graphsdl.h"
 #endif
 
+char outstring[65536];
 
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
 ** This implementation is local to Brandy.
@@ -101,7 +102,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 // R3=highest acceptable character
 // R4=b31-b24=flags, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
 //
-      vptr=(char *)(inregs[0]+basicvars.offbase);
+      vptr=outstring;
       *vptr='\0';
 //                       addr   length        lochar           hichar                     flags  echo
       a=kbd_readline(vptr, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
@@ -111,22 +112,22 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       break;
 #else
     case SWI_OS_ReadLine:
-      vptr=(char *)((inregs[0] & 0x3FFFFFFF)+basicvars.offbase);
+      vptr=outstring;
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      outregs[0]=inregs[0];
+      outregs[0]=vptr - (char *)basicvars.offbase;
       break;
     case SWI_OS_ReadLine32:
-      vptr=(char *)(inregs[0]+basicvars.offbase);
+      vptr=outstring;
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      outregs[0]=inregs[0];
+      outregs[0]=vptr - (char *)basicvars.offbase;
       break;
 #endif
     case SWI_ColourTrans_SetGCOL:
@@ -148,7 +149,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 #endif
       break;
     case SWI_Brandy_GetVideoDriver:
-      vptr=(char *)(inregs[0]+basicvars.offbase);
+      vptr=outstring;
       memset(vptr,0,64);
 #ifdef USE_SDL
       SDL_VideoDriverName(vptr, 64);
@@ -157,7 +158,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 #endif
       a=outregs[1]=strlen(vptr);
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      outregs[0]=inregs[0];
+      outregs[0]=vptr - (char *)basicvars.offbase;
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
