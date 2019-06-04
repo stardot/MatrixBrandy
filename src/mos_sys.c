@@ -10,7 +10,10 @@
 #include "mos_sys.h"
 #include "screen.h"
 #include "keyboard.h"
+#ifdef USE_SDL
+#include "SDL.h"
 #include "graphsdl.h"
+#endif
 
 
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
@@ -114,6 +117,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
+      outregs[0]=inregs[0];
       break;
     case SWI_OS_ReadLine32:
       vptr=(char *)(inregs[0]+basicvars.offbase);
@@ -122,6 +126,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
+      outregs[0]=inregs[0];
       break;
 #endif
     case SWI_ColourTrans_SetGCOL:
@@ -141,6 +146,17 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 #ifdef USE_SDL
       swi_swap16palette();
 #endif
+      break;
+    case SWI_Brandy_GetVideoDriver:
+      vptr=(char *)(inregs[0]+basicvars.offbase);
+#ifdef USE_SDL
+      SDL_VideoDriverName(vptr, 64);
+#else
+     strncpy(vptr,"no_sdl",64);
+#endif
+      a=outregs[1]=strlen(vptr);
+      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
+      outregs[0]=inregs[0];
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);

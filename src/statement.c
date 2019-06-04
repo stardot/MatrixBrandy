@@ -266,11 +266,11 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     break;
   case VAR_STRINGDOL:
     if (nostring) error(ERR_VARNUM);
-    length = strlen(TOSTRING(value));
+    length = strlen(TOSTRING(value+basicvars.offbase));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     free_string(*destination.address.straddr);
     cp = alloc_string(length);
-    if (length>0) memmove(cp, TOSTRING(value), length);
+    if (length>0) memmove(cp, TOSTRING(value+basicvars.offbase), length);
     destination.address.straddr->stringlen = length;
     destination.address.straddr->stringaddr = cp;
     break;
@@ -286,10 +286,10 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     break;
   case VAR_DOLSTRPTR:
     if (nostring) error(ERR_VARNUM);
-    length = strlen(TOSTRING(value));
+    length = strlen(TOSTRING(value+basicvars.offbase));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
-    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value), length);
+    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value+basicvars.offbase), length);
     basicvars.offbase[destination.address.offset+length] = CR;
     break;
   default:

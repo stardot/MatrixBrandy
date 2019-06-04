@@ -1662,7 +1662,7 @@ void exec_oscli(void) {
   fclose(respfile);
   remove(respname);
 /* Save the number of lines stored in the array */
-  if (linecount.typeinfo != 0) store_value(linecount, count, TRUE);
+  if (linecount.typeinfo != 0) store_value(linecount, count, NOSTRING);
 }
 
 /*

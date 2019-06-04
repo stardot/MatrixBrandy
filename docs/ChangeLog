@@ -5,6 +5,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Improved CIRCLE FILL and ELLIPSE FILL routines.
 - Added -v CLI option - thanks TheBrokenRail @ Github.
 - Reworked graphics window clipping, as it was completely broken.
+- Fixed string return values from SWI calls, hopefully they will not break
+  on 64-bit systems
+- Added SWI "Brandy_GetVideoDriver" as a wrapper for SDL_VideoDriverName,
+  additionally returns "no_sdl" for non-SDL builds
 
 * V1.21.19
 - Hopefully fixed the spurious cursor remnants.
