@@ -119,7 +119,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       //*(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      outregs[0]=vptr - (char *)basicvars.offbase;
+      outregs[0]=(int32)vptr;
       break;
     case SWI_OS_ReadLine32:
       vptr=outstring;
@@ -128,7 +128,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
       //*(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
-      outregs[0]=vptr - (char *)basicvars.offbase;
+      outregs[0]=(int32)vptr;
       break;
 #endif
     case SWI_ColourTrans_SetGCOL:
@@ -157,7 +157,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
      strncpy(vptr,"no_sdl",64);
 #endif
       a=outregs[1]=strlen(vptr);
-      outregs[0]=vptr - (char *)basicvars.offbase;
+      outregs[0]=(int32)vptr;
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
