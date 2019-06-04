@@ -1,15 +1,19 @@
    10REM > telstar
-   20:
-   30REM This is a basic Viewdata/Videotex client written in BBC BASIC. but
-   40REM using some Matrix Brandy extensions. For instance, the networking
-   50REM interface is a local extension, as is the screen memory access and
-   60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
-   70REM are from RISC OS 5.
-   80:
-   90*FX229,1
+   11:
+   12REM This is a basic Viewdata/Videotex client written in BBC BASIC. but
+   13REM using some Matrix Brandy extensions. For instance, the networking
+   14REM interface is a local extension, as is the screen memory access and
+   15REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
+   16REM are from RISC OS 5.
+   17:
+   20SYS "Brandy_GetVideoDriver" TO v$
+   30IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
+   98:
+   99*FX229,1
   100*WinTitle Matrix Brandy BASIC Telstar Client
   110ON ERROR GOTO 350
   120MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
+  125IFv$="fbcon"THENMOUSEOFF
   130reveal%=0:scan%=0:width%=1
   140dh%=0:dhline%=0:borked%=0
   150REM Variables for downloading

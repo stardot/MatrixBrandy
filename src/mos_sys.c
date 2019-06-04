@@ -61,6 +61,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
   int32 a;
   char *vptr;
 
+  memset(outstring,0,65536); /* Clear the output string buffer */
   switch (swino) {
     case SWI_OS_WriteC:
       outregs[0]=inregs[0];
@@ -107,7 +108,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 //                       addr   length        lochar           hichar                     flags  echo
       a=kbd_readline(vptr, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
       outregs[1]=a;				/* Returned length			*/
-      *(char *)(vptr+a)=13;			/* Added expected terminating <cr>	*/
+      //*(char *)(vptr+a)=13;			/* Added expected terminating <cr>	*/
 						/* Should also set Carry if Escape	*/
       break;
 #else
@@ -117,7 +118,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
-      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
+      //*(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
       outregs[0]=vptr - (char *)basicvars.offbase;
       break;
     case SWI_OS_ReadLine32:
@@ -126,7 +127,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
       /* Hack the output to add the terminating 13 */
-      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
+      //*(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
       outregs[0]=vptr - (char *)basicvars.offbase;
       break;
 #endif
@@ -150,14 +151,12 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       break;
     case SWI_Brandy_GetVideoDriver:
       vptr=outstring;
-      memset(vptr,0,64);
 #ifdef USE_SDL
       SDL_VideoDriverName(vptr, 64);
 #else
      strncpy(vptr,"no_sdl",64);
 #endif
       a=outregs[1]=strlen(vptr);
-      *(char *)(vptr+a)=13; /* RISC OS terminates this with 0x0D, not 0x00 */
       outregs[0]=vptr - (char *)basicvars.offbase;
       break;
     case SWI_RaspberryPi_GPIOInfo:
