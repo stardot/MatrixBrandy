@@ -141,9 +141,18 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       break;
     case SWI_Brandy_Version:
+      strncpy(outstring,BRANDY_OS,64);
+      outregs[4]=v;
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
       outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
+#else
+      outregs[3]=0;
+#endif
+#ifdef USE_SDL
+      outregs[5]=1;
+#else
+      outregs[5]=0;
 #endif
       break;
     case SWI_Brandy_Swap16Palette:
