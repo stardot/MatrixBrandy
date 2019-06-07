@@ -1,148 +1,152 @@
    10REM > telstar
-   11:
-   12REM This is a basic Viewdata/Videotex client written in BBC BASIC. but
-   13REM using some Matrix Brandy extensions. For instance, the networking
-   14REM interface is a local extension, as is the screen memory access and
-   15REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
-   16REM are from RISC OS 5.
-   17:
-   20SYS "Brandy_GetVideoDriver" TO v$
-   30IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
-   98:
-   99*FX229,1
-  100*WinTitle Matrix Brandy BASIC Telstar Client
-  110ON ERROR GOTO 350
-  120MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
-  125IFv$="fbcon"THENMOUSEOFF
-  130reveal%=0:scan%=0:width%=1
-  140dh%=0:dhline%=0:borked%=0
-  150REM Variables for downloading
-  160screen%=0
-  170download%=0
-  180X%=OPENUP(FNwelcome)
-  190FOR l%=1TO3: READ v%:BPUT#X%,v%:NEXT
-  200REPEAT
-  210M%=BGET#X%: IF M%=-2 THEN GOTO 340
-  220IF M% >= 0 THEN PROCvdu(M%): GOTO 340
-  230I%=INKEY(10):IF I%=-1 THEN PROCdhscan: GOTO 340
-  235IF I%>=32 AND I%<=126THENGOTO330
-  240IF I%=35 OR I%=13 THEN I%=95:GOTO330
-  250IF I%=127 THEN I%=8:GOTO310
-  260IF I%=6 THEN PROCtogglescreen: GOTO 210
-  270IF I%=16 THEN PROCdumpscreen: GOTO 210
-  280IF I%=18 THEN PROCreveal: GOTO 210
-  290IF I%=23 THEN PROCwidth: GOTO 210
-  300IF I%=24 THEN GOTO 350
-  310IF I%=8 AND borked%=1 THEN VDU8,32:GOTO330
-  320IF I%>139 AND I%<144 THEN I%-=132
-  330IF I% > 0 THEN BPUT#X%,I%
-  340UNTIL M%=-2
-  350CLOSE#X%
-  360PRINTTAB(9,24)CHR$(128+RND(7));"Press any key to exit.";
-  370A=GET: PRINT: ON: OSCLI"FX229"
-  380END
-  390:
-  400DEFPROCvdu(M%)
-  410IF M% >= 32 THEN PROCactvdu: ENDPROC
-  420CASE M% OF
-  430WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: N%=(N% MOD 32)+128: VDU N%: PROCcheckdh: ENDPROC
-  440WHEN 8: IF POS=0 AND VPOS=0 THEN VDU31,39,23 ELSE VDU 8
-  450WHEN 9: IF POS=39 AND VPOS=23 THEN VDU30 ELSE VDU9
-  460WHEN 10: PROCcheckline: dh%=0: IF VPOS<23 THEN VDU10 ELSE VDU 31,POS,0
-  470WHEN 11: IF VPOS > 0 THEN VDU11 ELSE VDU31,POS,23
-  480WHEN 12, 13, 30: VDU M%
-  490WHEN 17: ON
-  500WHEN 20: OFF
-  510ENDCASE
-  520IF VPOS=24 THEN VDU31,POS,0
-  530ENDPROC
-  540:
-  550DEFPROCcheckdh
-  560IFN%=141THEN dh%=1:dhline%=VPOS:scan%=1
-  590ENDPROC
-  600:
-  610DEFPROCactvdu
-  620IFdhline%<>VPOS THEN dh%=0
-  630VDU (M% OR 128)
-  650ENDPROC
-  660:
-  670DEFPROCcheckline
-  680IF dh%=1 THEN N%=VPOS:PROCcopyline
-  710ENDPROC
-  720:
-  730DEFPROCdhscan
-  740IFscan%=0ENDPROC
-  750FOR N%=0 TO 22: FOR P%=0 TO 39
-  760IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%+=1
-  770NEXT P%, N%
-  780scan%=0
-  790ENDPROC
-  800:
-  810DEFPROCcopyline
-  820IF N% > 22 THEN ENDPROC
-  830FOR P%=0 TO 36 STEP 4
-  840!(&FFFF7C00+(40*(N%+1))+P%) = !(&FFFF7C00+(40*N%)+P%)
-  850NEXT P%
-  860ENDPROC
-  870:
-  880DEFPROCreveal
-  890reveal% EOR=1
-  900VDU23,18,2,reveal%|
-  910ENDPROC
-  920:
-  930DEFPROCwidth
-  940width% EOR=1
-  950VDU23,18,255,12+(width%*4)|
-  960ENDPROC
-  970:
-  980DEFPROCdumpscreen: REM For debug purposes, triggered on CTRL-P
-  990F$="vt."+STR$screen%+".header"
- 1000Q%=OPENOUT F$
- 1010FOR P%=0 TO 39: B%=?(&FFFF7C00+P%)
- 1020IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
- 1030NEXT:CLOSE#Q%
- 1040F$="vt."+STR$screen%+".body"
- 1050Q%=OPENOUT F$
- 1060FOR P%=40 TO 959: B%=?(&FFFF7C00+P%)
- 1070IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
- 1080NEXT:CLOSE#Q%:screen%+=1
- 1090ENDPROC
- 1100:
- 1110DEFPROCtogglescreen
- 1120OSCLI"Fullscreen"
- 1130SYS"OS_Byte",42 TO ,fs%
- 1140IF fs% AND 8 THEN MOUSE OFF ELSE MOUSE ON
- 1150ENDPROC
- 1160:
- 1170DEFFNwelcome
- 1180PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
- 1190PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
- 1200PRINT
- 1210PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
- 1220PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
- 1230PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+   20:
+   30REM This is a basic Viewdata/Videotex client written in BBC BASIC. but
+   40REM using some Matrix Brandy extensions. For instance, the networking
+   50REM interface is a local extension, as is the screen memory access and
+   60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
+   70REM are from RISC OS 5.
+   80:
+   90SYS "Brandy_GetVideoDriver" TO v$
+  100IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
+  110:
+  120*FX229,1
+  130*WinTitle Matrix Brandy BASIC Telstar Client
+  140ON ERROR GOTO 400
+  150MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
+  160IFv$="fbcon"THENMOUSEOFF
+  170reveal%=0:scan%=0:width%=1
+  180dh%=0:dhline%=0:borked%=0
+  190REM Variables for downloading
+  200screen%=0
+  210download%=0
+  220X%=OPENUP(FNwelcome)
+  230FOR l%=1TO3: READ v%:BPUT#X%,v%:NEXT
+  240REPEAT
+  250M%=BGET#X%: IF M%=-2 THEN GOTO 390
+  260IF M% >= 0 THEN PROCvdu(M%): GOTO 390
+  270I%=INKEY(10):IF I%=-1 THEN PROCdhscan: GOTO 390
+  280IF I%>=32 AND I%<=126THENGOTO380
+  290IF I%=35 OR I%=13 THEN I%=95:GOTO380
+  300IF I%=127 THEN I%=8:GOTO360
+  310IF I%=6 THEN PROCtogglescreen: GOTO 250
+  320IF I%=16 THEN PROCdumpscreen: GOTO 250
+  330IF I%=18 THEN PROCreveal: GOTO 250
+  340IF I%=23 THEN PROCwidth: GOTO 250
+  350IF I%=24 THEN GOTO 400
+  360IF I%=8 AND borked%=1 THEN VDU8,32:GOTO380
+  370IF I%>139 AND I%<144 THEN I%-=132
+  380IF I% > 0 THEN BPUT#X%,I%
+  390UNTIL M%=-2
+  400CLOSE#X%
+  410PRINTTAB(9,24)CHR$(128+RND(7));"Press any key to exit.";
+  420A=GET: PRINT: ON: OSCLI"FX229"
+  430END
+  440:
+  450DEFPROCvdu(M%)
+  460IF M% >= 32 THEN PROCactvdu: ENDPROC
+  470CASE M% OF
+  480WHEN 27: REPEAT N%=BGET#X%: UNTIL N%<>-1: N%=(N% MOD 32)+128: VDU N%: PROCcheckdh: ENDPROC
+  490WHEN 8: IF POS=0 AND VPOS=0 THEN VDU31,39,23 ELSE VDU 8
+  500WHEN 9: IF POS=39 AND VPOS=23 THEN VDU30 ELSE VDU9
+  510WHEN 10: PROCcheckline: dh%=0: IF VPOS<23 THEN VDU10 ELSE VDU 31,POS,0
+  520WHEN 11: IF VPOS > 0 THEN VDU11 ELSE VDU31,POS,23
+  530WHEN 12, 13, 30: VDU M%
+  540WHEN 17: ON
+  550WHEN 20: OFF
+  560ENDCASE
+  570IF VPOS=24 THEN VDU31,POS,0
+  580ENDPROC
+  590:
+  600DEFPROCcheckdh
+  610IFN%=141THEN dh%=1:dhline%=VPOS:scan%=1
+  620ENDPROC
+  630:
+  640DEFPROCactvdu
+  650IFdhline%<>VPOS THEN dh%=0
+  660VDU (M% OR 128)
+  670ENDPROC
+  680:
+  690DEFPROCcheckline
+  700IF dh%=0 THEN ENDPROC
+  710N%=VPOS:PROCcopyline
+  720ct%=0:REPEAT:dm%=BGET#X%:IFdm%<>27THENct%+=1
+  730UNTIL ct%=40 OR dm%=10 OR dm%=11
+  740IF dm%=11 THEN VDU11 ELSE VDU10
+  750ENDPROC
+  760:
+  770DEFPROCdhscan
+  780IFscan%=0ENDPROC
+  790FOR N%=0 TO 22: FOR P%=0 TO 39
+  800IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%+=1
+  810NEXT P%, N%
+  820scan%=0
+  830ENDPROC
+  840:
+  850DEFPROCcopyline
+  860IF N% > 22 THEN ENDPROC
+  870FOR P%=0 TO 36 STEP 4
+  880!(&FFFF7C00+(40*(N%+1))+P%) = !(&FFFF7C00+(40*N%)+P%)
+  890NEXT P%
+  900ENDPROC
+  910:
+  920DEFPROCreveal
+  930reveal% EOR=1
+  940VDU23,18,2,reveal%|
+  950ENDPROC
+  960:
+  970DEFPROCwidth
+  980width% EOR=1
+  990VDU23,18,255,12+(width%*4)|
+ 1000ENDPROC
+ 1010:
+ 1020DEFPROCdumpscreen: REM For debug purposes, triggered on CTRL-P
+ 1030F$="vt."+STR$screen%+".header"
+ 1040Q%=OPENOUT F$
+ 1050FOR P%=0 TO 39: B%=?(&FFFF7C00+P%)
+ 1060IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
+ 1070NEXT:CLOSE#Q%
+ 1080F$="vt."+STR$screen%+".body"
+ 1090Q%=OPENOUT F$
+ 1100FOR P%=40 TO 959: B%=?(&FFFF7C00+P%)
+ 1110IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
+ 1120NEXT:CLOSE#Q%:screen%+=1
+ 1130ENDPROC
+ 1140:
+ 1150DEFPROCtogglescreen
+ 1160OSCLI"Fullscreen"
+ 1170SYS"OS_Byte",42 TO ,fs%
+ 1180IF fs% AND 8 THEN MOUSE OFF ELSE MOUSE ON
+ 1190ENDPROC
+ 1200:
+ 1210DEFFNwelcome
+ 1220PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
+ 1230PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
  1240PRINT
- 1250PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
- 1260PRINT CHR$(131);"5 - NXtel"
- 1270PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
- 1290PRINT
- 1300PRINT CHR$(129);"0 - Exit"
- 1310PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
- 1320PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
- 1330PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
- 1340PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
- 1350PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1360REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24
- 1370IF A% = 23 THEN PROCwidth:GOTO 1360
- 1380IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
- 1390IF A% = 6 THEN PROCtogglescreen: GOTO 1360
- 1400IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
- 1410IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
- 1420IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
- 1430IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
- 1440IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
- 1450IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
- 1470CLS
- 1480="ip0:"+S$
+ 1250PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
+ 1260PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+ 1270PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+ 1280PRINT
+ 1290PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
+ 1300PRINT CHR$(131);"5 - NXtel"
+ 1310PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
+ 1320PRINT
+ 1330PRINT CHR$(129);"0 - Exit"
+ 1340PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+ 1350PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
+ 1360PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
+ 1370PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
+ 1380PRINT TAB(4,23)CHR$(129);"Please make your selection..."
+ 1390REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24
+ 1400IF A% = 23 THEN PROCwidth:GOTO 1390
+ 1410IF A% = 24 OR A% = 48 THEN ON:OSCLI"FX229":END
+ 1420IF A% = 6 THEN PROCtogglescreen: GOTO 1390
+ 1430IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
+ 1440IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
+ 1450IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1460IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
+ 1470IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
+ 1480IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
+ 1490CLS
+ 1500="ip0:"+S$
  2000REM Telnet init data
  2010DATA&FF,&FD,&03
