@@ -227,7 +227,7 @@ static char histbuffer[HISTSIZE]; /* Command history buffer				*/
 static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
 
 static int nokeyboard=0;
-static int escint=128;
+static int escint=1;
 static int escmul=1;
 static int fx44x=1;
 #endif
@@ -910,11 +910,6 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 }
 #endif
 
-//static int nokeyboard=0;
-//static int escint=128;
-//static int escmul=1;
-//static int fx44x=1;
-
 #ifdef TARGET_RISCOS
 
 /* ================================================================= */
@@ -1190,18 +1185,15 @@ int64 esclast=0;
 void checkforescape(void) {
 #ifdef USE_SDL
 int64 i;
-  if (!escinterval) {
-    escinterval=escint+escmul;
-    i=mos_centiseconds();
-    if (i > esclast) {
-      esclast=i;
+  i=basicvars.centiseconds;
+  if (i > esclast) {
+    esclast=i;
 #ifdef NEWKBD
-      if(kbd_inkey(-113)) basicvars.escape=TRUE;
+    if(kbd_inkey(-113)) basicvars.escape=TRUE;
 #else
-      if(emulate_inkey(-113)) basicvars.escape=TRUE;
+    if(emulate_inkey(-113)) basicvars.escape=TRUE;
 #endif
-    }
-  } else escinterval--;
+  }
 #endif
   return;
 }
@@ -1782,7 +1774,7 @@ int32 emulate_inkey(int32 arg) {
     if ((arg < -128) && (arg > -256)) return -1;	/* Scan range unimplemented */
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
-    mousestate = SDL_GetMouseState(NULL, NULL);
+      mousestate = SDL_GetMouseState(NULL, NULL);
     while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }

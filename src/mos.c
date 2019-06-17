@@ -666,9 +666,8 @@ void mos_wrtime(int32 time) {
 
 int64 mos_centiseconds(void) {
   struct timeval tv;
-  struct timezone tzp;
 
-  gettimeofday (&tv, &tzp);
+  gettimeofday (&tv, NULL);
 
   /* tv.tv_sec  = Seconds since 1970 */
   /* tv.tv_usec = and microseconds */
@@ -677,7 +676,11 @@ int64 mos_centiseconds(void) {
 }
 
 int32 mos_rdtime(void) {
+#ifdef TARGET_LINUX
+  return ((int32) (basicvars.centiseconds - startime));
+#else
   return ((int32) (mos_centiseconds() - startime));
+#endif
 }
 
 /*
@@ -685,8 +688,8 @@ int32 mos_rdtime(void) {
 ** The effects of 'TIME=' are emulated here
 */
 void mos_wrtime (int32 time) {
-  startime = time;
-  startime = mos_rdtime();
+  //startime = time;
+  startime = (mos_centiseconds() - time);
 }
 
 #endif
@@ -2192,10 +2195,10 @@ switch (areg) {
 		return 0xC000FF19;
 #endif
 	case 40:
-		set_escint(xreg);
+		//set_escint(xreg);
 		break;
 	case 41:
-		set_escmul(xreg);
+		//set_escmul(xreg);
 		break;
 	case 42:		// OSBYTE 42 - local to Brandy
 #ifdef USE_SDL
@@ -2285,10 +2288,10 @@ switch (areg) {
 		  }
 		}
 		if (xreg==2) { // Set Escape Check Interval, 0 resets defaults
-		  set_escint(yreg);
+		  //set_escint(yreg);
 		}
 		if (xreg==3) { // Set Escape Check Interval, multiplied by 256.
-		  set_escmul(yreg);
+		  //set_escmul(yreg);
 		}
 		if (xreg==127) { // Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
 		  star_refresh(1);

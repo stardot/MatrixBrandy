@@ -28,6 +28,8 @@
 #include <setjmp.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
+#include <pthread.h>
 #ifndef TARGET_MINGW
 #include <sys/mman.h>
 #endif
@@ -389,6 +391,33 @@ static void load_libraries(void) {
   } while (p!=NIL);
 }
 
+#ifdef TARGET_LINUX
+void *timer_thread(void *data) {
+  struct timeval tv;
+  while(1) {
+    gettimeofday (&tv, NULL);
+
+    /* tv.tv_sec  = Seconds since 1970 */
+    /* tv.tv_usec = and microseconds */
+
+    basicvars.centiseconds = (((unsigned)tv.tv_sec * 100) + ((unsigned)tv.tv_usec / 10000));
+    usleep(5000);
+  }
+}
+#endif
+
+/* This function starts a timer thread */
+void init_timer() {
+#ifdef TARGET_LINUX
+  pthread_t timer_thread_id;
+  int err = pthread_create(&timer_thread_id,NULL,&timer_thread,NULL);
+  if(err) {
+    fprintf(stderr,"Unable to create timer thread\n");
+    exit(1);
+  }
+#endif
+}
+
 /*
 ** 'run_interpreter' is the main command loop for the interpreter.
 ** It reads commands and executes then. Control is also returned
@@ -398,6 +427,7 @@ static void load_libraries(void) {
 static void run_interpreter(void) {
   if (setjmp(basicvars.restart)==0) {
     if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
+    init_timer();	/* Initialise the timer thread */
     init_errors();	/* Set up the signal handlers */
 #ifdef BRANDYAPP
     read_basic_block();

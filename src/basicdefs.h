@@ -497,6 +497,7 @@ typedef struct {
   int32 linecount;			/* Used when reading a Basic program or library into memory */
   variable staticvars[STDVARS];		/* Static integer variables @%-Z% */
   variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions */
+  int64 centiseconds;			/* Centisecond timer, populated by sub-thread */
   char program[FNAMESIZE];		/* Name of program loaded */
   char filename[FNAMESIZE];		/* Name of last file read */
   cmdarg *arglist;			/* Pointer to list of Basic program command line arguments */
