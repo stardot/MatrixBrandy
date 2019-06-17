@@ -391,7 +391,7 @@ static void exec_statements(byte *lp) {
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
-    checkforescape();
+    if (basicvars.escape_enabled) checkforescape();
 #endif
     (*statements[*basicvars.current])();	/* Dispatch a statement */
   } while (TRUE);

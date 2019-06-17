@@ -1186,6 +1186,7 @@ void set_escmul(int i) {
 int escinterval=0;
 int64 esclast=0;
 
+/* The check for escape_enabled moved to the calling point in statement.c */
 void checkforescape(void) {
 #ifdef USE_SDL
 int64 i;
@@ -1195,9 +1196,9 @@ int64 i;
     if (i > esclast) {
       esclast=i;
 #ifdef NEWKBD
-      if(kbd_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+      if(kbd_inkey(-113)) basicvars.escape=TRUE;
 #else
-      if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+      if(emulate_inkey(-113)) basicvars.escape=TRUE;
 #endif
     }
   } else escinterval--;
