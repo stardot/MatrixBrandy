@@ -10,7 +10,7 @@ include build/git.mk
 
 #CFLAGS = -g -DDEBUG -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
 #CFLAGS = -g -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
-CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -Os -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS +=
 
