@@ -227,8 +227,6 @@ static char histbuffer[HISTSIZE]; /* Command history buffer				*/
 static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
 
 static int nokeyboard=0;
-static int escint=1;
-static int escmul=1;
 static int fx44x=1;
 #endif
 
@@ -1168,17 +1166,6 @@ static int32 is_fn_key(int32 key) {
   return 0;
 }
 
-void set_escint(int i) {
-  if (i==0) {
-    escint=128;
-    escmul=0;
-  } else escint=i;
-}
-void set_escmul(int i) {
-  escmul=i<<8;
-}
-
-int escinterval=0;
 int64 esclast=0;
 
 /* The check for escape_enabled moved to the calling point in statement.c */

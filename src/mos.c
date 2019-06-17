@@ -2193,12 +2193,6 @@ switch (areg) {
 #else
 		return 0xC000FF19;
 #endif
-	case 40:
-		//set_escint(xreg);
-		break;
-	case 41:
-		//set_escmul(xreg);
-		break;
 	case 42:		// OSBYTE 42 - local to Brandy
 #ifdef USE_SDL
 		return osbyte42(xreg);

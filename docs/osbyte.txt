@@ -8,8 +8,6 @@ A=0:
 	X=0: return the MOS version as an error.
 	X=1: Return the OS version in the X register (as per the 'use' doc)
 
-A=40;	[Brandy only] Set the interval for checking ESCAPE, 0 resets default.
-A=41:	[Brandy only] Set the interval for checking ESCAPE, multipled by 256.
 A=42:	[Brandy only] Get or set various states
 	If NO bits set: return state in X register.
 	If ALL bits set: Analogue of Linux's "stty sane" - enables Refresh,
@@ -42,15 +40,12 @@ A=134:	Return text cursor position in X and Y. Identical to 165.
 A=135:	Return screen mode and character under cursor or 0 if unreadable.
 	In Brandy, the character under the cursor is only returned in MODE 7.
 A=160:	Read VDU variable (equivalent to VDU(X%))
-A=163:	Application Support - all these are local to Brandy,
-	old implementation moved from 42 with a few changes
+A=163:	Application Support - all these are local to Brandy
 	X=1: Get or set refresh state (as per *REFRESH)
 		Y=0: Equivalent to *REFRESH OFF
 		Y=1: Equivalent to *REFRESH ON
 		Y=2: Equivalent to *REFRESH ONERROR
 		Y=255: Query the state, will return 0, 1 or 2 in Y register.
-	X=2: Set the interval for checking ESCAPE, 0 resets detault.
-	X=3: Set the interval for checking ESCAPE, multiplied by 256.
 	X=127: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
 A=165	Return text cursor position in X and Y. Identical to 134.
