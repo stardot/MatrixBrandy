@@ -1767,11 +1767,12 @@ int32 emulate_inkey(int32 arg) {
     }
 
     if ((arg & 0xFE00) == 0xFC00) {
-    if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
-      return -1;
-    else
-      SDL_PushEvent(&ev);
-      return 0;
+      if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
+	return -1;
+      else {
+	SDL_PushEvent(&ev);
+	return 0;
+      }
     }
 
     if ((arg <= -10) && (arg >= -12)) {
@@ -1787,15 +1788,17 @@ int32 emulate_inkey(int32 arg) {
       ||
       (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
-      else
+      else {
         SDL_PushEvent(&ev);
         return 0;
+      }
     }
     if (keystate[inkeylookup[(arg * -1) -1]])
       return -1;
-    else
+    else {
       SDL_PushEvent(&ev);
       return 0;
+    }
 #else
     error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
 #endif
