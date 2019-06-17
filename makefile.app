@@ -24,7 +24,7 @@ CFLAGS = -Os -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(G
 
 LDFLAGS +=
 
-LIBS = -lX11 -lm -lSDL
+LIBS = -lX11 -lm -lSDL -lpthread
 
 SRCDIR = src
 
