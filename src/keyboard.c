@@ -1172,7 +1172,7 @@ int64 esclast=0;
 void checkforescape(void) {
 #ifdef USE_SDL
 int64 i;
-#ifdef TARGET_LINUG
+#ifdef TARGET_LINUX
   i=basicvars.centiseconds;
 #else
   i=mos_centiseconds();
