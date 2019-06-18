@@ -50,14 +50,14 @@
 #define MAXDIMS 10		/* Maximum number of array dimensions allowed */
 #define MAXNAMELEN 256		/* Size of buffers used to hold variable names */
 
-#define CR 0xD
-#define LF 0xA
+#define CR (0xD)
+#define LF (0xA)
 #define TAB '\t'
 #define NUL '\0'
-#define ESC 0x1B
-#define VBAR 0x7C
+#define ESC (0x1B)
+#define VBAR (0x7C)
 
-#define BYTEMASK 0xFF
+#define BYTEMASK (0xFF)
 #define BYTESHIFT 8
 
 typedef unsigned char byte;
