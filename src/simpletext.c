@@ -212,8 +212,8 @@ void emulate_printf(char *format, ...) {
 ** 'emulate_newline' skips to a new line on the screen.
 */
 void emulate_newline(void) {
-  emulate_vdu(CR);
-  emulate_vdu(LF);
+  emulate_vdu(asc_CR);
+  emulate_vdu(asc_LF);
 }
 
 /*
