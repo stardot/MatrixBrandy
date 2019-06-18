@@ -706,7 +706,7 @@ static void restore_retparm(int32 parmcount) {
   case VAR_DOLSTRPTR:
     if (stringvalue.stringlen>0) memmove(&basicvars.offbase[p->retdetails.address.offset], stringvalue.stringaddr, stringvalue.stringlen);
     if (vartype==VAR_STRINGDOL) {	/* Local var was a normal string variable */
-      basicvars.offbase[p->retdetails.address.offset+stringvalue.stringlen] = CR;	/* So add a 'CR' at the end of the string */
+      basicvars.offbase[p->retdetails.address.offset+stringvalue.stringlen] = asc_CR;	/* So add a 'CR' at the end of the string */
     }
     free_string(stringvalue);
     break;

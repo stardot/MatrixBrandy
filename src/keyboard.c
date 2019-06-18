@@ -1347,7 +1347,7 @@ int32 read_key(void) {
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
-              return NUL;
+              return asc_NUL;
             case SDLK_HOME:
               return HOME;
             case SDLK_DELETE:
@@ -1362,14 +1362,14 @@ int32 read_key(void) {
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
-              return NUL;
+              return asc_NUL;
             case SDLK_F10: case SDLK_F11: case SDLK_F12:
               ch = KEY_F10 + ev.key.keysym.sym - SDLK_F10;
               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
-              return NUL;
+              return asc_NUL;
             default:
               ch = ev.key.keysym.unicode;
               return ch;
@@ -1486,7 +1486,7 @@ static int32 decode_sequence(void) {
     case 2:     /* ESC 'O' read */
       if (ch >= 'P' && ch <= 'S') {     /* ESC 'O' 'P'..'S' */
         push_key(ch - 'P' + KEY_F1);    /* Got NetBSD F1..F4. Map to RISC OS F1..F4 */
-        return NUL;     /* RISC OS first char of key sequence */
+        return asc_NUL;     /* RISC OS first char of key sequence */
       }
       else {    /* Not a known key sequence */
         ok = FALSE;
@@ -1496,19 +1496,19 @@ static int32 decode_sequence(void) {
       switch (ch) {
       case 'A': /* ESC '[' 'A' - cursor up */
         push_key(UP);
-        return NUL;
+        return asc_NUL;
       case 'B': /* ESC '[' 'B' - cursor down */
         push_key(DOWN);
-        return NUL;
+        return asc_NUL;
       case 'C': /* ESC '[' 'C' - cursor right */
         push_key(RIGHT);
-        return NUL;
+        return asc_NUL;
       case 'D': /* ESC '[' 'D' - cursor left */
         push_key(LEFT);
-        return NUL;
+        return asc_NUL;
       case 'F': /* ESC '[' 'F' - 'End' key */
         push_key(END);
-        return NUL;
+        return asc_NUL;
       case 'H': /* ESC '[' 'H' - 'Home' key */
         return HOME;
       case '1': case '2': case '3': case '4': case '5': case '6': /* ESC '[' '1'..'6' */
@@ -1547,7 +1547,7 @@ static int32 decode_sequence(void) {
       }
       else if (ch == '~') {     /* ESC '[' '2' '~' - 'Insert' key */
         push_key(INSERT);
-        return NUL;
+        return asc_NUL;
       }
       else {
         ok = FALSE;
@@ -1571,28 +1571,28 @@ static int32 decode_sequence(void) {
     case 7:     /* ESC '[' '4' read */
       if (ch == '~') {  /* ESC '[' '4' '~' - 'End' key */
         push_key(END);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
     case 8:     /* ESC '[' '5' read */
       if (ch == '~') {  /* ESC '[' '5' '~' - 'Page up' key */
         push_key(PGUP);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
     case 9:     /* ESC '[' '6' read */
       if (ch == '~') {  /* ESC '[' '6' '~' - 'Page down' key */
         push_key(PGDOWN);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
     case 10:    /* ESC '[' '[' read */
       if (ch >= 'A' && ch <= 'E') {     /* ESC '[' '[' 'A'..'E' -  Linux F1..F5 */
         push_key(ch - 'A' + KEY_F1);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
@@ -1604,7 +1604,7 @@ static int32 decode_sequence(void) {
     case 27: case 28: case 29: case 30: /* ESC '[' '3' '1'..'4' */
       if (ch == '~') {
         push_key(state2key[state - 11]);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
     }
@@ -1705,18 +1705,18 @@ int32 emulate_get(void) {
  */
   key = ch;
   if (ch == ESCAPE) key = decode_sequence();
-  if (key != NUL) return key;
+  if (key != asc_NUL) return key;
 /* NUL found. Check for function key */
   key = pop_key();
   fn_keyno = is_fn_key(key);
   if (fn_keyno == 0) {	/* Not a function key - Return NUL then key code */
     push_key(key);
-    return NUL;
+    return asc_NUL;
   }
 /* Function key hit. Check if there is a function key string */
   if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
     push_key(key);	/* No string is defined for this key */
-    return NUL;
+    return asc_NUL;
   }
 /*
  * There is a function key string. Switch input to string
@@ -2148,7 +2148,7 @@ static void recall_histline(char buffer[], int updown) {
     recalline += 1;
   }
   if (recalline == histindex)   /* Moved to last line */
-    buffer[0] = NUL;
+    buffer[0] = asc_NUL;
   else {
     start = 0;
     for (n = 0; n < recalline; n++) start += histlength[n];
@@ -2251,7 +2251,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     p = fgets(buffer, length, stdin);	/* Get all in one go */
     if (p == NIL) {     /* Call failed */
       if (ferror(stdin)) error(ERR_READFAIL);   /* I/O error occured on stdin */
-      buffer[0] = NUL;          /* End of file */
+      buffer[0] = asc_NUL;          /* End of file */
       return READ_EOF;
     }
     return READ_OK;
@@ -2270,7 +2270,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     ch = kbd_get();
     if ((ch & 0x100) || (ch == DEL)) {
       pendch=ch & 0xFF;		/* temp */
-      ch = NUL;
+      ch = asc_NUL;
     }
 #else
     ch = emulate_get();
@@ -2279,10 +2279,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;
 	/* Check if the escape key has been pressed and bail out if it has */
     switch (ch) {       /* Normal keys */
-    case CR: case LF:   /* End of line */
+    case asc_CR: case asc_LF:   /* End of line */
       emulate_vdu('\r');
       emulate_vdu('\n');
-      buffer[highplace] = NUL;
+      buffer[highplace] = asc_NUL;
       if (highplace > 0) add_history(buffer, highplace);
       break;
     case CTRL_H: case DEL:      /* Delete character to left of cursor */
@@ -2358,7 +2358,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       display(VDU_CURBACK, place);
       place = 0;
       break;
-    case NUL:                   /* Function or special key follows */
+    case asc_NUL:                   /* Function or special key follows */
 #ifdef NEWKBD
 //    ch = kbd_get();           /* Fetch the key details */
       ch = pendch; /* temp */
@@ -2404,7 +2404,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       }
       break;
     default:
-      if (ch < ' ' && ch != TAB)        /* Reject any other control character except tab */
+      if (ch < ' ' && ch != asc_TAB)        /* Reject any other control character except tab */
         emulate_vdu(VDU_BEEP);
       else if (highplace == lastplace)  /* No room left in buffer */
         emulate_vdu(VDU_BEEP);
@@ -2416,7 +2416,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
         if (place > highplace) highplace = place;
       }
     }
-  } while (ch != CR && ch != LF);
+  } while (ch != asc_CR && ch != asc_LF);
   return READ_OK;
 }
 

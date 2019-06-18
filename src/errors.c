@@ -179,7 +179,7 @@ void watch_signals(void) {
 ** to 'false'
 */
 void init_errors(void) {
-  errortext[0] = NUL;
+  errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
 #ifndef TARGET_MINGW
     (void) signal(SIGUSR1, handle_signal);
@@ -254,7 +254,7 @@ void show_options(void) {
 #else
   emulate_printf("%s\r\n\n", IDSTRING);
 #endif
-  if (basicvars.program[0] != NUL) emulate_printf("Program name: %s\r\n\n", basicvars.program);
+  if (basicvars.program[0] != asc_NUL) emulate_printf("Program name: %s\r\n\n", basicvars.program);
   if (basicvars.loadpath != NIL) emulate_printf("Directory search list for libraries: %s\r\n\n", basicvars.loadpath);
   emulate_printf("The program starts at &%X and is %d bytes long.\r\nVariables start at &%X and occupy %d bytes. %d bytes of memory remain\r\n",
    basicvars.page - basicvars.offbase, basicvars.top - basicvars.page,
@@ -754,7 +754,7 @@ void error(int32 errnumber, ...) {
 ** 'get_lasterror' is used to return the text of the last error message
 */
 char *get_lasterror(void) {
-  if (errortext[0]==NUL)
+  if (errortext[0]==asc_NUL)
     return COPYRIGHT;
   else {
     return &errortext[0];

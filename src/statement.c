@@ -290,7 +290,7 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
     if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value), length);
-    basicvars.offbase[destination.address.offset+length] = CR;
+    basicvars.offbase[destination.address.offset+length] = asc_CR;
     break;
   default:
     error(ERR_VARNUM);

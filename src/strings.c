@@ -354,8 +354,8 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
 int32 get_stringlen(int32 start) {
   int32 n;
   n =start;
-  while (n-start<=MAXSTRING && basicvars.offbase[n]!=CR) n++;
-  if (basicvars.offbase[n]==CR) return n-start;
+  while (n-start<=MAXSTRING && basicvars.offbase[n]!=asc_CR) n++;
+  if (basicvars.offbase[n]==asc_CR) return n-start;
   return 0;
 }
 

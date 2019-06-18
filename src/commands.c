@@ -186,7 +186,7 @@ static void list_vars(void) {
     len = p-start;
     if (len == 0) return;               /* Quick way out if length of name is zero */
     memcpy(basicvars.stringwork, start, len);
-    basicvars.stringwork[len] = NUL;
+    basicvars.stringwork[len] = asc_NUL;
     lp = basicvars.liblist;
     while (lp != NIL && strcmp(lp->libname, basicvars.stringwork) != 0) lp = lp->libflink;
     found = lp != NIL;
@@ -222,7 +222,7 @@ static void list_if(void) {
   p = tp = get_srcaddr(basicvars.current);      /* Get address of string to search for */
   basicvars.current+=1+OFFSIZE;
   check_ateol();
-  while (*p != NUL) p++;        /* Find the end of the string */
+  while (*p != asc_NUL) p++;        /* Find the end of the string */
   targetlen = p-tp;             /* Number of characters in search string */
   if (targetlen == 0) return;   /* End if search string is empty */
   p = basicvars.start;
@@ -373,11 +373,11 @@ static void list_program(void) {
             count = 0;
             paused = FALSE;
             break;
-          case CR: case LF:
+          case asc_CR: case asc_LF:
             count = PAGESIZE-1; /* A hack, but it does the job */
             paused = FALSE;
             break;
-          case ESC:
+          case asc_ESC:
             paused = more = FALSE;
           }
         } while (paused);
@@ -429,10 +429,10 @@ static char *check_incore(void) {
   byte *p;
   if (AT_PROGEND(basicvars.start)) return NIL;  /* There is nothing to search */
   p = basicvars.start+OFFSOURCE;
-  while (*p != NUL && *p != '>') p++;   /* Look for a '>' */
-  if (*p == NUL) return NIL;            /* Did not find one so give up */
+  while (*p != asc_NUL && *p != '>') p++;   /* Look for a '>' */
+  if (*p == asc_NUL) return NIL;            /* Did not find one so give up */
   p = skip(p+1);
-  if (*p == NUL) return NIL;            /* There is nothing after the '>' */
+  if (*p == asc_NUL) return NIL;            /* There is nothing after the '>' */
   return TOSTRING(p);
 }
 
@@ -448,7 +448,7 @@ static char *get_savefile(void) {
   if (isateol(basicvars.current)) {
     np = check_incore();                /* Check for an 'incore' file name */
     if (np == NIL) {                    /* Did not find one */
-      if (basicvars.program[0] == NUL)
+      if (basicvars.program[0] == asc_NUL)
         error(ERR_FILENAME);
       else {
         np = basicvars.program;

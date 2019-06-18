@@ -124,7 +124,7 @@ static byte startmark [STARTMARKSIZE] = {0xC5, 0xC7, 0xC1, 0xD7};
 ** with or to allow programs that drop off the end of their code to
 ** end gracefully
 */
-static byte endline [8] = {0, 0, 8, 0, 6, 0, TOKEN_END, NUL};
+static byte endline [8] = {0, 0, 8, 0, 6, 0, TOKEN_END, asc_NUL};
 
 void mark_end(byte *p) {
   memcpy(p, endline, 8);	/* Place an 'END' token at the end of the program */
@@ -220,7 +220,7 @@ void clear_program(void) {
   basicvars.curcount = 0;
   basicvars.printcount = 0;
   basicvars.printwidth = DEFWIDTH;
-  basicvars.program[0] = NUL;
+  basicvars.program[0] = asc_NUL;
   basicvars.linecount = 0;
   last_added = NIL;
   init_stack();
@@ -460,7 +460,7 @@ static FILE *open_file(char *name) {
   do {
     dest = basicvars.filename;
     if (*srce!=',') {		/* Not got a null directory name */
-      while (*srce!=NUL && *srce!=',') {
+      while (*srce!=asc_NUL && *srce!=',') {
         *dest = *srce;
         dest++;
         srce++;
@@ -470,10 +470,10 @@ static FILE *open_file(char *name) {
         dest++;
       }
     }
-    *dest = NUL;
+    *dest = asc_NUL;
     strcat(basicvars.filename, name);
     handle = fopen(basicvars.filename, "rb");
-    if (handle!=NIL || *srce==NUL) break;	/* File found or end of directory list reached */
+    if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
     srce++;
   } while (TRUE);
   return handle;	/* Return file handle or NIL if file not found */
@@ -608,7 +608,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
       length--;
     while (length>=0 && isspace(basicvars.stringwork[length]));
     length++;
-    basicvars.stringwork[length] = NUL;
+    basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
 //    tokenize(basicvars.stringwork, tokenline, HASLINE);
     if (get_lineno(tokenline)==NOLINENO) {
@@ -756,13 +756,13 @@ static filetype identify(FILE *thisfile, char *name) {
   fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
   if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
 
-  if (basicvars.stringwork[0] == CR)			/* Simple check for Acorn format */
+  if (basicvars.stringwork[0] == asc_CR)			/* Simple check for Acorn format */
     if ((unsigned char)basicvars.stringwork[3] > 3)
-      if (basicvars.stringwork[(unsigned char)basicvars.stringwork[3]] == CR)
+      if (basicvars.stringwork[(unsigned char)basicvars.stringwork[3]] == asc_CR)
         return BBCFILE;
 
   if ((unsigned char)basicvars.stringwork[0] > 3)	/* Simple check for Russell format */
-    if (basicvars.stringwork[(unsigned char)basicvars.stringwork[0]-1] == CR)
+    if (basicvars.stringwork[(unsigned char)basicvars.stringwork[0]-1] == asc_CR)
       return Z80FILE;
 
   return TEXTFILE;					/* Everything else is text */

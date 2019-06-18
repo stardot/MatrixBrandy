@@ -252,7 +252,7 @@ static void assign_dolstrptr(pointers address) {
   } else {
 #endif
     memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
-    basicvars.offbase[address.offset+result.stringlen] = CR;
+    basicvars.offbase[address.offset+result.stringlen] = asc_CR;
 #ifdef USE_SDL
   }
 #endif
@@ -648,14 +648,14 @@ static void assiplus_dolstrptr(pointers address) {
   result = pop_string();
   endoff = address.offset;	/* Figure out where to append the string */
   stringlen = 0;
-  while (stringlen<=MAXSTRING && basicvars.offbase[endoff]!=CR) {	/* Find the CR at the end of the dest string */
+  while (stringlen<=MAXSTRING && basicvars.offbase[endoff]!=asc_CR) {	/* Find the CR at the end of the dest string */
     endoff++;
     stringlen++;
   }
   if (stringlen>MAXSTRING) endoff = address.offset;	/* CR at end not found - Assume dest is zero length */
   check_write(endoff, result.stringlen);
   memmove(&basicvars.offbase[endoff], result.stringaddr, result.stringlen);
-  basicvars.offbase[endoff+result.stringlen] = CR;
+  basicvars.offbase[endoff+result.stringlen] = asc_CR;
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 
@@ -2099,7 +2099,7 @@ static void assign_filepath(void) {
     basicvars.loadpath = malloc(string.stringlen+1);		/* +1 for NUL at end */
     if (basicvars.loadpath==NIL) error(ERR_NOROOM);	/* Not enough memory left */
     memcpy(basicvars.loadpath, string.stringaddr, string.stringlen);
-    basicvars.loadpath[string.stringlen] = NUL;
+    basicvars.loadpath[string.stringlen] = asc_NUL;
   }
   if (stringtype==STACK_STRTEMP) free_string(string);
 }

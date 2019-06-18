@@ -456,7 +456,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       save_string(fp->parameter, descriptor);	/* Save the '$<string>' string */
     }
     if (stringparm.stringlen > 0) memmove(sp, stringparm.stringaddr, stringparm.stringlen);
-    sp[stringparm.stringlen] = CR;
+    sp[stringparm.stringlen] = asc_CR;
     if (parmtype == STACK_STRTEMP) free_string(stringparm);
     break;
   }

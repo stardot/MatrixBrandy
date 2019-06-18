@@ -705,14 +705,14 @@ static void fn_eval(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   descriptor = pop_string();
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
-  basicvars.stringwork[descriptor.stringlen] = NUL;	/* Now have a null-terminated version of string */
+  basicvars.stringwork[descriptor.stringlen] = asc_NUL;	/* Now have a null-terminated version of string */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
   tokenize(basicvars.stringwork, evalexpr, NOLINE, FALSE);	/* 'tokenise' leaves its results in 'thisline' */
 //  tokenize(basicvars.stringwork, evalexpr, NOLINE);	/* 'tokenise' leaves its results in 'thisline' */
   save_current();		/* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();
-  if (*basicvars.current != NUL) error(ERR_SYNTAX);
+  if (*basicvars.current != asc_NUL) error(ERR_SYNTAX);
   restore_current();
 }
 
@@ -1578,7 +1578,7 @@ static void fn_val(void) {
     push_int(0);	/* Nothing to do */
   else {
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
-    basicvars.stringwork[descriptor.stringlen] = NUL;
+    basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
     cp = tonumber(basicvars.stringwork, &isint, &intvalue, &fpvalue);
     if (cp == NIL) {	/* Error found when converting number */

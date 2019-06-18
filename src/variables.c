@@ -152,7 +152,7 @@ static void list_varlist(char which, library *lp) {
           }
           if (vp->varentry.vararray==NIL) {	/* Array bounds are undefined */
             temp[len] = ')';
-            temp[len+1] = NUL;
+            temp[len+1] = asc_NUL;
           }
           else {
             ap = vp->varentry.vararray;
@@ -432,7 +432,7 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   vp = allocmem(sizeof(variable));
   memcpy(np, varname, namelen);		/* Make copy of name */
   if (np[namelen-1]=='[') np[namelen-1] = '(';
-  np[namelen] = NUL;			/* And add a null at the end */
+  np[namelen] = asc_NUL;			/* And add a null at the end */
   hashvalue = hash(np);
   vp->varname = np;
   vp->varhash = hashvalue;
@@ -496,7 +496,7 @@ variable *find_variable(byte *np, int namelen) {
   int32 hashvalue;
   memcpy(name, np, namelen);
   if (name[namelen-1]=='[') name[namelen-1] = '(';
-  name[namelen] = NUL;		/* Ensure name is null-terminated */
+  name[namelen] = asc_NUL;		/* Ensure name is null-terminated */
   hashvalue = hash(name);
   lp = find_library(np);	/* Was the variable reference in a library? */
   if (lp!=NIL) {		/* Yes - Search library's symbol table first */
@@ -555,7 +555,7 @@ static void scan_parmlist(variable *vp) {
     basicvars.current++;	/* Move past ')' */
   }
   if (*basicvars.current==':') basicvars.current++;	/* Body of procedure starts on same line as 'DEF PROC/FN' */
-  while (*basicvars.current==NUL) {	/* Body of procedure starts on next line */
+  while (*basicvars.current==asc_NUL) {	/* Body of procedure starts on next line */
     basicvars.current++;	/* Move to start of next line */
     if (AT_PROGEND(basicvars.current)) error(ERR_SYNTAX);	/* There is no procedure body */
     basicvars.current = FIND_EXEC(basicvars.current);	/* Find the first executable token */
@@ -601,7 +601,7 @@ static void add_libvars(byte *tp, library *lp) {
     if (*tp!=',') break;
     tp++;
   }
-  if (*tp!=NUL && *tp!=':') error(ERR_SYNTAX);
+  if (*tp!=asc_NUL && *tp!=':') error(ERR_SYNTAX);
   restore_current();	/* Restore current to its proper value */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
@@ -638,7 +638,7 @@ static void add_libarray(byte *tp, library *lp) {
     basicvars.current+=LOFFSIZE+1;
     define_array(vp, FALSE);
   } while (*basicvars.current==',');
-  if (*basicvars.current!=NUL && *basicvars.current!=':') error(ERR_SYNTAX);
+  if (*basicvars.current!=asc_NUL && *basicvars.current!=':') error(ERR_SYNTAX);
   restore_current();	/* Restore current to its proper value */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
@@ -661,7 +661,7 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
   if (*(ep-1)=='(') ep--;	/* '(' here is not part of the name but the start of the parameter list */
   namelen = ep-base;
   memmove(pfname, base, namelen);
-  pfname[namelen] = NUL;
+  pfname[namelen] = asc_NUL;
   fpp = allocmem(sizeof(libfnproc));
   fpp->fpline = bp;
   fpp->fpname = base;
@@ -767,7 +767,7 @@ static variable *mark_procfn(byte *pp) {
   cp = allocmem(namelen+1);
   vp = allocmem(sizeof(variable));
   memcpy(cp, base, namelen);	/* Make copy of name */
-  *(cp+namelen) = NUL;		/* And add a null at the end */
+  *(cp+namelen) = asc_NUL;	/* And add a null at the end */
   vp->varname = cp;
   vp->varhash = hashvalue = hash(cp);
   vp->varflags = VAR_MARKER;
@@ -847,7 +847,7 @@ variable *find_fnproc(byte *np, int namelen) {
   variable *vp;
   int32 hashvalue;
   memcpy(basicvars.stringwork, np, namelen);	/* Copy name from after 'FN' or 'PROC' token */
-  *(basicvars.stringwork+namelen) = NUL;	/* Ensure name is properly terminated */
+  *(basicvars.stringwork+namelen) = asc_NUL;	/* Ensure name is properly terminated */
   hashvalue = hash(basicvars.stringwork);
   vp = basicvars.varlists[hashvalue & VARMASK];
   if (vp!=NIL) {	/* List is not empty - Scan it for function or proc */

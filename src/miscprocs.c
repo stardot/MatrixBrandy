@@ -77,7 +77,7 @@ boolean isident(byte ch) {
 ** deals with 'byte' data
 */
 char *skip_blanks(char *p) {
-  while (*p==' ' || *p==TAB) p++;
+  while (*p==' ' || *p==asc_TAB) p++;
   return p;
 }
 
@@ -85,7 +85,7 @@ char *skip_blanks(char *p) {
 ** 'skip' is used to skip the 'white space' characters in a tokenised line
 */
 byte *skip(byte *p) {
-  while (*p==' ' || *p==TAB) p++;
+  while (*p==' ' || *p==asc_TAB) p++;
   return p;
 }
 
@@ -267,7 +267,7 @@ char *tocstring(char *cp, int32 len) {
   case TOKEN_STATICVAR: case TOKEN_STATINDVAR:
     cstring[0] = *(cp+1)+'@';
     cstring[1] = '%';
-    cstring[2] = NUL;
+    cstring[2] = asc_NUL;
     return &cstring[0];
   default:
     n = 0;
@@ -281,7 +281,7 @@ char *tocstring(char *cp, int32 len) {
     cstring[n] = cstring[n+1] = cstring [n+2] = '.';
     n+=3;
   }
-  cstring[n] = NUL;
+  cstring[n] = asc_NUL;
   return &cstring[0];
 }
 
@@ -459,7 +459,7 @@ static void strip(char line[]) {
     while (n>=0 && isspace(line[n]));
     n++;
   }
-  line[n] = NUL;
+  line[n] = asc_NUL;
 }
 
 /*
@@ -474,7 +474,7 @@ static void strip(char line[]) {
 */
 boolean read_line(char line[], int32 linelen) {
   readstate result;
-  line[0] = NUL;
+  line[0] = asc_NUL;
 #ifdef NEWKBD
   result = kbd_readline(line, linelen, 0);
   result = READ_OK;	/* temp'y bodge */
