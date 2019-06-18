@@ -1172,11 +1172,7 @@ int64 esclast=0;
 void checkforescape(void) {
 #ifdef USE_SDL
 int64 i;
-#ifdef TARGET_LINUX
   i=basicvars.centiseconds;
-#else
-  i=mos_centiseconds();
-#endif
   if (i > esclast) {
     esclast=i;
 #ifdef NEWKBD

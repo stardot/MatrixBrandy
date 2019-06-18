@@ -676,7 +676,7 @@ int64 mos_centiseconds(void) {
 }
 
 int32 mos_rdtime(void) {
-#ifdef TARGET_LINUX
+#ifdef USE_SDL
   return ((int32) (basicvars.centiseconds - startime));
 #else
   return ((int32) (mos_centiseconds() - startime));
