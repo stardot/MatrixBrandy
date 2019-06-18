@@ -1022,10 +1022,13 @@ static void write_char(int32 ch) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1078,10 +1081,13 @@ static void write_char(int32 ch) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1359,10 +1365,13 @@ static void move_curdown(void) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1386,10 +1395,13 @@ static void move_curup(void) {
 // BUG: paged mode should not stop scrolling upwards
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1842,10 +1854,13 @@ void emulate_vdu(int32 charvalue) {
 	    vdu14lines++;
 	    if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	      while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	      vdu14lines=0;
 	    }
 	  }
@@ -1886,10 +1901,13 @@ void emulate_vdu(int32 charvalue) {
 	    vdu14lines++;
 	    if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	      while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	      vdu14lines=0;
 	    }
 	  }
