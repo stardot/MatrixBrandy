@@ -709,7 +709,7 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
       length--;
     while (length>=0 && isspace(basicvars.stringwork[length]));
     length++;
-    basicvars.stringwork[length] = NUL;
+    basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
     if (get_lineno(tokenline)==NOLINENO) {
       save_lineno(tokenline, 0);	/* Otherwise renumber goes a bit funny */
