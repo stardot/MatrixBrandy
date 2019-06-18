@@ -406,14 +406,19 @@ int timer_thread(void *data) {
     basicvars.centiseconds = (((unsigned)tv.tv_sec * 100) + ((unsigned)tv.tv_usec / 10000));
     usleep(5000);
   }
+  return 0;
 }
 #endif
 
 /* This function starts a timer thread */
 void init_timer() {
 #ifdef USE_SDL
-  SDL_Thread *timer_thread_id = NULL;
-  timer_thread_id = SDL_CreateThread(timer_thread,NULL);
+  basicvars.csec_thread = NULL;
+  basicvars.csec_thread = SDL_CreateThread(timer_thread,NULL);
+  if (basicvars.csec_thread == NULL) {
+    fprintf(stderr, "Timer thread failed to start\n");
+    exit(1);
+  }
 #endif
 }
 
