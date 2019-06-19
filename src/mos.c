@@ -688,7 +688,11 @@ int32 mos_rdtime(void) {
 ** The effects of 'TIME=' are emulated here
 */
 void mos_wrtime (int32 time) {
+#ifdef USE_SDL
+  startime = (basicvars.centiseconds - time);
+#else
   startime = (mos_centiseconds() - time);
+#endif
 }
 
 #endif

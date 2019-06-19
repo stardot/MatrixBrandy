@@ -66,6 +66,7 @@ static void init2(void);
 static void gpio_init(void);
 static void check_cmdline(int, char *[]);
 static void run_interpreter(void);
+static void init_timer(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
 static char *loadfile;			/* Pointer to name of file to load when interpreter starts */
@@ -87,6 +88,7 @@ int main(int argc, char *argv[]) {
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
   init1();
+  init_timer();	/* Initialise the timer thread */
 #ifndef NONET
   brandynet_init();
 #endif
@@ -136,6 +138,7 @@ static void add_arg(char *p) {
 static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
+  basicvars.centiseconds = mos_centiseconds();	/* Init to something sensible */
   basicvars.list_flags.space = FALSE;	/* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
   basicvars.list_flags.split = FALSE;
@@ -395,7 +398,7 @@ static void load_libraries(void) {
 }
 
 #ifdef USE_SDL
-int timer_thread(void *data) {
+static int timer_thread(void *data) {
   struct timeval tv;
   while(1) {
     gettimeofday (&tv, NULL);
@@ -411,7 +414,7 @@ int timer_thread(void *data) {
 #endif
 
 /* This function starts a timer thread */
-void init_timer() {
+static void init_timer() {
 #ifdef USE_SDL
   basicvars.csec_thread = NULL;
   basicvars.csec_thread = SDL_CreateThread(timer_thread,NULL);
@@ -431,7 +434,6 @@ void init_timer() {
 static void run_interpreter(void) {
   if (setjmp(basicvars.restart)==0) {
     if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
-    init_timer();	/* Initialise the timer thread */
     init_errors();	/* Set up the signal handlers */
 #ifdef BRANDYAPP
     read_basic_block();
