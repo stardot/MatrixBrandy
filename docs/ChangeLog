@@ -4,8 +4,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.21.21
 - Centisecond timer polling hived off to its own thread, as polling it every
   command iteration for ESCAPE checking was expensive.
-- Program execution now much faster than before, and even faster when
-  ESCAPE is disabled via *FX200.
+- Program execution now much faster than before, and slightly faster again
+  when ESCAPE is disabled via *FX200.
 - Renamed some #DEFINEs as they were colliding on a new gcc on Cygwin.
 - ESCAPE on VDU14 paged mode now works.
 - INKEY no longer swallows a non-matching keypress.

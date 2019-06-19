@@ -177,6 +177,7 @@ static void init1(void) {
   worksize = 0;				/* Use default workspace size */
 
   matrixflags.doexec = NULL;		/* We're not doing a *EXEC to begin with */
+  matrixflags.failovermode = 255;	/* Report Bad Mode on unavailable screen mode */
 
 /*
  * Add dummy first parameter for Basic program command line.

@@ -2165,6 +2165,18 @@ static void setup_mode(int32 mode) {
 
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
+  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
+  ox=vscrwidth;
+  oy=vscrheight;
+  /* Try to catch an undefined mode */
+  hide_cursor();
+  if (modetable[mode].xres == 0) {
+    if (matrixflags.failovermode == 255) {
+      error(ERR_BADMODE);
+    } else {
+      modecopy = mode = matrixflags.failovermode;
+    }
+  }
   if (mode == 7) { /* Reset width to 16 */
     M7XPPC=16;
     setm7font16();
@@ -2175,12 +2187,6 @@ static void setup_mode(int32 mode) {
     modetable[7].xres = 40*M7XPPC;
     modetable[7].xgraphunits = 80*M7XPPC;
   }
-  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
-  ox=vscrwidth;
-  oy=vscrheight;
-  /* Try to catch an undefined mode */
-  hide_cursor();
-  if (modetable[mode].xres == 0) error(ERR_BADMODE);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
   SDL_BlitSurface(screen0, NULL, screen1, NULL);
@@ -2192,7 +2198,7 @@ static void setup_mode(int32 mode) {
     screen0 = SDL_SetVideoMode(ox, oy, 32, flags);
     SDL_BlitSurface(screen1, NULL, screen0, NULL);
     do_sdl_updaterect(screen0, 0, 0, 0, 0);
-    error(ERR_BADMODE);
+    if (matrixflags.failovermode == 255) error(ERR_BADMODE);
   }
   autorefresh=1;
   vscrwidth = sx;

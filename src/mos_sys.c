@@ -165,6 +165,9 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       a=outregs[1]=strlen(vptr);
       outregs[0]=v;
       break;
+    case SWI_Brandy_SetFailoverMode:
+      matrixflags.failovermode=inregs[0];
+      break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;

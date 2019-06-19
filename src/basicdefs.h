@@ -518,6 +518,7 @@ typedef struct {
   uint32 *gpiomemint;			/* Unsigned int32 version of gpiomem */
   unsigned int scrunge;			/* Is the BASIC program scrunged? */
   FILE *doexec;				/* Are we doing a *EXEC? */
+  int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
 } matrixbits;
 extern matrixbits matrixflags;
 
