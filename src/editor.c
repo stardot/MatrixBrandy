@@ -263,7 +263,7 @@ static boolean isvalidprog(void) {
 ** pointer to 'safe' values)
 */
 void recover_program(void) {
-  byte *bp;
+  byte *bp=NULL;
   if (basicvars.misc_flags.validsaved) {	/* Only check if the command 'new' has been used */
     reinstate();		/* Restore start of program */
     bp = basicvars.start;
@@ -293,8 +293,8 @@ void recover_program(void) {
 ** built for statements in the libraries will have been put on the Basic heap.
 */
 static void clear_refs(void) {
-  byte *bp;
-  library *lp;
+  byte *bp=NULL;
+  library *lp=NULL;
   if (basicvars.runflags.has_variables) {
     clear_varlists();
     clear_heap();
