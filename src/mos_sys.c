@@ -15,7 +15,54 @@
 #include "graphsdl.h"
 #endif
 
+typedef struct {
+  uint32 model;
+  uint32 boardtype;
+} boardtypes;
+
+/* The RISC OS GPIO module doesn't define board numbers > 19 to the best of my knowledge */
+static boardtypes boards[28]={
+ {   0x0002, 11},
+ {   0x0003, 11},
+ {   0x0004, 12},
+ {   0x0005, 12},
+ {   0x0006, 12},
+ {   0x0007, 13},
+ {   0x0008, 13},
+ {   0x0009, 13},
+ {   0x000D, 12},
+ {   0x000E, 12},
+ {   0x000F, 12},
+ {   0x0010, 17},
+ {   0x0013, 17},
+ { 0x900032, 17},
+ {   0x0011, 18},
+ {   0x0014, 18},
+ {   0x0012, 16},
+ {   0x0015, 16},
+ { 0xA01041, 19},
+ { 0xA21041, 19},
+ { 0xA22042, 19},
+ { 0x900092, 20}, /* Pi Zero - not defined in RISC OS GPIO module */
+ { 0x900093, 20},
+ { 0x9000C1, 21}, /* Pi Zero W - not defined in RISC OS GPIO module */
+ { 0xA02082, 22}, /* RasPi 3 Model B - not defined in RISC OS GPIO module */
+ { 0xA22082, 22},
+ { 0xA020D3, 23}, /* RasPi 3 Model B+ - not defined in RISC OS GPIO module */
+ { 0xFFFFFFFF,0}, /* End of list */
+};
+
+
 char outstring[65536];
+
+static int32 mossys_getboardfrommodel(uint32 model) {
+  int32 ptr;
+  for (ptr=0; boards[ptr].model!=0xFFFFFFFF; ptr++) {
+    if (boards[ptr].model == model) break;
+  }
+  if (boards[ptr].model==0xFFFFFFFF) return 0;
+  return (boards[ptr].boardtype);
+}
 
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
 ** This implementation is local to Brandy.
@@ -59,6 +106,7 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 */
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
   int32 a, v;
+  FILE *file_handle;
   char *vptr;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
@@ -171,11 +219,67 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;
+    case SWI_GPIO_GetBoard:
+      file_handle=fopen("/proc/device-tree/model","r");
+      if (NULL == file_handle) {
+	outregs[0]=0;
+	strncpy(outstring, "No machine type detected",24);
+	outregs[1]=v;
+	outregs[2]=0;
+      } else {
+	outregs[0]=0;
+	outregs[1]=v;
+	outregs[2]=0;
+	fgets(outstring, 65534, file_handle);
+	fclose(file_handle);
+	file_handle=fopen("/proc/device-tree/model","r");
+	if (NULL != file_handle) {
+	  outregs[2]=(fgetc(file_handle) << 24);
+	  outregs[2]+=(fgetc(file_handle) << 16);
+	  outregs[2]+=(fgetc(file_handle) << 8);
+	  outregs[2]+=fgetc(file_handle);
+	  outregs[0]=mossys_getboardfrommodel(outregs[2]);
+	}
+      }
+      break;
     case SWI_RaspberryPi_GetGPIOPortMode:
     case SWI_RaspberryPi_SetGPIOPortMode:
     case SWI_RaspberryPi_SetGPIOPortPullUpDownMode:
     case SWI_RaspberryPi_ReadGPIOPort:
     case SWI_RaspberryPi_WriteGPIOPort:
+    case SWI_GPIO_ReadData:
+    case SWI_GPIO_WriteData:
+    case SWI_GPIO_ReadOE:
+    case SWI_GPIO_WriteOE:
+    case SWI_GPIO_ExpAsGPIO:
+    case SWI_GPIO_ExpAsUART:
+    case SWI_GPIO_ExpAsMMC:
+    case SWI_GPIO_ReadMode:
+    case SWI_GPIO_WriteMode:
+    case SWI_GPIO_ReadLevel0:
+    case SWI_GPIO_WriteLevel0:
+    case SWI_GPIO_ReadLevel1:
+    case SWI_GPIO_WriteLevel1:
+    case SWI_GPIO_ReadRising:
+    case SWI_GPIO_WriteRising:
+    case SWI_GPIO_ReadFalling:
+    case SWI_GPIO_WriteFalling:
+    case SWI_GPIO_ReadExp32:
+    case SWI_GPIO_WriteExp32:
+    case SWI_GPIO_ReadExpOE32:
+    case SWI_GPIO_WriteExpOE32:
+    case SWI_GPIO_ReadEvent:
+    case SWI_GPIO_WriteEvent:
+    case SWI_GPIO_ReadAsync:
+    case SWI_GPIO_WriteAsync:
+    case SWI_GPIO_FlashOn:
+    case SWI_GPIO_FlashOff:
+    case SWI_GPIO_Info:
+    case SWI_GPIO_I2CInfo:
+    case SWI_GPIO_LoadConfig:
+    case SWI_GPIO_ReadConfig:
+    case SWI_GPIO_EnableI2C:
+    case SWI_GPIO_RescanI2C:
       mos_rpi_gpio_sys(swino, inregs, outregs, xflag);
       break;
     default:
