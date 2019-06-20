@@ -51,3 +51,10 @@ Replace FN_gpio_setup with the following:
   IF present%=0 THEN ERROR 0, "GPIO not present or usable"
   = G%
 
+Also - SOME SWIs from the RISC OS GPIO module are implemented. At this point,
+the following are:
+GPIO_GetBoard
+  Returns board model code local to the module in R0,
+  the board type string in R1
+  and additionally, local to Brandy, the 32-bit model code from /proc/cpuinfo
+  into R2.
