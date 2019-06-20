@@ -232,7 +232,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 	outregs[2]=0;
 	fgets(outstring, 65534, file_handle);
 	fclose(file_handle);
-	file_handle=fopen("/proc/device-tree/model","r");
+	file_handle=fopen("/proc/device-tree/system/linux,revision","r");
 	if (NULL != file_handle) {
 	  outregs[2]=(fgetc(file_handle) << 24);
 	  outregs[2]+=(fgetc(file_handle) << 16);
