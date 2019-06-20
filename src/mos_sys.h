@@ -24,6 +24,44 @@ typedef struct {
 #define SWI_ColourTrans_SetGCOL				0x40743
 #define SWI_ColourTrans_SetTextColour			0x40761
 
+/* Tank's GPIO module for Risc OS - not all will be implemented, and only RasPi ones listed */
+#define SWI_GPIO_ReadData				0x58F80
+#define SWI_GPIO_WriteData				0x58F81
+#define SWI_GPIO_ReadOE					0x58F82
+#define SWI_GPIO_WriteOE				0x58F83
+#define SWI_GPIO_ExpAsGPIO				0x58F85
+#define SWI_GPIO_ExpAsUART				0x58F8B
+#define SWI_GPIO_ExpAsMMC				0x58F8D
+#define SWI_GPIO_ReadMode				0x58F8F
+#define SWI_GPIO_WriteMode				0x58F90
+#define SWI_GPIO_ReadLevel0				0x58F91
+#define SWI_GPIO_WriteLevel0				0x58F92
+#define SWI_GPIO_ReadLevel1				0x58F93
+#define SWI_GPIO_WriteLevel1				0x58F94
+#define SWI_GPIO_ReadRising				0x58F95
+#define SWI_GPIO_WriteRising				0x58F96
+#define SWI_GPIO_ReadFalling				0x58F97
+#define SWI_GPIO_WriteFalling				0x58F98
+#define SWI_GPIO_ReadExp32				0x58F9F
+#define SWI_GPIO_WriteExp32				0x58FA2
+#define SWI_GPIO_ReadExpOE32				0x58FA5
+#define SWI_GPIO_WriteExpOE32				0x58FA8
+#define SWI_GPIO_ReadEvent				0x58FAB
+#define SWI_GPIO_WriteEvent				0x58FAC
+#define SWI_GPIO_ReadAsync				0x58FAD
+#define SWI_GPIO_WriteAsync				0x58FAE
+#define SWI_GPIO_FlashOn				0x58FB4
+#define SWI_GPIO_FlashOff				0x58FB5
+#define SWI_GPIO_Info					0x58FB6
+#define SWI_GPIO_I2CInfo				0x58FB7
+#define SWI_GPIO_LoadConfig				0x58FBB
+#define SWI_GPIO_ReadConfig				0x58FBC
+#define SWI_GPIO_EnableI2C				0x58FBD
+#define SWI_GPIO_GetBoard				0x58FBE
+#define SWI_GPIO_RescanI2C				0x58FBF
+
+
+/* Stuff that's local to Matrix Brandy */
 #define SWI_Brandy_Version				0x140000
 #define SWI_Brandy_Swap16Palette			0x140001
 #define SWI_Brandy_GetVideoDriver			0x140002
