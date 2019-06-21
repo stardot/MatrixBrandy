@@ -243,6 +243,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 	}
       }
       break;
+    /* ALL OTHER GPIO stuff down here */
     case SWI_RaspberryPi_GetGPIOPortMode:
     case SWI_RaspberryPi_SetGPIOPortMode:
     case SWI_RaspberryPi_SetGPIOPortPullUpDownMode:
