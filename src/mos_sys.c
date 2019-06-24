@@ -21,7 +21,7 @@ typedef struct {
 } boardtypes;
 
 /* The RISC OS GPIO module doesn't define board numbers > 19 to the best of my knowledge */
-static boardtypes boards[28]={
+static boardtypes boards[]={
  {   0x0002, 11},
  {   0x0003, 11},
  {   0x0004, 12},
@@ -49,6 +49,7 @@ static boardtypes boards[28]={
  { 0xA02082, 22}, /* RasPi 3 Model B - not defined in RISC OS GPIO module */
  { 0xA22082, 22},
  { 0xA020D3, 23}, /* RasPi 3 Model B+ - not defined in RISC OS GPIO module */
+ { 0xC03111, 24}, /* RasPi 4 */
  { 0xFFFFFFFF,0}, /* End of list */
 };
 
