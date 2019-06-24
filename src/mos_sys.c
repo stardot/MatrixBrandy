@@ -19,6 +19,10 @@ typedef struct {
   uint32 model;
   uint32 boardtype;
 } boardtypes;
+typedef struct {
+  uint32 boardtype;
+  uint32 newtype;
+} gpio2rpistruct;
 
 /* The RISC OS GPIO module doesn't define board numbers > 19 to the best of my knowledge */
 static boardtypes boards[]={
@@ -34,12 +38,12 @@ static boardtypes boards[]={
  {   0x000E, 12},
  {   0x000F, 12},
  {   0x0010, 17},
- {   0x0013, 17},
- { 0x900032, 17},
  {   0x0011, 18},
- {   0x0014, 18},
  {   0x0012, 16},
+ {   0x0013, 17},
+ {   0x0014, 18},
  {   0x0015, 16},
+ { 0x900032, 17},
  { 0xA01041, 19},
  { 0xA21041, 19},
  { 0xA22042, 19},
@@ -49,20 +53,53 @@ static boardtypes boards[]={
  { 0xA02082, 22}, /* RasPi 3 Model B - not defined in RISC OS GPIO module */
  { 0xA22082, 22},
  { 0xA020D3, 23}, /* RasPi 3 Model B+ - not defined in RISC OS GPIO module */
- { 0xC03111, 24}, /* RasPi 4 */
+ { 0xC03111, 25}, /* RasPi 4 */
  { 0xFFFFFFFF,0}, /* End of list */
 };
 
+static gpio2rpistruct rpiboards[]={
+ { 11,  1},
+ { 12,  1},
+ { 13,  0},
+ { 16,  2},
+ { 17,  3},
+ { 18,  6},
+ { 19,  4},
+ { 20,  9}, /* Items from here down not in RISC OS GPIO module */
+ { 21, 12},
+ { 22,  8},
+ { 23, 13},
+ { 24, 14},
+ { 25, 16},
+ { 26, 17},
+ {255,255},
+};
 
 char outstring[65536];
 
-static int32 mossys_getboardfrommodel(uint32 model) {
+static uint32 mossys_getboardfrommodel(uint32 model) {
   int32 ptr;
   for (ptr=0; boards[ptr].model!=0xFFFFFFFF; ptr++) {
     if (boards[ptr].model == model) break;
   }
   if (boards[ptr].model==0xFFFFFFFF) return 0;
   return (boards[ptr].boardtype);
+}
+
+static uint32 gpio2rpi(uint32 boardtype) {
+  int32 ptr;
+  for (ptr=0; rpiboards[ptr].boardtype!=255; ptr++) {
+    if (rpiboards[ptr].boardtype == boardtype) break;
+  }
+  return (rpiboards[ptr].newtype);
+}
+
+static uint32 rpi2gpio(uint32 newtype) {
+  int32 ptr;
+  for (ptr=0; rpiboards[ptr].newtype!=255; ptr++) {
+    if (rpiboards[ptr].newtype == newtype) break;
+  }
+  return (rpiboards[ptr].boardtype);
 }
 
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
@@ -243,7 +280,13 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 	  outregs[2]+=(fgetc(file_handle) << 16);
 	  outregs[2]+=(fgetc(file_handle) << 8);
 	  outregs[2]+=fgetc(file_handle);
-	  outregs[0]=mossys_getboardfrommodel(outregs[2]);
+	  if (outregs[2] < 256) {
+	    outregs[0]=mossys_getboardfrommodel(outregs[2]);
+	    outregs[3]=gpio2rpi(outregs[0]);
+	  } else {
+	    outregs[3]=((outregs[2] & 0xFF0) >> 4);
+	    outregs[0]=rpi2gpio(outregs[3]);
+	  }
 	  fclose(file_handle);
 	}
       }
