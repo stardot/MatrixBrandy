@@ -58,3 +58,7 @@ GPIO_GetBoard
   the board type string in R1
   and additionally, local to Brandy, the 32-bit model code from /proc/cpuinfo
   into R2.
+GPIO_ReadMode: mapped to RaspberryPi_GetGPIOPortMode
+GPIO_WriteMode: mapped to RaspberryPi_SetGPIOPortMode
+GPIO_ReadData: mapped to RaspberryPi_ReadGPIOPort
+GPIO_WriteData: mapped to RaspberryPi_WriteGPIOPort

@@ -74,9 +74,11 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
   }
 
   switch (swino) {
+    case SWI_GPIO_ReadMode:
     case SWI_RaspberryPi_GetGPIOPortMode:
       outregs[0]=(*(matrixflags.gpiomemint + (inregs[0]/10)) >> ((inregs[0]%10)*3)) & 7;
       break;
+    case SWI_GPIO_WriteMode:
     case SWI_RaspberryPi_SetGPIOPortMode:
       matrixflags.gpiomemint[(inregs[0]/10)] = (matrixflags.gpiomemint[(inregs[0]/10)] & ~(7<<((inregs[0]%10)*3))) | (inregs[1]<<((inregs[0]%10)*3));
       break;
@@ -89,14 +91,16 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
       usleep(50);
       matrixflags.gpiomemint[38+(inregs[0]>>5)] = 0;
       break;
+    case SWI_GPIO_ReadData:
     case SWI_RaspberryPi_ReadGPIOPort:
       outregs[0]=(matrixflags.gpiomemint[13 + (inregs[0]>>5)] & (1<<(inregs[0]&0x1F))) ? 1 : 0;
       break;
+    case SWI_GPIO_WriteData:
     case SWI_RaspberryPi_WriteGPIOPort:
       if (inregs[1] == 0) matrixflags.gpiomemint[10 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
       else                matrixflags.gpiomemint[7 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
       break;
-    default: /* SHOULD NEVER REACH HERE */
+    default: /* Defined but unimplemented GPIO SWIs */
       error(ERR_SWINUMNOTKNOWN, swino);
   }
 }
@@ -223,7 +227,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       file_handle=fopen("/proc/device-tree/model","r");
       if (NULL == file_handle) {
 	outregs[0]=0;
-	strncpy(outstring, "No machine type detected",24);
+	strncpy(outstring, "No machine type detected",25);
 	outregs[1]=v;
 	outregs[2]=0;
       } else {
