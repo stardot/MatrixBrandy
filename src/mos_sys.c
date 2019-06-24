@@ -218,6 +218,13 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       outregs[0]=v;
       break;
 #endif
+    case SWI_OS_ReadMonotonicTime:
+#ifdef USE_SDL
+      outregs[0]=basicvars.centiseconds - basicvars.monotonictimebase;
+#else
+      outregs[0]=mos_centiseconds() - basicvars.monotonictimebase;
+#endif
+      break;
     case SWI_ColourTrans_SetGCOL:
       outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       outregs[2]=0; outregs[3]=inregs[3] & 0x80; outregs[4]=inregs[4];
@@ -263,15 +270,13 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       break;
     case SWI_GPIO_GetBoard:
       file_handle=fopen("/proc/device-tree/model","r");
+      outregs[0]=0;
+      outregs[1]=v;
+      outregs[2]=0;
+      outregs[3]=0;
       if (NULL == file_handle) {
-	outregs[0]=0;
 	strncpy(outstring, "No machine type detected",25);
-	outregs[1]=v;
-	outregs[2]=0;
       } else {
-	outregs[0]=0;
-	outregs[1]=v;
-	outregs[2]=0;
 	fgets(outstring, 65534, file_handle);
 	fclose(file_handle);
 	file_handle=fopen("/proc/device-tree/system/linux,revision","r");

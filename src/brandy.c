@@ -139,6 +139,7 @@ static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
   basicvars.centiseconds = mos_centiseconds();	/* Init to something sensible */
+  basicvars.monotonictimebase = basicvars.centiseconds;
   basicvars.list_flags.space = FALSE;	/* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
   basicvars.list_flags.split = FALSE;

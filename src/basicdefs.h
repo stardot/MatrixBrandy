@@ -501,6 +501,7 @@ typedef struct {
   variable staticvars[STDVARS];		/* Static integer variables @%-Z% */
   variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions */
   int64 centiseconds;			/* Centisecond timer, populated by sub-thread */
+  int64 monotonictimebase;		/* Baseline for OS_ReadMonotonicTime */
 #ifdef USE_SDL
   SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
 #endif  

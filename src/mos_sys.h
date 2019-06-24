@@ -19,6 +19,7 @@ typedef struct {
 #define SWI_OS_Word					0x07
 #define SWI_OS_ReadLine					0x0E
 #define SWI_OS_SWINumberFromString			0x39
+#define SWI_OS_ReadMonotonicTime			0x42
 #define SWI_OS_ReadLine32				0x7D
 
 #define SWI_ColourTrans_SetGCOL				0x40743
@@ -85,6 +86,7 @@ static switable swilist[] = {
 	{SWI_OS_Word,					"OS_Word"},
 	{SWI_OS_ReadLine,				"OS_ReadLine"},
 	{SWI_OS_SWINumberFromString,			"OS_SWINumberFromString"},
+	{SWI_OS_ReadMonotonicTime,			"OS_ReadMonotonicTime"},
 	{SWI_OS_ReadLine32,				"OS_ReadLine32"},
 
 	{SWI_ColourTrans_SetGCOL,			"ColourTrans_SetGCOL"},
