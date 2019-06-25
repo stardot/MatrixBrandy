@@ -23,8 +23,7 @@
 **	This file contains the VDU driver emulation for the interpreter
 **	used when graphics output is possible. It uses the SDL graphics library.
 **
-**	MODE 7 implementation by Michael McConnell. It's rather rudimentary, it
-**	supports most codes when output by the VDU driver.
+**	MODE 7 implementation by Michael McConnell.
 **
 */
 #include <stdio.h>
@@ -2305,9 +2304,9 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
   case 1: coldepth = 2; break;
   case 2: coldepth = 4; break;
   case 4: coldepth = 16; break;
-  case 24: coldepth = COL24BIT; break;
+  case 8: coldepth = 256; break;
   default:
-    coldepth = 256;
+    coldepth = COL24BIT;
   }
   for (n=0; n<=HIGHMODE; n++) {
     if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
@@ -4066,4 +4065,81 @@ void swi_swap16palette() {
     palette[ptr+24]=place;
   }
   set_rgb();
+}
+
+/* Only a few flags are relevant to the emulation in Brandy */
+static int32 getmodeflags(int32 scrmode) {
+  int32 flags=0;
+  if ((scrmode == 3) || (scrmode == 6) || (scrmode == 7)) flags |=1;
+  if (scrmode == 7) flags |= 6;
+  if ((scrmode == 3) || (scrmode == 6)) flags |=12;
+  return flags;
+}
+static int32 mode_divider(int32 scrmode) {
+  switch (modetable[scrmode].coldepth) {
+    case 2:
+      return 32;
+    case 4:
+      return 16;
+    case 16:
+      return 8;
+    case 256:
+      return 4;
+    case COL15BIT:
+      return 2;
+    default:
+      return 1;
+  }
+}
+static int32 log2bpp(int32 scrmode) {
+  switch (modetable[scrmode].coldepth) {
+    case 2:
+      return 0;
+    case 4:
+      return 1;
+    case 16:
+      return 2;
+    case 256:
+      return 3;
+    case COL15BIT:
+      return 4;
+    default:
+      return 5;
+  }
+}
+/* Using values returned by RISC OS 3.7 */
+int32 readmodevariable(int32 scrmode, int32 var) {
+  int tmp=0;
+  if (scrmode == -1) scrmode = screenmode;
+  switch (var) {
+    case 0:
+      return (getmodeflags(scrmode));
+    case 1:
+      return (modetable[scrmode].xtext-1);
+    case 2:
+      return (modetable[scrmode].ytext-1);
+    case 3:
+      tmp=modetable[scrmode].coldepth-1;
+      if (tmp==255) tmp=63;
+      if (tmp==COL15BIT-1) tmp=65535;
+      if (tmp==COL24BIT-1) tmp=-1;
+      return tmp;
+    case 4:
+      return (modetable[scrmode].xscale);
+    case 5:
+      return (modetable[scrmode].yscale);
+    case 6:
+      return (modetable[scrmode].xres * 4 / mode_divider(scrmode));
+    case 7:
+      return (modetable[scrmode].xres * modetable[scrmode].yres * 4 / mode_divider(scrmode));
+    case 9:
+    case 10:
+      return (log2bpp(scrmode));
+    case 11:
+      return (modetable[scrmode].xres-1);
+    case 12:
+      return (modetable[scrmode].yres-1);
+    default:
+      return 0;
+  }
 }

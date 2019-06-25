@@ -218,6 +218,17 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       outregs[0]=v;
       break;
 #endif
+    case SWI_OS_UpdateMEMC:
+      break; /* Recognise, but do nothing with it */
+    case SWI_OS_ReadModeVariable:
+      outregs[0]=inregs[0];
+      outregs[1]=inregs[1];
+#ifdef USE_SDL
+      outregs[2]=readmodevariable(inregs[0],inregs[1]);
+#else
+      outregs[2]=0;
+#endif
+      break;
     case SWI_OS_ReadMonotonicTime:
 #ifdef USE_SDL
       outregs[0]=basicvars.centiseconds - basicvars.monotonictimebase;

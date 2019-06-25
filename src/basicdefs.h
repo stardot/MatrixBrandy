@@ -515,6 +515,7 @@ extern workspace basicvars;		/* Interpreter variables for the Basic program */
 /* Flags used by Matrix Brandy extensions, that need to be available in more than one place */
 typedef struct {
   int gpio;				/* TRUE if RPi GPIO present and usable */
+  int i2c;
   byte *gpiomem;			/* Pointer for where mmap() places /dev/gpiomem */
   uint32 *gpiomemint;			/* Unsigned int32 version of gpiomem */
   unsigned int scrunge;			/* Is the BASIC program scrunged? */
