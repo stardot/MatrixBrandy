@@ -148,6 +148,7 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 */
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
   int32 a, v;
+  int32 *ptra, *ptrb;
   FILE *file_handle;
   char *vptr;
 
@@ -227,6 +228,17 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       outregs[2]=readmodevariable(inregs[0],inregs[1]);
 #else
       outregs[2]=0;
+#endif
+      break;
+    case SWI_OS_ReadVduVariables:
+#ifdef USE_SDL
+      ptra = (int32 *)(inregs[0]+basicvars.offbase);
+      ptrb = (int32 *)(inregs[1]+basicvars.offbase);
+      while (*ptra != -1) {
+	*ptrb = readmodevariable(-1,*ptra);
+	ptra++;
+	ptrb++;
+      }
 #endif
       break;
     case SWI_OS_ReadMonotonicTime:
