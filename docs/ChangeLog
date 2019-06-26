@@ -1,6 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+
 * V1.21.21
 - Centisecond timer polling hived off to its own thread, as polling it every
   command iteration for ESCAPE checking was expensive.
@@ -9,6 +10,12 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Renamed some #DEFINEs as they were colliding on a new gcc on Cygwin.
 - ESCAPE on VDU14 paged mode now works.
 - INKEY no longer swallows a non-matching keypress.
+- Some more OS SWIs implemented (the Snow demo from RISC OS Pico for RasPi
+  now runs unmodified).
+- Optionally allow an unselectable MODE to be substituted with another one
+  instead of reporting "Screen moe is not available".
+- Some more Raspberry Pi GPIO stuff, including recognising most RISC OS GPIO
+  module SWI names, and implementing a few.
 
 * V1.21.20
 - Improved CIRCLE FILL and ELLIPSE FILL routines.

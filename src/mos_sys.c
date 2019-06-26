@@ -148,12 +148,15 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 */
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
   int32 a, v;
-  int32 *ptra, *ptrb;
   FILE *file_handle;
   char *vptr;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
   v=((long int)outstring & 0xFFFFFFFF);
+  if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
+    inregs[0]=swino-256;
+    swino=SWI_OS_WriteC;
+  }
   switch (swino) {
     case SWI_OS_WriteC:
       outregs[0]=inregs[0];
@@ -221,6 +224,9 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 #endif
     case SWI_OS_UpdateMEMC:
       break; /* Recognise, but do nothing with it */
+    case SWI_OS_Mouse:
+      mos_mouse(outregs);
+      break;
     case SWI_OS_ReadModeVariable:
       outregs[0]=inregs[0];
       outregs[1]=inregs[1];
@@ -232,12 +238,15 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       break;
     case SWI_OS_ReadVduVariables:
 #ifdef USE_SDL
-      ptra = (int32 *)(inregs[0]+basicvars.offbase);
-      ptrb = (int32 *)(inregs[1]+basicvars.offbase);
-      while (*ptra != -1) {
-	*ptrb = readmodevariable(-1,*ptra);
-	ptra++;
-	ptrb++;
+      {
+	int32 *ptra, *ptrb;
+	ptra = (int32 *)(inregs[0]+basicvars.offbase);
+	ptrb = (int32 *)(inregs[1]+basicvars.offbase);
+	while (*ptra != -1) {
+	  *ptrb = readmodevariable(-1,*ptra);
+	  ptra++;
+	  ptrb++;
+	}
       }
 #endif
       break;
@@ -248,9 +257,44 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       outregs[0]=mos_centiseconds() - basicvars.monotonictimebase;
 #endif
       break;
+    case SWI_OS_Plot:
+      emulate_plot(inregs[0], inregs[1], inregs[2]); break;
+    case SWI_OS_WriteN:	/* This is extended in Brandy - normally only R0 and R1
+			   are acted upon; in Brandy, if R2 is set to 42, the
+			   characters are output to the controlling terminal. */
+      outregs[0]=inregs[0];
+      if (inregs[2]==42) {
+        for (a=0; a<inregs[1]; a++) fprintf(stderr,"%c", *(basicvars.offbase+inregs[0]+a));
+      } else {
+        for (a=0; a<inregs[1]; a++) emulate_vdu(*(basicvars.offbase+inregs[0]+a));
+      }
+
+    
+    case SWI_OS_ScreenMode:
+#ifdef USE_SDL
+      outregs[0]=inregs[0];
+      outregs[1]=inregs[1];
+      switch (inregs[0]) {
+	case 0: 	emulate_mode(inregs[1]);break;
+	case 1: 	outregs[1]=emulate_modefn();break;
+	case 7: 	outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
+	case 8: 	osbyte113(inregs[1]);break;
+	case 9: 	osbyte112(inregs[1]);break;
+	case 10:	screencopy(inregs[1], inregs[2]);break;
+      }
+#endif
+      break;
     case SWI_ColourTrans_SetGCOL:
       outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       outregs[2]=0; outregs[3]=inregs[3] & 0x80; outregs[4]=inregs[4];
+      break;
+    case SWI_ColourTrans_GCOLToColourNumber:
+      inregs[0]=inregs[0] & 0xFF; /* Only care about the bottom 8 bits */
+      outregs[0]=((inregs[0] & 0x87) + ((inregs[0] & 0x38) << 1) + ((inregs[0] & 0x40) >> 3));
+      break;
+    case SWI_ColourTrans_ColourNumberToGCOL:
+      inregs[0]=inregs[0] & 0xFF; /* Only care about the bottom 8 bits */
+      outregs[0]=((inregs[0] & 0x87) + ((inregs[0] & 0x70) >> 1) + ((inregs[0] & 8) << 3));
       break;
     case SWI_ColourTrans_SetTextColour:
       outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));

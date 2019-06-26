@@ -19,13 +19,19 @@ typedef struct {
 #define SWI_OS_Word					0x07
 #define SWI_OS_ReadLine					0x0E
 #define SWI_OS_UpdateMEMC				0x1A
+#define SWI_OS_Mouse					0x1C
 #define SWI_OS_ReadVduVariables				0x31
 #define SWI_OS_ReadModeVariable				0x35
 #define SWI_OS_SWINumberFromString			0x39
 #define SWI_OS_ReadMonotonicTime			0x42
+#define SWI_OS_Plot					0x45
+#define SWI_OS_WriteN					0x46
+#define SWI_OS_ScreenMode				0x65
 #define SWI_OS_ReadLine32				0x7D
 
 #define SWI_ColourTrans_SetGCOL				0x40743
+#define SWI_ColourTrans_GCOLToColourNumber		0x4074C
+#define SWI_ColourTrans_ColourNumberToGCOL		0x4074D
 #define SWI_ColourTrans_SetTextColour			0x40761
 
 /* Tank's GPIO module for Risc OS - not all will be implemented, and only RasPi ones listed */
@@ -88,14 +94,20 @@ static switable swilist[] = {
 	{SWI_OS_Byte,					"OS_Byte"},
 	{SWI_OS_Word,					"OS_Word"},
 	{SWI_OS_ReadLine,				"OS_ReadLine"},
-	{SWI_OS_UpdateMEMC,				"OS_UpdateMEMC"},
+	{SWI_OS_UpdateMEMC,				"OS_UpdateMEMC"}, /* Recognised, does nothing */
+	{SWI_OS_Mouse,					"OS_Mouse"},
 	{SWI_OS_ReadVduVariables,			"OS_ReadVduVariables"},
 	{SWI_OS_ReadModeVariable,			"OS_ReadModeVariable"},
 	{SWI_OS_SWINumberFromString,			"OS_SWINumberFromString"},
 	{SWI_OS_ReadMonotonicTime,			"OS_ReadMonotonicTime"},
+	{SWI_OS_Plot,					"OS_Plot"},
+	{SWI_OS_WriteN,					"OS_WriteN"},
+	{SWI_OS_ScreenMode,				"OS_ScreenMode"},
 	{SWI_OS_ReadLine32,				"OS_ReadLine32"},
 
 	{SWI_ColourTrans_SetGCOL,			"ColourTrans_SetGCOL"},
+	{SWI_ColourTrans_GCOLToColourNumber,		"ColourTrans_GCOLToColourNumber"},
+	{SWI_ColourTrans_ColourNumberToGCOL,		"ColourTrans_ColourNumberToGCOL"},
 	{SWI_ColourTrans_SetTextColour,			"ColourTrans_SetTextColour"},
 
 	{SWI_GPIO_ReadData,				"GPIO_ReadData"},

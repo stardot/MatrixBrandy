@@ -3877,7 +3877,7 @@ void get_sdl_mouse(int32 values[]) {
   values[0]=x;
   values[1]=y;
   values[2]=xb;
-  values[3]=mos_rdtime();
+  values[3]=basicvars.centiseconds - basicvars.monotonictimebase;
   while(SDL_PollEvent(&ev)) {
     if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
   }
@@ -3996,6 +3996,18 @@ void osbyte113(int x) {
   SDL_Flip(screen0);
 }
 
+void screencopy(int32 src, int32 dst) {
+  SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
+  if (dst==(displaybank+1)) {
+    SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+    SDL_Flip(screen0);
+  }
+}
+
+int32 get_maxbanks(void) {
+  return MAXBANKS;
+}
+
 int32 osbyte134_165(int32 a) {
   return ((ytext << 16) + (xtext << 8) + a);
 }
@@ -4077,34 +4089,22 @@ static int32 getmodeflags(int32 scrmode) {
 }
 static int32 mode_divider(int32 scrmode) {
   switch (modetable[scrmode].coldepth) {
-    case 2:
-      return 32;
-    case 4:
-      return 16;
-    case 16:
-      return 8;
-    case 256:
-      return 4;
-    case COL15BIT:
-      return 2;
-    default:
-      return 1;
+    case 2:	   return 32;
+    case 4:	   return 16;
+    case 16:	   return 8;
+    case 256:	   return 4;
+    case COL15BIT: return 2;
+    default:	   return 1;
   }
 }
 static int32 log2bpp(int32 scrmode) {
   switch (modetable[scrmode].coldepth) {
-    case 2:
-      return 0;
-    case 4:
-      return 1;
-    case 16:
-      return 2;
-    case 256:
-      return 3;
-    case COL15BIT:
-      return 4;
-    default:
-      return 5;
+    case 2:	   return 0;
+    case 4:	   return 1;
+    case 16:	   return 2;
+    case 256:	   return 3;
+    case COL15BIT: return 4;
+    default:	   return 5;
   }
 }
 /* Using values returned by RISC OS 3.7 */
@@ -4112,34 +4112,23 @@ int32 readmodevariable(int32 scrmode, int32 var) {
   int tmp=0;
   if (scrmode == -1) scrmode = screenmode;
   switch (var) {
-    case 0:
-      return (getmodeflags(scrmode));
-    case 1:
-      return (modetable[scrmode].xtext-1);
-    case 2:
-      return (modetable[scrmode].ytext-1);
+    case 0:	return (getmodeflags(scrmode));
+    case 1:	return (modetable[scrmode].xtext-1);
+    case 2:	return (modetable[scrmode].ytext-1);
     case 3:
-      tmp=modetable[scrmode].coldepth-1;
-      if (tmp==255) tmp=63;
-      if (tmp==COL15BIT-1) tmp=65535;
-      if (tmp==COL24BIT-1) tmp=-1;
-      return tmp;
-    case 4:
-      return (modetable[scrmode].xscale);
-    case 5:
-      return (modetable[scrmode].yscale);
-    case 6:
-      return (modetable[scrmode].xres * 4 / mode_divider(scrmode));
-    case 7:
-      return (modetable[scrmode].xres * modetable[scrmode].yres * 4 / mode_divider(scrmode));
-    case 9:
-    case 10:
-      return (log2bpp(scrmode));
-    case 11:
-      return (modetable[scrmode].xres-1);
-    case 12:
-      return (modetable[scrmode].yres-1);
-    default:
-      return 0;
+      tmp=modetable[scrmode].coldepth;
+      if (tmp==256) tmp=64;
+      if (tmp==COL15BIT) tmp=65536;
+      if (tmp==COL24BIT) tmp=0;
+      return tmp-1;
+    case 4:	return (modetable[scrmode].xscale);
+    case 5:	return (modetable[scrmode].yscale);
+    case 6:	return (modetable[scrmode].xres * 4 / mode_divider(scrmode));
+    case 7:	return (modetable[scrmode].xres * modetable[scrmode].yres * 4 / mode_divider(scrmode));
+    case 9:	/* Fall through to 10 */
+    case 10:	return (log2bpp(scrmode));
+    case 11:	return (modetable[scrmode].xres-1);
+    case 12:	return (modetable[scrmode].yres-1);
+    default:	return 0;
   }
 }
