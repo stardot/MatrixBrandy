@@ -3977,6 +3977,8 @@ int32 osbyte42(int x) {
   if (ref) star_refresh(ref-1);
   /* Handle the next 2 bits - FULLSCREEN state */
   if (fsc) fullscreenmode(fsc-1);
+  /* If bit 4 set, do immediate refrsh */
+  if (x & 16) star_refresh(3);
   return((x << 8) + 42);
 }
 

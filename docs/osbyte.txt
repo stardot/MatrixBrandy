@@ -24,6 +24,8 @@ A=42:	[Brandy only] Get or set various states
 	  10: Full Screen On.
 	  11: Full Screen Toggle.
 	  Returned values: 00 (off) or 10 (on).
+	Bit 4: If set, do immediate display refresh, equivalent to *REFRESH
+	  Value not returned.
 A=43:	[Brandy only] Perform a VDU X to the controlling Linux terminal.
 A=44:	[Brandy only] X=1: CTRL-N and CTRL-P do line editing (default).
 		      X=0: CTRL-N and CTRL-P just send their codes.
