@@ -16,6 +16,14 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   instead of reporting "Screen moe is not available".
 - Some more Raspberry Pi GPIO stuff, including recognising most RISC OS GPIO
   module SWI names, and implementing a few.
+- Unsupported colour depths are mapped to 24-bit (previously was 8-bit), so
+  a program asking for a 15-bit mode will be able to draw colours as largely
+  intended.
+- Extended OSBYTE 42 to allow an immediate refresh - SYS6,42,16 may be faster
+  than parsing "*REFRESH" for anything time-critical (and obvious functinality
+  that was missing from the interface)
+- Quotes are stripped if appropriate from *ScreenSave and *ScreenLoad. They
+  remain optional for filenames which include spaces.
 
 * V1.21.20
 - Improved CIRCLE FILL and ELLIPSE FILL routines.

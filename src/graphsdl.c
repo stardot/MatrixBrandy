@@ -4041,6 +4041,12 @@ void osword10(int32 x) {
 }
 
 void sdl_screensave(char *fname) {
+  /* Strip quote marks, where appropriate */
+  if ((fname[0] == '"') && (fname[strlen(fname)-1] == '"')) {
+    fname[strlen(fname)-1] = '\0';
+    fname++;
+  }
+
   if (screenmode == 7) {
     if (SDL_SaveBMP(screen2, fname)) {
       error(ERR_CANTWRITE);
@@ -4056,6 +4062,12 @@ void sdl_screensave(char *fname) {
 void sdl_screenload(char *fname) {
   SDL_Surface *placeholder;
   
+  /* Strip quote marks, where appropriate */
+  if ((fname[0] == '"') && (fname[strlen(fname)-1] == '"')) {
+    fname[strlen(fname)-1] = '\0';
+    fname++;
+  }
+
   placeholder=SDL_LoadBMP(fname);
   if(!placeholder) {
     error(ERR_CANTREAD);
