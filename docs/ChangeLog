@@ -20,7 +20,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   a program asking for a 15-bit mode will be able to draw colours as largely
   intended.
 - Extended OSBYTE 42 to allow an immediate refresh - SYS6,42,16 may be faster
-  than parsing "*REFRESH" for anything time-critical (and obvious functinality
+  than parsing "*REFRESH" for anything time-critical (and obvious functionality
   that was missing from the interface)
 - Quotes are stripped if appropriate from *ScreenSave and *ScreenLoad. They
   remain optional for filenames which include spaces.
