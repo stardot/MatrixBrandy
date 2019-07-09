@@ -781,6 +781,7 @@ OPENUP
 	Use: OPENUP <factor>
 	Opens the file named by the string <factor> for both input
 	and output and returns its numeric handle.
+	Network sockets can also be opened, see docs/networking.txt.
 
 PI
 	Use: PI

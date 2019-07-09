@@ -1460,6 +1460,10 @@ static void cmd_exec(char *command) {
   if (*command == 0) {
     emulate_printf("Syntax: *EXEC <filename>\r\n");
   } else {
+    if ((command[0] == '"') && (command[strlen(command)-1] == '"')) {
+      command[strlen(command)-1] = '\0';
+      command++;
+    }
     matrixflags.doexec=fopen(command, "r");
     if (!matrixflags.doexec) error(ERR_NOTFOUND, command);
   }
