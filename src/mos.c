@@ -1112,6 +1112,8 @@ static unsigned int cmd_parse_num(char** text)
 #define CMD_SCREENLOAD		16
 #define CMD_SHOW		17
 #define CMD_EXEC		18
+#define CMD_SPOOL		19
+#define CMD_SPOOLON		20
 #define HELP_BASIC		128
 #define HELP_HOST		129
 #define HELP_MOS		130
@@ -1358,8 +1360,15 @@ static void cmd_help(char *command)
 
 	}
 	if (cmd == HELP_HOST || cmd == HELP_MOS) {
-		emulate_printf("  CD   <dir>\r\n  EXEC <filename>\r\n  FX   <num>(,<num>(,<num>))\r\n");
-		emulate_printf("  KEY  <num> <string>\r\n  HELP <text>\r\n  SHOW (<num>)\r\n  QUIT\r\n");
+		emulate_printf("  CD      <dir>\r\n");
+		emulate_printf("  EXEC    <filename>\r\n");
+		emulate_printf("  SPOOL   [<filename>]\r\n");
+		emulate_printf("  SPOOLON [<filename>]\r\n");
+		emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
+		emulate_printf("  KEY     <num> <string>\r\n");
+		emulate_printf("  HELP    [<text>]\r\n");
+		emulate_printf("  SHOW    (<num>)\r\n");
+		emulate_printf("  QUIT\r\n");
 	}
 #if defined(USE_SDL) | defined(TARGET_UNIX)
 	if (cmd == HELP_MATRIX) {
@@ -1469,6 +1478,25 @@ static void cmd_exec(char *command) {
   }
 }
 
+static void cmd_spool(char *command, int append) {
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    fclose(matrixflags.dospool);
+    matrixflags.dospool=NULL;
+  } else {
+    if ((command[0] == '"') && (command[strlen(command)-1] == '"')) {
+      command[strlen(command)-1] = '\0';
+      command++;
+    }
+    if (append) {
+      matrixflags.dospool=fopen(command, "a");
+    } else {
+      matrixflags.dospool=fopen(command, "w");
+    }
+    if (!matrixflags.dospool) error(ERR_CANTWRITE, command);
+  }
+}
+
 /*
  * *QUIT
  * Exit interpreter
@@ -1514,7 +1542,8 @@ static int check_command(char *text) {
   if (strcmp(command, "refresh") == 0)    return CMD_REFRESH;
   if (strcmp(command, "show")   == 0) return CMD_SHOW;
   if (strcmp(command, "exec")   == 0) return CMD_EXEC;
-  if (strcmp(command, "basic")  == 0) return HELP_BASIC;
+  if (strcmp(command, "spool")   == 0) return CMD_SPOOL;
+  if (strcmp(command, "spoolon")   == 0) return CMD_SPOOLON;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
   if (strcmp(command, "matrix") == 0) return HELP_MATRIX;
@@ -1558,6 +1587,8 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (cmd == CMD_FX)   { cmd_fx(command+2); return; }
   if (cmd == CMD_SHOW) { cmd_show(command+4); return; }
   if (cmd == CMD_EXEC) { cmd_exec(command+4); return; }
+  if (cmd == CMD_SPOOL) { cmd_spool(command+5,0); return; }
+  if (cmd == CMD_SPOOLON) { cmd_spool(command+7,1); return; }
 //if (cmd == CMD_VER)  { cmd_ver(); return; }
   if (cmd == CMD_SCREENSAVE) {cmd_screensave(command+10); return; }
   if (cmd == CMD_SCREENLOAD) {cmd_screenload(command+10); return; }

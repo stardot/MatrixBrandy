@@ -85,6 +85,7 @@ void echo_off(void) {
 ** 'emulate_vdu' calls the RISC OS VDU driver
 */
 void emulate_vdu(int32 charvalue) {
+  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue & 0xFF);
   _kernel_oswrch(charvalue);
 }
 

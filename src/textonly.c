@@ -1111,6 +1111,7 @@ static void print_char(int32 charvalue) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
+  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
     if (charvalue>=' ' && charvalue != DEL) {               /* Most common case - print something */
       print_char(charvalue);

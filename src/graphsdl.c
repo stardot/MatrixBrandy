@@ -1837,6 +1837,7 @@ static void vdu_movetext(void) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
+  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
   if (vduneeded == 0) {			/* VDU queue is empty */
     if (vduflag(VDU_FLAG_DISABLE)) {
       if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);

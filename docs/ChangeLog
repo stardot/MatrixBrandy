@@ -1,6 +1,8 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.21.22
+- *SPOOL and *SPOOLON implemented.
 
 * V1.21.21
 - Centisecond timer polling hived off to its own thread, as polling it every
