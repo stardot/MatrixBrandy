@@ -1114,10 +1114,10 @@ static unsigned int cmd_parse_num(char** text)
 #define CMD_EXEC		18
 #define CMD_SPOOL		19
 #define CMD_SPOOLON		20
-#define HELP_BASIC		128
-#define HELP_HOST		129
-#define HELP_MOS		130
-#define HELP_MATRIX		131
+#define HELP_BASIC		1024
+#define HELP_HOST		1025
+#define HELP_MOS		1026
+#define HELP_MATRIX		1027
 
 /*
  * *.(<directory>)
@@ -1278,20 +1278,20 @@ static void cmd_refresh(char *command) {
  * Has to be an internal command as CWD is per-process
  */
 static void cmd_cd(char *command) {
-	int err=0;
+  int err=0;
 
-	if (*command == 'd') command+=3;	// *CHDIR
-	while (*command == ' ') command++;	// Skip spaces
-	err=chdir(command);
+  if (*command == 'd') command+=3;		// *CHDIR
+  while (*command == ' ') command++;		// Skip spaces
+  err=chdir(command);
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-	find_cursor();				// Figure out where the cursor has gone to
+  find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
 #ifndef USE_SDL
-	emulate_printf("\r\n");			// Restore cursor position
+  emulate_printf("\r\n");			// Restore cursor position
 #endif
 #endif
 #endif
-	if (err) error(ERR_DIRNOTFOUND);
+  if (err) error(ERR_DIRNOTFOUND);
 }
 
 /*
@@ -1299,32 +1299,33 @@ static void cmd_cd(char *command) {
  * Make OSBYTE call
  */
 static void cmd_fx(char *command) {
-	// *FX *must* purely and simply parse its parameters and pass them to OSBYTE
-	// *FX *MUST* *NOT* impose any preconceptions
-	// *FX is allowed to test the returned 'unsupported' flag and give a Bad command error
-	// OSBYTE *MUST* *NOT* give a Bad command error, it *MUST* purely and simply just return if unsupported
-	// Yes, RISC OS gets this wrong.
+  // *FX *must* purely and simply parse its parameters and pass them to OSBYTE
+  // *FX *MUST* *NOT* impose any preconceptions
+  // *FX is allowed to test the returned 'unsupported' flag and give a Bad command error
+  // OSBYTE *MUST* *NOT* give a Bad command error, it *MUST* purely and simply just return if unsupported
+  // Yes, RISC OS gets this wrong.
 
-	unsigned int areg=0, xreg=0, yreg=0;		// Default parameters
+  unsigned int areg=0, xreg=0, yreg=0;		// Default parameters
 
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command == 0)
-		{ error(ERR_BADSYNTAX, "FX <num> (,<num> (,<num>))"); return; }
-	// Not sure why this call to error() needs a return after it, doesn't need it elsewhere
-	areg=cmd_parse_dec(&command);			// Get first parameter
-	if (*command == ',') command++;			// Step past any comma
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command) {
-		xreg=cmd_parse_dec(&command);		// Get second parameter
-		if (*command == ',') command++;		// Step past any comma
-		while (*command == ' ') command++;	// Skip spaces
-		if (*command) {
-			yreg=cmd_parse_dec(&command);	// Get third parameter
-		}
-	}
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    error(ERR_BADSYNTAX, "FX <num> (,<num> (,<num>))");
+    return;
+  }
+  // Not sure why this call to error() needs a return after it, doesn't need it elsewhere
+  areg=cmd_parse_dec(&command);			// Get first parameter
+  if (*command == ',') command++;		// Step past any comma
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command) {
+    xreg=cmd_parse_dec(&command);		// Get second parameter
+    if (*command == ',') command++;		// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (*command) {
+      yreg=cmd_parse_dec(&command);		// Get third parameter
+    }
+  }
 
-	if (mos_osbyte(areg, xreg, yreg, 0) & 0x80000000)
-		error(ERR_BADCOMMAND);
+  if (mos_osbyte(areg, xreg, yreg, 0) & 0x80000000) error(ERR_BADCOMMAND);
 }
 
 /*
@@ -1335,59 +1336,67 @@ char mos_patchdate[]=__DATE__;
 #endif
 static void cmd_help(char *command)
 {
-	int cmd;
+  int cmd;
 
-	while (*command == ' ') command++;		// Skip spaces
-	cmd = check_command(command);
+  while (*command == ' ') command++;		// Skip spaces
+  cmd = check_command(command);
 #ifdef TARGET_MINGW
-	find_cursor();
+  find_cursor();
 #endif
-	emulate_printf("\r\n%s\r\n", IDSTRING);
-	if (cmd == HELP_BASIC) {
+  emulate_printf("\r\n%s\r\n", IDSTRING);
+  switch(cmd) {
+    case HELP_BASIC:
 // Need to think about making this neat but informative
 #ifdef BRANDY_GITCOMMIT
-		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+	emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
-		// Try to get attributions correct, as per license.
-		emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
-		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
+	// Try to get attributions correct, as per license.
+	emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
+	emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
-		emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
-		emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
-			mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+	emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
+	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
+	  mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 #endif
-		// NB: Adjust spaces in above to align version and date strings correctly
+	// NB: Adjust spaces in above to align version and date strings correctly
 
-	}
-	if (cmd == HELP_HOST || cmd == HELP_MOS) {
-		emulate_printf("  CD      <dir>\r\n");
-		emulate_printf("  EXEC    <filename>\r\n");
-		emulate_printf("  SPOOL   [<filename>]\r\n");
-		emulate_printf("  SPOOLON [<filename>]\r\n");
-		emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
-		emulate_printf("  KEY     <num> <string>\r\n");
-		emulate_printf("  HELP    [<text>]\r\n");
-		emulate_printf("  SHOW    (<num>)\r\n");
-		emulate_printf("  QUIT\r\n");
-	}
+    break;
+    case HELP_HOST:
+    case HELP_MOS:
+	emulate_printf("  CD      <dir>\r\n");
+	emulate_printf("  EXEC    <filename>\r\n");
+	emulate_printf("  SPOOL   [<filename>]\r\n");
+	emulate_printf("  SPOOLON [<filename>]\r\n");
+	emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
+	emulate_printf("  KEY     <num> <string>\r\n");
+	emulate_printf("  HELP    [<text>]\r\n");
+	emulate_printf("  SHOW    (<num>)\r\n");
+	emulate_printf("  QUIT\r\n");
+    break;
 #if defined(USE_SDL) | defined(TARGET_UNIX)
-	if (cmd == HELP_MATRIX) {
-		emulate_printf("  WinTitle   <window title>\r\n");
+    case HELP_MATRIX:
+	emulate_printf("  WinTitle   <window title>\r\n");
 #ifdef USE_SDL
-		emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
-		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
-		emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
-		emulate_printf("  ScreenSave <filename.bmp>\r\n");
-		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+	emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
+	emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
+	emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
+	emulate_printf("  ScreenSave <filename.bmp>\r\n");
+	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
 #endif
-	}
+    break;
 #endif
+    case CMD_WINTITLE:
+	emulate_printf("Syntax: *WinTitle <window title>\r\n");
+	emulate_printf("  This command sets the text on the SDL or xterm window title bar.\r\n");
+    break;
+    default:
 	if (*command == '.' || *command == '\0') {
-		emulate_printf("  BASIC\r\n  MOS\r\n");
+	    emulate_printf("  BASIC\r\n  MOS\r\n");
 #if defined(USE_SDL) | defined(TARGET_UNIX)
-		emulate_printf("  MATRIX\r\n");
+	    emulate_printf("  MATRIX\r\n");
 #endif
 	}
+  }
 }
 
 /*
@@ -1399,23 +1408,19 @@ static void cmd_help(char *command)
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
 static void cmd_key(char *command) {
-	unsigned int key, len;
+  unsigned int key, len;
 
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command == 0)
-		error(ERR_BADSYNTAX, "KEY <num> (<string>");
-	key=cmd_parse_dec(&command);			// Get key number
-	if (key > HIGH_FNKEY)
-		error(ERR_BADKEY);
-	if (*command == ',') command++;			// Step past any comma
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) error(ERR_BADSYNTAX, "KEY <num> (<string>");
+  key=cmd_parse_dec(&command);			// Get key number
+  if (key > HIGH_FNKEY) error(ERR_BADKEY);
+  if (*command == ',') command++;		// Step past any comma
 
-	command=mos_gstrans(command, &len);		// Get GSTRANS string
+  command=mos_gstrans(command, &len);		// Get GSTRANS string
 #ifdef NEWKBD
-	if (kbd_fnkeyset(key, command, len))
-		error(ERR_KEYINUSE);
+  if (kbd_fnkeyset(key, command, len)) error(ERR_KEYINUSE);
 #else
-	if (set_fn_string(key, command, len))
-		error(ERR_KEYINUSE);
+  if (set_fn_string(key, command, len)) error(ERR_KEYINUSE);
 #endif
 }
 
@@ -1423,42 +1428,42 @@ static void cmd_key(char *command) {
  * *SHOW - show function key definition
  */
 static void cmd_show(char *command) {
-	int key1, key2, len;
-	char *string;
-	char c;
+  int key1, key2, len;
+  char *string;
+  char c;
 
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command == 0) {
-		key1 = 0; key2 = HIGH_FNKEY;		// All keys
-	} else {
-	key2=(key1=cmd_parse_dec(&command));		// Get key number
-	if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
-	}
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command != 0) error(ERR_BADCOMMAND);
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    key1 = 0; key2 = HIGH_FNKEY;		// All keys
+  } else {
+    key2=(key1=cmd_parse_dec(&command));		// Get key number
+    if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
+  }
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command != 0) error(ERR_BADCOMMAND);
 
-	for (; key1 <= key2; key1++) {
+  for (; key1 <= key2; key1++) {
 #ifdef NEWKBD
-		string=kbd_fnkeyget(key1, &len);
+    string=kbd_fnkeyget(key1, &len);
 #else
-		string=get_fn_string(key1, &len);
+    string=get_fn_string(key1, &len);
 #endif
-		emulate_printf("*Key %d \x22", key1);
-		while (len--) {
-			c=*string++;
-			if (c&128) { emulate_printf("|!"); c=c&127; }
-			if (c<32 || c==127) {
-				emulate_printf("|%c",c^64);
-			} else {
-				if (c==34 || c==124) {
-					emulate_printf("|%c",c);
-				} else {
-					emulate_printf("%c",c);
-				}
-			}
-		}
-		emulate_printf("\x22\r\n");
+    emulate_printf("*Key %d \x22", key1);
+    while (len--) {
+      c=*string++;
+      if (c&128) { emulate_printf("|!"); c=c&127; }
+      if (c<32 || c==127) {
+	emulate_printf("|%c",c^64);
+      } else {
+	if (c==34 || c==124) {
+	  emulate_printf("|%c",c);
+	} else {
+	  emulate_printf("%c",c);
 	}
+      }
+    }
+    emulate_printf("\x22\r\n");
+  }
 }
 
 /*
