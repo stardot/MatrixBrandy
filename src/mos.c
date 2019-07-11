@@ -1382,12 +1382,12 @@ static void cmd_help(char *command)
 #endif
 	}
 #endif
-	if (*command == '.' || *command == '\0')
-#if defined(USE_SDL) | defined(TARGET_UNIX)
-		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
-#else
+	if (*command == '.' || *command == '\0') {
 		emulate_printf("  BASIC\r\n  MOS\r\n");
+#if defined(USE_SDL) | defined(TARGET_UNIX)
+		emulate_printf("  MATRIX\r\n");
 #endif
+	}
 }
 
 /*
@@ -1544,6 +1544,7 @@ static int check_command(char *text) {
   if (strcmp(command, "exec")   == 0) return CMD_EXEC;
   if (strcmp(command, "spool")   == 0) return CMD_SPOOL;
   if (strcmp(command, "spoolon")   == 0) return CMD_SPOOLON;
+  if (strcmp(command, "basic")   == 0) return HELP_BASIC;
   if (strcmp(command, "host")   == 0) return HELP_HOST;
   if (strcmp(command, "mos")    == 0) return HELP_MOS;
   if (strcmp(command, "matrix") == 0) return HELP_MATRIX;
