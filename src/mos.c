@@ -1382,13 +1382,50 @@ static void cmd_help(char *command)
 	emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
 	emulate_printf("  ScreenSave <filename.bmp>\r\n");
 	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
-#endif
+#endif /* USE_SDL */
     break;
-#endif
+#endif /* USE_SDL | TARGET_UNIX */
     case CMD_WINTITLE:
 	emulate_printf("Syntax: *WinTitle <window title>\r\n");
 	emulate_printf("  This command sets the text on the SDL or xterm window title bar.\r\n");
     break;
+#ifdef USE_SDL
+    case CMD_FULLSCREEN:
+	emulate_printf("Syntax: *FullScreen [<On|Off|1|0>]\r\n");
+	emulate_printf("  This controls  fullscreen mode  within  SDL. On or 1 switches to fullscreen,\r\n");
+	emulate_printf("  0 or Off restores the windowws mode, and with no parameter given,\r\n");
+	emulate_printf("  toggles fullscreen mode.\r\n");
+    break;
+    case CMD_NEWMODE:
+	emulate_printf("Syntax: *NewMode <mode> <xres> <yres> <colours> <xsc> <ysc> [<xeig> [<yeig>]]\r\n");
+	emulate_printf("  This defines a new mode. The parameters are:\r\n");
+	emulate_printf("  mode:    Mode number, range 64-126\r\n");
+	emulate_printf("  xres:    X resolution in pixels, minimum 8.\r\n");
+	emulate_printf("  yres:    Y resolution in pixels, minimum 8.\r\n");
+	emulate_printf("  colours: Colour depth, valid values 2, 4, 16, 256 or 16777216.\r\n");
+	emulate_printf("  xsc:     X scaling (e.g. Mode 1 uses 2, Mode 0 uses 1)\r\n");
+	emulate_printf("  ysc:     Y scaling (e.g. Mode 0 uses 2, Mode 18 uses 0)\r\n");
+	emulate_printf("  xeig:    X eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
+	emulate_printf("  yeig:    Y eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
+    break;
+    case CMD_REFRESH:
+	emulate_printf("Syntax: *Refresh [<On|Off|OnError>]\r\n");
+	emulate_printf("  This sets the SDL refresh mode. Default is on.\r\n");
+	emulate_printf("  On:      Normal mode, display is updated after any change.\r\n");
+	emulate_printf("  Off:     Updates are suspended.\r\n");
+	emulate_printf("  OnError: Updates are suspended, and re-enabled on an error condition.\r\n");
+	emulate_printf("  If no parameter is given, force an immediate display refresh.\r\n");
+    break;
+    case CMD_SCREENSAVE:
+	emulate_printf("Syntax: *ScreenSave <filename>\r\n");
+	emulate_printf("  This saves out the current screen as a .bmp (Windows bitmap) file.\r\n");
+	emulate_printf("  This works in all screen modes, including 3, 6 and 7.\r\n");
+    break;
+    case CMD_SCREENLOAD:
+	emulate_printf("Syntax: *ScreenLoad <filename>\r\n");
+	emulate_printf("  This loads a .bmp into the display window.\r\n");
+    break;
+#endif /* USE_SDL */
     default:
 	if (*command == '.' || *command == '\0') {
 	    emulate_printf("  BASIC\r\n  MOS\r\n");
