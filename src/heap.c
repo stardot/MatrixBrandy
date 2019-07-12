@@ -70,7 +70,8 @@ boolean init_workspace(int32 heapsize) {
   wp = malloc(heapsize);
   if (wp==NIL) heapsize = 0;	/* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
-  basicvars.page = basicvars.workspace = wp;
+  basicvars.workspace = wp;
+  basicvars.page = wp + 0xE00; /* Shift PAGE up as some programs like to use space below PAGE */
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
 #ifdef TARGET_RISCOS
   basicvars.offbase = 0;

@@ -135,6 +135,13 @@ void check_write(uint32 low, uint32 size) {
   if (matrixflags.gpio) {
     if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
   }
+
+  /* Check below PAGE, anything between 0 and PAGE can be written to */
+  if ((basicvars.page - basicvars.offbase) > 0) {
+    if ((low >= 0) && (low < (basicvars.page - basicvars.offbase)))
+      return;
+  }
+
 #if 1
 /*
  * Quick hack to fix the DIM LOCAL problem. I must think of a
