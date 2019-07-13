@@ -292,8 +292,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 */
 
 //#define DEFAULTSIZE (512*1024)
-#define DEFAULTSIZE 651516
-#define MINSIZE (10*1024)
+#define DEFAULTSIZE 688124
+#define MINSIZE 16384
 
 
 /*
