@@ -49,6 +49,7 @@
 #endif
 
 #ifdef USE_SDL
+#include "graphsdl.h"
 extern Uint8 mode7changed[26];
 #endif
 
@@ -159,6 +160,9 @@ static void assign_intbyteptr(pointers address) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
+#endif
 }
 
 /*
@@ -206,6 +210,9 @@ static void assign_intwordptr(pointers address) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
+#endif
 }
 
 /*

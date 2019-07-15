@@ -218,10 +218,6 @@ static void gpio_init() {
 ** 'init2' finishes initialising the interpreter
 */
 static void init2(void) {
-  if (!init_heap() || !init_workspace(worksize)) {
-    cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
-    exit(EXIT_FAILURE);
-  }
 #ifdef NEWKBD
   if (!mos_init() || !kbd_init() || !init_screen()) {
 #else
@@ -229,6 +225,10 @@ static void init2(void) {
 #endif
     cmderror(CMD_INITFAIL);	/* Initialisation failed */
     exit_interpreter(EXIT_FAILURE);	/* End run */
+  }
+  if (!init_heap() || !init_workspace(worksize)) {
+    cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
+    exit(EXIT_FAILURE);
   }
   init_commands();
   init_fileio();

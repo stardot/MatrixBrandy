@@ -323,10 +323,12 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       vptr=outstring;
 #ifdef USE_SDL
       SDL_VideoDriverName(vptr, 64);
+      outregs[2]=(matrixflags.modescreen_ptr - basicvars.offbase);
+      outregs[3]=matrixflags.modescreen_sz;
 #else
      strncpy(vptr,"no_sdl",64);
 #endif
-      a=outregs[1]=strlen(vptr);
+      outregs[1]=strlen(vptr);
       outregs[0]=v;
       break;
     case SWI_Brandy_SetFailoverMode:

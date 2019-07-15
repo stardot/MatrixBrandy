@@ -110,6 +110,9 @@ void check_read(uint32 low, uint32 size) {
   if (matrixflags.gpio) {
     if ((lowaddr >= matrixflags.gpiomem) && (lowaddr+size < (0x1000 + matrixflags.gpiomem))) return;
   }
+#ifdef USE_SDL
+  if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+#endif
   if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
 #endif
@@ -135,6 +138,10 @@ void check_write(uint32 low, uint32 size) {
   if (matrixflags.gpio) {
     if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
   }
+
+#ifdef USE_SDL
+  if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+#endif
 
   /* Check below PAGE, anything between 0 and PAGE can be written to */
   if ((basicvars.page - basicvars.offbase) > 0) {
