@@ -2103,38 +2103,12 @@ void emulate_printf(char *format, ...) {
 ** emulate_vdufn - Emulates the Basic VDU function. This
 ** returns the value of the specified VDU variable. Only a
 ** small subset of the possible values available under
-** RISC OS are returned
+** RISC OS are returned.
+** Now combined with the readmodevariable call which
+** supports SWIs OS_ReadVduVariables and OS_ReadModeVariable
 */
 int32 emulate_vdufn(int variable) {
-  switch (variable) {
-  case 0: /* ModeFlags */	return istextonly();
-  case 1: /* ScrRCol */		return textwidth - 1;
-  case 2: /* ScrBRow */		return textheight - 1;
-  case 3: /* NColour */		return colourdepth - 1;
-  case 11: /* XWindLimit */	return screenwidth - 1;
-  case 12: /* YWindLimit */	return screenheight - 1;
-  case 128: /* GWLCol */	return gwinleft / xgupp;
-  case 129: /* GWBRow */	return gwinbottom / ygupp;
-  case 130: /* GWRCol */	return gwinright / xgupp;
-  case 131: /* GWTRow */	return gwintop / ygupp;
-  case 132: /* TWLCol */	return twinleft;
-  case 133: /* TWBRow */	return twinbottom;
-  case 134: /* TWRCol */	return twinright;
-  case 135: /* TWTRow */	return twintop;
-  case 136: /* OrgX */		return xorigin;
-  case 137: /* OrgY */		return yorigin;
-  case 153: /* GFCOL */		return graph_forecol;
-  case 154: /* GBCOL */		return graph_backcol;
-  case 155: /* TForeCol */	return text_forecol;
-  case 156: /* TBackCol */	return text_backcol;
-  case 157: /* GFTint */	return graph_foretint;
-  case 158: /* GBTint */	return graph_backtint;
-  case 159: /* TFTint */	return text_foretint;
-  case 160: /* TBTint */	return text_backtint;
-  case 161: /* MaxMode */	return HIGHMODE;
-  default:
-    return 0;
-  }
+  return readmodevariable(-1,variable);
 }
 
 /*
@@ -4154,6 +4128,25 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 10:	return (log2bpp(scrmode));
     case 11:	return (modetable[scrmode].xres-1);
     case 12:	return (modetable[scrmode].yres-1);
+    case 128: /* GWLCol */	return gwinleft / xgupp;
+    case 129: /* GWBRow */	return gwinbottom / ygupp;
+    case 130: /* GWRCol */	return gwinright / xgupp;
+    case 131: /* GWTRow */	return gwintop / ygupp;
+    case 132: /* TWLCol */	return twinleft;
+    case 133: /* TWBRow */	return twinbottom;
+    case 134: /* TWRCol */	return twinright;
+    case 135: /* TWTRow */	return twintop;
+    case 136: /* OrgX */	return xorigin;
+    case 137: /* OrgY */	return yorigin;
+    case 153: /* GFCOL */	return graph_forecol;
+    case 154: /* GBCOL */	return graph_backcol;
+    case 155: /* TForeCol */	return text_forecol;
+    case 156: /* TBackCol */	return text_backcol;
+    case 157: /* GFTint */	return graph_foretint;
+    case 158: /* GBTint */	return graph_backtint;
+    case 159: /* TFTint */	return text_foretint;
+    case 160: /* TBTint */	return text_backtint;
+    case 161: /* MaxMode */	return HIGHMODE;
     default:	return 0;
   }
 }
