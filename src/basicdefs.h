@@ -522,6 +522,10 @@ typedef struct {
   FILE *doexec;				/* Are we doing a *EXEC? */
   FILE *dospool;			/* Are we doing a *SPOOL / *SPOOLON? */
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
+#ifdef USE_SDL
+  byte *modescreen_ptr;			/* Mode screen pointer */
+  uint32 modescreen_sz;			/* Mode screen size */
+#endif
 } matrixbits;
 extern matrixbits matrixflags;
 

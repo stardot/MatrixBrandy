@@ -332,6 +332,19 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_Brandy_SetFailoverMode:
       matrixflags.failovermode=inregs[0];
       break;
+    case SWI_Brandy_AccessVideoRAM:
+#ifdef USE_SDL
+      /* R0=0 to read into R2 from offset R1, R0 nonzero to write R2 into offset R1 */
+      if (inregs[1] < matrixflags.modescreen_sz) {
+	if (inregs[0]==0) {
+	  outregs[2]=*(uint32 *)(matrixflags.modescreen_ptr+(inregs[1]*4));
+	} else {
+	  *(uint32 *)(matrixflags.modescreen_ptr+(inregs[1]*4))=inregs[2];
+	  refresh_location(inregs[1]);
+	}
+      }
+#endif
+      break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;

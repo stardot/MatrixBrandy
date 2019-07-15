@@ -2209,6 +2209,8 @@ static void setup_mode(int32 mode) {
   }
   SDL_FreeSurface(modescreen);
   modescreen = SDL_DisplayFormat(screen0);
+  matrixflags.modescreen_ptr = modescreen->pixels;
+  matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
   writebank=0;
   SDL_FreeSurface(screen1);
@@ -3938,6 +3940,14 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
   modetable[mode].ytext = (yres / 8);
   modetable[mode].xscale = mxscale;
   modetable[mode].yscale = myscale;
+}
+
+void refresh_location(uint32 offset) {
+  uint32 ox,oy;
+
+  ox=offset % screenwidth;
+  oy=offset / screenwidth;
+  blit_scaled(ox,oy,ox,oy);
 }
 
 void star_refresh(int flag) {
