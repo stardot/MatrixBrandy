@@ -921,9 +921,13 @@ static void fn_instr(void) {
 ** of its argument on to the Basic stack
 */
 static void fn_int(void) {
+  float64 fltmp;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_FLOAT)
-    push_int(TOINT(floor(pop_float())));
+  if (GET_TOPITEM == STACK_FLOAT) {
+    fltmp=floor(pop_float());
+    if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
+    push_int(TOINT(fltmp));
+  }
   else if (GET_TOPITEM != STACK_INT) {
     error(ERR_TYPENUM);
   }
