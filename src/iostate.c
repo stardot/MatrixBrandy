@@ -1448,9 +1448,11 @@ static void print_screen(void) {
       break;
     case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
-        else {
+        if (hex) {
+          float64 fltmp=pop_float();
+          if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
+          size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(fltmp));
+        } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_float());
         }
       }
