@@ -1757,20 +1757,15 @@ int32 emulate_inkey(int32 arg) {
     return OSVERSION;
   else {		/* Check is a specific key is being pressed */
 #ifdef USE_SDL
-    SDL_Event ev;
     if ((arg < -128) && (arg > -256)) return -1;	/* Scan range unimplemented */
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
       mousestate = SDL_GetMouseState(NULL, NULL);
-    while(SDL_PollEvent(&ev)) {
-      if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
-    }
 
     if ((arg & 0xFE00) == 0xFC00) {
       if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
 	return -1;
       else {
-        if (ev.type == SDL_KEYDOWN) SDL_PushEvent(&ev);
 	return 0;
       }
     }
@@ -1789,14 +1784,12 @@ int32 emulate_inkey(int32 arg) {
       (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
       else {
-        if (ev.type == SDL_KEYDOWN) SDL_PushEvent(&ev);
         return 0;
       }
     }
     if (keystate[inkeylookup[(arg * -1) -1]])
       return -1;
     else {
-      if (ev.type == SDL_KEYDOWN) SDL_PushEvent(&ev);
       return 0;
     }
 #else
