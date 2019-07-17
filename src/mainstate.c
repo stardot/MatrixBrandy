@@ -332,7 +332,7 @@ void exec_data(void) {
 ** identically to a REM - execution skips to the next line.
 */
 void exec_def(void) {
-  basicvars.current = basicvars.thisline+*(basicvars.thisline+2)+256*(*(basicvars.thisline+3))-1;
+  while (!ateol[*basicvars.current]) basicvars.current = skip_token(basicvars.current);
 }
 
 /*

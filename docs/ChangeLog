@@ -4,6 +4,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.21.22
 - *SPOOL and *SPOOLON implemented.
 - Fix integer overflows when converting from floats.
+- Fix intermittent crash when execution hits a DEF statement.
 
 * V1.21.21 - 08 July 2019
 - Centisecond timer polling hived off to its own thread, as polling it every
