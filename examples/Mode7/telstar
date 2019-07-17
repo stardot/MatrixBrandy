@@ -6,7 +6,7 @@
    60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
    70REM are from RISC OS 5.
    80:
-   90VER$="Viewdata client version 20190621"
+   90VER$="Viewdata client version 20190717"
   100:
   110SYS "Brandy_GetVideoDriver" TO v$
   120IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
