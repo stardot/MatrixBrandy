@@ -752,6 +752,9 @@ static void do_arrayref(void) {
 static void do_indrefvar(void) {
   byte operator;
   int32 offset;
+#ifdef USE_SDL
+  int32 msx, msy, loop, val = 0;
+#endif
   if (*basicvars.current == TOKEN_INTINDVAR)	/* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
   else {
@@ -770,10 +773,46 @@ static void do_indrefvar(void) {
   }
   if (operator == '?') {	/* Byte-sized integer */
     check_read(offset, sizeof(byte));
+#ifdef USE_SDL
+    if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFFu) {
+      /* Mode 7 screen memory */
+      offset -= 0xFFFF7C00u;
+      if (offset >= 1000) {
+	push_int(0);
+      } else {
+	msy = offset / 40;
+	msx = offset % 40;
+	push_int(mode7frame[msy][msx]);
+      }
+    } else {
+      push_int(basicvars.offbase[offset]);
+    }
+#else
     push_int(basicvars.offbase[offset]);
+#endif /* USE_SDL */
   }
   else {		/* Word-sized integer */
+#ifdef USE_SDL
+    if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFCu) {
+      /* Mode 7 screen memory */
+      offset -= 0xFFFF7C00u;
+      if (offset >= 1000) {
+	push_int(0);
+      } else {
+	for (loop=3; loop>=0; loop--) {
+	  val = val << 8;
+	  msy = (offset+loop) / 40;
+	  msx = (offset+loop) % 40;
+	  if (msy < 25) val += mode7frame[msy][msx];
+	}
+	push_int(val);
+      }
+    } else {
+      push_int(get_integer(offset));
+    }
+#else
     push_int(get_integer(offset));
+#endif
   }
 }
 
