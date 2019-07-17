@@ -30,6 +30,7 @@
 #include <string.h>
 #include <math.h>
 #include "common.h"
+#include "miscprocs.h"
 #include "target.h"
 #include "errors.h"
 #include "fileio.h"

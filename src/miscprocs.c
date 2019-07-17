@@ -550,3 +550,8 @@ FILE *secure_tmpnam(char *name)
 #endif
 #endif /* TARGET_MINGW */
 }
+
+int32 TOINT(float64 fltmp) {
+  if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
+  return (int32)(fltmp);
+}
