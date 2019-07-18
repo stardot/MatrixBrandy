@@ -13,13 +13,13 @@
   130:
   140*FX229,1
   150OSCLI"Key1"+CHR$(31)
-  160*WinTitle Matrix Brandy BASIC Telstar Client
-  170REMON ERROR GOTO 480
+  160*WinTitle Matrix Network Viewdata/Teletext Client
+  170ON ERROR GOTO 480
   180MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
   190IFv$="fbcon"THENMOUSEOFF
   200reveal%=0:scan%=0:width%=1
   210dh%=0:dhline%=0:borked%=0
-  220DIM scr% 1000
+  220allowfs%=1:DIM scr% 1000
   230REM Variables for downloading
   240screen%=0
   250download%=0
@@ -123,14 +123,15 @@
  1230ENDPROC
  1240:
  1250DEFPROCtogglescreen
+ 1255IF allowfs%=0THENENDPROC
  1260OSCLI"Fullscreen"
  1270SYS"OS_Byte",42 TO ,fs%
  1280IF fs% AND 8 THEN MOUSE OFF ELSE MOUSE ON
  1290ENDPROC
  1300:
  1310DEFFNwelcome
- 1320PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
- 1330PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
+ 1320PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 1330PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1340PRINT
  1350PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
  1360PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
@@ -142,10 +143,10 @@
  1420PRINT
  1430PRINT CHR$(129);"0 - Exit"
  1440PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
- 1450PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
+ 1450IF allowfs%=1 THEN PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
  1460PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
- 1470PRINT CHR$(134);" Press CTRL-/ for help & other keys"
- 1480PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
+ 1470PRINT CHR$(134);" Press CTRL-X to exit immediately": PRINT
+ 1480PRINT CHR$(130);" F1 or CTRL-/ for help & other keys"
  1490PRINT TAB(4,23)CHR$(129);"Please make your selection..."
  1500PRINT CHR$(132);CHR$(157);CHR$(135);VER$;
  1510REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24
@@ -163,8 +164,8 @@
  1630:
  1640DEFPROChelp
  1650x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?&FFFF7C00: NEXT:CLS
- 1660PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
- 1670PRINT CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Brandy BASIC Telstar Client ";CHR$(156)
+ 1660PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 1670PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1680PRINT
  1690PRINT CHR$(134);"Special keys availale:":PRINT
  1700PRINT CHR$(134);" Press";CHR$(131);"CTRL-F";CHR$(134);"to toggle Full Screen":
