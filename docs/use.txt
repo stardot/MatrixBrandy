@@ -86,7 +86,7 @@ where <filename> is the optional name of the program to load and
 
 -size <size>		Set the size of the Basic workspace to <size> bytes
 			when starting the interpreter.  The minimum size
-			allowed is 10240 bytes and anything below this value
+			allowed is 16384 bytes and anything below this value
 			will be set to it. The maximum size is 2147483644
 			bytes (4 bytes short of 2GB), The size may have a
 			suffix of 'k' to denote that the size is in kilobytes
@@ -722,8 +722,9 @@ the workspace, including any programs and libraries (except for libraries
 loaded by means of the 'INSTALL' command). It is not possible to recover a
 program by means of 'OLD' under these circumstances.
 
-The minimum size allowed is 10K bytes. The upper limit is whatever the
-operating system on which the interpreter is running allows.
+The minimum size allowed is 16K bytes. The upper limit is whatever the
+operating system on which the interpreter is running allows, to a limit of
+4 bytes short of 2GB.
 
 Note that the initial size of the Basic workspace can also be set using the
 command line option '-size'.

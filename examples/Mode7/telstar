@@ -168,7 +168,7 @@
  1670PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1680PRINT
  1690PRINT CHR$(134);"Special keys availale:":PRINT
- 1700PRINT CHR$(134);" Press";CHR$(131);"CTRL-F";CHR$(134);"to toggle Full Screen":
+ 1700IF allowfs%=1 THEN PRINT CHR$(134);" Press";CHR$(131);"CTRL-F";CHR$(134);"to toggle Full Screen":
  1710PRINT CHR$(134);" Press";CHR$(131);"CTRL-R";CHR$(134);"to toggle Reveal":
  1720PRINT CHR$(134);" Press";CHR$(131);"CTRL-X";CHR$(134);"to exit immediately": PRINT
  1730PRINT

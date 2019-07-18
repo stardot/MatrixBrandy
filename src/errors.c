@@ -283,6 +283,7 @@ void show_help(void) {
   printf("  -help          Print this message\n");
   printf("  -version       Print version\n");
   printf("  -size <size>   Set Basic workspace size to <size> bytes when starting\n");
+  printf("                 Suffix with K or M to specify size in kilobytes or megabytes.\n");
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");
   printf("  -chain <file>  Run Basic program <file> and stay in interpreter when it ends\n");
