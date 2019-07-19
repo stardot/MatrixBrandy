@@ -736,7 +736,11 @@ INSTR(
 INT
 	Use: INT <factor>
 	Returns the integer part of number <factor>, rounding down
-	(towards minus infinity).
+	(towards minus infinity). By default (matching BBC Micro and
+	RISC OS behaviour) the value must be within the range
+	-2^31 to 2^31-1 that can be stored within an integer variable.
+	However, to allow values out of this range (so INT actually
+	returns a floating-point value) do: SYS "Brandy_INTusesFloat",1
 
 LEN
 	Use: LEN <factor>

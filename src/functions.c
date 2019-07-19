@@ -923,7 +923,10 @@ static void fn_instr(void) {
 static void fn_int(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
-    push_int(TOINT(pop_float()));
+    if (matrixflags.int_uses_float)
+      push_float(floor(pop_float()));
+    else
+      push_int(TOINT(pop_float()));
   }
   else if (GET_TOPITEM != STACK_INT) {
     error(ERR_TYPENUM);
