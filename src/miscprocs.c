@@ -29,6 +29,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include "common.h"
 #include "target.h"
 #include "basicdefs.h"
@@ -553,5 +554,5 @@ FILE *secure_tmpnam(char *name)
 
 int32 TOINT(float64 fltmp) {
   if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
-  return (int32)(fltmp);
+  return (int32)(floor(fltmp));
 }
