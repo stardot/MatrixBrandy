@@ -921,12 +921,20 @@ static void fn_instr(void) {
 ** of its argument on to the Basic stack
 */
 static void fn_int(void) {
+  int32 localint = 0;
+  float64 localfloat = 0;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
-    if (matrixflags.int_uses_float)
-      push_float(floor(pop_float()));
-    else
+    if (matrixflags.int_uses_float) {
+      localfloat = floor(pop_float());
+      localint = localfloat;
+      if (localint == localfloat)
+        push_int(localint);
+      else
+       push_float(localfloat);
+    } else {
       push_int(TOINT(pop_float()));
+    }
   }
   else if (GET_TOPITEM != STACK_INT) {
     error(ERR_TYPENUM);
