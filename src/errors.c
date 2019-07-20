@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -75,7 +76,7 @@ typedef enum {NOPARM, INTEGER, INTSTR, STRING, BSTRING} errorparm;
 typedef struct {
   errortype severity;           /* Severity of error */
   errorparm parmtype;           /* Type of parameters error message takes */
-  int32 equiverror;             /* Equivalent Basic V error number for ERR */
+  int32 equiverror;             /* Equivalent Basic V/VI error number for ERR */
   char *msgtext;                /* Pointer to text of message */
 } detail;
 
@@ -348,8 +349,8 @@ void cmderror(int32 errnumber, ...) {
 */
 static detail errortable [] = {
   {INFO,     NOPARM,   0, "No error"},
-  {FATAL,    NOPARM,   0, "Unsupported Basic V feature found"},
-  {FATAL,    NOPARM,   0, "Unsupported Basic V statement type found"},
+  {FATAL,    NOPARM,   0, "Unsupported Basic V/VI feature found"},
+  {FATAL,    NOPARM,   0, "Unsupported Basic V/VI statement type found"},
   {FATAL,    NOPARM,   0, "This version of the interpreter does not support graphics"},
   {FATAL,    NOPARM,   0, "VDU commands cannot be used as output is not to a screen"},
   {NONFATAL, NOPARM,  16, "Syntax error"},

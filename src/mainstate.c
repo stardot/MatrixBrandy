@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -661,7 +662,7 @@ void exec_fnreturn(void) {
 ** more important than the 'WHILE' in that whether to continue with
 ** the loop or to simply move on to the next statement is decided here.
 **
-** One point to note is that Basic V allows loops to be nested
+** One point to note is that Basic V/VI allows loops to be nested
 ** incorrectly in that if one loop is not terminated within another,
 ** the inner one is automatically terminated by the outer one, for
 ** example:
@@ -1469,7 +1470,7 @@ static byte *find_onentry(byte *tp, int32 wanted) {
 ** This code is strictly interpreted. It would be better if a table of
 ** pointers to the line numbers was constructed to allow the statement to be
 ** processed more quickly but this code will do for now. The 'ON' statement
-** is not that important in Basic V and is mainly here for compatibility
+** is not that important in Basic V/VI and is mainly here for compatibility
 */
 static void exec_onbranch(void) {
   int32 index;

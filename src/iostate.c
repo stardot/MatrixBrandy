@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -53,7 +54,7 @@ static void fn_spc(void) {
   int32 count;
   count = eval_intfactor();
   if (count > 0) {
-    count = count & BYTEMASK;	/* Basic V only uses the low-order byte of the value */
+    count = count & BYTEMASK;	/* Basic V/VI only uses the low-order byte of the value */
     basicvars.printcount+=count;
     echo_off();
     while (count > 0) {
@@ -618,8 +619,9 @@ void exec_ellipse(void) {
 
 /*
 ** 'exec_envelope' deals with the Basic 'ENVELOPE' statement. Under
-** Basic V, this statement has no effect and appears to be supported
-** only for backwards compatibilty with the BBC Micro
+** Basic V/VI, this statement calls the appropriate OS_Word call, however
+** this call has no effect in RISC OS and appears to be supported
+** only for backwards compatibilty with the BBC Micro.
 */
 void exec_envelope(void) {
   int32 n;

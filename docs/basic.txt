@@ -1,5 +1,5 @@
-Basic V Guide
-~~~~~~~~~~~~~
+BASIC VI Guide
+~~~~~~~~~~~~~~
 
 Contents
 ~~~~~~~~
@@ -31,18 +31,18 @@ Contents
 
 Introduction
 ~~~~~~~~~~~~
-The following notes give a brief introduction to Basic V and to
+The following notes give a brief introduction to BASIC VI and to
 the environment that the interpreter emulates. They describe the
 entire language but not in any great detail; more attention is
 given to features specific to this version of Basic. Useful
 information can be found on the web site 'The BBC Lives!' where
 scanned version of manuals such as the 'BBC Microcomputer User
 Guide' can be found. The information in these manuals is not 100%
-relevant to Basic V but they are good for background information
+relevant to BASIC VI but they are good for background information
 and many details of Basic II, the predecessor of (and to all
-intents and purposes, a strict subset of) Basic V.
+intents and purposes, a strict subset of) BASIC VI.
 
-These notes describe the Basic language. The file 'use' contains
+These notes describe the BASIC language. The file 'use' contains
 information on how to use the interpreter and on the features
 and limitations of the different versions of the program.
 
@@ -71,8 +71,9 @@ In 1987 Acorn brought out the Archimedes. This included a new
 version of the BBC Basic interpreter that had many additional
 features such as 'CASE' statements and multi-line 'IF' statements.
 It kept its reputation for speed. This version of Basic was called
-'Basic V' and it is the dialect of the language implemented by
-this interpreter.
+'BASIC V', and later a version using 64-bit floating point numbers
+was issued as a soft-load for RISC OS as 'BASIC VI' and it is the
+dialect of the language implemented by this interpreter.
 
 The operating system that ran on the Archimedes and the machines
 that have succeeded it over the years is called 'RISC OS'. This
@@ -81,7 +82,7 @@ was designed and written by Acorn Computers.
 
 Features
 ~~~~~~~~
-The main features of Basic V are:
+The main features of BASIC V/VI are:
 
 1)  It is a structured Basic with a full range of statement
     types such as WHILE and REPEAT loops, a block IF statement
@@ -190,7 +191,7 @@ of the array.
 Variable names are case sensitive, so that 'abcd' and 'AbCd' are
 different variables.
 
-Basic V has two classes of variables, the normal dynamic variables
+Basic VI has two classes of variables, the normal dynamic variables
 that are created when the program runs and a set of what are
 called 'static' variables which comprises of the integer variables
 A% to Z%. These variables are independent of any program in that
@@ -224,7 +225,7 @@ Line Numbers
 ~~~~~~~~~~~~
 Each line in a Basic program has a line number. This is used when
 editing a program at the command line and in the program by such
-statements as 'GOTO', 'GOSUB', 'ON GOTO', and 'RESTORE'. Basic V
+statements as 'GOTO', 'GOSUB', 'ON GOTO', and 'RESTORE'. BASIC VI
 is a structured Basic and line numbers are largely superfluous if
 statement types such as these are not used. They are still needed
 to identify the line on which an error was detected when a program
@@ -239,7 +240,7 @@ Line numbers are in the range 0 to 65279.
 
 Operators
 ~~~~~~~~~
-Basic V supports the usual range of operators. The following list
+Basic VI supports the usual range of operators. The following list
 details what is available. The operators are given in priority
 order, with operators of the same priority grouped together. From
 highest to lowest priority they are:
@@ -280,11 +281,11 @@ first part of the expression thus:
 
 	(abc% >> 2) <= 10
 
-This is a feature of Basic V.
+This is a feature of BASIC VI.
 
 Assignment Operators
 ~~~~~~~~~~~~~~~~~~~~
-As well as using '=' for assignments in the normal way, Basic V
+As well as using '=' for assignments in the normal way, Basic VI
 has two other assignment operators:
 
 	<variable> += <expression>
@@ -300,7 +301,7 @@ Examples:
 	table%!offset% -= X%
 	$(table%+name%) += "xyz"
 
-Brandy offers 5 more from BB4W and BBCSDL, and JGH's ARM BBC BASIC Plus.
+Matrix Brandy offers 5 more from BB4W and BBCSDL, and JGH's ARM BBC BASIC Plus.
 These are:
 	<variable> AND= <expression>
 	<variable> OR= <expression>
@@ -1231,7 +1232,7 @@ On left-hand side:
 
 Procedures and Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~
-Basic V has both procedures and multi-line functions. They can
+BASIC VI has both procedures and multi-line functions. They can
 both take parameters of any sort, including arrays, and it is
 possible to return values via parameters. They can also have local
 variables.
@@ -1325,7 +1326,7 @@ variable is still used but its old value is saved first.
 
 Error Handling
 ~~~~~~~~~~~~~~
-Basic V provides two statements for dealing with errors, ON ERROR
+BASIC VI provides two statements for dealing with errors, ON ERROR
 and ON ERROR LOCAL. ON ERROR is the less sophisticated of the two.
 If an error is detected, the interpreter ends all loops and
 returns from all procedures, functions and subroutines before
@@ -1343,7 +1344,7 @@ in the program. This should be used at the start of an error
 handler to prevent errors in the error handler causing an
 infinite loop.
 
-To allow for finer control over errors, Basic V also has two
+To allow for finer control over errors, BASIC VI also has two
 statements that allow different error handlers to be used at
 different points in the program, LOCAL ERROR and RESTORE error.
 LOCAL ERROR stores details of any existing error handler and
@@ -1414,8 +1415,8 @@ can be type instead of 'PRINT'. The minimum abbreviation for each
 keyword and command is given in the section 'Basic Keywords,
 Commands and Functions' at the end of these notes.
 
-All of the Basic V statement types are described below. However,
-not all versions of the Basic V interpreter support all of them,
+All of the BASIC VI statement types are described below. However,
+not all versions of the BASIC VI interpreter support all of them,
 in particular, the graphics statements might not be available.
 
 Statements
@@ -1878,7 +1879,7 @@ ENVELOPE
 Syntax: ENVELOPE <expression 1> , ... , <expression 14>
 
 This is an unsupported statement. It was used as part of the sound
-system on the BBC Micro but it is completely redundant in Basic V.
+system on the BBC Micro but it is completely redundant in BASIC V/VI.
 
 ERROR
 Syntax: ERROR <error expression> , <string expression>

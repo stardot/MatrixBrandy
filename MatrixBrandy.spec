@@ -9,15 +9,16 @@ URL: http://brandy.matrixnetwork.co.uk/
 BuildRequires: SDL-devel
 
 %description
-Brandy is an interpreter for BBC BASIC V that runs under a variety
-of operating systems. Basic V is the version of BASIC supplied
-with desktop computers running RISC OS. These were originally made
-by Acorn Computers but are now designed and manufactured by
-companies such as Advantage Six and Castle Technology.
+Brandy is an interpreter for BBC BASIC VI that runs under a variety of
+operating systems. BASIC V and BASIC VI are versions of BASIC supplied with
+desktop computers running RISC OS. These were originally made by Acorn
+Computers but are now designed and manufactured by companies such as Advantage
+Six and Castle Technology.
 
 The Matrix Brandy fork includes support for much of the grahics modes
 offered by RISC OS including Mode 7 (Teletext), and basic networking
-both of which are used by the bundled "telstar" example.
+both of which are used by the bundled "telstar" example. Many bugs are fixed
+and mathematics are brought more in line with Acorn's BBC BASIC VI.
 
 %prep
 %setup -q 

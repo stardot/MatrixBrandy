@@ -10,7 +10,7 @@ messages	This file describes all the error messages that the
 graphics	This contains notes on the program's graphics
 		support.
 
-basic		This is a brief introduction to Basic V.
+basic		This is a brief introduction to Basic VI.
 
 internals	This gives a high level view of the interpreter's
 		internals. It is not a line-by-line account of
@@ -32,11 +32,11 @@ Mode7		This contains notes on the program's Mode 7 Teletext
 networking	This contains some notes on the implementation of
 		network connectivity that was added in V1.21.6.
 
-Brandy implements Basic V, the dialect of Basic that Acorn Computers
-supplied with their ranges of desktop computers that use the ARM
-processor such as the Archimedes and RiscPC. Basic V is an extended
-version of BBC Basic. This was the Basic used on the BBC Micro that
-Acorn made during the early 1980s.
+Brandy implements Basic VI, the the 64-bit floating-point mathematics
+variant of the dialect of Basic that Acorn Computers supplied with their
+ranges of desktop computers that use the ARM processor such as the Archimedes
+and RiscPC. Basic V and VI are an extended version of BBC Basic. This was the
+Basic used on the BBC Micro that Acorn made during the early 1980s.
 
 There is some very useful documentation for the BBC Micro
 available on the Internet. One very good site is 'The BBC Lives!'
