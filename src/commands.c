@@ -796,6 +796,11 @@ static void exec_crunch(void) {
   check_ateol();
 }
 
+/* 'exec_auto' borrows heavily from alter_line (above), but unlike the editing
+** of an existing line the lune number cannot be deleted (as per BBC/RISC OS
+** BASIC). The same kludge is used should the while loop terminate, but usually
+** this command will be terminated by hitting the ESCAPE key.
+*/
 static void exec_auto(void) {
   int32 lineno = 10, linestep = 10;
   boolean ok;
