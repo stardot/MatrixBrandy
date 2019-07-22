@@ -1257,7 +1257,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "WIDTH")) {
     emulate_printf("WIDTH <expression>: set width of output.");
   } else if (!strcmp(cmd, "@%")) {
-    emulate_printf("This pseudo-variable reads or sets the number print format:\r\nPRINT @% gives a number, but LVAR and @%= use strings\r\n\"G<number>.<number>\" general format field and number of digits\r\n\"E<number>.<number>\" exponent format field and number of digits\r\n\"F<number>.<number>\" fixed format field and number of digits after '.'\r\nAll parts optional. , or . in the above prints , or . as the decimal point.\r\nLeading + means @% applies to STR$ also.");
+    emulate_printf("This pseudo-variable reads or sets the number print format:\r\nPRINT @%% gives a number, but LVAR and @%= use strings\r\n\"G<number>.<number>\" general format field and number of digits\r\n\"E<number>.<number>\" exponent format field and number of digits\r\n\"F<number>.<number>\" fixed format field and number of digits after '.'\r\nAll parts optional. , or . in the above prints , or . as the decimal point.\r\nLeading + means @%% applies to STR$ also.");
   } else if (!strcmp(cmd, ".")) {
     emulate_printf("Help is available on the following keywords:\r\n\
 ABS       ACS       ADVAL     AND       ASC       ASN       ATN       AUTO\r\n\
