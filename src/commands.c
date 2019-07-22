@@ -807,13 +807,12 @@ static void exec_auto(void) {
       linestep = get_number();
     }
   }
+  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
+  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  if (lineno<0 || lineno>MAXLINENO) error(ERR_LINENO);
+  if (linestep<=0) error(ERR_SILLY);
+  if (linestep>MAXLINENO) error(ERR_SYNTAX);
   while (lineno <= MAXLINENO) { /* ESCAPE will interrupt */
-    if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
-    if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
-    if (lineno<0 || lineno>MAXLINENO) error(ERR_LINENO);
-    if (linestep<=0) error(ERR_SILLY);
-    if (linestep>MAXLINENO) error(ERR_SYNTAX);
-
     emulate_printf("%5d ",lineno);
     sprintf(basicvars.stringwork, "%5d", lineno);
     ok = amend_line(basicvars.stringwork+5, MAXSTATELEN);
@@ -822,6 +821,7 @@ static void exec_auto(void) {
     edit_line();
     lineno += linestep;
   }
+  longjmp(basicvars.restart, 1);
 }
 
 /*
