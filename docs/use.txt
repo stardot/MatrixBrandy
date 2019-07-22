@@ -193,6 +193,10 @@ The first version of DELETE deletes a single line from the program, line
 <line number>. The second version is used to delete a block of lines. Note that
 it is not possible to recover any lines deleted.
 
+AUTO [<base number>[,<step size>]]
+This command generates line numbers for typing in a program. Where not
+specified, <base number> and <step size> both default to 10.
+
 RENUMBER
 Renumbers the lines of a program.
 
@@ -284,7 +288,7 @@ interpreter's limit of 255. The list of differences are as follows:
     (except for a limited number of calls to BBC-style OS interfaces, notably
     OSBYTE). The built-in assembler has not been implemented.
 3)  Support of the 'SYS' statement is minimal.
-4)  The follow Basic commands have not been implemented: APPEND and AUTO.
+4)  The follow Basic commands have not been implemented: APPEND.
 5)  The 'OVERLAY' statement has not been implemented.
 6)  The functions 'INKEY' and 'INKEY$' have not been fully implemented,
     and are only implemented at all on the SDL builds.

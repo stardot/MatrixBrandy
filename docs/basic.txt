@@ -3789,7 +3789,9 @@ APPEND
 Not implemented.
 
 AUTO
-Not implemented.
+Syntax: AUTO [<base number>[,<step size>]]
+This command generates line numbers for typing in a program. Where not
+specified, <base number> and <step size> both default to 10.
 
 CRUNCH
 Ignored.
