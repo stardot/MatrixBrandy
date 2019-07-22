@@ -54,6 +54,10 @@ static int32 lastaddr = 0;
 
 static char editname[80];       /* Default Name of editor invoked by 'EDIT' command */
 
+#ifndef NOINLINEHELP
+static void detailed_help(char *);
+#endif
+
 /*
 ** 'get_number' is called to evaluate an expression that returns an
 ** integer value. It is used by the functions handling the various
@@ -539,9 +543,22 @@ static void install_library(void) {
 }
 
 static void print_help(void) {
+#ifndef NOINLINEHELP
+  char *parm;
+#endif
   basicvars.current++;
+#ifndef NOINLINEHELP
+  if (isateol(basicvars.current)) {
+    show_options(1);
+    emulate_printf("HELP can show help on a keyword, for example HELP \"MODE\". Note that the\r\nkeyword must be given in quotes. HELP \".\" will list the keywords help is\r\navailable on.\r\n");
+  } else {
+    parm=get_name();
+    detailed_help(parm);
+  }
+#else
+  show_options(1);
+#endif
   check_ateol();
-  show_options();
 }
 
 #ifdef TARGET_RISCOS
@@ -918,4 +935,354 @@ void init_commands(void) {
   }
 }
 
-
+/* Define NOINLINEHELP to disable this, to reduce binary size if required */
+#ifndef NOINLINEHELP
+static void detailed_help(char *cmd) {
+  if        (!strcmp(cmd, "ABS")) {
+    emulate_printf("This function gives the magnitude (absolute value) of a number (<factor>).");
+  } else if (!strcmp(cmd, "ACS")) {
+    emulate_printf("This function gives the arc cosine of a number (<factor>).");
+  } else if (!strcmp(cmd, "ADVAL")) {
+    emulate_printf("This function gives the value of the specified analogue port or buffer.\r\nNote that this function has limited support in Matrix Brandy.");
+  } else if (!strcmp(cmd, "AND")) {
+    emulate_printf("Bitwise logical AND between two integers. Priority 6.");
+  } else if (!strcmp(cmd, "ASC")) {
+    emulate_printf("This function gives the ASCII code of the first character of a string.");
+  } else if (!strcmp(cmd, "ASN")) {
+    emulate_printf("This function gives the arc sine of a number (<factor>).");
+  } else if (!strcmp(cmd, "ATN")) {
+    emulate_printf("This function gives the arc tangent of a number (<factor>).");
+  } else if (!strcmp(cmd, "AUTO")) {
+    emulate_printf("This command generates line numbers for typing in a program.\r\nAUTO [<base number>[,<step size>]]");
+  } else if (!strcmp(cmd, "APPEND")) {
+    emulate_printf("This command is not implemented in Matrix Brandy. In ARM BBC BASIC, this\r\ncommand appends a file to the program and renumbers the new lines.");
+  } else if (!strcmp(cmd, "BEAT")) {
+    emulate_printf("This function gives the current microbeat number.\r\nIn Matrix Brandy, this function returns zero.");
+  } else if (!strcmp(cmd, "BEATS")) {
+    emulate_printf("BEATS <expression>: Set the number of microbeats in a bar.\r\nAs a function BEATS gives the current number of microbeats.\r\nIn Matrix Brandy, the command does nothing and the function returns zero.");
+  } else if (!strcmp(cmd, "BGET")) {
+    emulate_printf("This function gives the next byte from the specified channel: BGET#<channel>.\r\n<channel> is a file or network stream handle opened with OPENIN or OPENUP.\r\nThis function returns -1 if no data is available on a network stream, and\r\n-2 if the network connection has been closed remotely.");
+  } else if (!strcmp(cmd, "BPUT")) {
+    emulate_printf("BPUT#<channel>,<number>[,<number>...]: put byte(s) to open stream.\r\nBPUT#<channel>,<string>[;]: put string to open file, with[out] newline.\r\n<channel> is a file or network stream handle opened with OPENOUT or OPENUP.");
+  } else if (!strcmp(cmd, "CALL")) {
+    emulate_printf("CALL <expression>[,<variable>]^: Call machine code.\r\nIn Matrix Brandy, only calls to selected BBC Micro OS vectors are supported.");
+  } else if (!strcmp(cmd, "CASE")) {
+    emulate_printf("CASE <expression> OF: start of CASE..WHEN..OTHERWISE..ENDCASE structure.");
+  } else if (!strcmp(cmd, "CHAIN")) {
+    emulate_printf("Load and run a new BASIC program.");
+  } else if (!strcmp(cmd, "CHR$")) {
+    emulate_printf("This function gives the one character string of the supplied ASCII code.");
+  } else if (!strcmp(cmd, "CIRCLE")) {
+    emulate_printf("CIRCLE [FILL] x, y, r: draw circle outline [solid].");
+  } else if (!strcmp(cmd, "CLEAR")) {
+    emulate_printf("Forget all variables.");
+  } else if (!strcmp(cmd, "CLG")) {
+    emulate_printf("Clear graphics screen.");
+  } else if (!strcmp(cmd, "CLOSE")) {
+    emulate_printf("CLOSE#<channel>: close specified file or network socket.");
+  } else if (!strcmp(cmd, "CLS")) {
+    emulate_printf("Clear text screen.");
+  } else if (!strcmp(cmd, "COLOUR") || !strcmp(cmd, "COLOR")) {
+    emulate_printf("COLOUR A [TINT t]: set text foreground colour [and tint] (background 128+a)\r\nCOLOUR [OF f] [ON b]: set foreground to colour number f and/or background to b.\r\nCOLOUR a,p: set palette entry for logical colour a to physical colour p.\r\nCOLOUR [[OF] r,g,b] [ON r,g,b]: set foreground and/or background to r, g, b.\r\nCOLOUR a,r,g,b: set palette entry for a to r,g, b physical colour.");
+  } else if (!strcmp(cmd, "COS")) {
+    emulate_printf("This function gives the cosine of a number (<factor>).");
+  } else if (!strcmp(cmd, "COUNT")) {
+    emulate_printf("This function gives the number of characters PRINTed since the last newline.");
+  } else if (!strcmp(cmd, "CRUNCH")) {
+    emulate_printf("This command is ignored, and does nothing.");
+  } else if (!strcmp(cmd, "DATA")) {
+    emulate_printf("Introduces line of DATA to be READ. The list of items is separated by commas.\r\nLOCAL DATA, LOCAL RESTORE: save and restore current DATA pointer.");
+  } else if (!strcmp(cmd, "DEF")) {
+    emulate_printf("Define function or procedure: DEF FN|PROC<name>[(<parameter list>)].\r\nEnd function with =<expression>; end procedure with ENDPROC.");
+  } else if (!strcmp(cmd, "DEG")) {
+    emulate_printf("This function gives the value in degrees of a number in radians.");
+  } else if (!strcmp(cmd, "DELETE")) {
+    emulate_printf("This command deletes all lines between the specified numbers.\r\nDELETE <start line number>[,<end line number>]");
+  } else if (!strcmp(cmd, "DIM")) {
+    emulate_printf("DIM fred(100,100): create and initialise an array.\r\nDIM fred [LOCAL] 100: allocate [temporary] space for a byte array etc\r\nDIM(fred()): function gives the number of dimensions\r\nDIM(fred(),n): function gives the size of the n'th dimension.");
+  } else if (!strcmp(cmd, "DIV")) {
+    emulate_printf("Integer division, rounded towards zero, between two integers. Priority 3.");
+  } else if (!strcmp(cmd, "DRAW")) {
+    emulate_printf("DRAW [BY] x, y: graphics draw to [relative by] x, y.");
+  } else if (!strcmp(cmd, "EDIT")) {
+    emulate_printf("EDIT: opens the current program in an external ext editor.\r\nEDIT <line number>: Inline edits the specified line.");
+  } else if (!strcmp(cmd, "ELLIPSE")) {
+    emulate_printf("ELLIPSE [FILL] x, y, maj, min[,angle]: draw ellipse outline [solid].");
+  } else if (!strcmp(cmd, "ELSE")) {
+    emulate_printf("Part of the IF..THEN..ELSE structure. If found at the start of a line, it is\r\npart of the multi-line IF..THEN..ELSE..ENDIF structure.\r\nELSE can also appear in ON.. GOTO|GOSUB|PROC to set the default option.");
+  } else if (!strcmp(cmd, "END")) {
+    emulate_printf("END: statement marking end of program execution.\r\nAs a function END gives the end address of memory used.\r\nThe form END=<expression> to alter the memory allocation is not supported.");
+  } else if (!strcmp(cmd, "ENDCASE")) {
+    emulate_printf("End of CASE structure at start of line. See CASE.");
+  } else if (!strcmp(cmd, "ENDIF")) {
+    emulate_printf("End of multi-line IF structure at start of line. See IF.");
+  } else if (!strcmp(cmd, "ENDPROC")) {
+    emulate_printf("End of procedure definition.");
+  } else if (!strcmp(cmd, "ENDWHILE")) {
+    emulate_printf("End of WHILE structure. See WHILE.");
+  } else if (!strcmp(cmd, "ENVELOPE")) {
+    emulate_printf("ENVELOPE takes 14 numeric parameters separated by commas.\r\nThis command does nothing in Matrix Brandy or RISC OS, it is a legacy from the\r\nBBC Micro.");
+  } else if (!strcmp(cmd, "EOF")) {
+    emulate_printf("This function gives TRUE if at end of open file; else FALSE; EOF#<channel>.");
+  } else if (!strcmp(cmd, "EOR")) {
+    emulate_printf("Bitwise logical Exclusive-OR between two integers. Priority 7.");
+  } else if (!strcmp(cmd, "ERL")) {
+    emulate_printf("This function gives the line number of the last error.");
+  } else if (!strcmp(cmd, "ERR")) {
+    emulate_printf("This function gives the error number of the last error.");
+  } else if (!strcmp(cmd, "ERROR")) {
+    emulate_printf("Part of ON ERROR; LOCAL ERROR and RESTORE ERROR statements.\r\nCause an error: ERROR <number>,<string>.");
+  } else if (!strcmp(cmd, "EVAL")) {
+    emulate_printf("This function evaluates a string: EVAL(\"2*X+1\").");
+  } else if (!strcmp(cmd, "EXP")) {
+    emulate_printf("This function gives the exponential of a number (<factor>).");
+  } else if (!strcmp(cmd, "EXT")) {
+    emulate_printf("This function gives the length (extent) of an open file: EXT#<channel>.\r\nEXT#<channel>=<expression> sets the length of an open file.");
+  } else if (!strcmp(cmd, "FALSE")) {
+    emulate_printf("This function gives the logical value 'false', i.e. 0.");
+  } else if (!strcmp(cmd, "FILL")) {
+    emulate_printf("FILL [BY[ x,y: flood fill from [relative to] point x,y.");
+  } else if (!strcmp(cmd, "FN")) {
+    emulate_printf("Call a function with FNfred(x,y): define one with DEF FNfred(a,b).");
+  } else if (!strcmp(cmd, "FOR")) {
+    emulate_printf("FOR <variable> = <start value> TO <limit value> [STEP <step size>].");
+  } else if (!strcmp(cmd, "GCOL")) {
+    emulate_printf("GCOL a [TINT t]: set graphics foreground colour [and tint] (background 128+a).\r\nGCOL <action>,a [TINT t]: set graphics fore|background colour and action.\r\nGCOL [OF [<action>,]f] [ON [<action>,]b:\r\n     Set graphics foreground and/or background colour number [and action].\r\nGCOL [[OF] [<action>,]r,g,b] [ON [<action,]r,g,b]:\r\n     Set graphics foreground and/or background colour to r, g, b [and action].");
+  } else if (!strcmp(cmd, "GET")) {
+    emulate_printf("This function gives the ASCII value of the next character in the input stream.");
+  } else if (!strcmp(cmd, "GET$")) {
+    emulate_printf("This function gives the next input character as a one character string.\r\nGET$#<channel> gives the next string from the file.");
+  } else if (!strcmp(cmd, "GOSUB")) {
+    emulate_printf("GOSUB <line number>: call subroutine at line number.");
+  } else if (!strcmp(cmd, "GOTO")) {
+    emulate_printf("GOTO <line number>: go to line number.");
+  } else if (!strcmp(cmd, "HELP")) {
+    emulate_printf("This command gives help on usage of the interpreter.");
+  } else if (!strcmp(cmd, "HIMEM")) {
+    emulate_printf("This pseudo-variable reads or sets the address of the end of BASIC's memory.");
+  } else if (!strcmp(cmd, "IF")) {
+    emulate_printf("Single-line if: IF <expression> [THEN] <statements> [ELSE <statements>].\r\nMulti-line if: IF <expression> THEN<newline>\r\n                  <lines>\r\noptional:      ELSE <lines>\r\nmust:          ENDIF");
+  } else if (!strcmp(cmd, "INKEY")) {
+    emulate_printf("INKEY 0 to 32767: function waits <number> centiseconds to read character.\r\nINKEY -127 to -1: function checks specific key for TRUE|FALSE.\r\nINKEY -255 to -128: Not supported.\r\nINKEY -256: function gives operating system number.");
+  } else if (!strcmp(cmd, "INKEY$")) {
+    emulate_printf("Equivalent to CHR$(INKEY...): see INKEY.");
+  } else if (!strcmp(cmd, "INPUT")) {
+    emulate_printf("INPUT [LINE]['|TAB|SPC][\"display string\"][,|;]<variable>: input from user.\r\nINPUT#<channel>,<list of variables>: input data from open file.");
+  } else if (!strcmp(cmd, "INSTALL")) {
+    emulate_printf("This command permanently installs a library: see LIBRARY.");
+  } else if (!strcmp(cmd, "INSTR(")) {
+    emulate_printf("INSTR(<string>,<substring>[,<start position>]): find sub-string position.");
+  } else if (!strcmp(cmd, "INT")) {
+    emulate_printf("This function gives the nearest integer less than or equal to the number.");
+  } else if (!strcmp(cmd, "LEFT$(")) {
+    emulate_printf("LEFT$(<string>,<number>): gives leftmost number of characters from string.\r\nLEFT$(<string>): gives leftmost LEN-1 characters.\r\nLEFT$(<string variable>[,<count>])=<string>: overwrite characters from start.");
+  } else if (!strcmp(cmd, "LEN")) {
+    emulate_printf("This function gives the length of a string.");
+  } else if (!strcmp(cmd, "LET")) {
+    emulate_printf("Optional part of assignment.");
+  } else if (!strcmp(cmd, "LIBRARY")) {
+    emulate_printf("LIBRARY <string>; functions and procedures of the named program can be used.");
+  } else if (!strcmp(cmd, "LINE")) {
+    emulate_printf("Draw a line: LINE x1,y1,x2,y2\r\nPart of INPUT LINE or LINE INPUT statement.");
+  } else if (!strcmp(cmd, "LIST")) {
+    emulate_printf("This command lists the program.\r\nLIST [<line number>][,[<line number]]: List [section of] program.\r\nLISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
+  } else if (!strcmp(cmd, "LN")) {
+    emulate_printf("This function gives the natural logarithm (base e) of a number(<factor>).");
+  } else if (!strcmp(cmd, "LOAD")) {
+    emulate_printf("This command loads a new program.");
+  } else if (!strcmp(cmd, "LOCAL")) {
+    emulate_printf("LOCAL <list of variables>: Makes things private to function or procedure\r\nLOCAL DATA: save DATA pointer on stack.\r\nLOCAL ERROR: save error control status on stack.");
+  } else if (!strcmp(cmd, "LOG")) {
+    emulate_printf("This function gives the common logarithm (base 10) of a number(<factor>).");
+  } else if (!strcmp(cmd, "LOMEM")) {
+    emulate_printf("This pseudo-variable reads or sets the address of the start of the variables.");
+  } else if (!strcmp(cmd, "LVAR")) {
+    emulate_printf("This command lists all variables in use.");
+  } else if (!strcmp(cmd, "MID$(")) {
+    emulate_printf("MID$(<string>,<position>): gives all of string starting from position.\r\nMID$(<string>,<position>,<count>): gives some of string from position.\r\nMID$(<string variable>,<position>[,<count>])=<string>: overwrite characters.");
+  } else if (!strcmp(cmd, "MOD")) {
+    emulate_printf("Remainder after integer division between two integers. Priority 3.\r\nThe MOD function gives the square root of the sum of the squares of all the\r\nelements in a numeric array.");
+  } else if (!strcmp(cmd, "MODE")) {
+    emulate_printf("MODE <number>|<string>: set screen mode.\r\nMODE <width>,<height>,<bpp>[,<framerate>]: set screen mode.\r\nMODE <width>,<height>,<modeflags>,<ncolour>,<log2bpp>[,<framerate>]: set screen\r\nmode.\r\nAs a function MODE gives the current screen mode.");
+  } else if (!strcmp(cmd, "MOUSE")) {
+    emulate_printf("MOUSE x,y,z[,t]: sets x,y to mouse position; z to button state [t to time].\r\nMOUSE OFF: turn mouse pointer off.\r\nMOUSE ON [a]: sets mouse pointer 1 [or a].\r\nMOUSE TO x,y: positions mouse and pointer at x,y.\r\nThe following three are not supported and are ignored:\r\nMOUSE COLOUR a,r,g,b: set mouse palette entry for a to r, g, b physical colour.\r\nMOUSE RECTANGLE x,y,width,height: constrain mouse movement to inside rectangle.\r\nMOUSE STEP a[,b]: sets mouse step multiplier to a,a [or a,b].");
+  } else if (!strcmp(cmd, "MOVE")) {
+    emulate_printf("MOVE [BY] x,y: graphics move to [relative by] x,y.");
+  } else if (!strcmp(cmd, "NEXT")) {
+    emulate_printf("NEXT [<variable>[,<variable>]^]: closes one or several FOR..NEXT structures.");
+  } else if (!strcmp(cmd, "NEW")) {
+    emulate_printf("NEW [<size>]: This command erases the current program.\r\nIf <size> specified, set the BASIC workspace size in bytes.");
+  } else if (!strcmp(cmd, "NOT")) {
+    emulate_printf("This function gives the number with all bits inverted (0 and 1 exchanged).");
+  } else if (!strcmp(cmd, "OF")) {
+    emulate_printf("Part of the CASE <expression> OF statement.\r\nAlso part of COLOUR and GCOL statements.");
+  } else if (!strcmp(cmd, "OFF")) {
+    emulate_printf("OFF: turn cursor off.\r\nPart of TRACE OFF, ON ERROR OFF statements.");
+  } else if (!strcmp(cmd, "OLD")) {
+    emulate_printf("This command recovers the program just after a NEW.");
+  } else if (!strcmp(cmd, "ON")) {
+    emulate_printf("ON: cursor on.\r\nON ERROR [LOCAL|OFF]: define error handler.\r\nON <expression> GOTO|GOSUB|PROC.... ELSE: call from specified list item.");
+  } else if (!strcmp(cmd, "OPENIN")) {
+    emulate_printf("Open for Input: the function opens a file for input.");
+  } else if (!strcmp(cmd, "OPENOUT")) {
+    emulate_printf("Open for Output: the function opens a file for output.");
+  } else if (!strcmp(cmd, "OPENUP")) {
+    emulate_printf("Open for Update: the function opens a file for input and output.\r\nThis function can also open a TCP network socket, using the filename syntax of\r\nOPENUP(\"ip0:<hostname>:<port>\") - use ip4: for IPv4 only or ip6: for IPv6 only.");
+  } else if (!strcmp(cmd, "OR")) {
+    emulate_printf("Bitwise logical OR between two integers. Priority 7.");
+  } else if (!strcmp(cmd, "ORIGIN")) {
+    emulate_printf("ORIGIN x,y: sets x,y as the new graphics 0,0 point.");
+  } else if (!strcmp(cmd, "OSCLI")) {
+    emulate_printf("OSCLI <string> [TO <variable>$]: give string to OS Command Line Interpreter.");
+  } else if (!strcmp(cmd, "OTHERWISE")) {
+    emulate_printf("Identifies case exceptional section at start of line. See CASE.");
+  } else if (!strcmp(cmd, "OVERLAY")) {
+    emulate_printf("OVERLAY <string array>: Not implemented in Matrix Brandy.\r\n");
+  } else if (!strcmp(cmd, "PAGE")) {
+    emulate_printf("This pseudo-variable reads or sets the address of the start of the program.");
+  } else if (!strcmp(cmd, "PI")) {
+    emulate_printf("This function gives the value of 'pi' 3.1415926535.");
+  } else if (!strcmp(cmd, "PLOT")) {
+    emulate_printf("PLOT n,x,y: graphics operation n.");
+  } else if (!strcmp(cmd, "POINT")) {
+    emulate_printf("POINT [BY] x,y: set pixel at [relative to] x,y.\r\nPOINT TO x,y: Not supported.");
+  } else if (!strcmp(cmd, "POINT(")) {
+    emulate_printf("POINT(x,y): function gives the logical colour number of the pixel at x, y.");
+  } else if (!strcmp(cmd, "POS")) {
+    emulate_printf("This function gives the x-coordinate of the text cursor.");
+  } else if (!strcmp(cmd, "PRINT")) {
+    emulate_printf("PRINT ['|TAB|SPC][\"display string\"][<expression>][;] print items in fields\r\ndefined by @% - see HELP @%\r\nPRINT#<channel>,<list of expressions>: print data to open file.");
+  } else if (!strcmp(cmd, "PROC")) {
+    emulate_printf("Call a procedure with PROCfred(x,y); define one with DEF PROCfred(a,b).");
+  } else if (!strcmp(cmd, "PTR")) {
+    emulate_printf("This function gives the position in a file: PTR#<channel>.\r\nPTR#<channel>=<expression> sets the position in a file.");
+  } else if (!strcmp(cmd, "QUIT")) {
+    emulate_printf("QUIT [<expression>]: leave the interpreter (passing optional return code\r\n<expression>).\r\nAs a function QUIT gives TRUE if BASIC was entered with a -quit option.");
+  } else if (!strcmp(cmd, "RAD")) {
+    emulate_printf("This function gives the value in radians of a number in degrees.");
+  } else if (!strcmp(cmd, "READ")) {
+    emulate_printf("READ <list of variables>: read the variables in turn from DATA statements.");
+  } else if (!strcmp(cmd, "RECTANGLE")) {
+    emulate_printf("RECTANGLE [FILL] xlo,ylo,width[,height] [TO xlo,ylo]:\r\nDraw a rectangle outline [solid] or copy [move] the rectangle.");
+  } else if (!strcmp(cmd, "REM")) {
+    emulate_printf("Ignores rest of line.");
+  } else if (!strcmp(cmd, "RENUMBER")) {
+    emulate_printf("This command renumbers the lines in the program:\r\nRENUMBER [<base number>[,<step size>]]");
+  } else if (!strcmp(cmd, "REPEAT")) {
+    emulate_printf("REPEAT: start of REPEAT..UNTIL structure; statement delimiter not required.");
+  } else if (!strcmp(cmd, "REPORT")) {
+    emulate_printf("REPORT: print last error message.\r\nREPORT$ function gives string of last error string.");
+  } else if (!strcmp(cmd, "RESTORE")) {
+    emulate_printf("RESTORE [+][<number>]: restore the data pointer to first or given line, or move\r\nforward <number> lines from the start of the next line.\r\nRESTORE DATA: restore DATA pointer from stack.\r\nRESTORE ERROR: restore error control status from stack.");
+  } else if (!strcmp(cmd, "RETURN")) {
+    emulate_printf("End of subroutine. See GOSUB");
+  } else if (!strcmp(cmd, "RIGHT$(")) {
+    emulate_printf("RIGHT$(<string>,<number>): gives rightmost number of characters from string.\r\nRIGHT$(<string>): gives rightmost character.\r\nRIGHT$(<string variable>[,<count>])=<string>: overwrite characters at end.");
+  } else if (!strcmp(cmd, "RND")) {
+    emulate_printf("RND: function gives a random integer.\r\nRND(n) where n<0: initialise random number generator based on n.\r\nRND(0): last RND(1) value.\r\nRND(1): random real 0..1.\r\nRND(n) where n>1: random value between 1 and INT(n).");
+  } else if (!strcmp(cmd, "RUN")) {
+    emulate_printf("Clear variables and start execution at beginning of program.");
+  } else if (!strcmp(cmd, "SAVE")) {
+    emulate_printf("This command saves the current program.");
+  } else if (!strcmp(cmd, "SGN")) {
+    emulate_printf("This function gives the values -1, 0, 1 for negative, zero, positive numbers.");
+  } else if (!strcmp(cmd, "SIN")) {
+    emulate_printf("This function gives the sine of a number (<factor>).");
+  } else if (!strcmp(cmd, "SOUND")) {
+    emulate_printf("SOUND <channel>,<amplitude>,<pitch>,<duration>[,<start beat>]: make a sound.\r\nSOUND ON|OFF: enable|disable sounds.\r\nThis command does nothing in Matrix Brandy.");
+  } else if (!strcmp(cmd, "SPC")) {
+    emulate_printf("In PRINT or INPUT statements, prints out n spaces: PRINT SPC(10).");
+  } else if (!strcmp(cmd, "SQR")) {
+    emulate_printf("This function gives the square root of a number (<factor>).");
+  } else if (!strcmp(cmd, "STEP")) {
+    emulate_printf("Part of the FOR..TO..STEP structure.");
+  } else if (!strcmp(cmd, "STEREO")) {
+    emulate_printf("STEREO <channel>,<position>: set the stereo position for a channel.\r\nThis command does nothing in Matrix Brandy.");
+  } else if (!strcmp(cmd, "STOP")) {
+    emulate_printf("Stop program.");
+  } else if (!strcmp(cmd, "STR$")) {
+    emulate_printf("STR$[~]<number>: gives string representation [in hex] of a number (<factor>).");
+  } else if (!strcmp(cmd, "STRING$(")) {
+    emulate_printf("STRING$(<number>,<string>): gives string replicated the number of times.");
+  } else if (!strcmp(cmd, "SUM")) {
+    emulate_printf("This function gives the sum of all elements in an array.\r\nSUMLEN gives the total length of all elements of a string array.");
+  } else if (!strcmp(cmd, "SWAP")) {
+    emulate_printf("SWAP <variable>,<variable>: exchange the contents.");
+  } else if (!strcmp(cmd, "SYS")) {
+    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nIn Matrix Brandy, only built-in functionality is supported.");
+  } else if (!strcmp(cmd, "TAB(")) {
+    emulate_printf("In PRINT or INPUT statements:\r\nTAB to column n: PRINT TAB(10)s$.\r\nTAB to screen position x,y: PRINT TAB(10,20)s$.");
+  } else if (!strcmp(cmd, "TAN")) {
+    emulate_printf("This function gives the tangent of a number (<factor>).");
+  } else if (!strcmp(cmd, "TEMPO")) {
+    emulate_printf("TEMPO <expression>: set the sound microbeat tempo.\r\nAs a function TEMPO gives the current microbeat tempo.\r\nThis does nothing in Matrix Brandy and as a function returns 0.");
+  } else if (!strcmp(cmd, "TEXTLOAD")) {
+    emulate_printf("This command loads a new program, converting from text form if required.");
+  } else if (!strcmp(cmd, "TEXTSAVE")) {
+    emulate_printf("This command saves the current program as text [with a LISTO option].\r\nTEXTSAVE[O <expression>,] <string>");
+  } else if (!strcmp(cmd, "THEN")) {
+    emulate_printf("Part of the IF..THEN structure. If THEN is followed by a newline it introduces a\r\nmulti-line structured IF..THEN..ELSE..ENDIF.");
+  } else if (!strcmp(cmd, "TIME")) {
+    emulate_printf("This pseudo-variable reads or sets the computational real time clock.\r\nTIME$ reads the display version of the clock. Setting TIME$ is ignored.");
+  } else if (!strcmp(cmd, "TINT")) {
+    emulate_printf("TINT a,t: set the tint for COLOUR|GCOL|fore|back a to t in 256 colour modes.\r\nAlso available as a suffix to GCOL and COLOUR.\r\nAs a function TINT(x,y) gives the tint of a point in 256 colour modes.");
+  } else if (!strcmp(cmd, "TO")) {
+    emulate_printf("Part of FOR..TO...");
+  } else if (!strcmp(cmd, "TOP")) {
+    emulate_printf("This function gives the address of the end of the program.");
+  } else if (!strcmp(cmd, "TRACE")) {
+    emulate_printf("TRACE [STEP] ON|OFF|PROC|FN|ENDPROC|<number>: trace [in single step mode] on or\r\noff, or procedure and function calls, or procedure/function exit points, or\r\nlines below <number>.\r\nTRACE TO <string>: send all output to stream <string>\r\nTRACE CLOSE: close stream output. Expression: TRACE gives handle of the stream.");
+  } else if (!strcmp(cmd, "TRUE")) {
+    emulate_printf("This function gives the logical value 'true' i.e. -1.");
+  } else if (!strcmp(cmd, "UNTIL")) {
+    emulate_printf("UNTIL <expression>: end of REPEAT..UNTIL structure.");
+  } else if (!strcmp(cmd, "USR")) {
+    emulate_printf("This function gives the value returned by a machine code routine.\r\nIn Matrix Brandy, only calls to selected BBC Micro OS vectors are supported.");
+  } else if (!strcmp(cmd, "VAL")) {
+    emulate_printf("This function gives the numeric value of a textual string e.g. VAL\"23\".");
+  } else if (!strcmp(cmd, "VDU")) {
+    emulate_printf("VDU <number>[;|][,<number>[;|]]: list of values to be sent to vdu.\r\n, only - 8 bits.\r\n; 16 bits.\r\n| 8 bytes of zeroes.\r\nAs a function VDU x gives the value of the specified vdu variable.");
+  } else if (!strcmp(cmd, "VOICE")) {
+    emulate_printf("VOICE <channel>,<string>: assign a named sound algorithm to the voice channel.\r\nThis command does nothing in Matrix Brandy.");
+  } else if (!strcmp(cmd, "VOICES")) {
+    emulate_printf("VOICES <expression>: set the number of sound voice channels.\r\nThis command does nothing in Matrix Brandy.");
+  } else if (!strcmp(cmd, "VPOS")) {
+    emulate_printf("This function gives the y-coordinate of the text cursor.");
+  } else if (!strcmp(cmd, "WAIT")) {
+    emulate_printf("Wait for vertical sync.\r\nWAIT n: pause for n centiseconds.");
+  } else if (!strcmp(cmd, "WHEN")) {
+    emulate_printf("WHEN <expression>[,<expression>]^: identifies case section at start of line.\r\nSee CASE.");
+  } else if (!strcmp(cmd, "WHILE")) {
+    emulate_printf("WHILE <expression>: start of WHILE..ENDWHILE structure.");
+  } else if (!strcmp(cmd, "WIDTH")) {
+    emulate_printf("WIDTH <expression>: set width of output.");
+  } else if (!strcmp(cmd, "@%")) {
+    emulate_printf("This pseudo-variable reads or sets the number print format:\r\nPRINT @% gives a number, but LVAR and @%= use strings\r\n\"G<number>.<number>\" general format field and number of digits\r\n\"E<number>.<number>\" exponent format field and number of digits\r\n\"F<number>.<number>\" fixed format field and number of digits after '.'\r\nAll parts optional. , or . in the above prints , or . as the decimal point.\r\nLeading + means @% applies to STR$ also.");
+  } else if (!strcmp(cmd, ".")) {
+    emulate_printf("Help is available on the following keywords:\r\n\
+ABS       ACS       ADVAL     AND       ASC       ASN       ATN       AUTO\r\n\
+APPEND    BEAT      BEATS     BGET      BPUT      CALL      CASE      CHAIN\r\n\
+CHR$      CIRCLE    CLEAR     CLG       CLOSE     CLS       COLOUR    COLOR\r\n\
+COS       COUNT     CRUNCH    DATA      DEF       DEG       DELETE    DIM\r\n\
+DIV       DRAW      EDIT      ELLIPSE   ELSE      END       ENDCASE   ENDIF\r\n\
+ENDPROC   ENDWHILE  ENVELOPE  EOF       EOR       ERL       ERR       ERROR\r\n\
+EVAL      EXP       EXT       FALSE     FILL      FN        FOR       GCOL\r\n\
+GET       GET$      GOSUB     GOTO      HELP      HIMEM     IF        INKEY\r\n\
+INKEY$    INPUT     INSTALL   INSTR(    INT       LEFT$(    LEN       LET\r\n\
+LIBRARY   LINE      LIST      LN        LOAD      LOCAL     LOG       LOMEM\r\n\
+LVAR      MID$(     MOD       MODE      MOUSE     MOVE      NEXT      NEW\r\n\
+NOT       OF        OFF       OLD       ON        OPENIN    OPENOUT   OPENUP\r\n\
+OR        ORIGIN    OSCLI     OTHERWISE OVERLAY   PAGE      PI        PLOT\r\n\
+POINT     POINT(    POS       PRINT     PROC      PTR       QUIT      RAD\r\n\
+READ      RECTANGLE REM       RENUMBER  REPEAT    REPORT    RESTORE   RETURN\r\n\
+RIGHT$(   RND       RUN       SAVE      SGN       SIN       SOUND     SPC\r\n\
+SQR       STEP      STEREO    STOP      STR$      STRING$(  SUM       SWAP\r\n\
+SYS       TAB(      TAN       TEMPO     TEXTLOAD  TEXTSAVE  THEN      TIME\r\n\
+TINT      TO        TOP       TRACE     TRUE      UNTIL     USR       VAL\r\n\
+VDU       VOICE     VOICES    VPOS      WAIT      WHEN      WHILE     WIDTH");
+  } else {
+    emulate_printf("\r\nNo help available for '%s'", cmd);
+  }
+  emulate_printf("\r\n");
+}
+#endif

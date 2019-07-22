@@ -217,7 +217,7 @@ extern void set_error(void);
 extern void set_local_error(void);
 extern void clear_error(void);
 extern void show_help(void);
-extern void show_options(void);
+extern void show_options(int32);
 extern void announce(void);
 
 #endif

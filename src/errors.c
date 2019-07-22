@@ -248,7 +248,7 @@ void announce(void) {
 ** 'show_options' prints some information on the program and the listing
 ** and debugging options in effect
 */
-void show_options(void) {
+void show_options(int32 showextra) {
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("%s\r\n  Git commit %s on branch %s (%s)\r\n\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #else
@@ -260,20 +260,22 @@ void show_options(void) {
    basicvars.page - basicvars.offbase, basicvars.top - basicvars.page,
    basicvars.lomem - basicvars.offbase, basicvars.vartop - basicvars.lomem,
    basicvars.himem - basicvars.vartop);
-  emulate_printf("\r\nLISTO options in effect:\r\n");
-  emulate_printf("  Indent statements:                %s\r\n", basicvars.list_flags.indent ? "Yes" : "No");
-  emulate_printf("  Do not show line number:          %s\r\n", basicvars.list_flags.noline ? "Yes" : "No");
-  emulate_printf("  Insert space after line number:   %s\r\n", basicvars.list_flags.space ? "Yes" : "No");
-  emulate_printf("  Split lines at colon:             %s\r\n", basicvars.list_flags.split ? "Yes" : "No");
-  emulate_printf("  Show keywords in lower case:      %s\r\n", basicvars.list_flags.lower ? "Yes" : "No");
-  emulate_printf("  Pause after showing 20 lines:     %s\r\n", basicvars.list_flags.showpage ? "Yes" : "No");
-  emulate_printf("\nTRACE debugging options in effect:\r\n");
-  emulate_printf("  Show numbers of lines executed:   %s\r\n", basicvars.traces.lines ? "Yes" : "No");
-  emulate_printf("  Show PROCs and FNs entered/left:  %s\r\n", basicvars.traces.procs ? "Yes" : "No");
-  emulate_printf("  Pause before each statement:      %s\r\n", basicvars.traces.pause ? "Yes" : "No");
-  emulate_printf("  Show lines branched from/to:      %s\r\n", basicvars.traces.branches ? "Yes" : "No");
-  emulate_printf("  Show PROC/FN call trace on error: %s\r\n\n", basicvars.traces.backtrace ? "Yes" : "No");
-  if (basicvars.tracehandle != 0) emulate_printf("Trace output is being written to a file\r\n\n");
+  if (showextra) {
+    emulate_printf("\r\nLISTO options in effect:\r\n");
+    emulate_printf("  Indent statements:                %s\r\n", basicvars.list_flags.indent ? "Yes" : "No");
+    emulate_printf("  Do not show line number:          %s\r\n", basicvars.list_flags.noline ? "Yes" : "No");
+    emulate_printf("  Insert space after line number:   %s\r\n", basicvars.list_flags.space ? "Yes" : "No");
+    emulate_printf("  Split lines at colon:             %s\r\n", basicvars.list_flags.split ? "Yes" : "No");
+    emulate_printf("  Show keywords in lower case:      %s\r\n", basicvars.list_flags.lower ? "Yes" : "No");
+    emulate_printf("  Pause after showing 20 lines:     %s\r\n", basicvars.list_flags.showpage ? "Yes" : "No");
+    emulate_printf("\nTRACE debugging options in effect:\r\n");
+    emulate_printf("  Show numbers of lines executed:   %s\r\n", basicvars.traces.lines ? "Yes" : "No");
+    emulate_printf("  Show PROCs and FNs entered/left:  %s\r\n", basicvars.traces.procs ? "Yes" : "No");
+    emulate_printf("  Pause before each statement:      %s\r\n", basicvars.traces.pause ? "Yes" : "No");
+    emulate_printf("  Show lines branched from/to:      %s\r\n", basicvars.traces.branches ? "Yes" : "No");
+    emulate_printf("  Show PROC/FN call trace on error: %s\r\n\n", basicvars.traces.backtrace ? "Yes" : "No");
+    if (basicvars.tracehandle != 0) emulate_printf("Trace output is being written to a file\r\n\n");
+  }
 }
 
 void show_help(void) {
