@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fix intermittent crash when execution hits a DEF statement.
 - Added a run-time switchable setting for INT() whether it can process
   numbers out of range of a 32-bit int data type. Default is off.
+- Implement the AUTO command.
 
 * V1.21.21 - 08 July 2019
 - Centisecond timer polling hived off to its own thread, as polling it every
