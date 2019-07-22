@@ -799,7 +799,6 @@ static void exec_crunch(void) {
 static void exec_auto(void) {
   int32 lineno = 10, linestep = 10;
   boolean ok;
-  /* We could borrow from alter_line(), perhaps? */
   basicvars.current++;
   if (!isateol(basicvars.current)) {
     lineno = get_number();
@@ -809,7 +808,6 @@ static void exec_auto(void) {
     }
   }
   while (1) { /* ESCAPE will interrupt */
-    fprintf(stderr, "lineno=%d, linestep=%d\n", lineno, linestep);
     if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
     if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
     if (lineno<0 || lineno>MAXLINENO) error(ERR_LINENO);
