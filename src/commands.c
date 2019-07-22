@@ -701,7 +701,7 @@ static void invoke_editor(void) {
 }
 
 /*
-** 'amend_line' is called to alter one line in a program by copying
+** 'alter_line' is called to alter one line in a program by copying
 ** it to the input buffer so that it can be edited there
 ** One point to watch out for here is that this code overwrites the
 ** existing contents of 'thisline' (this contains the 'EDIT <line>'
@@ -796,6 +796,34 @@ static void exec_crunch(void) {
   check_ateol();
 }
 
+static void exec_auto(void) {
+  int32 lineno = 10, linestep = 10;
+  boolean ok;
+  /* We could borrow from alter_line(), perhaps? */
+  basicvars.current++;
+  if (!isateol(basicvars.current)) {
+    lineno = get_number();
+    basicvars.current++;
+    if (!isateol(basicvars.current)) {
+      linestep = get_number();
+    }
+  }
+  while (1) { /* ESCAPE will interrupt */
+    fprintf(stderr, "lineno=%d, linestep=%d\n", lineno, linestep);
+    if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
+    if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+    if (lineno<0 || lineno>MAXLINENO) error(ERR_LINENO);
+
+    emulate_printf("%5d ",lineno);
+    sprintf(basicvars.stringwork, "%5d", lineno);
+    ok = amend_line(basicvars.stringwork+5, MAXSTATELEN);
+    if (!ok) error(ERR_ESCAPE);
+    tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
+    edit_line();
+    lineno += linestep;
+  }
+}
+
 /*
 ** 'exec_command' handles all the Basic statement types that are normally
 ** only run as immediate commands. Commands that modify the program such
@@ -861,6 +889,9 @@ void exec_command(void) {
     break;
   case TOKEN_CRUNCH:
     exec_crunch();
+    break;
+  case TOKEN_AUTO:
+    exec_auto();
     break;
   default:
     error(ERR_UNSUPSTATE);
