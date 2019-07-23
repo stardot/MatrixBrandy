@@ -1,6 +1,7 @@
 /*
 ** This file is part of the Matrix Brandy Basic VI Interpreter.
 ** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2014 Jonathan Harston
 ** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
