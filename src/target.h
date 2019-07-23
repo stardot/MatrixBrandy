@@ -30,9 +30,9 @@
 
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
-#define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "21"
-#define BRANDY_DATE  "8 Jul 2019"
+#define BRANDY_MINOR "22"
+#define BRANDY_PATCHLEVEL "0"
+#define BRANDY_DATE  "23 Jul 2019"
 
 #ifndef __target_h
 #define __target_h
