@@ -1086,6 +1086,8 @@ static void detailed_help(char *cmd) {
     emulate_printf("Draw a line: LINE x1,y1,x2,y2\r\nPart of INPUT LINE or LINE INPUT statement.");
   } else if (!strcmp(cmd, "LIST")) {
     emulate_printf("This command lists the program.\r\nLIST [<line number>][,[<line number]]: List [section of] program.\r\nLISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
+  } else if (!strcmp(cmd, "LISTIF")) {
+    emulate_printf("LISTIF <pattern>: lists lines of the program that match <pattern>.");
   } else if (!strcmp(cmd, "LN")) {
     emulate_printf("This function gives the natural logarithm (base e) of a number(<factor>).");
   } else if (!strcmp(cmd, "LOAD")) {
@@ -1145,9 +1147,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "PLOT")) {
     emulate_printf("PLOT n,x,y: graphics operation n.");
   } else if (!strcmp(cmd, "POINT")) {
-    emulate_printf("POINT [BY] x,y: set pixel at [relative to] x,y.\r\nPOINT TO x,y: Not supported.");
-  } else if (!strcmp(cmd, "POINT(")) {
-    emulate_printf("POINT(x,y): function gives the logical colour number of the pixel at x, y.");
+    emulate_printf("POINT [BY] x,y: set pixel at [relative to] x,y.\r\nPOINT TO x,y: Not supported.\r\nPOINT(x,y): function gives the logical colour number of the pixel at x, y.");
   } else if (!strcmp(cmd, "POS")) {
     emulate_printf("This function gives the x-coordinate of the text cursor.");
   } else if (!strcmp(cmd, "PRINT")) {
@@ -1269,11 +1269,11 @@ ENDPROC   ENDWHILE  ENVELOPE  EOF       EOR       ERL       ERR       ERROR\r\n\
 EVAL      EXP       EXT       FALSE     FILL      FN        FOR       GCOL\r\n\
 GET       GET$      GOSUB     GOTO      HELP      HIMEM     IF        INKEY\r\n\
 INKEY$    INPUT     INSTALL   INSTR(    INT       LEFT$(    LEN       LET\r\n\
-LIBRARY   LINE      LIST      LN        LOAD      LOCAL     LOG       LOMEM\r\n\
-LVAR      MID$(     MOD       MODE      MOUSE     MOVE      NEXT      NEW\r\n\
-NOT       OF        OFF       OLD       ON        OPENIN    OPENOUT   OPENUP\r\n\
-OR        ORIGIN    OSCLI     OTHERWISE OVERLAY   PAGE      PI        PLOT\r\n\
-POINT     POINT(    POS       PRINT     PROC      PTR       QUIT      RAD\r\n\
+LIBRARY   LINE      LIST      LISTIF    LN        LOAD      LOCAL     LOG\r\n\
+LOMEM     LVAR      MID$(     MOD       MODE      MOUSE     MOVE      NEXT\r\n\
+NEW       NOT       OF        OFF       OLD       ON        OPENIN    OPENOUT\r\n\
+OPENUP    OR        ORIGIN    OSCLI     OTHERWISE OVERLAY   PAGE      PI\r\n\
+PLOT      POINT     POS       PRINT     PROC      PTR       QUIT      RAD\r\n\
 READ      RECTANGLE REM       RENUMBER  REPEAT    REPORT    RESTORE   RETURN\r\n\
 RIGHT$(   RND       RUN       SAVE      SGN       SIN       SOUND     SPC\r\n\
 SQR       STEP      STEREO    STOP      STR$      STRING$(  SUM       SWAP\r\n\
