@@ -374,6 +374,9 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_Brandy_INTusesFloat:
         matrixflags.int_uses_float = inregs[0];
       break;
+    case SWI_Brandy_LegacyIntMaths:
+        matrixflags.legacyintmaths = inregs[0];
+      break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;

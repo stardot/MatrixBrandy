@@ -524,6 +524,7 @@ typedef struct {
   FILE *dospool;			/* Are we doing a *SPOOL / *SPOOLON? */
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
   uint32 int_uses_float;		/* Does INT() use floats? */
+  uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer */
   uint32 modescreen_sz;			/* Mode screen size */

@@ -66,8 +66,6 @@
 
 #define OPSTACKMARK 0			/* 'Operator' used as sentinel at the base of the operator stack */
 
-#define MATHINFLOAT 1			/* Promote ints to floats for basic maths functions. Comment out to disable */
-
 static float64 floatvalue;		/* Temporary for holding floating point values */
 
 /*
@@ -1279,12 +1277,12 @@ static void eval_ivplus(void) {
   int32 rhint = pop_int();	/* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {
-#ifdef MATHINFLOAT
-    push_float(TOFLOAT(pop_int())); /* Replace int on stack with equivalent float */
-    INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
-#else
-    INCR_INT(rhint);		/* int+int - Update value on stack in place */
-#endif
+    if (matrixflags.legacyintmaths) {
+      INCR_INT(rhint);		/* int+int - Update value on stack in place */
+    } else {
+      push_float(TOFLOAT(pop_int())); /* Replace int on stack with equivalent float */
+      INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
+    }
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
@@ -1607,12 +1605,12 @@ static void eval_ivminus(void) {
   int32 rhint = pop_int();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
-#ifdef MATHINFLOAT
-    push_float(TOFLOAT(pop_int())); /* Replace int on stack with equivalent float */
-    DECR_FLOAT(TOFLOAT(rhint));
-#else
-    DECR_INT(rhint);
-#endif
+    if (matrixflags.legacyintmaths) {
+      DECR_INT(rhint);
+    } else {
+      push_float(TOFLOAT(pop_int())); /* Replace int on stack with equivalent float */
+      DECR_FLOAT(TOFLOAT(rhint));
+    }
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
@@ -1809,29 +1807,30 @@ static void eval_ivmul(void) {
   stackitem lhitem;
   int32 rhint = pop_int();
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
-    int32 lhint = pop_int();
-#ifdef MATHINFLOAT
-    push_float(TOFLOAT(lhint));
-    lhitem = STACK_FLOAT;
-  }
-#else
-    if (CAST(lhint|rhint, uint32)<0x8000u) {	/* Result can be represented in thirty two bits */
-      PUSH_INT(lhint*rhint);
-    }
-    else {	/* Result may overflow thirty two bits - Use floating point multiply */
-      floatvalue = TOFLOAT(lhint)*TOFLOAT(rhint);
-      if (fabs(floatvalue) <= TOFLOAT(MAXINTVAL)) {	/* If in range, convert back to integer */
-        PUSH_INT(TOINT(floatvalue));
+  if (matrixflags.legacyintmaths) {
+    if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
+      int32 lhint = pop_int();
+      if (CAST(lhint|rhint, uint32)<0x8000u) {	/* Result can be represented in thirty two bits */
+	PUSH_INT(lhint*rhint);
       }
-      else {
-        error(ERR_RANGE);	/* I'd prefer to just convert the value to floating point */
-        PUSH_FLOAT(floatvalue);	/* This PUSH_FLOAT will never be executed but is what is needed for this */
+      else {	/* Result may overflow thirty two bits - Use floating point multiply */
+	floatvalue = TOFLOAT(lhint)*TOFLOAT(rhint);
+	if (fabs(floatvalue) <= TOFLOAT(MAXINTVAL)) {	/* If in range, convert back to integer */
+          PUSH_INT(TOINT(floatvalue));
+	}
+	else {
+          error(ERR_RANGE);	/* I'd prefer to just convert the value to floating point */
+          PUSH_FLOAT(floatvalue);	/* This PUSH_FLOAT will never be executed but is what is needed for this */
+	}
       }
     }
+  } else {
+    if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
+      int32 lhint = pop_int();
+      push_float(TOFLOAT(lhint));
+      lhitem = STACK_FLOAT;
+    }
   }
-  else
-#endif
   if (lhitem == STACK_FLOAT)
     push_float(pop_float()*TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */

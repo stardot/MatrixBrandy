@@ -181,6 +181,7 @@ static void init1(void) {
   matrixflags.doexec = NULL;		/* We're not doing a *EXEC to begin with */
   matrixflags.failovermode = 255;	/* Report Bad Mode on unavailable screen mode */
   matrixflags.int_uses_float = 0;	/* Does INT() use floats? Default no = RISC OS and BBC behaviour */
+  matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
 
 /*
  * Add dummy first parameter for Basic program command line.

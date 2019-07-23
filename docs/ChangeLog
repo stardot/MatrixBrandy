@@ -1,7 +1,11 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.0
+* V1.22.1
+- Make the old BASIC I-IV compatible integer mathematics available via a
+  run-time switchable setting.
+
+* V1.22.0 - 23 July 2019
 - Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which
   is what Brandy has always done)
 - *SPOOL and *SPOOLON implemented.
