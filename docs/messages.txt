@@ -791,16 +791,16 @@ This error message indicates that there is a syntax error in an
 arithmetic expression. The interpreter has found something that
 cannot be used as an operand.
 
-(Fatal)  Unsupported Basic V feature found
-------------------------------------------
+(Fatal)  Unsupported Basic V/VI feature found
+---------------------------------------------
 This message says that the interpreter has come across a version
-or feature of a Basic V statement that it does not support, for
+or feature of a Basic V/VI statement that it does not support, for
 example, the USR function can only be used for certain specific
-purposes and anything else results in this error being flagged. 
+purposes and anything else results in this error being flagged.
 
-(Fatal)  Unsupported Basic V statement type found
--------------------------------------------------
-The interpreter does not support all of the Basic V statements,
+(Fatal)  Unsupported Basic V/VI statement type found
+----------------------------------------------------
+The interpreter does not support all of the Basic V/VI statements,
 for example, the OVERLAY statement is not supported.
 
 (Warning)  Value entered is not a legal token value

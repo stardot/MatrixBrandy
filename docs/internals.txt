@@ -1090,7 +1090,7 @@ priority and the index value to use for the operator in opfunctions. An optable
 entry of zero means that the token is not an operator and indicates that the
 end of the expression has been reached.
 
-The only 'nasty' in the expression code is that Basic V does not allow the
+The only 'nasty' in the expression code is that BASIC V/VI does not allow the
 comparision and shift operators to be chained together, that is, expressions
 such as:
 
@@ -1103,7 +1103,7 @@ with the priority of comparison operators) in expression().
 
 Indirection Operators
 ---------------------
-The interpreter fully supports the Basic V indirection operators. To protect
+The interpreter fully supports the BASIC V/VI indirection operators. To protect
 the integrity of the interpreter and for security the address range they can
 point to is restricted to the Basic workspace. They can be used to read any
 location in the workspace but can only write to the Basic heap, that is, from

@@ -25,8 +25,8 @@ Contents
 
 Introduction
 ~~~~~~~~~~~~
-Matrix Brandy is a Basic V interpreter. It is source code compatible with
-Acorn's Basic V interpreter and runs under a number of different operating
+Matrix Brandy is a Basic VI interpreter. It is source code compatible with
+Acorn's Basic VI interpreter and runs under a number of different operating
 systems. It currently works with NetBSD (arm32 and i386), Linux (x86, z86-64
 and arm32) and Microsoft Windows. The aim of this project is to write a Basic
 interpreter that is compatible with the Acorn interpreter and that runs
@@ -39,15 +39,15 @@ a program except under RISC OS. The program is simply a Basic interpreter and
 that is all.
  
 These notes describe how to use the program and discuss differences between it
-and Acorn's interpreter. They also detail the extensions to Basic V that have
-been implemented and finish with some miscellaneous remarks about the program
-and a list of the known bugs.
+and Acorn's interpreter. They also detail the extensions to Basic V/VI that
+have been implemented and finish with some miscellaneous remarks about the
+program and a list of the known bugs.
 
 
 Copyright
 ~~~~~~~~~
-Brandy is copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels.
-Matrix Brandy modifications are copyright (C) 2018 Michael McConnell and
+Brandy is copyright (C) 2000-2014 David Daniels.
+Matrix Brandy modifications are copyright (C) 2018-2019 Michael McConnell and
 contributors.
 
 The program is distributed under the terms of the GNU GPL.
@@ -120,7 +120,7 @@ where <filename> is the optional name of the program to load and
 
 -ignore			Ignore certain 'unsupported feature' errors. By default
 			the interpreter reports an error whenever it comes
-			across a Basic V feature that it does not support. This
+			across a BASIC VI feature that it does not support. This
 			option allows some unsupported features that do not
 			affect the basic running of the program to be ignored.
 
@@ -215,7 +215,7 @@ The 'EDIT' command can be used to transfer a program into a text editor where
 it can be edited more easily.
 
 The file 'basic' contains more details of these commands and others as well as
-information on Basic V.
+information on Basic VI.
 
 
 Programs and Libraries
@@ -267,8 +267,8 @@ tokenised.
 Local Variables in Libraries
 ----------------------------
 It is possible for libraries to have variables and arrays that are private to
-that library. This is an extension to Basic V. These are covered in more detail
-below.
+that library. This is an extension to Basic VI. These are covered in more
+detail below.
 
 
 Differences Between Brandy and Acorn's Interpreter
@@ -926,7 +926,7 @@ There are three things a program can check to figure out what operating system
 is it running under:
 
 1)  Check the contents of !PAGE. If this is set to &D7C1C7C5 then the Basic
-    program is running under Brandy. This value is a constant. Other Basic V
+    program is running under Brandy. This value is a constant. Other Basic V/VI
     interpreters store a different value there, for example, ?PAGE on the Acorn
     interpreter returns &0D.
 
@@ -1160,8 +1160,8 @@ In short there is almost certainly a logic error in the interpreter. <x> and
 <y> give the line number and name of the module of the source code of the
 interpreter at which the problem was detected.
 
-Unsupported Basic V feature found
-Unsupported Basic V statement type found
+Unsupported Basic V/VI feature found
+Unsupported Basic V/VI statement type found
 
 The statement contains something that is not supported by this version of the
 interpreter. The most likely culprit is a graphics or sound statement. (It
@@ -1268,13 +1268,13 @@ Floating Point Number Formats
 Conclusion
 ~~~~~~~~~~
 It has been said that Basic is a poor language and that nobody seriously uses
-it. In my opinion Acorn's dialect, Basic V, is an excellent one and worth
-looking at. It has its faults and lacks any support for current practices such
-as object oriented programming. On the other hand the language is simple and
-the interpreter requires no special packages or additional libraries on the
-machine on which it runs. Basic V is easy to use and substantial programs can
-be written using it. It is good for small, one-off programs or for 
-experimenting. It can also make programming enjoyable again.
+it. In my opinion Acorn's dialect, BASIC V and BASIC VI, is an excellent one
+and worth looking at. It has its faults and lacks any support for current
+practices such as object oriented programming. On the other hand the language
+is simple and the interpreter requires no special packages or additional
+libraries on the machine on which it runs. BASIC V/VI is easy to use and
+substantial programs can be written using it. It is good for small, one-off
+programs or for experimenting. It can also make programming enjoyable again.
 
 This program is a work in progress. It seems to be quite stable but plenty of
 bugs still lurk. They are many rough edges and a number of minor features have

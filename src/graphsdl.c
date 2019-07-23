@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** SDL additions by Colin Tuckley
 **
@@ -3217,7 +3218,7 @@ boolean init_screen(void) {
   write_vduflag(MODE7_UPDATE,1);
   write_vduflag(MODE7_UPDATE_HIGHACC,1);
   xgupp = ygupp = 1;
-  SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
+  SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   setup_mode(0);

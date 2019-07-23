@@ -1,5 +1,5 @@
-Mode 7 support in Brandy BBC BASIC V
-====================================
+Mode 7 support in Brandy BASIC VI
+=================================
 As of version 1.21.2, MODE 7 is now running using a text buffer,
 which recalculates the line whenever a character in it is changed. This
 allows for existing lines to be modified with control codes, and existing

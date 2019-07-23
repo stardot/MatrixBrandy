@@ -2,6 +2,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 * V1.21.22
+- Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which
+  is what Brandy has always done)
 - *SPOOL and *SPOOLON implemented.
 - Fix integer overflows when converting from floats.
 - Fix intermittent crash when execution hits a DEF statement.
@@ -93,7 +95,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Mouse display behaviour changed - if fullscreen mode enabled, mouse is off
   upon mode change or startup; if windowed, mouse is on.
 - Telstar client now includes NXtel, and a new, more robust, mechanism of
-  calculating high-bit escaped characters, as NXtel did it differently to
+  calculating high-bit escaped characters, a
+  s NXtel did it differently to
   Telstar or CCl4.
 
 * V1.21.16 - 04 November 2018
