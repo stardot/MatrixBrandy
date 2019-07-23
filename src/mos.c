@@ -828,7 +828,7 @@ void mos_mouse(int32 values[]) {
 ** -12- other buffers
 */
 int32 mos_adval(int32 x) {
-  int32 inputvalues[4];
+  int32 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
 
   if((x>6) & (x<10)) {
     mos_mouse(inputvalues);
