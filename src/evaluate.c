@@ -1280,8 +1280,15 @@ static void eval_ivplus(void) {
     if (matrixflags.legacyintmaths) {
       INCR_INT(rhint);		/* int+int - Update value on stack in place */
     } else {
-      push_float(TOFLOAT(pop_int())); /* Replace int on stack with equivalent float */
-      INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
+      float64 lhfloat;
+      int32 lhint=pop_int();
+      lhfloat=TOFLOAT(lhint);
+      lhint += rhint;
+      lhfloat += TOFLOAT(rhint);
+      if (lhfloat == lhint)
+        push_int(lhint);
+      else
+        push_float(lhfloat);
     }
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
@@ -1608,8 +1615,15 @@ static void eval_ivminus(void) {
     if (matrixflags.legacyintmaths) {
       DECR_INT(rhint);
     } else {
-      push_float(TOFLOAT(pop_int())); /* Replace int on stack with equivalent float */
-      DECR_FLOAT(TOFLOAT(rhint));
+      float64 lhfloat;
+      int32 lhint=pop_int();
+      lhfloat=TOFLOAT(lhint);
+      lhint -= rhint;
+      lhfloat -= TOFLOAT(rhint);
+      if (lhfloat == lhint)
+        push_int(lhint);
+      else
+        push_float(lhfloat);
     }
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint));
@@ -1807,31 +1821,17 @@ static void eval_ivmul(void) {
   stackitem lhitem;
   int32 rhint = pop_int();
   lhitem = GET_TOPITEM;
-  if (matrixflags.legacyintmaths) {
-    if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
-      int32 lhint = pop_int();
-      if (CAST(lhint|rhint, uint32)<0x8000u) {	/* Result can be represented in thirty two bits */
-	PUSH_INT(lhint*rhint);
-      }
-      else {	/* Result may overflow thirty two bits - Use floating point multiply */
-	floatvalue = TOFLOAT(lhint)*TOFLOAT(rhint);
-	if (fabs(floatvalue) <= TOFLOAT(MAXINTVAL)) {	/* If in range, convert back to integer */
-          PUSH_INT(TOINT(floatvalue));
-	}
-	else {
-          error(ERR_RANGE);	/* I'd prefer to just convert the value to floating point */
-          PUSH_FLOAT(floatvalue);	/* This PUSH_FLOAT will never be executed but is what is needed for this */
-	}
-      }
-    }
-  } else {
-    if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
-      int32 lhint = pop_int();
-      push_float(TOFLOAT(lhint));
-      lhitem = STACK_FLOAT;
-    }
-  }
-  if (lhitem == STACK_FLOAT)
+  if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
+    float64 lhfloat;
+    int32 lhint = pop_int();
+    lhfloat=TOFLOAT(lhint);
+    lhint *= rhint;
+    lhfloat *= TOFLOAT(rhint);
+    if (lhfloat == lhint)
+      push_int(lhint);
+    else
+      push_float(lhfloat);
+  } else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
     basicarray *lharray;

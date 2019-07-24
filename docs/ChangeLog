@@ -4,6 +4,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.1
 - Make the old BASIC I-IV compatible integer mathematics available via a
   run-time switchable setting.
+- Integer addition and subtraction will now return integer if it fits, else a
+  float. (Legacy mode: unchanged, will always return an int, with wraparound).
+- Integer multiplication follows new code path at all times, old int-only
+  implementation didn't match any Acorn BBC BASIC version and is thus a bug.
 
 * V1.22.0 - 23 July 2019
 - Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which
