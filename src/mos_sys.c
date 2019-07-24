@@ -184,7 +184,11 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
   switch (swino) {
     case SWI_OS_WriteC:
       outregs[0]=inregs[0];
-      emulate_vdu(inregs[0] & 0xFF);
+      if ((inregs[1]==42) && (inregs[2]==42)) {
+        fprintf(stderr,"%c\r\n", inregs[0] & 0xFF);
+      } else {
+        emulate_vdu(inregs[0] & 0xFF);
+      }
       break;
     case SWI_OS_Write0: /* This is extended in Brandy - normally all args apart
 			   from R0 are ignored; in Brandy, if R1 and R2 are set

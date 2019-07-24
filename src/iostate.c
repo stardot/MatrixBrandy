@@ -1363,13 +1363,13 @@ static void print_screen(void) {
   if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
   switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
   case FORMAT_E:
-    leftfmt = "%.*e"; rightfmt = "%*.*e";
+    leftfmt = "%.*E"; rightfmt = "%*.*E";
     break;
   case FORMAT_F:
-    leftfmt = "%.*f"; rightfmt = "%*.*f";
+    leftfmt = "%.*F"; rightfmt = "%*.*F";
     break;
   default:	/* Assume anything else will be general format */
-    leftfmt = "%.*g"; rightfmt = "%*.*g";
+    leftfmt = "%.*G"; rightfmt = "%*.*G";
     break;
   }
   while (!ateol[*basicvars.current]) {

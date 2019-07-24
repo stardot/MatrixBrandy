@@ -259,6 +259,7 @@ The emulation functions are spread across the following modules:
 
 General emulation functions:
 	mos.c (mos.h)
+	mos_sys.c (mos_sys.h)
 
 Keyboard input:
 	keyboard.c (keyboard.h)
@@ -316,18 +317,24 @@ graphics support. Under operating systems other that RISC OS text
 output and graphics output are two entirely distinct things whereas
 under RISC OS they are combined.
 
-There are three versions of the screen output functions:
+There are four versions of the screen output functions:
 
 riscos.c
 This contains the functions used by the RISC OS version of the interpreter.
 They are really nothing more than prepackaged calls to RISC OS.
 
+simpletext.c
+This file is used in the 'sbrandy' version of the interpreter that does not
+include graphics support and it is meant to be suitable for use under any
+operating system. No translation of VDU calls is made (unlike textonly.c
+which translates some RISC OS codes to ANSI / conio).
+
 textonly.c
-This file is used in versions of the interpreter that do not include graphics
-support and it is meant to be suitable for use under any operating system
-except RISC OS. There are two versions of the functions here, one that uses
-ANSI control sequences and one that uses the DOS 'conio' library. The
-conio-based emulation is the more complete but it is tied to DOS. The ANSI-
+This file is used in the 'tbrandy' version of the interpreter that does not
+include graphics support and it is meant to be suitable for use under any
+operating system except RISC OS. There are two versions of the functions here,
+one that uses ANSI control sequences and one that uses the DOS 'conio' library.
+The conio-based emulation is the more complete but it is tied to DOS. The ANSI-
 based one can be used by Linux and NetBSD or by DOS but the emulation is
 limited.
 
@@ -363,8 +370,8 @@ this will probably be changed.
 
 Others
 ------
-The file 'mos.c' provides the emulation functions for things that are not
-covered by the above, for example, reading the date and time.
+The files 'mos.c' and 'mos_sys.c' provide the emulation functions for things
+that are not covered by the above, for example, reading the date and time.
 
 
 Supported Environments
@@ -1277,7 +1284,7 @@ directly on to the ARM processor's 'SWI' (Software Interrupt) instruction. It
 is envisaged that the SYS statement will also be used to make use of the
 facilities of operating systems other than RISC OS.  Currently, on non-RISC OS
 platforms, SYS is only minimally supported, primarily emulating some RISC OS
-functionality.
+functionality, and providing some functionality specific to Matrix Brandy.
 
 The format of the SYS statement is as follows:
 
