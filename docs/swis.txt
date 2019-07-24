@@ -41,7 +41,9 @@ OS_Mouse		Returns mouse state.
 
 OS_ReadModeVariable	Read a mode variable into R2.
 
-OS_ReadVduVariables	Read VDU variables into block pointed in R1.
+OS_ReadVduVariables	Read VDU variables requested in block pointed in R0
+			into block pointed in R1. R0 and R1 may point to the
+			same block.
 
 OS_ReadMonotonicTime	Return centisecond timer in R0.
 
@@ -52,6 +54,10 @@ OS_Plot			Executes a PLOT function. Note that this bypasses the
 OS_ScreenMode		Only R0=0,1,7,8,9,10 are supported.
 
 OS_WriteI block		(SWIs 256-511). Call by number.
+			Matrix Brandy extension:
+			   If R1 and R2 are both set to 42, the character is
+			   output to the controlling terminal on the stderr
+			   stream.
 
 ColourTrans_xxx
 ===============
@@ -59,6 +65,7 @@ ColourTrans_SetGCOL
 ColourTrans_GCOLToColourNumber
 ColourTrans_ColourNumberToGCOL
 ColourTrans_SetTextColour
+
 
 BRANDY-SPECIFIC CALLS
 =====================
@@ -115,6 +122,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				on integers. RISC OS ARM BBC BASIC VI, BB4W
 				and BBCSDL do not have this wrap-around issue
 				and will promote to float when needed.
+				R0=1 to enable, 0 to disable. Default: disabled.
 
 
 RaspberryPi_xxx (SWI numbers start &140100)
