@@ -742,6 +742,7 @@ void error(int32 errnumber, ...) {
   else {
     badline = find_linestart(basicvars.current);
     if (badline==NIL && basicvars.curcount>0) badline = find_linestart(basicvars.savedcur[0]);
+    basicvars.curcount = 0; /* otherwise the stack will eventually overflow */
     if (badline==NIL)   /* Error did not occur in program - Assume it was in the command line */
       basicvars.error_line = 0;
     else {      /* Error occured in running program */
