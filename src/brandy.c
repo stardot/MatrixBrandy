@@ -447,6 +447,7 @@ static void run_interpreter(void) {
     if (liblist!=NIL) load_libraries();
     if (loadfile!=NIL) {	/*  Name of program to load was given on command line */
       read_basic(loadfile);
+      init_expressions();
       strcpy(basicvars.program, loadfile);	/* Save the name of the file */
       if (basicvars.runflags.loadngo) run_program(basicvars.start);	/* Start program execution */
     }

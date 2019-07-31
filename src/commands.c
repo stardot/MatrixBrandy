@@ -516,10 +516,13 @@ static void load_program(void) {
   if (isateol(basicvars.current)) error(ERR_FILENAME);
   np = get_name();
   check_ateol();
+  clear_varptrs();
   clear_varlists();
   clear_strings();
   clear_heap();
+  clear_stack();
   read_basic(np);
+  init_expressions();
   strcpy(basicvars.program, basicvars.filename);
 }
 
