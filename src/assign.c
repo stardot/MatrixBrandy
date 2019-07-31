@@ -129,9 +129,9 @@ static void assign_intbyteptr(pointers address) {
   uint32 msx, msy, addr;
   uint32 value=0;
 
-  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    addr = address.offset - 0xFFFF7C00u;
+    addr = address.offset - matrixflags.mode7fb;
     if (addr >= 1000) {
       return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
     } else {
@@ -176,9 +176,9 @@ static void assign_intwordptr(pointers address) {
   uint32 loop, msx, msy, addr;
   uint32 value=0;
 
-  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFC) {
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1020)) {
     /* Mode 7 screen memory */
-    addr = address.offset - 0xFFFF7C00u;
+    addr = address.offset - matrixflags.mode7fb;
     if (addr >= 1000) {
       return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
     } else {
@@ -246,8 +246,8 @@ static void assign_dolstrptr(pointers address) {
   result = pop_string();
   check_write(address.offset, result.stringlen);
 #ifdef USE_SDL
-  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
-    addr = address.offset - 0xFFFF7C00u;
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
+    addr = address.offset - matrixflags.mode7fb;
     for(ptr=0; ptr<result.stringlen; ptr++) {
       msy = addr / 40;
       msx = addr % 40;

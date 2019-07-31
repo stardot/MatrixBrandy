@@ -353,6 +353,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       SDL_VideoDriverName(vptr, 64);
       outregs[2]=(matrixflags.modescreen_ptr - basicvars.offbase);
       outregs[3]=matrixflags.modescreen_sz;
+      outregs[4]=matrixflags.mode7fb;
 #else
      strncpy(vptr,"no_sdl",64);
 #endif

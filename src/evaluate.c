@@ -775,9 +775,9 @@ static void do_indrefvar(void) {
   if (operator == '?') {	/* Byte-sized integer */
     check_read(offset, sizeof(byte));
 #ifdef USE_SDL
-    if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFFu) {
+    if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
-      offset -= 0xFFFF7C00u;
+      offset -= matrixflags.mode7fb;
       if (offset >= 1000) {
 	push_int(0);
       } else {
@@ -794,9 +794,9 @@ static void do_indrefvar(void) {
   }
   else {		/* Word-sized integer */
 #ifdef USE_SDL
-    if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFCu) {
+    if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
-      offset -= 0xFFFF7C00u;
+      offset -= matrixflags.mode7fb;
       if (offset >= 1000) {
 	push_int(0);
       } else {
@@ -981,9 +981,9 @@ static void do_getbyte(void) {
   }
   check_read(offset, sizeof(byte));
 #ifdef USE_SDL
-  if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFFu) {
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset -= 0xFFFF7C00u;
+    offset -= matrixflags.mode7fb;
     if (offset >= 1000) {
       push_int(0);
     } else {
@@ -1019,9 +1019,9 @@ static void do_getword(void) {
     error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
-  if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFCu) {
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1020)) {
     /* Mode 7 screen memory */
-    offset -= 0xFFFF7C00u;
+    offset -= matrixflags.mode7fb;
     if (offset >= 1000) {
       push_int(0);
     } else {

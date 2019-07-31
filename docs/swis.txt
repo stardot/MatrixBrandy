@@ -91,6 +91,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				R1: Length of string in R0
 				R2: Offset pointer to screen memory base
 				R3: Size of screen memory.
+				R4: Base of MODE 7 frame buffer
 
 &140003 Brandy_SetFailoverMode	R0: Set mode to be selected should chosen screen
 				    mode be unavailable (instead of returning

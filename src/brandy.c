@@ -53,6 +53,7 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "miscprocs.h"
+#include "evaluate.h"
 #include "net.h"
 
 /* #define DEBUG */
@@ -233,6 +234,13 @@ static void init2(void) {
     cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
     exit(EXIT_FAILURE);
   }
+#ifdef USE_SDL
+  if (worksize && (worksize <= 0x7C00)) {
+    matrixflags.mode7fb = 0x7C00;
+  } else {
+    matrixflags.mode7fb = 0xFFFF7C00;
+  }
+#endif
   init_commands();
   init_fileio();
   clear_program();

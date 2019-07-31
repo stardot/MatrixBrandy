@@ -114,8 +114,8 @@ void check_read(uint32 low, uint32 size) {
   }
 #ifdef USE_SDL
   if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+  if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
 #endif
-  if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
 #endif
 }
@@ -166,7 +166,7 @@ void check_write(uint32 low, uint32 size) {
 
 #ifdef USE_SDL
   /* Mode 7 screen memory */
-  if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
+  if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
 #endif
 
 #else
