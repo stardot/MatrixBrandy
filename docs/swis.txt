@@ -126,32 +126,54 @@ Brandy_xxx  (SWI numbers start &140000)
 
 
 RaspberryPi_xxx (SWI numbers start &140100)
+ -- see also docs/raspi-gpio.txt
 
 &140100 RaspberryPi_GPIOInfo	Returns:
 				R0: 1 if available, 0 otherwise
 				R1: If available, memory-mapped I/O base.
 
 &140101 RaspberryPi_GetGPIOPortMode
-				R0 contains GPIO pin number
+				R0 contains GPIO port number
 				Returns:
-				R0 contains GPIO port mode
+				R0 contains GPIO port mode:
+					0: Input
+					1: Output
+					2: ALT5
+					3: ALT4
+					4: ALT0
+					5: ALT1
+					6: ALT2
+					7: ALT3
+
 
 &140102 RaspberryPi_SetGPIOPortMode
-				R0 contains GPIO pin number
-				R1 contains GPIO port mode
+				R0 contains GPIO port number
+				R1 contains GPIO port mode (as above).
 
 &140103 RaspberryPi_SetGPIOPortPullUpDownMode
-				R0 contains GPIO pin number
-				R1 contains GPIO Pull-Up/Pull-Down mode
+				R0 contains GPIO port number
+				R1 contains GPIO Pull-Up/Pull-Down mode:
+					0: Off
+					1: Down
+					2: Up
 
 &140104 RaspberryPi_ReadGPIOPort
-				R0 contains GPIO pin number
+				R0 contains GPIO port number
 				Returns:
-				R0 contains GPIO pin state
+				R0 contains GPIO port state
 
 &140105 RaspberryPi_WriteGPIOPort
-				R0 contains GPIO pin number
-				R1 contains GPIO pin state
+				R0 contains GPIO port number
+				R1 contains GPIO port state
 
-A few of the RISC OS GPIO module (SWI base &58F80) are also recognised.
+A few of the RISC OS GPIO module (SWI base &58F80) are also recognised:
+&58FBE GPIO_GetBoard
+  Returns board model code local to the module in R0,
+  the board type string in R1
+  and additionally, local to Brandy, the 32-bit model code from /proc/cpuinfo
+  into R2.
+&58F80 GPIO_ReadData: mapped to RaspberryPi_ReadGPIOPort
+&58F81 GPIO_WriteData: mapped to RaspberryPi_WriteGPIOPort
+&58F8F GPIO_ReadMode: mapped to RaspberryPi_GetGPIOPortMode
+&58F90 GPIO_WriteMode: mapped to RaspberryPi_SetGPIOPortMode
 

@@ -504,7 +504,7 @@ static detail errortable [] = {
 /* ERR_NOGZIP */	{FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
 /* WARN_FUNNYFLOAT */	{WARNING,  NOPARM,   0, "Warning: floating point number format is not known"},
 /* ERR_EMUCMDFAIL */	{NONFATAL, STRING,   0, "%s"},
-/* ERR_SWINAMENOTKNOWN */{NONFATAL, NOPARM, 486, "SWI name not known"},
+/* ERR_SWINAMENOTKNOWN*/{NONFATAL, NOPARM, 486, "SWI name not known"},
 /* ERR_SWINUMNOTKNOWN */{NONFATAL, INTEGER,486, "SWI &%X not known"},
 /* ERR_DIRNOTFOUND */	{NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
 /* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
@@ -522,13 +522,13 @@ static detail errortable [] = {
 /* ERR_BADSYNTAX */	{NONFATAL, STRING, 220, "Syntax: %s"},
 //
 // Network errors
-/* ERR_NET_CONNREFUSED */{NONFATAL, NOPARM, 246, "Connection refused"},
+/* ERR_NET_CONNREFUSED*/{NONFATAL, NOPARM, 246, "Connection refused"},
 /* ERR_NET_NOTFOUND */	{NONFATAL, NOPARM, 246, "Host not found"},
 /* ERR_NET_MAXSOCKETS */{NONFATAL, NOPARM, 246, "The maximum allowed number of sockets is already open"},
 /* ERR_NET_NOTSUPP */	{NONFATAL, NOPARM, 246, "Network operation not supported"},
 /* ERR_NO_RPI_GPIO */	{NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
 //
-/* HIGHERROR */	{NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
+/* HIGHERROR */		{NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
 };
 
 /*
