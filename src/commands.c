@@ -150,6 +150,13 @@ static void exec_new(void) {
     }
     error(WARN_NEWSIZE, basicvars.worksize);
   }
+#ifdef USE_SDL
+  if (basicvars.worksize && (basicvars.worksize <= 0x7C00)) {
+    matrixflags.mode7fb = 0x7C00;
+  } else {
+    matrixflags.mode7fb = 0xFFFF7C00;
+  }
+#endif
   clear_program();
   init_expressions();
 }

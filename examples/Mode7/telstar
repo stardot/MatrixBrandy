@@ -6,9 +6,9 @@
    60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
    70REM are from RISC OS 5.
    80:
-   90VER$="Viewdata client version 20190717"
+   90VER$="Viewdata client version 20190731"
   100:
-  110SYS "Brandy_GetVideoDriver" TO v$
+  110SYS "Brandy_GetVideoDriver" TO v$,,,,v%
   120IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
   130:
   140*FX229,1
@@ -87,7 +87,7 @@
   870DEFPROCdhscan
   880IFscan%=0ENDPROC
   890FOR N%=0 TO 22: FOR P%=0 TO 39
-  900IF ?(&FFFF7C00+(40*N%)+P%) = 141 THEN PROCcopyline: N%+=1
+  900IF ?(v%+(40*N%)+P%) = 141 THEN PROCcopyline: N%+=1
   910NEXT P%, N%
   920scan%=0
   930ENDPROC
@@ -95,7 +95,7 @@
   950DEFPROCcopyline
   960IF N% > 22 THEN ENDPROC
   970FOR P%=0 TO 36 STEP 4
-  980!(&FFFF7C00+(40*(N%+1))+P%) = !(&FFFF7C00+(40*N%)+P%)
+  980!(v%+(40*(N%+1))+P%) = !(v%+(40*N%)+P%)
   990NEXT P%
  1000ENDPROC
  1010:
@@ -112,12 +112,12 @@
  1120DEFPROCdumpscreen: REM For debug purposes, triggered on CTRL-P
  1130F$="vt."+STR$screen%+".header"
  1140Q%=OPENOUT F$
- 1150FOR P%=0 TO 39: B%=?(&FFFF7C00+P%)
+ 1150FOR P%=0 TO 39: B%=?(v%+P%)
  1160IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
  1170NEXT:CLOSE#Q%
  1180F$="vt."+STR$screen%+".body"
  1190Q%=OPENOUT F$
- 1200FOR P%=40 TO 959: B%=?(&FFFF7C00+P%)
+ 1200FOR P%=40 TO 959: B%=?(v%+P%)
  1210IF B% >= &A0 THEN BPUT#Q%,(B% AND &7F) ELSE BPUT#Q%, B%
  1220NEXT:CLOSE#Q%:screen%+=1
  1230ENDPROC
@@ -163,7 +163,7 @@
  1620="ip0:"+S$
  1630:
  1640DEFPROChelp
- 1650x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?&FFFF7C00: NEXT:CLS
+ 1650x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
  1660PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1670PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1680PRINT
@@ -179,5 +179,5 @@
  1780PRINT CHR$(131);" CTRL-END";CHR$(134);"Request disconnect";CHR$(129);"(*90#)"
  1790IFGET
  1800VDU31,x%,y%
- 1810FOR p%=0 TO 999: p%?&FFFF7C00=p%?scr%: NEXT
+ 1810FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
  1820ENDPROC
