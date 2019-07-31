@@ -2053,6 +2053,7 @@ static void assign_himem(void) {
   offset = ALIGN(eval_integer());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   address = basicvars.offbase+offset;
+  if (basicvars.himem == address) return; /* Always OK to set HIMEM to its existing value */
   if (address<(basicvars.vartop+1024) || address>basicvars.end)
     error(WARN_BADHIMEM);	/* Flag error (execution continues after this one) */
   else if (!safestack())
