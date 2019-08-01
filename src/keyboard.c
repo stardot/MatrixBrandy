@@ -2430,6 +2430,7 @@ boolean init_keyboard(void) {
   highbuffer = 0;
   enable_insert = TRUE;
   set_cursor(enable_insert);
+  nokeyboard = 0;
   return TRUE;
 }
 
@@ -2455,6 +2456,7 @@ boolean init_keyboard(void) {
   holdcount = 0;
   histindex = 0;
   highbuffer = 0;
+  nokeyboard=0;
   enable_insert = TRUE;
   set_cursor(enable_insert);
 /*
