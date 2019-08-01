@@ -160,6 +160,7 @@ static DWORD watch_escape(LPVOID unused) {
       alreadyraised = FALSE;
     Sleep(5);
   }
+  return 0; /* Execution never reaches here, but keeps compiler quiet */
 }
 
 /*
