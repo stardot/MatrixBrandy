@@ -313,6 +313,7 @@ boolean kbd_init() {
 
   // Windows target, nothing to do
   // -----------------------------
+  nokeyboard=0;
   return TRUE;
 
 #endif
@@ -1835,7 +1836,7 @@ int32 emulate_inkey2(int32 arg) {
 
 #endif
 
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if (defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)) && !defined(USE_SDL)
 
 /* ----- DJGPP/WIN32/DOS keyboard input functions ----- */
 
