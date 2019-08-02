@@ -97,7 +97,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "NetBSD"
 #define OSVERSION 0xFE
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -109,7 +109,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "FreeBSD"
 #define OSVERSION 0xF7
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -121,7 +121,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "OpenBSD"
 #define OSVERSION 0xF6
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -133,7 +133,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "Linux"
 #define OSVERSION 0xF9
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -147,7 +147,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "GNU/kFreeBSD"
 #define OSVERSION 0xF4
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -158,7 +158,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "GNU/Hurd"
 #define OSVERSION 0xF3
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -219,7 +219,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "MacOS X"
 #define OSVERSION 0xF8
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'

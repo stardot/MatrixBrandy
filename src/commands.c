@@ -939,10 +939,24 @@ void exec_command(void) {
 void init_commands(void) {
   char *editor;
   editor = getenv(EDITOR_VARIABLE);
-  if (editor != NIL)
+  if (editor != NULL)
     strcpy(editname, editor);
   else {
+#ifdef TARGET_UNIX
+    editor=getenv("EDITOR");
+    if (editor != NULL)
+      strcpy(editname, editor);
+    else {
+      editor=getenv("VISUAL");
+      if (editor != NULL)
+        strcpy(editname, editor);
+      else {
+        strcpy(editname, DEFAULT_EDITOR);
+      }
+    }
+#else
     strcpy(editname, DEFAULT_EDITOR);
+#endif
   }
 }
 
