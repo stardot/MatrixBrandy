@@ -1448,6 +1448,24 @@ static void print_screen(void) {
       emulate_vdustr(basicvars.stringwork, size);
       basicvars.printcount+=size;
       break;
+    case STACK_INT64:
+      if (rightjust) {
+        if (hex)
+          size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_int64());
+        else {
+          size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_int64());
+        }
+      }
+      else {	/* Left justify the value */
+        if (hex)
+          size = sprintf(basicvars.stringwork, "%llX", pop_int64());
+        else {
+          size = sprintf(basicvars.stringwork, "%lld", pop_int64());
+        }
+      }
+      emulate_vdustr(basicvars.stringwork, size);
+      basicvars.printcount+=size;
+      break;
     case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
         if (hex) {
@@ -1503,6 +1521,9 @@ static void print_file(void) {
     switch (GET_TOPITEM) {
     case STACK_INT:
       fileio_printint(handle, pop_int());
+      break;
+    case STACK_INT64:
+      fileio_printint64(handle, pop_int64());
       break;
     case STACK_FLOAT:
       fileio_printfloat(handle, pop_float());

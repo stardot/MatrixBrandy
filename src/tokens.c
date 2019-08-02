@@ -720,7 +720,15 @@ static void copy_variable(void) {
       lp++;
     }
   }
-  if (*lp == '%' || *lp == '$') {       /* Integer or string variable */
+  if (*lp == '%') {	/* Integer variable */
+    store(*lp);
+    lp++;
+    if (*lp == '%') {	/* %% for 64-bit int */
+      store(*lp);
+      lp++;
+    }
+  }
+  if (*lp == '$') {	/* String variable */
     store(*lp);
     lp++;
   }
@@ -979,7 +987,7 @@ static void tokenise_source(char *start, boolean haslineno) {
         linenoposs = firstitem = FALSE;
       }
     }
-    else if (ch == '@' && *(lp+1) == '%') {     /* Buiit-in variable @% */
+    else if (ch == '@' && *(lp+1) == '%') {     /* Built-in variable @% */
       copy_variable();
       linenoposs = firstitem = FALSE;
     }
@@ -1113,6 +1121,7 @@ static void do_dynamvar(void) {
   store_longoffset(next-1-source);      /* Store offset back to name from here */
   while (isident(tokenbase[source])) source++;  /* Skip name */
   if (tokenbase[source] == '%' || tokenbase[source] == '$') source++;   /* Skip integer or string variable marker */
+  if (tokenbase[source] == '%') source++;   /* Skip 64-bit integer second variable marker */
   if (tokenbase[source] == '(' || tokenbase[source] == '[') source++;   /* Skip '(' (is part of name if an array) */
   firstitem = FALSE;
 }
@@ -1435,6 +1444,7 @@ byte *skip_name(byte *p) {
     p++;
   while (ISIDCHAR(*p));
   if (*p == '%' || *p == '$') p++;      /* If integer or string, skip the suffix character */
+  if (*p == '%') p++;      /* If 64-bit integer skip the second suffix character */
   if (*p == '(' || *p == '[') p++;      /* If an array, the first '(' or '[' is part of the name so skip it */
   return p;
 }

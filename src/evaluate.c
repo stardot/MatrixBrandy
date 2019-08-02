@@ -621,6 +621,13 @@ static void do_intvar(void) {
   PUSH_INT(*ip);
 }
 
+static void do_int64var(void) {
+  int32 *ip;
+  ip = GET_ADDRESS(basicvars.current, int32 *);
+  basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
+  PUSH_INT64(*ip);
+}
+
 /*
 ** 'do_floatvar' deals with simple references to a known floating
 ** point variable
@@ -862,6 +869,11 @@ static void do_xvar(void) {
       *basicvars.current = TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       do_intvar();
+    }
+    if (vartype == VAR_INTLONG) {
+      *basicvars.current = TOKEN_INT64VAR;
+      set_address(basicvars.current, &vp->varentry.var64int);
+      do_int64var();
     }
     else if (vartype == VAR_FLOAT) {
       *basicvars.current = TOKEN_FLOATVAR;

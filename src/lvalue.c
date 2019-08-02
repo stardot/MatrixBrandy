@@ -133,6 +133,10 @@ static void fix_address(lvalue *destination) {
       *basicvars.current = TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
     break;
+    case VAR_INTLONG:		/* Simple reference to integer variable */
+      *basicvars.current = TOKEN_INT64VAR;
+      set_address(basicvars.current, &vp->varentry.var64int);
+    break;
     case VAR_FLOAT:		/* Simple reference to floating point variable */
       *basicvars.current = TOKEN_FLOATVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
@@ -167,11 +171,21 @@ static void do_staticvar(lvalue *destination) {
 
 /*
 ** 'do_intvar' fills in the lvalue structure for a simple reference to
-** an integer variable
+** a 32-bit integer variable
 */
 static void do_intvar(lvalue *destination) {
   destination->typeinfo = VAR_INTWORD;
   destination->address.intaddr = GET_ADDRESS(basicvars.current, int32 *);
+  basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
+}
+
+/*
+** 'do_int64var' fills in the lvalue structure for a simple reference to
+** a 64-bit integer variable
+*/
+static void do_int64var(lvalue *destination) {
+  destination->typeinfo = VAR_INTLONG;
+  destination->address.int64addr = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }
 
@@ -406,7 +420,7 @@ static void (*lvalue_table[256])(lvalue *) = {
   bad_syntax, fix_address, do_staticvar, do_intvar,		/* 00..03 */
   do_floatvar, do_stringvar, do_arrayvar, do_elementvar,	/* 04..07 */
   do_elementvar, do_intindvar, do_floatindvar, do_statindvar,	/* 08..0B */
-  bad_token, bad_token, bad_token, bad_token,			/* 0C..0F */
+  bad_token, bad_token, do_int64var, bad_token,			/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
   bad_token, bad_token, bad_token, bad_token,			/* 18..1B */

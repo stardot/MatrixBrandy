@@ -79,6 +79,7 @@
 
 #define TOKEN_XFNPROCALL 0x0Cu		/* Reference to unknown PROC or FN */
 #define TOKEN_FNPROCALL	0x0Du		/* Reference to known PROC or FN */
+#define TOKEN_INT64VAR	0x0Eu		/* Simple reference to a 64-bit int variable */
 
 #define TOKEN_INTZERO	0x10u		/* Integer 0 */
 #define TOKEN_INTONE	0x11u		/* Integer 1 */
@@ -95,7 +96,6 @@
 
 /* Unused tokens */
 
-#define UNUSED_0E	0x0Eu
 #define UNUSED_0F	0x0Fu
 #define UNUSED_19	0x19u
 #define UNUSED_1A	0x1Au

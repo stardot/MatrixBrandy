@@ -106,6 +106,7 @@
 /* Values used to mark type of value in file create with 'PRINT#' */
 
 #define PRINT_INT 0x40			/* Marks value in file as binary integer */
+#define PRINT_INT64 0x60		/* Marks value in file as binary 64-bit integer */
 #define PRINT_FLOAT5 0x80		/* Marks value in file as five byte binary floating point */
 #define PRINT_FLOAT 0x88		/* Marks value in file as binary floating point */
 #define PRINT_SHORTSTR 0x00		/* Marks value in file as a short string */
@@ -201,7 +202,8 @@ typedef struct variable {
   int32 varhash;			/* Hash value for symbol's name */
   struct library *varowner;		/* Library in which var was defined or NIL */
   union {
-    int32 varinteger;			/* Value if an integer */
+    int32 varinteger;			/* Value if a 32-bit integer */
+    int64 var64int;			/* Value if a 64-bit integer */
     float64 varfloat;			/* Value if floating point */
     basicstring varstring;		/* Descriptor if a string */
     basicarray *vararray;		/* Pointer to array's dope vector */

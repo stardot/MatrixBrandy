@@ -114,6 +114,13 @@ static void list_varlist(char which, library *lp) {
             len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varinteger);
           }
           break;
+        case VAR_INTLONG:
+          if (basicvars.debug_flags.variables)
+            len = sprintf(temp, "%p  %s = %lld", vp, vp->varname, vp->varentry.var64int);
+          else {
+            len = sprintf(temp, "%s = %lld", vp->varname, vp->varentry.var64int);
+          }
+          break;
         case VAR_FLOAT:
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %g", vp, vp->varname, vp->varentry.varfloat);
@@ -429,8 +436,11 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   variable *vp;
   char *np;
   int32 hashvalue;
-  np = allocmem(namelen+1);
+  np = allocmem(namelen+2);
   vp = allocmem(sizeof(variable));
+#ifdef DEBUG
+  if (basicvars.debug_flags.variables) fprintf(stderr, "varname=%s, namelen=%d\n", varname, namelen);
+#endif
   memcpy(np, varname, namelen);		/* Make copy of name */
   if (np[namelen-1]=='[') np[namelen-1] = '(';
   np[namelen] = asc_NUL;			/* And add a null at the end */
@@ -462,8 +472,16 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
     vp->varentry.vararray = NIL;
     break;
   case '%':
-    vp->varflags = VAR_INTWORD;
-    vp->varentry.varinteger = 0;
+    if (np[namelen-2]=='%') {
+#ifdef DEBUG
+      if (basicvars.debug_flags.variables) fprintf(stderr, "Creating a 64-bit integer variable\n");
+#endif
+      vp->varflags = VAR_INTLONG;
+      vp->varentry.var64int = 0;
+    } else {
+      vp->varflags = VAR_INTWORD;
+      vp->varentry.varinteger = 0;
+    }
     break;
   case '$':
     vp->varflags = VAR_STRINGDOL;
