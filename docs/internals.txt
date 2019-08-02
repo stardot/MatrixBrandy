@@ -29,6 +29,8 @@ The source files that make up the interpreter are as follows:
 	mainstate.c
 	miscprocs.c
 	mos.c
+	mos_sys.c
+	net.c
 	riscos.c
 	simpletext.c
 	stack.c
@@ -67,6 +69,7 @@ RISC OS emulation is carried out in:
 
 	fileio.c	File I/O
 	mos.c		Most features emulated
+	mos_sys.c	Most SYS calls
 
 	keyboard.c	Keyboard input
 
@@ -145,8 +148,11 @@ Miscprocs.c
 This file contains a variety of functions that carry out such tasks as skipping
 white space characters, converting a Basic string to C string and so forth.
 
-Mos.c
+Mos.c and mos_sys.c
 RISC OS emulation. See below.
+
+Net.c
+Basic networking support.
 
 Riscos.c
 Contains the screen output functions for RISC OS.
