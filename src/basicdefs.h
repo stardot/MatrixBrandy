@@ -137,6 +137,7 @@ typedef struct {
   int32 arrsize;			/* Total number of elements in array */
   union {
     int32 *intbase;			/* Pointer to start of integer elements */
+    int64 *int64base;			/* Pointer to start of 64-bit integer elements */
     float64 *floatbase;			/* Pointer to start of floating point elements */
     basicstring *stringbase;		/* Pointer to start of string elements */
     void *arraybase;			/* Pointer to start of array */
@@ -147,6 +148,7 @@ typedef struct {
 typedef union {
   char *charaddr;			/* Pointer to a character */
   int32 *intaddr;			/* Pointer to Basic integer value */
+  int64 *int64addr;			/* Pointer to 64-bit integer value */
   float64 *floataddr;			/* Pointer to Basic floating point value */
   basicstring *straddr;			/* Pointer to Basic string descriptor */
   basicarray **arrayaddr;		/* Pointer to pointer to Basic array descriptor */
@@ -329,7 +331,8 @@ typedef struct {		/* Saved local variable */
   stackitem itemtype;
   lvalue savedetails;		/* Details of item saved */
   union {
-    int32 savedint;		/* Saved integer value */
+    int32 savedint;		/* Saved 32-bit integer value */
+    int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
     basicstring savedstring;	/* Saved string descriptor */
     basicarray *savedarray;	/* Saved pointer to array descriptor */
@@ -341,7 +344,8 @@ typedef struct {		/* Saved RETURN-type local variable */
   lvalue savedetails;		/* Details of item saved */
   lvalue retdetails;		/* Details of where to save returned value */
   union {
-    int32 savedint;		/* Saved integer value */
+    int32 savedint;		/* Saved 32-bit integer value */
+    int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
     basicstring savedstring;	/* Saved string descriptor */
     basicarray *savedarray;	/* Saved pointer to array descriptor */

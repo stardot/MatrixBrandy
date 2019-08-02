@@ -448,6 +448,24 @@ void push_intfor(lvalue forvar, byte *foraddr, int32 limit, int32 step, boolean 
 }
 
 /*
+** 'push_intfor' creates a control block on the Basic stack for a 'FOR'
+** loop with an integer control variable
+*/
+void push_int64for(lvalue forvar, byte *foraddr, int64 limit, int64 step, boolean simple) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.forsp->itemtype = STACK_INT64FOR;
+  basicvars.stacktop.forsp->simplefor = simple;
+  basicvars.stacktop.forsp->forvar = forvar;
+  basicvars.stacktop.forsp->foraddr = foraddr;
+  basicvars.stacktop.forsp->fortype.intfor.intlimit = limit;
+  basicvars.stacktop.forsp->fortype.intfor.intstep = step;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Create integer 'FOR' block at %p\n", basicvars.stacktop.forsp);
+#endif
+}
+
+/*
 ** 'push_floatfor' creates a control block on the Basic stack for a 'FOR'
 ** loop with a floating point control variable
 */
@@ -503,6 +521,22 @@ void save_int(lvalue details, int32 value) {
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint = value;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving integer from %p at %p\n",
+   details.address.intaddr, basicvars.stacktop.localsp);
+#endif
+}
+
+/*
+** 'save_int64' saves an integer value on the stack. It is used when
+** dealing with local variables
+*/
+void save_int64(lvalue details, int64 value) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
+  basicvars.stacktop.localsp->savedetails = details;
+  basicvars.stacktop.localsp->value.savedint64 = value;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving integer from %p at %p\n",
    details.address.intaddr, basicvars.stacktop.localsp);
@@ -746,6 +780,9 @@ static void restore(int32 parmcount) {
       *p->savedetails.address.intaddr = p->value.savedint;
     else {
       switch (p->savedetails.typeinfo & PARMTYPEMASK) {
+      case VAR_INTLONG:
+        *p->savedetails.address.int64addr = p->value.savedint64;
+        break;
       case VAR_FLOAT:
         *p->savedetails.address.floataddr = p->value.savedfloat;
         break;
@@ -799,7 +836,7 @@ void restore_parameters(int32 parmcount) {
 }
 
 /*
-** 'pop_int' pops an integer from the Basic stack
+** 'pop_int' pops a 32-bit integer from the Basic stack
 */
 int32 pop_int(void) {
   stack_int *p = basicvars.stacktop.intsp;
@@ -808,6 +845,19 @@ int32 pop_int(void) {
    p, p->intvalue);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
+  return p->intvalue;
+}
+
+/*
+** 'pop_int64' pops a 64-bit integer from the Basic stack
+*/
+int64 pop_int64(void) {
+  stack_int *p = basicvars.stacktop.intsp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop integer from stack at %p, value %d\n",
+   p, p->intvalue);
+#endif
+  basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);
   return p->intvalue;
 }
 
