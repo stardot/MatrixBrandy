@@ -103,6 +103,9 @@ extern void *alloc_local(int32);
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
 		basicvars.stacktop.intsp->itemtype = STACK_INT; \
 		basicvars.stacktop.intsp->intvalue = (x);
+#define PUSH_INT64(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int64)); \
+		basicvars.stacktop.intsp->itemtype = STACK_INT64; \
+		basicvars.stacktop.intsp->intvalue = (x);
 #define PUSH_FLOAT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_float)); \
 		basicvars.stacktop.floatsp->itemtype = STACK_FLOAT; \
 		basicvars.stacktop.floatsp->floatvalue = (x);
@@ -146,9 +149,11 @@ extern void *alloc_local(int32);
 */
 #ifdef DEBUG
 #undef PUSH_INT
+#undef PUSH_INT64
 #undef PUSH_FLOAT
 #undef PUSH_STRING
 #define PUSH_INT(x) push_int(x)
+#define PUSH_INT64(x) push_int64(x)
 #define PUSH_FLOAT(x) push_float(x)
 #define PUSH_STRING(x) push_string(x)
 #endif

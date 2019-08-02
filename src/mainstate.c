@@ -611,6 +611,7 @@ void exec_endproc(void) {
 void exec_fnreturn(void) {
   stackitem resultype;
   int32 intresult = 0;
+  int64 int64result = 0;
   static float64 fpresult;
   basicstring stresult = {0, NULL};
   char *sp;
@@ -621,6 +622,8 @@ void exec_fnreturn(void) {
   resultype = GET_TOPITEM;
   if (resultype == STACK_INT)	/* Pop result from stack and ensure type is legal */
     intresult = pop_int();
+  else if (resultype == STACK_INT64)
+    int64result = pop_int64();
   else if (resultype == STACK_FLOAT)
     fpresult = pop_float();
   else if (resultype == STACK_STRING) {	/* Have to make a copy of the string for safety */
@@ -640,6 +643,9 @@ void exec_fnreturn(void) {
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had arguments - restore old values */
   if (resultype == STACK_INT) {	/* Lastly, put the result back on the stack */
     PUSH_INT(intresult);
+  }
+  else if (resultype == STACK_INT64) {
+    PUSH_INT64(int64result);
   }
   else if (resultype == STACK_FLOAT) {
     PUSH_FLOAT(fpresult);

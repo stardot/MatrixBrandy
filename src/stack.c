@@ -61,15 +61,14 @@ static void restore(int32 parmcount);
 ** basic stack
 */
 static int32 entrysize [] = {
-  0, 0, ALIGNSIZE(stack_int), ALIGNSIZE(stack_float),
-  ALIGNSIZE(stack_string), ALIGNSIZE(stack_string), ALIGNSIZE(stack_array),
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array), ALIGNSIZE(stack_arraytemp),
-  ALIGNSIZE(stack_array), ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),
-  ALIGNSIZE(stack_locarray), ALIGNSIZE(stack_gosub), ALIGNSIZE(stack_proc),
-  ALIGNSIZE(stack_fn), ALIGNSIZE(stack_local), ALIGNSIZE(stack_retparm),
-  ALIGNSIZE(stack_while), ALIGNSIZE(stack_repeat), ALIGNSIZE(stack_for),
-  ALIGNSIZE(stack_for), ALIGNSIZE(stack_error), ALIGNSIZE(stack_data),
-  ALIGNSIZE(stack_opstack), ALIGNSIZE(stack_restart)
+  0, 0, ALIGNSIZE(stack_int), ALIGNSIZE(stack_int64),   ALIGNSIZE(stack_float),					/* 04 */
+  ALIGNSIZE(stack_string),  ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),    ALIGNSIZE(stack_arraytemp),	/* 08 */
+  ALIGNSIZE(stack_array),   ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),    ALIGNSIZE(stack_arraytemp),	/* 0C */
+  ALIGNSIZE(stack_array),   ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray), ALIGNSIZE(stack_locarray),	/* 10 */
+  ALIGNSIZE(stack_gosub),   ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),       ALIGNSIZE(stack_local),	/* 14 */
+  ALIGNSIZE(stack_retparm), ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),   ALIGNSIZE(stack_for),	/* 18 */
+  ALIGNSIZE(stack_for),     ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),    ALIGNSIZE(stack_data),	/* 1C */
+  ALIGNSIZE(stack_opstack), ALIGNSIZE(stack_restart)								/* 1E */
 };
 
 /*
@@ -77,12 +76,13 @@ static int32 entrysize [] = {
 ** from the Basic stack
 */
 static boolean disposible [] = {
-  FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-  TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE,
-  FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE
+  FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
+  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
+  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE, FALSE,
+  FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE, TRUE
 };
 
-#if 1 //def DEBUG
+#ifdef DEBUG
 
 static char entry [64];
 
@@ -120,7 +120,7 @@ static char *entryname(stackitem what) {
     case STACK_OPSTACK:		return "operator stack";
     case STACK_RESTART:		return "longjmp block";
     default:
-    sprintf(entry, "** Bad type %d **", what);
+    sprintf(entry, "** Bad type %X **", what);
     return entry;
   }
 }
@@ -227,7 +227,7 @@ void push_int64(int64 x) {
   basicvars.stacktop.intsp->itemtype = STACK_INT64;
   basicvars.stacktop.intsp->intvalue = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %lld\n", basicvars.stacktop.intsp, x);
 #endif
 }
 
@@ -984,8 +984,8 @@ gosubinfo pop_gosub(void) {
 */
 static void discard(stackitem item) {
   basicstring temp;
-#if 1 // def DEBUG
-  if (1 || basicvars.debug_flags.stack) fprintf(stderr, "Drop '%s' entry at %p\n",
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Drop '%s' entry at %p\n",
    entryname(item), basicvars.stacktop.bytesp);
 #endif
   switch(item) {
@@ -1143,7 +1143,7 @@ errorblock pop_error(void) {
 void empty_stack(stackitem required) {
   do
     discard(GET_TOPITEM);
-  while (GET_TOPITEM!=required);
+  while (GET_TOPITEM && GET_TOPITEM!=required);
 }
 
 /*

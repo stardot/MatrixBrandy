@@ -89,6 +89,8 @@ int main(int argc, char *argv[]) {
 //#ifdef TARGET_RISCOS
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
+  /* DEBUG HACK */
+  collapse=NULL;
   init1();
   init_timer();	/* Initialise the timer thread */
 #ifndef NONET
