@@ -215,7 +215,7 @@ void push_int(int32 x) {
   basicvars.stacktop.intsp->itemtype = STACK_INT;
   basicvars.stacktop.intsp->intvalue = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 32-bit integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
 #endif
 }
 
@@ -227,7 +227,7 @@ void push_int64(int64 x) {
   basicvars.stacktop.int64sp->itemtype = STACK_INT64;
   basicvars.stacktop.int64sp->int64value = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %lld\n", basicvars.stacktop.int64sp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 64-bit integer value on to stack at %p, value %lld\n", basicvars.stacktop.int64sp, x);
 #endif
 }
 
