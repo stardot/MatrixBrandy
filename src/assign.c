@@ -79,6 +79,24 @@ static void assign_intword(pointers address) {
 }
 
 /*
+** 'assign_int64' deals with assignments to 64-bit integer variables
+*/
+static void assign_int64(pointers address) {
+  stackitem exprtype;
+  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT64)
+    *address.int64addr = pop_int64();
+  else if (exprtype==STACK_INT)
+    *address.int64addr = (int64)pop_int();
+  else if (exprtype==STACK_FLOAT)
+    *address.int64addr = TOINT64(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
 ** 'assign_float' deals with assignments to normal floating point variables
 */
 static void assign_float(pointers address) {
@@ -1634,7 +1652,7 @@ static void assidiv_floatarray(pointers address) {
 
 static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intword, assign_float,
-  assign_stringdol, assignment_invalid, assignment_invalid, assignment_invalid,
+  assign_stringdol, assignment_invalid, assign_int64, assignment_invalid,
   assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
   assign_strarray, assignment_invalid, assignment_invalid, assignment_invalid,
   assignment_invalid, assign_intbyteptr, assign_intwordptr, assign_floatptr,

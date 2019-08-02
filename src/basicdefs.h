@@ -253,7 +253,18 @@ typedef struct library {
 } library;
 
 /* Following are the types describing items found on the Basic stack */
-
+#if 1
+typedef enum {
+  STACK_UNKNOWN, STACK_LVALUE, STACK_INT, STACK_INT64, STACK_FLOAT,	/* 04 */
+  STACK_STRING, STACK_STRTEMP, STACK_INTARRAY, STACK_IATEMP,		/* 08 */
+  STACK_INT64ARRAY, STACK_I64ATEMP, STACK_FLOATARRAY, STACK_FATEMP,	/* 0C */
+  STACK_STRARRAY, STACK_SATEMP, STACK_LOCARRAY, STACK_LOCSTRING,	/* 10 */
+  STACK_GOSUB, STACK_PROC, STACK_FN, STACK_LOCAL,			/* 14 */
+  STACK_RETPARM, STACK_WHILE, STACK_REPEAT, STACK_INTFOR,		/* 18 */
+  STACK_INT64FOR, STACK_FLOATFOR, STACK_ERROR, STACK_DATA,		/* 1C */
+  STACK_OPSTACK, STACK_RESTART, STACK_HIGHEST				/* 1F */
+} stackitem;
+#else
 typedef enum {
   STACK_UNKNOWN, STACK_LVALUE, STACK_INT, STACK_FLOAT, STACK_STRING,	/* 04 */
   STACK_STRTEMP, STACK_INTARRAY, STACK_IATEMP, STACK_FLOATARRAY,	/* 08 */
@@ -263,7 +274,7 @@ typedef enum {
   STACK_FLOATFOR, STACK_ERROR, STACK_DATA, STACK_OPSTACK,		/* 19 */
   STACK_RESTART, STACK_HIGHEST						/* 1B */
 } stackitem;
-
+#endif
 typedef struct {		/* Operator stack */
   stackitem itemtype;		/* Type of item */
   int32 opstack[OPSTACKSIZE];	/* Operator stack */

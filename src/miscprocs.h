@@ -57,6 +57,7 @@ extern void save_current(void);
 extern void restore_current(void);
 extern FILE *secure_tmpnam(char []);
 extern int32 TOINT(float64);
+extern int64 TOINT64(float64);
 #ifdef USE_SDL
 extern Uint8 mode7frame[25][40];
 #endif

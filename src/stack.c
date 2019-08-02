@@ -82,24 +82,44 @@ static boolean disposible [] = {
   FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE
 };
 
-#ifdef DEBUG
+#if 1 //def DEBUG
 
-static char *stackentries [] = {	/* Stack entry type names */
-  "<unknown>", "lvalue", "integer", "floating point", "string",
-  "temporary string", "integer array", "temp integer array",
-  "floating poing array", "temp floating point array", "string array",
-  "temp string array", "local array", "local string array", "gosub",
-  "PROC", "FN", "local variable", "return parameter", "WHILE", "REPEAT",
-  "integer FOR", "floating point FOR", "ON ERROR", "DATA", "operator stack",
-  "longjmp block"
-};
-
-static char entry [50];
+static char entry [64];
 
 static char *entryname(stackitem what) {
-  if (what <= STACK_RESTART)
-    return stackentries[what];
-  else {
+  switch (what) {
+    case STACK_UNKNOWN:		return "<unknown>";
+    case STACK_LVALUE:		return "lvalue";
+    case STACK_INT:		return "integer";
+    case STACK_INT64:		return "int64";
+    case STACK_FLOAT:		return "floating point";
+    case STACK_STRING:		return "string";
+    case STACK_STRTEMP:		return "temporary string";
+    case STACK_INTARRAY:	return "ineger array";
+    case STACK_IATEMP:		return "temp integer array";
+    case STACK_INT64ARRAY:	return "int64 array";
+    case STACK_I64ATEMP:	return "temp int64 array";
+    case STACK_FLOATARRAY:	return "floating point array";
+    case STACK_FATEMP:		return "temp floating point array";
+    case STACK_STRARRAY:	return "string array";
+    case STACK_SATEMP:		return "temp string array";
+    case STACK_LOCARRAY:	return "local array";
+    case STACK_LOCSTRING:	return "local string array";
+    case STACK_GOSUB:		return "GOSUB";
+    case STACK_PROC:		return "PROC";
+    case STACK_FN:		return "FN";
+    case STACK_LOCAL:		return "local variable";
+    case STACK_RETPARM:		return "return parameter";
+    case STACK_WHILE:		return "WHILE";
+    case STACK_REPEAT:		return "REPEAT";
+    case STACK_INTFOR:		return "integer FOR";
+    case STACK_INT64FOR:	return "int64 FOR";
+    case STACK_FLOATFOR:	return "floating point FOR";
+    case STACK_ERROR:		return "ON ERROR";
+    case STACK_DATA:		return "DATA";
+    case STACK_OPSTACK:		return "operator stack";
+    case STACK_RESTART:		return "longjmp block";
+    default:
     sprintf(entry, "** Bad type %d **", what);
     return entry;
   }
@@ -270,12 +290,12 @@ void push_dolstring(int32 strlength, char *strtext) {
 
 static stackitem arraytype [] = {	/* Variable type -> array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_INTARRAY, STACK_FLOATARRAY,
-  STACK_STRARRAY, STACK_UNKNOWN, STACK_UNKNOWN, STACK_UNKNOWN
+  STACK_STRARRAY, STACK_UNKNOWN, STACK_INT64ARRAY, STACK_UNKNOWN
 };
 
 static stackitem arraytemptype [] = {	/* Variable type -> temporary array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_IATEMP, STACK_FATEMP,
-  STACK_SATEMP, STACK_UNKNOWN, STACK_UNKNOWN, STACK_UNKNOWN
+  STACK_SATEMP, STACK_UNKNOWN, STACK_I64ATEMP, STACK_UNKNOWN
 };
 
 /*
@@ -964,8 +984,8 @@ gosubinfo pop_gosub(void) {
 */
 static void discard(stackitem item) {
   basicstring temp;
-#ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Drop '%s' entry at %p\n",
+#if 1 // def DEBUG
+  if (1 || basicvars.debug_flags.stack) fprintf(stderr, "Drop '%s' entry at %p\n",
    entryname(item), basicvars.stacktop.bytesp);
 #endif
   switch(item) {
