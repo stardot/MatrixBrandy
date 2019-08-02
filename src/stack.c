@@ -200,6 +200,18 @@ void push_int(int32 x) {
 }
 
 /*
+** 'push_int64' pushes an integer value on to the Basic stack
+*/
+void push_int64(int64 x) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_int64);
+  basicvars.stacktop.intsp->itemtype = STACK_INT64;
+  basicvars.stacktop.intsp->intvalue = x;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
+#endif
+}
+
+/*
 ** 'push_float' pushes a floating point value on to the Basic stack
 */
 void push_float(float64 x) {

@@ -82,6 +82,7 @@
 #define VAR_FLOAT 3				/* Eight byte floating point */
 #define VAR_STRINGDOL 4				/* String ('string$' type) */
 #define VAR_DOLSTRING 5				/* String ('$string' type) */
+#define VAR_INTLONG 6				/* 64-bit integer */
 #define VAR_ARRAY 0x08				/* Array */
 #define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)	/* Integer array */
 #define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)	/* Floating point array */
@@ -271,10 +272,15 @@ typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
   jmp_buf restart;		/* Environment block */
 } stack_restart;
 
-typedef struct {		/* Integer value */
+typedef struct {		/* 32-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
   int32 intvalue;		/* Value of integer */
 } stack_int;
+
+typedef struct {		/* 64-bit integer value */
+  stackitem itemtype;		/* Type of item pushed on to stack */
+  int64 intvalue;		/* Value of integer */
+} stack_int64;
 
 typedef struct {		/* FLoating point value */
   stackitem itemtype;		/* Type of item pushed on to stack */
