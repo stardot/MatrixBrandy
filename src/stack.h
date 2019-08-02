@@ -104,8 +104,8 @@ extern void *alloc_local(int32);
 		basicvars.stacktop.intsp->itemtype = STACK_INT; \
 		basicvars.stacktop.intsp->intvalue = (x);
 #define PUSH_INT64(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int64)); \
-		basicvars.stacktop.intsp->itemtype = STACK_INT64; \
-		basicvars.stacktop.intsp->intvalue = (x);
+		basicvars.stacktop.int64sp->itemtype = STACK_INT64; \
+		basicvars.stacktop.int64sp->int64value = (x);
 #define PUSH_FLOAT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_float)); \
 		basicvars.stacktop.floatsp->itemtype = STACK_FLOAT; \
 		basicvars.stacktop.floatsp->floatvalue = (x);

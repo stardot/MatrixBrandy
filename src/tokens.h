@@ -84,12 +84,13 @@
 #define TOKEN_INTZERO	0x10u		/* Integer 0 */
 #define TOKEN_INTONE	0x11u		/* Integer 1 */
 #define TOKEN_SMALLINT	0x12u		/* Small integer constant in range 1..256 */
-#define TOKEN_INTCON	0x13u		/* Integer constant */
+#define TOKEN_INTCON	0x13u		/* 32-bit integer constant */
 #define TOKEN_FLOATZERO	0x14u		/* Floating point 0.0 */
 #define TOKEN_FLOATONE	0x15u		/* Floating point 1.0 */
 #define TOKEN_FLOATCON	0x16u		/* Floating point constant */
 #define TOKEN_STRINGCON	0x17u		/* Ordinary string constant */
 #define TOKEN_QSTRINGCON 0x18u		/* String constant with a '"' in it */
+#define TOKEN_INT64CON	0x19u		/* 64-bit integer constant */
 
 #define TOKEN_XLINENUM	0x1Eu		/* Unresolved line number reference */
 #define TOKEN_LINENUM   0x1Fu		/* Resolved line number reference */
@@ -97,7 +98,6 @@
 /* Unused tokens */
 
 #define UNUSED_0F	0x0Fu
-#define UNUSED_19	0x19u
 #define UNUSED_1A	0x1Au
 #define UNUSED_1B	0x1Bu
 #define UNUSED_1C	0x1Cu
@@ -375,6 +375,7 @@ extern int32 reformat(byte *, byte *, int32);
 extern boolean isempty(byte []);
 
 #define GET_INTVALUE(p) (*p | (*(p+1)<<8) | (*(p+2)<<16) | (*(p+3)<<24))
+#define GET_INT64VALUE(p) (int64)((int64)*p | ((int64)*(p+1)<<8) | ((int64)*(p+2)<<16) | ((int64)*(p+3)<<24) | ((int64)*(p+4)<<32) | ((int64)*(p+5)<<40) | ((int64)*(p+6)<<48) | ((int64)*(p+7)<<56))
 #define GET_ADDRESS(p, type) (CAST(basicvars.workspace+(*(p+1) | (*(p+2)<<8) | (*(p+3)<<16) | (*(p+4)<<24)), type))
 #define GET_SIZE(p) (*(p) | (*(p+1)<<BYTESHIFT))
 #define GET_DEST(p) (p+(*p | (*(p+1)<<BYTESHIFT)))

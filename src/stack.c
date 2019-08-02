@@ -224,10 +224,10 @@ void push_int(int32 x) {
 */
 void push_int64(int64 x) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_int64);
-  basicvars.stacktop.intsp->itemtype = STACK_INT64;
-  basicvars.stacktop.intsp->intvalue = x;
+  basicvars.stacktop.int64sp->itemtype = STACK_INT64;
+  basicvars.stacktop.int64sp->int64value = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %lld\n", basicvars.stacktop.intsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %lld\n", basicvars.stacktop.int64sp, x);
 #endif
 }
 
@@ -861,7 +861,7 @@ void restore_parameters(int32 parmcount) {
 int32 pop_int(void) {
   stack_int *p = basicvars.stacktop.intsp;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop integer from stack at %p, value %d\n",
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 32-bit integer from stack at %p, value %d\n",
    p, p->intvalue);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
@@ -872,13 +872,16 @@ int32 pop_int(void) {
 ** 'pop_int64' pops a 64-bit integer from the Basic stack
 */
 int64 pop_int64(void) {
-  stack_int *p = basicvars.stacktop.intsp;
+  stack_int64 *p = basicvars.stacktop.int64sp;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop integer from stack at %p, value %d\n",
-   p, p->intvalue);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 64-bit integer from stack at %p, value %lld\n",
+   p, p->int64value);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);
-  return p->intvalue;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: returning %lld\n", p->int64value);
+#endif
+  return p->int64value;
 }
 
 /*

@@ -258,6 +258,9 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
   int32 length;
   intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function statement.c:store_value\n");
+#endif
   switch (destination.typeinfo) {
   case VAR_INTWORD:
     *destination.address.intaddr = value;
@@ -309,7 +312,7 @@ static void (*statements[256])(void) = {
   exec_xproc, exec_proc, bad_token, bad_token,			/* 0C..0F */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 10..13 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 14..17 */
-  bad_syntax, bad_token, bad_token, bad_token,			/* 18..1B */
+  bad_syntax, bad_syntax, bad_token, bad_token,			/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, exec_assignment, bad_syntax, bad_syntax,		/* 20..23 */
   exec_assignment, bad_syntax, bad_syntax, bad_syntax,		/* 24..27 */
@@ -377,6 +380,9 @@ static void (*statements[256])(void) = {
 */
 void exec_fnstatements(byte *lp) {
   byte token;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function statement.c:exec_fnstatements\n");
+#endif
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
     token = *basicvars.current;
@@ -393,6 +399,9 @@ static void exec_statements(byte *lp) {
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
     if (basicvars.escape_enabled) checkforescape();
+#endif
+#ifdef DEBUG
+    if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token %X\n", *basicvars.current);
 #endif
     (*statements[*basicvars.current])();	/* Dispatch a statement */
   } while (TRUE);

@@ -111,14 +111,21 @@ static void fn_tab(void) {
 static char *input_number(lvalue destination, char *p) {
   boolean isint;
   int32 intvalue;
+  int64 int64value;
   static float64 fpvalue;
-  p = tonumber(p, &isint, &intvalue, &fpvalue);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:input_number\n");
+#endif
+  p = tonumber(p, &isint, &intvalue, &int64value, &fpvalue);
   if (p == NIL) return NIL;	/* 'tonumber' hit an error - return to caller */
   while (*p != asc_NUL && *p != ',') p++;	/* Find the end of the field */
   if (*p == ',') p++;		/* Move to start of next field */
   switch (destination.typeinfo) {
   case VAR_INTWORD:	/* Normal integer variable */
     *destination.address.intaddr = isint ? intvalue : TOINT(fpvalue);
+    break;
+  case VAR_INTLONG:	/* Normal integer variable */
+    *destination.address.int64addr = isint ? int64value : TOINT64(fpvalue);
     break;
   case VAR_FLOAT:	/* Normal floating point variable */
     *destination.address.floataddr = isint ? TOFLOAT(intvalue) : fpvalue;
@@ -1353,6 +1360,10 @@ static void print_screen(void) {
   boolean hex, rightjust, newline;
   int32 format, fieldwidth, numdigits, size;
   char *leftfmt, *rightfmt;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:print_screen\n");
+#endif
   hex = FALSE;
   rightjust = TRUE;
   newline = TRUE;
@@ -1469,7 +1480,7 @@ static void print_screen(void) {
     case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
         if (hex) {
-          size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
+          size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, TOINT64(pop_float()));
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_float());
         }

@@ -513,6 +513,10 @@ variable *find_variable(byte *np, int namelen) {
   library *lp;
   char name[MAXNAMELEN];
   int32 hashvalue;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variable.c:find_variable\n");
+#endif
   memcpy(name, np, namelen);
   if (name[namelen-1]=='[') name[namelen-1] = '(';
   name[namelen] = asc_NUL;		/* Ensure name is null-terminated */

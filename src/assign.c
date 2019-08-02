@@ -67,10 +67,18 @@ static void assignment_invalid(pointers address) {
 */
 static void assign_intword(pointers address) {
   stackitem exprtype;
+  int64 tmp64;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
     *address.intaddr = pop_int();
+  else if (exprtype==STACK_INT64) {
+      tmp64 = pop_int64();
+      if ((tmp64 <= (int64)2147483647ll) && (tmp64 >= -(int64)2147483648ll)) {
+        *address.intaddr = (int32)tmp64;
+      } else
+        error(ERR_RANGE);
+    }
   else if (exprtype==STACK_FLOAT)
     *address.intaddr = TOINT(pop_float());
   else {
@@ -105,6 +113,8 @@ static void assign_float(pointers address) {
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
     *address.floataddr = TOFLOAT(pop_int());
+  else if (exprtype==STACK_INT64)
+    *address.floataddr = TOFLOAT(pop_int64());
   else if (exprtype==STACK_FLOAT)
     *address.floataddr = pop_float();
   else {

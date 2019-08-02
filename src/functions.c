@@ -1582,7 +1582,12 @@ static void fn_val(void) {
   char *cp;
   boolean isint;
   int32 intvalue;
+  int64 int64value;
   static float64 fpvalue;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function functions.c:fn_val\n");
+#endif
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
@@ -1593,12 +1598,15 @@ static void fn_val(void) {
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
     basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
-    cp = tonumber(basicvars.stringwork, &isint, &intvalue, &fpvalue);
+    cp = tonumber(basicvars.stringwork, &isint, &intvalue, &int64value, &fpvalue);
     if (cp == NIL) {	/* Error found when converting number */
       error(intvalue);	/* 'intvalue' is used to return the precise error */
     }
     if (isint)
-      push_int(intvalue);
+      if (intvalue == int64value)
+        push_int(intvalue);
+      else
+        push_int64(int64value);
     else {
       push_float(fpvalue);
     }

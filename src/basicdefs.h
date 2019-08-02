@@ -74,6 +74,7 @@
 #define DEBUG_STATS 0x1000		/* Show string heap statistics */
 #define DEBUG_STACK 0x2000		/* Show structures pushed and popped from stack */
 #define DEBUG_ALLSTACK 0x4000		/* Show in detail items pushed and popped from stack */
+#define DEBUG_FUNCTIONS 0x8000		/* Show which functions are called - very incomplete */
 
 /* Variable type flags */
 
@@ -85,6 +86,7 @@
 #define VAR_INTLONG 6				/* 64-bit integer */
 #define VAR_ARRAY 0x08				/* Array */
 #define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)	/* Integer array */
+#define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)	/* Integer array */
 #define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)	/* Floating point array */
 #define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)	/* String array */
 #define VAR_POINTER 0x10			/* Pointer */
@@ -287,7 +289,7 @@ typedef struct {		/* 32-bit integer value */
 
 typedef struct {		/* 64-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
-  int64 intvalue;		/* Value of integer */
+  int64 int64value;		/* Value of integer */
 } stack_int64;
 
 typedef struct {		/* FLoating point value */
@@ -392,6 +394,7 @@ typedef struct {		/* 'LOCAL ERROR' control block */
 
 typedef union {		/* This type represents everything that goes on the stack */
   stack_int *intsp;
+  stack_int64 *int64sp;
   stack_float *floatsp;
   stack_string *stringsp;
   stack_array *arraysp;
@@ -497,6 +500,7 @@ typedef struct {
     unsigned int stats:1;		/* Show string heap statistics */
     unsigned int stack:1;		/* Show important stack push/pop info */
     unsigned int allstack:1;		/* Show detailed stack push/pop info */
+    unsigned int functions:1;		/* Show functions entered (incomplete) */
   } debug_flags;			/* Interpreter debugging options */
   struct {
     unsigned int badprogram:1;		/* TRUE if program is invalid */

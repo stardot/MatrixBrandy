@@ -29,6 +29,6 @@
 #include "common.h"
 
 int todigit(char);
-char *tonumber(char *, boolean *, int32 *, float64 *);
+char *tonumber(char *, boolean *, int32 *, int64 *, float64 *);
 
 #endif

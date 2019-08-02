@@ -42,6 +42,7 @@ int todigit(char x) {
 }
 
 #define INTCONV (MAXINTVAL/10)
+#define INT64CONV (MAXINT64VAL/10)
 
 /*
 ** 'tonumber' converts the character string starting at 'cp' to binary.
@@ -53,12 +54,19 @@ int todigit(char x) {
 ** which it is. In the event of an error, 'intvalue' is used to return
 ** an error number
 */
-char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalue) {
+char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value, float64 *floatvalue) {
   int32 value;
+  int64 value64;
   static float64 fpvalue, fltdiv;
-  boolean isint, isneg, negexp;
+  boolean isint, isint64, isneg, negexp;
   int digits, exponent;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function convert.c:tonumber\n");
+#endif
   value = 0;
+  value64 = 0;
+  fpvalue = 0;
   digits = 0;
   cp = skip_blanks(cp);	/* Ignore leading white space characters */
   switch (*cp) {
@@ -67,14 +75,17 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
     while (isxdigit(*cp)) {
       digits++;
       value = (value<<4)+todigit(*cp);
+      value64 = (value64<<4)+todigit(*cp);
       cp++;
     }
     if (digits==0) {
       *intvalue = WARN_BADHEX;	/* Bad hexadecimal constant */
+      *int64value = WARN_BADHEX;	/* Bad hexadecimal constant */
       cp = NIL;
     }
     else {
       *intvalue = value;
+      *int64value = value64;
       *isinteger = TRUE;
     }
     break;
@@ -83,30 +94,43 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
     while (*cp=='0' || *cp=='1') {
       digits++;
       value = (value<<1)+(*cp-'0');
+      value64 = (value64<<1)+(*cp-'0');
       cp++;
     }
     if (digits==0) {
       *intvalue = WARN_BADBIN;	/* Bad binary constant */
+      *int64value = WARN_BADBIN;	/* Bad binary constant */
       cp = NIL;
     }
     else {
       *intvalue = value;
+      *int64value = value64;
       *isinteger = TRUE;
     }
     break;
   default:	/* Integer or floating point value */
     isint = TRUE;
+    isint64 = FALSE;
     isneg = *cp=='-';	/* Deal with any sign first */
     if (*cp=='+' || *cp=='-') cp++;
     while (*cp>='0' && *cp<='9') {
       digits = 0;	/* Used to count the number of digits before the '.' */
       if (isint && value>=INTCONV) {
-        isint = FALSE;
-        fpvalue = TOFLOAT(value);
+        isint64 = TRUE;
       }
-      if (isint)
-        value = value*10+(*cp-'0');
-      else {
+      if (isint && value>=INT64CONV) {
+        isint = FALSE;
+        isint64 = FALSE;
+        fpvalue = TOFLOAT(value64);
+      }
+      if (isint) {
+        if (isint64)
+          value64 = value64*10ll+(*cp-'0');
+        else {
+          value = value*10+(*cp-'0');
+          value64 = value64*10ll+(*cp-'0');
+        }
+      } else {
         fpvalue = fpvalue*10.0+TOFLOAT(*cp-'0');
       }
       digits++;
@@ -114,7 +138,12 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
     }
     if (!isint && *cp!='.' && *cp!='E' && fpvalue<=TOFLOAT(MAXINTVAL)) {	/* Convert back to integer */
       value = TOINT(fpvalue);
+      value64 = TOINT64(fpvalue);
       isint = TRUE;
+      if (value == value64)
+        isint64 = FALSE;
+      else
+        isint64 = TRUE;
     }
     if (*cp=='.') {	/* Number contains a decimal point */
       if (isint) {
@@ -164,9 +193,10 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
       fpvalue = fpvalue*pow(10.0, exponent);
     }
     *isinteger = isint;
-    if (isint)
+    if (isint) {
       *intvalue = (isneg ? -value : value);
-    else {
+      *int64value = (isneg ? -value64 : value64);
+    } else {
       *floatvalue = (isneg ? -fpvalue : fpvalue);
     }
   }

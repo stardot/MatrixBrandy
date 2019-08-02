@@ -292,6 +292,7 @@ static void set_listopt(void) {
   basicvars.debug_flags.stats = (listopts & DEBUG_STATS) != 0;
   basicvars.debug_flags.stack = (listopts & DEBUG_STACK) != 0;
   basicvars.debug_flags.allstack = (listopts & DEBUG_ALLSTACK) != 0;
+  basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
 }
 
 /*
@@ -1112,7 +1113,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "LIST")) {
     emulate_printf("This command lists the program.\r\nLIST [<line number>][,[<line number]]: List [section of] program.\r\nLISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
 #ifdef DEBUG
-    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14:Show in detail items pushed and popped from stack (&4000)");
+    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)");
 #endif
   } else if (!strcmp(cmd, "LISTIF")) {
     emulate_printf("LISTIF <pattern>: lists lines of the program that match <pattern>.");

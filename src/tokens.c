@@ -464,6 +464,17 @@ static void store_intconst(int32 value) {
   }
 }
 
+static void store_int64const(int64 value) {
+  int n;
+
+  if (next+INT64SIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  for (n=1; n<=INT64SIZE; n++) {
+    tokenbase[next] = CAST(value, byte);
+    value = value>>8;
+    next++;
+  }
+}
+
 /*
 ** 'store_fpvalue' is a grubby bit of code used to store an eight-byte
 ** floating point value in the tokenised line buffer
@@ -1150,16 +1161,23 @@ static void do_linenumber(void) {
 
 static void do_number(void) {
   int32 value;
+  int64 value64;
   static float64 fpvalue;
   boolean isintvalue;
   char *p;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:do_number\n");
+#endif
   value = 0;
+  value64 = 0;
   isintvalue = TRUE;    /* Number is an integer */
   switch(tokenbase[source]) {
   case '&':     /* Hex value */
     source++;
     while (isxdigit(tokenbase[source])) {
       value = (value<<4)+todigit(tokenbase[source]);
+      value64 = (value64<<4)+todigit(tokenbase[source]);
       source++;
     }
     break;
@@ -1167,11 +1185,12 @@ static void do_number(void) {
     source++;
     while (tokenbase[source] == '0' || tokenbase[source] == '1') {
       value = (value<<1)+(tokenbase[source]-'0');
+      value64 = (value64<<1)+(tokenbase[source]-'0');
       source++;
     }
     break;
   default:      /* Decimal or floating point */
-    p = tonumber(CAST(&tokenbase[source], char *), &isintvalue, &value, &fpvalue);
+    p = tonumber(CAST(&tokenbase[source], char *), &isintvalue, &value, &value64, &fpvalue);
     if (p == NIL) {
       lasterror = ERR_BADEXPR;
       error(value);     /* Error found in number - flag it */
@@ -1191,8 +1210,13 @@ static void do_number(void) {
       store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
     }
     else {
-      store(TOKEN_INTCON);              /* Anything else */
-      store_intconst(value);
+      if (value == value64) {
+        store(TOKEN_INTCON);              /* 32-bit int */
+        store_intconst(value);
+      } else {
+        store(TOKEN_INT64CON);              /* 64-bit int */
+        store_int64const(value64);
+      }
     }
   }
   else {        /* Decide on type of floating point constant */
@@ -1282,6 +1306,10 @@ static void do_star(void) {
 */
 static void translate(void) {
   byte token;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:translate\n");
+#endif
   source = OFFSOURCE;           /* Offset of first byte of tokenised source */
   token = tokenbase[source];
   firstitem = TRUE;
@@ -1370,6 +1398,9 @@ static void mark_badline(void) {
 ** 2)  The executable version of the line is created
 */
 void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediatemode) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:tokenize\n");
+#endif
   immediate = immediatemode;
   tokenbase = tokenbuf;
   tokenise_source(start, haslineno);
@@ -1386,38 +1417,38 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
 ** probably been corrupted
 */
 static int skiptable [] = {
-  0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,     /* 00..07 */
-  LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, -1, -1,  /* 08..0F */
-  0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE, OFFSIZE+SIZESIZE,  /* 10..17 */
-  OFFSIZE+SIZESIZE, -1, -1, -1, -1, -1, LOFFSIZE, LOFFSIZE,     /* 18..1F */
-  -1,  0, -1,  0,  0,  0,  0,  0,                               /* 20..27 */
-   0,  0,  0,  0,  0,  0,  0,  0,                               /* 28..2F */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 30..37 */
-  -1, -1,  0,  0,  0,  0,  0,  0,                               /* 38..3F */
-   0, -1, -1, -1, -1, -1, -1, -1,                               /* 40..47 */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 48..4F */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 50..57 */
-  -1, -1, -1,  0,  0,  0,  0,  0,                               /* 58..5F */
-   0, -1, -1, -1, -1, -1, -1, -1,                               /* 60..67 */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 68..6F */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 70..77 */
-  -1, -1, -1,  0,  0,  0,  0, -1,                               /* 78..7F */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* 80..87 */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* 88..8F */
-  LOFFSIZE, LOFFSIZE, 0, 0, 0, 0, 0, 0,                         /* 90..97 */ /* CASE */
-  0, OFFSIZE, 0, 0, 0, 0, 0, OFFSIZE,                           /* 98..9F */ /* DATA, ELSE */
-  OFFSIZE, OFFSIZE, OFFSIZE, 0, 0, 0, 0, 0,                     /* A0..A7 */ /* ELSE */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* A8..AF */
-  0, 0, 2*OFFSIZE, 2*OFFSIZE, 2*OFFSIZE, 0, 0, 0,               /* B0..B7 */ /* IF */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* B8..BF */
-  0, 0, 0, 0, 0, OFFSIZE, OFFSIZE, 0,                           /* C0..C7 */ /* OTHERWISE */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* C8..CF */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* D0..D7 */
-  OFFSIZE, 0, 0, 0, 0, 0, 0, 0,                                 /* D8..DF */ /* *command */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* E0..E7 */
-  0, OFFSIZE, OFFSIZE, OFFSIZE, OFFSIZE, 0, -1, -1,             /* E8..EF */ /* WHEN, WHILE */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* F0..F7 */
-  -1, -1, -1, -1, 1, 1, 1, 1                                    /* F8..FF */
+  0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,	/* 00..07 */
+  LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, -1,	/* 08..0F */
+  0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE, OFFSIZE+SIZESIZE,		/* 10..17 */
+  OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
+  -1,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
+   0,  0,  0,  0,  0,  0,  0,  0,					/* 28..2F */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 30..37 */
+  -1, -1,  0,  0,  0,  0,  0,  0,					/* 38..3F */
+   0, -1, -1, -1, -1, -1, -1, -1,					/* 40..47 */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 48..4F */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 50..57 */
+  -1, -1, -1,  0,  0,  0,  0,  0,					/* 58..5F */
+   0, -1, -1, -1, -1, -1, -1, -1,					/* 60..67 */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 68..6F */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 70..77 */
+  -1, -1, -1,  0,  0,  0,  0, -1,					/* 78..7F */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* 80..87 */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* 88..8F */
+  LOFFSIZE, LOFFSIZE, 0, 0, 0, 0, 0, 0,					/* 90..97 */ /* CASE */
+  0, OFFSIZE, 0, 0, 0, 0, 0, OFFSIZE,					/* 98..9F */ /* DATA, ELSE */
+  OFFSIZE, OFFSIZE, OFFSIZE, 0, 0, 0, 0, 0,				/* A0..A7 */ /* ELSE */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* A8..AF */
+  0, 0, 2*OFFSIZE, 2*OFFSIZE, 2*OFFSIZE, 0, 0, 0,			/* B0..B7 */ /* IF */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* B8..BF */
+  0, 0, 0, 0, 0, OFFSIZE, OFFSIZE, 0,					/* C0..C7 */ /* OTHERWISE */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* C8..CF */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* D0..D7 */
+  OFFSIZE, 0, 0, 0, 0, 0, 0, 0,						/* D8..DF */ /* *command */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* E0..E7 */
+  0, OFFSIZE, OFFSIZE, OFFSIZE, OFFSIZE, 0, -1, -1,			/* E8..EF */ /* WHEN, WHILE */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* F0..F7 */
+  -1, -1, -1, -1, 1, 1, 1, 1						/* F8..FF */
 };
 
 /*

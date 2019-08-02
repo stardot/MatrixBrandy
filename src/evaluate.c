@@ -582,6 +582,12 @@ static void do_intconst(void) {
   basicvars.current+=INTSIZE;
 }
 
+static void do_int64const(void) {
+  basicvars.current++;		/* Point current at binary version of number */
+  PUSH_INT64(GET_INT64VALUE(basicvars.current));
+  basicvars.current+=INT64SIZE;
+}
+
 /*
 ** 'do_floatzero' pushes the floating point value 0.0 on to the
 ** Basic stack
@@ -622,8 +628,8 @@ static void do_intvar(void) {
 }
 
 static void do_int64var(void) {
-  int32 *ip;
-  ip = GET_ADDRESS(basicvars.current, int32 *);
+  int64 *ip;
+  ip = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   PUSH_INT64(*ip);
 }
@@ -835,6 +841,10 @@ static void do_xvar(void) {
   variable *vp;
   int32 vartype;
   boolean isarray;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_xvar\n");
+#endif
   base = get_srcaddr(basicvars.current);		/* Point 'base' at the start of the variable's name */
   np = skip_name(base);
   vp = find_variable(base, np-base);
@@ -870,7 +880,7 @@ static void do_xvar(void) {
       set_address(basicvars.current, &vp->varentry.varinteger);
       do_intvar();
     }
-    if (vartype == VAR_INTLONG) {
+    else if (vartype == VAR_INTLONG) {
       *basicvars.current = TOKEN_INT64VAR;
       set_address(basicvars.current, &vp->varentry.var64int);
       do_int64var();
@@ -3423,9 +3433,9 @@ void (*factor_table[256])(void) = {
   do_floatvar, do_stringvar, do_arrayvar, do_arrayref,		/* 04..07 */
   do_arrayref, do_indrefvar, do_indrefvar, do_statindvar,	/* 08..0B */
   do_xfunction, do_function, bad_token, bad_token,		/* 0C..0F */
-  do_intzero, do_intone, do_smallconst, do_intconst, 		/* 10..13 */
+  do_intzero, do_intone, do_smallconst, do_intconst,		/* 10..13 */
   do_floatzero, do_floatone, do_floatconst, do_stringcon,	/* 14..17 */
-  do_qstringcon, bad_token, bad_token, bad_token,		/* 18..1B */
+  do_qstringcon, do_int64const, bad_token, bad_token,		/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, do_getword, bad_syntax, bad_syntax,		/* 20..23 */
   do_getstring, bad_syntax, bad_syntax, bad_syntax,		/* 24..27 */
@@ -3661,6 +3671,10 @@ static void (*opfunctions [21][15])(void) = {
 */
 void expression(void) {
   int32 thisop, lastop;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:expression\n");
+#endif
   (*factor_table[*basicvars.current])();	/* Get first factor in the expression */
   lastop = optable[*basicvars.current];
   if (lastop == 0) return;	/* Quick way out if there is nothing to do */
