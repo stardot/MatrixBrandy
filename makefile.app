@@ -35,7 +35,8 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
+	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o \
+	$(SRCDIR)/soundsdl.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
@@ -44,7 +45,8 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c \
+	$(SRCDIR)/soundsdl.c
 
 brandyapp.a:	$(OBJ)
 	$(AR) rcs brandyapp.a $(OBJ)
