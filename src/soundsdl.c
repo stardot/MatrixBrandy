@@ -72,7 +72,7 @@ static unsigned char ssl[8],ssr[8];
 
 static unsigned char chanvoice[8];
 static unsigned char sintab[1025];
-static unsigned int steptab[388];
+static unsigned int steptab[389];
 
 static unsigned int stime[8];
 
