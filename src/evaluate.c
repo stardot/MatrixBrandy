@@ -971,10 +971,15 @@ static void do_unaryplus(void) {
 ** 'do_unaryminus' negates the value on top of the stack
 */
 static void do_unaryminus(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_unaryminus\n");
+#endif
   basicvars.current++;		/* Skip '-' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     NEGATE_INT;
+  else if (GET_TOPITEM == STACK_INT64)
+    NEGATE_INT64;
   else if (GET_TOPITEM == STACK_FLOAT)
     NEGATE_FLOAT;
   else {

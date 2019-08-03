@@ -125,6 +125,7 @@ extern void *alloc_local(int32);
 #define OR_INT(x) basicvars.stacktop.intsp->intvalue|=(x)
 #define EOR_INT(x) basicvars.stacktop.intsp->intvalue^=(x)
 #define NEGATE_INT basicvars.stacktop.intsp->intvalue = -basicvars.stacktop.intsp->intvalue
+#define NEGATE_INT64 basicvars.stacktop.int64sp->int64value = -basicvars.stacktop.int64sp->int64value
 #define NEGATE_FLOAT basicvars.stacktop.floatsp->floatvalue = -basicvars.stacktop.floatsp->floatvalue
 #define NOT_INT basicvars.stacktop.intsp->intvalue = ~basicvars.stacktop.intsp->intvalue
 #define ABS_INT basicvars.stacktop.intsp->intvalue = abs(basicvars.stacktop.intsp->intvalue)
