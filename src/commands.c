@@ -983,9 +983,9 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "APPEND")) {
     emulate_printf("This command is not implemented in Matrix Brandy. In ARM BBC BASIC, this\r\ncommand appends a file to the program and renumbers the new lines.");
   } else if (!strcmp(cmd, "BEAT")) {
-    emulate_printf("This function gives the current microbeat number.\r\nIn Matrix Brandy, this function returns zero.");
+    emulate_printf("This function gives the current microbeat number.");
   } else if (!strcmp(cmd, "BEATS")) {
-    emulate_printf("BEATS <expression>: Set the number of microbeats in a bar.\r\nAs a function BEATS gives the current number of microbeats.\r\nIn Matrix Brandy, the command does nothing and the function returns zero.");
+    emulate_printf("BEATS <expression>: Set the number of microbeats in a bar.\r\nAs a function BEATS gives the current number of microbeats.");
   } else if (!strcmp(cmd, "BGET")) {
     emulate_printf("This function gives the next byte from the specified channel: BGET#<channel>.\r\n<channel> is a file or network stream handle opened with OPENIN or OPENUP.\r\nThis function returns -1 if no data is available on a network stream, and\r\n-2 if the network connection has been closed remotely.");
   } else if (!strcmp(cmd, "BPUT")) {
@@ -1218,7 +1218,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "SIN")) {
     emulate_printf("This function gives the sine of a number (<factor>).");
   } else if (!strcmp(cmd, "SOUND")) {
-    emulate_printf("SOUND <channel>,<amplitude>,<pitch>,<duration>[,<start beat>]: make a sound.\r\nSOUND ON|OFF: enable|disable sounds.\r\nThis command does nothing in Matrix Brandy.");
+    emulate_printf("SOUND <channel>,<amplitude>,<pitch>,<duration>[,<start beat>]: make a sound.\r\nSOUND ON|OFF: enable|disable sounds.");
   } else if (!strcmp(cmd, "SPC")) {
     emulate_printf("In PRINT or INPUT statements, prints out n spaces: PRINT SPC(10).");
   } else if (!strcmp(cmd, "SQR")) {
@@ -1226,7 +1226,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "STEP")) {
     emulate_printf("Part of the FOR..TO..STEP structure.");
   } else if (!strcmp(cmd, "STEREO")) {
-    emulate_printf("STEREO <channel>,<position>: set the stereo position for a channel.\r\nThis command does nothing in Matrix Brandy.");
+    emulate_printf("STEREO <channel>,<position>: set the stereo position for a channel.");
   } else if (!strcmp(cmd, "STOP")) {
     emulate_printf("Stop program.");
   } else if (!strcmp(cmd, "STR$")) {
@@ -1272,9 +1272,9 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "VDU")) {
     emulate_printf("VDU <number>[;|][,<number>[;|]]: list of values to be sent to vdu.\r\n, only - 8 bits.\r\n; 16 bits.\r\n| 8 bytes of zeroes.\r\nAs a function VDU x gives the value of the specified vdu variable.");
   } else if (!strcmp(cmd, "VOICE")) {
-    emulate_printf("VOICE <channel>,<string>: assign a named sound algorithm to the voice channel.\r\nThis command does nothing in Matrix Brandy.");
+    emulate_printf("VOICE <channel>,<string>: assign a named sound algorithm to the voice channel.");
   } else if (!strcmp(cmd, "VOICES")) {
-    emulate_printf("VOICES <expression>: set the number of sound voice channels.\r\nThis command does nothing in Matrix Brandy.");
+    emulate_printf("VOICES <expression>: set the number of sound voice channels.");
   } else if (!strcmp(cmd, "VPOS")) {
     emulate_printf("This function gives the y-coordinate of the text cursor.");
   } else if (!strcmp(cmd, "WAIT")) {
