@@ -1240,7 +1240,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "TAN")) {
     emulate_printf("This function gives the tangent of a number (<factor>).");
   } else if (!strcmp(cmd, "TEMPO")) {
-    emulate_printf("TEMPO <expression>: set the sound microbeat tempo.\r\nAs a function TEMPO gives the current microbeat tempo.\r\nThis does nothing in Matrix Brandy and as a function returns 0.");
+    emulate_printf("TEMPO <expression>: set the sound microbeat tempo.\r\nAs a function TEMPO gives the current microbeat tempo.");
   } else if (!strcmp(cmd, "TEXTLOAD")) {
     emulate_printf("This command loads a new program, converting from text form if required.");
   } else if (!strcmp(cmd, "TEXTSAVE")) {
