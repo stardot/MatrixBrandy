@@ -14,6 +14,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - MODE 7 video memory can move - if size is <= 31K (HIMEM <= &7C00) then the
   MODE 7 frame buffer relocates to &7C00, otherwise it remains at &FFFF7C00.
 - SYS "Brandy_GetVideoDriver" extended, returns MODE 7 framebuffer base in R4.
+- RISC OS style sound working. MANY thanks to David Hawes.
 
 * V1.22.0 - 23 July 2019
 - Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which
