@@ -1317,6 +1317,25 @@ static void eval_ivplus(void) {
       else
         push_float(lhfloat);
     }
+  } else if (lhitem == STACK_INT64) {
+    float64 lhfloat;
+    int64 lhint64;
+    int32 lhint32;
+    lhint64=pop_int64();
+    lhint32=(int)lhint64;
+    lhfloat=TOFLOAT(lhint64);
+    lhint32 += rhint;
+    lhint64 += rhint;
+    lhfloat += TOFLOAT(rhint);
+    if (lhfloat == lhint32)
+      push_int(lhint32);
+    else {
+      if((lhint64 <= (int64)2<<62) && (lhfloat == TOINT64(lhfloat))) {
+        push_int64(lhint64);
+      } else {
+        push_float(lhfloat);
+      }
+    }
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
