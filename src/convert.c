@@ -196,7 +196,6 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
     if (isint) {
       *intvalue = (isneg ? -value : value);
       *int64value = (isneg ? -value64 : value64);
-fprintf(stderr, "isneg=%d, value=%d, value64=%lld\n", isneg, value, value64);
     } else {
       *floatvalue = (isneg ? -fpvalue : fpvalue);
     }
