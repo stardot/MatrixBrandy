@@ -1633,7 +1633,7 @@ static void eval_i64aplus(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {
     int32 lhint32 = pop_int();
-    int32 *base = make_array(VAR_INTWORD, rharray);
+    int64 *base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
   } else if (lhitem == STACK_INT64) {
     int64 lhint64 = pop_int64();
@@ -2033,8 +2033,67 @@ static void eval_iaminus(void) {
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] -= TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
+    want_number();
   }
-  else {
+}
+
+/*
+** 'eval_ia64minus' deals with subtraction when the right-hand operand is
+** a 64-bit integer array. All versions of the operator are dealt with
+** by this function
+*/
+static void eval_i64aminus(void) {
+  stackitem lhitem;
+  basicarray *rharray;
+  int32 n, count;
+  int64 *rhsrce;
+  rharray = pop_array();
+  count = rharray->arrsize;
+  rhsrce = rharray->arraystart.int64base;
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {
+    int32 lhint = pop_int();
+    int64 *base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint - (int32)rhsrce[n];
+  } else if (lhitem == STACK_INT64) {
+    int64 lhint = pop_int64();
+    int64 *base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
+  } else if (lhitem == STACK_FLOAT) {	/* <float>-<int array> */
+    float64 *base;
+    floatvalue = pop_float();
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) base[n] = floatvalue - TOFLOAT(rhsrce[n]);
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>-<int array> */
+    int32 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.intbase;
+    base = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
+  } else if (lhitem == STACK_INT64ARRAY) {	/* <int array>-<int array> */
+    int64 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.int64base;
+    base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>-<int array> */
+    float64 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    base = make_array(VAR_FLOAT, rharray);
+    lhsrce = lharray->arraystart.floatbase;
+    for (n = 0; n < count; n++) base[n] = lhsrce[n] - TOFLOAT(rhsrce[n]);
+  } else if (lhitem == STACK_FATEMP) {		/* <float array>-<int array> */
+    float64 *lhsrce;
+    basicarray lharray = pop_arraytemp();
+    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray.arraystart.floatbase;
+    for (n = 0; n < count; n++) lhsrce[n] -= TOFLOAT(rhsrce[n]);
+    push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
     want_number();
   }
 }
@@ -3817,7 +3876,7 @@ static void (*opfunctions [21][15])(void) = {
 /* Subtraction */
  {eval_badcall  , eval_badcall,   eval_ivminus, eval_iv64minus, eval_fvminus,
   want_number,    want_number,    eval_iaminus, eval_iaminus,
-  eval_badcall, eval_badcall, eval_faminus, eval_faminus,
+  eval_i64aminus, eval_i64aminus, eval_faminus, eval_faminus,
   want_number,    want_number},
 /* Multiplication */
  {eval_badcall, eval_badcall, eval_ivmul,   eval_badcall, eval_fvmul,
