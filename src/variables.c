@@ -149,7 +149,7 @@ static void list_varlist(char which, library *lp) {
           len = strlen(temp);
           break;
         }
-        case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
+        case VAR_INTARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
           int i;
           char temp2[20];
           basicarray *ap;
@@ -364,7 +364,6 @@ void define_array(variable *vp, boolean islocal) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:define_array\n");
 #endif
-fprintf(stderr, "varflags=%X\n", vp->varflags);
   dimcount = 0;		/* Number of dimemsions */
   size = 1;		/* Number of elements */
   switch (vp->varflags) {	/* Figure out array element size */
