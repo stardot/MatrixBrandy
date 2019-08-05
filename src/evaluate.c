@@ -2116,39 +2116,39 @@ static void eval_faminus(void) {
     floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue - rhsrce[n];
-  }
-  else if (lhitem == STACK_INTARRAY) {	/* <int array>+<float array> */
+  } else if (lhitem == STACK_INT64) {	/* <int64>-<float array> */
+    floatvalue = TOFLOAT(pop_int64());
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) base[n] = floatvalue - rhsrce[n];
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>+<float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n]) - rhsrce[n];
-  }
-  else if (lhitem == STACK_FLOATARRAY) {	/* <float array>-<float array> */
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>-<float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
-  }
-  else if (lhitem == STACK_FATEMP) {		/* <float array>-<float array> */
+  } else if (lhitem == STACK_FATEMP) {		/* <float array>-<float array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
     if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] -= rhsrce[n];
     push_arraytemp(&lharray, VAR_FLOAT);
-  }
-  else {
+  } else {
     want_number();
   }
 }
 
 /*
 ** 'eval_ivmul' handles multiplication where the right-hand operand is
-** an integer
+** a 32-bit integer.
 ** Note that in order to catch an integer overflow, the operands have
 ** to be converted to floating point before they are multiplied so that
 ** the result can be checked to see if it is in range still. There
@@ -2158,21 +2158,28 @@ static void eval_faminus(void) {
 */
 static void eval_ivmul(void) {
   stackitem lhitem;
-  int32 rhint = pop_int();
+  int32 rhint32 = pop_int();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
     float64 lhfloat;
-    int32 lhint = pop_int();
-    lhfloat=TOFLOAT(lhint);
-    lhint *= rhint;
-    lhfloat *= TOFLOAT(rhint);
-    if (lhfloat == lhint)
-      push_int(lhint);
-    else
-      push_float(lhfloat);
+    int64 lhint64;
+    int32 lhint32 = pop_int();
+    lhint64 = (int64)lhint32;
+    lhfloat=TOFLOAT(lhint32);
+    lhint32 *= rhint32;
+    lhint64 *= rhint32;
+    lhfloat *= TOFLOAT(rhint32);
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else {
+      if (((int64)lhfloat > MAXINT64VAL) || ((int64)lhfloat < -MAXINT64VAL))
+        push_float(lhfloat);
+      else
+        push_int64(lhint64);
+    }
   } else if (lhitem == STACK_FLOAT)
-    push_float(pop_float()*TOFLOAT(rhint));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
+    push_float(pop_float()*TOFLOAT(rhint32));
+  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -2182,33 +2189,119 @@ static void eval_ivmul(void) {
       base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) {
-        floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint);	/* This is going to be slow */
+        floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint32);	/* This is going to be slow */
         if (fabs(floatvalue) <= TOFLOAT(MAXINTVAL))
           base[n] = TOINT(floatvalue);
         else {		/* Value is out of range for an integer */
           error(ERR_RANGE);
         }
       }
-    }
-    else {	/* <float array>*<integer> */
+    } else if (lhitem == STACK_INT64ARRAY) {	/* <integer array>*<integer> */
+      int64 *srce, *base;
+      base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) {
+        floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint32);	/* This is going to be slow */
+        if (fabs(floatvalue) <= TOFLOAT(MAXINT64VAL))
+          base[n] = TOINT(floatvalue);
+        else {		/* Value is out of range for an integer */
+          error(ERR_RANGE);
+        }
+      }
+    } else {	/* <float array>*<integer> */
       float64 *srce, *base = make_array(VAR_FLOAT, lharray);
-      floatvalue = TOFLOAT(rhint);
+      floatvalue = TOFLOAT(rhint32);
       srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n] * floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>*<integer value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>*<integer value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
     lharray = pop_arraytemp();
     base = lharray.arraystart.floatbase;
     count = lharray.arrsize;
-    floatvalue = TOFLOAT(rhint);
+    floatvalue = TOFLOAT(rhint32);
     for (n = 0; n < count; n++) base[n]*=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
+    want_number();
   }
-  else {
+}
+
+/*
+** 'eval_iv64mul' handles multiplication where the right-hand operand is
+** a 64-bit integer value
+*/
+static void eval_iv64mul(void) {
+  stackitem lhitem;
+  int64 rhint64 = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
+    float64 lhfloat;
+    int32 lhint32;
+    int64 lhint64 = pop_int64();
+    lhint32 = (int32)lhint64;
+    lhfloat=TOFLOAT(lhint32);
+    lhint32 *= rhint64;
+    lhint64 *= rhint64;
+    lhfloat *= TOFLOAT(rhint64);
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else {
+      if ((lhfloat > MAXINT64VAL) || (lhfloat < -MAXINT64VAL))
+        push_float(lhfloat);
+      else
+        push_int64(lhint64);
+    }
+  } else if (lhitem == STACK_FLOAT)
+    push_float(pop_float()*TOFLOAT(rhint64));
+  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
+    basicarray *lharray;
+    int32 n, count;
+    lharray = pop_array();
+    count = lharray->arrsize;
+    if (lhitem == STACK_INTARRAY) {	/* <integer array>*<integer> */
+      int32 *srce, *base;
+      base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) {
+        floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint64);	/* This is going to be slow */
+        if (fabs(floatvalue) <= TOFLOAT(MAXINTVAL))
+          base[n] = TOINT(floatvalue);
+        else {		/* Value is out of range for an integer */
+          error(ERR_RANGE);
+        }
+      }
+    } else if (lhitem == STACK_INT64ARRAY) {	/* <integer array>*<integer> */
+      int64 *srce, *base;
+      base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) {
+        floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint64);	/* This is going to be slow */
+        if (fabs(floatvalue) <= TOFLOAT(MAXINT64VAL))
+          base[n] = TOINT(floatvalue);
+        else {		/* Value is out of range for an integer */
+          error(ERR_RANGE);
+        }
+      }
+    } else {	/* <float array>*<integer> */
+      float64 *srce, *base = make_array(VAR_FLOAT, lharray);
+      floatvalue = TOFLOAT(rhint64);
+      srce = lharray->arraystart.floatbase;
+      for (n = 0; n < count; n++) base[n] = srce[n] * floatvalue;
+    }
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>*<integer value> */
+    basicarray lharray;
+    float64 *base;
+    int32 n, count;
+    lharray = pop_arraytemp();
+    base = lharray.arraystart.floatbase;
+    count = lharray.arrsize;
+    floatvalue = TOFLOAT(rhint64);
+    for (n = 0; n < count; n++) base[n]*=floatvalue;
+    push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
     want_number();
   }
 }
@@ -2223,9 +2316,11 @@ static void eval_fvmul(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
     push_float(TOFLOAT(pop_int())*floatvalue);
+  else if (lhitem == STACK_INT64)	/* Now branch according to type of left-hand operand */
+    push_float(TOFLOAT(pop_int64())*floatvalue);
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*floatvalue);
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<float value> */
+  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<float value> */
     basicarray *lharray;
     float64 *base;
     int32 n, count;
@@ -2235,13 +2330,14 @@ static void eval_fvmul(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) * floatvalue;
-    }
-    else {
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) * floatvalue;
+    } else {
       float64 *srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n] * floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>*<float value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>*<float value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
@@ -2250,8 +2346,7 @@ static void eval_fvmul(void) {
     count = lharray.arrsize;
     for (n = 0; n < count; n++) base[n]*=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
-  }
-  else {
+  } else {
     want_number();
   }
 }
@@ -3879,7 +3974,7 @@ static void (*opfunctions [21][15])(void) = {
   eval_i64aminus, eval_i64aminus, eval_faminus, eval_faminus,
   want_number,    want_number},
 /* Multiplication */
- {eval_badcall, eval_badcall, eval_ivmul,   eval_badcall, eval_fvmul,
+ {eval_badcall, eval_badcall, eval_ivmul,   eval_iv64mul, eval_fvmul,
   want_number,  want_number,  eval_iamul,   eval_iamul,
   eval_badcall, eval_badcall, eval_famul,   eval_famul,
   want_number,  want_number},
