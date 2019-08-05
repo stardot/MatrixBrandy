@@ -1193,6 +1193,9 @@ static void do_number(void) {
     p = tonumber(CAST(&tokenbase[source], char *), &isintvalue, &value, &value64, &fpvalue);
     if (p == NIL) {
       lasterror = ERR_BADEXPR;
+#ifdef DEBUG
+      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:do_number by throwing error\n");
+#endif
       error(value);     /* Error found in number - flag it */
       return;
     }
@@ -1229,6 +1232,9 @@ static void do_number(void) {
       store_fpvalue(fpvalue);
     }
   }
+#ifdef DEBUG
+      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:do_number\n");
+#endif
 }
 
 /*
@@ -1365,6 +1371,9 @@ static void translate(void) {
   }
   store(asc_NUL);
   store_linelen(next);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:translate\n");
+#endif
 }
 
 /*
@@ -1408,6 +1417,9 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
     mark_badline();
   else 
     translate();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:tokenize\n");
+#endif
 }
 
 /*

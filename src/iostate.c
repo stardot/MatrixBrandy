@@ -142,6 +142,9 @@ static char *input_number(lvalue destination, char *p) {
     break;
   }
   return p;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function iostate.c:input_number\n");
+#endif
 }
 
 /*
@@ -1513,6 +1516,9 @@ static void print_screen(void) {
     emulate_newline();
     basicvars.printcount = 0;
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function iostate.c:print_screen\n");
+#endif
 }
 
 /*

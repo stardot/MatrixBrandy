@@ -912,6 +912,9 @@ static void do_xvar(void) {
       }
     }
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_xvar\n");
+#endif
 }
 
 /*
@@ -989,6 +992,9 @@ static void do_unaryminus(void) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_unaryminus\n");
+#endif
 }
 
 /*
@@ -1277,10 +1283,18 @@ static void *make_array(int32 arraytype, basicarray* original) {
   basicarray result;
   void *base = NULL;
   result = *original;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:make_array with arraytpe=0x%X\n", arraytype);
+#endif
   switch (arraytype) {
   case VAR_INTWORD:
     base = alloc_stackmem(original->arrsize*sizeof(int32));
     result.arraystart.intbase = base;
+    break;
+  case VAR_INTLONG:
+    base = alloc_stackmem(original->arrsize*sizeof(int64));
+    result.arraystart.int64base = base;
     break;
   case VAR_FLOAT:
     base = alloc_stackmem(original->arrsize*sizeof(float64));
@@ -1295,6 +1309,9 @@ static void *make_array(int32 arraytype, basicarray* original) {
   }
   if (base == NIL) error(ERR_NOROOM);	/* Not enough room on stack to create array */
   push_arraytemp(&result, arraytype);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exit function evaluate.c:make_array with base=0x%p\n", base);
+#endif
   return base;
 }
 
@@ -1305,22 +1322,88 @@ static void *make_array(int32 arraytype, basicarray* original) {
 */
 static void eval_ivplus(void) {
   stackitem lhitem;
-  int32 rhint = pop_int();	/* Top item on Basic stack is right-hand operand */
+  int32 rhint32 = pop_int();	/* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {
     if (matrixflags.legacyintmaths) {
-      INCR_INT(rhint);		/* int+int - Update value on stack in place */
+      INCR_INT(rhint32);		/* int+int - Update value on stack in place */
     } else {
-      float64 lhfloat;
-      int32 lhint=pop_int();
-      lhfloat=TOFLOAT(lhint);
-      lhint += rhint;
-      lhfloat += TOFLOAT(rhint);
-      if (lhfloat == lhint)
-        push_int(lhint);
+      int64 lhint64;
+      int32 lhint32=pop_int();
+      lhint64 = (int64)(lhint32 + rhint32);
+      lhint32 += rhint32;
+      if (lhint64 == lhint32)
+        push_int(lhint32);
       else
-        push_float(lhfloat);
+        push_int64(lhint64);
     }
+  } else if (lhitem == STACK_INT64) {
+    int64 lhint64;
+    int32 lhint32;
+    lhint64=pop_int64();
+    lhint32=((int32)lhint64 + rhint32);
+    lhint64 += (int64)rhint32;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
+  } else if (lhitem == STACK_FLOAT)
+    INCR_FLOAT(TOFLOAT(rhint32));	/* float+int - Update value on stack in place */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
+    basicarray *lharray;
+    int32 n, count;
+    lharray = pop_array();
+    count = lharray->arrsize;
+    if (lhitem == STACK_INTARRAY) {
+      int32 *srce, *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhint32;
+    } if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce, *base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = srce[n]+(int64)rhint32;
+    } else {
+      float64 *srce, *base = make_array(VAR_FLOAT, lharray);
+      floatvalue = TOFLOAT(rhint32);
+      srce = lharray->arraystart.floatbase;
+      for (n = 0; n < count; n++) base[n] = srce[n]+floatvalue;
+    }
+  }
+  else if (lhitem == STACK_FATEMP) {	/* <float array>+<integer value> */
+    basicarray lharray;
+    float64 *base;
+    int32 n, count;
+    lharray = pop_arraytemp();
+    base = lharray.arraystart.floatbase;
+    count = lharray.arrsize;
+    floatvalue = TOFLOAT(rhint32);
+    for (n = 0; n < count; n++) base[n]+=floatvalue;
+    push_arraytemp(&lharray, VAR_FLOAT);
+  }
+  else {
+    want_number();
+  }
+}
+
+/*
+** 'eval_iv64plus' deals with addition when the right-hand operand is
+** a 64-bit  integer value. All versions of the operator are dealt with
+** by this function
+*/
+static void eval_iv64plus(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();	/* Top item on Basic stack is right-hand operand */
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {
+    float64 lhfloat;
+    int32 lhint=pop_int();
+    lhfloat=TOFLOAT(lhint);
+    lhint += (int32)rhint;
+    lhfloat += TOFLOAT(rhint);
+    if (lhfloat == lhint)
+      push_int(lhint);
+    else
+      push_float(lhfloat);
   } else if (lhitem == STACK_INT64) {
     float64 lhfloat;
     int64 lhint64;
@@ -1328,18 +1411,14 @@ static void eval_ivplus(void) {
     lhint64=pop_int64();
     lhint32=(int)lhint64;
     lhfloat=TOFLOAT(lhint64);
-    lhint32 += rhint;
+    lhint32 += (int32)rhint;
     lhint64 += rhint;
     lhfloat += TOFLOAT(rhint);
     if (lhfloat == lhint32)
       push_int(lhint32);
-    else {
-      if((lhint64 <= (int64)2<<62) && (lhfloat == TOINT64(lhfloat))) {
+      else
         push_int64(lhint64);
-      } else {
         push_float(lhfloat);
-      }
-    }
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
@@ -1675,6 +1754,59 @@ static void eval_ivminus(void) {
       else
         push_float(lhfloat);
     }
+  } else if (lhitem == STACK_FLOAT)
+    DECR_FLOAT(TOFLOAT(rhint));
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
+    basicarray *lharray;
+    int32 n, count;
+    lharray = pop_array();
+    count = lharray->arrsize;
+    if (lhitem == STACK_INTARRAY) {
+      int32 *srce, *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) base[n] = srce[n] - rhint;
+    }
+    else {
+      float64 *srce, *base = make_array(VAR_FLOAT, lharray);
+      floatvalue = TOFLOAT(rhint);
+      srce = lharray->arraystart.floatbase;
+      for (n = 0; n < count; n++) base[n] = srce[n] - floatvalue;
+    }
+  }
+  else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
+    basicarray lharray;
+    float64 *base;
+    int32 n, count;
+    lharray = pop_arraytemp();
+    base = lharray.arraystart.floatbase;
+    count = lharray.arrsize;
+    floatvalue = TOFLOAT(rhint);
+    for (n = 0; n < count; n++) base[n] -= floatvalue;
+    push_arraytemp(&lharray, VAR_FLOAT);
+  }
+  else {
+    want_number();
+  }
+}
+
+/*
+** 'eval_iv64minus' deals with subtraction when the right-hand operand is
+** a 64-bit integer value.
+*/
+static void eval_iv64minus(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
+    float64 lhfloat;
+    int64 lhint=pop_int64();
+    lhfloat=TOFLOAT(lhint);
+    lhint -= rhint;
+    lhfloat -= TOFLOAT(rhint);
+    if (lhfloat == lhint)
+      push_int64(lhint);
+    else
+      push_float(lhfloat);
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
@@ -3580,12 +3712,12 @@ static void (*opfunctions [21][15])(void) = {
   eval_badcall, eval_badcall, eval_badcall, eval_badcall,
   eval_badcall, eval_badcall},
 /* Addition */
- {eval_badcall, eval_badcall, eval_ivplus,  eval_badcall, eval_fvplus,
+ {eval_badcall, eval_badcall, eval_ivplus,  eval_iv64plus, eval_fvplus,
   eval_svplus,  eval_svplus,  eval_iaplus,  eval_iaplus,
   eval_badcall, eval_badcall, eval_faplus,  eval_faplus,
   eval_saplus,  eval_saplus},
 /* Subtraction */
- {eval_badcall, eval_badcall, eval_ivminus, eval_badcall, eval_fvminus,
+ {eval_badcall, eval_badcall, eval_ivminus, eval_iv64minus, eval_fvminus,
   want_number,  want_number,  eval_iaminus, eval_iaminus,
   eval_badcall, eval_badcall, eval_faminus, eval_faminus,
   want_number,  want_number},
@@ -3705,13 +3837,21 @@ void expression(void) {
 #endif
   (*factor_table[*basicvars.current])();	/* Get first factor in the expression */
   lastop = optable[*basicvars.current];
-  if (lastop == 0) return;	/* Quick way out if there is nothing to do */
+  if (lastop == 0) {
+#ifdef DEBUG
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via lastop=0\n");
+#endif
+    return;	/* Quick way out if there is nothing to do */
+  }
   basicvars.current++;		/* Skip operator (always one character) */
   (*factor_table[*basicvars.current])();	/* Get second operand */
   thisop = optable[*basicvars.current];
   if (thisop == 0) {
 /* Have got a simple '<value> <op> <value>' type of expression */
     (*opfunctions[lastop & OPERMASK][GET_TOPITEM])();
+#ifdef DEBUG
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via thisop=0\n");
+#endif
     return;
   }
 /* Expression is more complex so we have to invoke the heavy machinery */
@@ -3751,6 +3891,9 @@ void expression(void) {
     lastop = *basicvars.opstop;
     basicvars.opstop--;
   }
+#ifdef DEBUG
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression at end of function\n");
+#endif
 }
 
 /*

@@ -200,6 +200,9 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       *floatvalue = (isneg ? -fpvalue : fpvalue);
     }
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function convert.c:tonumber\n");
+#endif
   return cp;
 }
 

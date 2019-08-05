@@ -1611,6 +1611,9 @@ static void fn_val(void) {
       push_float(fpvalue);
     }
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function functions.c:fn_val\n");
+#endif
 }
 
 /*
