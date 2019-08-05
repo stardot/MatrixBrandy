@@ -2200,7 +2200,7 @@ static void setup_mode(int32 mode) {
   screen3A = SDL_DisplayFormat(screen0);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
-  YPPC=8; if ((mode == 3) || (mode == 6)) YPPC=10;
+  YPPC=8; if ((mode == 3) || (mode == 6) || (mode == 11) || (mode == 14) || (mode == 17)) YPPC=10;
   place_rect.h = font_rect.h = YPPC;
   reset_mode7();
   screenwidth = modetable[mode].xres;
