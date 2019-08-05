@@ -616,9 +616,9 @@ static void do_floatconst(void) {
 }
 
 /*
-** 'do_intvar' handles a simple reference to a known integer variable,
-** pushing its value on to the stack. The variable is known to be not
-** followed by an indirection operator
+** 'do_intvar' handles a simple reference to a known 32-bit integer
+** variable, pushing its value on to the stack. The variable is known
+** to be not followed by an indirection operator
 */
 static void do_intvar(void) {
   int32 *ip;
@@ -627,6 +627,10 @@ static void do_intvar(void) {
   PUSH_INT(*ip);
 }
 
+/*
+** 'do_int64var' deals with simple references to a known 64-bit
+** integer variable.
+*/
 static void do_int64var(void) {
   int64 *ip;
   ip = GET_ADDRESS(basicvars.current, int64 *);
@@ -3456,7 +3460,7 @@ void (*factor_table[256])(void) = {
   bad_syntax, do_xvar, do_staticvar, do_intvar,			/* 00..03 */
   do_floatvar, do_stringvar, do_arrayvar, do_arrayref,		/* 04..07 */
   do_arrayref, do_indrefvar, do_indrefvar, do_statindvar,	/* 08..0B */
-  do_xfunction, do_function, bad_token, bad_token,		/* 0C..0F */
+  do_xfunction, do_function, do_int64var, bad_token,		/* 0C..0F */
   do_intzero, do_intone, do_smallconst, do_intconst,		/* 10..13 */
   do_floatzero, do_floatone, do_floatconst, do_stringcon,	/* 14..17 */
   do_qstringcon, do_int64const, bad_token, bad_token,		/* 18..1B */
