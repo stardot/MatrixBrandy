@@ -1791,30 +1791,38 @@ static void eval_saplus(void) {
 
 /*
 ** 'eval_ivminus' deals with subtraction when the right-hand operand is
-** an integer value. All versions of the operator are dealt with
+** a 32-bit integer value. All versions of the operator are dealt with
 ** by this function
 */
 static void eval_ivminus(void) {
   stackitem lhitem;
-  int32 rhint = pop_int();
+  int32 rhint32 = pop_int();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
     if (matrixflags.legacyintmaths) {
-      DECR_INT(rhint);
+      DECR_INT(rhint32);
     } else {
-      float64 lhfloat;
-      int32 lhint=pop_int();
-      lhfloat=TOFLOAT(lhint);
-      lhint -= rhint;
-      lhfloat -= TOFLOAT(rhint);
-      if (lhfloat == lhint)
-        push_int(lhint);
+      int64 lhint64;
+      int32 lhint32=pop_int();
+      lhint64=(int64)(lhint32-rhint32);
+      lhint32 -= rhint32;
+      if (lhint64 == lhint32)
+        push_int(lhint32);
       else
-        push_float(lhfloat);
+       push_int64(lhint64);
     }
+  } else if (lhitem == STACK_INT64) {	/* Branch according to type of left-hand operand */
+    int32 lhint32;
+    int64 lhint64=pop_int64();
+    lhint32 = (int32)lhint64 - rhint32;
+    lhint64=(int64)(lhint64-rhint32);
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
   } else if (lhitem == STACK_FLOAT)
-    DECR_FLOAT(TOFLOAT(rhint));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
+    DECR_FLOAT(TOFLOAT(rhint32));
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -1822,23 +1830,25 @@ static void eval_ivminus(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce, *base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.intbase;
-      for (n = 0; n < count; n++) base[n] = srce[n] - rhint;
-    }
-    else {
+      for (n = 0; n < count; n++) base[n] = srce[n] - rhint32;
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce, *base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = srce[n] - (int64)rhint32;
+    } else {
       float64 *srce, *base = make_array(VAR_FLOAT, lharray);
-      floatvalue = TOFLOAT(rhint);
+      floatvalue = TOFLOAT(rhint32);
       srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n] - floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
     lharray = pop_arraytemp();
     base = lharray.arraystart.floatbase;
     count = lharray.arrsize;
-    floatvalue = TOFLOAT(rhint);
+    floatvalue = TOFLOAT(rhint32);
     for (n = 0; n < count; n++) base[n] -= floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   }
@@ -1853,21 +1863,29 @@ static void eval_ivminus(void) {
 */
 static void eval_iv64minus(void) {
   stackitem lhitem;
-  int64 rhint = pop_int64();
+  int64 rhint64 = pop_int64();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
-    float64 lhfloat;
-    int64 lhint=pop_int64();
-    lhfloat=TOFLOAT(lhint);
-    lhint -= rhint;
-    lhfloat -= TOFLOAT(rhint);
-    if (lhfloat == lhint)
-      push_int64(lhint);
+    int64 lhint64;
+    int32 lhint32=pop_int();
+    lhint64=(int64)(lhint32)-rhint64;
+    lhint32 -= (int32)rhint64;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
     else
-      push_float(lhfloat);
+     push_int64(lhint64);
+  } else if (lhitem == STACK_INT64) {	/* Branch according to type of left-hand operand */
+    int32 lhint32;
+    int64 lhint64=pop_int64();
+    lhint32 = (int32)(lhint64 - rhint64);
+    lhint64=lhint64-rhint64;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
   } else if (lhitem == STACK_FLOAT)
-    DECR_FLOAT(TOFLOAT(rhint));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
+    DECR_FLOAT(TOFLOAT(rhint64));
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -1875,23 +1893,25 @@ static void eval_iv64minus(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce, *base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.intbase;
-      for (n = 0; n < count; n++) base[n] = srce[n] - rhint;
-    }
-    else {
+      for (n = 0; n < count; n++) base[n] = srce[n] - (int32)rhint64;
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce, *base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = srce[n] - rhint64;
+    } else {
       float64 *srce, *base = make_array(VAR_FLOAT, lharray);
-      floatvalue = TOFLOAT(rhint);
+      floatvalue = TOFLOAT(rhint64);
       srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n] - floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
     lharray = pop_arraytemp();
     base = lharray.arraystart.floatbase;
     count = lharray.arrsize;
-    floatvalue = TOFLOAT(rhint);
+    floatvalue = TOFLOAT(rhint64);
     for (n = 0; n < count; n++) base[n] -= floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   }
