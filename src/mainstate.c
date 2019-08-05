@@ -397,6 +397,10 @@ void exec_dim(void) {
   variable *vp;
   boolean blockdef;		/* TRUE if we are allocating a block of memory and not creating an array */
   boolean islocal;		/* TRUE if we are defining a local array on the stack */
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_dim\n");
+#endif
   do {
     basicvars.current++;	/* Skip 'DIM' token or ',' */
 /* Must always have a variable name next */
@@ -437,6 +441,9 @@ void exec_dim(void) {
     }
   } while (*basicvars.current == ',');
   check_ateol();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_dim\n");
+#endif
 }
 
 /*

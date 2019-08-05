@@ -680,6 +680,10 @@ static void do_arrayref(void) {
   byte operator;
   int32 vartype, maxdims, index = 0, dimcount, element = 0, offset = 0;
   basicarray *descriptor;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do\n");
+#endif
   vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer to variable */
   descriptor = vp->varentry.vararray;
@@ -688,6 +692,8 @@ static void do_arrayref(void) {
     expression();	      /* Evaluate an array index */
     if (GET_TOPITEM == STACK_INT)
       element = pop_int();
+    else if (GET_TOPITEM == STACK_INT64)
+      element = (int32)pop_int64();
     else if (GET_TOPITEM == STACK_FLOAT)
       element = TOINT(pop_float());
     else {
@@ -723,6 +729,10 @@ static void do_arrayref(void) {
   if (*basicvars.current != '?' && *basicvars.current != '!') {	/* Ordinary array reference */
     if (vartype == VAR_INTARRAY) {	/* Can push the array element on to the stack then go home */
       PUSH_INT(vp->varentry.vararray->arraystart.intbase[element]);
+      return;
+    }
+    if (vartype == VAR_INT64ARRAY) {	/* Can push the array element on to the stack then go home */
+      PUSH_INT64(vp->varentry.vararray->arraystart.int64base[element]);
       return;
     }
     if (vartype == VAR_FLOATARRAY) {
@@ -1931,10 +1941,12 @@ static void eval_fvminus(void) {
   if (lhitem == STACK_INT) {	/* <int>-<float> */
     floatvalue = TOFLOAT(pop_int()) - floatvalue;
     PUSH_FLOAT(floatvalue);
-  }
-  else if (lhitem == STACK_FLOAT)
+  } else if (lhitem == STACK_INT64) {	/* <int>-<float> */
+    floatvalue = TOFLOAT(pop_int64()) - floatvalue;
+    PUSH_FLOAT(floatvalue);
+  } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(floatvalue);
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<float value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<float value> */
     basicarray *lharray;
     float64 *base;
     int32 n, count;
@@ -1944,13 +1956,14 @@ static void eval_fvminus(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
-    }
-    else {
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
+    } else {
       float64 *srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n] - floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>-<float value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>-<float value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
@@ -1967,7 +1980,7 @@ static void eval_fvminus(void) {
 
 /*
 ** 'eval_iaminus' deals with subtraction when the right-hand operand is
-** an integer array. All versions of the operator are dealt with
+** a 32-bit integer array. All versions of the operator are dealt with
 ** by this function
 */
 static void eval_iaminus(void) {
@@ -1983,30 +1996,37 @@ static void eval_iaminus(void) {
     int32 lhint = pop_int();
     int32 *base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
-  }
-  else if (lhitem == STACK_FLOAT) {	/* <float>-<int array> */
+  } else if (lhitem == STACK_INT64) {
+    int64 lhint = pop_int64();
+    int64 *base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
+  } else if (lhitem == STACK_FLOAT) {	/* <float>-<int array> */
     float64 *base;
     floatvalue = pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue - TOFLOAT(rhsrce[n]);
-  }
-  else if (lhitem == STACK_INTARRAY) {	/* <int array>-<int array> */
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>-<int array> */
     int32 *base, *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
-  }
-  else if (lhitem == STACK_FLOATARRAY) {	/* <float array>-<int array> */
+  } else if (lhitem == STACK_INT64ARRAY) {	/* <int array>-<int array> */
+    int64 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.int64base;
+    base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>-<int array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - TOFLOAT(rhsrce[n]);
-  }
-  else if (lhitem == STACK_FATEMP) {		/* <float array>-<int array> */
+  } else if (lhitem == STACK_FATEMP) {		/* <float array>-<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
     if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
@@ -3795,10 +3815,10 @@ static void (*opfunctions [21][15])(void) = {
   eval_i64aplus, eval_i64aplus, eval_faplus,  eval_faplus,
   eval_saplus,   eval_saplus},
 /* Subtraction */
- {eval_badcall, eval_badcall, eval_ivminus, eval_iv64minus, eval_fvminus,
-  want_number,  want_number,  eval_iaminus, eval_iaminus,
+ {eval_badcall  , eval_badcall,   eval_ivminus, eval_iv64minus, eval_fvminus,
+  want_number,    want_number,    eval_iaminus, eval_iaminus,
   eval_badcall, eval_badcall, eval_faminus, eval_faminus,
-  want_number,  want_number},
+  want_number,    want_number},
 /* Multiplication */
  {eval_badcall, eval_badcall, eval_ivmul,   eval_badcall, eval_fvmul,
   want_number,  want_number,  eval_iamul,   eval_iamul,

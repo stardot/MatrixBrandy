@@ -360,11 +360,19 @@ void define_array(variable *vp, boolean islocal) {
   int32 bounds[MAXDIMS];
   int32 n, dimcount, highindex, elemsize = 0, size;
   basicarray *ap;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:define_array\n");
+#endif
+fprintf(stderr, "varflags=%X\n", vp->varflags);
   dimcount = 0;		/* Number of dimemsions */
   size = 1;		/* Number of elements */
   switch (vp->varflags) {	/* Figure out array element size */
   case VAR_INTARRAY:
     elemsize = sizeof(int32);
+    break;
+  case VAR_INT64ARRAY:
+    elemsize = sizeof(int64);
     break;
   case VAR_FLOATARRAY:
     elemsize = sizeof(float64);
@@ -413,6 +421,8 @@ void define_array(variable *vp, boolean islocal) {
 /* Now zeroise all the array elememts */
   if (vp->varflags==VAR_INTARRAY)
     for (n=0; n<size; n++) ap->arraystart.intbase[n] = 0;
+  else if (vp->varflags==VAR_INT64ARRAY)
+    for (n=0; n<size; n++) ap->arraystart.int64base[n] = 0;
   else if (vp->varflags==VAR_FLOATARRAY)
     for (n=0; n<size; n++) ap->arraystart.floatbase[n] = 0.0;
   else {	/* This leaves string arrays */
@@ -421,6 +431,9 @@ void define_array(variable *vp, boolean islocal) {
     temp.stringaddr = nullstring;
     for (n=0; n<size; n++) ap->arraystart.stringbase[n] = temp;
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variables.c:define_array\n");
+#endif
 }
 
 /*
@@ -461,7 +474,11 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   case '(':	/* Defining an array */
     switch (np[namelen-2]) {
     case '%':
-      vp->varflags = VAR_INTWORD|VAR_ARRAY;
+      if (np[namelen-3]=='%') {
+        vp->varflags = VAR_INTLONG|VAR_ARRAY;
+      } else {
+        vp->varflags = VAR_INTWORD|VAR_ARRAY;
+      }
       break;
     case '$':
       vp->varflags = VAR_STRINGDOL|VAR_ARRAY;
@@ -525,10 +542,18 @@ variable *find_variable(byte *np, int namelen) {
   if (lp!=NIL) {		/* Yes - Search library's symbol table first */
     vp = lp->varlists[hashvalue & VARMASK];
     while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(name, vp->varname)!=0)) vp = vp->varflink;
-    if (vp!=NIL) return vp;	/* Found symbol - Return pointer to symbol table entry */
+    if (vp!=NIL) {
+#ifdef DEBUG
+      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variable.c:find_variable\n");
+#endif
+      return vp;	/* Found symbol - Return pointer to symbol table entry */
+    }
   }
   vp = basicvars.varlists[hashvalue & VARMASK];
   while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(name, vp->varname)!=0)) vp = vp->varflink;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variable.c:find_variable\n");
+#endif
   return vp;
 }
 
@@ -640,6 +665,10 @@ static void add_libarray(byte *tp, library *lp) {
   byte *ep, *base;
   int namelen;
   variable *vp;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:add_libarray\n");
+#endif
   save_current();
   basicvars.current = tp;
   do {
@@ -666,6 +695,7 @@ static void add_libarray(byte *tp, library *lp) {
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
    vp->varname, lp->libname, vp);
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variables.c:add_libarray\n");
 #endif
 }
 
