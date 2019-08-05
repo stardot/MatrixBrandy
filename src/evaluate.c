@@ -2734,7 +2734,7 @@ static void eval_fmmul(void) {
 
 /*
 ** 'eval_ivdiv' handles floating point division where the right-hand operand
-** is an integer value
+** is a 32-bit integer value
 */
 static void eval_ivdiv(void) {
   stackitem lhitem;
@@ -2743,9 +2743,11 @@ static void eval_ivdiv(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     push_float(TOFLOAT(pop_int())/TOFLOAT(rhint));
+  else if (lhitem == STACK_INT64)
+    push_float(TOFLOAT(pop_int64())/TOFLOAT(rhint));
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()/TOFLOAT(rhint));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<integer value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<integer value> */
     basicarray *lharray;
     int32 n, count;
     float64 *base;
@@ -2756,13 +2758,14 @@ static void eval_ivdiv(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) / floatvalue;
-    }
-    else {
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) / floatvalue;
+    } else {
       float64 *srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n] / floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>/<integer value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>/<integer value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
@@ -2772,8 +2775,55 @@ static void eval_ivdiv(void) {
     floatvalue = TOFLOAT(rhint);
     for (n = 0; n < count; n++) base[n]/=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
+    want_number();
   }
-  else {
+}
+
+/*
+** 'eval_iv64div' handles floating point division where the right-hand operand
+** is a 64-bit integer value
+*/
+static void eval_iv64div(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  if (rhint == 0) error(ERR_DIVZERO);
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    push_float(TOFLOAT(pop_int())/TOFLOAT(rhint));
+  else if (lhitem == STACK_INT64)
+    push_float(TOFLOAT(pop_int64())/TOFLOAT(rhint));
+  else if (lhitem == STACK_FLOAT)
+    push_float(pop_float()/TOFLOAT(rhint));
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<integer value> */
+    basicarray *lharray;
+    int32 n, count;
+    float64 *base;
+    lharray = pop_array();
+    count = lharray->arrsize;
+    base = make_array(VAR_FLOAT, lharray);
+    floatvalue = TOFLOAT(rhint);
+    if (lhitem == STACK_INTARRAY) {
+      int32 *srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) / floatvalue;
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n]) / floatvalue;
+    } else {
+      float64 *srce = lharray->arraystart.floatbase;
+      for (n = 0; n < count; n++) base[n] = srce[n] / floatvalue;
+    }
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>/<integer value> */
+    basicarray lharray;
+    float64 *base;
+    int32 n, count;
+    lharray = pop_arraytemp();
+    base = lharray.arraystart.floatbase;
+    count = lharray.arrsize;
+    floatvalue = TOFLOAT(rhint);
+    for (n = 0; n < count; n++) base[n]/=floatvalue;
+    push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
     want_number();
   }
 }
@@ -2789,6 +2839,8 @@ static void eval_fvdiv(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     push_float(TOFLOAT(pop_int())/floatvalue);
+  else if (lhitem == STACK_INT64)
+    push_float(TOFLOAT(pop_int64())/floatvalue);
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()/floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<float value> */
@@ -2801,13 +2853,14 @@ static void eval_fvdiv(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n])/floatvalue;
-    }
-    else {
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n])/floatvalue;
+    } else {
       float64 *srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = srce[n]/floatvalue;
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>/<float value> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>/<float value> */
     basicarray lharray;
     float64 *base;
     int32 n, count;
@@ -2816,15 +2869,14 @@ static void eval_fvdiv(void) {
     count = lharray.arrsize;
     for (n = 0; n < count; n++) base[n]/=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
-  }
-  else {
+  } else {
     want_number();
   }
 }
 
 /*
 ** 'eval_iadiv' handles floating point division where the right-hand operand
-** is an integer array
+** is a 32-bit integer array
 */
 static void eval_iadiv(void) {
   stackitem lhitem;
@@ -2844,16 +2896,22 @@ static void eval_iadiv(void) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = floatvalue / TOFLOAT(rhsrce[n]);
     }
-  }
-  else if (lhitem == STACK_FLOAT) {	/* <float value>/<integer array> */
+  } else if (lhitem == STACK_INT64) {	/* <int64 value>/<integer array> */
+    float64 *base;
+    floatvalue = TOFLOAT(pop_int64());
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = floatvalue / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_FLOAT) {	/* <float value>/<integer array> */
     floatvalue = pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = floatvalue/TOFLOAT(rhsrce[n]);
     }
-  }
-  else if (lhitem == STACK_INTARRAY) {	/* <int array>/<int array> */
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>/<int array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
@@ -2863,8 +2921,17 @@ static void eval_iadiv(void) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = TOFLOAT(lhsrce[n]) / TOFLOAT(rhsrce[n]);
     }
-  }
-  else if (lhitem == STACK_FLOATARRAY) {	/* <float array>/<int array> */
+  } else if (lhitem == STACK_INT64ARRAY) {	/* <int64 array>/<int array> */
+    int64 *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.int64base;
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = TOFLOAT(lhsrce[n]) / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>/<int array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
@@ -2874,8 +2941,7 @@ static void eval_iadiv(void) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = lhsrce[n] / TOFLOAT(rhsrce[n]);
     }
-  }
-  else if (lhitem == STACK_FATEMP) {		/* <float array>/<int array> */
+  } else if (lhitem == STACK_FATEMP) {		/* <float array>/<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
     if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
@@ -2885,8 +2951,89 @@ static void eval_iadiv(void) {
       lhsrce[n] /= TOFLOAT(rhsrce[n]);
     }
     push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
+    want_number();
   }
-  else {
+}
+
+/*
+** 'eval_i64adiv' handles floating point division where the right-hand operand
+** is a 64-bit integer array
+*/
+static void eval_i64adiv(void) {
+  stackitem lhitem;
+  basicarray *rharray;
+  int32 n, count;
+  int64 *rhsrce;
+  float64 *base;
+  rharray = pop_array();
+  count = rharray->arrsize;
+  rhsrce = rharray->arraystart.int64base;
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {	/* <integer value>/<integer array> */
+    float64 *base;
+    floatvalue = TOFLOAT(pop_int());
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = floatvalue / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_INT64) {	/* <int64 value>/<integer array> */
+    float64 *base;
+    floatvalue = TOFLOAT(pop_int64());
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = floatvalue / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_FLOAT) {	/* <float value>/<integer array> */
+    floatvalue = pop_float();
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = floatvalue/TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>/<int array> */
+    int32 *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.intbase;
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = TOFLOAT(lhsrce[n]) / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_INT64ARRAY) {	/* <int64 array>/<int array> */
+    int64 *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.int64base;
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = TOFLOAT(lhsrce[n]) / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>/<int array> */
+    float64 *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    base = make_array(VAR_FLOAT, rharray);
+    lhsrce = lharray->arraystart.floatbase;
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base[n] = lhsrce[n] / TOFLOAT(rhsrce[n]);
+    }
+  } else if (lhitem == STACK_FATEMP) {		/* <float array>/<int array> */
+    float64 *lhsrce;
+    basicarray lharray = pop_arraytemp();
+    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray.arraystart.floatbase;
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      lhsrce[n] /= TOFLOAT(rhsrce[n]);
+    }
+    push_arraytemp(&lharray, VAR_FLOAT);
+  } else {
     want_number();
   }
 }
@@ -4097,9 +4244,9 @@ static void (*opfunctions [21][15])(void) = {
   want_array,   want_array,   eval_fmmul,   want_array,
   want_array,   want_array},
 /* Division */
- {eval_badcall, eval_badcall, eval_ivdiv,   eval_badcall, eval_fvdiv,
+ {eval_badcall, eval_badcall, eval_ivdiv,   eval_iv64div, eval_fvdiv,
   want_number,  want_number,  eval_iadiv,   eval_iadiv,
-  eval_badcall, eval_badcall, eval_fadiv,   eval_fadiv,
+  eval_i64adiv, eval_i64adiv, eval_fadiv,   eval_fadiv,
   want_number,  want_number},
 /* Integer division */
  {eval_badcall, eval_badcall, eval_ivintdiv, eval_badcall, eval_fvintdiv,
