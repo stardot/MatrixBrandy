@@ -1111,12 +1111,14 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "LINE")) {
     emulate_printf("Draw a line: LINE x1,y1,x2,y2\r\nPart of INPUT LINE or LINE INPUT statement.");
   } else if (!strcmp(cmd, "LIST")) {
-    emulate_printf("This command lists the program.\r\nLIST [<line number>][,[<line number]]: List [section of] program.\r\nLISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
+    emulate_printf("This command lists the program.\r\nLIST [<line number>][,[<line number]]: List [section of] program.\r\nSee also LISTO which controls how LIST shows lines.");
+  } else if (!strcmp(cmd, "LISTIF")) {
+    emulate_printf("LISTIF <pattern>: lists lines of the program that match <pattern>.");
+  } else if (!strcmp(cmd, "LISTO")) {
+    emulate_printf("LISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
 #ifdef DEBUG
     emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)");
 #endif
-  } else if (!strcmp(cmd, "LISTIF")) {
-    emulate_printf("LISTIF <pattern>: lists lines of the program that match <pattern>.");
   } else if (!strcmp(cmd, "LN")) {
     emulate_printf("This function gives the natural logarithm (base e) of a number(<factor>).");
   } else if (!strcmp(cmd, "LOAD")) {
@@ -1180,7 +1182,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "POS")) {
     emulate_printf("This function gives the x-coordinate of the text cursor.");
   } else if (!strcmp(cmd, "PRINT")) {
-    emulate_printf("PRINT ['|TAB|SPC][\"display string\"][<expression>][;] print items in fields\r\ndefined by @% - see HELP @%\r\nPRINT#<channel>,<list of expressions>: print data to open file.");
+    emulate_printf("PRINT ['|TAB|SPC][\"display string\"][<expression>][;] print items in fields\r\ndefined by @%% - see HELP @%%\r\nPRINT#<channel>,<list of expressions>: print data to open file.");
   } else if (!strcmp(cmd, "PROC")) {
     emulate_printf("Call a procedure with PROCfred(x,y); define one with DEF PROCfred(a,b).");
   } else if (!strcmp(cmd, "PTR")) {
