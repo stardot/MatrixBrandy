@@ -76,14 +76,14 @@ extern void pop_for(void);
 extern byte *pop_data(void);
 extern errorblock pop_error(void);
 extern void save_int(lvalue, int32);
+extern void save_int64(lvalue, int64);
 extern void save_float(lvalue, float64);
 extern void save_string(lvalue, basicstring);
 extern void save_array(lvalue);
 extern void save_retint(lvalue, lvalue, int32);
+extern void save_retint64(lvalue, lvalue, int64);
 extern void save_retfloat(lvalue, lvalue, float64);
 extern void save_retstring(lvalue, lvalue, basicstring);
-extern void intdiv_int(int32);
-extern void intmod_int(int32);
 extern void restore_parameters(int32);
 extern void empty_stack(stackitem);
 extern void reset_stack(byte *);
@@ -117,8 +117,10 @@ extern void *alloc_local(int32);
 #define DECR_INT(x) basicvars.stacktop.intsp->intvalue-=(x)
 #define DECR_FLOAT(x) basicvars.stacktop.floatsp->floatvalue-=(x)
 #define INTDIV_INT(x) basicvars.stacktop.intsp->intvalue/=(x)
+#define INTDIV_INT64(x) basicvars.stacktop.int64sp->int64value/=(x)
 #define DIV_FLOAT(x) basicvars.stacktop.floatsp->floatvalue/=(x)
 #define INTMOD_INT(x) basicvars.stacktop.intsp->intvalue%=(x)
+#define INTMOD_INT64(x) basicvars.stacktop.int64sp->int64value%=(x)
 #define LSL_INT(x) basicvars.stacktop.intsp->intvalue<<=(x)
 #define ASR_INT(x) basicvars.stacktop.intsp->intvalue>>=(x)
 #define AND_INT(x) basicvars.stacktop.intsp->intvalue&=(x)

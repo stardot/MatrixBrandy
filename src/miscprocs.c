@@ -553,6 +553,7 @@ FILE *secure_tmpnam(char *name)
 #endif /* TARGET_MINGW */
 }
 
+/* These are reimplemented from macros */
 int32 TOINT(float64 fltmp) {
   if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
   return (int32)(floor(fltmp));

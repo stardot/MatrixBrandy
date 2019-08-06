@@ -273,6 +273,7 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
 */
 static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   int32 intparm = 0, typerr;
+  int64 int64parm = 0;
   float64 floatparm = 0;
   basicstring stringparm = {0, NULL};
   basicarray *arrayparm = NULL;
@@ -285,6 +286,8 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     parmtype = GET_TOPITEM;
     if (parmtype == STACK_INT)
       intparm = pop_int();
+    else if (parmtype == STACK_INT64)
+      int64parm = pop_int();
     else if (parmtype == STACK_FLOAT)
       floatparm = pop_float();
     else if (parmtype == STACK_STRING || parmtype == STACK_STRTEMP)
@@ -301,6 +304,10 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     case VAR_INTWORD:		/* Integer parameter */
       intparm = *retparm.address.intaddr;
       parmtype = STACK_INT;
+      break;
+    case VAR_INTLONG:		/* Integer parameter */
+      int64parm = *retparm.address.int64addr;
+      parmtype = STACK_INT64;
       break;
     case VAR_FLOAT:		/* Floating point parameter */
       floatparm = *retparm.address.floataddr;
@@ -332,6 +339,10 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     case VAR_INTARRAY:		/* Array of integers */
       arrayparm = *retparm.address.arrayaddr;
       parmtype = STACK_INTARRAY;
+      break;
+    case VAR_INT64ARRAY:		/* Array of integers */
+      arrayparm = *retparm.address.arrayaddr;
+      parmtype = STACK_INT64ARRAY;
       break;
    case VAR_FLOATARRAY:		/* Array of floating point values */
       arrayparm = *retparm.address.arrayaddr;
@@ -389,6 +400,16 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   }
 /* Now deal with other parameter types */
   switch (fp->parameter.typeinfo & PARMTYPEMASK) {	/* Go by formal parameter type */
+  case VAR_INTLONG: {
+    int64 *p = fp->parameter.address.int64addr;
+    if (isreturn)
+      save_retint64(retparm, fp->parameter, *p);
+    else {
+      save_int64(fp->parameter, *p);
+    }
+    *p = (parmtype == STACK_INT ? intparm : TOINT(floatparm));
+    break;
+  }
   case VAR_FLOAT: {		/* Floating point parameter */
     float64 *p = fp->parameter.address.floataddr;
     if (isreturn)
@@ -472,7 +493,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
 
 /*
 ** 'push_singleparm' is called when a procedure or function has a single
-** integer parameter
+** 32-bit integer parameter
 */
 static void push_singleparm(formparm *fp, char *procname) {
   stackitem parmtype;
@@ -487,8 +508,19 @@ static void push_singleparm(formparm *fp, char *procname) {
   }
   basicvars.current++;	/* Skip the ')' */
   parmtype = GET_TOPITEM;
-  if (parmtype != STACK_INT && parmtype != STACK_FLOAT) error(ERR_PARMNUM, 1);
-  intparm = parmtype == STACK_INT ? pop_int() : TOINT(pop_float());	/* Value has to be popped first */
+  switch(parmtype) {
+    case STACK_INT:
+      intparm=pop_int();
+      break;
+    case STACK_INT64:
+      intparm=(int32)pop_int64();
+      break;
+    case STACK_FLOAT:
+      intparm = TOINT(pop_float());
+      break;
+    default:
+      error(ERR_PARMNUM, 1);
+  }
   save_int(fp->parameter, *(fp->parameter.address.intaddr));
   *(fp->parameter.address.intaddr) = intparm;
 }
@@ -574,7 +606,7 @@ static void do_smallconst(void) {
 }
 
 /*
-** 'do_intconst' pushes a four byte integer constant on to the Basic stack
+** 'do_intconst' pushes a 32-bit integer constant on to the Basic stack
 */
 static void do_intconst(void) {
   basicvars.current++;		/* Point current at binary version of number */
@@ -582,6 +614,9 @@ static void do_intconst(void) {
   basicvars.current+=INTSIZE;
 }
 
+/*
+** 'do_int64const' pushes a 64-bit integer constant on to the Basic stack
+*/
 static void do_int64const(void) {
   basicvars.current++;		/* Point current at binary version of number */
   PUSH_INT64(GET_INT64VALUE(basicvars.current));
@@ -981,7 +1016,7 @@ static void do_brackets(void) {
 static void do_unaryplus(void) {
   basicvars.current++;		/* Skip '+' */
   (*factor_table[*basicvars.current])();
-  if ((GET_TOPITEM != STACK_INT) && (GET_TOPITEM != STACK_FLOAT)) error(ERR_TYPENUM);
+  if ((GET_TOPITEM != STACK_INT) && (GET_TOPITEM != STACK_INT64) && (GET_TOPITEM != STACK_FLOAT)) error(ERR_TYPENUM);
 }
 
 /*
@@ -3111,7 +3146,7 @@ static void eval_fadiv(void) {
 }
 
 /*
-** 'eval_ivintdiv' handles the integer division operator when the
+** 'eval_ivintdiv' handles the 32-bit integer division operator when the
 ** right-hand operand is an integer value
 */
 static void eval_ivintdiv(void) {
@@ -3121,9 +3156,11 @@ static void eval_ivintdiv(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
     INTDIV_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    INTDIV_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float())/rhint);
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array> DIV <integer value> */
+    push_int64(TOINT(pop_float())/rhint);
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array> DIV <integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -3132,15 +3169,55 @@ static void eval_ivintdiv(void) {
       int32 *srce, *base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) base[n] = srce[n] / rhint;
-    }
-    else {	/* <float array> DIV <integer value> */
+    } else if (lhitem == STACK_INT64ARRAY) {	/* <integer array> DIV <integer value> */
+      int64 *srce, *base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = srce[n] / rhint;
+    } else {	/* <float array> DIV <integer value> */
       float64 *srce;
       int32 *base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) base[n] = TOINT(srce[n]) / rhint;
     }
+  } else {
+    want_number();
   }
-  else {
+}
+
+/*
+** 'eval_iv64intdiv' handles the 64-bit integer division operator when the
+** right-hand operand is an integer value
+*/
+static void eval_iv64intdiv(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  if (rhint == 0) error(ERR_DIVZERO);
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT || lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    INTDIV_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int64(TOINT64(pop_float())/rhint);
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array> DIV <integer value> */
+    basicarray *lharray;
+    int32 n, count;
+    lharray = pop_array();
+    count = lharray->arrsize;
+    if (lhitem == STACK_INTARRAY) {	/* <integer array> DIV <integer value> */
+      int32 *srce;
+      int64 *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) base[n] = srce[n] / rhint;
+    } else if (lhitem == STACK_INT64ARRAY) {	/* <integer array> DIV <integer value> */
+      int64 *srce, *base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = srce[n] / rhint;
+    } else {	/* <float array> DIV <integer value> */
+      float64 *srce;
+      int32 *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.floatbase;
+      for (n = 0; n < count; n++) base[n] = TOINT(srce[n]) / rhint;
+    }
+  } else {
     want_number();
   }
 }
@@ -3156,31 +3233,37 @@ static void eval_fvintdiv(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
     INTDIV_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    INTDIV_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float())/rhint);
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array> DIV <float value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array> DIV <float value> */
     basicarray *lharray;
     int32 *base, n, count;
+    int64 *base64;
     lharray = pop_array();
     count = lharray->arrsize;
-    base = make_array(VAR_INTWORD, lharray);
     if (lhitem == STACK_INTARRAY) {	/* <integer array> DIV <float value> */
       int32 *srce = lharray->arraystart.intbase;
+      base = make_array(VAR_INTWORD, lharray);
       for (n = 0; n < count; n++) base[n] = srce[n] / rhint;
-    }
-    else {	/* <float array> DIV <float value> */
+    } else if (lhitem == STACK_INT64ARRAY) {	/* <integer array> DIV <float value> */
+      int64 *srce = lharray->arraystart.int64base;
+      base64 = make_array(VAR_INTLONG, lharray);
+      for (n = 0; n < count; n++) base64[n] = srce[n] / rhint;
+    } else {	/* <float array> DIV <float value> */
       float64 *srce = lharray->arraystart.floatbase;
+      base = make_array(VAR_INTWORD, lharray);
       for (n = 0; n < count; n++) base[n] = TOINT(srce[n]) / rhint;
     }
-  }
-  else {
+  } else {
     want_number();
   }
 }
 
 /*
 ** 'eval_iaintdiv' handles the integer division operator when the
-** right-hand operand is an integer array
+** right-hand operand is a 32-bit integer array
 */
 static void eval_iaintdiv(void) {
   stackitem lhitem;
@@ -3199,8 +3282,15 @@ static void eval_iaintdiv(void) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = lhint / rhsrce[n];
     }
-  }
-  else if (lhitem == STACK_INTARRAY) {	/* <integer array> DIV <integer array> */
+  } else if (lhitem == STACK_INT64) {	/* <value> DIV <integer array> */
+    int64 lhint64, *base64;
+    lhint64 = lhitem == pop_int64();
+    base64 = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0) error(ERR_DIVZERO);
+      base64[n] = lhint64 / rhsrce[n];
+    }
+  } else if (lhitem == STACK_INTARRAY) {	/* <integer array> DIV <integer array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
@@ -3210,8 +3300,7 @@ static void eval_iaintdiv(void) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = lhsrce[n] / rhsrce[n];
     }
-  }
-  else if (lhitem == STACK_FLOATARRAY) {	/* <float array> DIV <integer array> */
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array> DIV <integer array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
@@ -3221,8 +3310,7 @@ static void eval_iaintdiv(void) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = TOINT(lhsrce[n]) / rhsrce[n];
     }
-  }
-  else {
+  } else {
     want_number();
   }
 }
@@ -4262,7 +4350,7 @@ static void (*opfunctions [21][15])(void) = {
   eval_i64adiv, eval_i64adiv, eval_fadiv,   eval_fadiv,
   want_number,  want_number},
 /* Integer division */
- {eval_badcall, eval_badcall, eval_ivintdiv, eval_badcall, eval_fvintdiv,
+ {eval_badcall, eval_badcall, eval_ivintdiv, eval_iv64intdiv, eval_fvintdiv,
   want_number,  want_number,  eval_iaintdiv, eval_iaintdiv,
   eval_badcall, eval_badcall, eval_faintdiv, eval_faintdiv,
   want_number, want_number},

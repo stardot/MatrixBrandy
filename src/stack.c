@@ -631,7 +631,24 @@ void save_retint(lvalue retdetails, lvalue details, int32 value) {
   basicvars.stacktop.retparmsp->savedetails = details;
   basicvars.stacktop.retparmsp->value.savedint = value;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving integer variable from %p at %p\n",
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving 32-bit integer variable from %p at %p\n",
+   details.address.intaddr, basicvars.stacktop.retparmsp);
+#endif
+}
+
+/*
+** 'save_retint64' sets up the control block on the stack for a floating point
+**'RETURN' type PROC/FN parameter
+*/
+void save_retint64(lvalue retdetails, lvalue details, int64 value) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
+  basicvars.stacktop.retparmsp->retdetails = retdetails;
+  basicvars.stacktop.retparmsp->savedetails = details;
+  basicvars.stacktop.retparmsp->value.savedint64 = value;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving 64-bit integer variable from %p at %p\n",
    details.address.intaddr, basicvars.stacktop.retparmsp);
 #endif
 }
