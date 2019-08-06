@@ -3058,8 +3058,14 @@ static void eval_fadiv(void) {
       if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
       base[n] = floatvalue / rhsrce[n];
     }
-  }
-  else if (lhitem == STACK_INTARRAY) {	/* <int array>/<float array> */
+  } else if (lhitem == STACK_INT64) {	/* <value>/<float array> */
+    floatvalue = TOFLOAT(pop_int64());
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
+      base[n] = floatvalue / rhsrce[n];
+    }
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>/<float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
@@ -3069,8 +3075,17 @@ static void eval_fadiv(void) {
       if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
       base[n] = TOFLOAT(lhsrce[n]) / rhsrce[n];
     }
-  }
-  else if (lhitem == STACK_FLOATARRAY) {	/* <float array>/<float array> */
+  } else if (lhitem == STACK_INT64ARRAY) {	/* <int64 array>/<float array> */
+    int64 *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    base = make_array(VAR_FLOAT, rharray);
+    lhsrce = lharray->arraystart.int64base;
+    for (n = 0; n < count; n++) {
+      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
+      base[n] = TOFLOAT(lhsrce[n]) / rhsrce[n];
+    }
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>/<float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
@@ -3080,8 +3095,7 @@ static void eval_fadiv(void) {
       if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
       base[n] = lhsrce[n] / rhsrce[n];
     }
-  }
-  else if (lhitem == STACK_FATEMP) {	/* <float array>/<float array> */
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>/<float array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
     if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
@@ -3091,8 +3105,7 @@ static void eval_fadiv(void) {
       lhsrce[n] /= rhsrce[n];
     }
     push_arraytemp(&lharray, VAR_FLOAT);
-  }
-  else {
+  } else {
     want_number();
   }
 }
