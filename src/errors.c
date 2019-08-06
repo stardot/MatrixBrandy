@@ -123,7 +123,7 @@ static void handle_signal(int signo) {
     error(ERR_ARITHMETIC);
   case SIGSEGV:
     (void) signal(SIGSEGV, handle_signal);
-    error(ERR_ADDRESS);
+    error(ERR_ADDREXCEPT);
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
   case SIGCONT:
@@ -509,6 +509,7 @@ static detail errortable [] = {
 /* ERR_SWINUMNOTKNOWN */{NONFATAL, INTEGER,486, "SWI &%X not known"},
 /* ERR_DIRNOTFOUND */	{NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
 /* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
+/* ERR_ADDREXCEPT */	{FATAL,    NOPARM,   0, "Address exception"},
 //
 // OSCLI (command line) errors:
 /* ERR_BADCOMMAND */	{NONFATAL, NOPARM, 254, "Bad command"},
