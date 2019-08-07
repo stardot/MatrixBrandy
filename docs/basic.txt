@@ -614,7 +614,6 @@ ATN
 BEAT
 	Use: BEAT
 	Returns information from the RISC OS sound system.
-	This function returns zero.
 
 BGET
 	Use: BGET# <factor>
@@ -1439,7 +1438,7 @@ Items in square brackets are optional.
 
 
 BEATS
-Unsupported statement for controlling the RISC OS sound system.
+Statement for controlling the RISC OS sound system.
 
 BPUT
 Syntax: a) BPUT#<factor>, <expression> [;]
@@ -3396,8 +3395,7 @@ Syntax: a) SOUND OFF
 	c) SOUND <channel> , <amplitude> , <pitch> ,
 				<duration> , <delay>
 
-This statement is used to make a sound. It is only supported under
-the RISC OS version of the interpreter.
+This statement is used to make a sound.
 
 a) SOUND OFF turns off the sound system.
 
@@ -3419,7 +3417,7 @@ Example:
 	FOR X% = 1 TO 5 STEP 2: NEXT
 
 STEREO
-Unsupported statement for controlling the RISC OS sound system.
+Statement for controlling the RISC OS sound system.
 
 STOP
 Syntax: STOP
@@ -3489,7 +3487,7 @@ Examples:
 	SYS "OS_Byte", 134 TO , , row
 
 TEMPO
-Unsupported statement for controlling the RISC OS sound system.
+Statement for controlling the RISC OS sound system.
 
 THEN
 Syntax: THEN
@@ -3658,10 +3656,10 @@ example, VDU 17 can be used to change the colour used for
 displaying text but the COLOUR statement is easier.
 
 VOICE
-Unsupported statement for controlling the RISC OS sound system.
+Statement for controlling the RISC OS sound system.
 
 VOICES
-Unsupported statement for controlling the RISC OS sound system.
+Statement for controlling the RISC OS sound system.
 
 WAIT
 Syntax: a) WAIT

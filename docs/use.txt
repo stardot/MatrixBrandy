@@ -281,8 +281,8 @@ some enhancements that could lead to incompatibilites, for example, Brandy
 allows strings to be up to 65536 characters long compared to the Acorn
 interpreter's limit of 255. The list of differences are as follows:
 
-1)  Matrix Brandy has no support for sound. The SDL build implemention supports
-    a subset of the graphics commands.
+1)  The SDL build implemention supports a subset of the graphics commands
+    and some sound.
 2)  Brandy has no support for machine code programs. It does not support either
     the 'CALL' statement nor the 'USR' function
     (except for a limited number of calls to BBC-style OS interfaces, notably
@@ -302,10 +302,10 @@ interpreter's limit of 255. The list of differences are as follows:
 13) Brandy behaves differently to the Acorn interpreter after an error when the
     program contains ON ERROR or ON ERROR LOCAL statements to trap errors.
 
-The major omissions in the versions of the interpreter are graphics and sound.
-The built-in assembler and support for machine code programs are missing too.
-Apart from that, the interpreter is essentially a full implementation of the
-Acorn interpreter.
+The major omissions in the versions of the interpreter are some graphics and
+sound.  The built-in assembler and support for machine code programs are
+missing too. Apart from that, the interpreter is essentially a full
+implementation of the Acorn interpreter.
 
 The interpreter has the following extensions:
 

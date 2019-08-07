@@ -16,7 +16,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - SYS "Brandy_GetVideoDriver" extended, returns MODE 7 framebuffer base in R4.
 - RISC OS style sound working. MANY thanks to David Hawes.
 - Separate out segfault memory error to its own error message.
-- Fix pass-back of strings from SYS on 6
+- Fix pass-back of strings from SYS on 64-bit systems.
 
 * V1.22.0 - 23 July 2019
 - Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which
