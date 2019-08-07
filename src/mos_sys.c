@@ -171,12 +171,14 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
-  int32 a, v;
+  int32 a;
+  int64 *indirect;
   FILE *file_handle;
   char *vptr;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
-  v=((long int)outstring & 0xFFFFFFFF);
+  indirect=(int64*)(basicvars.offbase+0x0100);
+  *indirect = (int64)outstring;
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
     inregs[0]=swino-256;
     swino=SWI_OS_WriteC;
@@ -240,14 +242,14 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=strlen(vptr);
       outregs[1]=a;
-      outregs[0]=v;
+      outregs[0]=0x0100;
       break;
     case SWI_OS_ReadLine32:
       vptr=outstring;
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
-      outregs[0]=v;
+      outregs[0]=0x0100;
       break;
 #endif
     case SWI_OS_UpdateMEMC:
@@ -329,7 +331,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       break;
     case SWI_Brandy_Version:
       strncpy(outstring,BRANDY_OS,64);
-      outregs[4]=v;
+      outregs[4]=0x0100;
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
       outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
@@ -358,7 +360,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
      strncpy(vptr,"no_sdl",64);
 #endif
       outregs[1]=strlen(vptr);
-      outregs[0]=v;
+      outregs[0]=0x0100;
       break;
     case SWI_Brandy_SetFailoverMode:
       matrixflags.failovermode=inregs[0];
@@ -388,7 +390,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_GPIO_GetBoard:
       file_handle=fopen("/proc/device-tree/model","r");
       outregs[0]=0;
-      outregs[1]=v;
+      outregs[1]=0x0100;
       outregs[2]=0;
       outregs[3]=0;
       if (NULL == file_handle) {

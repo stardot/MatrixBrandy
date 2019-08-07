@@ -252,10 +252,17 @@ static void next_line(void) {
 ** passed back as a 32-bit integer. This problem cannot be avoided
 ** with the SYS statement, which was only designed for use on a
 ** 32-bit ARM processor
+**
+** Strings are now returned via an indirection within the BASIC
+** workspace, so a 32-bit pointer can be returned. This in turn
+** points to a 64-bit value. Unfortunately this results in
+** compiler warnings on 32-bit platforms, but does seem to work
+** on my system.
 */
 
 void store_value(lvalue destination, int32 valuex, boolean nostring) {
   int32 length;
+  int64 *indirect;
   intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
   switch (destination.typeinfo) {
@@ -267,11 +274,12 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     break;
   case VAR_STRINGDOL:
     if (nostring) error(ERR_VARNUM);
-    length = strlen(TOSTRING(value));
+    indirect = (int64 *)(value + basicvars.offbase);
+    length = strlen(TOSTRING(*indirect));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     free_string(*destination.address.straddr);
     cp = alloc_string(length);
-    if (length>0) memmove(cp, TOSTRING(value), length);
+    if (length>0) memmove(cp, TOSTRING(*indirect), length);
     destination.address.straddr->stringlen = length;
     destination.address.straddr->stringaddr = cp;
     break;
@@ -287,10 +295,11 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     break;
   case VAR_DOLSTRPTR:
     if (nostring) error(ERR_VARNUM);
-    length = strlen(TOSTRING(value));
+    indirect = (int64 *)(value + basicvars.offbase);
+    length = strlen(TOSTRING(*indirect));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
-    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value), length);
+    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(*indirect), length);
     basicvars.offbase[destination.address.offset+length] = asc_CR;
     break;
   default:
