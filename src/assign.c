@@ -1913,11 +1913,14 @@ void assign_staticvar(void) {
       basicvars.staticvars[ATPERCENT].varentry.varinteger = decode_format(format);
       if (exprtype==STACK_STRTEMP) free_string(format);
     }
-  }
-  else {	/* Other static variables */
+  } else {	/* Other static variables */
     if (exprtype==STACK_INT)
       value = pop_int();
-    else if (exprtype==STACK_FLOAT)
+    else if (exprtype==STACK_INT64) {
+      int64 v64 = pop_int64();
+      if ((v64 > 0x7FFFFFFFll) || (v64 < -(0x80000000ll))) error(ERR_RANGE);
+      value = (int32)v64;
+    } else if (exprtype==STACK_FLOAT)
       value = TOINT(pop_float());
     else {
       error(ERR_TYPENUM);
