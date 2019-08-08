@@ -3857,7 +3857,7 @@ static void eval_vasr(void) {
 
 /*
 ** 'eval_iveq' deals with the 'equals' operator when the right-hand operand
-** is an integer value. It pushes either 'TRUE' or 'FALSE' on to the Basic
+** is a 32-bit integer value. It pushes either 'TRUE' or 'FALSE' on to the Basic
 ** stack depending on whether the two operands are equal or not.
 */
 static void eval_iveq(void) {
@@ -3866,13 +3866,32 @@ static void eval_iveq(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     CPEQ_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPEQ_INT64(rhint);
   else if (lhitem == STACK_FLOAT) {
     result = pop_float() == TOFLOAT(rhint) ? BASTRUE : BASFALSE;	/* Due to the macros used... */
     PUSH_INT(result);			/* ...these two lines cannot be combined */
-  }
-  else {
-    want_number();
-  }
+  } else want_number();
+}
+
+/*
+** 'eval_iv64eq' deals with the 'equals' operator when the right-hand operand
+** is a 64-bit integer value. It pushes either 'TRUE' or 'FALSE' on to the Basic
+** stack depending on whether the two operands are equal or not.
+*/
+static void eval_iv64eq(void) {
+  stackitem lhitem;
+  int32 result;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    CPEQ_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPEQ_INT64(rhint);
+  else if (lhitem == STACK_FLOAT) {
+    result = pop_float() == TOFLOAT(rhint) ? BASTRUE : BASFALSE;
+    PUSH_INT(result);
+  } else want_number();
 }
 
 /*
@@ -3889,13 +3908,14 @@ static void eval_fveq(void) {
     result = TOFLOAT(pop_int()) == floatvalue ? BASTRUE : BASFALSE;
     PUSH_INT(result);
   }
+  else if (lhitem == STACK_INT64) {	/* Now branch according to type of left-hand operand */
+    result = TOFLOAT(pop_int64()) == floatvalue ? BASTRUE : BASFALSE;
+    PUSH_INT(result);
+  }
   else if (lhitem == STACK_FLOAT) {
     result = pop_float() == floatvalue ? BASTRUE : BASFALSE;
     PUSH_INT(result);
-  }
-  else {
-    want_number();
-  }
+  } else want_number();
 }
 
 /*
@@ -3928,15 +3948,35 @@ static void eval_sveq(void) {
 */
 static void eval_ivne(void) {
   stackitem lhitem;
-  int32 rhint = pop_int();
+  int32 result, rhint = pop_int();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     CPNE_INT(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int(pop_float() != TOFLOAT(rhint) ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else if (lhitem == STACK_INT64)
+    CPNE_INT64(rhint);
+  else if (lhitem == STACK_FLOAT) {
+    result = pop_float() != TOFLOAT(rhint) ? BASTRUE : BASFALSE;
+    PUSH_INT(result);
+  } else want_number();
+}
+
+/*
+** 'eval_ivne' deals with the 'not equals' operator when the right-hand
+** operand is an integer value
+*/
+static void eval_iv64ne(void) {
+  stackitem lhitem;
+  int32 result;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    CPNE_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPNE_INT64(rhint);
+  else if (lhitem == STACK_FLOAT) {
+    result = pop_float() != TOFLOAT(rhint) ? BASTRUE : BASFALSE;
+    PUSH_INT(result);
+  } else want_number();
 }
 
 /*
@@ -3949,11 +3989,11 @@ static void eval_fvne(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
     push_int(TOFLOAT(pop_int()) != floatvalue ? BASTRUE : BASFALSE);
+  else if (lhitem == STACK_INT64)	/* Now branch according to type of left-hand operand */
+    push_int(TOFLOAT(pop_int64()) != floatvalue ? BASTRUE : BASFALSE);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() != floatvalue ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
@@ -4518,14 +4558,14 @@ static void (*opfunctions [21][15])(void) = {
   want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Equals */
- {eval_badcall, eval_badcall, eval_iveq,    eval_badcall, eval_fveq,
+ {eval_badcall, eval_badcall, eval_iveq,    eval_iv64eq, eval_fveq,
   eval_sveq,    eval_sveq,    want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Not equals */
- {eval_badcall, eval_badcall, eval_ivne,    eval_badcall, eval_fvne,
+ {eval_badcall, eval_badcall, eval_ivne,    eval_iv64ne, eval_fvne,
   eval_svne,    eval_svne,    want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Greater than */
  {eval_badcall, eval_badcall, eval_ivgt,    eval_badcall, eval_fvgt,

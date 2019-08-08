@@ -134,16 +134,28 @@ extern void *alloc_local(int32);
 #define ABS_FLOAT basicvars.stacktop.floatsp->floatvalue = fabs(basicvars.stacktop.floatsp->floatvalue)
 #define CPEQ_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue==(x) ? BASTRUE : BASFALSE)
+#define CPEQ_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value==(x) ? BASTRUE : BASFALSE)
 #define CPNE_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue!=(x) ? BASTRUE : BASFALSE)
+#define CPNE_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value!=(x) ? BASTRUE : BASFALSE)
 #define CPGT_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue>(x) ? BASTRUE : BASFALSE)
+#define CPGT_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value>(x) ? BASTRUE : BASFALSE)
 #define CPLT_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue<(x) ? BASTRUE : BASFALSE)
+#define CPLT_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value<(x) ? BASTRUE : BASFALSE)
 #define CPGE_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue>=(x) ? BASTRUE : BASFALSE)
+#define CPGE_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value>=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue<=(x) ? BASTRUE : BASFALSE)
+#define CPLE_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
 
 /*
 ** If the debug version of the code is being used, replace some
