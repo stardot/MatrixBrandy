@@ -172,13 +172,22 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 */
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
   int32 a;
-  int64 *indirect;
+#ifdef __LP64__
+  uint64 *indirect;
+#else
+  uint32 *indirect;
+#endif
   FILE *file_handle;
   char *vptr;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
-  indirect=(int64*)(basicvars.offbase+0x0100);
-  *indirect = (int64)outstring;
+#ifdef __LP64__
+  indirect=(uint64*)(basicvars.offbase+0x0100);
+  *indirect = (uint64)outstring;
+#else
+  indirect=(uint32*)(basicvars.offbase+0x0100);
+  *indirect = (uint32)outstring;
+#endif
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
     inregs[0]=swino-256;
     swino=SWI_OS_WriteC;
