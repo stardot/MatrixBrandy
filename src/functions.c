@@ -1297,7 +1297,7 @@ static void fn_sgn(void) {
     } else {
       PUSH_INT(-1);
     }
-  } if (GET_TOPITEM == STACK_INT64) {
+  } else if (GET_TOPITEM == STACK_INT64) {
     int64 value = pop_int64();
     if (value>0) {
       PUSH_INT(1);
@@ -1341,18 +1341,15 @@ static void fn_sqr(void) {
     int32 value = pop_int();
     if (value<0) error(ERR_NEGROOT);
     push_float(sqrt(TOFLOAT(value)));
-  }
-  if (GET_TOPITEM == STACK_INT64) {
+  } else if (GET_TOPITEM == STACK_INT64) {
     int64 value = pop_int64();
     if (value<0) error(ERR_NEGROOT);
     push_float(sqrt(TOFLOAT(value)));
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
+  } else if (GET_TOPITEM == STACK_FLOAT) {
     floatvalue = pop_float();
     if (floatvalue<0.0) error(ERR_NEGROOT);
     push_float(sqrt(floatvalue));
-  }
-  else error(ERR_TYPENUM);
+  } else error(ERR_TYPENUM);
 }
 
 /*
@@ -1373,15 +1370,13 @@ static void fn_str(void) {
     else {
       length = sprintf(basicvars.stringwork, "%d", pop_int());
     }
-  }
-  if (GET_TOPITEM == STACK_INT64) {
+  } else if (GET_TOPITEM == STACK_INT64) {
     if (ishex)
       length = sprintf(basicvars.stringwork, "%llX", pop_int64());
     else {
       length = sprintf(basicvars.stringwork, "%lld", pop_int64());
     }
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
+  } else if (GET_TOPITEM == STACK_FLOAT) {
     if (ishex)
       length = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
     else {
@@ -1403,8 +1398,7 @@ static void fn_str(void) {
       if (numdigits == 0) numdigits = DEFDIGITS;
       length = sprintf(basicvars.stringwork, fmt, numdigits, pop_float());
     }
-  }
-  else {
+  } else {
     error(ERR_TYPENUM);
   }
   cp = alloc_string(length);
