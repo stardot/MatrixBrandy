@@ -262,7 +262,11 @@ static void next_line(void) {
 
 void store_value(lvalue destination, int32 valuex, boolean nostring) {
   int32 length;
-  int64 *indirect;
+#ifdef __LP64__
+  uint64 *indirect;
+#else
+  uint32 *indirect;
+#endif
   intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
   switch (destination.typeinfo) {
@@ -274,7 +278,11 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     break;
   case VAR_STRINGDOL:
     if (nostring) error(ERR_VARNUM);
-    indirect = (int64 *)(value + basicvars.offbase);
+#ifdef __LP64__
+    indirect = (uint64 *)(value + basicvars.offbase);
+#else
+    indirect = (uint32 *)(value + basicvars.offbase);
+#endif
     length = strlen(TOSTRING(*indirect));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     free_string(*destination.address.straddr);
@@ -295,7 +303,11 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     break;
   case VAR_DOLSTRPTR:
     if (nostring) error(ERR_VARNUM);
-    indirect = (int64 *)(value + basicvars.offbase);
+#ifdef __LP64__
+    indirect = (uint64 *)(value + basicvars.offbase);
+#else
+    indirect = (uint32 *)(value + basicvars.offbase);
+#endif
     length = strlen(TOSTRING(*indirect));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
