@@ -358,7 +358,6 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
 
 /* Type check the parameter */
 
-  fprintf(stderr, "typerr=%X, parmtype=%X\n", fp->parameter.typeinfo & TYPECHECKMASK, parmtype);
   typerr = type_table[fp->parameter.typeinfo & TYPECHECKMASK][parmtype];
   if (typerr != ERR_NONE) {
     if (typerr == ERR_BROKEN) error(ERR_BROKEN, __LINE__, "evaluate");
