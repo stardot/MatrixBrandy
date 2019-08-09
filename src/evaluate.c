@@ -3944,7 +3944,7 @@ static void eval_sveq(void) {
 
 /*
 ** 'eval_ivne' deals with the 'not equals' operator when the right-hand
-** operand is an integer value
+** operand is a 32-bit integer value
 */
 static void eval_ivne(void) {
   stackitem lhitem;
@@ -3961,8 +3961,8 @@ static void eval_ivne(void) {
 }
 
 /*
-** 'eval_ivne' deals with the 'not equals' operator when the right-hand
-** operand is an integer value
+** 'eval_iv64ne' deals with the 'not equals' operator when the right-hand
+** operand is a 64-bit integer value
 */
 static void eval_iv64ne(void) {
   stackitem lhitem;
@@ -4021,7 +4021,7 @@ static void eval_svne(void) {
 
 /*
 ** 'eval_ivgt' deals with the 'greater than' operator when the right-hand
-** operand is an integer value
+** operand is a 32-bit integer value
 */
 static void eval_ivgt(void) {
   stackitem lhitem;
@@ -4029,11 +4029,28 @@ static void eval_ivgt(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     CPGT_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPGT_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float()>TOFLOAT(rhint) ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
+}
+
+/*
+** 'eval_iv64gt' deals with the 'greater than' operator when the right-hand
+** operand is a 64-bit integer value
+*/
+static void eval_iv64gt(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    CPGT_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPGT_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int(pop_float()>TOFLOAT(rhint) ? BASTRUE : BASFALSE);
+  else want_number();
 }
 
 /*
@@ -4046,11 +4063,11 @@ static void eval_fvgt(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
     push_int(TOFLOAT(pop_int()) > floatvalue ? BASTRUE : BASFALSE);
+  else if (lhitem == STACK_INT64)
+    push_int(TOFLOAT(pop_int64()) > floatvalue ? BASTRUE : BASFALSE);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() > floatvalue ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
@@ -4084,7 +4101,7 @@ static void eval_svgt(void) {
 
 /*
 ** 'eval_ivlt' handles the 'less than' operator when the right-hand
-** operand is an integer
+** operand is a 32-bit integer
 */
 static void eval_ivlt(void) {
   stackitem lhitem;
@@ -4092,11 +4109,28 @@ static void eval_ivlt(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     CPLT_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPLT_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() < TOFLOAT(rhint) ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
+}
+
+/*
+** 'eval_iv64lt' handles the 'less than' operator when the right-hand
+** operand is a 64-bit integer
+*/
+static void eval_iv64lt(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    CPLT_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPLT_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int(pop_float() < TOFLOAT(rhint) ? BASTRUE : BASFALSE);
+  else want_number();
 }
 
 /*
@@ -4109,11 +4143,11 @@ static void eval_fvlt(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
     push_int(TOFLOAT(pop_int()) < floatvalue ? BASTRUE : BASFALSE);
+  else if (lhitem == STACK_INT64)	/* Now branch according to type of left-hand operand */
+    push_int(TOFLOAT(pop_int64()) < floatvalue ? BASTRUE : BASFALSE);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() < floatvalue ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
@@ -4147,7 +4181,7 @@ static void eval_svlt(void) {
 
 /*
 ** 'eval_ivge' handles the 'greater than or equal to' operator when the
-** right-hand operand is an integer value
+** right-hand operand is a 32-bit integer value
 */
 static void eval_ivge(void) {
   stackitem lhitem;
@@ -4155,11 +4189,28 @@ static void eval_ivge(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     CPGE_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPGE_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() >= TOFLOAT(rhint) ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
+}
+
+/*
+** 'eval_iv64ge' handles the 'greater than or equal to' operator when the
+** right-hand operand is a 64-bit integer value
+*/
+static void eval_iv64ge(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    CPGE_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPGE_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int(pop_float() >= TOFLOAT(rhint) ? BASTRUE : BASFALSE);
+  else want_number();
 }
 
 /*
@@ -4172,11 +4223,11 @@ static void eval_fvge(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
     push_int(TOFLOAT(pop_int()) >= floatvalue ? BASTRUE : BASFALSE);
+  else if (lhitem == STACK_INT64)	/* Now branch according to type of left-hand operand */
+    push_int(TOFLOAT(pop_int64()) >= floatvalue ? BASTRUE : BASFALSE);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() >= floatvalue ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
@@ -4210,7 +4261,7 @@ static void eval_svge(void) {
 
 /*
 ** 'eval_ivle' deals with the 'less than or equal to' operator when the
-** right-hand operand is an integer value
+** right-hand operand is a 32-bit integer value
 */
 static void eval_ivle(void) {
   stackitem lhitem;
@@ -4218,11 +4269,28 @@ static void eval_ivle(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     CPLE_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPLE_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() <= TOFLOAT(rhint) ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
+}
+
+/*
+** 'eval_iv64le' deals with the 'less than or equal to' operator when the
+** right-hand operand is a 64-bit integer value
+*/
+static void eval_iv64le(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)
+    CPLE_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    CPLE_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int(pop_float() <= TOFLOAT(rhint) ? BASTRUE : BASFALSE);
+  else want_number();
 }
 
 /*
@@ -4235,11 +4303,11 @@ static void eval_fvle(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
     push_int(TOFLOAT(pop_int()) <= floatvalue ? BASTRUE : BASFALSE);
+  else if (lhitem == STACK_INT64)	/* Now branch according to type of left-hand operand */
+    push_int(TOFLOAT(pop_int64()) <= floatvalue ? BASTRUE : BASFALSE);
   else if (lhitem == STACK_FLOAT)
     push_int(pop_float() <= floatvalue ? BASTRUE : BASFALSE);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
@@ -4273,7 +4341,7 @@ static void eval_svle(void) {
 
 /*
 ** 'eval_ivand' deals with the logical 'and' operator when the right-hand
-** operand is an integer value
+** operand is a 32-bit integer value
 */
 static void eval_ivand(void) {
   stackitem lhitem;
@@ -4281,33 +4349,50 @@ static void eval_ivand(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
     AND_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    AND_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float()) & rhint);
-  else {
-    want_number();
-  }
+  else want_number();
+}
+
+/*
+** 'eval_iv64and' deals with the logical 'and' operator when the right-hand
+** operand is a 64-bit integer value
+*/
+static void eval_iv64and(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
+    AND_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    AND_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int64(TOINT64(pop_float()) & rhint);
+  else want_number();
 }
 
 /*
 ** 'eval_fvand' deals with the logical 'and' operator when the right-hand
-** operand is a floatin point value
+** operand is a floating point value
 */
 static void eval_fvand(void) {
   stackitem lhitem;
-  int32 rhint = TOINT(pop_float());
+  int64 rhint = TOINT64(pop_float());
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     AND_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    AND_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float()) & rhint);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
-** 'eval_ivand' deals with the logical 'or' operator when the right-hand
-** operand is an integer value
+** 'eval_ivor' deals with the logical 'or' operator when the right-hand
+** operand is a 32-bit integer value
 */
 static void eval_ivor(void) {
   stackitem lhitem;
@@ -4315,15 +4400,32 @@ static void eval_ivor(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
     OR_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    OR_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float()) | rhint);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
-** 'eval_fvand' deals with the logical 'or' operator when the right-hand
+** 'eval_iv64or' deals with the logical 'or' operator when the right-hand
+** operand is a 64-bit integer value
+*/
+static void eval_iv64or(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int64();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
+    OR_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    OR_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int64(TOINT64(pop_float()) | rhint);
+  else want_number();
+}
+
+/*
+** 'eval_fvor' deals with the logical 'or' operator when the right-hand
 ** operand is a floating point value
 */
 static void eval_fvor(void) {
@@ -4332,16 +4434,16 @@ static void eval_fvor(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     OR_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    OR_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float()) | rhint);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
 ** 'eval_iveor' deals with the exclusive or operator when right-hand
-** operand is an integer value
+** operand is a 32-bit integer value
 */
 static void eval_iveor(void) {
   stackitem lhitem;
@@ -4349,11 +4451,28 @@ static void eval_iveor(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
     EOR_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    EOR_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float()) ^ rhint);
-  else {
-    want_number();
-  }
+  else want_number();
+}
+
+/*
+** 'eval_iv64eor' deals with the exclusive or operator when right-hand
+** operand is a 64-bit integer value
+*/
+static void eval_iv64eor(void) {
+  stackitem lhitem;
+  int64 rhint = pop_int();
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
+    EOR_INT(rhint);
+  else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
+    EOR_INT64(rhint);
+  else if (lhitem == STACK_FLOAT)
+    push_int64(TOINT64(pop_float()) ^ rhint);
+  else want_number();
 }
 
 /*
@@ -4366,11 +4485,11 @@ static void eval_fveor(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
     EOR_INT(rhint);
+  else if (lhitem == STACK_INT64)
+    EOR_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
     push_int(TOINT(pop_float()) ^ rhint);
-  else {
-    want_number();
-  }
+  else want_number();
 }
 
 /*
@@ -4568,39 +4687,39 @@ static void (*opfunctions [21][15])(void) = {
   want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Greater than */
- {eval_badcall, eval_badcall, eval_ivgt,    eval_badcall, eval_fvgt,
+ {eval_badcall, eval_badcall, eval_ivgt,    eval_iv64gt, eval_fvgt,
   eval_svgt,    eval_svgt,    want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Less than */
- {eval_badcall, eval_badcall, eval_ivlt,    eval_badcall, eval_fvlt,
+ {eval_badcall, eval_badcall, eval_ivlt,    eval_iv64lt, eval_fvlt,
   eval_svlt,    eval_svlt,    want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Greater than or equal to */
- {eval_badcall, eval_badcall, eval_ivge,    eval_badcall, eval_fvge,
+ {eval_badcall, eval_badcall, eval_ivge,    eval_iv64ge, eval_fvge,
   eval_svge,    eval_svge,    want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Less than or equal to */
- {eval_badcall, eval_badcall, eval_ivle,    eval_badcall, eval_fvle,
+ {eval_badcall, eval_badcall, eval_ivle,    eval_iv64le, eval_fvle,
   eval_svle,    eval_svle,    want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Logical and */
- {eval_badcall, eval_badcall, eval_ivand,   eval_badcall, eval_fvand,
+ {eval_badcall, eval_badcall, eval_ivand,   eval_iv64and, eval_fvand,
   want_number,  want_number,  want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Logical or */
- {eval_badcall, eval_badcall, eval_ivor,    eval_badcall, eval_fvor,
+ {eval_badcall, eval_badcall, eval_ivor,    eval_iv64or, eval_fvor,
   want_number,  want_number,  want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 /* Logical exclusive or */
- {eval_badcall, eval_badcall, eval_iveor,   eval_badcall, eval_fveor,
+ {eval_badcall, eval_badcall, eval_iveor,   eval_iv64eor, eval_fveor,
   want_number,  want_number,  want_number,  want_number,
-  eval_badcall, eval_badcall, want_number,  want_number,
+  want_number,  want_number,  want_number,  want_number,
   want_number,  want_number},
 };
 
