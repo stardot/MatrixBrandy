@@ -74,7 +74,7 @@ static void assign_intword(pointers address) {
     *address.intaddr = pop_int();
   else if (exprtype==STACK_INT64) {
       tmp64 = pop_int64();
-      if ((tmp64 <= (int64)2147483647ll) && (tmp64 >= -(int64)2147483648ll)) {
+      if ((tmp64 <= (int64)4294967295ll) && (tmp64 >= -(int64)2147483648ll)) {
         *address.intaddr = (int32)tmp64;
       } else
         error(ERR_RANGE);
