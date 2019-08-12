@@ -1,3 +1,9 @@
+/*
+** This file is part of the Brandy Basic VI Interpreter.
+** soundsdl.c by David Hawes.
+**
+*/
+
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -39,9 +45,9 @@ It is also possible to represent pitch by a number from 0x100 (256) to 32767 (0x
 
 
 static int snd_nvoices=1;
-static int snd_beat=0;
 static int snd_beats=0;
 static int snd_tempo=0;
+static unsigned int snd_tempo_basetime=0;
 static int snd_ison=0;
 static int snd_volume=127;
 
@@ -50,30 +56,26 @@ static int snd_paused = 0;
 
 static SDL_AudioSpec desiredSpec;
 
-/* */
+
 typedef struct sndent {
 signed int count;
 unsigned short int step;
 unsigned char vol, chant;
 } sndent;
-/* */
 
 
-#define SNDTABWIDTH 32
+#define SNDTABWIDTH 64
+
 static sndent sndtab[8][SNDTABWIDTH];
 
 static unsigned char snd_rd[8],snd_wr[8];
-
 static unsigned short int soffset[8], *poffset;
-
 static int sactive=0;
-
 static unsigned char ssl[8],ssr[8];
-
+static const unsigned char chantype[10]={0,0,1,1,1,1,2,2,2,3};
 static unsigned char chanvoice[8];
 static unsigned char sintab[1025];
-static unsigned int steptab[389];
-
+static unsigned int steptab[312];
 static unsigned int stime[8];
 
 static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
@@ -81,7 +83,6 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
  /* Length is length of buffer in bytes */
  int i,vl,vr,ilen,tmp,s;
  unsigned int *ptr;
-
  int cm1,bit;
  sndent *snd, *tptr;
 
@@ -190,7 +191,55 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
          }
         }
        }
+      break;
       
+      case 3 : /* Percussion noise :-  pink noise */
+      {
+       static unsigned int rnd=0x1b3;
+       int step=1,mask=2047,m;
+       
+       while(mask > snd->step){
+        mask >>= 1;
+       }
+       m = mask>>1;
+
+       for(i=0; i<Length; i++){
+
+        if((i & 63) == 0 ) {
+         step = snd->step + (rnd & mask) - m;
+         if( step < 1) step = 5;
+         rnd += (rnd>>3)+1;
+         rnd += (rnd<<4)+1;
+        }
+        
+        *poffset += step;
+
+        if(*poffset & 0x8000) {
+
+         tmp = ByteStream[i] + vl;
+         if(tmp>255)tmp=255;
+         ByteStream[i] = tmp;
+
+         i++;
+
+         tmp = ByteStream[i] + vr;
+         if(tmp>255)tmp=255;
+         ByteStream[i] = tmp;
+
+        } else {
+         tmp = ByteStream[i] - vl;
+         if(tmp < 0) tmp= 0;
+         ByteStream[i] = tmp;
+
+         i++;
+
+         tmp = ByteStream[i] - vr;
+         if(tmp < 0) tmp= 0;
+         ByteStream[i] = tmp;
+
+        }
+       }
+      }
       break;
 
       default:
@@ -201,7 +250,7 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
      snd->count = 0;
      snd_rd[cm1] = (snd_rd[cm1]+1)&(SNDTABWIDTH-1); /* move to next sound in list */
      tptr= & sndtab[cm1][snd_rd[cm1]];
-     if( tptr->count <= 0) { /* deactivate this channel if new entry is empty */
+     if( tptr->count <= 0) { /* deactivate this channel if the next entry is empty */
       sactive &= ~bit;
      }
     }
@@ -216,9 +265,7 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
  }
 }
 
-static void clear_sndtab()
-{
-
+static void clear_sndtab() {
  int i;
 
  memset(sndtab, 0, sizeof(sndtab));
@@ -227,7 +274,6 @@ static void clear_sndtab()
    snd_rd[i]=1;
    snd_wr[i]=0;
  }
-
 }
 
 void init_sound(){
@@ -276,17 +322,18 @@ void init_sound(){
  }
 
 /* init step tab */
- for(i=0;i<= 48;i++){
+ for(i=255;i<312;i++){
   fhz = 440.0*pow(2.0, ((double)(i-89))*(1.0/48.0));
-  steptab[i] = (int)floor((fhz * ((double)0xffffffffu/20480.0))+0.5);
-  // fprintf(stderr,"steptab[%d] is %u\n",i,steptab[i]);
+  steptab[i] = (unsigned int)floor((fhz * (((double)0xffffffffu)/20480.0))+0.5);
+
+  // fprintf(stderr,"fhz is %12.4f steptab[%3d] is %9u\n",fhz,i,steptab[i]);
  }
- for(i=49;i<=388;i++){
-  steptab[i] = (steptab[i-48])<< 1;
+ for(i=254; i>=0; i--){
+  steptab[i] = steptab[i+48] >> 1;
+  // fprintf(stderr,"steptab[%3d] is %9u\n",i,steptab[i]);
  }
 
  clear_sndtab();
-
 
  for(i=0;i<8;i++) soffset[i]=0;
 
@@ -296,6 +343,9 @@ void init_sound(){
 
  snd_paused = 1;
  snd_ison = 1;
+
+ snd_tempo = 0;
+ snd_beats = 0;
 }
 
 void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int32 delay){
@@ -314,7 +364,6 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
  if(!snd_inited) init_sound();
 
  if(!snd_ison ) return;
-
 
  if(duration <= 0 || channel < 1 || channel > snd_nvoices) return;
 
@@ -345,6 +394,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
   //fprintf(stderr,"t is %3d e is %6.3f diff is %5d\n",t, e, diff);
  }
 
+ if(step > 32767) step = 32767;
+
  // fprintf(stderr,"sdl_sound called: cm1 (%2d) amplitude (%3d) pitch (%5d) duration (%3d) delay (%d) step is %d\n",cm1, amplitude, pitch, duration, delay, step);
 
 
@@ -359,14 +410,25 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
  else
  if(amplitude >=256 && amplitude <= 383) tvol = 1+((amplitude-256)>>3);
 
- cht=(chanvoice[cm1]+2)>>2;
+ cht=chantype[chanvoice[cm1]];
 
- if(duration > 254) duration = 254;
- if(delay > 255) delay = 255;
+ if(duration > 32768) duration = 32768;
+
+ if( snd_tempo > 0 && snd_beats > 1 && delay > 0 ) {
+  int beat = sdl_rdbeat();
+
+  if (delay <= beat || delay >= snd_beats) {
+   delay = -1;
+  }else {
+   delay = ((delay - beat) << 12 ) / (snd_tempo*5) ; /* 5 to convert centiseconds into 20th */
+  }
+ }
+ 
+ if(delay > 32768) delay = 32768;
 
  // fprintf(stderr,"sdl_sound tvol %3d step is %5d snd_wr[%d] = %2d snd_rd[%d] = %2d stime[%d] %4d tnow %4d sactive %2x\n", tvol, step, cm1, snd_wr[cm1], cm1, snd_rd[cm1], cm1, stime[cm1], tnow, sactive);
 
- if(tvol > 0 && step > 0 && step < 32768  && ((snd_rd[cm1]-snd_wr[cm1])&(SNDTABWIDTH-1)) != 2    ){
+ if(tvol > 0 && step > 0 && ((snd_rd[cm1]-snd_wr[cm1])&(SNDTABWIDTH-1)) != 2    ){
 
   tnow = ((unsigned int)basicvars.centiseconds - snd_inited )/5; /* divide by 5 to covert centiseconds to 20ths */
 
@@ -381,7 +443,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
     snd = &sndtab[cm1][snd_wr[cm1]];
 
-    snd->step    = 0; /* play silence durring delay */
+    snd->step    = 0; /* play silence during delay */
     snd->count   = pl << 11;
     snd->vol     = 0;
     snd->chant   = 0;
@@ -448,24 +510,55 @@ void sdl_sound_onoff(int32 onoff){
  }
 }
 
+void sdl_wrbeat(int32 beats){
 
-void sdl_wrbeat(int32 beat){
- snd_beat = beat;
+ if(!snd_inited) init_sound();
+
+ if( beats < 0) beats = 0;
+
+ snd_beats = beats;
+ snd_tempo_basetime = ((unsigned int)basicvars.centiseconds - snd_inited );
 }
 
-int32 sdl_rdbeat() {
- return snd_beat;
+int32 sdl_rdbeat(){
+ int beat;
+
+ if(!snd_inited) init_sound();
+
+ if( snd_beats <= 1 || snd_tempo <= 0)
+  return 0;
+
+ beat = ((  ((unsigned int)basicvars.centiseconds - snd_inited ) - snd_tempo_basetime ) * snd_tempo ) >> 12;
+ 
+ if( beat <= 0 ) return 0;
+
+ if ( beat >= snd_beats )
+   beat = (beat % snd_beats);
+
+ return beat;
 }
 
 int32 sdl_rdbeats() {
+
+ if(!snd_inited) init_sound();
+
  return snd_beats;
 }
 
 void sdl_wrtempo(int32 tempo) {
+
+ if(!snd_inited) init_sound();
+
+ if(tempo < 0) tempo = 0;
+
  snd_tempo = tempo;
+ snd_tempo_basetime =((unsigned int)basicvars.centiseconds - snd_inited );
 }
 
 int32 sdl_rdtempo() {
+
+ if(!snd_inited) init_sound();
+
  return snd_tempo;
 }
 
