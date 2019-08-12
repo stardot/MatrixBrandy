@@ -563,3 +563,13 @@ int64 TOINT64(float64 fltmp) {
   if ((fltmp > ((int64)1<<62)-1) || (fltmp < (-(int64)1<<63))) error(ERR_RANGE);
   return (int64)(floor(fltmp));
 }
+
+/* This function reduces a 64-bit int to 32-bit int, with range checking.
+** The first, commented out line is strict range checking, the second one allows the 32nd bit to be set,
+** to allow negative 32-bit ints to be entered as hex.
+*/
+int32 INT64TO32(int64 itmp) {
+//  if ((itmp > 2147483647ll) || (itmp < -2147483648ll)) error(ERR_RANGE);
+  if ((itmp > 4294967295ll) || (itmp < -2147483648ll)) error(ERR_RANGE); /* Allow &80000000-FFFFFFFF */
+  return (int32)itmp;
+}

@@ -67,18 +67,12 @@ static void assignment_invalid(pointers address) {
 */
 static void assign_intword(pointers address) {
   stackitem exprtype;
-  int64 tmp64;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
     *address.intaddr = pop_int();
-  else if (exprtype==STACK_INT64) {
-      tmp64 = pop_int64();
-      if ((tmp64 <= (int64)4294967295ll) && (tmp64 >= -(int64)2147483648ll)) {
-        *address.intaddr = (int32)tmp64;
-      } else
-        error(ERR_RANGE);
-    }
+  else if (exprtype==STACK_INT64)
+    *address.intaddr = INT64TO32(pop_int64());
   else if (exprtype==STACK_FLOAT)
     *address.intaddr = TOINT(pop_float());
   else {
@@ -169,7 +163,7 @@ static void assign_intbyteptr(pointers address) {
       if (exprtype==STACK_INT)
 	value = pop_int();
       else if (exprtype==STACK_INT64)
-	value = pop_int64();
+	value = INT64TO32(pop_int64());
       else if (exprtype==STACK_FLOAT)
 	value = TOINT(pop_float());
       else {
@@ -326,7 +320,7 @@ static void assign_intarray(pointers address) {
         if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
         switch(exprtype) {
           case STACK_INT:	p[n]=pop_int(); break;
-          case STACK_INT64:	p[n]=(int32)pop_int64(); break;
+          case STACK_INT64:	p[n]=INT64TO32(pop_int64()); break;
           case STACK_FLOAT:	p[n]=TOINT(pop_float()); break;
           default:		error(ERR_TYPENUM);
         }
@@ -343,7 +337,7 @@ static void assign_intarray(pointers address) {
     else {	/* array()=<value> */
       switch(exprtype) {
         case STACK_INT:		value = pop_int(); break;
-        case STACK_INT64:	value = (int32)pop_int64(); break;
+        case STACK_INT64:	value = INT64TO32(pop_int64()); break;
         case STACK_FLOAT:	value = TOINT(pop_float()); break;
         default:		error(ERR_TYPENUM);
       }
@@ -515,7 +509,7 @@ static void assign_floatarray(pointers address) {
         if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
         switch(exprtype) {
           case STACK_INT:	p[n]=pop_int(); break;
-          case STACK_INT64:	p[n]=(int32)pop_int64(); break;
+          case STACK_INT64:	p[n]=INT64TO32(pop_int64()); break;
           case STACK_FLOAT:	p[n]=TOINT(pop_float()); break;
           default:		error(ERR_TYPENUM);
         }
@@ -711,7 +705,7 @@ static void assiplus_intword(pointers address) {
   if (exprtype==STACK_INT)
     *address.intaddr+=pop_int();
   else if (exprtype==STACK_INT64)
-    *address.intaddr+=(int32)pop_int64();
+    *address.intaddr+=INT64TO32(pop_int64());
   else if (exprtype==STACK_FLOAT)
     *address.intaddr+=TOINT(pop_float());
   else error(ERR_TYPENUM);
@@ -860,7 +854,7 @@ static void assiplus_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }
@@ -1006,7 +1000,7 @@ static void assiminus_intword(pointers address) {
   if (exprtype==STACK_INT)
     *address.intaddr-=pop_int();
   else if (exprtype==STACK_INT64)
-    *address.intaddr-=(int32)pop_int64();
+    *address.intaddr-=INT64TO32(pop_int64());
   else if (exprtype==STACK_FLOAT)
     *address.intaddr-=TOINT(pop_float());
   else error(ERR_TYPENUM);
@@ -1105,7 +1099,7 @@ static void assiminus_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }
@@ -1300,7 +1294,7 @@ static void assiand_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }
@@ -1487,7 +1481,7 @@ static void assior_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }
@@ -1674,7 +1668,7 @@ static void assieor_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }
@@ -1861,7 +1855,7 @@ static void assimod_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }
@@ -2048,7 +2042,7 @@ static void assidiv_intarray(pointers address) {
   if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()/=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
-      case STACK_INT64:	value = (int32)pop_int64(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
     }

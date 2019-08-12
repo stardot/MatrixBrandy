@@ -246,7 +246,7 @@ static void do_elementvar(lvalue *destination) {
     if (GET_TOPITEM==STACK_INT)
       element = pop_int();
     else if (GET_TOPITEM==STACK_INT64)
-      element = (int32)pop_int64();
+      element = INT64TO32(pop_int64());
     else if (GET_TOPITEM==STACK_FLOAT)
       element = TOINT(pop_float());
     else {
@@ -262,7 +262,7 @@ static void do_elementvar(lvalue *destination) {
       if (GET_TOPITEM==STACK_INT)
         index = pop_int();
       else if (GET_TOPITEM==STACK_INT64)
-        index = (int32)pop_int64();
+        index = INT64TO32(pop_int64());
       else if (GET_TOPITEM==STACK_FLOAT)
         index = TOINT(pop_float());
       else {
@@ -346,7 +346,7 @@ static void do_intindvar(lvalue *destination) {
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = *ip+pop_int();
   else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = *ip+(int32)pop_int64();
+    destination->address.offset = *ip+INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = *ip+TOINT(pop_float());
   else {
@@ -372,7 +372,7 @@ static void do_floatindvar(lvalue *destination) {
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = TOINT(*fp)+pop_int();
   else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = TOINT(*fp)+(int32)pop_int64();
+    destination->address.offset = TOINT(*fp)+INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = TOINT(*fp)+TOINT(pop_float());
   else {
@@ -426,7 +426,7 @@ static void do_unaryind(lvalue *destination) {
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = pop_int();
   else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = (int32)pop_int64();
+    destination->address.offset = INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = TOINT(pop_float());
   else {

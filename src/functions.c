@@ -107,7 +107,7 @@ int32 eval_integer(void) {
   expression();
   numtype = GET_TOPITEM;
   if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_INT64) return (int32)pop_int64();
+  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
   if (numtype == STACK_FLOAT) return TOINT(pop_float());
   error(ERR_TYPENUM);
   return 0;	/* Keep Acorn's compiler happy */
@@ -122,7 +122,7 @@ int32 eval_intfactor(void) {
   (*factor_table[*basicvars.current])();
   numtype = GET_TOPITEM;
   if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_INT64) return (int32)pop_int64();
+  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
   if (numtype == STACK_FLOAT) return TOINT(pop_float());
   error(ERR_TYPENUM);
   return 0;	/* Keep Acorn's compiler happy */
@@ -524,7 +524,7 @@ static void fn_chr(void) {
   }
   else if (GET_TOPITEM == STACK_INT64) {
     cp = alloc_string(1);
-    *cp = (int32)pop_int64();
+    *cp = INT64TO32(pop_int64());
     push_strtemp(1, cp);
   }
   else if (GET_TOPITEM == STACK_FLOAT) {

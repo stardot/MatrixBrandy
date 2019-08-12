@@ -569,7 +569,7 @@ static void push_singleparm(formparm *fp, char *procname) {
       intparm=pop_int();
       break;
     case STACK_INT64:
-      intparm=(int32)pop_int64();
+      intparm=INT64TO32(pop_int64());
       break;
     case STACK_FLOAT:
       intparm = TOINT(pop_float());
@@ -787,7 +787,7 @@ static void do_arrayref(void) {
     if (GET_TOPITEM == STACK_INT)
       element = pop_int();
     else if (GET_TOPITEM == STACK_INT64)
-      element = (int32)pop_int64();
+      element = INT64TO32(pop_int64());
     else if (GET_TOPITEM == STACK_FLOAT)
       element = TOINT(pop_float());
     else {
@@ -3803,7 +3803,7 @@ static void eval_vlsl(void) {
       rhint = pop_int();
       break;
     case STACK_INT64:
-      rhint = (int32)pop_int64();
+      rhint = INT64TO32(pop_int64());
       break;
     case STACK_FLOAT:
       rhint = (TOINT(pop_float()));
@@ -3850,7 +3850,7 @@ static void eval_vlsr(void) {
       rhuint = pop_int();
       break;
     case STACK_INT64:
-      rhuint = (int32)pop_int64();
+      rhuint = INT64TO32(pop_int64());
       break;
     case STACK_FLOAT:
       rhuint = TOINT(pop_float());
@@ -3889,7 +3889,7 @@ static void eval_vasr(void) {
       rhint = pop_int();
       break;
     case STACK_INT64:
-      rhint = (int32)pop_int64();
+      rhint = INT64TO32(pop_int64());
       break;
     case STACK_FLOAT:
       rhint = (TOINT(pop_float()));

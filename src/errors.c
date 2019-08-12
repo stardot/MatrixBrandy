@@ -240,10 +240,16 @@ void announce(void) {
 //cmd_ver(); emulate_prinf("\n");
   emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
+#ifdef __LP64__
+  emulate_printf("Basicvars is at &%llX, tokenised line is at &%llX\r\n", &basicvars, &thisline);
+  emulate_printf("Workspace is at &%llX, size is &%X, page = &%llX\r\nhimem = &%llX\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+#else
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\n", &basicvars, &thisline);
   emulate_printf("Workspace is at &%X, size is &%X, page = &%X\r\nhimem = &%X\r\n",
    basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-#endif
+#endif /*LP64*/
+#endif /*DEBUG*/
 }
 
 /*
