@@ -2217,6 +2217,9 @@ void exec_assignment(void) {
   byte assignop;
   lvalue destination;
 #ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:exec_assignment\n");
+#endif
+#ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Start assignment- Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
   get_lvalue(&destination);
@@ -2283,6 +2286,9 @@ void exec_assignment(void) {
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "End assignment- Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
+#endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:exec_assignment\n");
 #endif
 }
 
@@ -2358,6 +2364,9 @@ void assign_staticvar(void) {
   int32 varindex;
   stackitem exprtype;
 #ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_staticvar\n");
+#endif
+#ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Static integer assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
   basicvars.current++;		/* Skip to the variable's index */
@@ -2421,6 +2430,9 @@ void assign_staticvar(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "End assignment- Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_staticvar\n");
+#endif
 }
 
 /*
@@ -2436,6 +2448,9 @@ void assign_intvar(void) {
   int64 value64 = 0;
   int32 *ip;
   stackitem exprtype;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_intvar\n");
+#endif
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Integer assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
@@ -2477,6 +2492,9 @@ void assign_intvar(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Integer assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_intvar\n");
+#endif
 }
 
 void assign_int64var(void) {
@@ -2484,6 +2502,9 @@ void assign_int64var(void) {
   int64 value = 0;
   int64 *ip;
   stackitem exprtype;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_int64var\n");
+#endif
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "64-bit Integer assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
@@ -2523,6 +2544,9 @@ void assign_int64var(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "64-bit integer assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_int64var\n");
+#endif
 }
 
 /*
@@ -2534,6 +2558,9 @@ void assign_floatvar(void) {
   static float64 value;
   float64 *fp;
   stackitem exprtype;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_floatvar\n");
+#endif
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Float assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
@@ -2562,6 +2589,9 @@ void assign_floatvar(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Float assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_floatvar\n");
+#endif
 }
 
 /*
@@ -2571,6 +2601,9 @@ void assign_floatvar(void) {
 void assign_stringvar(void) {
   byte assignop;
   pointers address;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_stringvar\n");
+#endif
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "String assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
@@ -2594,6 +2627,9 @@ void assign_stringvar(void) {
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "String assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
+#endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_stringvar\n");
 #endif
 }
 

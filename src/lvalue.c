@@ -84,6 +84,10 @@ static void fix_address(lvalue *destination) {
   variable *vp;
   byte *base, *tp, *np;
   boolean isarray = 0;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function lvalue.c:fix_address\n");
+#endif
   base = get_srcaddr(basicvars.current);	/* Point 'base' at start of variable name */
   tp = skip_name(base);		/* Find to end of name */
   np = basicvars.current+1+LOFFSIZE;	/* Point at token after the XVAR token */
@@ -155,6 +159,9 @@ static void fix_address(lvalue *destination) {
     }
   }
   (*lvalue_table[*basicvars.current])(destination);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:fix_address\n");
+#endif
 }
 
 /*
@@ -493,6 +500,9 @@ static void (*lvalue_table[256])(lvalue *) = {
 ** at the byte after the variable's name.
 */
 void get_lvalue(lvalue *destination) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug) fprintf(stderr, "get_lvalue: token=&%X\n", *basicvars.current);
+#endif
   (*lvalue_table[*basicvars.current])(destination);
 }
 

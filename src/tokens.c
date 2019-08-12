@@ -720,7 +720,10 @@ static void copy_token(void) {
 ** clear_varaddrs() below)
 */
 static void copy_variable(void) {
-  if (*lp>='@' && *lp<='Z' && lp[1] == '%' && lp[2] != '(' && lp[2] != '[') {   /* Static integer variable */
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:copy_variable, lp=%s\n\n", lp);
+#endif
+  if (*lp>='@' && *lp<='Z' && lp[1] == '%' && lp[2] != '%' && lp[2] != '(' && lp[2] != '[') {   /* Static integer variable */
     store(*lp);
     lp++;
   }
@@ -743,6 +746,9 @@ static void copy_variable(void) {
     store(*lp);
     lp++;
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:copy_variable\n");
+#endif
 }
 
 /*
@@ -998,7 +1004,7 @@ static void tokenise_source(char *start, boolean haslineno) {
         linenoposs = firstitem = FALSE;
       }
     }
-    else if (ch == '@' && *(lp+1) == '%') {     /* Built-in variable @% */
+    else if (ch == '@' && *(lp+1) == '%' && *(lp+2) != '%') {     /* Built-in variable @% */
       copy_variable();
       linenoposs = firstitem = FALSE;
     }
@@ -1324,7 +1330,7 @@ static void translate(void) {
       do_star();
     else if (token>=TOKEN_LOWEST)       /* Have found a keyword token */
       do_keyword();
-    else if (token>='@' && token<='Z' && tokenbase[source+1] == '%')
+    else if (token>='@' && token<='Z' && tokenbase[source+1] == '%' && tokenbase[source+2] != '%')
       do_statvar();
     else if (token == TOKEN_XVAR)
       do_dynamvar();
@@ -1483,12 +1489,18 @@ byte *skip_token(byte *p) {
 ** starts at 'p'
 */
 byte *skip_name(byte *p) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:skip_name\n");
+#endif
   do
     p++;
   while (ISIDCHAR(*p));
   if (*p == '%' || *p == '$') p++;      /* If integer or string, skip the suffix character */
   if (*p == '%') p++;      /* If 64-bit integer skip the second suffix character */
   if (*p == '(' || *p == '[') p++;      /* If an array, the first '(' or '[' is part of the name so skip it */
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:skip_name\n");
+#endif
   return p;
 }
 
@@ -1805,7 +1817,7 @@ static void clear_varaddrs(byte *bp) {
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
-    if (*tp == TOKEN_XVAR || (*tp >= TOKEN_INTVAR && *tp <= TOKEN_FLOATINDVAR)) {
+    if (*tp == TOKEN_XVAR || *tp == TOKEN_INT64VAR || (*tp >= TOKEN_INTVAR && *tp <= TOKEN_FLOATINDVAR)) {
       while (*sp != TOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
       if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
       sp++;     /* Point at first char of name */

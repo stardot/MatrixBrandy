@@ -280,6 +280,10 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   lvalue retparm;
   stackitem parmtype = STACK_UNKNOWN;
   boolean isreturn;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:push_oneparm\n");
+#endif
   isreturn = (fp->parameter.typeinfo & VAR_RETURN) != 0;
   if (!isreturn) {	/* Normal parameter */
     expression();
@@ -368,8 +372,12 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
 
   if (*basicvars.current == ',') {	/* More parameters to come - Point at start of next one */
     basicvars.current++;		/* SKip comma */
-    if (*basicvars.current == ')') error(ERR_SYNTAX);
-    if (fp->nextparm == NIL) error(ERR_TOOMANY, procname);
+    if (*basicvars.current == ')') {
+      error(ERR_SYNTAX);
+    }
+    if (fp->nextparm == NIL) {
+      error(ERR_TOOMANY, procname);
+    }
     push_oneparm(fp->nextparm, parmno+1, procname);
   }
   else if (*basicvars.current == ')') {	/* End of parameters */
@@ -394,7 +402,25 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     else {
       save_int(fp->parameter, *p);
     }
-    *p = (parmtype == STACK_INT ? intparm : TOINT(floatparm));
+    switch(parmtype) {
+      case STACK_INT:
+        *p = intparm;
+        break;
+      case STACK_INT64:
+        if (int64parm <= 0x7FFFFFFFll && int64parm >= 0xFFFFFFFF80000000ll)
+          *p = (int32)int64parm;
+        else
+          error(ERR_RANGE);
+        break;
+      case STACK_FLOAT:
+        *p = TOINT(floatparm);
+        break;
+      default:
+        error(ERR_BROKEN, __LINE__, "evaluate");
+    }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_oneparm via VAR_INTWORD\n");
+#endif
     return;
   }
 /* Now deal with other parameter types */
@@ -406,7 +432,19 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     else {
       save_int64(fp->parameter, *p);
     }
-    *p = (parmtype == STACK_INT ? intparm : TOINT(floatparm));
+    switch(parmtype) {
+      case STACK_INT:
+        *p = intparm;
+        break;
+      case STACK_INT64:
+        *p = int64parm;
+        break;
+      case STACK_FLOAT:
+        *p = TOINT64(floatparm);
+        break;
+      default:
+        error(ERR_BROKEN, __LINE__, "evaluate");
+    }
     break;
   }
   case VAR_FLOAT: {		/* Floating point parameter */
@@ -416,7 +454,19 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     else {
       save_float(fp->parameter, *p);
     }
-    *p = (parmtype == STACK_INT ? TOFLOAT(intparm) : floatparm);
+    switch(parmtype) {
+      case STACK_INT:
+        *p = TOFLOAT(intparm);
+        break;
+      case STACK_INT64:
+        *p = TOFLOAT(int64parm);
+        break;
+      case STACK_FLOAT:
+        *p = floatparm;
+        break;
+      default:
+        error(ERR_BROKEN, __LINE__, "evaluate");
+    }
     break;
   }
   case VAR_STRINGDOL: {	/* Normal string parameter */
@@ -488,6 +538,9 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   default:		/* Bad parameter type */
     error(ERR_BROKEN, __LINE__, "evaluate");
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_oneparm\n");
+#endif
 }
 
 /*
@@ -497,6 +550,10 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
 static void push_singleparm(formparm *fp, char *procname) {
   stackitem parmtype;
   int32 intparm = 0;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:push_singleparm\n");
+#endif
   expression();
   if (*basicvars.current != ')') {	/* Try to put out a meaningful error message */
     if (*basicvars.current == ',')	/* Assume there is another parameter */
@@ -522,6 +579,9 @@ static void push_singleparm(formparm *fp, char *procname) {
   }
   save_int(fp->parameter, *(fp->parameter.address.intaddr));
   *(fp->parameter.address.intaddr) = intparm;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_singleparm\n");
+#endif
 }
 
 /*
@@ -2282,7 +2342,7 @@ static void eval_iv64mul(void) {
           error(ERR_RANGE);
         }
       }
-    } else if (lhitem == STACK_INT64ARRAY) {	/* <integer array>*<integer> */
+    } else if (lhitem == STACK_INT64ARRAY) {	/* <int64 array>*<integer> */
       int64 *srce, *base;
       base = make_array(VAR_INTLONG, lharray);
       srce = lharray->arraystart.int64base;

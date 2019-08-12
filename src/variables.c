@@ -448,6 +448,9 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   variable *vp;
   char *np;
   int32 hashvalue;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:create_variable\n");
+#endif
   np = allocmem(namelen+2);
   vp = allocmem(sizeof(variable));
 #ifdef DEBUG
@@ -510,6 +513,9 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created variable '%s' at %p\n", vp->varname, vp);
+#endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variables.c:create_variable\n");
 #endif
   return vp;
 }

@@ -542,7 +542,7 @@ void save_int(lvalue details, int32 value) {
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint = value;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving integer from %p at %p\n",
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 32-bit integer from %p at %p\n",
    details.address.intaddr, basicvars.stacktop.localsp);
 #endif
 }
@@ -558,8 +558,8 @@ void save_int64(lvalue details, int64 value) {
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint64 = value;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving integer from %p at %p\n",
-   details.address.intaddr, basicvars.stacktop.localsp);
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 64-bit integer from %p at %p with value &%llX\n",
+   details.address.intaddr, basicvars.stacktop.localsp, value);
 #endif
 }
 
