@@ -369,8 +369,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  cm1 = channel-1;
 
- if(pitch > 25766 ) pitch=25766;
- if(pitch < 0 )     pitch=0;
+ if(pitch >  25766 ) pitch= 25766;
+ if(pitch < -10240 ) pitch=-10240;
 
 /*
  if(pitch < 256)
@@ -381,11 +381,14 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
  step = (int)floor((fhz * (65536.0/20480.0))+0.5);
 */
 
- if(pitch < 256) {
+ if(pitch < 0 ) {
+  step = (((-pitch)<< 16)+10240)/20480;
+
+ }else if(pitch < 256) {
   step = steptab[pitch] >> 16; 
  }else {
   // step = steptab[(int)floor( (((double)(pitch-0x1c00))*(48.0/4096.0))+89.5)] >> 16;
-  e= (((double)(pitch-0x1c00))*(48.0/4096.0))+89;
+  e= (((double)(pitch-0x1c00))*(48.0/4096.0))+89.0;
   f=floor(e);
   e -= f;
   t=(int)f;
@@ -428,7 +431,9 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  // fprintf(stderr,"sdl_sound tvol %3d step is %5d snd_wr[%d] = %2d snd_rd[%d] = %2d stime[%d] %4d tnow %4d sactive %2x\n", tvol, step, cm1, snd_wr[cm1], cm1, snd_rd[cm1], cm1, stime[cm1], tnow, sactive);
 
- if(tvol > 0 && step > 0 && ((snd_rd[cm1]-snd_wr[cm1])&(SNDTABWIDTH-1)) != 2    ){
+ if(!step) tvol = 0;
+
+ if( ((snd_rd[cm1]-snd_wr[cm1])&(SNDTABWIDTH-1)) != 2    ){
 
   tnow = ((unsigned int)basicvars.centiseconds - snd_inited )/5; /* divide by 5 to covert centiseconds to 20ths */
 
