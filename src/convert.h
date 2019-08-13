@@ -30,5 +30,6 @@
 
 int todigit(char);
 char *tonumber(char *, boolean *, int32 *, int64 *, float64 *);
+char *todecimal(char *, boolean *, int32 *, int64 *, float64 *);
 
 #endif
