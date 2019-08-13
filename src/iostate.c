@@ -289,7 +289,7 @@ static void read_input(boolean inputline) {
         cp = &line[0];
       }
       switch (destination.typeinfo) {
-      case VAR_INTWORD: case VAR_FLOAT: case VAR_INTBYTEPTR:	/* Numeric items */
+      case VAR_INTWORD: case VAR_INTLONG: case VAR_FLOAT: case VAR_INTBYTEPTR:	/* Numeric items */
       case VAR_INTWORDPTR: case VAR_FLOATPTR:
         do {
           cp = input_number(destination, cp);	/* Try to read a number */
