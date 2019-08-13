@@ -1593,7 +1593,7 @@ static void fn_val(void) {
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
     basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
-    cp = tonumber(basicvars.stringwork, &isint, &intvalue, &fpvalue);
+    cp = todecimal(basicvars.stringwork, &isint, &intvalue, &fpvalue);
     if (cp == NIL) {	/* Error found when converting number */
       error(intvalue);	/* 'intvalue' is used to return the precise error */
     }
