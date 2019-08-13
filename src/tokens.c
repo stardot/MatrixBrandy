@@ -1170,6 +1170,7 @@ static void do_number(void) {
   int64 value64;
   static float64 fpvalue;
   boolean isintvalue;
+  boolean isbinhex=FALSE;
   char *p;
 
 #ifdef DEBUG
@@ -1181,6 +1182,7 @@ static void do_number(void) {
   switch(tokenbase[source]) {
   case '&':     /* Hex value */
     source++;
+    isbinhex=TRUE;
     while (isxdigit(tokenbase[source])) {
       value = (value<<4)+todigit(tokenbase[source]);
       value64 = (value64<<4)+todigit(tokenbase[source]);
@@ -1189,6 +1191,7 @@ static void do_number(void) {
     break;
   case '%':     /* Binary value */
     source++;
+    isbinhex=TRUE;
     while (tokenbase[source] == '0' || tokenbase[source] == '1') {
       value = (value<<1)+(tokenbase[source]-'0');
       value64 = (value64<<1)+(tokenbase[source]-'0');
@@ -1210,18 +1213,26 @@ static void do_number(void) {
   firstitem = FALSE;
 /* Store the constant in the executable token portion of the line */
   if (isintvalue) {     /* Decide on type of integer constant */
-    if (value == 0)
-    store(TOKEN_INTZERO);               /* Integer 0 */
-    else if (value == 1)
-      store(TOKEN_INTONE);              /* Integer 1 */
-    else if (value>1 && value<=SMALLCONST) {
-      store(TOKEN_SMALLINT);            /* Integer 1..256 */
-      store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
-    }
-    else {
-      if (value == value64) {
-        store(TOKEN_INTCON);              /* 32-bit int */
-        store_intconst(value);
+    if ((!matrixflags.hex64 && isbinhex) || value == value64) {
+      if (value64 == 0)
+      store(TOKEN_INTZERO);               /* Integer 0 */
+      else if (value64 == 1)
+        store(TOKEN_INTONE);              /* Integer 1 */
+      else if (value64>1 && value64<=SMALLCONST) {
+        store(TOKEN_SMALLINT);            /* Integer 1..256 */
+        store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
+      } else {
+      store(TOKEN_INTCON);              /* 32-bit int */
+      store_intconst(value);
+      }
+    } else {
+      if (value64 == 0)
+      store(TOKEN_INTZERO);               /* Integer 0 */
+      else if (value64 == 1)
+        store(TOKEN_INTONE);              /* Integer 1 */
+      else if (value64>1 && value64<=SMALLCONST) {
+        store(TOKEN_SMALLINT);            /* Integer 1..256 */
+        store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
       } else {
         store(TOKEN_INT64CON);              /* 64-bit int */
         store_int64const(value64);

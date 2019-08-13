@@ -104,6 +104,7 @@ typedef struct {
 #define SWI_Brandy_AccessVideoRAM			0x140004
 #define SWI_Brandy_INTusesFloat				0x140005
 #define SWI_Brandy_LegacyIntMaths			0x140006
+#define SWI_Brandy_Hex64				0x140007
 
 #define SWI_RaspberryPi_GPIOInfo			0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode			0x140101
@@ -180,6 +181,7 @@ static switable swilist[] = {
 	{SWI_Brandy_AccessVideoRAM,			"Brandy_AccessVideoRAM"},
 	{SWI_Brandy_INTusesFloat,			"Brandy_INTusesFloat"},
 	{SWI_Brandy_LegacyIntMaths,			"Brandy_LegacyIntMaths"},
+	{SWI_Brandy_Hex64,				"Brandy_Hex64"},
 
 	{SWI_RaspberryPi_GPIOInfo,			"RaspberryPi_GPIOInfo"},
 	{SWI_RaspberryPi_GetGPIOPortMode,		"RaspberryPi_GetGPIOPortMode"},

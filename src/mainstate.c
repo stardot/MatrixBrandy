@@ -1816,13 +1816,31 @@ static void read_numeric(lvalue destination) {
   restore_current();
   itemtype = GET_TOPITEM;
   switch (destination.typeinfo) {	/* Now save the value just read */
-  case VAR_INTWORD:	/* Integer variable */
+  case VAR_INTWORD:	/* 32-bit integer variable */
     switch (itemtype) {
     case STACK_INT:
       *destination.address.intaddr = pop_int();
       break;
+    case STACK_INT64:
+      *destination.address.intaddr = INT64TO32(pop_int64());
+      break;
     case STACK_FLOAT:
       *destination.address.intaddr = TOINT(pop_float());
+      break;
+    default:
+      error(ERR_TYPENUM);
+    }
+    break;
+  case VAR_INTLONG:	/* 64-bit integer variable */
+    switch (itemtype) {
+    case STACK_INT:
+      *destination.address.int64addr = (int64)pop_int();
+      break;
+    case STACK_INT64:
+      *destination.address.int64addr = pop_int64();
+      break;
+    case STACK_FLOAT:
+      *destination.address.int64addr = TOINT64(pop_float());
       break;
     default:
       error(ERR_TYPENUM);
@@ -1832,6 +1850,9 @@ static void read_numeric(lvalue destination) {
     switch (itemtype) {
     case STACK_INT:
       *destination.address.floataddr = TOFLOAT(pop_int());
+      break;
+    case STACK_INT64:
+      *destination.address.floataddr = TOFLOAT(pop_int64());
       break;
     case STACK_FLOAT:
       *destination.address.floataddr = pop_float();
@@ -1938,7 +1959,7 @@ void exec_read(void) {
   while (TRUE) {
     get_lvalue(&destination);
     find_data();
-    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT)	/* Numeric value */
+    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_INTLONG)	/* Numeric value */
       read_numeric(destination);
     else {	/* Character string */
       read_string(destination);

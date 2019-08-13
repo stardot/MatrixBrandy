@@ -545,6 +545,7 @@ typedef struct {
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
   uint32 int_uses_float;		/* Does INT() use floats? */
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
+  boolean hex64;			/* Decode hex in 64-bit? */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer */
   uint32 modescreen_sz;			/* Mode screen size */

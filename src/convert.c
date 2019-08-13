@@ -85,7 +85,10 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
     }
     else {
       *intvalue = value;
-      *int64value = value64;
+      if (!matrixflags.hex64)
+        *int64value = (int64)value;
+      else
+        *int64value = value64;
       *isinteger = TRUE;
     }
     break;
@@ -104,7 +107,10 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
     }
     else {
       *intvalue = value;
-      *int64value = value64;
+      if (!matrixflags.hex64)
+        *int64value = (int64)value;
+      else
+        *int64value = value64;
       *isinteger = TRUE;
     }
     break;
@@ -124,12 +130,8 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
         fpvalue = TOFLOAT(value64);
       }
       if (isint) {
-        if (isint64)
-          value64 = value64*10ll+(*cp-'0');
-        else {
-          value = value*10+(*cp-'0');
-          value64 = value64*10ll+(*cp-'0');
-        }
+        value = value*10+(*cp-'0');
+        value64 = value64*10ll+(*cp-'0');
       } else {
         fpvalue = fpvalue*10.0+TOFLOAT(*cp-'0');
       }

@@ -524,7 +524,7 @@ static void fn_chr(void) {
   }
   else if (GET_TOPITEM == STACK_INT64) {
     cp = alloc_string(1);
-    *cp = INT64TO32(pop_int64());
+    *cp = pop_int64();
     push_strtemp(1, cp);
   }
   else if (GET_TOPITEM == STACK_FLOAT) {
@@ -1371,9 +1371,12 @@ static void fn_str(void) {
       length = sprintf(basicvars.stringwork, "%d", pop_int());
     }
   } else if (GET_TOPITEM == STACK_INT64) {
-    if (ishex)
-      length = sprintf(basicvars.stringwork, "%llX", pop_int64());
-    else {
+    if (ishex) {
+      if (matrixflags.hex64)
+        length = sprintf(basicvars.stringwork, "%llX", pop_int64());
+      else
+        length = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
+    } else {
       length = sprintf(basicvars.stringwork, "%lld", pop_int64());
     }
   } else if (GET_TOPITEM == STACK_FLOAT) {

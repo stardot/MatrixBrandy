@@ -1446,16 +1446,22 @@ static void print_screen(void) {
     switch (resultype) {
     case STACK_INT:
       if (rightjust) {
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_int());
-        else {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, (int64)pop_int());
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_int());
+        } else {
           size = sprintf(basicvars.stringwork, "%*d", fieldwidth, pop_int());
         }
       }
       else {	/* Left justify the value */
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%X", pop_int());
-        else {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", (int64)pop_int());
+          else
+            size = sprintf(basicvars.stringwork, "%X", pop_int());
+        } else {
           size = sprintf(basicvars.stringwork, "%d", pop_int());
         }
       }
@@ -1464,16 +1470,22 @@ static void print_screen(void) {
       break;
     case STACK_INT64:
       if (rightjust) {
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_int64());
-        else {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_int64());
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_int64());
+        } else {
           size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_int64());
         }
       }
       else {	/* Left justify the value */
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%llX", pop_int64());
-        else {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", pop_int64());
+          else
+            size = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
+        } else {
           size = sprintf(basicvars.stringwork, "%lld", pop_int64());
         }
       }
@@ -1483,14 +1495,20 @@ static void print_screen(void) {
     case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
         if (hex) {
-          size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, TOINT64(pop_float()));
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, TOINT64(pop_float()));
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_float());
         }
       }
       else {	/* Left justify the value */
         if (hex)
-          size = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", TOINT64(pop_float()));
+          else
+            size = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
         else {
           size = sprintf(basicvars.stringwork, leftfmt, numdigits, pop_float());
         }
