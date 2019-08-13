@@ -1573,8 +1573,8 @@ static void fn_usr(void) {
 ** interprets the string as a number as far as the first character that
 ** is not a valid digit, decimal point or 'E' (exponent mark). The number
 ** can be preceded with a sign. Both floating point and integer values
-** are dealt with as well as binary and hexadecimal values. The result
-** is left on the Basic stack
+** are dealt with, but must be decimal values. The result is left on
+** the Basic stack
 */
 static void fn_val(void) {
   stackitem stringtype;
