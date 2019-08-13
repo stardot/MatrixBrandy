@@ -58,7 +58,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
   int32 value;
   int64 value64;
   static float64 fpvalue, fltdiv;
-  boolean isint, isint64, isneg, negexp;
+  boolean isint, isneg, negexp;
   int digits, exponent;
 
 #ifdef DEBUG
@@ -116,17 +116,12 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
     break;
   default:	/* Integer or floating point value */
     isint = TRUE;
-    isint64 = FALSE;
     isneg = *cp=='-';	/* Deal with any sign first */
     if (*cp=='+' || *cp=='-') cp++;
     while (*cp>='0' && *cp<='9') {
       digits = 0;	/* Used to count the number of digits before the '.' */
-      if (isint && value>=INTCONV) {
-        isint64 = TRUE;
-      }
       if (isint && value>=INT64CONV) {
         isint = FALSE;
-        isint64 = FALSE;
         fpvalue = TOFLOAT(value64);
       }
       if (isint) {
@@ -142,10 +137,6 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       value = TOINT(fpvalue);
       value64 = TOINT64(fpvalue);
       isint = TRUE;
-      if (value == value64)
-        isint64 = FALSE;
-      else
-        isint64 = TRUE;
     }
     if (*cp=='.') {	/* Number contains a decimal point */
       if (isint) {
@@ -221,7 +212,7 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
   int32 value;
   int64 value64;
   static float64 fpvalue, fltdiv;
-  boolean isint, isint64, isneg, negexp;
+  boolean isint, isneg, negexp;
   int digits, exponent;
 
 #ifdef DEBUG
@@ -233,17 +224,12 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
   digits = 0;
   cp = skip_blanks(cp);	/* Ignore leading white space characters */
   isint = TRUE;
-  isint64 = FALSE;
   isneg = *cp=='-';	/* Deal with any sign first */
   if (*cp=='+' || *cp=='-') cp++;
   while (*cp>='0' && *cp<='9') {
     digits = 0;	/* Used to count the number of digits before the '.' */
-    if (isint && value>=INTCONV) {
-      isint64 = TRUE;
-    }
     if (isint && value>=INT64CONV) {
       isint = FALSE;
-      isint64 = FALSE;
       fpvalue = TOFLOAT(value64);
     }
     if (isint) {
@@ -259,10 +245,6 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
     value = TOINT(fpvalue);
     value64 = TOINT64(fpvalue);
     isint = TRUE;
-    if (value == value64)
-      isint64 = FALSE;
-    else
-      isint64 = TRUE;
   }
   if (*cp=='.') {	/* Number contains a decimal point */
     if (isint) {

@@ -3842,7 +3842,7 @@ static void eval_vlsl(void) {
 */
 static void eval_vlsr(void) {
   stackitem lhitem, rhitem;
-  uint32 lhuint=0, rhuint;
+  uint32 lhuint=0, rhuint=0;
   uint64 lhuint64 = 0;
   rhitem = GET_TOPITEM;
   switch(rhitem) {
