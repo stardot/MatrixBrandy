@@ -276,6 +276,9 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
   case VAR_INTWORD:
     *destination.address.intaddr = value;
     break;
+  case VAR_INTLONG:
+    *destination.address.int64addr = (int64)value;
+    break;
   case VAR_FLOAT:
     *destination.address.floataddr = TOFLOAT(value);
     break;

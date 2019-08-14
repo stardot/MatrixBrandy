@@ -2337,6 +2337,9 @@ void exec_sys(void) {
   case STACK_INT:
     swino = pop_int();
     break;
+  case STACK_INT64:
+    swino = INT64TO32(pop_int64());
+    break;
   case STACK_FLOAT:
     swino = TOINT(pop_float());
     break;
@@ -2363,6 +2366,9 @@ void exec_sys(void) {
       switch (parmtype) {
       case STACK_INT:
         inregs[parmcount] = pop_int();
+        break;
+      case STACK_INT64:
+        inregs[parmcount] = INT64TO32(pop_int());
         break;
       case STACK_FLOAT:
         inregs[parmcount] = TOINT(pop_float());
