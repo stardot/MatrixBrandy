@@ -2334,104 +2334,6 @@ int32 emulate_modefn(void) {
   return screenmode;
 }
 
-#define FILLSTACK 500
-
-/*
-** 'flood_fill' floods fills an area of screen with the colour 'colour'.
-** x and y are the coordinates of the point at which to start. All
-** points that have the same colour as the one at (x, y) that can be
-** reached from (x, y) are set to colour 'colour'.
-** Note that the coordinates are *pixel* coordinates, that is, they are
-** not expressed in graphics units.
-**
-** This code is slow but does the job
-*/
-static void flood_fill(int32 x, int y, int colour, Uint32 action) {
-  int32 sp, fillx[FILLSTACK], filly[FILLSTACK];
-  int32 left, right, top, bottom, lleft, lright, pwinleft, pwinright, pwintop, pwinbottom;
-  boolean above, below;
-  pwinleft = GXTOPX(gwinleft);		/* Calculate extent of graphics window in pixels */
-  pwinright = GXTOPX(gwinright);
-  pwintop = GYTOPY(gwintop);
-  pwinbottom = GYTOPY(gwinbottom);
-  if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom
-   || *((Uint32*)modescreen->pixels + x + y*vscrwidth) != gb_colour) return;
-  left = right = x;
-  top = bottom = y;
-  sp = 0;
-  fillx[sp] = x;
-  filly[sp] = y;
-  sp++;
-  do {
-    sp--;
-    y = filly[sp];
-    lleft = fillx[sp];
-    lright = lleft+1;
-    if (y < top) top = y;
-    if (y > bottom) bottom = y;
-    above = below = FALSE;
-    while (lleft >= pwinleft && *((Uint32*)modescreen->pixels + lleft + y*vscrwidth) == gb_colour) {
-      if (y > pwintop) {	/* Check if point above current point is set to the background colour */
-        if (*((Uint32*)modescreen->pixels + lleft + (y-1)*vscrwidth) != gb_colour)
-          above = FALSE;
-        else if (!above) {
-          above = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lleft;
-          filly[sp] = y-1;
-          sp++;
-        }
-      }
-      if (y < pwinbottom) {	/* Check if point below current point is set to the background colour */
-        if (*((Uint32*)modescreen->pixels + lleft + (y+1)*vscrwidth) != gb_colour)
-          below = FALSE;
-        else if (!below) {
-          below = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lleft;
-          filly[sp] = y+1;
-          sp++;
-        }
-      }
-      lleft--;
-    }
-    lleft++;	/* Move back to first column set to background colour */
-    above = below = FALSE;
-    while (lright <= pwinright && *((Uint32*)modescreen->pixels + lright + y*vscrwidth) == gb_colour) {
-      if (y > pwintop) {
-        if (*((Uint32*)modescreen->pixels + lright + (y-1)*vscrwidth) != gb_colour)
-          above = FALSE;
-        else if (!above) {
-          above = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lright;
-          filly[sp] = y-1;
-          sp++;
-        }
-      }
-      if (y < pwinbottom) {
-        if (*((Uint32*)modescreen->pixels + lright + (y+1)*vscrwidth) != gb_colour)
-          below = FALSE;
-        else if (!below) {
-          below = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lright;
-          filly[sp] = y+1;
-          sp++;
-        }
-      }
-      lright++;
-    }
-    lright--;
-    draw_line(modescreen, lleft, y, lright, y, colour, 0, action);
-    if (lleft < left) left = lleft;
-    if (lright > right) right = lright;
-  } while (sp != 0);
-    hide_cursor();
-    blit_scaled(left, top, right, bottom);
-    reveal_cursor();
-}
-
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
 static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
@@ -2481,6 +2383,47 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
     }
   }
   *((Uint32*)surface->pixels + offset) = altcolour;
+}
+
+/*
+** 'flood_fill' floods fills an area of screen with the colour 'colour'.
+** x and y are the coordinates of the point at which to start. All
+** points that have the same colour as the one at (x, y) that can be
+** reached from (x, y) are set to colour 'colour'.
+** Note that the coordinates are *pixel* coordinates, that is, they are
+** not expressed in graphics units.
+**
+** This code is slow but does the job, and is HIGHLY recursive (and memory hungry).
+*/
+static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
+  if (*((Uint32*)modescreen->pixels + x + y*vscrwidth) != gb_colour) return;
+  plot_pixel(modescreen, x + y*vscrwidth, colour, action); /* Plot this pixel */
+  if (x >= 1) /* Left */
+    if (*((Uint32*)modescreen->pixels + (x-1) + y*vscrwidth) == gb_colour)
+      flood_fill_inner(x-1, y, colour, action);
+  if (x < (vscrwidth-1)) /* Right */
+    if (*((Uint32*)modescreen->pixels + (x+1) + y*vscrwidth) == gb_colour)
+      flood_fill_inner(x+1, y, colour, action);
+  if (y >= 1) /* Up */
+    if (*((Uint32*)modescreen->pixels + x + (y-1)*vscrwidth) == gb_colour)
+      flood_fill_inner(x, y-1, colour, action);
+  if (y < (vscrheight-1)) /* Down */
+    if (*((Uint32*)modescreen->pixels + x + (y+1)*vscrwidth) == gb_colour)
+      flood_fill_inner(x, y+1, colour, action);
+}
+
+static void flood_fill(int32 x, int y, int colour, Uint32 action) {
+  int32 pwinleft, pwinright, pwintop, pwinbottom;
+  pwinleft = GXTOPX(gwinleft);		/* Calculate extent of graphics window in pixels */
+  pwinright = GXTOPX(gwinright);
+  pwintop = GYTOPY(gwintop);
+  pwinbottom = GYTOPY(gwinbottom);
+  if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom) return;
+  if (*((Uint32*)modescreen->pixels + x + y*vscrwidth) == gb_colour)
+    flood_fill_inner(x, y, colour, action);
+  hide_cursor();
+  blit_scaled(0,0,screenwidth-1,screenheight-1);
+  reveal_cursor();
 }
 
 /*
