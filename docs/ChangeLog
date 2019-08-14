@@ -19,6 +19,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Fix pass-back of strings from SYS on 64-bit systems.
 - Fix sound with volume = 0 (Thanks David Hawes)
 - Bug fix for VAL - it should ONLY handle decimal numbers (not hex or binary)
+- Fix flood fill (it just didn't work right), new implementation is however
+  quite memory hungry and recursive.
 
 * V1.22.0 - 23 July 2019
 - Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which
