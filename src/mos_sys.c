@@ -172,22 +172,16 @@ static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32
 */
 void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
   int32 a;
-#ifdef __LP64__
-  uint64 *indirect;
-#else
-  uint32 *indirect;
-#endif
+  int64 out64;
   FILE *file_handle;
   char *vptr;
 
-  memset(outstring,0,65536); /* Clear the output string buffer */
 #ifdef __LP64__
-  indirect=(uint64*)(basicvars.offbase+0x0100);
-  *indirect = (uint64)outstring;
+  out64=(int64)outstring;
 #else
-  indirect=(uint32*)(basicvars.offbase+0x0100);
-  *indirect = (uint32)outstring;
+  out64=(int64)(int32)outstring; /* Ugh. Multiple casting to shut the compiler up */
 #endif
+  memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
     inregs[0]=swino-256;
     swino=SWI_OS_WriteC;
@@ -243,6 +237,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       a=kbd_readline(vptr, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
       outregs[1]=a;				/* Returned length			*/
 						/* Should also set Carry if Escape	*/
+      outregs[0]=out64;
       break;
 #else
     case SWI_OS_ReadLine:
@@ -251,14 +246,14 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=strlen(vptr);
       outregs[1]=a;
-      outregs[0]=0x0100;
+      outregs[0]=(int64)outstring;
       break;
     case SWI_OS_ReadLine32:
       vptr=outstring;
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
-      outregs[0]=0x0100;
+      outregs[0]=outstring;
       break;
 #endif
     case SWI_OS_UpdateMEMC:
@@ -340,7 +335,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_Version:
       strncpy(outstring,BRANDY_OS,64);
-      outregs[4]=0x0100;
+      outregs[4]=out64;
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
       outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
@@ -369,7 +364,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
      strncpy(vptr,"no_sdl",64);
 #endif
       outregs[1]=strlen(vptr);
-      outregs[0]=0x0100;
+      outregs[0]=out64;
       break;
     case SWI_Brandy_SetFailoverMode:
       matrixflags.failovermode=inregs[0];
@@ -402,7 +397,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_GPIO_GetBoard:
       file_handle=fopen("/proc/device-tree/model","r");
       outregs[0]=0;
-      outregs[1]=0x0100;
+      outregs[1]=out64;
       outregs[2]=0;
       outregs[3]=0;
       if (NULL == file_handle) {

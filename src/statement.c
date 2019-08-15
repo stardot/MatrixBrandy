@@ -246,27 +246,16 @@ static void next_line(void) {
 ** null-terminated string. This is only used by the code that deals
 ** with the SYS statement
 **
-** The code assumes that pointers are 32 bits wide. This affects
-** string variables in that the value returned by the SWI is
-** assumed to be a pointer to a null-terminated string. This is
-** passed back as a 32-bit integer. This problem cannot be avoided
-** with the SYS statement, which was only designed for use on a
-** 32-bit ARM processor
-**
-** Strings are now returned via an indirection within the BASIC
-** workspace, so a 32-bit pointer can be returned. This in turn
-** points to a 64-bit value. Unfortunately this results in
-** compiler warnings on 32-bit platforms, but does seem to work
-** on my system.
+** While SYS is specced to only handle 32-bit values, Matrix Brandy
+** has been modified to use 64-bit values. This is to allow the
+** passing of pointers on 64-bit platforms where otherwise the
+** passing back of strings could result in a segmentation fault.
+** This represents a deviation from the ARM SWI spec but it's only
+** a skin-deep emulation here.
 */
 
-void store_value(lvalue destination, int32 valuex, boolean nostring) {
+void store_value(lvalue destination, int64 valuex, boolean nostring) {
   int32 length;
-#ifdef __LP64__
-  uint64 *indirect;
-#else
-  uint32 *indirect;
-#endif
   intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
 #ifdef DEBUG
@@ -277,23 +266,18 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     *destination.address.intaddr = value;
     break;
   case VAR_INTLONG:
-    *destination.address.int64addr = (int64)value;
+    *destination.address.int64addr = valuex;
     break;
   case VAR_FLOAT:
-    *destination.address.floataddr = TOFLOAT(value);
+    *destination.address.floataddr = TOFLOAT(valuex);
     break;
   case VAR_STRINGDOL:
     if (nostring) error(ERR_VARNUM);
-#ifdef __LP64__
-    indirect = (uint64 *)(value + basicvars.offbase);
-#else
-    indirect = (uint32 *)(value + basicvars.offbase);
-#endif
-    length = strlen(TOSTRING(*indirect));
+    length = strlen(TOSTRING(value));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     free_string(*destination.address.straddr);
     cp = alloc_string(length);
-    if (length>0) memmove(cp, TOSTRING(*indirect), length);
+    if (length>0) memmove(cp, TOSTRING(value), length);
     destination.address.straddr->stringlen = length;
     destination.address.straddr->stringaddr = cp;
     break;
@@ -305,19 +289,14 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     store_integer(destination.address.offset, value);
     break;
   case VAR_FLOATPTR:
-    store_float(destination.address.offset, TOFLOAT(value));
+    store_float(destination.address.offset, TOFLOAT(valuex));
     break;
   case VAR_DOLSTRPTR:
     if (nostring) error(ERR_VARNUM);
-#ifdef __LP64__
-    indirect = (uint64 *)(value + basicvars.offbase);
-#else
-    indirect = (uint32 *)(value + basicvars.offbase);
-#endif
-    length = strlen(TOSTRING(*indirect));
+    length = strlen(TOSTRING(value));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
-    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(*indirect), length);
+    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value), length);
     basicvars.offbase[destination.address.offset+length] = asc_CR;
     break;
   default:

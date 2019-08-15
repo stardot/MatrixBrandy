@@ -44,7 +44,7 @@ extern boolean isateol(byte *);
 extern void check_ateol(void);
 extern void bad_token(void);
 extern void bad_syntax(void);
-extern void store_value(lvalue, int32, boolean);
+extern void store_value(lvalue, int64, boolean);
 extern void end_run(void);
 
 #endif
