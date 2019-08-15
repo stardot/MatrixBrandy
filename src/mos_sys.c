@@ -253,7 +253,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(vptr);
-      outregs[0]=outstring;
+      outregs[0]=out64;
       break;
 #endif
     case SWI_OS_UpdateMEMC:
