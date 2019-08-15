@@ -252,7 +252,9 @@ Uint8 mousestate, *keystate=NULL;
 #else
  #include <stdlib.h>
  #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
-  #include <keysym.h>
+  #ifndef CYGWINBUILD
+    #include <keysym.h>
+  #endif
  #endif
 #endif
 
@@ -676,7 +678,7 @@ int32 kbd_get(void) {
     matrixflags.doexec=NULL;
   }
   if (basicvars.runflags.inredir) {		/* Input redirected at CLI		*/
-#ifdef TARGET_UNIX
+#if defined(TARGET_UNIX) || defined(CYGWINBUILD)
     if ((ch=getchar()) != EOF) return ch;
 #else
     if ((ch=getch()) != EOF) return ch;
@@ -1294,7 +1296,9 @@ static boolean waitkey(int wait) {
 ** or gets the next keypress from the SDL event queue
 */
 int32 read_key(void) {
+#ifndef TARGET_MINGW
   int errcode;
+#endif
   byte ch = 0;
 #ifdef USE_SDL
 #ifndef TARGET_MINGW
