@@ -112,8 +112,6 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
 static void native_oscli(char *command, char *respfile, FILE *respfh);
 
-extern void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags);
-
 /* Address range used to identify emulated calls to the BBC Micro MOS */
 
 #define LOW_MOS 0xFFC0
@@ -787,7 +785,7 @@ void mos_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
 /*
 ** 'mos_mouse' emulates the Basic 'MOUSE' statement
 */
-void mos_mouse(int32 values[]) {
+void mos_mouse(int64 values[]) {
 #ifdef USE_SDL
   get_sdl_mouse(values);
 #else
@@ -830,7 +828,7 @@ void mos_mouse(int32 values[]) {
 ** -12- other buffers
 */
 int32 mos_adval(int32 x) {
-  int32 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
+  int64 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
 
   if((x>6) & (x<10)) {
     mos_mouse(inputvalues);
@@ -2221,7 +2219,7 @@ int32 mos_getswinum(char *name, int32 length) {
 ** Most SWI calls are defined in mos_sys.c except the few that
 ** call other functions in this file.
 */
-void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
+void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
   int32 ptr, rtn;
   int32 xflag;
 

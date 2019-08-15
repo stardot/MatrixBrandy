@@ -1191,7 +1191,7 @@ static void exec_mouse_rectangle(void) {
 ** 'exec_mouse_position' reads the current position of the mouse
 */
 static void exec_mouse_position(void) {
-  int32 mousevalues[4];
+  int64 mousevalues[4];
   lvalue destination;
   mos_mouse(mousevalues);		/* Note: this code does not check the type of the variable to receive the values */
   get_lvalue(&destination);

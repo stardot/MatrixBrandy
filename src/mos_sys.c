@@ -129,7 +129,7 @@ static uint32 rpi2gpio(uint32 newtype) {
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
 ** This implementation is local to Brandy.
 */
-static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32 xflag) {
+static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32 xflag) {
   if (!matrixflags.gpio) {
     if (!xflag) error(ERR_NO_RPI_GPIO);
     return;
@@ -170,7 +170,7 @@ static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32
 /* This is the handler for almost all SYS calls on non-RISC OS platforms.
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
-void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
+void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
   int32 a;
 #ifdef __LP64__
   uint64 *indirect;
@@ -196,7 +196,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
     case SWI_OS_WriteC:
       outregs[0]=inregs[0];
       if ((inregs[1]==42) && (inregs[2]==42)) {
-        fprintf(stderr,"%c\r\n", inregs[0] & 0xFF);
+        fprintf(stderr,"%c\r\n", (int32)(inregs[0] & 0xFF));
       } else {
         emulate_vdu(inregs[0] & 0xFF);
       }

@@ -26,8 +26,10 @@
 #ifndef MOS_SWINUMS_H
 #define MOS_SWINUMS_H
 
+extern void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags);
+
 typedef struct {
-  int32 swinum;		/* RISC OS SWI number */
+  int64 swinum;		/* RISC OS SWI number */
   char *swiname;	/* SWI Name */
 } switable;
 

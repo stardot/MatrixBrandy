@@ -2325,8 +2325,8 @@ void exec_swap(void) {
 ** as 'SWIs'.
 */
 void exec_sys(void) {
-  int32 n, parmcount, flags, swino = 0;
-  int32 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+  int32 n, parmcount, swino = 0;
+  int64 flags, inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
   stackitem parmtype;
   basicstring descriptor, tempdesc[MAXSYSPARMS];
   lvalue destination;
