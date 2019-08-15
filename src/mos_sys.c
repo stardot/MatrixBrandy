@@ -246,7 +246,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=strlen(vptr);
       outregs[1]=a;
-      outregs[0]=(int64)outstring;
+      outregs[0]=out64;
       break;
     case SWI_OS_ReadLine32:
       vptr=outstring;
