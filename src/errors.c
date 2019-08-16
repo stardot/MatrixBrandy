@@ -240,9 +240,12 @@ void announce(void) {
 //cmd_ver(); emulate_prinf("\n");
   emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
+#ifdef BRANDY_GITCOMMIT
+  emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+#endif
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\n", &basicvars, &thisline);
-  emulate_printf("Workspace is at &%X, size is &%X, page = &%X\r\nhimem = &%X\r\n",
-   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+  emulate_printf("Workspace is at &%X, size is &%X, offbase = &%X\r\nPAGE = &%X (relative &%X), HIMEM = &%X (relative &%X)\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.offbase, basicvars.page, basicvars.page - basicvars.offbase, basicvars.himem, basicvars.himem - basicvars.offbase);
 #endif
 }
 
