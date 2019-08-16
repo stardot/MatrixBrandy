@@ -37,6 +37,10 @@
 #ifndef __target_h
 #define __target_h
 
+/* Make NEWKBD the default */
+#ifndef OLDKBD
+#define NEWKBD
+#endif
 
 /*
 ** Define the operating system-specific types used for integer
