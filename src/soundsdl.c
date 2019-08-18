@@ -349,6 +349,13 @@ void init_sound(){
 }
 
 void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int32 delay){
+// channel &0xxx - sound generator  &000h ssss xxxf cccc  hold, sync, flush, channel
+// channel &1xxx - sound generator  &000h ssss xxxf cccc
+// channel &20xx - Watford speech
+// channel &21xx
+//      to &FDxx - other things
+// channel &FExx - MIDI control
+// channel &FFxx - BBC speech
 
  unsigned int step;
  int tvol;

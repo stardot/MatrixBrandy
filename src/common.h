@@ -28,6 +28,15 @@
 #define FALSE 0
 #define TRUE 1
 #define NIL 0
+#ifndef NUL
+#define NUL 0
+#endif
+#ifndef LF
+#define LF 10
+#endif
+#ifndef ESC
+#define ESC 27
+#endif
 
 #define MAXINTVAL 2147483647
 #define SMALLCONST 256

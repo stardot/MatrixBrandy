@@ -30,7 +30,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/time.h>
-#include <pthread.h>
+// #include <pthread.h>
 #ifdef USE_SDL
 #include <SDL.h>
 #endif
