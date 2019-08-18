@@ -1,6 +1,8 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2014 Jonathan Harston
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -178,6 +180,7 @@ typedef enum {
     ERR_SWINUMNOTKNOWN,	/* SWI &xxx not known */
     ERR_DIRNOTFOUND,	/* Directory not found */
     ERR_BADBITWISE,	/* 6, Bitwise operations cannot be performed on these operands */
+    ERR_ADDREXCEPT,	/* Address exception - use for segfault handler */
 // From JGH's Banana Brandy fork
     ERR_BADCOMMAND,	/* 254, Bad command */
     ERR_BADSTRING,	/* 253, Bad string */
@@ -217,7 +220,7 @@ extern void set_error(void);
 extern void set_local_error(void);
 extern void clear_error(void);
 extern void show_help(void);
-extern void show_options(void);
+extern void show_options(int32);
 extern void announce(void);
 
 #endif

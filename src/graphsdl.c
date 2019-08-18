@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** SDL additions by Colin Tuckley
 **
@@ -23,8 +24,7 @@
 **	This file contains the VDU driver emulation for the interpreter
 **	used when graphics output is possible. It uses the SDL graphics library.
 **
-**	MODE 7 implementation by Michael McConnell. It's rather rudimentary, it
-**	supports most codes when output by the VDU driver.
+**	MODE 7 implementation by Michael McConnell.
 **
 */
 #include <stdio.h>
@@ -978,7 +978,7 @@ void mode7flipbank() {
   int32 ypos;
   
   if (screenmode == 7) {
-    mytime=mos_centiseconds();
+    mytime=basicvars.centiseconds;
     if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
       do_sdl_updaterect(screen0, 0, 0, 0, 0);
@@ -1011,7 +1011,7 @@ void mode7flipbank() {
 */
 static void write_char(int32 ch) {
   int32 y, topx, topy, line;
-
+  
   if (cursorstate == ONSCREEN) toggle_cursor();
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
@@ -1022,10 +1022,13 @@ static void write_char(int32 ch) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1078,10 +1081,13 @@ static void write_char(int32 ch) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1114,6 +1120,14 @@ static void write_char(int32 ch) {
 */
 static void plot_char(int32 ch) {
   int32 y, topx, topy, line;
+  SDL_Rect clip_rect;
+  if (clipping) {
+    clip_rect.x = GXTOPX(gwinleft);
+    clip_rect.y = GYTOPY(gwintop);
+    clip_rect.w = gwinright - gwinleft +1;
+    clip_rect.h = gwinbottom - gwintop +1;
+    SDL_SetClipRect(modescreen, &clip_rect);
+  }
   topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
   topy = GYTOPY(ylast);	/* top left-hand corner of the character */
   place_rect.x = topx;
@@ -1141,6 +1155,9 @@ static void plot_char(int32 ch) {
     xlast = gwinleft;
     ylast -= YPPC*ygupp;
     if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
+  }
+  if (clipping) {
+    SDL_SetClipRect(modescreen, NULL);
   }
 }
 
@@ -1348,10 +1365,13 @@ static void move_curdown(void) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1375,10 +1395,13 @@ static void move_curup(void) {
 // BUG: paged mode should not stop scrolling upwards
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	vdu14lines=0;
       }
     }
@@ -1684,11 +1707,6 @@ static void vdu_graphwind(void) {
   gwinright = right;
   gwintop = top;
   gwinbottom = bottom;
-  line_rect.x = GXTOPX(left);
-  line_rect.y = GYTOPY(top);
-  line_rect.w = right - left +1;
-  line_rect.h = bottom - top +1;
-  SDL_SetClipRect(modescreen, &line_rect);
   clipping = TRUE;
 }
 
@@ -1709,10 +1727,7 @@ static void vdu_plot(void) {
 ** graphics windows (VDU 26)
 */
 static void vdu_restwind(void) {
-  if (clipping) {	/* Restore graphics clipping region to entire screen area for mode */
-    SDL_SetClipRect(modescreen, NULL);
-    clipping = FALSE;
-  }
+  clipping = FALSE;
   write_vduflag(MODE7_HIGHBIT,0);
   xorigin = yorigin = 0;
   xlast = ylast = xlast2 = ylast2 = 0;
@@ -1823,6 +1838,7 @@ static void vdu_movetext(void) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
+  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
   if (vduneeded == 0) {			/* VDU queue is empty */
     if (vduflag(VDU_FLAG_DISABLE)) {
       if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);
@@ -1839,10 +1855,13 @@ void emulate_vdu(int32 charvalue) {
 	    vdu14lines++;
 	    if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	      while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	      vdu14lines=0;
 	    }
 	  }
@@ -1883,10 +1902,13 @@ void emulate_vdu(int32 charvalue) {
 	    vdu14lines++;
 	    if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	      while (kbd_modkeys(1)==0) usleep(1000);
+	while (kbd_modkeys(1)==0) {
 #else
-	      while (!emulate_inkey(-4) && !emulate_inkey2(-7)) usleep(1000);
+	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
 #endif
+	  if (basicvars.escape_enabled) checkforescape();
+	  usleep(5000);
+	}
 	      vdu14lines=0;
 	    }
 	  }
@@ -2082,38 +2104,12 @@ void emulate_printf(char *format, ...) {
 ** emulate_vdufn - Emulates the Basic VDU function. This
 ** returns the value of the specified VDU variable. Only a
 ** small subset of the possible values available under
-** RISC OS are returned
+** RISC OS are returned.
+** Now combined with the readmodevariable call which
+** supports SWIs OS_ReadVduVariables and OS_ReadModeVariable
 */
 int32 emulate_vdufn(int variable) {
-  switch (variable) {
-  case 0: /* ModeFlags */	return istextonly();
-  case 1: /* ScrRCol */		return textwidth - 1;
-  case 2: /* ScrBRow */		return textheight - 1;
-  case 3: /* NColour */		return colourdepth - 1;
-  case 11: /* XWindLimit */	return screenwidth - 1;
-  case 12: /* YWindLimit */	return screenheight - 1;
-  case 128: /* GWLCol */	return gwinleft / xgupp;
-  case 129: /* GWBRow */	return gwinbottom / ygupp;
-  case 130: /* GWRCol */	return gwinright / xgupp;
-  case 131: /* GWTRow */	return gwintop / ygupp;
-  case 132: /* TWLCol */	return twinleft;
-  case 133: /* TWBRow */	return twinbottom;
-  case 134: /* TWRCol */	return twinright;
-  case 135: /* TWTRow */	return twintop;
-  case 136: /* OrgX */		return xorigin;
-  case 137: /* OrgY */		return yorigin;
-  case 153: /* GFCOL */		return graph_forecol;
-  case 154: /* GBCOL */		return graph_backcol;
-  case 155: /* TForeCol */	return text_forecol;
-  case 156: /* TBackCol */	return text_backcol;
-  case 157: /* GFTint */	return graph_foretint;
-  case 158: /* GBTint */	return graph_backtint;
-  case 159: /* TFTint */	return text_foretint;
-  case 160: /* TBTint */	return text_backtint;
-  case 161: /* MaxMode */	return HIGHMODE;
-  default:
-    return 0;
-  }
+  return readmodevariable(-1,variable);
 }
 
 /*
@@ -2144,6 +2140,18 @@ static void setup_mode(int32 mode) {
 
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
+  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
+  ox=vscrwidth;
+  oy=vscrheight;
+  /* Try to catch an undefined mode */
+  hide_cursor();
+  if (modetable[mode].xres == 0) {
+    if (matrixflags.failovermode == 255) {
+      error(ERR_BADMODE);
+    } else {
+      modecopy = mode = matrixflags.failovermode;
+    }
+  }
   if (mode == 7) { /* Reset width to 16 */
     M7XPPC=16;
     setm7font16();
@@ -2154,12 +2162,6 @@ static void setup_mode(int32 mode) {
     modetable[7].xres = 40*M7XPPC;
     modetable[7].xgraphunits = 80*M7XPPC;
   }
-  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
-  ox=vscrwidth;
-  oy=vscrheight;
-  /* Try to catch an undefined mode */
-  hide_cursor();
-  if (modetable[mode].xres == 0) error(ERR_BADMODE);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
   SDL_BlitSurface(screen0, NULL, screen1, NULL);
@@ -2171,7 +2173,7 @@ static void setup_mode(int32 mode) {
     screen0 = SDL_SetVideoMode(ox, oy, 32, flags);
     SDL_BlitSurface(screen1, NULL, screen0, NULL);
     do_sdl_updaterect(screen0, 0, 0, 0, 0);
-    error(ERR_BADMODE);
+    if (matrixflags.failovermode == 255) error(ERR_BADMODE);
   }
   autorefresh=1;
   vscrwidth = sx;
@@ -2182,6 +2184,8 @@ static void setup_mode(int32 mode) {
   }
   SDL_FreeSurface(modescreen);
   modescreen = SDL_DisplayFormat(screen0);
+  matrixflags.modescreen_ptr = modescreen->pixels;
+  matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
   writebank=0;
   SDL_FreeSurface(screen1);
@@ -2196,7 +2200,7 @@ static void setup_mode(int32 mode) {
   screen3A = SDL_DisplayFormat(screen0);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
-  YPPC=8; if ((mode == 3) || (mode == 6)) YPPC=10;
+  YPPC=8; if ((mode == 3) || (mode == 6) || (mode == 11) || (mode == 14) || (mode == 17)) YPPC=10;
   place_rect.h = font_rect.h = YPPC;
   reset_mode7();
   screenwidth = modetable[mode].xres;
@@ -2278,9 +2282,9 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
   case 1: coldepth = 2; break;
   case 2: coldepth = 4; break;
   case 4: coldepth = 16; break;
-  case 24: coldepth = COL24BIT; break;
+  case 8: coldepth = 256; break;
   default:
-    coldepth = 256;
+    coldepth = COL24BIT;
   }
   for (n=0; n<=HIGHMODE; n++) {
     if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
@@ -2330,109 +2334,17 @@ int32 emulate_modefn(void) {
   return screenmode;
 }
 
-#define FILLSTACK 500
-
-/*
-** 'flood_fill' floods fills an area of screen with the colour 'colour'.
-** x and y are the coordinates of the point at which to start. All
-** points that have the same colour as the one at (x, y) that can be
-** reached from (x, y) are set to colour 'colour'.
-** Note that the coordinates are *pixel* coordinates, that is, they are
-** not expressed in graphics units.
-**
-** This code is slow but does the job
-*/
-static void flood_fill(int32 x, int y, int colour, Uint32 action) {
-  int32 sp, fillx[FILLSTACK], filly[FILLSTACK];
-  int32 left, right, top, bottom, lleft, lright, pwinleft, pwinright, pwintop, pwinbottom;
-  boolean above, below;
-  pwinleft = GXTOPX(gwinleft);		/* Calculate extent of graphics window in pixels */
-  pwinright = GXTOPX(gwinright);
-  pwintop = GYTOPY(gwintop);
-  pwinbottom = GYTOPY(gwinbottom);
-  if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom
-   || *((Uint32*)modescreen->pixels + x + y*vscrwidth) != gb_colour) return;
-  left = right = x;
-  top = bottom = y;
-  sp = 0;
-  fillx[sp] = x;
-  filly[sp] = y;
-  sp++;
-  do {
-    sp--;
-    y = filly[sp];
-    lleft = fillx[sp];
-    lright = lleft+1;
-    if (y < top) top = y;
-    if (y > bottom) bottom = y;
-    above = below = FALSE;
-    while (lleft >= pwinleft && *((Uint32*)modescreen->pixels + lleft + y*vscrwidth) == gb_colour) {
-      if (y > pwintop) {	/* Check if point above current point is set to the background colour */
-        if (*((Uint32*)modescreen->pixels + lleft + (y-1)*vscrwidth) != gb_colour)
-          above = FALSE;
-        else if (!above) {
-          above = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lleft;
-          filly[sp] = y-1;
-          sp++;
-        }
-      }
-      if (y < pwinbottom) {	/* Check if point below current point is set to the background colour */
-        if (*((Uint32*)modescreen->pixels + lleft + (y+1)*vscrwidth) != gb_colour)
-          below = FALSE;
-        else if (!below) {
-          below = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lleft;
-          filly[sp] = y+1;
-          sp++;
-        }
-      }
-      lleft--;
-    }
-    lleft++;	/* Move back to first column set to background colour */
-    above = below = FALSE;
-    while (lright <= pwinright && *((Uint32*)modescreen->pixels + lright + y*vscrwidth) == gb_colour) {
-      if (y > pwintop) {
-        if (*((Uint32*)modescreen->pixels + lright + (y-1)*vscrwidth) != gb_colour)
-          above = FALSE;
-        else if (!above) {
-          above = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lright;
-          filly[sp] = y-1;
-          sp++;
-        }
-      }
-      if (y < pwinbottom) {
-        if (*((Uint32*)modescreen->pixels + lright + (y+1)*vscrwidth) != gb_colour)
-          below = FALSE;
-        else if (!below) {
-          below = TRUE;
-          if (sp == FILLSTACK) return;	/* Shape is too complicated so give up */
-          fillx[sp] = lright;
-          filly[sp] = y+1;
-          sp++;
-        }
-      }
-      lright++;
-    }
-    lright--;
-    draw_line(modescreen, lleft, y, lright, y, colour, 0, action);
-    if (lleft < left) left = lleft;
-    if (lright > right) right = lright;
-  } while (sp != 0);
-    hide_cursor();
-    blit_scaled(left, top, right, bottom);
-    reveal_cursor();
-}
-
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
 static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
   Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
-  
+  int32 rox = 0, roy = 0;
+
+  if (clipping) {
+    rox = (offset % screenwidth)*xgupp;
+    roy = ygraphunits - ygupp - (offset / screenwidth)*ygupp/yscale;
+    if ((rox < gwinleft) || (rox > gwinright) || (roy < gwinbottom) || (roy > gwintop)) return;
+  }
   if (plot_inverse ==1) {
     action=3;
     drawcolour=(colourdepth-1);
@@ -2471,6 +2383,47 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
     }
   }
   *((Uint32*)surface->pixels + offset) = altcolour;
+}
+
+/*
+** 'flood_fill' floods fills an area of screen with the colour 'colour'.
+** x and y are the coordinates of the point at which to start. All
+** points that have the same colour as the one at (x, y) that can be
+** reached from (x, y) are set to colour 'colour'.
+** Note that the coordinates are *pixel* coordinates, that is, they are
+** not expressed in graphics units.
+**
+** This code is slow but does the job, and is HIGHLY recursive (and memory hungry).
+*/
+static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
+  if (*((Uint32*)modescreen->pixels + x + y*vscrwidth) != gb_colour) return;
+  plot_pixel(modescreen, x + y*vscrwidth, colour, action); /* Plot this pixel */
+  if (x >= 1) /* Left */
+    if (*((Uint32*)modescreen->pixels + (x-1) + y*vscrwidth) == gb_colour)
+      flood_fill_inner(x-1, y, colour, action);
+  if (x < (vscrwidth-1)) /* Right */
+    if (*((Uint32*)modescreen->pixels + (x+1) + y*vscrwidth) == gb_colour)
+      flood_fill_inner(x+1, y, colour, action);
+  if (y >= 1) /* Up */
+    if (*((Uint32*)modescreen->pixels + x + (y-1)*vscrwidth) == gb_colour)
+      flood_fill_inner(x, y-1, colour, action);
+  if (y < (vscrheight-1)) /* Down */
+    if (*((Uint32*)modescreen->pixels + x + (y+1)*vscrwidth) == gb_colour)
+      flood_fill_inner(x, y+1, colour, action);
+}
+
+static void flood_fill(int32 x, int y, int colour, Uint32 action) {
+  int32 pwinleft, pwinright, pwintop, pwinbottom;
+  pwinleft = GXTOPX(gwinleft);		/* Calculate extent of graphics window in pixels */
+  pwinright = GXTOPX(gwinright);
+  pwintop = GYTOPY(gwintop);
+  pwinbottom = GYTOPY(gwinbottom);
+  if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom) return;
+  if (*((Uint32*)modescreen->pixels + x + y*vscrwidth) == gb_colour)
+    flood_fill_inner(x, y, colour, action);
+  hide_cursor();
+  blit_scaled(0,0,screenwidth-1,screenheight-1);
+  reveal_cursor();
 }
 
 /*
@@ -2851,8 +2804,8 @@ void emulate_tab(int32 x, int32 y) {
 ** 'emulate_newline' skips to a new line on the screen.
 */
 void emulate_newline(void) {
-  emulate_vdu(CR);
-  emulate_vdu(LF);
+  emulate_vdu(asc_CR);
+  emulate_vdu(asc_LF);
 }
 
 /*
@@ -3208,7 +3161,7 @@ boolean init_screen(void) {
   write_vduflag(MODE7_UPDATE,1);
   write_vduflag(MODE7_UPDATE_HIGHACC,1);
   xgupp = ygupp = 1;
-  SDL_WM_SetCaption("Matrix Brandy Basic V Interpreter", "Matrix Brandy");
+  SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   setup_mode(0);
@@ -3845,7 +3798,7 @@ void get_sdl_mouse(int32 values[]) {
   values[0]=x;
   values[1]=y;
   values[2]=xb;
-  values[3]=mos_rdtime();
+  values[3]=basicvars.centiseconds - basicvars.monotonictimebase;
   while(SDL_PollEvent(&ev)) {
     if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
   }
@@ -3907,6 +3860,14 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
   modetable[mode].yscale = myscale;
 }
 
+void refresh_location(uint32 offset) {
+  uint32 ox,oy;
+
+  ox=offset % screenwidth;
+  oy=offset / screenwidth;
+  blit_scaled(ox,oy,ox,oy);
+}
+
 void star_refresh(int flag) {
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     autorefresh=flag;
@@ -3945,6 +3906,8 @@ int32 osbyte42(int x) {
   if (ref) star_refresh(ref-1);
   /* Handle the next 2 bits - FULLSCREEN state */
   if (fsc) fullscreenmode(fsc-1);
+  /* If bit 4 set, do immediate refrsh */
+  if (x & 16) star_refresh(3);
   return((x << 8) + 42);
 }
 
@@ -3962,6 +3925,18 @@ void osbyte113(int x) {
   if (x <= MAXBANKS) displaybank=(x-1);
   SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
   SDL_Flip(screen0);
+}
+
+void screencopy(int32 src, int32 dst) {
+  SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
+  if (dst==(displaybank+1)) {
+    SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+    SDL_Flip(screen0);
+  }
+}
+
+int32 get_maxbanks(void) {
+  return MAXBANKS;
 }
 
 int32 osbyte134_165(int32 a) {
@@ -3995,6 +3970,12 @@ void osword10(int32 x) {
 }
 
 void sdl_screensave(char *fname) {
+  /* Strip quote marks, where appropriate */
+  if ((fname[0] == '"') && (fname[strlen(fname)-1] == '"')) {
+    fname[strlen(fname)-1] = '\0';
+    fname++;
+  }
+
   if (screenmode == 7) {
     if (SDL_SaveBMP(screen2, fname)) {
       error(ERR_CANTWRITE);
@@ -4010,6 +3991,12 @@ void sdl_screensave(char *fname) {
 void sdl_screenload(char *fname) {
   SDL_Surface *placeholder;
   
+  /* Strip quote marks, where appropriate */
+  if ((fname[0] == '"') && (fname[strlen(fname)-1] == '"')) {
+    fname[strlen(fname)-1] = '\0';
+    fname++;
+  }
+
   placeholder=SDL_LoadBMP(fname);
   if(!placeholder) {
     error(ERR_CANTREAD);
@@ -4033,4 +4020,77 @@ void swi_swap16palette() {
     palette[ptr+24]=place;
   }
   set_rgb();
+}
+
+/* Only a few flags are relevant to the emulation in Brandy */
+static int32 getmodeflags(int32 scrmode) {
+  int32 flags=0;
+  if ((scrmode == 3) || (scrmode == 6) || (scrmode == 7)) flags |=1;
+  if (scrmode == 7) flags |= 6;
+  if ((scrmode == 3) || (scrmode == 6)) flags |=12;
+  return flags;
+}
+static int32 mode_divider(int32 scrmode) {
+  switch (modetable[scrmode].coldepth) {
+    case 2:	   return 32;
+    case 4:	   return 16;
+    case 16:	   return 8;
+    case 256:	   return 4;
+    case COL15BIT: return 2;
+    default:	   return 1;
+  }
+}
+static int32 log2bpp(int32 scrmode) {
+  switch (modetable[scrmode].coldepth) {
+    case 2:	   return 0;
+    case 4:	   return 1;
+    case 16:	   return 2;
+    case 256:	   return 3;
+    case COL15BIT: return 4;
+    default:	   return 5;
+  }
+}
+/* Using values returned by RISC OS 3.7 */
+int32 readmodevariable(int32 scrmode, int32 var) {
+  int tmp=0;
+  if (scrmode == -1) scrmode = screenmode;
+  switch (var) {
+    case 0:	return (getmodeflags(scrmode));
+    case 1:	return (modetable[scrmode].xtext-1);
+    case 2:	return (modetable[scrmode].ytext-1);
+    case 3:
+      tmp=modetable[scrmode].coldepth;
+      if (tmp==256) tmp=64;
+      if (tmp==COL15BIT) tmp=65536;
+      if (tmp==COL24BIT) tmp=0;
+      return tmp-1;
+    case 4:	return (modetable[scrmode].xscale);
+    case 5:	return (modetable[scrmode].yscale);
+    case 6:	return (modetable[scrmode].xres * 4 / mode_divider(scrmode));
+    case 7:	return (modetable[scrmode].xres * modetable[scrmode].yres * 4 / mode_divider(scrmode));
+    case 9:	/* Fall through to 10 */
+    case 10:	return (log2bpp(scrmode));
+    case 11:	return (modetable[scrmode].xres-1);
+    case 12:	return (modetable[scrmode].yres-1);
+    case 128: /* GWLCol */	return gwinleft / xgupp;
+    case 129: /* GWBRow */	return gwinbottom / ygupp;
+    case 130: /* GWRCol */	return gwinright / xgupp;
+    case 131: /* GWTRow */	return gwintop / ygupp;
+    case 132: /* TWLCol */	return twinleft;
+    case 133: /* TWBRow */	return twinbottom;
+    case 134: /* TWRCol */	return twinright;
+    case 135: /* TWTRow */	return twintop;
+    case 136: /* OrgX */	return xorigin;
+    case 137: /* OrgY */	return yorigin;
+    case 153: /* GFCOL */	return graph_forecol;
+    case 154: /* GBCOL */	return graph_backcol;
+    case 155: /* TForeCol */	return text_forecol;
+    case 156: /* TBackCol */	return text_backcol;
+    case 157: /* GFTint */	return graph_foretint;
+    case 158: /* GBTint */	return graph_backtint;
+    case 159: /* TFTint */	return text_foretint;
+    case 160: /* TBTint */	return text_backtint;
+    case 161: /* MaxMode */	return HIGHMODE;
+    default:	return 0;
+  }
 }

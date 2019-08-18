@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -26,6 +27,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <ctype.h>
 #include "common.h"
@@ -123,7 +125,7 @@ static byte startmark [STARTMARKSIZE] = {0xC5, 0xC7, 0xC1, 0xD7};
 ** with or to allow programs that drop off the end of their code to
 ** end gracefully
 */
-static byte endline [8] = {0, 0, 8, 0, 6, 0, TOKEN_END, NUL};
+static byte endline [8] = {0, 0, 8, 0, 6, 0, TOKEN_END, asc_NUL};
 
 void mark_end(byte *p) {
   memcpy(p, endline, 8);	/* Place an 'END' token at the end of the program */
@@ -219,7 +221,7 @@ void clear_program(void) {
   basicvars.curcount = 0;
   basicvars.printcount = 0;
   basicvars.printwidth = DEFWIDTH;
-  basicvars.program[0] = NUL;
+  basicvars.program[0] = asc_NUL;
   basicvars.linecount = 0;
   last_added = NIL;
   init_stack();
@@ -262,7 +264,7 @@ static boolean isvalidprog(void) {
 ** pointer to 'safe' values)
 */
 void recover_program(void) {
-  byte *bp;
+  byte *bp=NULL;
   if (basicvars.misc_flags.validsaved) {	/* Only check if the command 'new' has been used */
     reinstate();		/* Restore start of program */
     bp = basicvars.start;
@@ -292,8 +294,8 @@ void recover_program(void) {
 ** built for statements in the libraries will have been put on the Basic heap.
 */
 static void clear_refs(void) {
-  byte *bp;
-  library *lp;
+  byte *bp=NULL;
+  library *lp=NULL;
   if (basicvars.runflags.has_variables) {
     clear_varlists();
     clear_heap();
@@ -459,7 +461,7 @@ static FILE *open_file(char *name) {
   do {
     dest = basicvars.filename;
     if (*srce!=',') {		/* Not got a null directory name */
-      while (*srce!=NUL && *srce!=',') {
+      while (*srce!=asc_NUL && *srce!=',') {
         *dest = *srce;
         dest++;
         srce++;
@@ -469,10 +471,10 @@ static FILE *open_file(char *name) {
         dest++;
       }
     }
-    *dest = NUL;
+    *dest = asc_NUL;
     strcat(basicvars.filename, name);
     handle = fopen(basicvars.filename, "rb");
-    if (handle!=NIL || *srce==NUL) break;	/* File found or end of directory list reached */
+    if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
     srce++;
   } while (TRUE);
   return handle;	/* Return file handle or NIL if file not found */
@@ -607,7 +609,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
       length--;
     while (length>=0 && isspace(basicvars.stringwork[length]));
     length++;
-    basicvars.stringwork[length] = NUL;
+    basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
 //    tokenize(basicvars.stringwork, tokenline, HASLINE);
     if (get_lineno(tokenline)==NOLINENO) {
@@ -656,7 +658,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 static void blockread(void *ptr, size_t size, size_t nmemb) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
   unsigned char *blobend = (unsigned char *)&_binary_app_end;
-  unsigned long int blobsize = (unsigned long int)&_binary_app_size;
+  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
   if (matrixflags.scrunge) do_scrunge(size*nmemb, ptr);
@@ -666,7 +668,7 @@ static void blockread(void *ptr, size_t size, size_t nmemb) {
 static char *blockgets(char *s, int size) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
   unsigned char *blobend = (unsigned char *)&_binary_app_end;
-  unsigned long int blobsize = (unsigned long int)&_binary_app_size;
+  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   unsigned int p = 0;
   int l = 1;
@@ -708,7 +710,7 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
       length--;
     while (length>=0 && isspace(basicvars.stringwork[length]));
     length++;
-    basicvars.stringwork[length] = NUL;
+    basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
     if (get_lineno(tokenline)==NOLINENO) {
       save_lineno(tokenline, 0);	/* Otherwise renumber goes a bit funny */
@@ -755,13 +757,13 @@ static filetype identify(FILE *thisfile, char *name) {
   fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
   if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
 
-  if (basicvars.stringwork[0] == CR)			/* Simple check for Acorn format */
+  if (basicvars.stringwork[0] == asc_CR)			/* Simple check for Acorn format */
     if ((unsigned char)basicvars.stringwork[3] > 3)
-      if (basicvars.stringwork[(unsigned char)basicvars.stringwork[3]] == CR)
+      if (basicvars.stringwork[(unsigned char)basicvars.stringwork[3]] == asc_CR)
         return BBCFILE;
 
   if ((unsigned char)basicvars.stringwork[0] > 3)	/* Simple check for Russell format */
-    if (basicvars.stringwork[(unsigned char)basicvars.stringwork[0]-1] == CR)
+    if (basicvars.stringwork[(unsigned char)basicvars.stringwork[0]-1] == asc_CR)
       return Z80FILE;
 
   return TEXTFILE;					/* Everything else is text */

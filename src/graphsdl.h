@@ -1,3 +1,26 @@
+/*
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2018-2019 Michael McConnell and contributors
+**
+** SDL additions by Colin Tuckley
+**
+** Brandy is free software; you can redistribute it and/or modify
+** it under the terms of the GNU General Public License as published by
+** the Free Software Foundation; either version 2, or (at your option)
+** any later version.
+**
+** Brandy is distributed in the hope that it will be useful,
+** but WITHOUT ANY WARRANTY; without even the implied warranty of
+** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+** GNU General Public License for more details.
+**
+** You should have received a copy of the GNU General Public License
+** along with Brandy; see the file COPYING.  If not, write to
+** the Free Software Foundation, 59 Temple Place - Suite 330,
+** Boston, MA 02111-1307, USA.
+**
+** This file defines the exported functions which use the SDL library.
+*/
 #ifndef GRAPHSDL_INC
 #define GRAPHSDL_INC
 
@@ -26,5 +49,9 @@ extern void sdl_screensave(char *fname);
 extern void sdl_screenload(char *fname);
 extern void reset_vdu14lines(void);
 extern void swi_swap16palette(void);
+extern int32 readmodevariable(int32 scrmode, int32 var);
+extern void screencopy(int32 src, int32 dst);
+extern int32 get_maxbanks(void);
+extern void refresh_location(uint32 offset);
 
 #endif

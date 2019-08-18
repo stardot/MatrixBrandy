@@ -1,0 +1,290 @@
+   10REM >Snow
+   20REM Copyright © 2010, 7th software
+   30REM All rights reserved.
+   40REM www.7thsoftware.co.uk
+   50REM
+   60REM Redistribution and use in source and binary forms, with or without
+   70REM modification, are permitted provided that the following conditions are met:
+   80REM
+   90REM 1. Redistributions of source code must retain the above copyright notice,
+  100REM this list of conditions and the following disclaimer.
+  110REM
+  120REM 2. Redistributions in binary form must reproduce the above copyright notice,
+  130REM this list of conditions and the following disclaimer in the documentation
+  140REM and/or other materials provided with the distribution.
+  150REM
+  160REM 3. Neither the name of the copyright holder nor the names of its contributors
+  170REM may be used to endorse or promote products derived from this software without
+  180REM specific prior written permission.
+  190REM
+  200REM THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  210REM AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  220REM IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  230REM ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  240REM LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  250REM CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  260REM SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  270REM INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  280REM CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  290REM ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  300REM POSSIBILITY OF SUCH DAMAGE.
+  310REM
+  320REM --
+  330REM
+  340REM Dedicated to Karen.
+  350
+  360ON ERROR PROCerror
+  370PROCinitialise
+  380PROCplot_sky
+  390PROCsnowing_loop
+  400QUIT
+  410:
+  420REM  « Simple error handler »
+  430DEF PROCerror
+  440ON ERROR OFF
+  450PRINT'REPORT$" (";ERL")"
+  460END
+  470ENDPROC
+  480:
+  490REM  « Initialise global constants and variables »
+  500DEF PROCinitialise
+  510LOCAL f%, c%, pwd$
+  520
+  530REM MODE 640,480,32
+  540MODE 1280,720,32
+  550REM MODE 1920,1080,32
+  560OFF
+  570MOUSE OFF
+  580
+  590REM Get some SWI numbers, which are faster to use than SWI name strings
+  600SYS "OS_SWINumberFromString",, "OS_ReadMonotonicTime" TO ReadMono%
+  610SYS "OS_SWINumberFromString",, "ColourTrans_SetGCOL"  TO SetGCOL%
+  620
+  630REM Number of snow flakes
+  640MG_flakes% = 1999
+  650G_flakes%  = MG_flakes% + 1
+  660
+  670REM Some maximum values
+  680MAX_Z% = 20
+  690
+  700REM Wind
+  710wind_ax = 0
+  720wind_az = 0
+  730
+  740REM Background colour
+  750bb% = 64 + RND(64)
+  760gg% = (bb% * 0.2) + RND(bb% * 0.6)
+  770rr% = (bb% * 0.1) + RND(bb% * 0.3)
+  780
+  790REM Screen dimensions
+  800DIM blk% 32
+  810!blk%   = 4
+  820blk%!4  = 5
+  830blk%!8  = 11
+  840blk%!12 = 12
+  850blk%!16 = -1
+  860SYS "OS_ReadVduVariables", blk%, blk%
+  870S_xe% = !blk%
+  880S_ye% = blk%!4
+  890S_x%  = (blk%!8  + 1) << S_xe%
+  900S_y%  = (blk%!12 + 1) << S_ye%
+  910
+  920REM Colour look-up table
+  930DIM col%(MAX_Z%)
+  940FOR f% = 0 TO MAX_Z%
+  950c%       = &FF - (f% * 9.5)
+  960col%(f%) = (c% << 24) OR (c% << 16) OR (c% << 8)
+  970NEXT
+  980
+  990REM Initialise the snow flakes
+ 1000F_x% = 0
+ 1010F_y% = 1
+ 1020F_c% = 2
+ 1030F_a% = 3
+ 1040F_z% = 4
+ 1050DIM plot_flake(G_flakes%, F_z%)
+ 1060FOR f% = 0 TO G_flakes%
+ 1070PROCinit_flake(f%)
+ 1080plot_flake(f%, F_y%) = RND(S_y%) + S_y%
+ 1090NEXT
+ 1100ENDPROC
+ 1110:
+ 1120REM  « Plot the sky, very slowly »
+ 1130DEF PROCplot_sky
+ 1140LOCAL y%
+ 1150
+ 1160FOR y% = S_y% TO 0 STEP -1 << S_ye%
+ 1170PROCset_bg_col(y%)
+ 1180LINE 0, y%, S_x%, y%
+ 1190NEXT
+ 1200ENDPROC
+ 1210:
+ 1220REM  « Run the snowing animation for a while before exiting to the next part of the demo »
+ 1230DEF PROCsnowing_loop
+ 1240LOCAL start%, stop%, time%, tick%
+ 1250
+ 1260time% = 0
+ 1270tick% = 0
+ 1280SYS ReadMono% TO start%
+ 1290REPEAT
+ 1300PROCanimate
+ 1310SYS ReadMono% TO stop%
+ 1320
+ 1330REM Tweak the number of snow flakes if the machine isn't managing to animate fast enough
+ 1340time% += stop% - start%
+ 1350start% = stop%
+ 1360tick% += 1
+ 1370IF tick% = 10 THEN
+ 1380PROCadjust_fps(time%)
+ 1390time% = 0
+ 1400tick% = 0
+ 1410ENDIF
+ 1420UNTIL FALSE
+ 1430ENDPROC
+ 1440:
+ 1450REM  « Initialise the position of a snowflake »
+ 1460DEF PROCinit_flake(f%)
+ 1470LOCAL col%
+ 1480
+ 1490CASE RND(4) OF
+ 1500WHEN 1
+ 1510plot_flake(f%, F_x%) = RND(S_x% * 0.5) + S_x% + 12
+ 1520plot_flake(f%, F_y%) = RND(S_y%)
+ 1530WHEN 2
+ 1540plot_flake(f%, F_x%) = RND(S_x% * 0.5) - S_x% - 12
+ 1550plot_flake(f%, F_y%) = RND(S_y%)
+ 1560WHEN 3
+ 1570plot_flake(f%, F_x%) = RND(S_x% * 2) - (S_x% * 0.5)
+ 1580plot_flake(f%, F_y%) = 12 + S_y%
+ 1590WHEN 4
+ 1600plot_flake(f%, F_x%) = RND(S_x%)
+ 1610plot_flake(f%, F_y%) = RND(S_y%)
+ 1620ENDCASE
+ 1630plot_flake(f%, F_a%) = RND(360) - 1
+ 1640plot_flake(f%, F_z%) = RND(MAX_Z%) - 1
+ 1650
+ 1660col% = plot_flake(f%, F_z%) + RND(9) - 5
+ 1670IF col% < 0 THEN
+ 1680col% = 0
+ 1690ELSE
+ 1700IF col% >= MAX_Z% THEN col% = MAX_Z% - 1
+ 1710ENDIF
+ 1720plot_flake(f%, F_c%) = col%(col%)
+ 1730ENDPROC
+ 1740:
+ 1750REM  « Update the position of all the snowflakes by one frame »
+ 1760DEF PROCanimate
+ 1770LOCAL f%, x%, y%, z%, dw
+ 1780
+ 1790REM Update the angle of the wind direction and variability with depth
+ 1800wind_ax += (RND(75) - 1) / 100
+ 1810wind_az += (RND(30) - 1) / 10
+ 1820IF wind_ax >= 360 THEN wind_ax = wind_ax MOD 360
+ 1830IF wind_az >= 360 THEN wind_az = wind_az MOD 360
+ 1840wind_x = COS RAD wind_ax
+ 1850wind_z = COS RAD wind_az
+ 1860
+ 1870REM Loop through all the snow flakes
+ 1880FOR f% = 0 TO G_flakes%
+ 1890x% = plot_flake(f%, F_x%)
+ 1900y% = plot_flake(f%, F_y%)
+ 1910z% = plot_flake(f%, F_z%)
+ 1920
+ 1930REM x position is changed by wind_x (with z lending some perspective)
+ 1940REM Magic numbers all assume approx 10 to 15 fps for sensible looking movement
+ 1950dw                    = wind_x + (wind_x * wind_z * z% * 0.5)
+ 1960plot_flake(f%, F_x%) += (MAX_Z% * 4 * dw) / (z% + 7)
+ 1970plot_flake(f%, F_y%) -= 6 + ((MAX_Z% << 1) - z%) * 0.5
+ 1980plot_flake(f%, F_x%) += ((MAX_Z% - z%) * 0.25) * COS RAD plot_flake(f%, F_a%)
+ 1990plot_flake(f%, F_a%) += 5 + RND(10)
+ 2000
+ 2010REM If the snowflake has landed somewhere, reinitialise it somewhere else
+ 2020IF plot_flake(f%, F_y%) < -64 THEN
+ 2030REM Don't bother with the undraw because we're off the bottom of the screen
+ 2040PROCinit_flake(f%)
+ 2050z% = plot_flake(f%, F_z%)
+ 2060ELSE
+ 2070PROCremove_flake(x%, y%, z%)
+ 2080ENDIF
+ 2090SYS SetGCOL%, plot_flake(f%, F_c%)
+ 2100PROCplot_flake(plot_flake(f%, F_x%), plot_flake(f%, F_y%), z%)
+ 2110NEXT
+ 2120ENDPROC
+ 2130:
+ 2140REM  « Tweak the number of snowflakes to try to maintain a reasonable number of frames per second »
+ 2150DEF PROCadjust_fps(time%)
+ 2160LOCAL max%, f%
+ 2170
+ 2180REM Calculate new maximum number of snowflakes
+ 2190IF time% THEN
+ 2200max% = G_flakes% * 66.67 / time%
+ 2210IF max% >= MG_flakes% THEN max% = MG_flakes%
+ 2220ELSE
+ 2230max% = MG_flakes%
+ 2240ENDIF
+ 2250
+ 2260REM Remove any surpluss flakes
+ 2270FOR f% = max% + 1 TO G_flakes%
+ 2280PROCremove_flake(plot_flake(f%, F_x%), plot_flake(f%, F_y%), plot_flake(f%, F_z%))
+ 2290NEXT
+ 2300G_flakes% = max%
+ 2310ENDPROC
+ 2320:
+ 2330REM  « Plot a snowflake at a given position and distance from viewer »
+ 2340DEF PROCplot_flake(x%, y%, z%)
+ 2350CASE z% DIV 2 OF
+ 2360WHEN 0, 1
+ 2370RECTANGLE FILL x% - 2, y% - 2, 4, 4
+ 2380POINT x% - 4, y%
+ 2390POINT x% + 4, y%
+ 2400POINT x%, y% - 4
+ 2410POINT x%, y% + 4
+ 2420WHEN 2, 3
+ 2430LINE x% - 4, y% - 4, x% + 4, y% + 4
+ 2440LINE x% + 4, y% - 4, x% - 4, y% + 4
+ 2450LINE x% - 2, y%, x% + 2, y%
+ 2460LINE x%, y% - 2, x%, y% + 2
+ 2470WHEN 4
+ 2480RECTANGLE FILL x% - 2, y% - 2, 4, 4
+ 2490WHEN 5
+ 2500LINE x% - 2, y%, x%, y% + 2
+ 2510LINE x%, y% - 2, x% + 2, y%
+ 2520WHEN 6
+ 2530LINE x% - 2, y%, x% + 2, y%
+ 2540LINE x%, y% - 2, x%, y% + 2
+ 2550WHEN 7
+ 2560RECTANGLE x%, y%, 2
+ 2570WHEN 8, 9
+ 2580LINE x%, y%, x% + 2, y%
+ 2590OTHERWISE
+ 2600POINT x%, y%
+ 2610ENDCASE
+ 2620ENDPROC
+ 2630:
+ 2640REM  « Clear an area of screen where a snow flake was »
+ 2650DEF PROCremove_flake(x%, y%, z%)
+ 2660PROCset_bg_col(y%)
+ 2670CASE z% DIV 2 OF
+ 2680WHEN 0, 1, 2, 3
+ 2690RECTANGLE FILL x% - 4, y% - 4, 10, 10
+ 2700WHEN 4, 5, 6
+ 2710RECTANGLE FILL x% - 2, y% - 2, 4, 4
+ 2720WHEN 7
+ 2730RECTANGLE x%, y%, 2
+ 2740WHEN 8, 9
+ 2750LINE x%, y%, x% + 2, y%
+ 2760OTHERWISE
+ 2770POINT x%, y%
+ 2780ENDCASE
+ 2790ENDPROC
+ 2800:
+ 2810REM  « Given a vertical position, return the appropriate background colour for the current gradient »
+ 2820DEF PROCset_bg_col(y%)
+ 2830LOCAL r%, g%, b%
+ 2840
+ 2850r% = rr% * (y%*1.5 / S_y%)
+ 2860g% = gg% * (y%*1.5 / S_y%)
+ 2870b% = bb% * (y%*1.5 / S_y%)
+ 2880SYS SetGCOL%, (b% << 24) OR (g% << 16) OR (r% << 8)
+ 2890ENDPROC
+ 2900:

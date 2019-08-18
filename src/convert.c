@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -168,6 +169,100 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalu
     else {
       *floatvalue = (isneg ? -fpvalue : fpvalue);
     }
+  }
+  return cp;
+}
+
+/*
+** 'todecimal' converts the character string starting at 'cp' to binary.
+** It handles integer and floating point values in decimal only.
+** It returns a pointer to the character after the last one used in the
+** number or 'NIL' if an error was detected.  The value is returned at
+** either 'floatvalue' or 'intvalue' depending on the type of the number.
+** 'isinteger' says which it is. In the event of an error, 'intvalue' is
+** used to return an error number
+*/
+char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, float64 *floatvalue) {
+  int32 value;
+  static float64 fpvalue, fltdiv;
+  boolean isint, isneg, negexp;
+  int digits, exponent;
+  value = 0;
+  digits = 0;
+  cp = skip_blanks(cp);	/* Ignore leading white space characters */
+  isint = TRUE;
+  isneg = *cp=='-';	/* Deal with any sign first */
+  if (*cp=='+' || *cp=='-') cp++;
+  while (*cp>='0' && *cp<='9') {
+    digits = 0;	/* Used to count the number of digits before the '.' */
+    if (isint && value>=INTCONV) {
+      isint = FALSE;
+      fpvalue = TOFLOAT(value);
+    }
+    if (isint)
+      value = value*10+(*cp-'0');
+    else {
+      fpvalue = fpvalue*10.0+TOFLOAT(*cp-'0');
+    }
+    digits++;
+    cp++;
+  }
+  if (!isint && *cp!='.' && *cp!='E' && fpvalue<=TOFLOAT(MAXINTVAL)) {	/* Convert back to integer */
+    value = TOINT(fpvalue);
+    isint = TRUE;
+  }
+  if (*cp=='.') {	/* Number contains a decimal point */
+    if (isint) {
+      isint = FALSE;
+      fpvalue = TOFLOAT(value);
+    }
+    fltdiv = 1.0;
+    cp++;
+    while (*cp>='0' && *cp<='9') {
+      fpvalue = fpvalue*10.0+TOFLOAT(*cp-'0');
+      fltdiv = fltdiv*10.0;
+      cp++;
+    }
+    fpvalue = fpvalue/fltdiv;
+  }
+/*
+** Deal with an exponent. Note one trick here: if the 'E' is followed by another
+** letter it is assumed that the 'E' is part of a word that follows the number,
+** that is, there is not really an exponent here
+*/
+  if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {	/* Number contains an exponent */
+    if (isint) {
+      isint = FALSE;
+      fpvalue = value;
+    }
+    exponent = 0;
+    cp++;
+    negexp = *cp=='-';
+    if (*cp=='+' || *cp=='-') cp++;
+    while (*cp>='0' && *cp<='9' && exponent<=MAXEXPONENT) {
+      exponent = exponent*10+(*cp-'0');
+      cp++;
+    }
+    if (negexp) {
+      if (exponent-digits<=MAXEXPONENT)
+        exponent = -exponent;
+      else {	/* If value<1E-308, set value to 0 */
+        exponent = 0;
+        fpvalue = 0;
+      }
+    }
+    else if (exponent+digits-1>MAXEXPONENT) {	/* Crude check for overflow on +ve exponent */
+      *intvalue = WARN_EXPOFLO;
+      cp = NIL;
+      exponent = 0;
+    }
+    fpvalue = fpvalue*pow(10.0, exponent);
+  }
+  *isinteger = isint;
+  if (isint)
+    *intvalue = (isneg ? -value : value);
+  else {
+    *floatvalue = (isneg ? -fpvalue : fpvalue);
   }
   return cp;
 }

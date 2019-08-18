@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 #include "common.h"
 #include "target.h"
 #include "basicdefs.h"
@@ -77,7 +79,7 @@ boolean isident(byte ch) {
 ** deals with 'byte' data
 */
 char *skip_blanks(char *p) {
-  while (*p==' ' || *p==TAB) p++;
+  while (*p==' ' || *p==asc_TAB) p++;
   return p;
 }
 
@@ -85,7 +87,7 @@ char *skip_blanks(char *p) {
 ** 'skip' is used to skip the 'white space' characters in a tokenised line
 */
 byte *skip(byte *p) {
-  while (*p==' ' || *p==TAB) p++;
+  while (*p==' ' || *p==asc_TAB) p++;
   return p;
 }
 
@@ -110,7 +112,10 @@ void check_read(uint32 low, uint32 size) {
   if (matrixflags.gpio) {
     if ((lowaddr >= matrixflags.gpiomem) && (lowaddr+size < (0x1000 + matrixflags.gpiomem))) return;
   }
-  if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
+#ifdef USE_SDL
+  if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+  if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
+#endif
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
 #endif
 }
@@ -135,6 +140,17 @@ void check_write(uint32 low, uint32 size) {
   if (matrixflags.gpio) {
     if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
   }
+
+#ifdef USE_SDL
+  if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+#endif
+
+  /* Check below PAGE, anything between 0 and PAGE can be written to */
+  if ((basicvars.page - basicvars.offbase) > 0) {
+    if ((low >= 0) && (low < (basicvars.page - basicvars.offbase)))
+      return;
+  }
+
 #if 1
 /*
  * Quick hack to fix the DIM LOCAL problem. I must think of a
@@ -150,7 +166,7 @@ void check_write(uint32 low, uint32 size) {
 
 #ifdef USE_SDL
   /* Mode 7 screen memory */
-  if (low >= 0xFFFF7C00u && low <= 0xFFFF7FFFu) return;
+  if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
 #endif
 
 #else
@@ -267,7 +283,7 @@ char *tocstring(char *cp, int32 len) {
   case TOKEN_STATICVAR: case TOKEN_STATINDVAR:
     cstring[0] = *(cp+1)+'@';
     cstring[1] = '%';
-    cstring[2] = NUL;
+    cstring[2] = asc_NUL;
     return &cstring[0];
   default:
     n = 0;
@@ -281,7 +297,7 @@ char *tocstring(char *cp, int32 len) {
     cstring[n] = cstring[n+1] = cstring [n+2] = '.';
     n+=3;
   }
-  cstring[n] = NUL;
+  cstring[n] = asc_NUL;
   return &cstring[0];
 }
 
@@ -459,7 +475,7 @@ static void strip(char line[]) {
     while (n>=0 && isspace(line[n]));
     n++;
   }
-  line[n] = NUL;
+  line[n] = asc_NUL;
 }
 
 /*
@@ -474,7 +490,7 @@ static void strip(char line[]) {
 */
 boolean read_line(char line[], int32 linelen) {
   readstate result;
-  line[0] = NUL;
+  line[0] = asc_NUL;
 #ifdef NEWKBD
   result = kbd_readline(line, linelen, 0);
   result = READ_OK;	/* temp'y bodge */
@@ -535,4 +551,9 @@ FILE *secure_tmpnam(char *name)
   return fdopen(fdes, "w+");
 #endif
 #endif /* TARGET_MINGW */
+}
+
+int32 TOINT(float64 fltmp) {
+  if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
+  return (int32)(floor(fltmp));
 }

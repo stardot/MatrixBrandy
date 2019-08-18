@@ -1,6 +1,6 @@
 Summary: A BBC BASIC interpreter for Linux
 Name: MatrixBrandy
-Version: 1.21.19
+Version: 1.22.0
 Release: 1
 License: GPLv2+
 Group: Development/Tools
@@ -9,15 +9,16 @@ URL: http://brandy.matrixnetwork.co.uk/
 BuildRequires: SDL-devel
 
 %description
-Brandy is an interpreter for BBC BASIC V that runs under a variety
-of operating systems. Basic V is the version of BASIC supplied
-with desktop computers running RISC OS. These were originally made
-by Acorn Computers but are now designed and manufactured by
-companies such as Advantage Six and Castle Technology.
+Brandy is an interpreter for BBC BASIC VI that runs under a variety of
+operating systems. BASIC V and BASIC VI are versions of BASIC supplied with
+desktop computers running RISC OS. These were originally made by Acorn
+Computers but are now designed and manufactured by companies such as Advantage
+Six and Castle Technology.
 
 The Matrix Brandy fork includes support for much of the grahics modes
 offered by RISC OS including Mode 7 (Teletext), and basic networking
-both of which are used by the bundled "telstar" example.
+both of which are used by the bundled "telstar" example. Many bugs are fixed
+and mathematics are brought more in line with Acorn's BBC BASIC VI.
 
 %prep
 %setup -q 
@@ -54,6 +55,8 @@ rm -rf %{buildroot}
 %{_datadir}/%{name}-%{version}
 
 %changelog
+* Tue Jul 23 2019 Michael McConnell <mike@matrixnetwork.co.uk> - 1.22.0
+- Re-tag as BASIC VI
 * Sun Sep 02 2018 Michael McConnell <mike@matrixnetwork.co.uk> - 1.21.12
 - Build both SDL and text-mode variants.
 * Thu Aug 23 2018 Michael McConnell <mike@matrixnetwork.co.uk> - 1.21.11

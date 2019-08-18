@@ -1,7 +1,9 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 David Daniels
-** and Copyright (C) 2006, 2007 Colin Tuckley
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2006, 2007 Colin Tuckley
+** Copyright (C) 2014 Jonathan Harston
+** Copyright (C) 2018-2019 Michael McConnell, Jonathan Harston and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -74,6 +76,11 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "mos.h"
+
+#if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+ #include <windows.h>
+#endif
+
 #include "inkey.h"
 #ifdef TARGET_DJGPP
 #include <pc.h>
@@ -86,7 +93,7 @@
 
 //#include <sys/time.h>
 //#include <sys/types.h>
-//#include <errno.h>
+#include <errno.h>
 //#include <unistd.h>
 #include <termios.h>
 
@@ -138,7 +145,8 @@ static int32 keyboard;          /* File descriptor for keyboard */
 #define CTRL_PGDOWN     0xBE
 #define INSERT          0xCD
 #define CTRL_INSERT     0xED
-#define DELETE          0x7F
+/* DELETE is already defined in MinGW */
+#define KEY_DELETE          0x7F
 #define CTRL_DELETE     0x7F
 
 /* Function key codes */
@@ -221,8 +229,6 @@ static char histbuffer[HISTSIZE]; /* Command history buffer				*/
 static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
 
 static int nokeyboard=0;
-static int escint=128;
-static int escmul=1;
 static int fx44x=1;
 #endif
 
@@ -246,8 +252,9 @@ Uint8 mousestate, *keystate=NULL;
 #else
  #include <stdlib.h>
  #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
-  #include <windows.h>
-  #include <keysym.h>
+  #ifndef CYGWINBUILD
+    #include <keysym.h>
+  #endif
  #endif
 #endif
 
@@ -308,6 +315,7 @@ boolean kbd_init() {
 
   // Windows target, nothing to do
   // -----------------------------
+  nokeyboard=0;
   return TRUE;
 
 #endif
@@ -670,7 +678,7 @@ int32 kbd_get(void) {
     matrixflags.doexec=NULL;
   }
   if (basicvars.runflags.inredir) {		/* Input redirected at CLI		*/
-#ifdef TARGET_UNIX
+#if defined(TARGET_UNIX) || defined(CYGWINBUILD)
     if ((ch=getchar()) != EOF) return ch;
 #else
     if ((ch=getch()) != EOF) return ch;
@@ -904,11 +912,6 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
   return(0);  /* cancel the timer */
 }
 #endif
-
-//static int nokeyboard=0;
-//static int escint=128;
-//static int escmul=1;
-//static int fx44x=1;
 
 #ifdef TARGET_RISCOS
 
@@ -1168,34 +1171,21 @@ static int32 is_fn_key(int32 key) {
   return 0;
 }
 
-void set_escint(int i) {
-  if (i==0) {
-    escint=128;
-    escmul=0;
-  } else escint=i;
-}
-void set_escmul(int i) {
-  escmul=i<<8;
-}
-
-int escinterval=0;
 int64 esclast=0;
 
+/* The check for escape_enabled moved to the calling point in statement.c */
 void checkforescape(void) {
 #ifdef USE_SDL
 int64 i;
-  if (!escinterval) {
-    escinterval=escint+escmul;
-    i=mos_centiseconds();
-    if (i > esclast) {
-      esclast=i;
+  i=basicvars.centiseconds;
+  if (i > esclast) {
+    esclast=i;
 #ifdef NEWKBD
-      if(kbd_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+    if(kbd_inkey(-113)) basicvars.escape=TRUE;
 #else
-      if(emulate_inkey(-113) && basicvars.escape_enabled) basicvars.escape=TRUE;
+    if(emulate_inkey(-113)) basicvars.escape=TRUE;
 #endif
-    }
-  } else escinterval--;
+  }
 #endif
   return;
 }
@@ -1306,7 +1296,9 @@ static boolean waitkey(int wait) {
 ** or gets the next keypress from the SDL event queue
 */
 int32 read_key(void) {
+#ifndef TARGET_MINGW
   int errcode;
+#endif
   byte ch = 0;
 #ifdef USE_SDL
 #ifndef TARGET_MINGW
@@ -1362,11 +1354,11 @@ int32 read_key(void) {
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
-              return NUL;
+              return asc_NUL;
             case SDLK_HOME:
               return HOME;
             case SDLK_DELETE:
-              return DELETE;
+              return KEY_DELETE;
             case SDLK_ESCAPE:
 	      if (basicvars.escape_enabled) error(ERR_ESCAPE);
 	      return ESCAPE;
@@ -1377,14 +1369,14 @@ int32 read_key(void) {
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
-              return NUL;
+              return asc_NUL;
             case SDLK_F10: case SDLK_F11: case SDLK_F12:
               ch = KEY_F10 + ev.key.keysym.sym - SDLK_F10;
               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
               push_key(ch);
-              return NUL;
+              return asc_NUL;
             default:
               ch = ev.key.keysym.unicode;
               return ch;
@@ -1501,7 +1493,7 @@ static int32 decode_sequence(void) {
     case 2:     /* ESC 'O' read */
       if (ch >= 'P' && ch <= 'S') {     /* ESC 'O' 'P'..'S' */
         push_key(ch - 'P' + KEY_F1);    /* Got NetBSD F1..F4. Map to RISC OS F1..F4 */
-        return NUL;     /* RISC OS first char of key sequence */
+        return asc_NUL;     /* RISC OS first char of key sequence */
       }
       else {    /* Not a known key sequence */
         ok = FALSE;
@@ -1511,19 +1503,19 @@ static int32 decode_sequence(void) {
       switch (ch) {
       case 'A': /* ESC '[' 'A' - cursor up */
         push_key(UP);
-        return NUL;
+        return asc_NUL;
       case 'B': /* ESC '[' 'B' - cursor down */
         push_key(DOWN);
-        return NUL;
+        return asc_NUL;
       case 'C': /* ESC '[' 'C' - cursor right */
         push_key(RIGHT);
-        return NUL;
+        return asc_NUL;
       case 'D': /* ESC '[' 'D' - cursor left */
         push_key(LEFT);
-        return NUL;
+        return asc_NUL;
       case 'F': /* ESC '[' 'F' - 'End' key */
         push_key(END);
-        return NUL;
+        return asc_NUL;
       case 'H': /* ESC '[' 'H' - 'Home' key */
         return HOME;
       case '1': case '2': case '3': case '4': case '5': case '6': /* ESC '[' '1'..'6' */
@@ -1562,7 +1554,7 @@ static int32 decode_sequence(void) {
       }
       else if (ch == '~') {     /* ESC '[' '2' '~' - 'Insert' key */
         push_key(INSERT);
-        return NUL;
+        return asc_NUL;
       }
       else {
         ok = FALSE;
@@ -1586,28 +1578,28 @@ static int32 decode_sequence(void) {
     case 7:     /* ESC '[' '4' read */
       if (ch == '~') {  /* ESC '[' '4' '~' - 'End' key */
         push_key(END);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
     case 8:     /* ESC '[' '5' read */
       if (ch == '~') {  /* ESC '[' '5' '~' - 'Page up' key */
         push_key(PGUP);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
     case 9:     /* ESC '[' '6' read */
       if (ch == '~') {  /* ESC '[' '6' '~' - 'Page down' key */
         push_key(PGDOWN);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
     case 10:    /* ESC '[' '[' read */
       if (ch >= 'A' && ch <= 'E') {     /* ESC '[' '[' 'A'..'E' -  Linux F1..F5 */
         push_key(ch - 'A' + KEY_F1);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
       break;
@@ -1619,7 +1611,7 @@ static int32 decode_sequence(void) {
     case 27: case 28: case 29: case 30: /* ESC '[' '3' '1'..'4' */
       if (ch == '~') {
         push_key(state2key[state - 11]);
-        return NUL;
+        return asc_NUL;
       }
       ok = FALSE;
     }
@@ -1720,18 +1712,18 @@ int32 emulate_get(void) {
  */
   key = ch;
   if (ch == ESCAPE) key = decode_sequence();
-  if (key != NUL) return key;
+  if (key != asc_NUL) return key;
 /* NUL found. Check for function key */
   key = pop_key();
   fn_keyno = is_fn_key(key);
   if (fn_keyno == 0) {	/* Not a function key - Return NUL then key code */
     push_key(key);
-    return NUL;
+    return asc_NUL;
   }
 /* Function key hit. Check if there is a function key string */
   if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
     push_key(key);	/* No string is defined for this key */
-    return NUL;
+    return asc_NUL;
   }
 /*
  * There is a function key string. Switch input to string
@@ -1772,20 +1764,17 @@ int32 emulate_inkey(int32 arg) {
     return OSVERSION;
   else {		/* Check is a specific key is being pressed */
 #ifdef USE_SDL
-    SDL_Event ev;
     if ((arg < -128) && (arg > -256)) return -1;	/* Scan range unimplemented */
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
-    mousestate = SDL_GetMouseState(NULL, NULL);
-    while(SDL_PollEvent(&ev)) {
-      if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
-    }
+      mousestate = SDL_GetMouseState(NULL, NULL);
 
     if ((arg & 0xFE00) == 0xFC00) {
-    if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
-      return -1;
-    else
-      return 0;
+      if (keystate[arg & 0x3FF])	// do raw API test, caution: can cause address error
+	return -1;
+      else {
+	return 0;
+      }
     }
 
     if ((arg <= -10) && (arg >= -12)) {
@@ -1801,13 +1790,15 @@ int32 emulate_inkey(int32 arg) {
       ||
       (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
-      else
+      else {
         return 0;
+      }
     }
     if (keystate[inkeylookup[(arg * -1) -1]])
       return -1;
-    else
+    else {
       return 0;
+    }
 #else
     error(ERR_UNSUPPORTED);     /* Check for specific key is unsupported */
 #endif
@@ -1835,7 +1826,7 @@ int32 emulate_inkey2(int32 arg) {
       (keystate[inkeylookup[(arg * -1) +6-1]]) /* right key */
       ) return -1;
       else
-        return 0;
+	return 0;
     }
   if (keystate[inkeylookup[(arg * -1) -1]])
     return -1;
@@ -1849,7 +1840,7 @@ int32 emulate_inkey2(int32 arg) {
 
 #endif
 
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if (defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)) && !defined(USE_SDL)
 
 /* ----- DJGPP/WIN32/DOS keyboard input functions ----- */
 
@@ -2157,7 +2148,7 @@ static void recall_histline(char buffer[], int updown) {
     recalline += 1;
   }
   if (recalline == histindex)   /* Moved to last line */
-    buffer[0] = NUL;
+    buffer[0] = asc_NUL;
   else {
     start = 0;
     for (n = 0; n < recalline; n++) start += histlength[n];
@@ -2260,7 +2251,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     p = fgets(buffer, length, stdin);	/* Get all in one go */
     if (p == NIL) {     /* Call failed */
       if (ferror(stdin)) error(ERR_READFAIL);   /* I/O error occured on stdin */
-      buffer[0] = NUL;          /* End of file */
+      buffer[0] = asc_NUL;          /* End of file */
       return READ_EOF;
     }
     return READ_OK;
@@ -2279,7 +2270,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     ch = kbd_get();
     if ((ch & 0x100) || (ch == DEL)) {
       pendch=ch & 0xFF;		/* temp */
-      ch = NUL;
+      ch = asc_NUL;
     }
 #else
     ch = emulate_get();
@@ -2288,10 +2279,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) return READ_ESC;
 	/* Check if the escape key has been pressed and bail out if it has */
     switch (ch) {       /* Normal keys */
-    case CR: case LF:   /* End of line */
+    case asc_CR: case asc_LF:   /* End of line */
       emulate_vdu('\r');
       emulate_vdu('\n');
-      buffer[highplace] = NUL;
+      buffer[highplace] = asc_NUL;
       if (highplace > 0) add_history(buffer, highplace);
       break;
     case CTRL_H: case DEL:      /* Delete character to left of cursor */
@@ -2367,7 +2358,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       display(VDU_CURBACK, place);
       place = 0;
       break;
-    case NUL:                   /* Function or special key follows */
+    case asc_NUL:                   /* Function or special key follows */
 #ifdef NEWKBD
 //    ch = kbd_get();           /* Fetch the key details */
       ch = pendch; /* temp */
@@ -2401,7 +2392,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
           place++;
         }
         break;
-      case DELETE:      /* Delete character at the cursor */
+      case KEY_DELETE:      /* Delete character at the cursor */
         if (place < highplace) shift_down(buffer, place);
         break;
       case INSERT:      /* Toggle between 'insert' and 'overwrite' mode */
@@ -2413,7 +2404,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       }
       break;
     default:
-      if (ch < ' ' && ch != TAB)        /* Reject any other control character except tab */
+      if (ch < ' ' && ch != asc_TAB)        /* Reject any other control character except tab */
         emulate_vdu(VDU_BEEP);
       else if (highplace == lastplace)  /* No room left in buffer */
         emulate_vdu(VDU_BEEP);
@@ -2425,7 +2416,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
         if (place > highplace) highplace = place;
       }
     }
-  } while (ch != CR && ch != LF);
+  } while (ch != asc_CR && ch != asc_LF);
   return READ_OK;
 }
 
@@ -2443,6 +2434,7 @@ boolean init_keyboard(void) {
   highbuffer = 0;
   enable_insert = TRUE;
   set_cursor(enable_insert);
+  nokeyboard = 0;
   return TRUE;
 }
 
@@ -2468,6 +2460,7 @@ boolean init_keyboard(void) {
   holdcount = 0;
   histindex = 0;
   highbuffer = 0;
+  nokeyboard=0;
   enable_insert = TRUE;
   set_cursor(enable_insert);
 /*

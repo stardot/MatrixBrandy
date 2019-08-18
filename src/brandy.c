@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -28,6 +29,11 @@
 #include <setjmp.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
+#include <pthread.h>
+#ifdef USE_SDL
+#include <SDL.h>
+#endif
 #ifndef TARGET_MINGW
 #include <sys/mman.h>
 #endif
@@ -47,6 +53,7 @@
 #include "keyboard.h"
 #include "screen.h"
 #include "miscprocs.h"
+#include "evaluate.h"
 #include "net.h"
 
 /* #define DEBUG */
@@ -61,6 +68,7 @@ static void init2(void);
 static void gpio_init(void);
 static void check_cmdline(int, char *[]);
 static void run_interpreter(void);
+static void init_timer(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
 static char *loadfile;			/* Pointer to name of file to load when interpreter starts */
@@ -82,6 +90,7 @@ int main(int argc, char *argv[]) {
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
   init1();
+  init_timer();	/* Initialise the timer thread */
 #ifndef NONET
   brandynet_init();
 #endif
@@ -131,6 +140,8 @@ static void add_arg(char *p) {
 static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
+  basicvars.centiseconds = mos_centiseconds();	/* Init to something sensible */
+  basicvars.monotonictimebase = basicvars.centiseconds;
   basicvars.list_flags.space = FALSE;	/* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
   basicvars.list_flags.split = FALSE;
@@ -169,6 +180,9 @@ static void init1(void) {
   worksize = 0;				/* Use default workspace size */
 
   matrixflags.doexec = NULL;		/* We're not doing a *EXEC to begin with */
+  matrixflags.failovermode = 255;	/* Report Bad Mode on unavailable screen mode */
+  matrixflags.int_uses_float = 0;	/* Does INT() use floats? Default no = RISC OS and BBC behaviour */
+  matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
 
 /*
  * Add dummy first parameter for Basic program command line.
@@ -208,10 +222,6 @@ static void gpio_init() {
 ** 'init2' finishes initialising the interpreter
 */
 static void init2(void) {
-  if (!init_heap() || !init_workspace(worksize)) {
-    cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
-    exit(EXIT_FAILURE);
-  }
 #ifdef NEWKBD
   if (!mos_init() || !kbd_init() || !init_screen()) {
 #else
@@ -220,6 +230,17 @@ static void init2(void) {
     cmderror(CMD_INITFAIL);	/* Initialisation failed */
     exit_interpreter(EXIT_FAILURE);	/* End run */
   }
+  if (!init_heap() || !init_workspace(worksize)) {
+    cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
+    exit(EXIT_FAILURE);
+  }
+#ifdef USE_SDL
+  if (worksize && (worksize <= 0x7C00)) {
+    matrixflags.mode7fb = 0x7C00;
+  } else {
+    matrixflags.mode7fb = 0xFFFF7C00;
+  }
+#endif
   init_commands();
   init_fileio();
   clear_program();
@@ -244,6 +265,14 @@ static void check_cmdline(int argc, char *argv[]) {
       optchar = tolower(*(p+1));	/* Get first character of option name */
       if (optchar=='h') {		/* -help */
         show_help();
+        exit(0);
+      }
+      else if (optchar == 'v') {
+#ifdef BRANDY_GITCOMMIT
+	printf("%s\n  Git commit %s on branch %s (%s)\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+#else
+	printf("%s\n", IDSTRING);
+#endif
         exit(0);
       }
 #ifdef USE_SDL
@@ -381,6 +410,34 @@ static void load_libraries(void) {
   } while (p!=NIL);
 }
 
+#ifdef USE_SDL
+static int timer_thread(void *data) {
+  struct timeval tv;
+  while(1) {
+    gettimeofday (&tv, NULL);
+
+    /* tv.tv_sec  = Seconds since 1970 */
+    /* tv.tv_usec = and microseconds */
+
+    basicvars.centiseconds = (((unsigned)tv.tv_sec * 100) + ((unsigned)tv.tv_usec / 10000));
+    usleep(5000);
+  }
+  return 0;
+}
+#endif
+
+/* This function starts a timer thread */
+static void init_timer() {
+#ifdef USE_SDL
+  basicvars.csec_thread = NULL;
+  basicvars.csec_thread = SDL_CreateThread(timer_thread,NULL);
+  if (basicvars.csec_thread == NULL) {
+    fprintf(stderr, "Timer thread failed to start\n");
+    exit(1);
+  }
+#endif
+}
+
 /*
 ** 'run_interpreter' is the main command loop for the interpreter.
 ** It reads commands and executes then. Control is also returned
@@ -398,6 +455,7 @@ static void run_interpreter(void) {
     if (liblist!=NIL) load_libraries();
     if (loadfile!=NIL) {	/*  Name of program to load was given on command line */
       read_basic(loadfile);
+      init_expressions();
       strcpy(basicvars.program, loadfile);	/* Save the name of the file */
       if (basicvars.runflags.loadngo) run_program(basicvars.start);	/* Start program execution */
     }

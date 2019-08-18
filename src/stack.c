@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -83,22 +84,38 @@ static boolean disposible [] = {
 
 #ifdef DEBUG
 
-static char *stackentries [] = {	/* Stack entry type names */
-  "<unknown>", "lvalue", "integer", "floating point", "string",
-  "temporary string", "integer array", "temp integer array",
-  "floating poing array", "temp floating point array", "string array",
-  "temp string array", "local array", "local string array", "gosub",
-  "PROC", "FN", "local variable", "return parameter", "WHILE", "REPEAT",
-  "integer FOR", "floating point FOR", "ON ERROR", "DATA", "operator stack",
-  "longjmp block"
-};
-
 static char entry [50];
 
 static char *entryname(stackitem what) {
-  if (what <= STACK_RESTART)
-    return stackentries[what];
-  else {
+  switch (what) {
+    case STACK_UNKNOWN:		return "<unknown>";
+    case STACK_LVALUE:		return "lvalue";
+    case STACK_INT:		return "integer";
+    case STACK_FLOAT:		return "floating point";
+    case STACK_STRING:		return "string";
+    case STACK_STRTEMP:		return "temporary string";
+    case STACK_INTARRAY:	return "ineger array";
+    case STACK_IATEMP:		return "temp integer array";
+    case STACK_FLOATARRAY:	return "floating point array";
+    case STACK_FATEMP:		return "temp floating point array";
+    case STACK_STRARRAY:	return "string array";
+    case STACK_SATEMP:		return "temp string array";
+    case STACK_LOCARRAY:	return "local array";
+    case STACK_LOCSTRING:	return "local string array";
+    case STACK_GOSUB:		return "GOSUB";
+    case STACK_PROC:		return "PROC";
+    case STACK_FN:		return "FN";
+    case STACK_LOCAL:		return "local variable";
+    case STACK_RETPARM:		return "return parameter";
+    case STACK_WHILE:		return "WHILE";
+    case STACK_REPEAT:		return "REPEAT";
+    case STACK_INTFOR:		return "integer FOR";
+    case STACK_FLOATFOR:	return "floating point FOR";
+    case STACK_ERROR:		return "ON ERROR";
+    case STACK_DATA:		return "DATA";
+    case STACK_OPSTACK:		return "operator stack";
+    case STACK_RESTART:		return "longjmp block";
+    default:
     sprintf(entry, "** Bad type %d **", what);
     return entry;
   }
@@ -706,7 +723,7 @@ static void restore_retparm(int32 parmcount) {
   case VAR_DOLSTRPTR:
     if (stringvalue.stringlen>0) memmove(&basicvars.offbase[p->retdetails.address.offset], stringvalue.stringaddr, stringvalue.stringlen);
     if (vartype==VAR_STRINGDOL) {	/* Local var was a normal string variable */
-      basicvars.offbase[p->retdetails.address.offset+stringvalue.stringlen] = CR;	/* So add a 'CR' at the end of the string */
+      basicvars.offbase[p->retdetails.address.offset+stringvalue.stringlen] = asc_CR;	/* So add a 'CR' at the end of the string */
     }
     free_string(stringvalue);
     break;

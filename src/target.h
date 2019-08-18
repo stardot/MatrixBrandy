@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -29,13 +30,17 @@
 
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
-#define BRANDY_MINOR "21"
-#define BRANDY_PATCHLEVEL "19"
-#define BRANDY_DATE  "01 Mar 2019"
+#define BRANDY_MINOR "22"
+#define BRANDY_PATCHLEVEL "0"
+#define BRANDY_DATE  "23 Jul 2019"
 
 #ifndef __target_h
 #define __target_h
 
+/* Make NEWKBD the default */
+#ifndef OLDKBD
+#define NEWKBD
+#endif
 
 /*
 ** Define the operating system-specific types used for integer
@@ -96,7 +101,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "NetBSD"
 #define OSVERSION 0xFE
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -108,7 +113,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "FreeBSD"
 #define OSVERSION 0xF7
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -120,7 +125,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "OpenBSD"
 #define OSVERSION 0xF6
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -132,7 +137,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "Linux"
 #define OSVERSION 0xF9
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -146,7 +151,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "GNU/kFreeBSD"
 #define OSVERSION 0xF4
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -157,7 +162,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "GNU/Hurd"
 #define OSVERSION 0xF3
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -218,7 +223,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define BRANDY_OS "MacOS X"
 #define OSVERSION 0xF8
 #define MACTYPE   0x0800
-#define EDITOR_VARIABLE "BRANDY$EDITOR"
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
@@ -269,9 +274,9 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef NODISPLAYOS
-#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
-#define IDSTRING "Matrix Brandy BASIC V version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
 #endif
 
 /*
@@ -292,8 +297,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 */
 
 //#define DEFAULTSIZE (512*1024)
-#define DEFAULTSIZE 651516
-#define MINSIZE (10*1024)
+#define DEFAULTSIZE 688124
+#define MINSIZE 16384
 
 
 /*

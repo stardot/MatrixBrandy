@@ -1,6 +1,9 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2014 Jonathan Harston
+** Copyright (C) 2019 David Hawes (sound code, *-command parser)
+** Copyright (C) 2018-2019 Michael McConnell, Jonathan Harston and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -100,6 +103,7 @@
 #ifdef USE_SDL
 #include "SDL.h"
 #include "graphsdl.h"
+#include "soundsdl.h"
 #endif
 
 static int check_command(char *text);
@@ -666,9 +670,8 @@ void mos_wrtime(int32 time) {
 
 int64 mos_centiseconds(void) {
   struct timeval tv;
-  struct timezone tzp;
 
-  gettimeofday (&tv, &tzp);
+  gettimeofday (&tv, NULL);
 
   /* tv.tv_sec  = Seconds since 1970 */
   /* tv.tv_usec = and microseconds */
@@ -677,7 +680,11 @@ int64 mos_centiseconds(void) {
 }
 
 int32 mos_rdtime(void) {
+#ifdef USE_SDL
+  return ((int32) (basicvars.centiseconds - startime));
+#else
   return ((int32) (mos_centiseconds() - startime));
+#endif
 }
 
 /*
@@ -685,8 +692,11 @@ int32 mos_rdtime(void) {
 ** The effects of 'TIME=' are emulated here
 */
 void mos_wrtime (int32 time) {
-  startime = time;
-  startime = mos_rdtime();
+#ifdef USE_SDL
+  startime = (basicvars.centiseconds - time);
+#else
+  startime = (mos_centiseconds() - time);
+#endif
 }
 
 #endif
@@ -820,7 +830,7 @@ void mos_mouse(int32 values[]) {
 ** -12- other buffers
 */
 int32 mos_adval(int32 x) {
-  int32 inputvalues[4];
+  int32 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
 
   if((x>6) & (x<10)) {
     mos_mouse(inputvalues);
@@ -837,28 +847,44 @@ int32 mos_adval(int32 x) {
 ** 'mos_sound_on' handles the Basic 'SOUND ON' statement
 */
 void mos_sound_on(void) {
+#ifdef USE_SDL
+ sdl_sound_onoff(1);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
 ** 'mos_sound_off' handles the Basic 'SOUND OFF' statement
 */
 void mos_sound_off(void) {
+#ifdef USE_SDL
+ sdl_sound_onoff(0);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
 ** 'mos_sound' handles the Basic 'SOUND' statement
 */
 void mos_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int32 delay) {
+#ifdef USE_SDL
+  sdl_sound(channel, amplitude, pitch, duration, delay);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
 ** 'mos_wrbeat' emulates the Basic statement 'BEATS'
 */
 void mos_wrbeat(int32 x) {
+#ifdef USE_SDL
+  sdl_wrbeat(x);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
@@ -866,8 +892,12 @@ void mos_wrbeat(int32 x) {
 ** returns the current microbeat
 */
 int32 mos_rdbeat(void) {
+#ifdef USE_SDL
+ return sdl_rdbeat();
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
   return 0;
+#endif
 }
 
 /*
@@ -875,44 +905,68 @@ int32 mos_rdbeat(void) {
 ** returns the number of microbeats in a bar
 */
 int32 mos_rdbeats(void) {
+#ifdef USE_SDL
+ return sdl_rdbeats();
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
   return 0;
+#endif
 }
 
 /*
 ** 'mos_wrtempo' emulates the Basic statement version of 'TEMPO'
 */
 void mos_wrtempo(int32 x) {
+#ifdef USE_SDL
+  sdl_wrtempo(x);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
 ** 'mos_rdtempo' emulates the Basic function version of 'TEMPO'
 */
 int32 mos_rdtempo(void) {
+#ifdef USE_SDL
+  return sdl_rdtempo();
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
   return 0;
+#endif
 }
 
 /*
 ** 'mos_voice' emulates the Basic statement 'VOICE'
 */
 void mos_voice(int32 channel, char *name) {
+#ifdef USE_SDL
+  sdl_voice(channel, name);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
 ** 'mos_voices' emulates the Basic statement 'VOICES'
 */
 void mos_voices(int32 count) {
+#ifdef USE_SDL
+  sdl_voices(count);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
 ** 'mos_stereo' emulates the Basic statement 'STEREO'
 */
 void mos_stereo(int32 channels, int32 position) {
+#ifdef USE_SDL
+  sdl_stereo(channels, position);
+#else
   if (basicvars.runflags.flag_cosmetic) error(ERR_UNSUPPORTED);
+#endif
 }
 
 /*
@@ -1106,10 +1160,124 @@ static unsigned int cmd_parse_num(char** text)
 #define CMD_SCREENLOAD		16
 #define CMD_SHOW		17
 #define CMD_EXEC		18
-#define HELP_BASIC		128
-#define HELP_HOST		129
-#define HELP_MOS		130
-#define HELP_MATRIX		131
+#define CMD_SPOOL		19
+#define CMD_SPOOLON		20
+#define CMD_LOAD		27
+#define CMD_SAVE		28
+#define CMD_VOLUME		29
+#define CMD_CHANNELVOICE	30
+#define CMD_VOICES		31
+#define CMD_POINTER		32
+#define HELP_BASIC		1024
+#define HELP_HOST		1025
+#define HELP_MOS		1026
+#define HELP_MATRIX		1027
+#define HELP_SOUND		1028
+
+#define CMDTABSIZE 256
+
+typedef struct cmdtabent { char *name; uint32 hash,value; } cmdtabent;
+
+cmdtabent *cmdtab = (cmdtabent*)0;
+
+int hash_name(char *name){
+  int h=0;
+  int ch;
+
+ while((ch=*name++)>32){
+  h = (h<<1)+(ch&31);
+ }
+ h += (h>>14);
+ h = (h<<2)+(h>>6);
+ if(h==0) return (CMDTABSIZE-1);
+ return h;
+}
+
+void add_cmd(char *name, int value){
+ int i,h;
+ int j;
+
+ h=hash_name(name);
+ i=(h & (CMDTABSIZE-1));
+ j=i;
+
+  // fprintf(stderr," name %s hash %d index %d\n",name,h,i);
+
+ while(cmdtab[i].name != (char*)0){
+   i=((i+1)&(CMDTABSIZE-1));
+   if(i==j){
+     fprintf(stderr,"add_cmd: command table is full\n");
+     return;
+   }
+ }
+
+ cmdtab[i].name  = name;
+ cmdtab[i].hash  = (unsigned)h;
+ cmdtab[i].value = (unsigned)value;
+
+ // fprintf(stderr, "add_cmd name \"%s\"\n hash %10u entry %4d (+%d) value %4d\n",name,(unsigned)h,i,i-j,value);
+}
+
+int get_cmdvalue(char *name){
+ int i,j,h;
+ h=hash_name(name);
+
+ //fprintf(stderr,"GET_cmdvalue 1 name %s name %s entry %d \n",name,cmdtab[i].name != (char*)0 ? cmdtab[i].name : "NULL",i);
+
+ i=(h &(CMDTABSIZE-1));
+ j=i;
+
+ for(;;)
+ {
+  if(cmdtab[i].name == (char*)0 ) return CMD_UNKNOWN;
+  if(cmdtab[i].hash == h && (strcmp(name,cmdtab[i].name)==0)){
+    return cmdtab[i].value;
+  }
+  i=((i+1)&(CMDTABSIZE-1));
+  if(i==j) return CMD_UNKNOWN; /* we are back where we started and haven't found it */
+ }
+
+}
+
+void make_cmdtab(){
+ 
+  if(cmdtab != (cmdtabent*)0) free(cmdtab);
+
+  cmdtab=calloc(CMDTABSIZE,sizeof(cmdtabent));
+
+  add_cmd( "key",          CMD_KEY  );
+  add_cmd( "cat",          CMD_CAT  );
+  add_cmd( "cd",           CMD_CD   );
+  add_cmd( "chdir",        CMD_CD   );
+  add_cmd( "quit",         CMD_QUIT );
+  add_cmd( "fx",           CMD_FX   );
+  add_cmd( "help",         CMD_HELP );
+  add_cmd( "ver",          CMD_VER  );
+  add_cmd( "screensave",   CMD_SCREENSAVE );
+  add_cmd( "screenload",   CMD_SCREENLOAD );
+  add_cmd( "wintitle",     CMD_WINTITLE   );
+  add_cmd( "fullscreen",   CMD_FULLSCREEN );
+  add_cmd( "newmode",      CMD_NEWMODE );
+  add_cmd( "refresh",      CMD_REFRESH );
+  add_cmd( "show",         CMD_SHOW    );
+  add_cmd( "exec",         CMD_EXEC    );
+  add_cmd( "spool",        CMD_SPOOL   );
+  add_cmd( "spoolon",      CMD_SPOOLON );
+  add_cmd( "load",         CMD_LOAD );
+  add_cmd( "save",         CMD_SAVE );
+#ifdef USE_SDL
+  add_cmd( "volume",       CMD_VOLUME  );
+  add_cmd( "channelvoice", CMD_CHANNELVOICE );
+  add_cmd( "voices",       CMD_VOICES  );
+  add_cmd( "pointer",      CMD_POINTER );
+  add_cmd( "sound",        HELP_SOUND  );
+#endif
+  add_cmd( "basic",        HELP_BASIC  );
+  add_cmd( "host",         HELP_HOST   );
+  add_cmd( "mos",          HELP_MOS    );
+  add_cmd( "matrix",       HELP_MATRIX );
+  add_cmd( "os",           HELP_MOS    );
+}
 
 /*
  * *.(<directory>)
@@ -1270,20 +1438,20 @@ static void cmd_refresh(char *command) {
  * Has to be an internal command as CWD is per-process
  */
 static void cmd_cd(char *command) {
-	int err=0;
+  int err=0;
 
-	if (*command == 'd') command+=3;	// *CHDIR
-	while (*command == ' ') command++;	// Skip spaces
-	err=chdir(command);
+  if (*command == 'd' || *command == 'D') command +=3;	// *CHDIR
+  while (*command == ' ') command++;			// Skip spaces
+  err=chdir(command);
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
-	find_cursor();				// Figure out where the cursor has gone to
+  find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
 #ifndef USE_SDL
-	emulate_printf("\r\n");			// Restore cursor position
+  emulate_printf("\r\n");			// Restore cursor position
 #endif
 #endif
 #endif
-	if (err) error(ERR_DIRNOTFOUND);
+  if (err) error(ERR_DIRNOTFOUND);
 }
 
 /*
@@ -1291,32 +1459,33 @@ static void cmd_cd(char *command) {
  * Make OSBYTE call
  */
 static void cmd_fx(char *command) {
-	// *FX *must* purely and simply parse its parameters and pass them to OSBYTE
-	// *FX *MUST* *NOT* impose any preconceptions
-	// *FX is allowed to test the returned 'unsupported' flag and give a Bad command error
-	// OSBYTE *MUST* *NOT* give a Bad command error, it *MUST* purely and simply just return if unsupported
-	// Yes, RISC OS gets this wrong.
+  // *FX *must* purely and simply parse its parameters and pass them to OSBYTE
+  // *FX *MUST* *NOT* impose any preconceptions
+  // *FX is allowed to test the returned 'unsupported' flag and give a Bad command error
+  // OSBYTE *MUST* *NOT* give a Bad command error, it *MUST* purely and simply just return if unsupported
+  // Yes, RISC OS gets this wrong.
 
-	unsigned int areg=0, xreg=0, yreg=0;		// Default parameters
+  unsigned int areg=0, xreg=0, yreg=0;		// Default parameters
 
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command == 0)
-		{ error(ERR_BADSYNTAX, "FX <num> (,<num> (,<num>))"); return; }
-	// Not sure why this call to error() needs a return after it, doesn't need it elsewhere
-	areg=cmd_parse_dec(&command);			// Get first parameter
-	if (*command == ',') command++;			// Step past any comma
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command) {
-		xreg=cmd_parse_dec(&command);		// Get second parameter
-		if (*command == ',') command++;		// Step past any comma
-		while (*command == ' ') command++;	// Skip spaces
-		if (*command) {
-			yreg=cmd_parse_dec(&command);	// Get third parameter
-		}
-	}
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    error(ERR_BADSYNTAX, "FX <num> (,<num> (,<num>))");
+    return;
+  }
+  // Not sure why this call to error() needs a return after it, doesn't need it elsewhere
+  areg=cmd_parse_dec(&command);			// Get first parameter
+  if (*command == ',') command++;		// Step past any comma
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command) {
+    xreg=cmd_parse_dec(&command);		// Get second parameter
+    if (*command == ',') command++;		// Step past any comma
+    while (*command == ' ') command++;		// Skip spaces
+    if (*command) {
+      yreg=cmd_parse_dec(&command);		// Get third parameter
+    }
+  }
 
-	if (mos_osbyte(areg, xreg, yreg, 0) & 0x80000000)
-		error(ERR_BADCOMMAND);
+  if (mos_osbyte(areg, xreg, yreg, 0) & 0x80000000) error(ERR_BADCOMMAND);
 }
 
 /*
@@ -1327,52 +1496,126 @@ char mos_patchdate[]=__DATE__;
 #endif
 static void cmd_help(char *command)
 {
-	int cmd;
+  int cmd;
 
-	while (*command == ' ') command++;		// Skip spaces
-	cmd = check_command(command);
+  while (*command == ' ') command++;		// Skip spaces
+  cmd = check_command(command);
 #ifdef TARGET_MINGW
-	find_cursor();
+  find_cursor();
 #endif
-	emulate_printf("\r\n%s\r\n", IDSTRING);
-	if (cmd == HELP_BASIC) {
+  emulate_printf("\r\n%s\r\n", IDSTRING);
+  switch (cmd) {
+    case HELP_BASIC:
 // Need to think about making this neat but informative
 #ifdef BRANDY_GITCOMMIT
-		emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+	emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
-		// Try to get attributions correct, as per license.
-		emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
-		emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
+	// Try to get attributions correct, as per license.
+	emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
+	emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
-		emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
-		emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
-			mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+	emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
+	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
+	  mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 #endif
-		// NB: Adjust spaces in above to align version and date strings correctly
+	// NB: Adjust spaces in above to align version and date strings correctly
 
-	}
-	if (cmd == HELP_HOST || cmd == HELP_MOS) {
-		emulate_printf("  CD   <dir>\r\n  EXEC <filename>\r\n  FX   <num>(,<num>(,<num>))\r\n");
-		emulate_printf("  KEY  <num> <string>\r\n  HELP <text>\r\n  SHOW (<num>)\r\n  QUIT\r\n");
-	}
+    break;
+    case HELP_HOST:
+    case HELP_MOS:
+	emulate_printf("  CD      <dir>\r\n");
+	emulate_printf("  EXEC    <filename>\r\n");
+	emulate_printf("  SPOOL   [<filename>]\r\n");
+	emulate_printf("  SPOOLON [<filename>]\r\n");
+	emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
+	emulate_printf("  KEY     <num> <string>\r\n");
+	emulate_printf("  HELP    [<text>]\r\n");
+	emulate_printf("  SHOW    [<num>]\r\n");
+	emulate_printf("  POINTER [<0|1>]\r\n");
+	emulate_printf("  SAVE    <filename> <start addr> <end addr>\r\n");
+	emulate_printf("  or SAVE <filename> <start addr> +<length>\r\n");
+	emulate_printf("  LOAD    <filename> [<load addr>]\r\n");
+	emulate_printf("  QUIT\r\n");
+    break;
 #if defined(USE_SDL) | defined(TARGET_UNIX)
-	if (cmd == HELP_MATRIX) {
-		emulate_printf("  WinTitle   <window title>\r\n");
+    case HELP_MATRIX:
+	emulate_printf("  WinTitle   <window title>\r\n");
 #ifdef USE_SDL
-		emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
-		emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
-		emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
-		emulate_printf("  ScreenSave <filename.bmp>\r\n");
-		emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+	emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
+	emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
+	emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
+	emulate_printf("  ScreenSave <filename.bmp>\r\n");
+	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+#endif /* USE_SDL */
+    break;
+#endif /* USE_SDL | TARGET_UNIX */
+#ifdef USE_SDL
+    case HELP_SOUND:
+	emulate_printf("  Volume       <n>\r\n");
+	emulate_printf("  ChannelVoice <channel> <voice index|voice name>\r\n");
+	emulate_printf("  Voices\r\n");
+    break;
+#endif
+    case CMD_WINTITLE:
+	emulate_printf("Syntax: *WinTitle <window title>\r\n");
+	emulate_printf("  This command sets the text on the SDL or xterm window title bar.\r\n");
+    break;
+#ifdef USE_SDL
+    case CMD_FULLSCREEN:
+	emulate_printf("Syntax: *FullScreen [<On|Off|1|0>]\r\n");
+	emulate_printf("  This controls  fullscreen mode  within  SDL. On or 1 switches to fullscreen,\r\n");
+	emulate_printf("  0 or Off restores the windowws mode, and with no parameter given,\r\n");
+	emulate_printf("  toggles fullscreen mode.\r\n");
+    break;
+    case CMD_NEWMODE:
+	emulate_printf("Syntax: *NewMode <mode> <xres> <yres> <colours> <xsc> <ysc> [<xeig> [<yeig>]]\r\n");
+	emulate_printf("  This defines a new mode. The parameters are:\r\n");
+	emulate_printf("  mode:    Mode number, range 64-126\r\n");
+	emulate_printf("  xres:    X resolution in pixels, minimum 8.\r\n");
+	emulate_printf("  yres:    Y resolution in pixels, minimum 8.\r\n");
+	emulate_printf("  colours: Colour depth, valid values 2, 4, 16, 256 or 16777216.\r\n");
+	emulate_printf("  xsc:     X scaling (e.g. Mode 1 uses 2, Mode 0 uses 1)\r\n");
+	emulate_printf("  ysc:     Y scaling (e.g. Mode 0 uses 2, Mode 18 uses 0)\r\n");
+	emulate_printf("  xeig:    X eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
+	emulate_printf("  yeig:    Y eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
+    break;
+    case CMD_REFRESH:
+	emulate_printf("Syntax: *Refresh [<On|Off|OnError>]\r\n");
+	emulate_printf("  This sets the SDL refresh mode. Default is on.\r\n");
+	emulate_printf("  On:      Normal mode, display is updated after any change.\r\n");
+	emulate_printf("  Off:     Updates are suspended.\r\n");
+	emulate_printf("  OnError: Updates are suspended, and re-enabled on an error condition.\r\n");
+	emulate_printf("  If no parameter is given, force an immediate display refresh.\r\n");
+    break;
+    case CMD_SCREENSAVE:
+	emulate_printf("Syntax: *ScreenSave <filename>\r\n");
+	emulate_printf("  This saves out the current screen as a .bmp (Windows bitmap) file.\r\n");
+	emulate_printf("  This works in all screen modes, including 3, 6 and 7.\r\n");
+    break;
+    case CMD_SCREENLOAD:
+	emulate_printf("Syntax: *ScreenLoad <filename>\r\n  This loads a .bmp into the display window.\r\n");
+    break;
+    case CMD_VOLUME:
+	emulate_printf("Syntax: *Volume <n>\r\n  This sets the audio channel loudness; range 1-127.\r\n");
+    break;
+    case CMD_CHANNELVOICE:
+	emulate_printf("Syntax: *ChannelVoice <channel> <voice index|voice name>\r\n  This attaches a Voice to a Sound Channel.\r\n");
+    break;
+    case CMD_VOICES:
+	emulate_printf("Syntax: *Voices\r\n  This lists the available voices and channel allocation.\r\n");
+    break;
+#endif /* USE_SDL */
+    default:
+	if (*command == '.' || *command == '\0') {
+	    emulate_printf("  BASIC\r\n  MOS\r\n");
+#if defined(USE_SDL) | defined(TARGET_UNIX)
+	    emulate_printf("  MATRIX\r\n");
+#endif
+#ifdef USE_SDL
+	    emulate_printf("  SOUND\r\n");
 #endif
 	}
-#endif
-	if (*command == '.' || *command == '\0')
-#if defined(USE_SDL) | defined(TARGET_UNIX)
-		emulate_printf("  BASIC\r\n  MOS\r\n  MATRIX\r\n");
-#else
-		emulate_printf("  BASIC\r\n  MOS\r\n");
-#endif
+  }
 }
 
 /*
@@ -1384,23 +1627,19 @@ static void cmd_help(char *command)
  */
 #define HIGH_FNKEY 15			/* Highest function key number */
 static void cmd_key(char *command) {
-	unsigned int key, len;
+  unsigned int key, len;
 
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command == 0)
-		error(ERR_BADSYNTAX, "KEY <num> (<string>");
-	key=cmd_parse_dec(&command);			// Get key number
-	if (key > HIGH_FNKEY)
-		error(ERR_BADKEY);
-	if (*command == ',') command++;			// Step past any comma
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) error(ERR_BADSYNTAX, "KEY <num> (<string>");
+  key=cmd_parse_dec(&command);			// Get key number
+  if (key > HIGH_FNKEY) error(ERR_BADKEY);
+  if (*command == ',') command++;		// Step past any comma
 
-	command=mos_gstrans(command, &len);		// Get GSTRANS string
+  command=mos_gstrans(command, &len);		// Get GSTRANS string
 #ifdef NEWKBD
-	if (kbd_fnkeyset(key, command, len))
-		error(ERR_KEYINUSE);
+  if (kbd_fnkeyset(key, command, len)) error(ERR_KEYINUSE);
 #else
-	if (set_fn_string(key, command, len))
-		error(ERR_KEYINUSE);
+  if (set_fn_string(key, command, len)) error(ERR_KEYINUSE);
 #endif
 }
 
@@ -1408,42 +1647,42 @@ static void cmd_key(char *command) {
  * *SHOW - show function key definition
  */
 static void cmd_show(char *command) {
-	int key1, key2, len;
-	char *string;
-	char c;
+  int key1, key2, len;
+  char *string;
+  char c;
 
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command == 0) {
-		key1 = 0; key2 = HIGH_FNKEY;		// All keys
-	} else {
-	key2=(key1=cmd_parse_dec(&command));		// Get key number
-	if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
-	}
-	while (*command == ' ') command++;		// Skip spaces
-	if (*command != 0) error(ERR_BADCOMMAND);
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    key1 = 0; key2 = HIGH_FNKEY;		// All keys
+  } else {
+    key2=(key1=cmd_parse_dec(&command));		// Get key number
+    if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
+  }
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command != 0) error(ERR_BADCOMMAND);
 
-	for (; key1 <= key2; key1++) {
+  for (; key1 <= key2; key1++) {
 #ifdef NEWKBD
-		string=kbd_fnkeyget(key1, &len);
+    string=kbd_fnkeyget(key1, &len);
 #else
-		string=get_fn_string(key1, &len);
+    string=get_fn_string(key1, &len);
 #endif
-		emulate_printf("*Key %d \x22", key1);
-		while (len--) {
-			c=*string++;
-			if (c&128) { emulate_printf("|!"); c=c&127; }
-			if (c<32 || c==127) {
-				emulate_printf("|%c",c^64);
-			} else {
-				if (c==34 || c==124) {
-					emulate_printf("|%c",c);
-				} else {
-					emulate_printf("%c",c);
-				}
-			}
-		}
-		emulate_printf("\x22\r\n");
+    emulate_printf("*Key %d \x22", key1);
+    while (len--) {
+      c=*string++;
+      if (c&128) { emulate_printf("|!"); c=c&127; }
+      if (c<32 || c==127) {
+	emulate_printf("|%c",c^64);
+      } else {
+	if (c==34 || c==124) {
+	  emulate_printf("|%c",c);
+	} else {
+	  emulate_printf("%c",c);
 	}
+      }
+    }
+    emulate_printf("\x22\r\n");
+  }
 }
 
 /*
@@ -1454,8 +1693,31 @@ static void cmd_exec(char *command) {
   if (*command == 0) {
     emulate_printf("Syntax: *EXEC <filename>\r\n");
   } else {
+    if ((command[0] == '"') && (command[strlen(command)-1] == '"')) {
+      command[strlen(command)-1] = '\0';
+      command++;
+    }
     matrixflags.doexec=fopen(command, "r");
     if (!matrixflags.doexec) error(ERR_NOTFOUND, command);
+  }
+}
+
+static void cmd_spool(char *command, int append) {
+  while (*command == ' ') command++;		// Skip spaces
+  if (*command == 0) {
+    fclose(matrixflags.dospool);
+    matrixflags.dospool=NULL;
+  } else {
+    if ((command[0] == '"') && (command[strlen(command)-1] == '"')) {
+      command[strlen(command)-1] = '\0';
+      command++;
+    }
+    if (append) {
+      matrixflags.dospool=fopen(command, "a");
+    } else {
+      matrixflags.dospool=fopen(command, "w");
+    }
+    if (!matrixflags.dospool) error(ERR_CANTWRITE, command);
   }
 }
 
@@ -1467,49 +1729,169 @@ static void cmd_quit(char *command) {
 	exit_interpreter(0);
 }
 
+static int ishex(char ch){
+ if (ch >='0' && ch <='9') return ch-'0';
+ if (ch >='A' && ch <='F') return 10+ch-'A';
+ if (ch >='a' && ch <='f') return 10+ch-'a';
+ return -1;
+}
+
+static void cmd_load(char *command){
+ int i,len,ch,n;
+ long int num;
+ char chbuff[256], *ptr;
+ FILE *filep;
+
+ while( (ch= *command)>0 && ch <=32)command++;
+ len=255;
+ for(i=0;i<256;i++){
+  ch=chbuff[i]=command[i];
+  if(ch<=32){
+   len=i;
+   break;
+  }
+ }
+ chbuff[len] ='\0';
+ // fprintf(stderr,"load filename is \"%s\"\n",chbuff);
+
+ ptr=&command[len];
+ while( (ch= *ptr)>0 && ch <=32)ptr++;
+
+ num = 0;
+ while((n=ishex(ch=*ptr))>=0) {num=(num<<4)+n; ptr++;}
+
+ // fprintf(stderr,"load addr is %ld (0x%08lx)\n",num,num);
+
+ if ( (filep = fopen(chbuff,"r")) == (FILE*)0){
+   fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
+   return;
+ }
+ ptr=(char*)(basicvars.offbase+num);
+
+ while((ch=getc(filep)) != EOF) *ptr++ = ch;
+
+ fclose(filep);
+}
+
+static void cmd_save(char *command){
+ int i,len,ch,n;
+ long int addr,size;
+ int f;
+ char chbuff[256], *ptr;
+ FILE *filep;
+
+ ptr=command;
+ // fprintf(stderr,"SAVE: command is :- \"");
+ // while( (ch=*ptr++) >= 32)putc(ch,stderr);
+ // fprintf(stderr,"\"\n");
+
+ while((ch=*command)==32 || ch ==9)command++;
+
+ len=255;
+ for(i=0;i<256;i++){
+  ch=chbuff[i]=command[i];
+  if(ch<=32){
+   len=i;
+   break;
+  }
+ }
+ chbuff[len] ='\0';
+ // fprintf(stderr,"save filename is \"%s\"\n",chbuff);
+
+ ptr=&command[len];
+ while( (ch= *ptr)>0 && ch <=32)ptr++;
+
+ addr = 0;
+ while((n=ishex(ch=*ptr))>=0) {addr=(addr<<4)+n; ptr++;}
+
+ // fprintf(stderr,"save addr is %ld (0x%08lx)\n",addr,addr);
+
+ while( (ch= *ptr)>0 && ch <=32)ptr++;
+
+ size=0;
+ f=0;
+ if(ch == '+'){
+   ptr++;
+   f=1;
+ }
+   while((n=ishex(ch=*ptr))>=0) {size=(size<<4)+n; ptr++;}
+ if(!f) size -= addr-1;
+ // fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
+
+ if ( (filep = fopen(chbuff,"w")) == (FILE*)0){
+   emulate_printf("SAVE: Could not open file \"%s\"\r\n",chbuff);
+   return;
+ } 
+ ptr=(char*)(basicvars.offbase+addr);
+ for(i=0; i<size; i++){
+  fputc(*ptr++,filep);
+ }
+
+ fclose(filep);
+}
+
+static void cmd_volume(char *command){
+#ifdef USE_SDL
+ int ch,v;
+ while((ch=*command)== ' ' || ch == '\t') command ++;
+ v=0;
+ while( (ch= *command++) >= '0' && ch <= '9') v=(v*10)+ (ch-'0');
+
+ sdl_volume(v);
+#endif
+}
+
+static void cmd_channelvoice(char *command){
+#ifdef USE_SDL
+ int ch,channel;
+
+ while((ch=*command)== ' ' || ch == '\t') command ++;
+ 
+ channel=0;
+ while( (ch= *command++) >= '0' && ch <= '9') channel=(channel*10)+ (ch-'0');
+
+ while((ch=*command)== ' ' || ch == '\t') command ++;
+
+ sdl_voice(channel, command);
+#endif
+}
+
+static void cmd_voices(){
+#ifdef USE_SDL
+ sdl_star_voices();
+#endif
+}
+
+static void cmd_pointer(char *command){
+
+  while(*command == ' ')command++;
+  if(*command == '0') mos_mouse_off(); else mos_mouse_on(1);
+}
+
 /*
  * check_command - Check if the command is one of the RISC OS
  * commands emulated by this code.
- * ToDo: replace with proper parser
  */
 static int check_command(char *text) {
-  char command[12];
+  char command[16];
   int length;
 
   if (*text == 0) return CMD_UNKNOWN;
   if (*text == '.') return CMD_CAT;
 
   length = 0;
-  while (length < 10 && isalpha(*text)) {
+  while (length < 16 && isalpha(*text)) {
     command[length] = tolower(*text);
     length++;
     text++;
   }
   command[length] = 0;
-  if (strcmp(command, "key")    == 0) return CMD_KEY;
 //if (strcmp(command, "cat")    == 0) return CMD_CAT; /* Disabled, *. works but *cat is passed to OS */
-  if (strcmp(command, "cd")     == 0) return CMD_CD;
-  if (strcmp(command, "chdir")  == 0) return CMD_CD;
-  if (strcmp(command, "quit")   == 0) return CMD_QUIT;
 //if (strcmp(command, "window") == 0) return CMD_WINDOW;
-  if (strcmp(command, "fx")     == 0) return CMD_FX;
 //if (strcmp(command, "title")  == 0) return CMD_TITLE;
-  if (strcmp(command, "help")   == 0) return CMD_HELP;
-  if (strcmp(command, "ver")    == 0) return CMD_VER;
-  if (strcmp(command, "screensave") == 0) return CMD_SCREENSAVE;
-  if (strcmp(command, "screenload") == 0) return CMD_SCREENLOAD;
-  if (strcmp(command, "wintitle")   == 0) return CMD_WINTITLE;
-  if (strcmp(command, "fullscreen") == 0) return CMD_FULLSCREEN;
-  if (strcmp(command, "newmode") == 0)    return CMD_NEWMODE;
-  if (strcmp(command, "refresh") == 0)    return CMD_REFRESH;
-  if (strcmp(command, "show")   == 0) return CMD_SHOW;
-  if (strcmp(command, "exec")   == 0) return CMD_EXEC;
-  if (strcmp(command, "basic")  == 0) return HELP_BASIC;
-  if (strcmp(command, "host")   == 0) return HELP_HOST;
-  if (strcmp(command, "mos")    == 0) return HELP_MOS;
-  if (strcmp(command, "matrix") == 0) return HELP_MATRIX;
-  if (strcmp(command, "os")     == 0) return HELP_MOS;
-  return CMD_UNKNOWN;
+
+  if(cmdtab == (cmdtabent*)0) make_cmdtab();
+  return get_cmdvalue(command);
 }
 
 
@@ -1539,22 +1921,34 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
  * Check if command is one of the *commands implemented
  * by this code.
  */
-  cmd = check_command(command);
-  if (cmd == CMD_KEY)  { cmd_key(command+3); return; }
-  if (cmd == CMD_CAT)  { cmd_cat(command); return; }
-  if (cmd == CMD_QUIT) { cmd_quit(command+4); return; }
-  if (cmd == CMD_HELP) { cmd_help(command+4); return; }
-  if (cmd == CMD_CD)   { cmd_cd(command+2); return; }
-  if (cmd == CMD_FX)   { cmd_fx(command+2); return; }
-  if (cmd == CMD_SHOW) { cmd_show(command+4); return; }
-  if (cmd == CMD_EXEC) { cmd_exec(command+4); return; }
-//if (cmd == CMD_VER)  { cmd_ver(); return; }
-  if (cmd == CMD_SCREENSAVE) {cmd_screensave(command+10); return; }
-  if (cmd == CMD_SCREENLOAD) {cmd_screenload(command+10); return; }
-  if (cmd == CMD_WINTITLE)   {cmd_wintitle(command+8); return; }
-  if (cmd == CMD_FULLSCREEN) {cmd_fullscreen(command+10); return; }
-  if (cmd == CMD_NEWMODE) {cmd_newmode(command+7); return; }
-  if (cmd == CMD_REFRESH) {cmd_refresh(command+7); return; }
+    cmd = check_command(command);
+    switch(cmd){
+      case CMD_KEY:		cmd_key(command+3); return;
+      case CMD_CAT:		cmd_cat(command); return;
+      case CMD_QUIT:		cmd_quit(command+4); return;
+      case CMD_HELP:		cmd_help(command+4); return;
+      case CMD_CD:		cmd_cd(command+2); return;
+      case CMD_FX:		cmd_fx(command+2); return;
+      case CMD_SHOW:		cmd_show(command+4); return;
+      case CMD_EXEC:		cmd_exec(command+4); return;
+      case CMD_SPOOL:		cmd_spool(command+5,0); return;
+      case CMD_SPOOLON:		cmd_spool(command+7,1); return;
+//    case CMD_VER:		cmd_ver(); return;
+      case CMD_SCREENSAVE:	cmd_screensave(command+10); return;
+      case CMD_SCREENLOAD:	cmd_screenload(command+10); return;
+      case CMD_WINTITLE:	cmd_wintitle(command+8); return;
+      case CMD_FULLSCREEN:	cmd_fullscreen(command+10); return;
+      case CMD_NEWMODE:		cmd_newmode(command+7); return;
+      case CMD_REFRESH:		cmd_refresh(command+7); return;
+
+      case CMD_LOAD:		cmd_load(command+4); return;
+      case CMD_SAVE:		cmd_save(command+4); return;
+
+      case CMD_VOLUME:		cmd_volume(command+6);return;
+      case CMD_CHANNELVOICE:	cmd_channelvoice(command+12);return;
+      case CMD_VOICES:		cmd_voices(command+6);return;
+      case CMD_POINTER:		cmd_pointer(command+7);return;
+    }
   }
 
   if (*command == '/') {		/* Run file, so just pass to OS     */
@@ -2191,12 +2585,6 @@ switch (areg) {
 #else
 		return 0xC000FF19;
 #endif
-	case 40:
-		set_escint(xreg);
-		break;
-	case 41:
-		set_escmul(xreg);
-		break;
 	case 42:		// OSBYTE 42 - local to Brandy
 #ifdef USE_SDL
 		return osbyte42(xreg);
@@ -2285,10 +2673,10 @@ switch (areg) {
 		  }
 		}
 		if (xreg==2) { // Set Escape Check Interval, 0 resets defaults
-		  set_escint(yreg);
+		  //set_escint(yreg);
 		}
 		if (xreg==3) { // Set Escape Check Interval, multiplied by 256.
-		  set_escmul(yreg);
+		  //set_escmul(yreg);
 		}
 		if (xreg==127) { // Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
 		  star_refresh(1);

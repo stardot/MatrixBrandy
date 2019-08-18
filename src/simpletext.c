@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -111,6 +112,7 @@ static void nogo(void) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
+  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
     if (charvalue == 127) charvalue=8;  /* DEL maps to BACKSPACE */
     if (charvalue>=' ') {               /* Most common case - print something */
@@ -212,8 +214,8 @@ void emulate_printf(char *format, ...) {
 ** 'emulate_newline' skips to a new line on the screen.
 */
 void emulate_newline(void) {
-  emulate_vdu(CR);
-  emulate_vdu(LF);
+  emulate_vdu(asc_CR);
+  emulate_vdu(asc_LF);
 }
 
 /*

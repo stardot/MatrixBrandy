@@ -29,6 +29,8 @@ The source files that make up the interpreter are as follows:
 	mainstate.c
 	miscprocs.c
 	mos.c
+	mos_sys.c
+	net.c
 	riscos.c
 	simpletext.c
 	stack.c
@@ -67,6 +69,7 @@ RISC OS emulation is carried out in:
 
 	fileio.c	File I/O
 	mos.c		Most features emulated
+	mos_sys.c	Most SYS calls
 
 	keyboard.c	Keyboard input
 
@@ -145,8 +148,11 @@ Miscprocs.c
 This file contains a variety of functions that carry out such tasks as skipping
 white space characters, converting a Basic string to C string and so forth.
 
-Mos.c
+Mos.c and mos_sys.c
 RISC OS emulation. See below.
+
+Net.c
+Basic networking support.
 
 Riscos.c
 Contains the screen output functions for RISC OS.
@@ -259,6 +265,7 @@ The emulation functions are spread across the following modules:
 
 General emulation functions:
 	mos.c (mos.h)
+	mos_sys.c (mos_sys.h)
 
 Keyboard input:
 	keyboard.c (keyboard.h)
@@ -316,18 +323,24 @@ graphics support. Under operating systems other that RISC OS text
 output and graphics output are two entirely distinct things whereas
 under RISC OS they are combined.
 
-There are three versions of the screen output functions:
+There are four versions of the screen output functions:
 
 riscos.c
 This contains the functions used by the RISC OS version of the interpreter.
 They are really nothing more than prepackaged calls to RISC OS.
 
+simpletext.c
+This file is used in the 'sbrandy' version of the interpreter that does not
+include graphics support and it is meant to be suitable for use under any
+operating system. No translation of VDU calls is made (unlike textonly.c
+which translates some RISC OS codes to ANSI / conio).
+
 textonly.c
-This file is used in versions of the interpreter that do not include graphics
-support and it is meant to be suitable for use under any operating system
-except RISC OS. There are two versions of the functions here, one that uses
-ANSI control sequences and one that uses the DOS 'conio' library. The
-conio-based emulation is the more complete but it is tied to DOS. The ANSI-
+This file is used in the 'tbrandy' version of the interpreter that does not
+include graphics support and it is meant to be suitable for use under any
+operating system except RISC OS. There are two versions of the functions here,
+one that uses ANSI control sequences and one that uses the DOS 'conio' library.
+The conio-based emulation is the more complete but it is tied to DOS. The ANSI-
 based one can be used by Linux and NetBSD or by DOS but the emulation is
 limited.
 
@@ -363,8 +376,8 @@ this will probably be changed.
 
 Others
 ------
-The file 'mos.c' provides the emulation functions for things that are not
-covered by the above, for example, reading the date and time.
+The files 'mos.c' and 'mos_sys.c' provide the emulation functions for things
+that are not covered by the above, for example, reading the date and time.
 
 
 Supported Environments
@@ -1090,7 +1103,7 @@ priority and the index value to use for the operator in opfunctions. An optable
 entry of zero means that the token is not an operator and indicates that the
 end of the expression has been reached.
 
-The only 'nasty' in the expression code is that Basic V does not allow the
+The only 'nasty' in the expression code is that BASIC V/VI does not allow the
 comparision and shift operators to be chained together, that is, expressions
 such as:
 
@@ -1103,7 +1116,7 @@ with the priority of comparison operators) in expression().
 
 Indirection Operators
 ---------------------
-The interpreter fully supports the Basic V indirection operators. To protect
+The interpreter fully supports the BASIC V/VI indirection operators. To protect
 the integrity of the interpreter and for security the address range they can
 point to is restricted to the Basic workspace. They can be used to read any
 location in the workspace but can only write to the Basic heap, that is, from
@@ -1277,7 +1290,7 @@ directly on to the ARM processor's 'SWI' (Software Interrupt) instruction. It
 is envisaged that the SYS statement will also be used to make use of the
 facilities of operating systems other than RISC OS.  Currently, on non-RISC OS
 platforms, SYS is only minimally supported, primarily emulating some RISC OS
-functionality.
+functionality, and providing some functionality specific to Matrix Brandy.
 
 The format of the SYS statement is as follows:
 

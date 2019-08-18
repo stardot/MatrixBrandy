@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -354,8 +355,8 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
 int32 get_stringlen(int32 start) {
   int32 n;
   n =start;
-  while (n-start<=MAXSTRING && basicvars.offbase[n]!=CR) n++;
-  if (basicvars.offbase[n]==CR) return n-start;
+  while (n-start<=MAXSTRING && basicvars.offbase[n]!=asc_CR) n++;
+  if (basicvars.offbase[n]==asc_CR) return n-start;
   return 0;
 }
 

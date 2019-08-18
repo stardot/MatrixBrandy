@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -49,6 +50,7 @@
 #endif
 
 #ifdef USE_SDL
+#include "graphsdl.h"
 extern Uint8 mode7changed[26];
 #endif
 
@@ -127,9 +129,9 @@ static void assign_intbyteptr(pointers address) {
   uint32 msx, msy, addr;
   uint32 value=0;
 
-  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    addr = address.offset - 0xFFFF7C00u;
+    addr = address.offset - matrixflags.mode7fb;
     if (addr >= 1000) {
       return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
     } else {
@@ -159,6 +161,9 @@ static void assign_intbyteptr(pointers address) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
+#endif
 }
 
 /*
@@ -171,9 +176,9 @@ static void assign_intwordptr(pointers address) {
   uint32 loop, msx, msy, addr;
   uint32 value=0;
 
-  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFC) {
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1020)) {
     /* Mode 7 screen memory */
-    addr = address.offset - 0xFFFF7C00u;
+    addr = address.offset - matrixflags.mode7fb;
     if (addr >= 1000) {
       return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
     } else {
@@ -206,6 +211,9 @@ static void assign_intwordptr(pointers address) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
+#endif
 }
 
 /*
@@ -238,8 +246,8 @@ static void assign_dolstrptr(pointers address) {
   result = pop_string();
   check_write(address.offset, result.stringlen);
 #ifdef USE_SDL
-  if (address.offset >= 0xFFFF7C00u && address.offset <= 0xFFFF7FFF) {
-    addr = address.offset - 0xFFFF7C00u;
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
+    addr = address.offset - matrixflags.mode7fb;
     for(ptr=0; ptr<result.stringlen; ptr++) {
       msy = addr / 40;
       msx = addr % 40;
@@ -252,7 +260,7 @@ static void assign_dolstrptr(pointers address) {
   } else {
 #endif
     memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
-    basicvars.offbase[address.offset+result.stringlen] = CR;
+    basicvars.offbase[address.offset+result.stringlen] = asc_CR;
 #ifdef USE_SDL
   }
 #endif
@@ -648,14 +656,14 @@ static void assiplus_dolstrptr(pointers address) {
   result = pop_string();
   endoff = address.offset;	/* Figure out where to append the string */
   stringlen = 0;
-  while (stringlen<=MAXSTRING && basicvars.offbase[endoff]!=CR) {	/* Find the CR at the end of the dest string */
+  while (stringlen<=MAXSTRING && basicvars.offbase[endoff]!=asc_CR) {	/* Find the CR at the end of the dest string */
     endoff++;
     stringlen++;
   }
   if (stringlen>MAXSTRING) endoff = address.offset;	/* CR at end not found - Assume dest is zero length */
   check_write(endoff, result.stringlen);
   memmove(&basicvars.offbase[endoff], result.stringaddr, result.stringlen);
-  basicvars.offbase[endoff+result.stringlen] = CR;
+  basicvars.offbase[endoff+result.stringlen] = asc_CR;
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 
@@ -2045,7 +2053,8 @@ static void assign_himem(void) {
   offset = ALIGN(eval_integer());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   address = basicvars.offbase+offset;
-  if (address<(basicvars.vartop+1024) || address>=basicvars.end)
+  if (basicvars.himem == address) return; /* Always OK to set HIMEM to its existing value */
+  if (address<(basicvars.vartop+1024) || address>basicvars.end)
     error(WARN_BADHIMEM);	/* Flag error (execution continues after this one) */
   else if (!safestack())
     error(ERR_HIMEMFIXED);	/* Cannot alter HIMEM here */
@@ -2099,7 +2108,7 @@ static void assign_filepath(void) {
     basicvars.loadpath = malloc(string.stringlen+1);		/* +1 for NUL at end */
     if (basicvars.loadpath==NIL) error(ERR_NOROOM);	/* Not enough memory left */
     memcpy(basicvars.loadpath, string.stringaddr, string.stringlen);
-    basicvars.loadpath[string.stringlen] = NUL;
+    basicvars.loadpath[string.stringlen] = asc_NUL;
   }
   if (stringtype==STACK_STRTEMP) free_string(string);
 }

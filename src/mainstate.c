@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -184,7 +185,7 @@ void exec_case(void) {
         }
         if (whentype == STACK_STRTEMP) free_string(whenstring);
       }
-      if (found || *basicvars.current == ':' || *basicvars.current == NUL) break;	/* Found a match or end of WHEN expression list so escape from loop */
+      if (found || *basicvars.current == ':' || *basicvars.current == asc_NUL) break;	/* Found a match or end of WHEN expression list so escape from loop */
       if (*basicvars.current == ',')	/* No match - Another value follows for this CASE */
         basicvars.current++;
       else {
@@ -220,7 +221,7 @@ void exec_xcase(void) {
   do {	/* Find the end of the current line */
     tp = lp;
     lp = skip_token(lp);
-  } while (*lp != NUL);
+  } while (*lp != asc_NUL);
   if (*tp != TOKEN_OF) error(ERR_OFMISS);		/* Last item on line must be 'OF' */
   lp++;		/* Point at the start of the line after the 'CASE' */
   whencount = 0;
@@ -235,9 +236,9 @@ void exec_xcase(void) {
       if (depth == 1) {	/* Only want WHENs from CASE at this level */
         if (whencount == MAXWHENS) error(ERR_WHENCOUNT);
         whentable[whencount].whenexpr = tp;
-        while (*tp != NUL && *tp != ':') tp = skip_token(tp);	/* Find code after ':' */
+        while (*tp != asc_NUL && *tp != ':') tp = skip_token(tp);	/* Find code after ':' */
         if (*tp == ':') tp++;
-        if (*tp == NUL) {	/* At end of line - Skip to next line */
+        if (*tp == asc_NUL) {	/* At end of line - Skip to next line */
           tp++;
           tp = FIND_EXEC(tp);
         }
@@ -249,7 +250,7 @@ void exec_xcase(void) {
       if (depth == 1) {
         tp+=(1+OFFSIZE);	/* Skip token and the offset after it */
         if (*tp == ':') tp++;
-        if (*tp == NUL) {	/* 'OTHERWISE' is at end of line */
+        if (*tp == asc_NUL) {	/* 'OTHERWISE' is at end of line */
           tp++;	/* Move to start of next line */
           if (AT_PROGEND(tp)) error(ERR_ENDCASE);
           tp = FIND_EXEC(tp);
@@ -265,7 +266,7 @@ void exec_xcase(void) {
 /* See if a nested CASE statement starts on this line */
     if (depth>0) {
       tp = FIND_EXEC(lp);
-      while (*tp != NUL && *tp != TOKEN_XCASE) tp = skip_token(tp);
+      while (*tp != asc_NUL && *tp != TOKEN_XCASE) tp = skip_token(tp);
       if (*tp == TOKEN_XCASE) depth++;
       lp+=GET_LINELEN(lp);
     }
@@ -332,7 +333,7 @@ void exec_data(void) {
 ** identically to a REM - execution skips to the next line.
 */
 void exec_def(void) {
-  basicvars.current = basicvars.thisline+*(basicvars.thisline+2)+256*(*(basicvars.thisline+3))-1;
+  while (!ateol[*basicvars.current]) basicvars.current = skip_token(basicvars.current);
 }
 
 /*
@@ -443,8 +444,8 @@ void exec_dim(void) {
 ** start of a block 'IF' statement
 */
 static boolean start_blockif(byte *tp) {
-  while (*tp != NUL) {
-    if (*tp == TOKEN_THEN && *(tp+1) == NUL) return TRUE;
+  while (*tp != asc_NUL) {
+    if (*tp == TOKEN_THEN && *(tp+1) == asc_NUL) return TRUE;
     tp = skip_token(tp);
   }
   return FALSE;
@@ -484,7 +485,7 @@ void exec_xelse(void) {
   p = basicvars.current+1+OFFSIZE;	/* Start at the token after the offset */
   do
     p = skip_token(p);
-  while (*p != NUL);
+  while (*p != asc_NUL);
   p++;	/* Point at start of next line */
   set_dest(basicvars.current+1, FIND_EXEC(p));
   exec_elsewhen();
@@ -514,7 +515,7 @@ void exec_xlhelse(void) {
     lp2 = FIND_EXEC(lp);
   } while (TRUE);
   lp2++;	/* Skip the ENDIF token */
-  if (*lp2 == NUL) {	/* There is nothing else on the line after the ENDIF */
+  if (*lp2 == asc_NUL) {	/* There is nothing else on the line after the ENDIF */
     lp2++;	/* Move to start of next line */
     if (basicvars.traces.lines) trace_line(get_lineno(lp2));
     lp2 = FIND_EXEC(lp2);	/* Find the first executable token */
@@ -572,7 +573,7 @@ void exec_endifcase(void) {
   basicvars.current++;		/* Skip token */
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   if (*basicvars.current == ':') basicvars.current++;	/* Skip ':' */
-  if (*basicvars.current == NUL) {	/* Token is at end of line */
+  if (*basicvars.current == asc_NUL) {	/* Token is at end of line */
     basicvars.current++;		/* Move to start of next line */
     if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
@@ -661,7 +662,7 @@ void exec_fnreturn(void) {
 ** more important than the 'WHILE' in that whether to continue with
 ** the loop or to simply move on to the next statement is decided here.
 **
-** One point to note is that Basic V allows loops to be nested
+** One point to note is that Basic V/VI allows loops to be nested
 ** incorrectly in that if one loop is not terminated within another,
 ** the inner one is automatically terminated by the outer one, for
 ** example:
@@ -701,7 +702,7 @@ void exec_endwhile(void) {
   else {	/* Escape from loop - Remove WHILE control block from stack */
     pop_while();
     if (*tp == ':') tp++;		/* Continue at next token after ENDWHILE */
-    if (*tp == NUL) {
+    if (*tp == asc_NUL) {
       tp++;		/* Move to the start of the next line */
       if (basicvars.traces.lines) trace_line(get_lineno(tp));
       tp = FIND_EXEC(tp);	/* Skip to start of the executable tokens */
@@ -875,7 +876,7 @@ void exec_for(void) {
   }
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);		/* Ensure there is nothing left on the line */
   if (*basicvars.current == ':') basicvars.current++;	/* Find the start of the statements in the loop */
-  if (*basicvars.current == NUL) {	/* Not on this line - Try the next */
+  if (*basicvars.current == asc_NUL) {	/* Not on this line - Try the next */
     basicvars.current++;
     if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
@@ -1052,14 +1053,14 @@ void exec_xif(void) {
   single = *basicvars.current != TOKEN_THEN;	/* No 'THEN' = single line if */
   if (*basicvars.current == TOKEN_THEN) {
     lp2 = basicvars.current+1;	/* Skip the 'THEN' and see if it is the last item on the line */
-    single = *lp2 != NUL;		/* A 'null' here means that this is the start of a block 'IF' */
+    single = *lp2 != asc_NUL;		/* A 'null' here means that this is the start of a block 'IF' */
   }
   if (single) {		/* Dealing with a single line 'IF' */
     *ifplace = TOKEN_SINGLIF;
     if (*basicvars.current == TOKEN_XELSE) {	/* Got 'IF <expression> ELSE ...' i.e. there is no 'THEN' part */
       lp2 = basicvars.current+1+OFFSIZE;	/* Find the token after the 'ELSE' */
       set_dest(elseplace, lp2);
-      while (*lp2 != NUL) lp2 = skip_token(lp2);		/* Find next line for dummy 'THEN' part */
+      while (*lp2 != asc_NUL) lp2 = skip_token(lp2);		/* Find next line for dummy 'THEN' part */
       lp2++;	/* Move to the start of the next line */
       set_dest(thenplace, FIND_EXEC(lp2));
     }
@@ -1076,9 +1077,9 @@ void exec_xif(void) {
 */
       if (*basicvars.current != TOKEN_THEN) lp2 = basicvars.current;
       set_dest(thenplace, lp2);
-      while (*lp2 != NUL && *lp2 != TOKEN_XELSE) lp2 = skip_token(lp2);
+      while (*lp2 != asc_NUL && *lp2 != TOKEN_XELSE) lp2 = skip_token(lp2);
       if (*lp2 == TOKEN_XELSE) lp2+=1+OFFSIZE;	/* Find the token after the 'ELSE' */
-      if (*lp2 == NUL) {	/* Find the first token on the next line */
+      if (*lp2 == asc_NUL) {	/* Find the first token on the next line */
         lp2++;
         lp2 = FIND_EXEC(lp2);
       }
@@ -1127,7 +1128,7 @@ void exec_xif(void) {
       else {	/* Move past ENDIF */
         lp2++;
       }
-      if (*lp2 == NUL) {	/* There is nothing else on the line - Skip to next line */
+      if (*lp2 == asc_NUL) {	/* There is nothing else on the line - Skip to next line */
         lp2++;
         lp2 = FIND_EXEC(lp2);
       }
@@ -1233,7 +1234,7 @@ static void def_locvar(void) {
       descriptor.stringaddr = alloc_string(descriptor.stringlen);
       memmove(descriptor.stringaddr, &basicvars.offbase[locvar.address.offset], descriptor.stringlen);
       save_string(locvar, descriptor);
-      basicvars.offbase[locvar.address.offset] = CR;
+      basicvars.offbase[locvar.address.offset] = asc_CR;
       break;
     case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
       save_array(locvar);
@@ -1397,11 +1398,11 @@ static void exec_onerror(void) {
   case TOKEN_LOCAL:	/* Got 'ON ERROR LOCAL' */
     basicvars.current++;
     set_local_error();
-    while (*basicvars.current != NUL) basicvars.current = skip_token(basicvars.current);
+    while (*basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
     break;
   default: /* Got 'ON ERROR <statements>' */
     set_error();
-    while (*basicvars.current != NUL) basicvars.current = skip_token(basicvars.current);
+    while (*basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
   }
 }
 
@@ -1444,7 +1445,7 @@ static byte *find_onentry(byte *tp, int32 wanted) {
   count = 1;
   brackets = 0;
   do {
-    while (*tp != ':' && *tp != NUL && *tp != TOKEN_XELSE && (*tp != ',' || brackets != 0)) {
+    while (*tp != ':' && *tp != asc_NUL && *tp != TOKEN_XELSE && (*tp != ',' || brackets != 0)) {
       tp = skip_token(tp);
       if (*tp == '(')
         brackets++;
@@ -1469,7 +1470,7 @@ static byte *find_onentry(byte *tp, int32 wanted) {
 ** This code is strictly interpreted. It would be better if a table of
 ** pointers to the line numbers was constructed to allow the statement to be
 ** processed more quickly but this code will do for now. The 'ON' statement
-** is not that important in Basic V and is mainly here for compatibility
+** is not that important in Basic V/VI and is mainly here for compatibility
 */
 static void exec_onbranch(void) {
   int32 index;
@@ -1502,7 +1503,7 @@ static void exec_onbranch(void) {
         }
         if (basicvars.traces.branches) trace_branch(basicvars.current, dest);
         if (onwhat == TOKEN_GOSUB) {	/* Got 'ON ... GUSUB'. Find point to which to return */
-          while (*basicvars.current != ':' && *basicvars.current != NUL) basicvars.current = skip_token(basicvars.current);
+          while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
           if (*basicvars.current == ':') basicvars.current++;
           push_gosub();
         }
@@ -1549,7 +1550,7 @@ static void exec_onbranch(void) {
           if (basicvars.traces.procs) trace_proc(pp->varname, TRUE);
           if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
         }
-        while (*basicvars.current != ':' && *basicvars.current != NUL) basicvars.current = skip_token(basicvars.current);	/* Find return address */
+        while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);	/* Find return address */
         if (*basicvars.current == ':') basicvars.current++;
         push_proc(pp->varname, dp->parmcount);
         basicvars.current = dp->fnprocaddr;
@@ -1610,7 +1611,7 @@ void exec_oscli(void) {
   check_ateol();
   descriptor = pop_string();
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);	/* Copy string */
-  basicvars.stringwork[descriptor.stringlen] = NUL;		/* Append a NUL keep OS_CLI happy */
+  basicvars.stringwork[descriptor.stringlen] = asc_NUL;		/* Append a NUL keep OS_CLI happy */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
 /* Issue command */
   if (!tofile) {	/* Response not wanted - Run command and go home */
@@ -1662,7 +1663,7 @@ void exec_oscli(void) {
   fclose(respfile);
   remove(respname);
 /* Save the number of lines stored in the array */
-  if (linecount.typeinfo != 0) store_value(linecount, count, TRUE);
+  if (linecount.typeinfo != 0) store_value(linecount, count, NOSTRING);
 }
 
 /*
@@ -1786,12 +1787,12 @@ static void read_numeric(lvalue destination) {
   byte readexpr[MAXSTATELEN];
   n = 0;
   dp = skip(basicvars.datacur);
-  while (*dp != NUL && *dp != ',') {	/* Copy value to be read */
+  while (*dp != asc_NUL && *dp != ',') {	/* Copy value to be read */
     text[n] = *dp;
     dp++;
     n++;
   }
-  text[n] = NUL;
+  text[n] = asc_NUL;
   if (n == 0) error(ERR_BADEXPR);	/* Number string is empty */
   basicvars.datacur = dp;
   tokenize(text, readexpr, NOLINE, FALSE);	/* Tokenise the expression */
@@ -1882,15 +1883,15 @@ static void read_string(lvalue destination) {
     do {
       cp++;
       if (*cp == '\"' && *(cp+1) == '\"') cp+=2;
-    } while (*cp != NUL && *cp != '\"');
+    } while (*cp != asc_NUL && *cp != '\"');
     if (*cp != '\"') error(ERR_QUOTEMISS);	/* " missing */
     length = cp-start;
     do	/* Skip '"' and find next field */
       cp++;
-    while (*cp != NUL && *cp != ',');
+    while (*cp != asc_NUL && *cp != ',');
   }
   else {
-    while (*cp != NUL && *cp != ',') cp++;	/* Find end of string */
+    while (*cp != asc_NUL && *cp != ',') cp++;	/* Find end of string */
     length = cp-start;
   }
   basicvars.datacur = cp;
@@ -1906,7 +1907,7 @@ static void read_string(lvalue destination) {
   case VAR_DOLSTRPTR:	/* Pointer to '$<string>' */
     check_write(destination.address.offset, length+1);   /* +1 for CR at end */
     if (length != 0) shorten=memcpydedupe((char *)&basicvars.offbase[destination.address.offset], start, length, '"');
-    basicvars.offbase[destination.address.offset+length-shorten] = CR;
+    basicvars.offbase[destination.address.offset+length-shorten] = asc_CR;
     break;
   default:
     error(ERR_VARNUMSTR);
@@ -1941,7 +1942,7 @@ void exec_read(void) {
 void exec_repeat(void) {
   basicvars.current++;		/* Skip REPEAT token */
   if (*basicvars.current == ':') basicvars.current++;	/* Found a ':' - Move past it */
-  if (*basicvars.current == NUL) {	/* Nothing on line after REPEAT - Try next line */
+  if (*basicvars.current == asc_NUL) {	/* Nothing on line after REPEAT - Try next line */
     basicvars.current++;	/* Move to start of next line */
     if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
@@ -1991,7 +1992,7 @@ static void restore_dataptr(void) {
     line = eval_integer();
     check_ateol();
     p = basicvars.current;
-    while (*p != NUL) p = skip_token(p);	/* Find the start of the next line */
+    while (*p != asc_NUL) p = skip_token(p);	/* Find the start of the next line */
     p++;		/* Point at start of next line */
 /*
 ** The line count is decrement by one as 'RESTORE +1' moves
@@ -2267,7 +2268,7 @@ void exec_swap(void) {
 /* Copy 'aaa$' string to address of other string and turn it into a '$xxx' type string */
       len = first.address.straddr->stringlen;	/* Get length of first string */
       if (len>0) memmove(&basicvars.offbase[second.address.offset], first.address.straddr->stringaddr, len);
-      basicvars.offbase[second.address.offset+len] = CR;
+      basicvars.offbase[second.address.offset+len] = asc_CR;
       free_string(*first.address.straddr);
       *first.address.straddr = stringtemp;
     }
@@ -2341,7 +2342,7 @@ void exec_sys(void) {
         tempdesc[parmcount].stringlen = length+1;
         tempdesc[parmcount].stringaddr = cp = alloc_string(length+1);
         if (length>0) memmove(cp, descriptor.stringaddr, length);
-        cp[length] = NUL;
+        cp[length] = asc_NUL;
         if (parmtype == STACK_STRTEMP) free_string(descriptor);
         inregs[parmcount] = CAST(cp, byte *)-basicvars.offbase;
         break;
@@ -2513,7 +2514,7 @@ void exec_xwhen(void) {
   byte *lp, *lp2;
   int32 depth;
   lp = basicvars.current+1+OFFSIZE;	/* Skip token and offset */
-  while (*lp != NUL) lp = skip_token(lp);
+  while (*lp != asc_NUL) lp = skip_token(lp);
   lp++;		/* Point at the start of the line after the 'WHEN' or 'OTHERWISE' */
   depth = 1;
   do {
@@ -2524,14 +2525,14 @@ void exec_xwhen(void) {
       if (depth == 0) break;
     }
     else {	/* Check for a nested CASE statement */
-      while (*lp2 != NUL && *lp2 != TOKEN_XCASE && *lp2 != TOKEN_CASE) lp2 = skip_token(lp2);
-      if (*lp2 != NUL) depth++;	/* Have found one of the CASE tokens - Got a nested 'CASE' */
+      while (*lp2 != asc_NUL && *lp2 != TOKEN_XCASE && *lp2 != TOKEN_CASE) lp2 = skip_token(lp2);
+      if (*lp2 != asc_NUL) depth++;	/* Have found one of the CASE tokens - Got a nested 'CASE' */
     }
     lp+=GET_LINELEN(lp);
   } while (TRUE);
   lp2++;	/* Skip 'ENDCASE' token */
   if (*lp2 == ':') lp2++;
-  if (*lp2 == NUL) {	/* 'ENDCASE' is at end of line */
+  if (*lp2 == asc_NUL) {	/* 'ENDCASE' is at end of line */
     lp2++;	/* Move to start of next line */
     lp2 = FIND_EXEC(lp2);
   }
@@ -2576,7 +2577,7 @@ void exec_while(void) {
   }
   if (result != BASFALSE) {	/* If result is not false, enter the loop */
     if (*basicvars.current == ':') basicvars.current++;	/* Loop body found on same line as WHILE statement */
-    if (*basicvars.current == NUL) {	/* Loop body starts on next line */
+    if (*basicvars.current == asc_NUL) {	/* Loop body starts on next line */
       basicvars.current++;
       if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
       basicvars.current = FIND_EXEC(basicvars.current);	/* Move to first token on next line */
@@ -2592,7 +2593,7 @@ void exec_while(void) {
     else {	/* Have to look for the 'ENDWHILE'. 'basicvars.current' points at token after expression here */
       int32 depth = 1;
       while (depth>0) {
-        if (*basicvars.current == NUL) {	/* At the end of a line */
+        if (*basicvars.current == asc_NUL) {	/* At the end of a line */
           basicvars.current++;
           if (AT_PROGEND(basicvars.current)) error(ERR_ENDWHILE);	/* No 'ENDWHILE' found */
           basicvars.current = FIND_EXEC(basicvars.current);
@@ -2606,7 +2607,7 @@ void exec_while(void) {
       }
       basicvars.current++;	/* Skip the ENDWHILE token */
       if (*basicvars.current == ':') basicvars.current++;	/* Skip a ':' after the ENDWHILE */
-      if (*basicvars.current == NUL) {	/* There is nothing else on the line - Skip to next line */
+      if (*basicvars.current == asc_NUL) {	/* There is nothing else on the line - Skip to next line */
         basicvars.current++;
 	if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
         basicvars.current = FIND_EXEC(basicvars.current);

@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@
 */
 
 /*
-** The functions here map the Basic V file I/O facilities on to those
+** The functions here map the Basic VI file I/O facilities on to those
 ** provided by the underlying operating system.
 */
 
@@ -30,6 +31,7 @@
 #include <string.h>
 #include <math.h>
 #include "common.h"
+#include "miscprocs.h"
 #include "target.h"
 #include "errors.h"
 #include "fileio.h"
@@ -488,7 +490,7 @@ int32 fileio_openin(char *name, int32 namelen) {
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
-  filename[namelen] = NUL;
+  filename[namelen] = asc_NUL;
   thefile = fopen(filename, INMODE);
   if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
   fileinfo[n].stream = thefile;
@@ -512,7 +514,7 @@ int32 fileio_openout(char *name, int32 namelen) {
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
-  filename[namelen] = NUL;
+  filename[namelen] = asc_NUL;
   thefile = fopen(filename, OUTMODE);
   if (thefile==NIL) error(ERR_OPENWRITE, filename);
   fileinfo[n].stream = thefile;
@@ -534,7 +536,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
-  filename[namelen] = NUL;
+  filename[namelen] = asc_NUL;
 #ifndef NONET
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (!strncmp(filename, "ip0:", 4) || !strncmp(filename, "ip4:", 4) || !strncmp(filename, "ip6:", 4)) {
@@ -629,7 +631,7 @@ int32 fileio_bget(int32 handle) {
       error(ERR_HITEOF);
     }
     else if (fileinfo[handle].filetype==OPENOUT) {	/* If file is open for output, read one char */
-      ch = NUL;
+      ch = asc_NUL;
       fileinfo[handle].eofstatus = PENDING;
     }
     if (fileinfo[handle].lastwaswrite) {		/* Ensure everything has been written to disk first */
@@ -675,9 +677,9 @@ int32 fileio_getdol(int32 handle, char *buffer) {
   if (p==NIL) error(ERR_CANTREAD);	/* Read failed utterly */
   length = strlen(buffer);
   p = buffer+length-1;	/* Point at line end character */
-  if (*p==LF) {	/* Got a 'linefeed' at the end of the line */
+  if (*p==asc_LF) {	/* Got a 'linefeed' at the end of the line */
     length--;
-    if (length>0 && *(p-1)==CR) length--;	/* Got a 'carriage return-linefeed' pair */
+    if (length>0 && *(p-1)==asc_CR) length--;	/* Got a 'carriage return-linefeed' pair */
   }
   return length;
 }

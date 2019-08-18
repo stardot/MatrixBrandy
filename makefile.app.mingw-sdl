@@ -3,13 +3,14 @@
 
 CC = i686-w64-mingw32-gcc
 LD = i686-w64-mingw32-gcc
+STRIP = strip
 ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
 
-#CFLAGS = -g -DDEBUG -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
-#CFLAGS = -g -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
-CFLAGS = -O2 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -DDEBUG -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O3 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS +=
 
@@ -25,7 +26,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
 	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o \
-	$(SRCDIR)/app.o
+	$(SRCDIR)/soundsdl.o $(SRCDIR)/app.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
@@ -34,7 +35,8 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c \
+	$(SRCDIR)/soundsdl.c
 
 brandyapp:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandyapp $(OBJ) $(LIBS)
@@ -49,7 +51,7 @@ recompile:
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandyapp.exe
+	$(STRIP) brandyapp.exe
 
 check:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(LIBS) -o brandyapp

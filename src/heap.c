@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -70,7 +71,12 @@ boolean init_workspace(int32 heapsize) {
   wp = malloc(heapsize);
   if (wp==NIL) heapsize = 0;	/* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
-  basicvars.page = basicvars.workspace = wp;
+  basicvars.workspace = wp;
+  if (heapsize <= 65536) {
+    basicvars.page = wp + 0xE00; /* Default BBC/Master PAGE value */
+  } else {
+    basicvars.page = wp + 0x8F00; /* Default RISC OS PAGE value */
+  }
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
 #ifdef TARGET_RISCOS
   basicvars.offbase = 0;

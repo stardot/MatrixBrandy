@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -705,14 +706,14 @@ static void fn_eval(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   descriptor = pop_string();
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
-  basicvars.stringwork[descriptor.stringlen] = NUL;	/* Now have a null-terminated version of string */
+  basicvars.stringwork[descriptor.stringlen] = asc_NUL;	/* Now have a null-terminated version of string */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
   tokenize(basicvars.stringwork, evalexpr, NOLINE, FALSE);	/* 'tokenise' leaves its results in 'thisline' */
 //  tokenize(basicvars.stringwork, evalexpr, NOLINE);	/* 'tokenise' leaves its results in 'thisline' */
   save_current();		/* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();
-  if (*basicvars.current != NUL) error(ERR_SYNTAX);
+  if (*basicvars.current != asc_NUL) error(ERR_SYNTAX);
   restore_current();
 }
 
@@ -921,9 +922,21 @@ static void fn_instr(void) {
 ** of its argument on to the Basic stack
 */
 static void fn_int(void) {
+  int32 localint = 0;
+  float64 localfloat = 0;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_FLOAT)
-    push_int(TOINT(floor(pop_float())));
+  if (GET_TOPITEM == STACK_FLOAT) {
+    if (matrixflags.int_uses_float) {
+      localfloat = floor(pop_float());
+      localint = localfloat;
+      if (localint == localfloat)
+        push_int(localint);
+      else
+       push_float(localfloat);
+    } else {
+      push_int(TOINT(pop_float()));
+    }
+  }
   else if (GET_TOPITEM != STACK_INT) {
     error(ERR_TYPENUM);
   }
@@ -1560,8 +1573,8 @@ static void fn_usr(void) {
 ** interprets the string as a number as far as the first character that
 ** is not a valid digit, decimal point or 'E' (exponent mark). The number
 ** can be preceded with a sign. Both floating point and integer values
-** are dealt with as well as binary and hexadecimal values. The result
-** is left on the Basic stack
+** are dealt with, but must be decimal values. The result is left on
+** the Basic stack
 */
 static void fn_val(void) {
   stackitem stringtype;
@@ -1578,9 +1591,9 @@ static void fn_val(void) {
     push_int(0);	/* Nothing to do */
   else {
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
-    basicvars.stringwork[descriptor.stringlen] = NUL;
+    basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
-    cp = tonumber(basicvars.stringwork, &isint, &intvalue, &fpvalue);
+    cp = todecimal(basicvars.stringwork, &isint, &intvalue, &fpvalue);
     if (cp == NIL) {	/* Error found when converting number */
       error(intvalue);	/* 'intvalue' is used to return the precise error */
     }

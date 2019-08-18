@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -342,7 +343,7 @@ static boolean
 ** 'isempty' returns true if the line passed to it has nothing on it
 */
 boolean isempty(byte line[]) {
-  return line[OFFSOURCE] == NUL;
+  return line[OFFSOURCE] == asc_NUL;
 }
 
 void save_lineno(byte *where, int32 number) {
@@ -504,7 +505,7 @@ static int32 convert_lineno(void) {
 ** tokenised line buffer
 */
 static char *copy_line(char *lp) {
-  while (*lp != NUL) {
+  while (*lp != asc_NUL) {
     store(*lp);
     lp++;
   }
@@ -521,7 +522,7 @@ static char *copy_line(char *lp) {
 static boolean nextis(char *string) {
   char *cp;
   cp = skip_blanks(lp);
-  return *cp != NUL && strncmp(cp, string, strlen(string)) == 0;
+  return *cp != asc_NUL && strncmp(cp, string, strlen(string)) == 0;
 }
 
 /*
@@ -551,7 +552,7 @@ static int kwsearch(void) {
   }
   abbreviated = n < MAXKWLEN && *cp == '.';
   if (!abbreviated && n == 1) return NOKEYWORD; /* Text is only one character long - Cannot be a keyword */
-  keyword[n] = NUL;
+  keyword[n] = asc_NUL;
   kwlength = n;
   first = keyword[0];
   if (islower(first))
@@ -585,7 +586,7 @@ static int kwsearch(void) {
 */
     if (numbered && islower(first)) return NOKEYWORD;
     if (!numbered) {    /* Line is not numbered so ignore case of keyword */
-      for (n=0; keyword[n] != NUL; n++) keyword[n] = toupper(keyword[n]);
+      for (n=0; keyword[n] != asc_NUL; n++) keyword[n] = toupper(keyword[n]);
       first = keyword[0];
     }
     n = command_start[first - 'A'];
@@ -812,7 +813,7 @@ static void copy_string(void) {
   store('"');           /* Store the quote at the start of the string */
   lp++;
   while (TRUE) {
-    if (*lp == NUL) break;      /* Error - Reached end of line without finding a '"' */
+    if (*lp == asc_NUL) break;      /* Error - Reached end of line without finding a '"' */
     store(*lp);
     if (*lp == '"') {   /* Found a '"' */
       if (*(lp+1) != '"') break;                /* '"' is not followed by '"' so end of string found */
@@ -912,17 +913,17 @@ static void copy_other(void) {
     break;
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
   case '|':     /* Window's code for vertical bar is 221, not 124 */
-    token = VBAR;
+    token = asc_VBAR;
     break;
 #endif
   default:
-    if (token<' ' && token != TAB) token = ' ';
+    if (token<' ' && token != asc_TAB) token = ' ';
   }
   if (tclass != TYPE_ONEBYTE) store(tclass);
   store(token);
   if (token == ':')     /* Update the 'first item in statement' flag */
     firstitem = TRUE;
-  else if (token != ' ' && token != TAB) {
+  else if (token != ' ' && token != asc_TAB) {
     firstitem = FALSE;
   }
   lp++;
@@ -952,7 +953,7 @@ static void tokenise_source(char *start, boolean haslineno) {
     if (basicvars.list_flags.indent)    /* Ignore leading blanks if indenting LISTO option is in effect */
       lp = skip_blanks(lp);
     else {
-      while (*lp == ' ' || *lp == TAB) {        /* Copy leading white space characters */
+      while (*lp == ' ' || *lp == asc_TAB) {        /* Copy leading white space characters */
         store(*lp);
         lp++;
       }
@@ -962,7 +963,7 @@ static void tokenise_source(char *start, boolean haslineno) {
   ch = *lp;
   firstitem = TRUE;     /* Use 'first item in line' tokens where necessary */
   linestart = TRUE;     /* Say that this is the very start of the tokenised line */
-  while (ch != NUL) {
+  while (ch != asc_NUL) {
     if (isidstart(ch)) {                /* Keyword or identifier */
       if (toupper(ch)>='A' && toupper(ch)<='X') /* Possible keyword */
         token = kwsearch();
@@ -1002,14 +1003,14 @@ static void tokenise_source(char *start, boolean haslineno) {
       copy_token();
     else {      /* Anything else */
       copy_other();
-      linenoposs = linenoposs && (ch == ' ' || ch == TAB || ch == ',');
+      linenoposs = linenoposs && (ch == ' ' || ch == asc_TAB || ch == ',');
     }
     linestart = FALSE;
     ch = *lp;
   }
-  store(NUL);                           /* Add a NUL to make it easier to find the end of the line */
+  store(asc_NUL);                           /* Add a NUL to make it easier to find the end of the line */
   store_exec(next);
-  store(NUL);
+  store(asc_NUL);
   store_linelen(next);                  /* Not necessary but it keeps things tidy */
   next--;                               /* So that the next byte will overwrite the NUL */
   if (brackets<0) {                     /* Too many ')' in line */
@@ -1037,7 +1038,7 @@ static void do_keyword(void) {
     if (token == TYPE_COMMAND && (tokenbase[source] == TOKEN_LISTIF || tokenbase[source] == TOKEN_LVAR)) {
      do         /* Find text after LISTIF or LVAR */
        source++;
-     while (tokenbase[source] == ' ' || tokenbase[source] == TAB);
+     while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB);
      store_shortoffset(next-1-source);  /* Add point to text in source part of line */
      source = -1;       /* That's it for this line */
     }
@@ -1076,7 +1077,7 @@ static void do_keyword(void) {
       source = -1;      /* Flag value to say we have finished this line */
       break;
     case TOKEN_TRACE:   /* Just copy the token that follows TRACE so that it is unmangled */
-      while (tokenbase[source] == ' ' || tokenbase[source] == TAB) source++;
+      while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB) source++;
       if (tokenbase[source]>TOKEN_LOWEST) {     /* TRACE is followed by a token */
         store(tokenbase[source]);
         source++;
@@ -1253,8 +1254,8 @@ static void do_string(void) {
 static void do_star(void) {
   do    /* Skip the '*' token at the start of the command */
     source++;
-  while (tokenbase[source] == ' ' || tokenbase[source] == TAB || tokenbase[source] == '*');
-  if (tokenbase[source] != NUL) {       /* There is something after the '*' */
+  while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB || tokenbase[source] == '*');
+  if (tokenbase[source] != asc_NUL) {       /* There is something after the '*' */
     store(TOKEN_STAR);
     store_shortoffset(next-1-source);   /* -1 so that offset is from the '*' token itself */
     source = -1;                /* Flag value to say we have finished this line */
@@ -1275,7 +1276,7 @@ static void translate(void) {
   source = OFFSOURCE;           /* Offset of first byte of tokenised source */
   token = tokenbase[source];
   firstitem = TRUE;
-  while (token != NUL) {        /* Scan through the tokenised source */
+  while (token != asc_NUL) {        /* Scan through the tokenised source */
     if (token == TOKEN_STAR)    /* '*' command */
       do_star();
     else if (token>=TOKEN_LOWEST)       /* Have found a keyword token */
@@ -1295,7 +1296,7 @@ static void translate(void) {
 */
       source++;
       if (token == ')') {
-        while (tokenbase[source] == ' ' || tokenbase[source] == TAB) source++;
+        while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB) source++;
         if (tokenbase[source] == '.') { /* ')' is followed by a '.' - Assume '.' is an operator */
           store('.');
           source++;
@@ -1308,13 +1309,13 @@ static void translate(void) {
       do_number();
     else if (token == '\"')     /* String */
       do_string();
-    else if (token == ' ' || token == TAB)      /* Discard white space characters */
+    else if (token == ' ' || token == asc_TAB)      /* Discard white space characters */
       source++;
     else if (token == ':') {    /* Handle statement separators */
       store(':');
       do
         source++;
-      while (tokenbase[source] == ':' || tokenbase[source] == ' ' || tokenbase[source] == TAB);
+      while (tokenbase[source] == ':' || tokenbase[source] == ' ' || tokenbase[source] == asc_TAB);
       firstitem = TRUE;
     }
     else {      /* Anything else */
@@ -1325,7 +1326,7 @@ static void translate(void) {
     if (source == -1 || lasterror>0) break;     /* Translation finished early or an error was found */
     token = tokenbase[source];
   }
-  store(NUL);
+  store(asc_NUL);
   store_linelen(next);
 }
 
@@ -1347,7 +1348,7 @@ static void mark_badline(void) {
     store(BADLINE_MARK);
     store(lasterror);           /* Store number of error after token */
   }
-  store(NUL);
+  store(asc_NUL);
   store_linelen(next);
 }
 
@@ -1418,7 +1419,7 @@ static int skiptable [] = {
 */
 byte *skip_token(byte *p) {
   int size;
-  if (*p == NUL) return p;      /* At end of line */
+  if (*p == asc_NUL) return p;      /* At end of line */
   size = skiptable[*p];
   if (size>=0) return p+1+size;
   error(ERR_BADPROG);   /* Not a legal token value - Program has been corrupted */
@@ -1544,7 +1545,7 @@ static int expand_token(char *cp, char *namelist[], byte token) {
 static byte *skip_source(byte *p) {
   byte token;
   token = *p;
-  if (token == NUL) return p;
+  if (token == asc_NUL) return p;
   if (token == TOKEN_XLINENUM) return p+1+LINESIZE;
   if (token>=TYPE_COMMAND) return p+2;  /* Two byte token */
   return p+1;
@@ -1589,14 +1590,14 @@ void expand(byte *line, char *text) {
       nextindent-=INDENTSIZE;
       break;
     }
-    while (*lp != NUL) {
+    while (*lp != asc_NUL) {
       switch(*lp) {
       case TOKEN_WHILE: case TOKEN_XWHILE: case TOKEN_REPEAT: case TOKEN_FOR:
       case TOKEN_CASE: case TOKEN_XCASE:
         nextindent+=INDENTSIZE;
         break;
       case TOKEN_THEN:
-        if (*(lp+1) == NUL) nextindent+=INDENTSIZE;     /* Block IF */
+        if (*(lp+1) == asc_NUL) nextindent+=INDENTSIZE;     /* Block IF */
         break;
       case TOKEN_ENDWHILE: case TOKEN_UNTIL:
         if (nextindent == thisindent) thisindent-=INDENTSIZE;
@@ -1606,7 +1607,7 @@ void expand(byte *line, char *text) {
         if (nextindent == thisindent) thisindent-=INDENTSIZE;
         nextindent-=INDENTSIZE;
         lp = skip_source(lp);
-        while (*lp != NUL && *lp != ':' && *lp != TOKEN_XELSE && *lp != TOKEN_ELSE) { /* Check for 'NEXT I%,J%,K%' */
+        while (*lp != asc_NUL && *lp != ':' && *lp != TOKEN_XELSE && *lp != TOKEN_ELSE) { /* Check for 'NEXT I%,J%,K%' */
           if (*lp == ',')  nextindent-=INDENTSIZE;
           lp = skip_source(lp);
         }
@@ -1625,7 +1626,7 @@ void expand(byte *line, char *text) {
   }
   token = *lp;
 /* Indentation sorted out. Now expand the line */
-  while (token != NUL) {
+  while (token != asc_NUL) {
 /* Deal with special cases first */
     if (token == TOKEN_XLINENUM) {      /* Line number */
       lp++;
@@ -1640,7 +1641,7 @@ void expand(byte *line, char *text) {
         *text = *lp;
         text++;
         lp++;
-      } while (*lp != '"' && *lp != NUL);
+      } while (*lp != '"' && *lp != asc_NUL);
       if (*lp == '"') { /* '"' at end of string */
         *text = '"';
         text++;
@@ -1656,7 +1657,7 @@ void expand(byte *line, char *text) {
       count = expand_token(text, onebytelist, token-TOKEN_LOWEST);
       text+=count;
       lp++;
-      while (*lp != NUL) {      /* Copy rest of line after 'DATA' or ' REM' */
+      while (*lp != asc_NUL) {      /* Copy rest of line after 'DATA' or ' REM' */
         *text = *lp;
         text++;
         lp++;
@@ -1690,7 +1691,7 @@ void expand(byte *line, char *text) {
     }
     token = *lp;
   }
-  *text = NUL;
+  *text = asc_NUL;
 }
 
 void reset_indent(void) {
@@ -1750,10 +1751,10 @@ static void clear_varaddrs(byte *bp) {
   int offset;
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
-  while (*tp != NUL) {
+  while (*tp != asc_NUL) {
     if (*tp == TOKEN_XVAR || (*tp >= TOKEN_INTVAR && *tp <= TOKEN_FLOATINDVAR)) {
-      while (*sp != TOKEN_XVAR && *sp != NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
-      if (*sp == NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
+      while (*sp != TOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
+      if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
       sp++;     /* Point at first char of name */
       if (*tp != TOKEN_XVAR) {
         *tp = TOKEN_XVAR;
@@ -1763,8 +1764,8 @@ static void clear_varaddrs(byte *bp) {
       }
     }
     else if (*tp == TOKEN_FNPROCALL || *tp == TOKEN_XFNPROCALL) {
-      while (*sp != TOKEN_PROC && *sp != TOKEN_FN && *sp != NUL) sp++;  /* Find PROC/FN name */
-      if (*sp == NUL) error(ERR_BROKEN, __LINE__, "tokens");
+      while (*sp != TOKEN_PROC && *sp != TOKEN_FN && *sp != asc_NUL) sp++;  /* Find PROC/FN name */
+      if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");
       if (*tp == TOKEN_FNPROCALL) {     /* Reset PROC/FN ref that has been filled in */
         *tp = TOKEN_XFNPROCALL;
         offset = tp-sp;         /* Offset from 'XVAR' token to variable name */
@@ -1790,7 +1791,7 @@ static void clear_branches(byte *bp) {
   byte *tp, *lp;
   int line;
   tp = FIND_EXEC(bp);
-  while (*tp != NUL) {
+  while (*tp != asc_NUL) {
     switch (*tp) {
     case TOKEN_LINENUM:
       *tp = TOKEN_XLINENUM;     /* Reset to 'X' version of token */
@@ -1871,7 +1872,7 @@ boolean isvalid(byte *bp) {
   execoff = get_exec(bp);
   if (execoff<OFFSOURCE || execoff>length) return FALSE;
   base = cp = bp+execoff;
-  while (cp-base<=length && *cp != NUL) {
+  while (cp-base<=length && *cp != asc_NUL) {
     token = *cp;
     if (token<=LOW_HIGHEST) {   /* In lower block of tokens */
       if (!legalow[token]) return FALSE;        /* Bad token value found */
@@ -1893,7 +1894,7 @@ boolean isvalid(byte *bp) {
     }
     cp = skip_token(cp);
   }
-  return (*cp == NUL);
+  return (*cp == asc_NUL);
 }
 
 /*
@@ -1905,7 +1906,7 @@ void resolve_linenums(byte *bp) {
   byte *dest;
   int32 line;
   bp = FIND_EXEC(bp);
-  while (*bp != NUL) {
+  while (*bp != asc_NUL) {
     if (*bp == TOKEN_XLINENUM) {        /* Unresolved reference */
       line = get_linenum(bp);
       dest = find_line(line);
@@ -1933,10 +1934,10 @@ void reset_linenums(byte *bp) {
   int32 line;
   sp = bp+OFFSOURCE;
   bp = FIND_EXEC(bp);
-  while (*bp != NUL) {
+  while (*bp != asc_NUL) {
     if (*bp == TOKEN_LINENUM || *bp == TOKEN_XLINENUM) {        /* Find corresponding ref in source */
-      while (*sp != TOKEN_XLINENUM && *sp != NUL) sp++;
-      if (*sp == NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Sanity check */
+      while (*sp != TOKEN_XLINENUM && *sp != asc_NUL) sp++;
+      if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Sanity check */
     }
     if (*bp == TOKEN_LINENUM) { /* Line number reference that has to be updated */
       dest = get_address(bp);
@@ -2164,7 +2165,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
       if (token == 0xCDu) {                                           /* CD    */
         p=(char *)tp+1;
         while(*p == ' ') p++;
-        if (*p == CR || *p == ':') {
+        if (*p == asc_CR || *p == ':') {
           p = onebyte_token[token-ACORNONE_LOWEST];
         } else {
           p = bbcbyte_token[token-ACORN_OTHER];
@@ -2249,7 +2250,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
     }
     token = *tp;
   }
-  *cp = NUL;    /* Complete the line */
+  *cp = asc_NUL;    /* Complete the line */
   tokenize(line, tokenbuf, HASLINE, FALSE);
   return get_linelen(tokenbuf);
 }

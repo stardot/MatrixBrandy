@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -26,6 +27,9 @@
 
 #include <setjmp.h>
 #include <stdio.h>
+#ifdef USE_SDL
+#include <SDL.h>
+#endif
 #include "common.h"
 #include "target.h"
 
@@ -497,6 +501,11 @@ typedef struct {
   int32 linecount;			/* Used when reading a Basic program or library into memory */
   variable staticvars[STDVARS];		/* Static integer variables @%-Z% */
   variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions */
+  int64 centiseconds;			/* Centisecond timer, populated by sub-thread */
+  int64 monotonictimebase;		/* Baseline for OS_ReadMonotonicTime */
+#ifdef USE_SDL
+  SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
+#endif  
   char program[FNAMESIZE];		/* Name of program loaded */
   char filename[FNAMESIZE];		/* Name of last file read */
   cmdarg *arglist;			/* Pointer to list of Basic program command line arguments */
@@ -507,10 +516,20 @@ extern workspace basicvars;		/* Interpreter variables for the Basic program */
 /* Flags used by Matrix Brandy extensions, that need to be available in more than one place */
 typedef struct {
   int gpio;				/* TRUE if RPi GPIO present and usable */
+  int i2c;
   byte *gpiomem;			/* Pointer for where mmap() places /dev/gpiomem */
   uint32 *gpiomemint;			/* Unsigned int32 version of gpiomem */
   unsigned int scrunge;			/* Is the BASIC program scrunged? */
   FILE *doexec;				/* Are we doing a *EXEC? */
+  FILE *dospool;			/* Are we doing a *SPOOL / *SPOOLON? */
+  int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
+  uint32 int_uses_float;		/* Does INT() use floats? */
+  uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
+#ifdef USE_SDL
+  byte *modescreen_ptr;			/* Mode screen pointer */
+  uint32 modescreen_sz;			/* Mode screen size */
+  uint32 mode7fb;			/* Start of MODE 7 frame buffer space */
+#endif
 } matrixbits;
 extern matrixbits matrixflags;
 

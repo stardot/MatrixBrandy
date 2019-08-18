@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -456,7 +457,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       save_string(fp->parameter, descriptor);	/* Save the '$<string>' string */
     }
     if (stringparm.stringlen > 0) memmove(sp, stringparm.stringaddr, stringparm.stringlen);
-    sp[stringparm.stringlen] = CR;
+    sp[stringparm.stringlen] = asc_CR;
     if (parmtype == STACK_STRTEMP) free_string(stringparm);
     break;
   }
@@ -752,6 +753,9 @@ static void do_arrayref(void) {
 static void do_indrefvar(void) {
   byte operator;
   int32 offset;
+#ifdef USE_SDL
+  int32 msx, msy, loop, val = 0;
+#endif
   if (*basicvars.current == TOKEN_INTINDVAR)	/* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
   else {
@@ -770,10 +774,46 @@ static void do_indrefvar(void) {
   }
   if (operator == '?') {	/* Byte-sized integer */
     check_read(offset, sizeof(byte));
+#ifdef USE_SDL
+    if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
+      /* Mode 7 screen memory */
+      offset -= matrixflags.mode7fb;
+      if (offset >= 1000) {
+	push_int(0);
+      } else {
+	msy = offset / 40;
+	msx = offset % 40;
+	push_int(mode7frame[msy][msx]);
+      }
+    } else {
+      push_int(basicvars.offbase[offset]);
+    }
+#else
     push_int(basicvars.offbase[offset]);
+#endif /* USE_SDL */
   }
   else {		/* Word-sized integer */
+#ifdef USE_SDL
+    if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
+      /* Mode 7 screen memory */
+      offset -= matrixflags.mode7fb;
+      if (offset >= 1000) {
+	push_int(0);
+      } else {
+	for (loop=3; loop>=0; loop--) {
+	  val = val << 8;
+	  msy = (offset+loop) / 40;
+	  msx = (offset+loop) % 40;
+	  if (msy < 25) val += mode7frame[msy][msx];
+	}
+	push_int(val);
+      }
+    } else {
+      push_int(get_integer(offset));
+    }
+#else
     push_int(get_integer(offset));
+#endif
   }
 }
 
@@ -941,9 +981,9 @@ static void do_getbyte(void) {
   }
   check_read(offset, sizeof(byte));
 #ifdef USE_SDL
-  if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFFu) {
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset -= 0xFFFF7C00u;
+    offset -= matrixflags.mode7fb;
     if (offset >= 1000) {
       push_int(0);
     } else {
@@ -979,9 +1019,9 @@ static void do_getword(void) {
     error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
-  if (offset >= 0xFFFF7C00u && offset <= 0xFFFF7FFCu) {
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1020)) {
     /* Mode 7 screen memory */
-    offset -= 0xFFFF7C00u;
+    offset -= matrixflags.mode7fb;
     if (offset >= 1000) {
       push_int(0);
     } else {
@@ -1236,9 +1276,21 @@ static void eval_ivplus(void) {
   stackitem lhitem;
   int32 rhint = pop_int();	/* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)
-    INCR_INT(rhint);		/* int+int - Update value on stack in place */
-  else if (lhitem == STACK_FLOAT)
+  if (lhitem == STACK_INT) {
+    if (matrixflags.legacyintmaths) {
+      INCR_INT(rhint);		/* int+int - Update value on stack in place */
+    } else {
+      float64 lhfloat;
+      int32 lhint=pop_int();
+      lhfloat=TOFLOAT(lhint);
+      lhint += rhint;
+      lhfloat += TOFLOAT(rhint);
+      if (lhfloat == lhint)
+        push_int(lhint);
+      else
+        push_float(lhfloat);
+    }
+  } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
     basicarray *lharray;
@@ -1559,9 +1611,21 @@ static void eval_ivminus(void) {
   stackitem lhitem;
   int32 rhint = pop_int();
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
-    DECR_INT(rhint);
-  else if (lhitem == STACK_FLOAT)
+  if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
+    if (matrixflags.legacyintmaths) {
+      DECR_INT(rhint);
+    } else {
+      float64 lhfloat;
+      int32 lhint=pop_int();
+      lhfloat=TOFLOAT(lhint);
+      lhint -= rhint;
+      lhfloat -= TOFLOAT(rhint);
+      if (lhfloat == lhint)
+        push_int(lhint);
+      else
+        push_float(lhfloat);
+    }
+  } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
     basicarray *lharray;
@@ -1758,22 +1822,16 @@ static void eval_ivmul(void) {
   int32 rhint = pop_int();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
+    float64 lhfloat;
     int32 lhint = pop_int();
-    if (CAST(lhint|rhint, uint32)<0x8000u) {	/* Result can be represented in thirty two bits */
-      PUSH_INT(lhint*rhint);
-    }
-    else {	/* Result may overflow thirty two bits - Use floating point multiply */
-      floatvalue = TOFLOAT(lhint)*TOFLOAT(rhint);
-      if (fabs(floatvalue) <= TOFLOAT(MAXINTVAL)) {	/* If in range, convert back to integer */
-        PUSH_INT(TOINT(floatvalue));
-      }
-      else {
-        error(ERR_RANGE);	/* I'd prefer to just convert the value to floating point */
-        PUSH_FLOAT(floatvalue);	/* This PUSH_FLOAT will never be executed but is what is needed for this */
-      }
-    }
-  }
-  else if (lhitem == STACK_FLOAT)
+    lhfloat=TOFLOAT(lhint);
+    lhint *= rhint;
+    lhfloat *= TOFLOAT(rhint);
+    if (lhfloat == lhint)
+      push_int(lhint);
+    else
+      push_float(lhfloat);
+  } else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
     basicarray *lharray;

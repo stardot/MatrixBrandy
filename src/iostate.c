@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -53,7 +54,7 @@ static void fn_spc(void) {
   int32 count;
   count = eval_intfactor();
   if (count > 0) {
-    count = count & BYTEMASK;	/* Basic V only uses the low-order byte of the value */
+    count = count & BYTEMASK;	/* Basic V/VI only uses the low-order byte of the value */
     basicvars.printcount+=count;
     echo_off();
     while (count > 0) {
@@ -113,7 +114,7 @@ static char *input_number(lvalue destination, char *p) {
   static float64 fpvalue;
   p = tonumber(p, &isint, &intvalue, &fpvalue);
   if (p == NIL) return NIL;	/* 'tonumber' hit an error - return to caller */
-  while (*p != NUL && *p != ',') p++;	/* Find the end of the field */
+  while (*p != asc_NUL && *p != ',') p++;	/* Find the end of the field */
   if (*p == ',') p++;		/* Move to start of next field */
   switch (destination.typeinfo) {
   case VAR_INTWORD:	/* Normal integer variable */
@@ -152,7 +153,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   int32 index;
   index = 0;
   if (inputall) {	/* Want everything up to the end of line */
-    while (*p != NUL) {
+    while (*p != asc_NUL) {
       if (index == MAXSTRING) error(ERR_STRINGLEN);
       tempstring[index] = *p;
       index++;
@@ -163,7 +164,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
     p = skip_blanks(p);
     if (*p == '\"') {	/* Want string up to next double quote */
       p++;
-      more = *p != NUL;
+      more = *p != asc_NUL;
       while (more) {
         if (*p == '\"') {	/* Found a '"'. See if it is followed by another one */
           p++;
@@ -174,19 +175,19 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
           tempstring[index] = *p;
           index++;
           p++;
-          if (*p == NUL) error(WARN_QUOTEMISS);
+          if (*p == asc_NUL) error(WARN_QUOTEMISS);
         }
       }
     }
     else {	/* Normal string */
-      while (*p != NUL && *p != ',') {
+      while (*p != asc_NUL && *p != ',') {
         if (index == MAXSTRING) error(ERR_STRINGLEN);
         tempstring[index] = *p;
         index++;
         p++;
       }
     }
-    while (*p != NUL && *p != ',') p++;
+    while (*p != asc_NUL && *p != ',') p++;
     if (*p == ',') p++;
   }
   if (destination.typeinfo == VAR_STRINGDOL) {	/* Normal string variable */
@@ -198,7 +199,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   }
   else {	/* '$<addr>' variety of string */
     check_write(destination.address.offset, index+1);	/* +1 for CR character added to end */
-    tempstring[index] = CR;
+    tempstring[index] = asc_CR;
     memmove(&basicvars.offbase[destination.address.offset], tempstring, index+1);
   }
   return p;
@@ -219,7 +220,7 @@ static void read_input(boolean inputline) {
   do {	/* Loop around prompts and items to read */
     while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
     token = *basicvars.current;
-    line [0] = NUL;
+    line [0] = asc_NUL;
     prompted = FALSE;
 /* Deal with prompt */
     while (token == TOKEN_STRINGCON || token == TOKEN_QSTRINGCON || token == '\'' || token == TYPE_PRINTFN) {
@@ -271,7 +272,7 @@ static void read_input(boolean inputline) {
      && *basicvars.current != TOKEN_STRINGCON && *basicvars.current != TOKEN_QSTRINGCON
      && *basicvars.current != '\'' && *basicvars.current != TYPE_PRINTFN) {
       get_lvalue(&destination);
-      if (*cp == NUL) {	 /* There be nowt left to read on the line */
+      if (*cp == asc_NUL) {	 /* There be nowt left to read on the line */
         if (!prompted) emulate_vdu('?');
         prompted = FALSE;
         if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
@@ -306,7 +307,7 @@ static void read_input(boolean inputline) {
       }
       while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
       if (inputline) {	/* Signal that another line is required for 'INPUT LINE' */
-        line[0] = NUL;
+        line[0] = asc_NUL;
         cp = &line[0];
       }
     }
@@ -618,8 +619,9 @@ void exec_ellipse(void) {
 
 /*
 ** 'exec_envelope' deals with the Basic 'ENVELOPE' statement. Under
-** Basic V, this statement has no effect and appears to be supported
-** only for backwards compatibilty with the BBC Micro
+** Basic V/VI, this statement calls the appropriate OS_Word call, however
+** this call has no effect in RISC OS and appears to be supported
+** only for backwards compatibilty with the BBC Micro.
 */
 void exec_envelope(void) {
   int32 n;
@@ -855,7 +857,7 @@ static void input_file(void) {
     case VAR_DOLSTRPTR:
       check_write(destination.address.offset, MAXSTRING);
       length = fileio_getstring(handle, CAST(&basicvars.offbase[destination.address.offset], char *));
-      basicvars.offbase[destination.address.offset+length] = CR;
+      basicvars.offbase[destination.address.offset+length] = asc_CR;
       break;
     default:
       error(ERR_VARNUMSTR);
@@ -959,12 +961,12 @@ static void exec_modestr(stackitem itemtype) {
   descriptor = pop_string();
   cp = descriptor.stringaddr;
   if (descriptor.stringlen > 0) memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
-  *(basicvars.stringwork+descriptor.stringlen) = NUL;
+  *(basicvars.stringwork+descriptor.stringlen) = asc_NUL;
   if (itemtype == STACK_STRTEMP) free_string(descriptor);
   cp = basicvars.stringwork;
 /* Parse the mode descriptor string */
   while (*cp == ' ' || *cp == ',') cp++;
-  if (*cp == NUL) return;	/* There is nothing to do */
+  if (*cp == asc_NUL) return;	/* There is nothing to do */
   if (isdigit(*cp)) {	/* String contains a numeric mode number */
     int32 mode = 0;
     do {
@@ -1047,7 +1049,7 @@ static void exec_modestr(stackitem itemtype) {
         error(ERR_BADMODESC);
       }
       while (*cp == ' ' || *cp == ',') cp++;
-    } while (*cp != NUL);
+    } while (*cp != asc_NUL);
     emulate_modestr(xres, yres, colours, greys, xeig, yeig, rate);
   }
 }
@@ -1361,13 +1363,13 @@ static void print_screen(void) {
   if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
   switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
   case FORMAT_E:
-    leftfmt = "%.*e"; rightfmt = "%*.*e";
+    leftfmt = "%.*E"; rightfmt = "%*.*E";
     break;
   case FORMAT_F:
-    leftfmt = "%.*f"; rightfmt = "%*.*f";
+    leftfmt = "%.*F"; rightfmt = "%*.*F";
     break;
   default:	/* Assume anything else will be general format */
-    leftfmt = "%.*g"; rightfmt = "%*.*g";
+    leftfmt = "%.*G"; rightfmt = "%*.*G";
     break;
   }
   while (!ateol[*basicvars.current]) {
@@ -1448,9 +1450,9 @@ static void print_screen(void) {
       break;
     case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
-        if (hex)
+        if (hex) {
           size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
-        else {
+        } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_float());
         }
       }

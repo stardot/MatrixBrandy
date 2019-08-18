@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -75,7 +76,7 @@ typedef enum {NOPARM, INTEGER, INTSTR, STRING, BSTRING} errorparm;
 typedef struct {
   errortype severity;           /* Severity of error */
   errorparm parmtype;           /* Type of parameters error message takes */
-  int32 equiverror;             /* Equivalent Basic V error number for ERR */
+  int32 equiverror;             /* Equivalent Basic V/VI error number for ERR */
   char *msgtext;                /* Pointer to text of message */
 } detail;
 
@@ -122,7 +123,7 @@ static void handle_signal(int signo) {
     error(ERR_ARITHMETIC);
   case SIGSEGV:
     (void) signal(SIGSEGV, handle_signal);
-    error(ERR_ADDRESS);
+    error(ERR_ADDREXCEPT);
 #if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
  | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
   case SIGCONT:
@@ -159,6 +160,7 @@ static DWORD watch_escape(LPVOID unused) {
       alreadyraised = FALSE;
     Sleep(5);
   }
+  return 0; /* Execution never reaches here, but keeps compiler quiet */
 }
 
 /*
@@ -179,7 +181,7 @@ void watch_signals(void) {
 ** to 'false'
 */
 void init_errors(void) {
-  errortext[0] = NUL;
+  errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
 #ifndef TARGET_MINGW
     (void) signal(SIGUSR1, handle_signal);
@@ -238,9 +240,12 @@ void announce(void) {
 //cmd_ver(); emulate_prinf("\n");
   emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
+#ifdef BRANDY_GITCOMMIT
+  emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+#endif
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\n", &basicvars, &thisline);
-  emulate_printf("Workspace is at &%X, size is &%X, page = &%X\r\nhimem = &%X\r\n",
-   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+  emulate_printf("Workspace is at &%X, size is &%X, offbase = &%X\r\nPAGE = &%X (relative &%X), HIMEM = &%X (relative &%X)\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.offbase, basicvars.page, basicvars.page - basicvars.offbase, basicvars.himem, basicvars.himem - basicvars.offbase);
 #endif
 }
 
@@ -248,32 +253,34 @@ void announce(void) {
 ** 'show_options' prints some information on the program and the listing
 ** and debugging options in effect
 */
-void show_options(void) {
+void show_options(int32 showextra) {
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("%s\r\n  Git commit %s on branch %s (%s)\r\n\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #else
   emulate_printf("%s\r\n\n", IDSTRING);
 #endif
-  if (basicvars.program[0] != NUL) emulate_printf("Program name: %s\r\n\n", basicvars.program);
+  if (basicvars.program[0] != asc_NUL) emulate_printf("Program name: %s\r\n\n", basicvars.program);
   if (basicvars.loadpath != NIL) emulate_printf("Directory search list for libraries: %s\r\n\n", basicvars.loadpath);
   emulate_printf("The program starts at &%X and is %d bytes long.\r\nVariables start at &%X and occupy %d bytes. %d bytes of memory remain\r\n",
    basicvars.page - basicvars.offbase, basicvars.top - basicvars.page,
    basicvars.lomem - basicvars.offbase, basicvars.vartop - basicvars.lomem,
    basicvars.himem - basicvars.vartop);
-  emulate_printf("\r\nLISTO options in effect:\r\n");
-  emulate_printf("  Indent statements:                %s\r\n", basicvars.list_flags.indent ? "Yes" : "No");
-  emulate_printf("  Do not show line number:          %s\r\n", basicvars.list_flags.noline ? "Yes" : "No");
-  emulate_printf("  Insert space after line number:   %s\r\n", basicvars.list_flags.space ? "Yes" : "No");
-  emulate_printf("  Split lines at colon:             %s\r\n", basicvars.list_flags.split ? "Yes" : "No");
-  emulate_printf("  Show keywords in lower case:      %s\r\n", basicvars.list_flags.lower ? "Yes" : "No");
-  emulate_printf("  Pause after showing 20 lines:     %s\r\n", basicvars.list_flags.showpage ? "Yes" : "No");
-  emulate_printf("\nTRACE debugging options in effect:\r\n");
-  emulate_printf("  Show numbers of lines executed:   %s\r\n", basicvars.traces.lines ? "Yes" : "No");
-  emulate_printf("  Show PROCs and FNs entered/left:  %s\r\n", basicvars.traces.procs ? "Yes" : "No");
-  emulate_printf("  Pause before each statement:      %s\r\n", basicvars.traces.pause ? "Yes" : "No");
-  emulate_printf("  Show lines branched from/to:      %s\r\n", basicvars.traces.branches ? "Yes" : "No");
-  emulate_printf("  Show PROC/FN call trace on error: %s\r\n\n", basicvars.traces.backtrace ? "Yes" : "No");
-  if (basicvars.tracehandle != 0) emulate_printf("Trace output is being written to a file\r\n\n");
+  if (showextra) {
+    emulate_printf("\r\nLISTO options in effect:\r\n");
+    emulate_printf("  Indent statements:                %s\r\n", basicvars.list_flags.indent ? "Yes" : "No");
+    emulate_printf("  Do not show line number:          %s\r\n", basicvars.list_flags.noline ? "Yes" : "No");
+    emulate_printf("  Insert space after line number:   %s\r\n", basicvars.list_flags.space ? "Yes" : "No");
+    emulate_printf("  Split lines at colon:             %s\r\n", basicvars.list_flags.split ? "Yes" : "No");
+    emulate_printf("  Show keywords in lower case:      %s\r\n", basicvars.list_flags.lower ? "Yes" : "No");
+    emulate_printf("  Pause after showing 20 lines:     %s\r\n", basicvars.list_flags.showpage ? "Yes" : "No");
+    emulate_printf("\nTRACE debugging options in effect:\r\n");
+    emulate_printf("  Show numbers of lines executed:   %s\r\n", basicvars.traces.lines ? "Yes" : "No");
+    emulate_printf("  Show PROCs and FNs entered/left:  %s\r\n", basicvars.traces.procs ? "Yes" : "No");
+    emulate_printf("  Pause before each statement:      %s\r\n", basicvars.traces.pause ? "Yes" : "No");
+    emulate_printf("  Show lines branched from/to:      %s\r\n", basicvars.traces.branches ? "Yes" : "No");
+    emulate_printf("  Show PROC/FN call trace on error: %s\r\n\n", basicvars.traces.backtrace ? "Yes" : "No");
+    if (basicvars.tracehandle != 0) emulate_printf("Trace output is being written to a file\r\n\n");
+  }
 }
 
 void show_help(void) {
@@ -281,7 +288,9 @@ void show_help(void) {
   printf("    brandy [<options>]\n\n");
   printf("where <options> is one or more of the following options:\n");
   printf("  -help          Print this message\n");
+  printf("  -version       Print version\n");
   printf("  -size <size>   Set Basic workspace size to <size> bytes when starting\n");
+  printf("                 Suffix with K or M to specify size in kilobytes or megabytes.\n");
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");
   printf("  -chain <file>  Run Basic program <file> and stay in interpreter when it ends\n");
@@ -345,184 +354,186 @@ void cmderror(int32 errnumber, ...) {
 ** the Basic interpreter
 */
 static detail errortable [] = {
-  {INFO,     NOPARM,   0, "No error"},
-  {FATAL,    NOPARM,   0, "Unsupported Basic V feature found"},
-  {FATAL,    NOPARM,   0, "Unsupported Basic V statement type found"},
-  {FATAL,    NOPARM,   0, "This version of the interpreter does not support graphics"},
-  {FATAL,    NOPARM,   0, "VDU commands cannot be used as output is not to a screen"},
-  {NONFATAL, NOPARM,  16, "Syntax error"},
-  {NONFATAL, NOPARM,   0, "Silly!"},
-  {NONFATAL, NOPARM,   0, "Bad program"},
-  {NONFATAL, NOPARM,  17, "Escape"},
-  {FATAL,    NOPARM,   0, "STOP"},
-  {NONFATAL, NOPARM,   0, "Line is longer than 1024 characters"},
-  {NONFATAL, NOPARM,   0, "Line number is outside the range 0..65279"},
-  {NONFATAL, INTEGER, 41, "Cannot find line %d"},
-  {NONFATAL, STRING,  26, "Cannot find variable '%s'"},
-  {NONFATAL, STRING,  14, "Cannot find array '%s)'"},
-  {NONFATAL, STRING,  29, "Cannot find function 'FN%s'"},
-  {NONFATAL, STRING,  29, "Cannot find procedure 'PROC%s'"},
-  {NONFATAL, BSTRING, 31, "There are too many parameters in the call to '%s'"},
-  {NONFATAL, BSTRING, 31, "There are not enough parameters in the call to '%s'"},
-  {NONFATAL, INTEGER, 31, "Parameter no. %d is not a valid 'RETURN' parameter"},
-  {NONFATAL, NOPARM,  31, "Call to built-in function has too many parameters"},
-  {NONFATAL, NOPARM,  31, "Call to built-in function does not have enough parameters"},
-  {FATAL,    NOPARM,   0, "Program execution has run into a PROC or FN"},
-  {FATAL,    STRING,  11, "There is not enough memory to create array '%s)'"},
-  {FATAL,    STRING,  11, "There is not enough memory to create a byte array"},
-  {NONFATAL, STRING,  10, "Dimension of array '%s)' is negative"},
-  {NONFATAL, STRING,  10, "Array '%s)' has too many dimensions"},
-  {NONFATAL, STRING,  10, "Array '%s)' has already been created"},
-  {NONFATAL, INTSTR,  15, "Array index value of %d is out of range in reference to '%s)'"},
-  {NONFATAL, STRING,  15, "Number of array indexes in reference to '%s)' is wrong"},
-  {NONFATAL, NOPARM,  15, "The dimension number in call to 'DIM()' is out of range"},
-  {NONFATAL, STRING,  14, "The dimensions of array '%s)' have not been defined"},
-  {NONFATAL, NOPARM, 242, "Address is out of range"},
-  {WARNING,  NOPARM,   0, "Value entered is not a legal token value"},
-  {WARNING,  NOPARM,  28, "Warning: bad hexadecimal constant"},
-  {WARNING,  NOPARM,  28, "Warning: bad binary constant"},
-  {WARNING,  NOPARM,  20, "Warning: exponent is too large"},
-  {NONFATAL, NOPARM,   0, "Variable name expected"},
-  {NONFATAL, NOPARM,   4,  "'=' missing or syntax error in statement has misled interpreter"},
-  {NONFATAL, NOPARM,  27, "Missing ','"},
-  {NONFATAL, NOPARM,  27, "Missing '('"},
-  {NONFATAL, NOPARM,  27, "Missing ')'"},
-  {WARNING,  NOPARM,   9, "Warning: missing '\"'"},
-  {NONFATAL, NOPARM,   9, "Missing '\"'"},
-  {NONFATAL, NOPARM,  45, "Missing '#'"},
-  {NONFATAL, NOPARM,  49, "Cannot find matching 'ENDIF' for this 'IF' or 'ELSE'"},
-  {NONFATAL, NOPARM,  49, "Cannot find 'ENDWHILE' matching this 'WHILE'"},
-  {NONFATAL, NOPARM,  47, "Cannot find 'ENDCASE'"},
-  {NONFATAL, NOPARM,  48, "'OF' missing"},
-  {NONFATAL, NOPARM,  36, "'TO' missing"},
-  {NONFATAL, NOPARM,  27, "',' or ')' expected"},
-  {NONFATAL, NOPARM,  46, "Not in a 'WHILE' loop"},
-  {NONFATAL, NOPARM,  43, "Not in a 'REPEAT' loop"},
-  {NONFATAL, NOPARM,  32, "Not in a 'FOR' loop"},
-  {NONFATAL, NOPARM,  18, "Division by zero"},
-  {NONFATAL, NOPARM,  21, "Tried to take square root of a negative number"},
-  {NONFATAL, NOPARM,  22, "Tried to take log of zero or a negative number"},
-  {NONFATAL, NOPARM,  20, "Number is out of range"},
-  {NONFATAL, INTEGER, 40, "'ON' statement index value of %d is out of range"},
-  {NONFATAL, NOPARM,  20, "Floating point exception"},
-  {NONFATAL, NOPARM,  19, "Character string is too long"},
-  {NONFATAL, NOPARM,   0, "Unrecognisable operand"}, // need to check what uses this
-  {NONFATAL, NOPARM,   6, "Type mismatch: number wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: string wanted"},
-  {NONFATAL, INTEGER,  6, "Type mismatch: number wanted for PROC/FN parameter no. %d"},
-  {NONFATAL, INTEGER,  6, "Type mismatch: string wanted for PROC/FN parameter no. %d"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: numeric variable wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: string variable wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: number or string wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: array wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: integer array wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: floating point array wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: string array wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: numeric array wanted"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: array must have only one dimension"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: arrays must have the same dimensions"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: cannot perform matrix multiplication on these arrays"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: cannot swap variables or arrays of different types"},
-  {NONFATAL, NOPARM,   6, "Type mismatch: cannot compare these operands"},
-  {NONFATAL, NOPARM,   6, "Arithmetic operations cannot be performed on these operands"},
-  {NONFATAL, NOPARM,  16, "Syntax error in expression"},
-  {NONFATAL, NOPARM,  38, "RETURN encountered outside a subroutine"},
-  {NONFATAL, NOPARM,  30, "Functions cannot be used as PROCs"},
-  {NONFATAL, NOPARM,  30, "PROCs cannot be used as functions"},
-  {NONFATAL, NOPARM,  13, "ENDPROC encountered outside a PROC"},
-  {NONFATAL, NOPARM,   7, "'=' (function return) encountered outside a function"},
-  {NONFATAL, NOPARM,  12, "LOCAL found outside a PROC or FN"},
-  {NONFATAL, NOPARM,  42, "There are no more 'DATA' statements to read"},
-  {FATAL,    NOPARM,   0, "The interpreter has run out of memory"},
-  {NONFATAL, NOPARM,  47, "'CASE' statement has too many 'WHEN' clauses"},
-  {NONFATAL, NOPARM,  51, "'SYS' statement has too many parameters"},
-  {FATAL,    NOPARM,   0, "Arithmetic stack overflow"},
-  {FATAL,    NOPARM,   0, "Expression is too complex to evaluate"},
-  {WARNING,  NOPARM,   0, "Value of HIMEM must be in the range END to end of the Basic workspace"},
-  {WARNING,  NOPARM,   0, "Value of LOMEM must be in the range TOP to end of the Basic workspace"},
-  {WARNING,  NOPARM,   0, "Value of PAGE must lie in the Basic workspace"},
-  {NONFATAL, NOPARM,   0, "LOMEM cannot be changed in a PROC or FN"}, // need to check what uses this
-  {NONFATAL, NOPARM,   0, "HIMEM cannot be changed in a PROC, FN or any other program structure"},
-  {NONFATAL, NOPARM,   0, "Invalid option found after 'TRACE'"},
-  {NONFATAL, NOPARM,  54, "'RESTORE ERROR' information is not the top item on the Basic stack"},
-  {NONFATAL, NOPARM,  54, "'RESTORE DATA' information is not the top item on the Basic stack"},
-  {NONFATAL, NOPARM,   4, "'SPC()' or 'TAB()' found outside an 'INPUT' or 'PRINT' statement"},
-  {NONFATAL, NOPARM,  25, "Screen mode descriptor is invalid"},
-  {NONFATAL, NOPARM,  25, "Screen mode is not available"},
-  {WARNING,  STRING,   0, "Library '%s' has already been loaded. Command ignored"},
-  {NONFATAL, STRING, 214, "Cannot find library '%s'"},
-  {FATAL,    STRING,   0, "There is not enough memory to load library '%s'"},
-  {NONFATAL, NOPARM,   0, "'LIBRARY LOCAL' can only be used at the start of a library"},
-  {NONFATAL, NOPARM,   0, "File name missing"},
+/* ERR_NONE*/		{INFO,     NOPARM,   0, "No error"},
+/* ERR_UNSUPPORTED */	{FATAL,    NOPARM,   0, "Unsupported Basic V/VI feature found"},
+/* ERR_UNSUPSTATE */	{FATAL,    NOPARM,   0, "Unsupported Basic V/VI statement type found"},
+/* ERR_NOGRAPHICS */	{FATAL,    NOPARM,   0, "This version of the interpreter does not support graphics"},
+/* ERR_NOVDUCMDS */	{FATAL,    NOPARM,   0, "VDU commands cannot be used as output is not to a screen"},
+/* ERR_SYNTAX */	{NONFATAL, NOPARM,  16, "Syntax error"},
+/* ERR_SILLY */		{NONFATAL, NOPARM,   0, "Silly!"},
+/* ERR_BADPROG */	{NONFATAL, NOPARM,   0, "Bad program"},
+/* ERR_ESCAPE */	{NONFATAL, NOPARM,  17, "Escape"},
+/* ERR_STOP */		{FATAL,    NOPARM,   0, "STOP"},
+/* ERR_STATELEN */	{NONFATAL, NOPARM,   0, "Line is longer than 1024 characters"},
+/* ERR_LINENO */	{NONFATAL, NOPARM,   0, "Line number is outside the range 0..65279"},
+/* ERR_LINEMISS */	{NONFATAL, INTEGER, 41, "Cannot find line %d"},
+/* ERR_VARMISS */	{NONFATAL, STRING,  26, "Cannot find variable '%s'"},
+/* ERR_ARRAYMISS */	{NONFATAL, STRING,  14, "Cannot find array '%s)'"},
+/* ERR_FNMISS */	{NONFATAL, STRING,  29, "Cannot find function 'FN%s'"},
+/* ERR_PROCMISS */	{NONFATAL, STRING,  29, "Cannot find procedure 'PROC%s'"},
+/* ERR_TOOMANY */	{NONFATAL, BSTRING, 31, "There are too many parameters in the call to '%s'"},
+/* ERR_NOTENUFF */	{NONFATAL, BSTRING, 31, "There are not enough parameters in the call to '%s'"},
+/* ERR_FNTOOMANY */	{NONFATAL, NOPARM,  31, "Call to built-in function has too many parameters"},
+/* ERR_FNNOTENUFF */	{NONFATAL, NOPARM,  31, "Call to built-in function does not have enough parameters"},
+/* ERR_BADRET */	{NONFATAL, INTEGER, 31, "Parameter no. %d is not a valid 'RETURN' parameter"},
+/* ERR_CRASH */		{FATAL,    NOPARM,   0, "Program execution has run into a PROC or FN"},
+/* ERR_BADDIM */	{FATAL,    STRING,  11, "There is not enough memory to create array '%s)'"},
+/* ERR_BADBYTEDIM */	{FATAL,    STRING,  11, "There is not enough memory to create a byte array"},
+/* ERR_NEGDIM */	{NONFATAL, STRING,  10, "Dimension of array '%s)' is negative"},
+/* ERR_DIMCOUNT */	{NONFATAL, STRING,  10, "Array '%s)' has too many dimensions"},
+/* ERR_DUPLDIM */	{NONFATAL, STRING,  10, "Array '%s)' has already been created"},
+/* ERR_BADINDEX */	{NONFATAL, INTSTR,  15, "Array index value of %d is out of range in reference to '%s)'"},
+/* ERR_INDEXCO */	{NONFATAL, STRING,  15, "Number of array indexes in reference to '%s)' is wrong"},
+/* ERR_DIMRANGE */	{NONFATAL, NOPARM,  15, "The dimension number in call to 'DIM()' is out of range"},
+/* ERR_NODIMS */	{NONFATAL, STRING,  14, "The dimensions of array '%s)' have not been defined"},
+/* ERR_ADDRESS */	{NONFATAL, NOPARM, 242, "Address is out of range"},
+/* WARN_BADTOKEN */	{WARNING,  NOPARM,   0, "Value entered is not a legal token value"},
+/* WARN_BADHEX */	{WARNING,  NOPARM,  28, "Warning: bad hexadecimal constant"},
+/* WARN_BADBIN */	{WARNING,  NOPARM,  28, "Warning: bad binary constant"},
+/* WARN_EXPOFLO */	{WARNING,  NOPARM,  20, "Warning: exponent is too large"},
+/* ERR_NAMEMISS */	{NONFATAL, NOPARM,   0, "Variable name expected"},
+/* ERR_EQMISS */	{NONFATAL, NOPARM,   4,  "'=' missing or syntax error in statement has misled interpreter"},
+/* ERR_COMISS */	{NONFATAL, NOPARM,  27, "Missing ','"},
+/* ERR_LPMISS */	{NONFATAL, NOPARM,  27, "Missing '('"},
+/* ERR_RPMISS */	{NONFATAL, NOPARM,  27, "Missing ')'"},
+/* WARN_QUOTEMISS */	{WARNING,  NOPARM,   9, "Warning: missing '\"'"},
+/* ERR_QUOTEMISS */	{NONFATAL, NOPARM,   9, "Missing '\"'"},
+/* ERR_HASHMISS */	{NONFATAL, NOPARM,  45, "Missing '#'"},
+/* ERR_ENDIF */		{NONFATAL, NOPARM,  49, "Cannot find matching 'ENDIF' for this 'IF' or 'ELSE'"},
+/* ERR_ENDWHILE */	{NONFATAL, NOPARM,  49, "Cannot find 'ENDWHILE' matching this 'WHILE'"},
+/* ERR_ENDCASE */	{NONFATAL, NOPARM,  47, "Cannot find 'ENDCASE'"},
+/* ERR_OFMISS */	{NONFATAL, NOPARM,  48, "'OF' missing"},
+/* ERR_TOMISS */	{NONFATAL, NOPARM,  36, "'TO' missing"},
+/* ERR_CORPNEXT */	{NONFATAL, NOPARM,  27, "',' or ')' expected"},
+/* ERR_NOTWHILE */	{NONFATAL, NOPARM,  46, "Not in a 'WHILE' loop"},
+/* ERR_NOTREPEAT */	{NONFATAL, NOPARM,  43, "Not in a 'REPEAT' loop"},
+/* ERR_NOTFOR */	{NONFATAL, NOPARM,  32, "Not in a 'FOR' loop"},
+/* ERR_DIVZERO */	{NONFATAL, NOPARM,  18, "Division by zero"},
+/* ERR_NEGROOT */	{NONFATAL, NOPARM,  21, "Tried to take square root of a negative number"},
+/* ERR_LOGRANGE */	{NONFATAL, NOPARM,  22, "Tried to take log of zero or a negative number"},
+/* ERR_RANGE */		{NONFATAL, NOPARM,  20, "Number is out of range"},
+/* ERR_ONRANGE */	{NONFATAL, INTEGER, 40, "'ON' statement index value of %d is out of range"},
+/* ERR_ARITHMETIC */	{NONFATAL, NOPARM,  20, "Floating point exception"},
+/* ERR_STRINGLEN */	{NONFATAL, NOPARM,  19, "Character string is too long"},
+/* ERR_BADOPER */	{NONFATAL, NOPARM,   0, "Unrecognisable operand"}, // need to check what uses this
+/* ERR_TYPENUM */	{NONFATAL, NOPARM,   6, "Type mismatch: number wanted"},
+/* ERR_TYPESTR */	{NONFATAL, NOPARM,   6, "Type mismatch: string wanted"},
+/* ERR_PARMNUM */	{NONFATAL, INTEGER,  6, "Type mismatch: number wanted for PROC/FN parameter no. %d"},
+/* ERR_PARMSTR */	{NONFATAL, INTEGER,  6, "Type mismatch: string wanted for PROC/FN parameter no. %d"},
+/* ERR_VARNUM */	{NONFATAL, NOPARM,   6, "Type mismatch: numeric variable wanted"},
+/* ERR_VARSTR */	{NONFATAL, NOPARM,   6, "Type mismatch: string variable wanted"},
+/* ERR_VARNUMSTR */	{NONFATAL, NOPARM,   6, "Type mismatch: number or string wanted"},
+/* ERR_VARARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: array wanted"},
+/* ERR_INTARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: integer array wanted"},
+/* ERR_FPARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: floating point array wanted"},
+/* ERR_STRARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: string array wanted"},
+/* ERR_NUMARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: numeric array wanted"},
+/* ERR_NOTONEDIM */	{NONFATAL, NOPARM,   6, "Type mismatch: array must have only one dimension"},
+/* ERR_TYPEARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: arrays must have the same dimensions"},
+/* ERR_MATARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: cannot perform matrix multiplication on these arrays"},
+/* ERR_NOSWAP */	{NONFATAL, NOPARM,   6, "Type mismatch: cannot swap variables or arrays of different types"},
+/* ERR_BADCOMP */	{NONFATAL, NOPARM,   6, "Type mismatch: cannot compare these operands"},
+/* ERR_BADARITH */	{NONFATAL, NOPARM,   6, "Arithmetic operations cannot be performed on these operands"},
+/* ERR_BADEXPR */	{NONFATAL, NOPARM,  16, "Syntax error in expression"},
+/* ERR_RETURN */	{NONFATAL, NOPARM,  38, "RETURN encountered outside a subroutine"},
+/* ERR_NOTAPROC */	{NONFATAL, NOPARM,  30, "Functions cannot be used as PROCs"},
+/* ERR_NOTAFN */	{NONFATAL, NOPARM,  30, "PROCs cannot be used as functions"},
+/* ERR_ENDPROC */	{NONFATAL, NOPARM,  13, "ENDPROC encountered outside a PROC"},
+/* ERR_FNRETURN */	{NONFATAL, NOPARM,   7, "'=' (function return) encountered outside a function"},
+/* ERR_LOCAL */		{NONFATAL, NOPARM,  12, "LOCAL found outside a PROC or FN"},
+/* ERR_DATA */		{NONFATAL, NOPARM,  42, "There are no more 'DATA' statements to read"},
+/* ERR_NOROOM */	{FATAL,    NOPARM,   0, "The interpreter has run out of memory"},
+/* ERR_WHENCOUNT */	{NONFATAL, NOPARM,  47, "'CASE' statement has too many 'WHEN' clauses"},
+/* ERR_SYSCOUNT */	{NONFATAL, NOPARM,  51, "'SYS' statement has too many parameters"},
+/* ERR_STACKFULL */	{FATAL,    NOPARM,   0, "Arithmetic stack overflow"},
+/* ERR_OPSTACK */	{FATAL,    NOPARM,   0, "Expression is too complex to evaluate"},
+/* WARN_BADHIMEM */	{WARNING,  NOPARM,   0, "Value of HIMEM must be in the range END to end of the Basic workspace"},
+/* WARN_BADLOMEM */	{WARNING,  NOPARM,   0, "Value of LOMEM must be in the range TOP to end of the Basic workspace"},
+/* WARN_BADPAGE */	{WARNING,  NOPARM,   0, "Value of PAGE must lie in the Basic workspace"},
+/* ERR_NOTINPROC */	{NONFATAL, NOPARM,   0, "LOMEM cannot be changed in a PROC or FN"}, // need to check what uses this
+/* ERR_HIMEMFIXED */	{NONFATAL, NOPARM,   0, "HIMEM cannot be changed in a PROC, FN or any other program structure"},
+/* ERR_BADTRACE */	{NONFATAL, NOPARM,   0, "Invalid option found after 'TRACE'"},
+/* ERR_ERRNOTOP */	{NONFATAL, NOPARM,  54, "'RESTORE ERROR' information is not the top item on the Basic stack"},
+/* ERR_DATANOTOP */	{NONFATAL, NOPARM,  54, "'RESTORE DATA' information is not the top item on the Basic stack"},
+/* ERR_BADPLACE */	{NONFATAL, NOPARM,   4, "'SPC()' or 'TAB()' found outside an 'INPUT' or 'PRINT' statement"},
+/* ERR_BADMODESC */	{NONFATAL, NOPARM,  25, "Screen mode descriptor is invalid"},
+/* ERR_BADMODE */	{NONFATAL, NOPARM,  25, "Screen mode is not available"},
+/* WARN_LIBLOADED */	{WARNING,  STRING,   0, "Library '%s' has already been loaded. Command ignored"},
+/* ERR_NOLIB */		{NONFATAL, STRING, 214, "Cannot find library '%s'"},
+/* ERR_LIBSIZE */	{FATAL,    STRING,   0, "There is not enough memory to load library '%s'"},
+/* ERR_NOLIBLOC */	{NONFATAL, NOPARM,   0, "'LIBRARY LOCAL' can only be used at the start of a library"},
+/* ERR_FILENAME */	{NONFATAL, NOPARM,   0, "File name missing"},
 // Filing system errors:
-  {FATAL,    STRING, 214, "Cannot find file '%s'"},
-  {NONFATAL, STRING, 193, "Cannot open file '%s' for output"},
-  {NONFATAL, NOPARM, 193, "Cannot write to file as it has been opened for input only"},
-  {NONFATAL, NOPARM, 189, "Unable to read from file"},
-  {NONFATAL, NOPARM, 193, "Unable to write to file"},
-  {NONFATAL, NOPARM, 223, "Have reached end of file"},
-  {FATAL,    STRING, 189, "Could not read file '%s'"},
-  {FATAL,    STRING, 192, "Could not create file '%s'"},
-  {FATAL,    STRING, 202, "Could not finish writing to file '%s'"},
-  {FATAL,    STRING,   0, "Basic program file '%s' is empty"},
+/* ERR_NOTFOUND */	{FATAL,    STRING, 214, "Cannot find file '%s'"},
+/* ERR_OPENWRITE */	{NONFATAL, STRING, 193, "Cannot open file '%s' for output"},
+/* ERR_OPENIN */	{NONFATAL, NOPARM, 193, "Cannot write to file as it has been opened for input only"},
+/* ERR_CANTREAD */	{NONFATAL, NOPARM, 189, "Unable to read from file"},
+/* ERR_CANTWRITE */	{NONFATAL, NOPARM, 193, "Unable to write to file"},
+/* ERR_HITEOF */	{NONFATAL, NOPARM, 223, "Have reached end of file"},
+/* ERR_READFAIL */	{FATAL,    STRING, 189, "Could not read file '%s'"},
+/* ERR_NOTCREATED */	{FATAL,    STRING, 192, "Could not create file '%s'"},
+/* ERR_WRITEFAIL */	{FATAL,    STRING, 202, "Could not finish writing to file '%s'"},
+/* ERR_EMPTYFILE */	{FATAL,    STRING,   0, "Basic program file '%s' is empty"},
 #ifdef TARGET_RISCOS
-  {FATAL,    STRING,   0, "%s"},
-  {FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
-  {NONFATAL, STRING,   254, "%s"},
+/* ERR_FILEIO */	{FATAL,    STRING,   0, "%s"},
+/* ERR_UNKNOWN */	{FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
+/* ERR_CMDFAIL */	{NONFATAL, STRING,   254, "%s"},
 #else
-  {FATAL,    STRING,   0, "Hit problem with file '%s'"},
-  {FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
-  {NONFATAL, NOPARM,   254, "OS command failed"},
+/* ERR_FILEIO */	{FATAL,    STRING,   0, "Hit problem with file '%s'"},
+/* ERR_UNKNOWN */	{FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
+/* ERR_CMDFAIL */	{NONFATAL, NOPARM,   254, "OS command failed"},
 #endif
-  {FATAL,    NOPARM, 222, "Handle is invalid or file associated with it has been closed"},
-  {FATAL,    NOPARM,   0, "The file pointer cannot be changed"},
-  {FATAL,    NOPARM,   0, "The file pointer's value cannot be found"},
-  {FATAL,    NOPARM,   0, "The size of the file cannot be found"},
-  {FATAL,    NOPARM, 192, "The maximum allowed number of files is already open"},
-  {FATAL,    NOPARM,   0, "Amount of memory requested exceeds what is available"},
+/* ERR_BADHANDLE */	{FATAL,    NOPARM, 222, "Handle is invalid or file associated with it has been closed"},
+/* ERR_SETPTRFAIL */	{FATAL,    NOPARM,   0, "The file pointer cannot be changed"},
+/* ERR_GETPTRFAIL */	{FATAL,    NOPARM,   0, "The file pointer's value cannot be found"},
+/* ERR_GETEXTFAIL */	{FATAL,    NOPARM,   0, "The size of the file cannot be found"},
+/* ERR_MAXHANDLE */	{FATAL,    NOPARM, 192, "The maximum allowed number of files is already open"},
+/* ERR_NOMEMORY */	{FATAL,    NOPARM,   0, "Amount of memory requested exceeds what is available"},
 //
-  {FATAL,    INTSTR,   0, "The interpreter has gone wrong at line %d in %s"},
-  {FATAL,    NOPARM,   0, "This Basic command cannot be used in a running program"},
-  {FATAL,    NOPARM,   0, "Line number went outside the range 0..65279 when renumbering program"},
-  {WARNING,  NOPARM,   0, "Warning: line number is outside the range 0..65279"},
-  {WARNING,  INTEGER,  0, "Warning: could not find line %d when renumbering program"},
-  {WARNING,  NOPARM,   0, "Line numbers have been added to the program"},
-  {WARNING,  NOPARM,   0, "Warning: number of '(' in line exceeds the number of ')'"},
-  {WARNING,  NOPARM,   0, "Warning: number of '(' in line is less than the number of ')'"},
-  {WARNING,  NOPARM,   0, "Warning: '(' and ')' are nested incorrectly"},
-  {WARNING,  INTEGER,  0, "Memory available for Basic programs is now %d bytes"},
+/* ERR_BROKEN */	{FATAL,    INTSTR,   0, "The interpreter has gone wrong at line %d in %s"},
+/* ERR_COMMAND */	{FATAL,    NOPARM,   0, "This Basic command cannot be used in a running program"},
+/* ERR_RENUMBER */	{FATAL,    NOPARM,   0, "Line number went outside the range 0..65279 when renumbering program"},
+/* WARN_LINENO */	{WARNING,  NOPARM,   0, "Warning: line number is outside the range 0..65279"},
+/* WARN_LINEMISS */	{WARNING,  INTEGER,  0, "Warning: could not find line %d when renumbering program"},
+/* WARN_RENUMBERED */	{WARNING,  NOPARM,   0, "Line numbers have been added to the program"},
+/* WARN_RPMISS */	{WARNING,  NOPARM,   0, "Warning: number of '(' in line exceeds the number of ')'"},
+/* WARN_RPAREN */	{WARNING,  NOPARM,   0, "Warning: number of '(' in line is less than the number of ')'"},
+/* WARN_PARNEST */	{WARNING,  NOPARM,   0, "Warning: '(' and ')' are nested incorrectly"},
+/* WARN_NEWSIZE */	{WARNING,  INTEGER,  0, "Memory available for Basic programs is now %d bytes"},
 //
-  {WARNING,  NOPARM,  -1, "Note: one open file has been closed"},
-  {WARNING,  INTEGER, -1, "Note: %d open files have been closed"},
-  {FATAL,    STRING,   0, "Edit session failed (%s)"},
-  {NONFATAL, STRING, 254, "OSCLI failed (%s)"},
-  {FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
-  {WARNING,  NOPARM,   0, "Warning: floating point number format is not known"},
-  {NONFATAL, STRING,   0, "%s"},
-  {NONFATAL, NOPARM, 486, "SWI name not known"},
-  {NONFATAL, INTEGER,486, "SWI &%X not known"},
-  {NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
-  {NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
+/* WARN_ONEFILE */	{WARNING,  NOPARM,  -1, "Note: one open file has been closed"},
+/* WARN_MANYFILES */	{WARNING,  INTEGER, -1, "Note: %d open files have been closed"},
+/* ERR_EDITFAIL */	{FATAL,    STRING,   0, "Edit session failed (%s)"},
+/* ERR_OSCLIFAIL */	{NONFATAL, STRING, 254, "OSCLI failed (%s)"},
+/* ERR_NOGZIP */	{FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
+/* WARN_FUNNYFLOAT */	{WARNING,  NOPARM,   0, "Warning: floating point number format is not known"},
+/* ERR_EMUCMDFAIL */	{NONFATAL, STRING,   0, "%s"},
+/* ERR_SWINAMENOTKNOWN*/{NONFATAL, NOPARM, 486, "SWI name not known"},
+/* ERR_SWINUMNOTKNOWN */{NONFATAL, INTEGER,486, "SWI &%X not known"},
+/* ERR_DIRNOTFOUND */	{NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
+/* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
+/* ERR_ADDREXCEPT */	{FATAL,    NOPARM,   0, "Address exception"},
 //
 // OSCLI (command line) errors:
-  {NONFATAL, NOPARM, 254, "Bad command"},
-  {NONFATAL, NOPARM, 253, "Bad string"},
-  {NONFATAL, NOPARM, 252, "Bad address"},
-  {NONFATAL, NOPARM, 252, "Bad number"},
-  {NONFATAL, NOPARM, 251, "Bad key"},
-  {NONFATAL, NOPARM, 250, "Key in use"},
-  {NONFATAL, NOPARM, 249, "No language"},
-  {NONFATAL, NOPARM, 248, "Bad filing system"},
-  {NONFATAL, NOPARM, 247, "Matrix Brandy MOS V" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"},
-  {NONFATAL, STRING, 220, "Syntax: %s"},
+/* ERR_BADCOMMAND */	{NONFATAL, NOPARM, 254, "Bad command"},
+/* ERR_BADSTRING */	{NONFATAL, NOPARM, 253, "Bad string"},
+/* ERR_BADADDRESS */	{NONFATAL, NOPARM, 252, "Bad address"},
+/* ERR_BADNUMBER */	{NONFATAL, NOPARM, 252, "Bad number"},
+/* ERR_BADKEY */	{NONFATAL, NOPARM, 251, "Bad key"},
+/* ERR_KEYINUSE */	{NONFATAL, NOPARM, 250, "Key in use"},
+/* ERR_BADLANGUAGE */	{NONFATAL, NOPARM, 249, "No language"},
+/* ERR_BADFILING */	{NONFATAL, NOPARM, 248, "Bad filing system"},
+/* ERR_MOSVERSION */	{NONFATAL, NOPARM, 247, "Matrix Brandy MOS V" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"},
+/* ERR_BADSYNTAX */	{NONFATAL, STRING, 220, "Syntax: %s"},
 //
 // Network errors
-  {NONFATAL, NOPARM, 246, "Connection refused"},
-  {NONFATAL, NOPARM, 246, "Host not found"},
-  {NONFATAL, NOPARM, 246, "The maximum allowed number of sockets is already open"},
-  {NONFATAL, NOPARM, 246, "Network operation not supported"},
-  {NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
-  {NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
+/* ERR_NET_CONNREFUSED*/{NONFATAL, NOPARM, 246, "Connection refused"},
+/* ERR_NET_NOTFOUND */	{NONFATAL, NOPARM, 246, "Host not found"},
+/* ERR_NET_MAXSOCKETS */{NONFATAL, NOPARM, 246, "The maximum allowed number of sockets is already open"},
+/* ERR_NET_NOTSUPP */	{NONFATAL, NOPARM, 246, "Network operation not supported"},
+/* ERR_NO_RPI_GPIO */	{NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
+//
+/* HIGHERROR */		{NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
 };
 
 /*
@@ -736,6 +747,7 @@ void error(int32 errnumber, ...) {
   else {
     badline = find_linestart(basicvars.current);
     if (badline==NIL && basicvars.curcount>0) badline = find_linestart(basicvars.savedcur[0]);
+    basicvars.curcount = 0; /* otherwise the stack will eventually overflow */
     if (badline==NIL)   /* Error did not occur in program - Assume it was in the command line */
       basicvars.error_line = 0;
     else {      /* Error occured in running program */
@@ -753,7 +765,7 @@ void error(int32 errnumber, ...) {
 ** 'get_lasterror' is used to return the text of the last error message
 */
 char *get_lasterror(void) {
-  if (errortext[0]==NUL)
+  if (errortext[0]==asc_NUL)
     return COPYRIGHT;
   else {
     return &errortext[0];

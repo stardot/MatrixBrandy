@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -50,12 +51,12 @@
 #define MAXDIMS 10		/* Maximum number of array dimensions allowed */
 #define MAXNAMELEN 256		/* Size of buffers used to hold variable names */
 
-#define CR 0xD
-#define LF 0xA
-#define TAB '\t'
-#define NUL '\0'
-#define ESC 0x1B
-#define VBAR 0x7C
+#define asc_CR 0xD
+#define asc_LF 0xA
+#define asc_TAB '\t'
+#define asc_NUL '\0'
+#define asc_ESC 0x1B
+#define asc_VBAR 0x7C
 
 #define BYTEMASK 0xFF
 #define BYTESHIFT 8
@@ -66,7 +67,7 @@ typedef unsigned char boolean;
 /* These macros hide type casts */
 
 #define CAST(x,y) ((y)(x))
-#define TOINT(x) ((int32)(x))
+/* TOINT macro redefined as fuction to allow range check */
 #define TOFLOAT(x) ((float64)(x))
 #define TOSTRING(x) ((char *)(x))
 #define TOINTADDR(x) ((int32 *)(x))

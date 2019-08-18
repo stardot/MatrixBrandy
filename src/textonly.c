@@ -1,6 +1,7 @@
 /*
-** This file is part of the Brandy Basic V Interpreter.
-** Copyright (C) 2000, 2001, 2002, 2003, 2004 David Daniels
+** This file is part of the Matrix Brandy Basic VI Interpreter.
+** Copyright (C) 2000-2014 David Daniels
+** Copyright (C) 2018-2019 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -454,12 +455,12 @@ void clrscr(void) {
 ** global for the opposite of their own name
 ** -- conio (Win32) --
 */
-textcolor(int32 colour) {
+void textcolor(int32 colour) {
   SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (colour << FG_TEXT_ATTRIB_SHIFT) |
                                                            (text_physbackcol << BG_TEXT_ATTRIB_SHIFT));
 }
 
-textbackground(int32 colour) {
+void textbackground(int32 colour) {
   SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), (text_physforecol << FG_TEXT_ATTRIB_SHIFT) |
                                                            (colour << BG_TEXT_ATTRIB_SHIFT));
 }
@@ -1111,6 +1112,7 @@ static void print_char(int32 charvalue) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
+  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
     if (charvalue>=' ' && charvalue != DEL) {               /* Most common case - print something */
       print_char(charvalue);
@@ -1514,8 +1516,8 @@ void emulate_tab(int32 x, int32 y) {
 ** 'emulate_newline' skips to a new line on the screen.
 */
 void emulate_newline(void) {
-  emulate_vdu(CR);
-  emulate_vdu(LF);
+  emulate_vdu(asc_CR);
+  emulate_vdu(asc_LF);
 }
 
 /*
