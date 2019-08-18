@@ -296,7 +296,7 @@ void fileio_bputstr(int32 handle, char *string, int32 length) {
   _kernel_swi_regs regs;
   regs.r[0] = 2;	/* OS_GBPB 2 = write to file at current file pointer position */
   regs.r[1] = handle;
-  regs.r[2] = TOINT(string);
+  regs.r[2] = TOINT((int)string);
   regs.r[3] = length;
   oserror = _kernel_swi(OS_GBPB, &regs, &regs);
   if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);

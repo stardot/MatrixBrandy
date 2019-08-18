@@ -66,12 +66,6 @@
 **
 */
 
-// Temporary split while finalising NEWKBD code.
-#ifndef NEWKBD
-#include "kbd-old.c"
-#else
-
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -2559,5 +2553,3 @@ void end_keyboard(void) {
 #endif
 
 #endif
-
-#endif // NEWKBD

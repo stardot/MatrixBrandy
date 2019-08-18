@@ -234,6 +234,12 @@ int32 mos_usr(int32 address) {
 #define ZERO_FLAG 4
 #define NEGATIVE_FLAG 8
 
+
+int64 mos_centiseconds(void) {
+  return 0; // (clock() * 100) / CLOCKS_PER_SEC;
+}
+
+
 /*
 ** 'mos_rdtime' is called to deal with the Basic pseudo-variable
 ** 'TIME' to return its current value. Under RISC OS, the C function
@@ -634,16 +640,18 @@ void mos_final(void) {
 /* ====================================================================== */
 
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_AMIGA) | defined(TARGET_MINGW)
+
+int64 mos_centiseconds(void) {
+  return (clock() * 100) / CLOCKS_PER_SEC;
+}
+
+
 /*
 ** 'mos_rdtime' is called to deal with the Basic pseudo-variable
 ** 'TIME' to return its current value. This should be the current
 ** value of the centisecond clock, but how accurate the value is
 ** depends on the underlying OS.
 */
-int64 mos_centiseconds(void) {
-  return (clock() * 100) / CLOCKS_PER_SEC;
-}
-
 int32 mos_rdtime(void) {
   return (clock() - startime) * 100 / CLOCKS_PER_SEC;
 }
@@ -1530,8 +1538,9 @@ static void cmd_help(char *command)
 	emulate_printf("  HELP    [<text>]\r\n");
 	emulate_printf("  SHOW    [<num>]\r\n");
 	emulate_printf("  POINTER [<0|1>]\r\n");
-	emulate_printf("  SAVE    <filename> <start addr> <end addr>\r\n");
-	emulate_printf("  or SAVE <filename> <start addr> +<length>\r\n");
+	emulate_printf("  SAVE    <filename> <start addr> <end addr>|+<length>\r\n");
+//	emulate_printf("  SAVE    <filename> <start addr> <end addr>\r\n");
+//	emulate_printf("  or SAVE <filename> <start addr> +<length>\r\n");
 	emulate_printf("  LOAD    <filename> [<load addr>]\r\n");
 	emulate_printf("  QUIT\r\n");
     break;

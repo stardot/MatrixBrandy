@@ -39,7 +39,9 @@
 
 /* Make NEWKBD the default */
 #ifndef OLDKBD
+#ifndef NEWKBD
 #define NEWKBD
+#endif
 #endif
 
 /*
