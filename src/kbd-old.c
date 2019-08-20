@@ -471,8 +471,8 @@ int32 kbd_inkey(int32 arg) {
 #endif
     if (basicvars.runflags.inredir		/* Input redirected (equiv. of *EXEC)	*/
       || fn_string_count) return kbd_get();	/* Function key active			*/
-    if (holdcount > 0)	return pop_key();	/* Character waiting so return it	*/
-    if (waitkey(arg))	return kbd_get();	/* Wait for keypress and return it	*/
+    if (holdcount > 0)	return (pop_key() & 0xFF);	/* Character waiting so return it	*/
+    if (waitkey(arg))	return (kbd_get() & 0xFF);	/* Wait for keypress and return it	*/
     else		return -1;		/* Otherwise return -1 for nothing	*/
 
   // Negative INKEY - scan for keypress
