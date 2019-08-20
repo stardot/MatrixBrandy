@@ -477,8 +477,8 @@ int32 kbd_inkey(int32 arg) {
 #endif
     if (basicvars.runflags.inredir		/* Input redirected (equiv. of *EXEC)	*/
       || fn_string_count) return kbd_get();	/* Function key active			*/
-    if (holdcount > 0)	return pop_key();	/* Character waiting so return it	*/
-    if (waitkey(arg))	return kbd_get();	/* Wait for keypress and return it	*/
+    if (holdcount > 0)	return (pop_key() & 0xFF);	/* Character waiting so return it	*/
+    if (waitkey(arg))	return (kbd_get() & 0xFF);	/* Wait for keypress and return it	*/
     else		return -1;		/* Otherwise return -1 for nothing	*/
 
   // Negative INKEY - scan for keypress
@@ -704,9 +704,9 @@ int32 kbd_get(void) {
     if (ch == 0x1c8) ch=30;			/* HOME   */
 #endif
   }
-  if ((fnkey = kbd_isfnkey(ch)) < 0) return (ch & 0xFF);	/* Not a function key			*/
-  if (fn_key[fnkey].length == 0)     return (ch & 0xFF);	/* Function key undefined		*/
-  return switch_fn_string(fnkey);				/* Switch to fnkey and return first char*/
+  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key			*/
+  if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined		*/
+  return switch_fn_string(fnkey);		/* Switch to fnkey and return first char*/
 
 #endif /* !RISCOS */
 }
