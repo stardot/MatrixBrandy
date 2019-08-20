@@ -704,9 +704,9 @@ int32 kbd_get(void) {
     if (ch == 0x1c8) ch=30;			/* HOME   */
 #endif
   }
-  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key			*/
-  if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined		*/
-  return switch_fn_string(fnkey);		/* Switch to fnkey and return first char*/
+  if ((fnkey = kbd_isfnkey(ch)) < 0) return (ch & 0xFF);	/* Not a function key			*/
+  if (fn_key[fnkey].length == 0)     return (ch & 0xFF);	/* Function key undefined		*/
+  return switch_fn_string(fnkey);				/* Switch to fnkey and return first char*/
 
 #endif /* !RISCOS */
 }
