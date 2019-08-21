@@ -1304,20 +1304,14 @@ static void cmd_cat(char *command) {
 #endif
 }
 
-/* Sets the window title. Only for SDL or UNIX builds */
+/* Sets the window title. */
 static void cmd_wintitle(char *command) {
-#if defined(USE_SDL) | defined(TARGET_UNIX)
   while (*command == ' ') command++;	// Skip spaces
-#ifdef USE_SDL
   if (strlen(command) == 0) {
     emulate_printf("Syntax: WinTitle <window title>\r\n");	// This should be an error
   } else {
     set_wintitle(command);
   }
-#else
-  printf("\x1B]0;%s\x07", command);		// This is an xterm escape sequence, recognised by most terminals on Linux
-#endif /* USE_SDL */
-#endif /* USE_SDL or TARGET_UNIX */
   return;
 }
 
@@ -1546,7 +1540,6 @@ static void cmd_help(char *command)
 	emulate_printf("  LOAD    <filename> [<load addr>]\r\n");
 	emulate_printf("  QUIT\r\n");
     break;
-#if defined(USE_SDL) | defined(TARGET_UNIX)
     case HELP_MATRIX:
 	emulate_printf("  WinTitle   <window title>\r\n");
 #ifdef USE_SDL
@@ -1557,7 +1550,6 @@ static void cmd_help(char *command)
 	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
 #endif /* USE_SDL */
     break;
-#endif /* USE_SDL | TARGET_UNIX */
 #ifdef USE_SDL
     case HELP_SOUND:
 	emulate_printf("  Volume       <n>\r\n");
