@@ -212,5 +212,6 @@ extern void emulate_wait(void);
 extern void find_cursor(void);
 extern boolean init_screen(void);
 extern void end_screen(void);
+extern void set_wintitle(char *title);
 
 #endif
