@@ -209,7 +209,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef __BORLANDC__
-#define TARGET_BCC32
+#define TARGET_WIN32
 #define TARGET_DOSWIN
 #define BRANDY_OS "BCC"
 #define OSVERSION 0xFC

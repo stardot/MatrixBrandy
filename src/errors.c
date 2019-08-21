@@ -124,8 +124,7 @@ static void handle_signal(int signo) {
   case SIGSEGV:
     (void) signal(SIGSEGV, handle_signal);
     error(ERR_ADDREXCEPT);
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
   case SIGCONT:
     (void) signal(SIGCONT, handle_signal);
 #ifdef NEWKBD
@@ -195,8 +194,7 @@ void init_errors(void) {
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
     (void) signal(SIGINT, handle_signal);
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
     (void) signal(SIGCONT, handle_signal);
 #endif
 #ifdef TARGET_DJGPP
@@ -220,8 +218,7 @@ void restore_handlers(void) {
     (void) signal(SIGFPE, SIG_DFL);
     (void) signal(SIGSEGV, SIG_DFL);
     (void) signal(SIGINT, SIG_DFL);
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
     (void) signal(SIGCONT, SIG_DFL);
 #endif
 #ifdef TARGET_DJGPP

@@ -434,7 +434,7 @@ void init_fileio(void) {
 ** stream whenever they see a 'linefeed' when writing to a file. Under
 ** DOS files are always treated as binary.
 */
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_DOSWIN)
 #define INMODE "rb"
 #define OUTMODE "wb+"
 #define UPMODE "rb+"
