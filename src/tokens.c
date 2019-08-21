@@ -936,7 +936,7 @@ static void copy_other(void) {
       lp++;
     }
     break;
-#if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_WIN32) | defined(TARGET_MINGW)
   case '|':     /* Window's code for vertical bar is 221, not 124 */
     token = asc_VBAR;
     break;

@@ -177,7 +177,7 @@ int32 inkeylookup[] = {
 };
 #else
 
-#if defined(TARGET_DJGPP) || defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+#if defined(TARGET_DOSWIN)
 #define KBD_PC 1
 #ifndef VK_SHIFT
 #include "keysym.h"
