@@ -507,3 +507,5 @@ boolean init_screen(void) {
 void end_screen(void) {
 }
 
+void set_wintitle(char *title) {
+}
