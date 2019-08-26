@@ -397,7 +397,11 @@ static void list_program(void) {
       }
     }
 #ifdef USE_SDL
+#ifdef NEWKBD
+    if (kbd_inkey(-113)) basicvars.escape=TRUE;
+#else
     if (emulate_inkey(-113)) basicvars.escape=TRUE;
+#endif
 #endif
     if (basicvars.escape) error(ERR_ESCAPE);
   }
