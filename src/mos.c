@@ -1031,7 +1031,11 @@ void mos_waitdelay(int32 time) {
   while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
     mode7flipbank();
+#ifdef NEWKBD
+    if(basicvars.escape_enabled && kbd_inkey(-113)) {
+#else
     if(basicvars.escape_enabled && emulate_inkey(-113)) {
+#endif
       basicvars.escape=TRUE;
       time=0;
       error(ERR_ESCAPE);
@@ -1524,35 +1528,35 @@ static void cmd_help(char *command)
     case HELP_HOST:
     case HELP_MOS:
 	emulate_printf("  CD      <dir>\r\n");
-	emulate_printf("  EXEC    <filename>\r\n");
-	emulate_printf("  SPOOL   [<filename>]\r\n");
-	emulate_printf("  SPOOLON [<filename>]\r\n");
+	emulate_printf("  EXEC    (<filename>)\r\n");
 	emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
+	emulate_printf("  HELP    (<text>)\r\n");
 	emulate_printf("  KEY     <num> <string>\r\n");
-	emulate_printf("  HELP    [<text>]\r\n");
-	emulate_printf("  SHOW    [<num>]\r\n");
-	emulate_printf("  POINTER [<0|1>]\r\n");
+	emulate_printf("  LOAD    <filename> (<load addr>)\r\n");
+	emulate_printf("  POINTER (<0|1>)\r\n");
+	emulate_printf("  QUIT\r\n");
 	emulate_printf("  SAVE    <filename> <start addr> <end addr>|+<length>\r\n");
 //	emulate_printf("  SAVE    <filename> <start addr> <end addr>\r\n");
 //	emulate_printf("  or SAVE <filename> <start addr> +<length>\r\n");
-	emulate_printf("  LOAD    <filename> [<load addr>]\r\n");
-	emulate_printf("  QUIT\r\n");
+	emulate_printf("  SHOW    (<num>)\r\n");
+	emulate_printf("  SPOOL   (<filename>)\r\n");
+	emulate_printf("  SPOOLON (<filename>)\r\n");
     break;
     case HELP_MATRIX:
-	emulate_printf("  WinTitle   <window title>\r\n");
 #ifdef USE_SDL
-	emulate_printf("  FullScreen [<ON|OFF|1|0>]\r\n");
-	emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> [<xeig> [<yeig>]]\r\n");
-	emulate_printf("  Refresh    [<On|Off|OnError>]\r\n");
+	emulate_printf("  FullScreen (<ON|OFF|1|0>)\r\n");
+	emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> (<xeig> (<yeig>))\r\n");
+	emulate_printf("  Refresh    (<On|Off|OnError>)\r\n");
 	emulate_printf("  ScreenSave <filename.bmp>\r\n");
 	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
 #endif /* USE_SDL */
+	emulate_printf("  WinTitle   <window title>\r\n");
     break;
 #ifdef USE_SDL
     case HELP_SOUND:
-	emulate_printf("  Volume       <n>\r\n");
 	emulate_printf("  ChannelVoice <channel> <voice index|voice name>\r\n");
 	emulate_printf("  Voices\r\n");
+	emulate_printf("  Volume       <n>\r\n");
     break;
 #endif
     case CMD_WINTITLE:
@@ -1561,13 +1565,13 @@ static void cmd_help(char *command)
     break;
 #ifdef USE_SDL
     case CMD_FULLSCREEN:
-	emulate_printf("Syntax: *FullScreen [<On|Off|1|0>]\r\n");
+	emulate_printf("Syntax: *FullScreen (<On|Off|1|0>)\r\n");
 	emulate_printf("  This controls  fullscreen mode  within  SDL. On or 1 switches to fullscreen,\r\n");
 	emulate_printf("  0 or Off restores the windowws mode, and with no parameter given,\r\n");
 	emulate_printf("  toggles fullscreen mode.\r\n");
     break;
     case CMD_NEWMODE:
-	emulate_printf("Syntax: *NewMode <mode> <xres> <yres> <colours> <xsc> <ysc> [<xeig> [<yeig>]]\r\n");
+	emulate_printf("Syntax: *NewMode <mode> <xres> <yres> <colours> <xsc> <ysc> (<xeig> (<yeig>))\r\n");
 	emulate_printf("  This defines a new mode. The parameters are:\r\n");
 	emulate_printf("  mode:    Mode number, range 64-126\r\n");
 	emulate_printf("  xres:    X resolution in pixels, minimum 8.\r\n");
@@ -1579,7 +1583,7 @@ static void cmd_help(char *command)
 	emulate_printf("  yeig:    Y eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
     break;
     case CMD_REFRESH:
-	emulate_printf("Syntax: *Refresh [<On|Off|OnError>]\r\n");
+	emulate_printf("Syntax: *Refresh (<On|Off|OnError>)\r\n");
 	emulate_printf("  This sets the SDL refresh mode. Default is on.\r\n");
 	emulate_printf("  On:      Normal mode, display is updated after any change.\r\n");
 	emulate_printf("  Off:     Updates are suspended.\r\n");
@@ -1654,7 +1658,7 @@ static void cmd_show(char *command) {
   if (*command == 0) {
     key1 = 0; key2 = HIGH_FNKEY;		// All keys
   } else {
-    key2=(key1=cmd_parse_dec(&command));		// Get key number
+    key2=(key1=cmd_parse_dec(&command));	// Get key number
     if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
   }
   while (*command == ' ') command++;		// Skip spaces
@@ -1869,7 +1873,7 @@ static void cmd_pointer(char *command){
 
 /*
  * check_command - Check if the command is one of the RISC OS
- * commands emulated by this code.
+ * commands implemented by this code.
  */
 static int check_command(char *text) {
   char command[16];
@@ -2341,7 +2345,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &29  41 Brandy local - set ESCAPE polling interval, multiplied by 256.
 * OSBYTE &2A  42 Brandy local - Get/set *REFRESH state
 * OSBYTE &2B  43 Brandy local - output X to Linux controlling terminal
-* OSBYTE &2C  44 Brandy locak - Enable/disable CTRL-N/CTRL-P for line editing.
+* OSBYTE &2C  44 Brandy local - Enable/disable CTRL-N/CTRL-P for line editing.
 * OSBYTE &2D  45
 * OSBYTE &2E  46
 * OSBYTE &2F  47
