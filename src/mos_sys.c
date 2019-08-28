@@ -215,7 +215,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
       emulate_printf("\r\n"); break;
     case SWI_OS_ReadC:
 #ifdef NEWKBD
-      outregs[0]=kbd_get(); break;
+      outregs[0]=kbd_get() & 0xFF; break;
 #else
       outregs[0]=emulate_get(); break;
 #endif

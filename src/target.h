@@ -32,7 +32,10 @@
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
 #define BRANDY_PATCHLEVEL "0"
-#define BRANDY_DATE  "23 Jul 2019"
+#define BRANDY_DATE       "23 Jul 2019"
+// Stripping legacy code from keyboard.c
+// #define BRANDY_PATCHDATE  "JGH190825"
+
 
 #ifndef __target_h
 #define __target_h
