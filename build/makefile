@@ -5,9 +5,9 @@ LD = gcc
 
 include git.mk
 
-#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS)
-#CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS)
-CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS)
+#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall $(GITFLAGS)
+#CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall $(GITFLAGS)
+CFLAGS = -O2 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DNEWKBD -Wall $(GITFLAGS)
 
 LDFLAGS +=
 
@@ -22,6 +22,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
+	$(SRCDIR)/soundsdl.o \
 	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
@@ -31,6 +32,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
+	$(SRCDIR)/soundsdl.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
 brandy:	$(OBJ)
