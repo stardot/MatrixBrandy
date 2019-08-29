@@ -1,5 +1,7 @@
 These notes discuss how to compile the program under different operating
-systems.
+systems. To make things simpler, there are batch files in the build
+directory for some common platforms - these can be run to automate the
+whole build.
 
 
 General

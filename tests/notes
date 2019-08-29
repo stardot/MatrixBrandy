@@ -1,20 +1,41 @@
+KBDTest
+  Displays keyboard buffer insert codes
+  1: Raw GET
+     Should return RISC OS numbered keycodes. If *FX221-*FX228 not implemented, soft keys
+     should be expanded. Should return:
+     &080+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9, Break, End, Left, Right, Down, Up
+     &090+n:                                                                       , PgDn, PgUp
+     &0C0+n                                                  F10,  F11,  F12,  Ins
+     Shift, Ctrl, Alt should toggle &10, &20, &30
+     Home=&01E, Del=&07F
+
+  6: Low level keycodes
+     Should return regular low-level keycodes. Should return:
+     &180+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9,  F10,  F11,  F12,  F13,   F14, F15
+     &1C0+n:                            Ins, Del, Home, End, PgDn, PgUp, Left, Right, Down, Up
+     Shift, Ctrl, Alt should toggle &10, &20, &30
+
+KeyScan
+  Displays BBC negative INKEY scan codes with a text-only display
+  Works on: RISC OS, WinSDL, MinGW, DJGPP, CentOS
+
+KeyDOS
+  Displays DOS negative INKEY scan codes values with a text-only display
+  Works on: WinSDL, MinGW, DJGPP, CentOS
+
+KeySDL
+  Displays SDL 1.2 negative INKEY scan codes values with a text-only display
+  Works on: RISC OS, WinSDL, MinGW, DJGPP, CentOS
+
+KeyTest
+  Displays negative INKEY values with a graphics display
+  RISC OS, WinSDL, CentOS: works
+  MinGW, DJGPP:    does not work due to graphics needed
+
 DefChar
   SDL Brandy: works
   DJP Brandy: does not work due to graphics to draw character box
   MGW Brandy: does not work due to graphics to draw character box
-
-KeyScan
-  Displays negative INKEY values with a text-only display
-  Works on: RISC OS, WinSDL, MinGW, DJGPP, Linux
-
-KeyTest
-  Displays negative INKEY values with a graphics display
-  RISC OS, WinSDL: works
-  MinGW, DJGPP:    does not work due to graphics needed
-  Linux:           untested
-
-KBDTest
-  Displays keyboard buffer insert codes
 
 ClockSp
   Fails on DJGPP, issues with TIME

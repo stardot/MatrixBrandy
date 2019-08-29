@@ -32,7 +32,10 @@
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
 #define BRANDY_PATCHLEVEL "0"
-#define BRANDY_DATE  "23 Jul 2019"
+#define BRANDY_DATE       "23 Jul 2019"
+// Stripping legacy code from keyboard.c
+// #define BRANDY_PATCHDATE  "JGH190825"
+
 
 #ifndef __target_h
 #define __target_h
@@ -209,7 +212,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef __BORLANDC__
-#define TARGET_WIN32
+#define TARGET_BCC32
 #define TARGET_DOSWIN
 #define BRANDY_OS "BCC"
 #define OSVERSION 0xFC

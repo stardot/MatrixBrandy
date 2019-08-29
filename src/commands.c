@@ -380,7 +380,11 @@ static void list_program(void) {
         emulate_printf("-- More --");
         do {
           if (basicvars.escape) error(ERR_ESCAPE);
+#ifdef NEWKBD
+          count = kbd_get();
+#else
           count = emulate_get();
+#endif
           switch (count) {
           case ' ':
             count = 0;

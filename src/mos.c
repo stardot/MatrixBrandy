@@ -808,6 +808,7 @@ void mos_mouse(int64 values[]) {
 **
 ** Positive parameter - read device
 ** Negative parameter - read buffer
+** 128-buffer         - low-level raw read of buffer (extension)
 **
 ** 0 b0-b7=buttons, b8-b15=last converted channel
 ** 1 ADC 1 - Device 1 X position
@@ -821,19 +822,19 @@ void mos_mouse(int64 values[]) {
 ** 9 Mouse button state %xxxxRML
 ** 10+ other devices
 **
-** -1  Keyboard buffer
-** -2  Serial input buffer
-** -3  Serial output buffer
-** -4  Printer output buffer
-** -5  Sound output buffer 0
-** -6  Sound output buffer 1
-** -7  Sound output buffer 2
-** -8  Sound output buffer 3
-** -9  Speach output buffer
-** -10 Mouse input buffer
-** -11 MIDI input buffer
-** -12 MIDI output buffer
-** -12- other buffers
+** -1  Keyboard buffer		127  Low-level examine keyboard buffer
+** -2  Serial input buffer	126
+** -3  Serial output buffer	125
+** -4  Printer output buffer	124
+** -5  Sound output buffer 0	123
+** -6  Sound output buffer 1	122
+** -7  Sound output buffer 2	121
+** -8  Sound output buffer 3	120
+** -9  Speach output buffer	119
+** -10 Mouse input buffer	118
+** -11 MIDI input buffer	117
+** -12 MIDI output buffer	116
+** -12- other buffers		etc
 */
 int32 mos_adval(int32 x) {
   int64 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
@@ -843,7 +844,7 @@ int32 mos_adval(int32 x) {
     return inputvalues[x-7];
   }
 #ifdef NEWKBD
-  if (x==16) return kbd_get(); /* test */
+  if (x==127) return kbd_get0(); /* Low-level examine of keyboard buffer		*/
 #endif
 
   return 0;
