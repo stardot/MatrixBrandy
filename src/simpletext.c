@@ -507,3 +507,8 @@ boolean init_screen(void) {
 void end_screen(void) {
 }
 
+void set_wintitle(char *title) {
+#ifdef TARGET_UNIX
+  printf("\x1B]0;%s\x07", title);               // This is an xterm escape sence, recognised by most terminals on Linux
+#endif
+}

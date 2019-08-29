@@ -77,7 +77,7 @@
 #include "screen.h"
 #include "mos.h"
 
-#if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+#if defined(TARGET_MINGW) || defined(TARGET_WIN32)
  #include <windows.h>
 #endif
 
@@ -251,7 +251,7 @@ Uint8 mousestate, *keystate=NULL;
  #include "swis.h"
 #else
  #include <stdlib.h>
- #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+ #if defined(TARGET_MINGW) || defined(TARGET_WIN32)
   #ifndef CYGWINBUILD
     #include <keysym.h>
   #endif
@@ -471,8 +471,8 @@ int32 kbd_inkey(int32 arg) {
 #endif
     if (basicvars.runflags.inredir		/* Input redirected (equiv. of *EXEC)	*/
       || fn_string_count) return kbd_get();	/* Function key active			*/
-    if (holdcount > 0)	return pop_key();	/* Character waiting so return it	*/
-    if (waitkey(arg))	return kbd_get();	/* Wait for keypress and return it	*/
+    if (holdcount > 0)	return (pop_key() & 0xFF);	/* Character waiting so return it	*/
+    if (waitkey(arg))	return (kbd_get() & 0xFF);	/* Wait for keypress and return it	*/
     else		return -1;		/* Otherwise return -1 for nothing	*/
 
   // Negative INKEY - scan for keypress
@@ -1013,10 +1013,8 @@ void end_keyboard(void) {
 
 #include <stdlib.h>
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_DJGPP) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
- | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_DJGPP)\
+ | defined(TARGET_AMIGA) & defined(__GNUC__) | defined(TARGET_GNU)
 #include <sys/time.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -1024,7 +1022,7 @@ void end_keyboard(void) {
 #include <termios.h>
 #endif
 
-#if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_WIN32) | defined(TARGET_MINGW)
 #include <sys/time.h>
 #include <conio.h>
 #endif
@@ -1073,9 +1071,8 @@ void end_keyboard(void) {
 //static char *fn_string;         /* Non-NULL if taking chars from a function key string */
 //static int fn_string_count;     /* Count of characters left in function key string */ 
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_AMIGA) & defined(__GNUC__)\
+ | defined(TARGET_GNU)
 
 static struct termios origtty;  /* Copy of original keyboard parameters */
 static int32 keyboard;          /* File descriptor for keyboard */
@@ -1204,9 +1201,8 @@ static boolean waitkey(int wait) {
 }
 #endif
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU) | defined(TARGET_MINGW)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_AMIGA) & defined(__GNUC__)\
+ | defined(TARGET_GNU) | defined(TARGET_MINGW)
 
 /* ----- Linux-, *BSD- and MACOS-specific keyboard input functions ----- */
 
@@ -1840,7 +1836,7 @@ int32 emulate_inkey2(int32 arg) {
 
 #endif
 
-#if (defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)) && !defined(USE_SDL)
+#if defined(TARGET_DOSWIN) && !defined(USE_SDL)
 
 /* ----- DJGPP/WIN32/DOS keyboard input functions ----- */
 
@@ -1879,7 +1875,7 @@ static byte dostable []  = {
 #endif
 #endif
 #ifndef USE_SDL
-#if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_WIN32) | defined(TARGET_MINGW)
 /*
 ** 'emulate_get' deals with the Basic function 'get'
 */
@@ -2422,7 +2418,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 
 /* Initialise keyboard emulation */
 
-#if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_WIN32) | defined(TARGET_MINGW)
 
 boolean init_keyboard(void) {
   int n;
@@ -2484,9 +2480,8 @@ boolean init_keyboard(void) {
 void end_keyboard(void) {
 }
 
-#elif defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+#elif defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_AMIGA) & defined(__GNUC__)\
+ | defined(TARGET_GNU)
 
 /*
 ** 'init_keyboard' initialises the keyboard code. It checks to

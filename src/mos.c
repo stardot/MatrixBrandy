@@ -641,7 +641,7 @@ void mos_final(void) {
 /* ================== Non-RISC OS versions of functions ================== */
 /* ====================================================================== */
 
-#if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_AMIGA) | defined(TARGET_MINGW)
+#if defined(TARGET_WIN32) | defined(TARGET_AMIGA) | defined(TARGET_MINGW)
 
 int64 mos_centiseconds(void) {
   return (clock() * 100) / CLOCKS_PER_SEC;
@@ -999,7 +999,7 @@ void mos_waitdelay(int32 time) {
   delay(time * 10);		/* delay() takes the time in ms */
 }
 
-#elif defined(TARGET_WIN32) | defined(TARGET_BCC32)
+#elif defined(TARGET_WIN32)
 
 /*
 ** 'mos_waitdelay' emulate the Basic statement 'WAIT <time>'
@@ -1309,20 +1309,14 @@ static void cmd_cat(char *command) {
 #endif
 }
 
-/* Sets the window title. Only for SDL or UNIX builds */
+/* Sets the window title. */
 static void cmd_wintitle(char *command) {
-#if defined(USE_SDL) | defined(TARGET_UNIX)
   while (*command == ' ') command++;	// Skip spaces
-#ifdef USE_SDL
   if (strlen(command) == 0) {
     emulate_printf("Syntax: WinTitle <window title>\r\n");	// This should be an error
   } else {
     set_wintitle(command);
   }
-#else
-  printf("\x1B]0;%s\x07", command);		// This is an xterm escape sequence, recognised by most terminals on Linux
-#endif /* USE_SDL */
-#endif /* USE_SDL or TARGET_UNIX */
   return;
 }
 
@@ -1456,7 +1450,7 @@ static void cmd_cd(char *command) {
   if (*command == 'd' || *command == 'D') command +=3;	// *CHDIR
   while (*command == ' ') command++;			// Skip spaces
   err=chdir(command);
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_DOSWIN)
   find_cursor();				// Figure out where the cursor has gone to
 #if defined(TARGET_MINGW)
 #ifndef USE_SDL
@@ -1551,7 +1545,6 @@ static void cmd_help(char *command)
 	emulate_printf("  SPOOL   (<filename>)\r\n");
 	emulate_printf("  SPOOLON (<filename>)\r\n");
     break;
-#if defined(USE_SDL) | defined(TARGET_UNIX)
     case HELP_MATRIX:
 #ifdef USE_SDL
 	emulate_printf("  FullScreen (<ON|OFF|1|0>)\r\n");
@@ -1562,7 +1555,6 @@ static void cmd_help(char *command)
 #endif /* USE_SDL */
 	emulate_printf("  WinTitle   <window title>\r\n");
     break;
-#endif /* USE_SDL | TARGET_UNIX */
 #ifdef USE_SDL
     case HELP_SOUND:
 	emulate_printf("  ChannelVoice <channel> <voice index|voice name>\r\n");
@@ -2071,7 +2063,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
   cmdbuf=cmdbufbase;
   memcpy(cmdbuf, command, clen-1);
 
-#if defined(TARGET_DJGPP) | defined(TARGET_WIN32) | defined(TARGET_BCC32)
+#if defined(TARGET_DJGPP) | defined(TARGET_WIN32)
 /* Command is to be sent to underlying DOS-style OS */
   if (respfile==NIL) {			/* Command output goes to normal place */
     basicvars.retcode = system(cmdbuf);
@@ -2277,7 +2269,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
 */
 boolean mos_init(void) {
   (void) clock();	/* This might be needed to start the clock */
-#if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
+#if defined(TARGET_WIN32) | defined(TARGET_MINGW)
   startime = 0;
 #else
   mos_wrtime(0);

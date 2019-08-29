@@ -614,7 +614,7 @@ int32 kbd_inkey(int32 arg) {
     if (basicvars.runflags.inredir		/* Input redirected			*/
       || matrixflags.doexec			/*  or *EXEC file active		*/
       || fn_string_count) return kbd_get();	/*  or function key active		*/
-    if (holdcount > 0) return pop_key();	/* Character waiting so return it	*/
+    if (holdcount > 0) return pop_key() & 0xFF;	/* Character waiting so return it	*/
     if (waitkey(arg))  return kbd_get() & 0xFF;	/* Wait for keypress and return it	*/
     else	       return -1;		/* Otherwise return -1 for nothing	*/
 
@@ -1032,10 +1032,9 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 
 #include <stdlib.h>
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_DJGPP) | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD)\
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_DJGPP)\
  | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+ | defined(TARGET_GNU)
 #include <sys/time.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -1055,9 +1054,8 @@ static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 
 #define WAITIME 10              /* Time to wait in centiseconds when dealing with ANSI key sequences */
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) |defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_GNU)\
+ | defined(TARGET_AMIGA) & defined(__GNUC__)
 
 static struct termios origtty;  /* Copy of original keyboard parameters */
 static int32 keyboard;          /* File descriptor for keyboard */
@@ -1120,15 +1118,15 @@ void osbyte44(int x) {
 // Should be merged with following
 static boolean waitkey(int wait) {
   int tmp;
-  tmp=clock()+wait; //*(CLOCKS_PER_SEC/100);
+  tmp=clock()+wait; // *(CLOCKS_PER_SEC/100);
   for(;;) { if(kbhit() || (clock()>tmp)) break; }
   return kbhit();
 }
 #endif
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_MACOSX)\
- | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_AMIGA) & defined(__GNUC__)\
- | defined(TARGET_GNUKFREEBSD) | defined(TARGET_GNU) | defined(TARGET_MINGW)
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_GNU) | defined(TARGET_MINGW)\
+ | defined(TARGET_AMIGA) & defined(__GNUC__)
+
 
 /* ----- Linux-, *BSD- and MACOS-specific keyboard input functions ----- */
 

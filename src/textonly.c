@@ -43,7 +43,7 @@
 #include "screen.h"
 #include "keyboard.h"
 
-#if defined(TARGET_WIN32) | defined(TARGET_DJGPP) | defined(TARGET_BCC32) | defined(TARGET_MACOSX) | defined(TARGET_MINGW)
+#if defined(TARGET_DOSWIN) | defined(TARGET_MACOSX)
 #include "conio.h"
 #else
 #define USE_ANSI        /* Have to use ANSI control sequences, not conio */
@@ -53,8 +53,7 @@
 #include <windows.h>
 #endif
 
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_DJGPP)\
- | defined(TARGET_FREEBSD) | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
+#if defined(TARGET_UNIX) | defined(TARGET_DJGPP)
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -1736,8 +1735,7 @@ static void check_stdout(void) {
 ** -- ANSI --
 */
 static void find_screensize(void) {
-#if defined(TARGET_LINUX) | defined(TARGET_NETBSD) | defined(TARGET_FREEBSD)\
- | defined(TARGET_OPENBSD) | defined(TARGET_GNUKFREEBSD)
+#if defined(TARGET_UNIX)
   struct winsize sizes;
   int rc;
   if (!basicvars.runflags.outredir)
@@ -1814,4 +1812,12 @@ boolean init_screen(void) {
 */
 void end_screen(void) {
   if (vduflag(VDU_FLAG_TEXTWIN)) reset_screen();
+}
+
+void set_wintitle(char *title) {
+#if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x500
+  SetConsoleTitleA(title);
+#elif defined(TARGET_UNIX)
+  printf("\x1B]0;%s\x07", title);		// This is an xterm escape sequence, recognised by most terminals on Linux
+#endif
 }
