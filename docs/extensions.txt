@@ -1,0 +1,28 @@
+
+INKEY(&FF00+nn) - BBC keyscan (standard)
+INKEY(&FE00+nn) - DOS keyscan
+INKEY(&FC00+nn) - SDL keyscan
+INKEY(&8000+nn) - 16-bit INKEY
+ADVAL(128-n) - low-level read of buffer n
+ADVAL(128-1) - fetch untranslated entry from keyboard buffer, 16-bit GET
+EOF#0 - input pending, soft key being expanded or key in keyboard buffer
+(contrast with ADVAL(-1) which only tests keyboard buffer)
+BPUT#0 - VDU
+BGET#0 - GET
+PTR#0
+EXT#0
+
+VDU 23,18,n,m| - teletext display settings
+
+COLOUR &00+n - foreground
+COLOUR &40+n - reserved
+COLOUR &80+n - background
+COLOUR &C0+n - border
+
+VDU 19
+
+Check:
+What does BBSDL GCOL 128+n do?
+
+PTR(number) does bigendian !number
+PTR(string$) returns address of start of string$
