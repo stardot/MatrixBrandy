@@ -25,8 +25,8 @@ Contents
 
 Introduction
 ~~~~~~~~~~~~
-Matrix Brandy is a Basic VI interpreter. It is source code compatible with
-Acorn's Basic VI interpreter and runs under a number of different operating
+Matrix Brandy is a BASIC V/VI interpreter. It is source code compatible with
+Acorn's BASIC V/VI interpreter and runs under a number of different operating
 systems. It currently works with NetBSD (arm32 and i386), Linux (x86, z86-64
 and arm32) and Microsoft Windows. The aim of this project is to write a Basic
 interpreter that is compatible with the Acorn interpreter and that runs
@@ -120,7 +120,7 @@ where <filename> is the optional name of the program to load and
 
 -ignore			Ignore certain 'unsupported feature' errors. By default
 			the interpreter reports an error whenever it comes
-			across a BASIC VI feature that it does not support. This
+			across a BASIC V/VI feature that it does not support. This
 			option allows some unsupported features that do not
 			affect the basic running of the program to be ignored.
 
@@ -215,7 +215,7 @@ The 'EDIT' command can be used to transfer a program into a text editor where
 it can be edited more easily.
 
 The file 'basic' contains more details of these commands and others as well as
-information on Basic VI.
+information on BASIC V/VI.
 
 
 Programs and Libraries
@@ -267,7 +267,7 @@ tokenised.
 Local Variables in Libraries
 ----------------------------
 It is possible for libraries to have variables and arrays that are private to
-that library. This is an extension to Basic VI. These are covered in more
+that library. This is an extension to BASIC V/VI. These are covered in more
 detail below.
 
 
@@ -290,8 +290,10 @@ interpreter's limit of 255. The list of differences are as follows:
 3)  Support of the 'SYS' statement is minimal.
 4)  The follow Basic commands have not been implemented: APPEND.
 5)  The 'OVERLAY' statement has not been implemented.
-6)  The functions 'INKEY' and 'INKEY$' have not been fully implemented,
-    and are only implemented at all on the SDL builds.
+6)  INKEY(-128) to INKEY(-255) are not implemented (and were only implemented
+    on the original 6502 MOS). While INKEY(-1) to INKEY(-127) aim to match
+    the Acorn keynumbers as closely as possible, there are inevitably a small
+    handful of differences due to physical keyboard hardware differences.
 7)  Not all of the VDU commands have been implemented.
 8)  Cursor editing is not available.
 9)  'WIDTH' has not been implemented. 'PRINT' leaves something to be desired
@@ -329,7 +331,8 @@ The interpreter has the following extensions:
     This allows it to be changed from the default of 640K (see section on this
     below).
 10) The 'RUN' command can be followed by the name of a program to run. It
-    behaves just like the statement 'CHAIN'.
+    behaves just like the statement 'CHAIN', as with Z80, 80x86 and PDP11
+    BASICs.
 11) The 'RUN' command can also be followed by a line number to start program
     execution at that line.
 12) There is an extra 'TRACE' option: 'TRACE GOTO'. This prints out the source
@@ -364,10 +367,9 @@ The interpreter has the following extensions:
     closest match to the colour whose colour components were passed to the
     function.
 
-There is quite a list here but really apart from the longer
-maximum string and statement lengths, local variables in
-libraries and the change to 'new', most of these are really
-cosmetic changes.
+There is quite a list here but really apart from the longer maximum string and
+statement lengths, local variables in libraries and the change to 'new', most
+of these are really cosmetic changes.
 
 Local Variables in Libraries
 ----------------------------
@@ -587,8 +589,8 @@ string length then the function always returns zero. If <string 2> is an empty
 string then the function always returns one or the value of <start> (if this is
 supplied).
 
-BBC Basic 1.26 Extensions
--------------------------
+ARM BBC BASIC 1.26 Extensions
+-----------------------------
 The following statement types have been extended in this version of the
 interpreter:
 
@@ -926,9 +928,9 @@ There are three things a program can check to figure out what operating system
 is it running under:
 
 1)  Check the contents of !PAGE. If this is set to &D7C1C7C5 then the Basic
-    program is running under Brandy. This value is a constant. Other Basic V/VI
+    program is running under Brandy. This value is a constant. Other BASIC
     interpreters store a different value there, for example, ?PAGE on the Acorn
-    interpreter returns &0D.
+    BASICs returns &0D.
 
 2)  Check what INKEY -256 returns. This has been the documented way of checking
     the OS version since the first version of RISC OS. The values returned are:
@@ -958,6 +960,10 @@ is it running under:
 	&FE	NetBSD
 
     Other values might be added to this list for other operating systems.
+    Note that this tells you the *platform* the program is running on, not
+    the interpreter. For example, Brandy could be running on RISC OS so
+    INKEY-256 would return &A0-&AF; ARM BASIC could be running on a BBC
+    second processor, so INKEY-256 could return &FE.
 
 3)  The hardware type and general environment type can be found by checking
     what is returned by OS_Byte 0. The USR function is not supported except in
@@ -973,11 +979,17 @@ is it running under:
 	8	Unix-type OS
 	32	PC (DOS and Windows)
 
-    Again, this list might be extended.
+    Again, this list might be extended. Again, not that this tells you the
+    *platform* the program is running on, not the interpreter. For example,
+    Brandy could be running on RISC OS so OSBYTE 0 would return 6, ARM BASIC
+    could be running on a BBC, so OSBYTE 0 would return 0-5.
 
     In Matrix Brandy, the following may also be used:
 
 	SYS "OS_Byte",0,1 TO ,version%
+
+Determining the *interpreter* that is running, as opposed to the platform the
+interpreter is running on, is more complicated and fiddly. (TBA)
 
 
 I/O Redirection
@@ -1089,20 +1101,20 @@ other operating systems. Currently a small handful of RISC OS SWI calls are
 emulated by Matrix Brandy.
 
 
-The 'key' Command
+The 'KEY' Command
 ~~~~~~~~~~~~~~~~~
-A new feature in Brandy 1.16 is that it emulates the RISC OS 'key' command to
+A new feature in Brandy 1.16 is that it implements the RISC OS 'KEY' command to
 allow strings to be assigned to function keys. This is an operating system
-command under RISC OS that is emulated by the interpreter. The command is
-issued using OSCLI in the normal way. The format is:
+command under RISC OS that is implemented by the interpreter's MOS interface
+layer. The command is issued using OSCLI in the normal way. The format is:
 
-	key <key number> <string>
+	KEY <key number> <string>
 
 where <key> is the function key number in the range 0 to 15 and <string> is the
 string assigned to that key. Pressing that function key will insert the string
 into the keyboard buffer, for example:
 
-	OSCLI "key 3 run"
+	OSCLI "KEY 3 run"
 
 will assign the string "run" to function key 3.
 
@@ -1115,29 +1127,29 @@ where <letter> is a letter.
 
 The escape sequence '|m' is used to represent a 'newline' character, so:
 
-	OSCLI "key 3 run|m"
+	OSCLI "KEY 3 run|m"
 
 will set up function key 3 to insert "run" and a newline character into the
 keyboard buffer, so that pressing F3 will issue the command.
 
 The string can be enclosed in double quote if desired, for example:
 
-	OSCLI "key 4 "     ": REM Insert five blanks
+	OSCLI "KEY 4 ""     """: REM Insert five blanks
+        or
+        *KEY 4 "     "
 
 There is a command line option that can be used to tell the program to pass all
 commands to the underlying operating system rather than check them to see if
 they are RISC OS commands emulated by the interpreter. This is '-nostar'.
+(TBA: Russell BASICs use OSCLI "**....")
 
-Note: The key command has not been fully implemented in that the RISC OS
-version allows a greater range of escape sequences. Also, it does not check for
-silly commands.
- 
-Other emulated RISC OS commands could be added if desired.
+There is a complamentary *SHOW command that will display the current function
+key definition for a single <key number> or all keys.
 
 
 Performance
 ~~~~~~~~~~~
-The Acorn Basic interpreter is written in ARM assembler. Brandy is in C and
+The Acorn ARM BASIC interpreter is written in ARM assembler. Brandy is in C and
 there is therefore no chance that it will come remotely close to the Acorn
 interpreter in terms of speed. The RISC OS version, for example, runs between
 two and five times slower when working with integers and is up to twelve times
