@@ -56,6 +56,7 @@
 ** 09-Dec-2018 JGH: *HELP BASIC lists attributions, as per license.
 **                  Layout and content needs a bit of tidying up.
 ** 05-Jan-2019 JGH: GSTrans returns string+length, so embedded |@ allowed in *KEY.
+** 30-Aug-2019 JGH: Preparing to generalise OSBYTE 166+.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -841,12 +842,14 @@ void mos_mouse(int32 values[]) {
 int32 mos_adval(int32 x) {
   int32 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
 
+  x = x & 0xFFFF;				/* arg is a 16-bit value		*/
   if((x>6) & (x<10)) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
 #ifdef NEWKBD
-  if (x==127) return kbd_get0(); /* Low-level examine of keyboard buffer		*/
+  if (x == 0x007F) return kbd_get0();		/* Low-level examine of keyboard buffer	*/
+  if (x == 0xFFFF) return kbd_buffered();	/* ADVAL(-1), amount in keyboard buffer	*/
 #endif
 
   return 0;
@@ -1550,8 +1553,8 @@ static void cmd_help(char *command)
 	emulate_printf("  FullScreen (<ON|OFF|1|0>)\r\n");
 	emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> (<xeig> (<yeig>))\r\n");
 	emulate_printf("  Refresh    (<On|Off|OnError>)\r\n");
-	emulate_printf("  ScreenSave <filename.bmp>\r\n");
 	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+	emulate_printf("  ScreenSave <filename.bmp>\r\n");
 #endif /* USE_SDL */
 	emulate_printf("  WinTitle   <window title>\r\n");
     break;
@@ -2294,6 +2297,7 @@ static void mos_osword(int32 areg, int32 xreg) {
    }
 }
 
+static char sysvars[257-166]; // allow overflow from 255
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 /*
 * OSBYTE < &A6 perform actions
@@ -2567,6 +2571,21 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 *
 */
 {
+int tmp;
+
+areg=areg & 0xFF;		// Prevent any sillyness
+
+if (areg>=166) {
+  tmp=sysvars[areg-166];
+  sysvars[areg] = (char)(sysvars[areg] & yreg) ^ xreg;
+  // Temporary test until special-case generalised
+  if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
+    xreg=tmp;
+    yreg=sysvars[areg+1];
+    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
+  }
+}
+
 switch (areg) {
 	case 0:			// OSBYTE 0 - Return machine type
 		if (xreg!=0) return MACTYPE;
