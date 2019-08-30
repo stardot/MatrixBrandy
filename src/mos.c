@@ -2580,8 +2580,8 @@ if (areg>=166) {
   sysvars[areg] = (char)(sysvars[areg] & yreg) ^ xreg;
   // Temporary test until special-case generalised
   if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
-    xreg=tmp;
-    yreg=sysvars[areg+1];
+    xreg=tmp & 0xFF;
+    yreg=sysvars[areg+1] & 0xFF;
     return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
   }
 }
