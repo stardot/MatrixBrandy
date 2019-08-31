@@ -1,19 +1,30 @@
 KBDTest
-  Displays keyboard buffer insert codes
   1: Raw GET
-     Should return RISC OS numbered keycodes. If *FX221-*FX228 not implemented, soft keys
+     Should display the host platform's processed keycodes.
+     If *FX221-*FX228 not implemented, should return RISC OS numbered keycodes, soft keys
      should be expanded. Should return:
-     &080+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9, Break, End, Left, Right, Down, Up
-     &090+n:                                                                       , PgDn, PgUp
-     &0C0+n                                                  F10,  F11,  F12,  Ins
-     Shift, Ctrl, Alt should toggle &10, &20, &30
-     Home=&01E, Del=&07F
+       &080+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9, Break, End, Left, Right, Down, Up
+       &090+n:                                                                       , PgDn, PgUp
+       &0C0+n                                                  F10,  F11,  F12,  Ins
+       Shift, Ctrl, Alt should toggle &10, &20, &30
+       Home=&01E, Del=&07F
+     Non-RISC OS:
+       &180+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9,  F10,  F11,  F12,  F13,   F14, F15
+       &1C0+n:                            Ins, Del, Home, End, PgDn, PgUp, Left, Right, Down, Up
+       Shift, Ctrl, Alt should toggle &10, &20, &30
 
   6: Low level keycodes
-     Should return regular low-level keycodes. Should return:
-     &180+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9,  F10,  F11,  F12,  F13,   F14, F15
-     &1C0+n:                            Ins, Del, Home, End, PgDn, PgUp, Left, Right, Down, Up
-     Shift, Ctrl, Alt should toggle &10, &20, &30
+     Should return the host platform's regular low-level keycodes. Should return:
+     Non-RISC OS:
+       &180+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9,  F10,  F11,  F12,  F13,   F14, F15
+       &1C0+n:                            Ins, Del, Home, End, PgDn, PgUp, Left, Right, Down, Up
+       Shift, Ctrl, Alt should toggle &10, &20, &30
+     RISC OS:
+       &080+n: Print, F1, F2, F3, F4, F5, F6,  F7,  F8,   F9, Break, End, Left, Right, Down, Up
+       &090+n:                                                                       , PgDn, PgUp
+       &0C0+n                                                  F10,  F11,  F12,  Ins
+       Shift, Ctrl, Alt should toggle &10, &20, &30
+       Home=&01E, Del=&07F
 
 KeyScan
   Displays BBC negative INKEY scan codes with a text-only display
