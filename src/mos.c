@@ -2575,16 +2575,16 @@ int tmp;
 
 areg=areg & 0xFF;		// Prevent any sillyness
 
-if (areg>=166) {
-  tmp=sysvars[areg-166];
-  sysvars[areg] = (char)(sysvars[areg] & yreg) ^ xreg;
-  // Temporary test until special-case generalised
-  if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
-    xreg=tmp & 0xFF;
-    yreg=sysvars[areg+1] & 0xFF;
-    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
-  }
-}
+// if (areg>=166) {
+//   tmp=sysvars[areg-166];
+//   sysvars[areg] = (char)(sysvars[areg] & yreg) ^ xreg;
+//   // Temporary test until special-case generalised
+//   if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
+//     xreg=tmp & 0xFF;
+//     yreg=sysvars[areg+1] & 0xFF;
+//     return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
+//   }
+// }
 
 switch (areg) {
 	case 0:			// OSBYTE 0 - Return machine type
