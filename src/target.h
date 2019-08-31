@@ -34,7 +34,7 @@
 #define BRANDY_PATCHLEVEL "0"
 #define BRANDY_DATE       "23 Jul 2019"
 // Stripping legacy code from keyboard.c
-// #define BRANDY_PATCHDATE  "JGH190825"
+// #define BRANDY_PATCHDATE  "JGH190829"
 
 
 #ifndef __target_h
@@ -69,7 +69,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** the compilation of OS-specific parts of the program.
 **
 ** BRANDY_OS is displayed by the startup and *HELP string.
-** MACTYPE indicates the system, returned by OSBYTE 0, and indicates the filing system type.
+** MACTYPE indicates the system, returned by OSBYTE 0, and indicates the filing
+** system type and other host hardware features.
 **  0x0600 for directory.file/ext (eg RISC OS)
 **  0x0800 for directory/file.ext (eg UNIX)
 **  0x2000 for directory\file.ext (eg Win/DOS)

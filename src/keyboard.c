@@ -63,7 +63,6 @@
 ** 25-Aug-2019 JGH: Started stipping out legacy code.
 **                  Tested on: DJGPP, MinGW, WinSDL, CentOS.
 **                  RISCOS builds, but other issues cause problems.
-**
 ** 28-Aug-2019 JGH: Cut out a lot of old code, added some more documentation.
 **                  Corrected some errors in dostable[] with PgUp/PgDn/End.
 **                  Corrected low level top-bit codes returned from SDL key read.
@@ -72,7 +71,14 @@
 **                  kbd_modkeys() obeys its API.
 **                  Tested on: DJGPP, MinGW, WinSDL, CentOS.
 **                  RISCOS builds, but other issues cause problems.
-** To do: Need to retest with different keyboards, check APP and MENU keys.
+** 29-Aug-2019 JGH: Stopped kbd_get0() returning &00 when keypress returns nothing.
+**                  Found a couple of obscure errors in dostable[] translation.
+**
+** 30-Aug-2019 JGH: Testing, minor bugs in BBC/JP keyboard layout. US/UK all ok.
+**                  Some builds don't "see" Print/Pause/Width. SDL only one that sees Print.
+**
+** Think: if OSBYTE 0 says "not RISC OS", GET shouldn't be returning RISC OS-numbered keys
+** Existing code says, eg, "If Windows and GET=&C6 Then HOME pressed"
 **
 ** Note: This is the only file that tests for BEOS.
 **
@@ -771,6 +777,7 @@ int32 kbd_get(void) {
 #else /* !RISCOS */
 
   int ch, fnkey;
+  int raw=0;
 
   if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
     ch=fgetc(matrixflags.doexec);
@@ -792,13 +799,16 @@ int32 kbd_get(void) {
 // To do, allow *FX221-8 to specify special keypress expansion and *FX4 cursor key control
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
+raw=0; // raw=!cooked
   if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
+if (!raw) {
     if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
     if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;	/* PGDN/PGUP */
     if ((ch & 0x0CF) == 0xC9) ch=ch - 62;	/* END       */
     if (ch == 0x1C8)          ch=30;		/* HOME      */
     if (ch == 0x1C7)          ch=127;		/* DELETE    */
     if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
+}
   }
   if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key		*/
   if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined	*/
@@ -825,7 +835,7 @@ int32 kbd_get(void) {
 */
 static byte dostable[] = {
 0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07, /* 00-07			*/
-0xc4,0xc1,0xc5,0x0b,0x0c,0x0d,0x0e,0x0f, /* sBS,sTAB,sRET,0C-0F		*/
+0xc2,0xc3,0xc5,0x0b,0x0c,0x0d,0xc2,0xc3, /* sBS,sTAB,sRET,0C-0E,sTAB	*/
 0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17, /* 10-17			*/
 0x18,0x19,0x1a,0xc3,0x1c,0x1d,0x1e,0x1f, /* 18-1A,sESC,1C-1F		*/
 0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27, /* 20-27			*/
@@ -842,11 +852,11 @@ static byte dostable[] = {
 0xcb,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0x7f, /* cPgUp,79-7F					*/
 0x80,0x81,0x82,0x83,0xcb,0x8b,0x8c,0x9b, /* 80-83,cPgUp,F11-12,sF11			*/
 0x9c,0xab,0xac,0xbb,0xbc,0xcf,0x8e,0x8f, /* sF12,cF11-12,aF11-12,cUp,8E-8F		*/
-0x90,0xce,0xc6,0xc7,0xc1,0x95,0x96,0xc8, /* 90,cDown,cIns,cDel,cTab,95,96,aHome		*/
+0x90,0xce,0xc6,0xc7,0xc3,0x95,0x96,0xc8, /* 90,cDown,cIns,cDel,cTab,95,96,aHome		*/
 0xcf,0xcb,0x9a,0xcc,0x9c,0xcd,0x9e,0xc9, /* aUp,aPgUp,9A,a<-,9C,a->,9E,aEnd		*/
-0xce,0xca,0xc6,0xc7,0xa4,0xc1,0xa6,0xa7, /* aDn,aPgDn,aIns,aDel,A4,aTab,A6-A7		*/
-0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xaf, /* A8-AF					*/
-0xb0,0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7,
+0xce,0xca,0xc6,0xc7,0xa4,0xc3,0xa6,0xa7, /* aDn,aPgDn,aIns,aDel,A4,aTab,A6-A7		*/
+0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xaf, /* A8-AE,WTH					*/
+0xb0,0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7, /* sWTH,cWTH,aWTH				*/
 0xb8,0xb9,0xba,0xbb,0xbc,0xbd,0xbe,0xbf,
 0xc0,0xc1,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7,
 0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,
@@ -891,12 +901,13 @@ int32 kbd_get0(void) {
     c=(GetAsyncKeyState(VK_CONTROL)<0);
     a=(GetAsyncKeyState(VK_MENU)<0);
     ch=getch();					/* Get second key byte			*/
+    if (ch == 0x29) return 0xAC;		/* Alt-top-left key			*/
     if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
     ch=dostable[ch];				/* Translate escaped character		*/
     if ((ch & 0xC0) == 0xC0) {			/* Non-function keys need extra help	*/
-      if (s) ch=ch ^ 0x10;			/* SHIFT pressed			*/
-      if (c) ch=ch ^ 0x20;			/* CTRL pressed				*/
-      if (a) ch=ch ^ 0x30;			/* ALT pressed				*/
+      if (s) ch=ch | 0x10;			/* SHIFT pressed			*/
+      if (c) ch=ch | 0x20;			/* CTRL pressed				*/
+      if (a) ch=ch | 0x30;			/* ALT pressed				*/
     }
     return ch | 0x100;				/* 0x100+nn - top-bit special keys	*/
   }
@@ -904,7 +915,7 @@ int32 kbd_get0(void) {
 #else
 
 // Win+SDL, Unix+SDL, Unix+NoSDL, Amiga, BEOS, MacOS
-  ch=emulate_get();				/* Call legacy code			*/
+  ch=-1; while (ch<0) { ch=emulate_get(); }	/* Call legacy code			*/
   if (ch == 0) {
     ch=emulate_get();				/* Call legacy code			*/
     if (ch & 0x80) ch = ch | 0x100;
@@ -1118,7 +1129,7 @@ void osbyte44(int x) {
 // Should be merged with following
 static boolean waitkey(int wait) {
   int tmp;
-  tmp=clock()+wait; // *(CLOCKS_PER_SEC/100);
+  tmp=clock()+wait; //*(CLOCKS_PER_SEC/100);
   for(;;) { if(kbhit() || (clock()>tmp)) break; }
   return kbhit();
 }
@@ -1258,6 +1269,7 @@ int32 read_key(void) {
               ch = 0x81 + ev.key.keysym.sym - SDLK_F1;
               break;
             case SDLK_PRINT:    ch=0x80; break;
+            case SDLK_PAUSE:    ch=0xC4; break;
             case SDLK_INSERT:   ch=0xC6; break;
             case SDLK_DELETE:   ch=0xC7; break;
             case SDLK_HOME:     ch=0xC8; break;
@@ -1273,12 +1285,12 @@ int32 read_key(void) {
               return ESCAPE;
             default:
               ch = ev.key.keysym.unicode;
-              return ch;
+              if (ch < 0x100) return ch; else ch=0;
           }
           if (ch) {
-            if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
-            if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
-            if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
+            if (ev.key.keysym.mod & KMOD_SHIFT) ch |= 0x10;
+            if (ev.key.keysym.mod & KMOD_CTRL)  ch |= 0x20;
+            if (ev.key.keysym.mod & KMOD_ALT)   ch |= 0x30;
             push_key(ch);
             return asc_NUL;
           }
@@ -1662,6 +1674,7 @@ int32 emulate_get(void) {
   if (holdcount > 0) return pop_key();  /* Return character from hold stack if one is present */
 #ifdef USE_SDL
   ch = read_key();
+// emulate_printf("$%02X",ch);
 #else
   errcode = read(keyboard, &ch, 1);
   if (errcode < 0) {
@@ -1682,8 +1695,10 @@ int32 emulate_get(void) {
  */
   key = ch;
   if (ch == ESCAPE) key = decode_sequence();
-  if (key != asc_NUL) return key;	/* Return keypress	*/
-  return asc_NUL;			/* Return &00,keypress	*/
+// emulate_printf(":$%02X:%02X",key,holdcount);
+  if (key != asc_NUL) return key;			/* Return keypress	*/
+  if (ch == asc_NUL) if (holdcount == 0) return -1;	/* No key press		*/
+  return asc_NUL;					/* Return &00,keypress	*/
 
 // /* NUL found. Check for function key */
 //   key = pop_key();
@@ -2184,12 +2199,12 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 
 #endif
 
-// kbd_buffered() - is there anything in the keyboard buffer - ADVAL(-1)
-// kbd_pending()  - will the next GET/INKEY fetch something  - EOF#0
-// kbd_esctest()  - test for currently-defined and enabled Escape state
-// kbd_escset()   - set Escape state
-// kbd_escack()   - acknowledge and clear Escape state
-// kbd_escclr()   - clear Escape state
+int32 kbd_buffered() { return 0; } // is there anything in the keyboard buffer - ADVAL(-1)
+int32 kbd_pending()  { return 0; } // will the next GET/INKEY fetch something  - EOF#0
+int32 kbd_esctest()  { return 0; } // test for currently-defined and enabled Escape state
+int32 kbd_escset()   { return 0; } // set Escape state
+int32 kbd_escack()   { return 0; } // acknowledge and clear Escape state
+int32 kbd_escclr()   { return 0; } // clear Escape state
 
 
 #endif // NEWKBD

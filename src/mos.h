@@ -61,4 +61,18 @@ extern void  mos_stereo(int32, int32);
 extern boolean mos_init(void);
 extern void  mos_final(void);
 
+#define sysvar_KeyboardBase   172
+#define sysvar_EscapeBreak    200
+#define sysvar_KBDDisabled    201
+#define sysvar_KBDStatus      202
+#define sysvar_TabChar        219
+#define sysvar_EscapeChar     220
+#define sysvar_KeyBase        221
+#define sysvar_EscapeAction   229
+#define sysvar_EscapeEffect   230
+#define sysvar_CursorKeys     237
+#define sysvar_KeypadBase     238
+#define sysvar_Country        240
+#define sysvar_KeyOptions     254
+
 #endif

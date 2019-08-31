@@ -1021,7 +1021,11 @@ int32 fileio_eof(int32 handle) {
   FILE *stream;
   boolean ateof;
 
+#ifdef NEWKBD
+  if (handle==0) return kbd_pending();
+#else
   if (handle==0) error(ERR_BADHANDLE);
+#endif
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {

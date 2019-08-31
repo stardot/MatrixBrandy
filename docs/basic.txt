@@ -1,5 +1,5 @@
-BASIC VI Guide
-~~~~~~~~~~~~~~
+BASIC V/VI Guide
+~~~~~~~~~~~~~~~~
 
 Contents
 ~~~~~~~~
@@ -31,16 +31,16 @@ Contents
 
 Introduction
 ~~~~~~~~~~~~
-The following notes give a brief introduction to BASIC VI and to
+The following notes give a brief introduction to BASIC V/VI and to
 the environment that the interpreter emulates. They describe the
 entire language but not in any great detail; more attention is
 given to features specific to this version of Basic. Useful
 information can be found on the web site 'The BBC Lives!' where
 scanned version of manuals such as the 'BBC Microcomputer User
 Guide' can be found. The information in these manuals is not 100%
-relevant to BASIC VI but they are good for background information
-and many details of Basic II, the predecessor of (and to all
-intents and purposes, a strict subset of) BASIC VI.
+relevant to BASIC V/VI but they are good for background information
+and many details of BASIC II, the predecessor of (and to all
+intents and purposes, a strict subset of) BASIC V/VI.
 
 These notes describe the BASIC language. The file 'use' contains
 information on how to use the interpreter and on the features
@@ -72,7 +72,7 @@ version of the BBC Basic interpreter that had many additional
 features such as 'CASE' statements and multi-line 'IF' statements.
 It kept its reputation for speed. This version of Basic was called
 'BASIC V', and later a version using 64-bit floating point numbers
-was issued as a soft-load for RISC OS as 'BASIC VI' and it is the
+was issued as a soft-load for RISC OS as 'BASIC V/VI' and it is the
 dialect of the language implemented by this interpreter.
 
 The operating system that ran on the Archimedes and the machines
@@ -191,7 +191,7 @@ of the array.
 Variable names are case sensitive, so that 'abcd' and 'AbCd' are
 different variables.
 
-Basic VI has two classes of variables, the normal dynamic variables
+BASIC V/VI has two classes of variables, the normal dynamic variables
 that are created when the program runs and a set of what are
 called 'static' variables which comprises of the integer variables
 A% to Z%. These variables are independent of any program in that
@@ -225,7 +225,7 @@ Line Numbers
 ~~~~~~~~~~~~
 Each line in a Basic program has a line number. This is used when
 editing a program at the command line and in the program by such
-statements as 'GOTO', 'GOSUB', 'ON GOTO', and 'RESTORE'. BASIC VI
+statements as 'GOTO', 'GOSUB', 'ON GOTO', and 'RESTORE'. BASIC V/VI
 is a structured Basic and line numbers are largely superfluous if
 statement types such as these are not used. They are still needed
 to identify the line on which an error was detected when a program
@@ -240,7 +240,7 @@ Line numbers are in the range 0 to 65279.
 
 Operators
 ~~~~~~~~~
-Basic VI supports the usual range of operators. The following list
+BASIC V/VI supports the usual range of operators. The following list
 details what is available. The operators are given in priority
 order, with operators of the same priority grouped together. From
 highest to lowest priority they are:
@@ -281,11 +281,11 @@ first part of the expression thus:
 
 	(abc% >> 2) <= 10
 
-This is a feature of BASIC VI.
+This is a feature of BASIC V/VI.
 
 Assignment Operators
 ~~~~~~~~~~~~~~~~~~~~
-As well as using '=' for assignments in the normal way, Basic VI
+As well as using '=' for assignments in the normal way, BASIC V/VI
 has two other assignment operators:
 
 	<variable> += <expression>
@@ -736,8 +736,8 @@ INSTR(
 INT
 	Use: INT <factor>
 	Returns the integer part of number <factor>, rounding down
-	(towards minus infinity). By default (matching BBC Micro and
-	RISC OS behaviour) the value must be within the range
+	(towards minus infinity). By default (matching 6502, 32000,
+        PDP11 and ARM BASIC) the value must be within the range
 	-2^31 to 2^31-1 that can be stored within an integer variable.
 	However, to allow values out of this range (so INT actually
 	returns a floating-point value) do: SYS "Brandy_INTusesFloat",1
@@ -1231,7 +1231,7 @@ On left-hand side:
 
 Procedures and Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~
-BASIC VI has both procedures and multi-line functions. They can
+BASIC V/VI has both procedures and multi-line functions. They can
 both take parameters of any sort, including arrays, and it is
 possible to return values via parameters. They can also have local
 variables.
@@ -1325,7 +1325,7 @@ variable is still used but its old value is saved first.
 
 Error Handling
 ~~~~~~~~~~~~~~
-BASIC VI provides two statements for dealing with errors, ON ERROR
+BASIC V/VI provides two statements for dealing with errors, ON ERROR
 and ON ERROR LOCAL. ON ERROR is the less sophisticated of the two.
 If an error is detected, the interpreter ends all loops and
 returns from all procedures, functions and subroutines before
@@ -1343,7 +1343,7 @@ in the program. This should be used at the start of an error
 handler to prevent errors in the error handler causing an
 infinite loop.
 
-To allow for finer control over errors, BASIC VI also has two
+To allow for finer control over errors, BASIC V/VI also has two
 statements that allow different error handlers to be used at
 different points in the program, LOCAL ERROR and RESTORE error.
 LOCAL ERROR stores details of any existing error handler and
@@ -1414,8 +1414,8 @@ can be type instead of 'PRINT'. The minimum abbreviation for each
 keyword and command is given in the section 'Basic Keywords,
 Commands and Functions' at the end of these notes.
 
-All of the BASIC VI statement types are described below. However,
-not all versions of the BASIC VI interpreter support all of them,
+All of the BASIC V/VI statement types are described below. However,
+not all versions of the BASIC V/VI interpreter support all of them,
 in particular, the graphics statements might not be available.
 
 Statements
@@ -1877,8 +1877,8 @@ Example:
 ENVELOPE
 Syntax: ENVELOPE <expression 1> , ... , <expression 14>
 
-This is an unsupported statement. It was used as part of the sound
-system on the BBC Micro but it is completely redundant in BASIC V/VI.
+This statement passes the command to the sound system. Any effect it
+has depends on if the sound system supports ENVELOPE.
 
 ERROR
 Syntax: ERROR <error expression> , <string expression>
@@ -3392,8 +3392,7 @@ variables, A% to Z%) are destroyed.
 SOUND
 Syntax: a) SOUND OFF
 	b) SOUND ON
-	c) SOUND <channel> , <amplitude> , <pitch> ,
-				<duration> , <delay>
+	c) SOUND <channel>,<amplitude>,<pitch>,<duration>(,<delay>)
 
 This statement is used to make a sound.
 
@@ -3401,7 +3400,8 @@ a) SOUND OFF turns off the sound system.
 
 b) SOUND ON turns on the sound system.
 
-c) This version of the statement is used to make a sound.
+c) This version of the statement is used to make a sound. The sound
+functionality depends on what the underlying sound system implements.
 
 STEP
 Syntax: STEP <expression>
@@ -4173,16 +4173,16 @@ more details.
 
 The Program Environment
 ~~~~~~~~~~~~~~~~~~~~~~~
-The interpreter provides a partial emulation of the operating
+The interpreter provides a partial implementation of the operating
 system under which the Acorn interpreter runs, RISC OS. The
-emulation is limited to supporting the control codes used for
+implemention is limited to supporting the control codes used for
 screen output and the file handling used by the program. It is not
 an attempt to write a RISC OS emulation layer.
 
 
 Screen Output
 ~~~~~~~~~~~~~
-The interpreter emulates the RISC OS VDU drivers for screen output
+The interpreter implements a RISC OS VDU driver for screen output
 so some details of how these work and the facilities available
 follow.
 
@@ -4244,11 +4244,11 @@ Colours
 -------
 RISC OS supports colour depths of 1, 2, 4, 8, 15 and 24 bits per
 pixel. The interpreter support 1, 2, 4 and 8 bit. The way colours
-are dealt with in 2 colour (1 bit), 4 colour (2 bit) and 16 colour
+are dealt with in 2-colour (1 bit), 4-colour (2 bit) and 16-colour
 (4 bit) modes is straight forwards but manipulating colours in 256
 colour modes is slightly awkward due to the way the colour system
-was originally designed back in the days of the BBC Micro. (The
-old system was probably kept for compatibility.)
+was originally designed back in the days of the BBC Micro using an
+8-bit VDU stream.
 
 2, 4 and 16 Colour Modes
 ------------------------
@@ -4266,12 +4266,14 @@ as follows:
 	6 (14)	Cyan
 	7 (15)	White
 
-(Note: in this program colour numbers 8 to 15 simply repeat
-colours 0 to 7. Under RISC OS they give flashing colours.)
+(Note: depending on the capabilities of the host hardware, colour
+numbers 8 to 15 may simply repeat colours 0 to 7. On RISC OS they
+give flashing numbers, on other platforms they give bright versions
+of the lower-numbered colours.)
 
 256 Colour Modes
 ----------------
-In 256 colour modes the colour is broken into two components, the
+In 256-colour modes the colour is broken into two components, the
 colour and a 'tint' value used to modify it. The colour portion is
 six bits and the tint two bits. The colours in these modes are
 constructed from sixty three colours, each of which has four
@@ -4350,12 +4352,12 @@ nine bytes of data. The complete list follows:
 30	Send cursor to top left-hand corner of window
 31	Send cursor to given position in window
 
-The interpreter does not support all of these. The following table
-says what works where. The column marked 'Text' says whether the
-code is supported (yes), flagged as an error (no) or ignored
-(ignore) in text-only versions of the program. The column
-'Graphics' gives the same information for versions that support
-graphics.
+Brandy's VDU driver does not support all of these on all target
+platforms. The following table says what works where. The column
+marked 'Text' says whether the code is supported (yes), flagged
+as an error (no) or ignored (ignore) in text-only versions of the
+program. The column 'Graphics' gives the same information for
+versions that support graphics.
 
 	Code	Text		Graphics
 	----	----		--------
@@ -4497,7 +4499,7 @@ Change the current text colour. This is followed by one byte of
 data, the new colour number. If this is less than 128 the
 foreground colour is changed, otherwise the background colour is
 the one altered, the number of the colour to use being given by
-the colour number-128.
+the colour number AND 127.
 
 The colour number is reduced modulo the number of colours
 available in the current screen mode in 2, 4 and 16 colour modes.
@@ -4518,9 +4520,9 @@ causing each point to overwrite what was previously at that
 place on the screen.
 
 If the colour number is less than 128 the foreground graphics
-colour is changed, otherwise the background colour is updated. 128
-is subtracted from the colour number to get the number of the
-colour to use. The colour number is then reduced modulo the number
+colour is changed, otherwise the background colour is updated.
+The colour number used is the colour number AND 127, as with
+VDU 17. The colour number is then reduced modulo the number
 of colours available in the current screen mode in 2, 4 and 16
 colour modes. In 256 colour modes it is reduced modulo 64 to
 change the colour value. It does not affect the tint (see the
@@ -4581,10 +4583,11 @@ that character. If the command byte is in the range 0 to 31 then
 it is a command for the VDU driver. Eight bytes of data must be
 supplied but the command might ignore them.
 
-Only two of the VDU 23 commands are supported:
+Only three of the VDU 23 commands are supported:
 
 	23,1	Hide or show the text cursor.
 	23,17	Set the 'tint' value in 256 colour screen modes.
+	23,18	Control soft Teletext implementation.
 
 23,1
 ----
@@ -4608,8 +4611,13 @@ where:
 	3	Set background graphics tint value
 	5	Swap foreground and background text colours
 
-<tint> sets the new tint value. Four values are allowed: 0, 64,
-128 and 192.
+<tint> sets the new tint value. Only the top two bits are significant,
+giving values of 0, 64, 128 and 192.
+
+23,18
+-----
+Documentation to be added.
+
 
 VDU 24
 Define the graphics window.
@@ -4727,7 +4735,7 @@ defined as follows:
 		each point.
 	3	Plot graphics using graphics background colour.	
 
-The interpreter does not support the full range of PLOT codes. The
+Brandy's VDU driver does not support the full range of PLOT codes. The
 ones implemented are:
 
 	  0-  7	Draw a solid line

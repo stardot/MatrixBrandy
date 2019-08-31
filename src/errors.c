@@ -373,9 +373,12 @@ static detail errortable [] = {
 /* ERR_FNTOOMANY */	{NONFATAL, NOPARM,  31, "Call to built-in function has too many parameters"},
 /* ERR_FNNOTENUFF */	{NONFATAL, NOPARM,  31, "Call to built-in function does not have enough parameters"},
 /* ERR_BADRET */	{NONFATAL, INTEGER, 31, "Parameter no. %d is not a valid 'RETURN' parameter"},
+//
+// Not actually an error, but is a specifically allowed:
 /* ERR_CRASH */		{FATAL,    NOPARM,   0, "Program execution has run into a PROC or FN"},
-/* ERR_BADDIM */	{FATAL,    STRING,  11, "There is not enough memory to create array '%s)'"},
-/* ERR_BADBYTEDIM */	{FATAL,    STRING,  11, "There is not enough memory to create a byte array"},
+//
+/* ERR_BADDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create array '%s)'"},
+/* ERR_BADBYTEDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create a byte array"},
 /* ERR_NEGDIM */	{NONFATAL, STRING,  10, "Dimension of array '%s)' is negative"},
 /* ERR_DIMCOUNT */	{NONFATAL, STRING,  10, "Array '%s)' has too many dimensions"},
 /* ERR_DUPLDIM */	{NONFATAL, STRING,  10, "Array '%s)' has already been created"},
@@ -461,16 +464,16 @@ static detail errortable [] = {
 /* ERR_NOLIBLOC */	{NONFATAL, NOPARM,   0, "'LIBRARY LOCAL' can only be used at the start of a library"},
 /* ERR_FILENAME */	{NONFATAL, NOPARM,   0, "File name missing"},
 // Filing system errors:
-/* ERR_NOTFOUND */	{FATAL,    STRING, 214, "Cannot find file '%s'"},
+/* ERR_NOTFOUND */	{NONFATAL, STRING, 214, "Cannot find file '%s'"},
 /* ERR_OPENWRITE */	{NONFATAL, STRING, 193, "Cannot open file '%s' for output"},
 /* ERR_OPENIN */	{NONFATAL, NOPARM, 193, "Cannot write to file as it has been opened for input only"},
 /* ERR_CANTREAD */	{NONFATAL, NOPARM, 189, "Unable to read from file"},
 /* ERR_CANTWRITE */	{NONFATAL, NOPARM, 193, "Unable to write to file"},
 /* ERR_HITEOF */	{NONFATAL, NOPARM, 223, "Have reached end of file"},
-/* ERR_READFAIL */	{FATAL,    STRING, 189, "Could not read file '%s'"},
-/* ERR_NOTCREATED */	{FATAL,    STRING, 192, "Could not create file '%s'"},
-/* ERR_WRITEFAIL */	{FATAL,    STRING, 202, "Could not finish writing to file '%s'"},
-/* ERR_EMPTYFILE */	{FATAL,    STRING,   0, "Basic program file '%s' is empty"},
+/* ERR_READFAIL */	{NONFATAL, STRING, 189, "Could not read file '%s'"},
+/* ERR_NOTCREATED */	{NONFATAL, STRING, 192, "Could not create file '%s'"},
+/* ERR_WRITEFAIL */	{NONFATAL, STRING, 202, "Could not finish writing to file '%s'"},
+/* ERR_EMPTYFILE */	{NONFATAL, STRING,   0, "Basic program file '%s' is empty"},
 #ifdef TARGET_RISCOS
 /* ERR_FILEIO */	{FATAL,    STRING,   0, "%s"},
 /* ERR_UNKNOWN */	{FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
@@ -480,11 +483,11 @@ static detail errortable [] = {
 /* ERR_UNKNOWN */	{FATAL,    INTEGER,  244, "Unexpected signal (&%x) received"},
 /* ERR_CMDFAIL */	{NONFATAL, NOPARM,   254, "OS command failed"},
 #endif
-/* ERR_BADHANDLE */	{FATAL,    NOPARM, 222, "Handle is invalid or file associated with it has been closed"},
+/* ERR_BADHANDLE */	{NONFATAL, NOPARM, 222, "Handle is invalid or file associated with it has been closed"},
 /* ERR_SETPTRFAIL */	{FATAL,    NOPARM,   0, "The file pointer cannot be changed"},
 /* ERR_GETPTRFAIL */	{FATAL,    NOPARM,   0, "The file pointer's value cannot be found"},
 /* ERR_GETEXTFAIL */	{FATAL,    NOPARM,   0, "The size of the file cannot be found"},
-/* ERR_MAXHANDLE */	{FATAL,    NOPARM, 192, "The maximum allowed number of files is already open"},
+/* ERR_MAXHANDLE */	{NONFATAL, NOPARM, 192, "The maximum allowed number of files is already open"},
 /* ERR_NOMEMORY */	{FATAL,    NOPARM,   0, "Amount of memory requested exceeds what is available"},
 //
 /* ERR_BROKEN */	{FATAL,    INTSTR,   0, "The interpreter has gone wrong at line %d in %s"},
@@ -509,7 +512,7 @@ static detail errortable [] = {
 /* ERR_SWINUMNOTKNOWN */{NONFATAL, INTEGER,486, "SWI &%X not known"},
 /* ERR_DIRNOTFOUND */	{NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
 /* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
-/* ERR_ADDREXCEPT */	{FATAL,    NOPARM,   0, "Address exception"},
+/* ERR_ADDREXCEPT */	{NONFATAL, NOPARM, 243, "Address exception"},
 //
 // OSCLI (command line) errors:
 /* ERR_BADCOMMAND */	{NONFATAL, NOPARM, 254, "Bad command"},
@@ -524,10 +527,10 @@ static detail errortable [] = {
 /* ERR_BADSYNTAX */	{NONFATAL, STRING, 220, "Syntax: %s"},
 //
 // Network errors
-/* ERR_NET_CONNREFUSED*/{NONFATAL, NOPARM, 246, "Connection refused"},
-/* ERR_NET_NOTFOUND */	{NONFATAL, NOPARM, 246, "Host not found"},
-/* ERR_NET_MAXSOCKETS */{NONFATAL, NOPARM, 246, "The maximum allowed number of sockets is already open"},
-/* ERR_NET_NOTSUPP */	{NONFATAL, NOPARM, 246, "Network operation not supported"},
+/* ERR_NET_CONNREFUSED*/{NONFATAL, NOPARM, 165, "Connection refused"},			// 'No reply'
+/* ERR_NET_NOTFOUND */	{NONFATAL, NOPARM, 213, "Host not found"},			// 'Disk not present'
+/* ERR_NET_MAXSOCKETS */{NONFATAL, NOPARM, 192, "The maximum allowed number of sockets is already open"},
+/* ERR_NET_NOTSUPP */	{NONFATAL, NOPARM, 157, "Network operation not supported"},	// 'Unsupported operation'
 /* ERR_NO_RPI_GPIO */	{NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
 //
 /* HIGHERROR */		{NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */

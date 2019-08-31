@@ -4,7 +4,7 @@ BEAT and BEATS seperated, they do two different things.
 BEAT reads current microbeat number, BEATS reads total number
 of microbeats in a bar.
 
-tokens.c/editor/c
+tokens.c/editor.c
 -----------------
 Can load Russell format BASIC programs (Z80/DOS/Windows BASIC).
 
