@@ -85,6 +85,14 @@
 */
 
 // Temporary split while finalising NEWKBD code.
+
+// Not ideal, but to enable NEWKBD by default.
+#ifndef OLDKBD
+#ifndef NEWKBD
+#define NEWKBD
+#endif
+#endif
+
 #ifndef NEWKBD
 #include "kbd-old.c"
 #else
