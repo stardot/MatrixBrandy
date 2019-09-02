@@ -1391,6 +1391,7 @@ static void print_screen(void) {
     while (*basicvars.current == '~' || *basicvars.current == ',' || *basicvars.current == ';'
      || *basicvars.current == '\'' || *basicvars.current == TYPE_PRINTFN) {
       if (*basicvars.current == TYPE_PRINTFN) {	/* Have to use an 'if' here as LCC generate bad code for a switch */
+        newline = TRUE;
         if (*(basicvars.current+1) == TOKEN_TAB) {
           basicvars.current+=2;		/* Skip two byte function token */
           fn_tab();
