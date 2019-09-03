@@ -808,15 +808,15 @@ int32 kbd_get(void) {
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
 raw=0; // raw=!cooked
-  if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
-if (!raw) {
-    if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
-    if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;	/* PGDN/PGUP */
-    if ((ch & 0x0CF) == 0xC9) ch=ch - 62;	/* END       */
-    if (ch == 0x1C8)          ch=30;		/* HOME      */
-    if (ch == 0x1C7)          ch=127;		/* DELETE    */
-    if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
-}
+  if ((ch=kbd_get0()) & 0x100) {	  		/* Get a keypress from 'keyboard buffer'*/
+    if (!raw) {
+        if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;		/* Swap to RISC OS ordering		*/
+        if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;		/* PGDN/PGUP */
+        if ((ch & 0x0CF) == 0xC9) ch=ch - 62;		/* END       */
+        if (ch == 0x1C8)          ch=30;		/* HOME      */
+        if (ch == 0x1C7)          ch=127;		/* DELETE    */
+        if ((ch & 0x0CF) == 0xC6) ch=ch + 7;		/* INSERT    */
+    }
   }
   if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key		*/
   if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined	*/
@@ -2056,7 +2056,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   init_recall();
   do {
     ch = kbd_get();		/* Get 9-bit keypress or expanded function key		*/
-    if ((ch & 0x100) || (ch == DEL)) {
+    if ((ch & 0x100) || ((ch == DEL) & !matrixflags.delcandelete)) {
       pendch=ch & 0xFF;		/* temp */
       ch = asc_NUL;
     }
@@ -2071,11 +2071,20 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       buffer[highplace] = asc_NUL;
       if (highplace > 0) add_history(buffer, highplace);
       break;
-    case CTRL_H: case DEL:      /* Delete character to left of cursor */
+    case CTRL_H:      /* Delete character to left of cursor */
       if (place > 0) {
         emulate_vdu(DEL);
         place--;
         shift_down(buffer, place);
+      }
+      break;
+    case DEL:
+      if (matrixflags.delcandelete) {
+        if (place > 0) {
+          emulate_vdu(DEL);
+          place--;
+          shift_down(buffer, place);
+        }
       }
       break;
     case CTRL_D:        /* Delete character under the cursor */
