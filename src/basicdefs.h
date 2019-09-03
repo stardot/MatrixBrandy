@@ -522,6 +522,7 @@ typedef struct {
   unsigned int scrunge;			/* Is the BASIC program scrunged? */
   FILE *doexec;				/* Are we doing a *EXEC? */
   FILE *dospool;			/* Are we doing a *SPOOL / *SPOOLON? */
+  int delcandelete;			/* DEL can delete */
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
   uint32 int_uses_float;		/* Does INT() use floats? */
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */

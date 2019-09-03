@@ -183,6 +183,11 @@ static void init1(void) {
   matrixflags.failovermode = 255;	/* Report Bad Mode on unavailable screen mode */
   matrixflags.int_uses_float = 0;	/* Does INT() use floats? Default no = RISC OS and BBC behaviour */
   matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
+#if defined(TARGET_UNIX) & !defined(USE_SDL)
+  matrixflags.delcandelete = 1;		/* DEL character can delete? */
+#else
+  matrixflags.delcandelete = 0;		/* DEL character can delete? */
+#endif
 
 /*
  * Add dummy first parameter for Basic program command line.
