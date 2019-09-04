@@ -39,9 +39,10 @@
 #include "strings.h"
 #include "screen.h"
 #include "net.h"
+#include "keyboard.h"
+
 
 /* Floating point number format */
-
 enum {XMIXED_ENDIAN, XLITTLE_ENDIAN, XBIG_ENDIAN, XBIG_MIXED_ENDIAN} double_type;
 
 #ifdef TARGET_RISCOS
