@@ -35,7 +35,6 @@
 #include "target.h"
 #include "errors.h"
 #include "fileio.h"
-#include "keyboard.h"
 #include "strings.h"
 #include "screen.h"
 #include "net.h"
