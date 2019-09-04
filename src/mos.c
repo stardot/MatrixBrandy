@@ -57,6 +57,7 @@
 **                  Layout and content needs a bit of tidying up.
 ** 05-Jan-2019 JGH: GSTrans returns string+length, so embedded |@ allowed in *KEY.
 ** 30-Aug-2019 JGH: Preparing to generalise OSBYTE 166+.
+** 04-Sep-2019 JGH: Added OSBYTE system variables for OSBYTE 166+.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -2295,8 +2296,7 @@ static void mos_osword(int32 areg, int32 xreg) {
    }
 }
 
-static char sysvars[257-166]; // allow overflow from 255
-static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
+
 /*
 * OSBYTE < &A6 perform actions
 * OSBYTE < &80 X is only parameter
@@ -2316,7 +2316,7 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &07   7 Serial Baud Receive rate
 * OSBYTE &08   8 Serial Baud Transmit Rate
 * OSBYTE &09   9 First Colour Flash Duration
-* OSBYTE &0A   0 Second Colour Flash Duration
+* OSBYTE &0A  10 Second Colour Flash Duration
 * OSBYTE &0B  11 Keypress Auto Repeat Delay
 * OSBYTE &0C  12 Keypress Auto Repeat Period
 * OSBYTE &0D  13 Disable Event
@@ -2527,14 +2527,14 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * OSBYTE &DA 218 Read/Write VDU Queue length
 * OSBYTE &DB 219 Read/Write ASCII code for TAB
 * OSBYTE &DC 220 Read/Write ASCII for ESCAPE
-* OSBYTE &DD 221 Read/Write Intrepretation ASCII 197-207
-* OSBYTE &DE 222 Read/Write Interpretation ASCII 208-223
-* OSBYTE &DF 223 Read/Write Interpretation ASCII 224-239
-* OSBYTE &E0 224 Read/Write Interpretation ASCII 240-255
-* OSBYTE &E1 225 Read/Write Interpretation of F-Keys
-* OSBYTE &E2 226 Read/Write Interpretation of Shift-F-Keys
-* OSBYTE &E3 227 Read/Write Interpretation of Ctrl-F-Keys
-* OSBYTE &E4 228 Read/Write Interpretation of Ctrl-Shift-Fkeys
+* OSBYTE &DD 221 Read/Write Intrepretation of &C0-&CF
+* OSBYTE &DE 222 Read/Write Interpretation of &D0-&DF
+* OSBYTE &DF 223 Read/Write Interpretation of &E0-&EF
+* OSBYTE &E0 224 Read/Write Interpretation of &F0-&FF
+* OSBYTE &E1 225 Read/Write Interpretation of &80-&8F FKeys
+* OSBYTE &E2 226 Read/Write Interpretation of &90-&9F Shift-FKeys
+* OSBYTE &E3 227 Read/Write Interpretation of &A0-&AF Ctrl-FKeys
+* OSBYTE &E4 228 Read/Write Interpretation of &B0-&BF Ctrl-Shift-FKeys/Alt-FKeys
 * OSBYTE &E5 229 Read/Write ESCAPE key status
 * OSBYTE &E6 230 Read/Write ESCAPE effects
 * OSBYTE &E7 231 Read/Write 6522 User IRQ Mask
@@ -2568,21 +2568,31 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 * (b30 copy of b31 for compatability with 6502 V flag position)
 *
 */
+static byte _sysvar[] = { 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &A6 - &AF */
+  0,  0,  0,   0,   0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &B0 - &BF */
+  0,  0,  0,   0,   0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &C0 - &CF */
+  0,  0,  0,   0,   0, 0, 0, 0, 0, 0, 0, 9, 27, 1, 0, 0,   /* &D0 - &DF */
+  0,  1,  128, 144, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &E0 - &EF */
+  0,  0,  0,   0,   0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 255, /* &F0 - &FF */
+0 }; /* Overflow for &FF+1 */
+byte *sysvar = _sysvar-166;
+
+static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 {
-int tmp;
+int atmp, tmp;
 
 areg=areg & 0xFF;		// Prevent any sillyness
 
-// if (areg>=166) {
-//   tmp=sysvars[areg-166];
-//   sysvars[areg] = (char)(sysvars[areg] & yreg) ^ xreg;
-//   // Temporary test until special-case generalised
-//   if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
-//     xreg=tmp & 0xFF;
-//     yreg=sysvars[areg+1] & 0xFF;
-//     return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
-//   }
-// }
+if (areg>=166) {
+  tmp=sysvar[areg];
+  sysvar[areg] = (char)(sysvar[areg] & yreg) ^ xreg;
+  // Temporary test until special-case generalised
+  if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
+    xreg=tmp & 0xFF;
+    yreg=sysvar[areg+1] & 0xFF;
+    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
+  }
+}
 
 switch (areg) {
 	case 0:			// OSBYTE 0 - Return machine type
@@ -2590,6 +2600,9 @@ switch (areg) {
 		else if (!xflag) error(ERR_MOSVERSION);
 // else return pointer to error block
 		break;
+	case 1: case 3: case 4: case 5: case 6:
+		if (areg==3 || areg==4) areg=areg-7;
+		return mos_osbyte(areg+0xF0, xreg, 0, 0);
 	case 20:
 #ifdef USE_SDL
 		reset_sysfont(8);
