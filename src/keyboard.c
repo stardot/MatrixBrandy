@@ -88,13 +88,12 @@
 **
 */
 
-// This is done in target.h
-// // Not ideal, but to enable NEWKBD by default.
-// #ifndef OLDKBD
-// #ifndef NEWKBD
-// #define NEWKBD
-// #endif
-// #endif
+// Not ideal, but to enable NEWKBD by default.
+#ifndef OLDKBD
+#ifndef NEWKBD
+#define NEWKBD
+#endif
+#endif
 
 
 // Temporary split while finalising NEWKBD code.
