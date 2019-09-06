@@ -77,6 +77,10 @@
 ** 30-Aug-2019 JGH: Testing, minor bugs in BBC/JP keyboard layout. US/UK all ok.
 **                  Some builds don't "see" Print/Pause/Width. SDL only one that sees Print.
 **
+** Issues: Alt+alphanum gives &180+n instead of &080+n.
+**         A few outstanding bugs in BBC/JP keyboard layout.
+** To do:  Implementing *FX225,etc will resolve raw/cooked keycode issue, cf below.
+**
 ** Think: if OSBYTE 0 says "not RISC OS", GET shouldn't be returning RISC OS-numbered keys
 ** Existing code says, eg, "If Windows and GET=&C6 Then HOME pressed"
 **
@@ -84,15 +88,16 @@
 **
 */
 
+// This is done in target.h
+// // Not ideal, but to enable NEWKBD by default.
+// #ifndef OLDKBD
+// #ifndef NEWKBD
+// #define NEWKBD
+// #endif
+// #endif
+
+
 // Temporary split while finalising NEWKBD code.
-
-// Not ideal, but to enable NEWKBD by default.
-#ifndef OLDKBD
-#ifndef NEWKBD
-#define NEWKBD
-#endif
-#endif
-
 #ifndef NEWKBD
 #include "kbd-old.c"
 #else
@@ -503,6 +508,7 @@ int GetAsyncKeyState(int key) {
  * Returns:   0 if ok
  *          <>0 if can't set because key is in use
  */
+//  kbd_fnkeyset(int key, int length, char *string) {
 int kbd_fnkeyset(int key, char *string, int length) {
   if (fn_string_count) return fn_string_count;		/* Key in use			*/
   if (fn_key[key].text != NIL) free(fn_key[key].text);	/* Remove existing definition	*/
@@ -518,8 +524,8 @@ int kbd_fnkeyset(int key, char *string, int length) {
 /* Returns: string which can include NULs
  *          len updated with length of string
  */
-char *kbd_fnkeyget(int key, int *len) {
-  *len=fn_key[key].length;
+char *kbd_fnkeyget(int key, int *length) {
+  *length=fn_key[key].length;
   return fn_key[key].text;
 }
 
@@ -808,15 +814,15 @@ int32 kbd_get(void) {
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
 raw=0; // raw=!cooked
-  if ((ch=kbd_get0()) & 0x100) {	  		/* Get a keypress from 'keyboard buffer'*/
-    if (!raw) {
-        if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;		/* Swap to RISC OS ordering		*/
-        if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;		/* PGDN/PGUP */
-        if ((ch & 0x0CF) == 0xC9) ch=ch - 62;		/* END       */
-        if (ch == 0x1C8)          ch=30;		/* HOME      */
-        if (ch == 0x1C7)          ch=127;		/* DELETE    */
-        if ((ch & 0x0CF) == 0xC6) ch=ch + 7;		/* INSERT    */
-    }
+  if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
+if (!raw) {
+    if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
+    if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;	/* PGDN/PGUP */
+    if ((ch & 0x0CF) == 0xC9) ch=ch - 62;	/* END       */
+    if (ch == 0x1C8)          ch=30;		/* HOME      */
+    if (ch == 0x1C7)          ch=127;		/* DELETE    */
+    if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
+}
   }
   if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key		*/
   if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined	*/
@@ -863,8 +869,8 @@ static byte dostable[] = {
 0x90,0xce,0xc6,0xc7,0xc3,0x95,0x96,0xc8, /* 90,cDown,cIns,cDel,cTab,95,96,aHome		*/
 0xcf,0xcb,0x9a,0xcc,0x9c,0xcd,0x9e,0xc9, /* aUp,aPgUp,9A,a<-,9C,a->,9E,aEnd		*/
 0xce,0xca,0xc6,0xc7,0xa4,0xc3,0xa6,0xa7, /* aDn,aPgDn,aIns,aDel,A4,aTab,A6-A7		*/
-0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xaf, /* A8-AE,WTH					*/
-0xb0,0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7, /* sWTH,cWTH,aWTH				*/
+0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xc2, /* A8-AE,WIDTH					*/
+0xc2,0xc2,0xf3,0xb3,0xb4,0xb5,0xb6,0xb7, /* sWIDTH,cWIDTH,aWIDTH			*/
 0xb8,0xb9,0xba,0xbb,0xbc,0xbd,0xbe,0xbf,
 0xc0,0xc1,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7,
 0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,
@@ -907,15 +913,15 @@ int32 kbd_get0(void) {
     // When kbd_modkeys() returns all keys, change this to call it
     s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
     c=(GetAsyncKeyState(VK_CONTROL)<0);
-    a=(GetAsyncKeyState(VK_MENU)<0);
+    if(a=(GetAsyncKeyState(VK_MENU)<0)) c=0;
     ch=getch();					/* Get second key byte			*/
     if (ch == 0x29) return 0xAC;		/* Alt-top-left key			*/
     if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
     ch=dostable[ch];				/* Translate escaped character		*/
     if ((ch & 0xC0) == 0xC0) {			/* Non-function keys need extra help	*/
-      if (s) ch=ch | 0x10;			/* SHIFT pressed			*/
-      if (c) ch=ch | 0x20;			/* CTRL pressed				*/
-      if (a) ch=ch | 0x30;			/* ALT pressed				*/
+      if (s) ch=ch ^ 0x10;			/* SHIFT pressed			*/
+      if (c) ch=ch ^ 0x20;			/* CTRL pressed				*/
+      if (a) ch=ch ^ 0x30;			/* ALT pressed				*/
     }
     return ch | 0x100;				/* 0x100+nn - top-bit special keys	*/
   }
@@ -1261,6 +1267,7 @@ int32 read_key(void) {
 	case SDL_KEYUP:
 	  break;
         case SDL_KEYDOWN:
+// emulate_printf("$%0X",ev.key.keysym.sym);
           switch(ev.key.keysym.sym) {
             case SDLK_RSHIFT:   /* ignored keys */
             case SDLK_LSHIFT:
@@ -1269,8 +1276,22 @@ int32 read_key(void) {
             case SDLK_RALT:
             case SDLK_LALT:
               break;
-
-// new code
+#ifdef TARGET_DOSWIN
+            case 0:
+// This seems to be the way, fill in the rest later.
+// NB, use low-level codes, translate to RISC OS codes higher up.
+// GetKeyState() gets state for this keypress
+// GetAsyncKeyState() gets state right now this instant
+//               if (GetAsyncKeyState(0x1D)<0) {	/* NoConvert	*/
+//                 ch=0xC5;
+//                 break;
+//               }
+//               if (GetAsyncKeyState(0x1C)<0) {	 /* Convert	*/
+//                 ch=0xC6;
+//                 break;
+//               }
+//               break;
+#endif
             case SDLK_F1: case SDLK_F2: case SDLK_F3: case SDLK_F4: case SDLK_F5:
             case SDLK_F6: case SDLK_F7: case SDLK_F8: case SDLK_F9: case SDLK_F10:
             case SDLK_F11: case SDLK_F12:
@@ -1296,74 +1317,14 @@ int32 read_key(void) {
               if (ch < 0x100) return ch; else ch=0;
           }
           if (ch) {
-            if (ev.key.keysym.mod & KMOD_SHIFT) ch |= 0x10;
-            if (ev.key.keysym.mod & KMOD_CTRL)  ch |= 0x20;
-            if (ev.key.keysym.mod & KMOD_ALT)   ch |= 0x30;
+            if (ev.key.keysym.mod & KMOD_ALT)         ch ^= 0x30;
+              else if (ev.key.keysym.mod & KMOD_CTRL) ch ^= 0x20;
+            if (ev.key.keysym.mod & KMOD_SHIFT)       ch ^= 0x10;
             push_key(ch);
             return asc_NUL;
           }
         }
       }
-
-// /* There is a better way to do this */
-//             case SDLK_PRINT:
-//             case SDLK_END:
-//             case SDLK_LEFT:
-//             case SDLK_RIGHT:
-//             case SDLK_DOWN:
-//             case SDLK_UP:
-//             case SDLK_PAGEUP:
-//             case SDLK_PAGEDOWN:
-//             case SDLK_INSERT:
-//               switch(ev.key.keysym.sym) {
-//                 case SDLK_PRINT:    ch=0x80; break;
-//                 case SDLK_END:      ch=0xC9; break;
-//                 case SDLK_LEFT:     ch=0xCC; break;
-//                 case SDLK_RIGHT:    ch=0xCD; break;
-//                 case SDLK_DOWN:     ch=0xCE; break;
-//                 case SDLK_UP:       ch=0xCF; break;
-//                 case SDLK_PAGEUP:   ch=0xCB; break;
-//                 case SDLK_PAGEDOWN: ch=0xCA; break;
-//                 case SDLK_INSERT:   ch=0xC6; break;
-// 		default: break;
-//               }
-//               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
-//               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
-//               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
-//               push_key(ch);
-//               return asc_NUL;
-//             case SDLK_HOME:
-//               return HOME;
-//             case SDLK_DELETE:
-//               return KEY_DELETE;
-//             case SDLK_ESCAPE:
-// 	      if (basicvars.escape_enabled) error(ERR_ESCAPE);
-// 	      return ESCAPE;
-//             case SDLK_F1: case SDLK_F2: case SDLK_F3: case SDLK_F4: case SDLK_F5:
-//             case SDLK_F6: case SDLK_F7: case SDLK_F8: case SDLK_F9:
-//               ch = KEY_F1 + ev.key.keysym.sym - SDLK_F1;
-//               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
-//               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
-//               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
-//               push_key(ch);
-//               return asc_NUL;
-//             case SDLK_F10: case SDLK_F11: case SDLK_F12:
-//               ch = KEY_F10 + ev.key.keysym.sym - SDLK_F10;
-//               if (ev.key.keysym.mod & KMOD_SHIFT) ch ^= 0x10;
-//               if (ev.key.keysym.mod & KMOD_CTRL)  ch ^= 0x20;
-//               if (ev.key.keysym.mod & KMOD_ALT)   ch ^= 0x30;
-//               push_key(ch);
-//               return asc_NUL;
-//             default:
-//               ch = ev.key.keysym.unicode;
-//               return ch;
-//           }
-//           break;
-//         case SDL_QUIT:
-//           exit_interpreter(EXIT_SUCCESS);
-//           break;
-//       }
-
 
 /*
 ** Then check stdin
@@ -1387,13 +1348,18 @@ int32 read_key(void) {
     SDL_Delay(10);
   }
 #else /* ! USE_SDL */
+
 #ifndef BODGEMGW
+// does anything get here?
   errcode = read(keyboard, &ch, 1);
 #endif
+// does anything get here?
   if (errcode < 0) {            /* read() returned an error */
 #ifndef BODGEMGW
+// does anything get here?
     if (basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);      /* Assume Ctrl-C was pressed */
 #endif
+// does anything get here?
     error(ERR_BROKEN, __LINE__, "keyboard");    /* Otherwise roll over and die */
   }
 #endif
@@ -1455,7 +1421,7 @@ static int32 decode_sequence(void) {
 */
   static int state1[] = {11, 12, 13, 14, 15, 0, 16, 17, 18};    /* 1..9 */
   static int state2[] = {19, 20, 0, 21, 22, 23, 24, 0, 25, 26}; /* 0..9 */
-  static int state3[] = {27, 28, 29, 30};       /* 1..4 */
+  static int state3[] = {27, 28, 29, 30};       		/* 1..4 */
   state = 1;    /* ESC read */
   ok = TRUE;
   while (ok && waitkey(WAITIME)) {
@@ -1655,6 +1621,8 @@ static int32 decode_sequence(void) {
 ** 'emulate_get' is called by kbd_get0() to get input from the keyboard.
 ** Returns 00,nn for special keys, nn for normal keys.
 */
+// Win+SDL, Unix+SDL, Unix+NoSDL, Amiga, BEOS, MacOS
+// DOS/Win+!SDL elsewhere
 int32 emulate_get(void) {
   byte ch;
   int32 key; // , fn_keyno;
@@ -1662,29 +1630,13 @@ int32 emulate_get(void) {
   int32 errcode;
 #endif
 
-// Done at higher level by kbd_get()
-//   if (matrixflags.doexec) {			/* Are we doing *EXEC?	*/
-//     ch=fgetc(matrixflags.doexec);
-//     if (!feof(matrixflags.doexec)) return (ch & BYTEMASK);
-//     fclose(matrixflags.doexec);
-//     matrixflags.doexec=NULL;
-//   }
-// 
-//   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* Not reading from the keyboard */
-
-// Done at higher level by kbd_get()
-// /*
-//  * Check if characters are being taken from a function
-//  * key string and if so return the next one
-//  */
-//   if (fn_string != NIL) return read_fn_string();
-
   if (holdcount > 0) return pop_key();  /* Return character from hold stack if one is present */
 #ifdef USE_SDL
   ch = read_key();
 // emulate_printf("$%02X",ch);
 #else
   errcode = read(keyboard, &ch, 1);
+// emulate_printf("$%02X",ch);
   if (errcode < 0) {
     if(basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);       /* Assume CTRL-C has been pressed */
     error(ERR_BROKEN, __LINE__, "keyboard");
@@ -1692,6 +1644,7 @@ int32 emulate_get(void) {
 #endif
   ch = ch & BYTEMASK;
   if ((ch != ESCAPE) && (ch != 0)) return ch;
+// This loses Ctrl-@ keypresses
 /*
  * Either ESC was pressed or it marks the start of an ANSI
  * escape sequence for a function key, cursor key or somesuch.
@@ -1707,24 +1660,6 @@ int32 emulate_get(void) {
   if (key != asc_NUL) return key;			/* Return keypress	*/
   if (ch == asc_NUL) if (holdcount == 0) return -1;	/* No key press		*/
   return asc_NUL;					/* Return &00,keypress	*/
-
-// /* NUL found. Check for function key */
-//   key = pop_key();
-//   fn_keyno = kbd_isfnkey(key);
-//   if (fn_keyno < 0) {		/* Not a function key - Return NUL then key code */
-//     push_key(key);
-//     return asc_NUL;
-//   }
-// /* Function key hit. Check if there is a function key string */
-//   if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
-//     push_key(key);	/* No string is defined for this key */
-//     return asc_NUL;
-//   }
-// /*
-//  * There is a function key string. Switch input to string
-//  * and return the first character
-//  */
-//   return switch_fn_string(fn_keyno);
 }
 
 #endif
@@ -1736,44 +1671,6 @@ int32 emulate_get(void) {
 #if defined(TARGET_WIN32) | defined(TARGET_BCC32) | defined(TARGET_MINGW)
 
 // We never get here
-// /*
-// ** 'emulate_get' deals with the Basic function 'get'
-// */
-// int32 removed_emulate_get(void) {
-//   int32 ch, fn_keyno, key;
-//   
-//   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* There is no keyboard to read */
-// /*
-//  * Check if characters are being taken from a function
-//  * key string and if so return the next one
-//  */
-//   if (fn_string != NIL) return read_fn_string();
-//   if (holdcount > 0) return pop_key();  /* Return held character if one is present */
-//   ch = getch();
-//   if (ch == NUL || ch == 0xE0) {        /* DOS escape characters */
-//     ch = dostable[getch()];
-//     if (ch == HOME) return HOME;        /* Special case - 'Home' is only one byte */
-// /* Check for RISC OS function key */
-//     fn_keyno = kbd_isfnkey(ch);
-//     if (fn_keyno < 0) {                /* Not a function key - Return NUL then key code */
-//       push_key(ch);
-//       return NUL;
-//     }
-// /* Function key hit. Check if there is a function key string */
-//     if (fn_key[fn_keyno].text == NIL || fn_key[fn_keyno].length == 0) {
-//       push_key(ch);			/* No string is defined for this key */
-//       return NUL;
-//     }
-// /*
-//  * There is a function key string. Switch input to string
-//  * and return the first character
-//  */
-//     return switch_fn_string(fn_keyno);
-//   }
-//   return ch & BYTEMASK;
-// }
-
-
 
 #endif /* MINGW etc */
 #endif /* ! USE_SDL */
@@ -1781,48 +1678,6 @@ int32 emulate_get(void) {
 #ifdef TARGET_DJGPP
 
 // We never get here
-// #define EXTENDCHAR 0x100        /* Extended keys have codes >= 0x100 */
-// /*
-// ** 'emulate_get' deals with the Basic function 'get'
-// */
-// int32 removed_emulate_get(void) {
-//   int32 ch, fn_keyno;
-//   if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);       /* There is no keyboard to read */
-// 
-// Done at higher level by kbd_get()
-// /*
-//  * Check if characters are being taken from a function
-//  * key string and if so return the next one
-//  */
-//   if (fn_string != NIL) return read_fn_string();
-// 
-// /*
-//  * Normal keyboard input
-//  */
-//   if (holdcount > 0) return pop_key();  /* Return held character if one is present */
-//   ch = getxkey();
-//   if (ch >= EXTENDCHAR) {               /* DOS function key or other extended key */
-//     ch = dostable[ch & BYTEMASK];
-//     if (ch == HOME) return HOME;        /* Special case - 'Home' is only one byte */
-// /* Check for RISC OS function key */
-//     fn_keyno = kbd_isfnkey(ch);
-//     if (fn_keyno < 0) {        /* Not a function key - Return NUL then key code */
-//       push_key(ch);
-//       return NUL;
-//     }
-// /* Function key hit. Check if there is a function key string */
-//     if (fn_key[fn_keyno].text == NIL|| fn_key[fn_keyno].length == 0) {
-//       push_key(ch);		/* No string is defined for this key */
-//       return NUL;
-//     }
-// /*
-//  * There is a function key string. Switch input to string
-//  * and return the first character
-//  */
-//     return switch_fn_string(fn_keyno);
-//   }
-//   return ch & BYTEMASK;
-// }
 
 #endif
 
@@ -1836,16 +1691,6 @@ int32 emulate_get(void) {
 #ifdef TARGET_AMIGA
 #ifdef __SASC
 long __stack = 67000;
-
-// /*
-// ** 'read_key' reads the next character from the keyboard
-// */
-// int32 read_key(void) {
-//   byte ch;
-//   ch = getchar();
-// /*    if (errno == EINTR) error(ERR_ESCAPE);    / * Assume Ctrl-C was pressed */
-//   return ch;
-// }
 
 int32 emulate_get(void) {
   return getchar();
@@ -2071,14 +1916,15 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       buffer[highplace] = asc_NUL;
       if (highplace > 0) add_history(buffer, highplace);
       break;
-    case CTRL_H:      /* Delete character to left of cursor */
+//  case CTRL_H: case DEL:      /* Delete character to left of cursor */
+    case CTRL_H:                /* Delete character to left of cursor */
       if (place > 0) {
         emulate_vdu(DEL);
         place--;
         shift_down(buffer, place);
       }
       break;
-    case DEL:
+    case DEL:			/* Can be optimised */
       if (matrixflags.delcandelete) {
         if (place > 0) {
           emulate_vdu(DEL);
@@ -2086,7 +1932,6 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
           shift_down(buffer, place);
         }
       }
-      break;
     case CTRL_D:        /* Delete character under the cursor */
       if (place < highplace) shift_down(buffer, place);
       break;

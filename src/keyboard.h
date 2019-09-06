@@ -30,7 +30,6 @@
 typedef enum {READ_OK, READ_ESC, READ_EOF} readstate;
 
 extern void purge_keys(void);
-extern int32 emulate_get(void);
 extern int32 read_key(void);
 extern void checkforescape(void);
 extern void set_escint(int i);
@@ -39,17 +38,19 @@ extern void osbyte44(int x);
 extern readstate emulate_readline(char [], int32, int32);
 #ifdef NEWKBD
 extern boolean kbd_init();
-extern int32 kbd_get0(void);
 extern void  kbd_quit(void);
 extern int32 kbd_get(void);
+extern int32 kbd_get0(void);
 extern int32 kbd_inkey(int32);
 extern int32 kbd_modkeys(int32);
 extern int   kbd_fnkeyset(int key, char *string, int length);
-extern char *kbd_fnkeyget(int key, int *len);
+// ern int   kbd_fnkeyset(int key, int length, char *string);
+extern char *kbd_fnkeyget(int key, int *length);
 extern int32 kbd_readline(char *buffer, int32 length, int32 chars);
 extern int   kbd_buffered(void);
 extern int   kbd_pending(void);
 #else
+extern int32 emulate_get(void);
 extern int32 emulate_inkey(int32);
 extern int32 emulate_inkey2(int32);
 extern int set_fn_string(int key, char *string, int length);
