@@ -561,7 +561,7 @@ int32 TOINT(float64 fltmp) {
 
 int64 TOINT64(float64 fltmp) {
   if ((fltmp > ((int64)1<<62)-1) || (fltmp < (-(int64)1<<63))) error(ERR_RANGE);
-  return (int64)(floor(fltmp));
+  return (int64)fltmp;
 }
 
 /* This function reduces a 64-bit int to 32-bit int, with range checking.
