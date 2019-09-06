@@ -36,6 +36,7 @@ extern void set_escint(int i);
 extern void set_escmul(int i);
 extern void osbyte44(int x);
 extern readstate emulate_readline(char [], int32, int32);
+extern int32 emulate_get(void); /* Legacy code still referenced */
 #ifdef NEWKBD
 extern boolean kbd_init();
 extern void  kbd_quit(void);
@@ -50,7 +51,6 @@ extern int32 kbd_readline(char *buffer, int32 length, int32 chars);
 extern int   kbd_buffered(void);
 extern int   kbd_pending(void);
 #else
-extern int32 emulate_get(void);
 extern int32 emulate_inkey(int32);
 extern int32 emulate_inkey2(int32);
 extern int set_fn_string(int key, char *string, int length);
