@@ -1,28 +1,131 @@
+Extensions to the BBC API called by BBC BASIC
+---------------------------------------------
+These are defined extensions, some may or may not be included in Brandy.
+
 
 INKEY(&FF00+nn) - BBC keyscan (standard)
 INKEY(&FE00+nn) - DOS keyscan
 INKEY(&FC00+nn) - SDL keyscan
 INKEY(&8000+nn) - 16-bit INKEY
-ADVAL(128-n) - low-level read of buffer n
-ADVAL(128-1) - fetch untranslated entry from keyboard buffer, 16-bit GET
-EOF#0 - input pending, soft key being expanded or key in keyboard buffer
-(contrast with ADVAL(-1) which only tests keyboard buffer)
+
+ADVAL(n)        - read I/O device (standard)
+ADVAL(-n)       - test buffer contents (standard)
+ADVAL(128-n)    - low-level read of buffer n
+ADVAL(128-1)    - fetch untranslated entry from keyboard buffer, 16-bit GET
+
 BPUT#0 - VDU
 BGET#0 - GET
+EOF#0  - input pending, soft key being expanded or key in keyboard buffer
+         (contrast with ADVAL(-1) which only tests keyboard buffer)
 PTR#0
 EXT#0
 
-VDU 23,18,n,m| - teletext display settings
 
-COLOUR &00+n - foreground
+COLOUR &00+n - foreground colour (standard)
 COLOUR &40+n - reserved
-COLOUR &80+n - background
-COLOUR &C0+n - border
+COLOUR &80+n - background colour (standard)
+COLOUR &C0+n - border colour
 
-VDU 19
+VDU 19,<128,p,r,g,b       - set logical colour
+VDU 19,-1  ,p,r,g,b       - set border colour (-1 is sent as CHR$255)
 
-Check:
-What does BBSDL GCOL 128+n do?
+VDU 19,l,  0+RGB   ,r,g,b - steady physical colour (standard)
+VDU 19,l,  8+RGB   ,r,g,b - flashing or bright physical colour (standard)
+VDU 19,l, 16+action,r,g,b - RGB colour
+VDU 19,l, 32+RGB   ,r,g,b - first flashing physical colour
+VDU 19,l, 48+RGB   ,r,g,b - second flashing physical colour
+VDU 19,l, 64+action,r,g,b - reserved
+VDU 19,l,128+y     ,z,x,x - CPC: 5-bit physical colours y and z
+VDU 19,l,255       ,r,g,b - DOS: 6-bit RGB colour
 
-PTR(number) does bigendian !number
+VDU 23,18,n,setting,mask|  - teletext display settings, new setting = (old setting AND mask) EOR setting
+VDU 23,18,0,display,mask|  - set mix/box display mode
+                              b1-b0=text/mix/box/TV
+VDU 23,18,1,update,mask|   - set update type
+                              b0=suspend all automatic display upate
+                              b1=update display after every character
+VDU 23,18,2,reveal,mask|   - reveal concealed display
+                              b0=reveal concealed characters
+VDU 23,18,3,enable,mask|   - enable extended control characters, setting=(oldsetting AND and) XOR xor
+                              b0=black foreground enabled (CHR$&80, CHR$&90)
+                              b1=double width enable (CHR$&8E, CHR$&8F)
+VDU 23,18,4,fontLo,fontHi| - select teletext font as per SAA505x series.
+VDU 23,18,16,quality,mask| - select character display quality
+                              b0=render high quality text
+
+VDU 23,22 - define screen mode (BBfSDL)
+VDU 23,23 - set line thickness (BBfSDL)
+VDU 23,24 - set character spacing (BBfSDL)
+VDU 23,31 - reset VDU system (internal to BBfSDL)
+
+GCOL 0,c  GCOL 1,c  GCOL 2,c - standard GCOL commands
+GCOL 3,c  GCOL 4,c
+GCOL 5,c                   - on-screen colour not changed (RISC OS)
+GCOL 6,c                   - on-screen colour = c AND NOT on-screen colour (RISC OS)
+GCOL 7,c                   - on-screen colour = c OR NOT on-screen colour (RISC OS)
+GCOL 8+n,c                 - GCOL n with transparent background (RISC OS)
+GCOL 16*p+n,c              - Use extended colour pattern p for p=1..4 (GXR, MOS 3) or giant pattern for p=5 (RISC OS)
+GCOL 96+,c                 - reserved
+
+
+Extensions to BBC BASIC
+-----------------------
+COLOUR l,p
+COLOUR l,r,g,b
+GCOL c
+PLOT x,y
+=COLOUR(x,y)
+=COLOUR(r,g,b)
+=GCOL(x,y)
+=GCOL(r,g,b)
+=CHR$(x,y)
+PTR(number)  does bigendian !number
 PTR(string$) returns address of start of string$
+&o           octal constant, eg &o107
+%            binary constant, eg %100111
+
+
+Notes on ADVAL(-1) and EOF#0
+----------------------------
+ADVAL(-1) returns how many entries are in the keyboard buffer, EOF#0 - where implemented - returns
+whether the next GET or INKEY will return immediately. These are two slightly different concepts.
+
+If the current input stream is an EXEC file, ADVAL(-1) does not tell you if tell you if there
+is a byte to read from GET/INKEY.
+
+If the current input stream is the serial port, ADVAL(-1) does not tell you if there is a byte
+to read from GET/INKEY, the serial input buffer is ADVAL(-2).
+
+Subtly, soft keys can give unexpected results. Consider the case where you have:
+*KEY 0 "hello"
+*KEY 1 ""
+
+Assuming the keyboard buffer is empty, if f0 is pressed, ADVAL(-1) will return 1. GET/INKEY will
+fetch the "h" character, but thereup ADVAL(-1) will return 0 - as there is now nothing in the
+keyboard buffer. However, there are still four characters that can be fetched as there is a
+soft key being expanded. You can see this with this bit of code, press f0 and only a single
+character will be displayed:
+
+REPEAT
+  IF ADVAL(-1) THEN VDU GET
+UNTIL FALSE
+
+Now assume that f1 has been pressed. ADVAL(-1) will again return 1 as there is one entry in the
+keyboard buffer. However, GET will wait forever, as it will fetch the one entry from the
+keyboard buffer, find it is a soft key, find that the soft key defintion is a null string, and
+loop back waiting for something to enter the keyboard buffer. Again, with the same sample code,
+pressing f1 will cause the program to wait forever - or until another key is pressed.
+
+
+If EOF#0 is implemented, it should do its best to examine the system and only return zero if
+and only if the next GET/INKEY will immediately return with no waiting, so the following code
+will work:
+
+REPEAT
+  IF NOT EOF#0 THEN VDU GET
+UNTIL FALSE
+
+In general, if you can it is better to write code in the form:
+
+key%=INKEY(time):IF key%<>-1 THEN ....
+
