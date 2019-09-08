@@ -116,7 +116,7 @@ static void handle_signal(int signo) {
 #endif
   case SIGINT:
     (void) signal(SIGINT, handle_signal);
-    basicvars.escape = TRUE;
+    if (basicvars.escape_enabled) basicvars.escape = TRUE;
     return;
   case SIGFPE:
     (void) signal(SIGFPE, handle_signal);
@@ -380,7 +380,7 @@ static detail errortable [] = {
 /* ERR_FNNOTENUFF */	{NONFATAL, NOPARM,  31, "Call to built-in function does not have enough parameters"},
 /* ERR_BADRET */	{NONFATAL, INTEGER, 31, "Parameter no. %d is not a valid 'RETURN' parameter"},
 //
-// Not actually an error, but is a specifically allowed:
+// Not actually an error, is specifically allowed functionality, error no longer generated:
 /* ERR_CRASH */		{FATAL,    NOPARM,   0, "Program execution has run into a PROC or FN"},
 //
 /* ERR_BADDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create array '%s)'"},
@@ -734,6 +734,11 @@ void error(int32 errnumber, ...) {
     emulate_printf("Out of range error number %d\r\n", errnumber);
     errnumber = ERR_BROKEN;
   }
+
+#ifdef NEWKBD
+  kbd_escack();				/* Acknowledge and process Escape effects */
+#else // OLDKBD
+
   basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */
 #ifdef TARGET_MINGW
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
@@ -741,13 +746,14 @@ void error(int32 errnumber, ...) {
 #ifndef TARGET_RISCOS
   purge_keys();        /* RISC OS purges the keybuffer during escape processing */
 #endif
+#ifdef USE_SDL
+  if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
+#endif
+#endif // !NEWKBD
   va_start(parms, errnumber);
   vsprintf(errortext, errortable[errnumber].msgtext, parms);
   va_end(parms);
   if (errortable[errnumber].equiverror != -1) basicvars.error_number = errortable[errnumber].equiverror;
-#ifdef USE_SDL
-  if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
-#endif
   if (basicvars.current==NIL)           /* Not running a program */
     basicvars.error_line = 0;
   else {

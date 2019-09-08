@@ -58,3 +58,6 @@ A=250:	X must equal 0, Y must equal 255. Get display write bank set with
 	OSBYTE 113 returned in Y register.
 A=251:	X must equal 0, Y must equal 255. Get display video bank set with
 	OSBYTE 113 returned in X register.
+
+OSBYTEs 166-255 read and write OSBYTE system variables with new=(old AND Y) EOR X,
+but only those listed have any effect.

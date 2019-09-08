@@ -1524,8 +1524,8 @@ static void cmd_help(char *command)
 	emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
 	emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
-	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4], mos_patchdate[5],
-	  mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4]==' ' ? '0' : mos_patchdate[4],
+	mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 #endif
 	// NB: Adjust spaces in above to align version and date strings correctly
 
@@ -2579,15 +2579,16 @@ byte *sysvar = _sysvar-166;
 
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 {
-int atmp, tmp;
+int tmp;
 
-areg=areg & 0xFF;		// Prevent any sillyness
+tmp=(areg=areg & 0xFF);	// Prevent any sillyness
 
 if (areg>=166) {
   tmp=sysvar[areg];
-  sysvar[areg] = (char)(sysvar[areg] & yreg) ^ xreg;
+  sysvar[areg] = (byte)(sysvar[areg] & yreg) ^ xreg;
   // Temporary test until special-case generalised
-  if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
+//  if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
+  if (areg!=250 && areg!=251) {
     xreg=tmp & 0xFF;
     yreg=sysvar[areg+1] & 0xFF;
     return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
@@ -2601,8 +2602,8 @@ switch (areg) {
 // else return pointer to error block
 		break;
 	case 1: case 3: case 4: case 5: case 6:
-		if (areg==3 || areg==4) areg=areg-7;
-		return mos_osbyte(areg+0xF0, xreg, 0, 0);
+		if (areg==3 || areg==4) tmp=tmp-7;
+		return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
 	case 20:
 #ifdef USE_SDL
 		reset_sysfont(8);
@@ -2657,6 +2658,7 @@ switch (areg) {
 	case 129:		// OSBYTE 129 - INKEY
 #ifdef NEWKBD
 		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
+// NB: Real OSBYTE 129 returns weird result for Escape/Timeout
 #else
 		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
 		if ((yreg=255) && (xreg >= 128)) {
@@ -2722,6 +2724,7 @@ switch (areg) {
 		}
 #endif
 		break;
+// This is now in keyboard.c
 	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
 		if (xreg & 1) {
 		  basicvars.escape_enabled = TRUE;
@@ -2729,6 +2732,7 @@ switch (areg) {
 		  basicvars.escape_enabled = FALSE;
 		}
 		break;
+// This is now in keyboard.c
 	case 229:		// OSBYTE 229 - Enable or disable escape
 		if (xreg) {
 		  basicvars.escape_enabled = FALSE;

@@ -65,6 +65,7 @@ extern void  mos_stereo(int32, int32);
 extern boolean mos_init(void);
 extern void  mos_final(void);
 
+extern byte *sysvar;
 #define sv_KeyboardBase   172
 #define sv_EscapeBreak    200
 #define sv_KBDDisabled    201
