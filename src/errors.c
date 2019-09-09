@@ -240,15 +240,9 @@ void announce(void) {
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
-#ifdef __LP64__
-  emulate_printf("Basicvars is at &%llX, tokenised line is at &%llX\r\n", &basicvars, &thisline);
-  emulate_printf("Workspace is at &%llX, size is &%X, offbase = &%llX\r\nPAGE = &%llX (relative &%X),\r\nHIMEM = &%llX (relative &%X)\r\n",
-   basicvars.workspace, basicvars.worksize, basicvars.offbase, basicvars.page, basicvars.page - basicvars.offbase, basicvars.himem, basicvars.himem - basicvars.offbase);
-#else
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\n", &basicvars, &thisline);
-  emulate_printf("Workspace is at &%X, size is &%X, offbase = &%X\r\nPAGE = &%X (relative &%X), HIMEM = &%X (relative &%X)\r\n",
-   basicvars.workspace, basicvars.worksize, basicvars.offbase, basicvars.page, basicvars.page - basicvars.offbase, basicvars.himem, basicvars.himem - basicvars.offbase);
-#endif /*LP64*/
+  emulate_printf("Workspace is at &%X, size is &%X, offbase = &%X\r\nPAGE = &%X, HIMEM = &%X\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.offbase, basicvars.page, basicvars.himem);
 #endif /*DEBUG*/
 }
 

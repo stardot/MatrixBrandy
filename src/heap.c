@@ -72,21 +72,10 @@ boolean init_workspace(int32 heapsize) {
   if (wp==NIL) heapsize = 0;	/* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
   basicvars.workspace = wp;
-  if (heapsize <= 65536) {
-    basicvars.page = wp + 0xE00; /* Default BBC/Master PAGE value */
-  } else {
-    basicvars.page = wp + 0x8F00; /* Default RISC OS PAGE value */
-  }
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
-#ifdef TARGET_RISCOS
-  basicvars.offbase = 0;
-#else
-  basicvars.offbase = wp;
-#endif
-////
   basicvars.offbase = 0;
   basicvars.page = wp;
-////
+
 /* Under RISC OS, find out the address of the end of wimp slot */
 #ifdef TARGET_RISCOS
   {
