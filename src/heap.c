@@ -83,10 +83,7 @@ boolean init_workspace(int32 heapsize) {
 #else
   basicvars.offbase = wp;
 #endif
-////
-  basicvars.offbase = 0;
-  basicvars.page = wp;
-////
+
 /* Under RISC OS, find out the address of the end of wimp slot */
 #ifdef TARGET_RISCOS
   {
