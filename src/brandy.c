@@ -243,7 +243,12 @@ static void init2(void) {
     exit(EXIT_FAILURE);
   }
 #ifdef USE_SDL
-  if ((uint64)basicvars.page >= 0x8000) {
+#ifdef __LP64__
+  if ((uint64)basicvars.page >= 0x8000)
+#else
+  if ((uint32)basicvars.page >= 0x8000)
+#endif
+  {
     matrixflags.mode7fb = 0x7C00;
   } else {
     matrixflags.mode7fb = 0xFFFF7C00;

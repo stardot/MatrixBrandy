@@ -158,7 +158,7 @@ boolean safestack(void) {
 int32 *make_opstack(void) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_opstack);
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "stack.c:make_opstack: stacktop=%p, stacklimit=%p, OPSTACKSIZE*LARGEST_ENTRY=%lX\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp, OPSTACKSIZE*LARGEST_ENTRY);
+  if (basicvars.debug_flags.stack) fprintf(stderr, "stack.c:make_opstack: stacktop=%p, stacklimit=%p, OPSTACKSIZE*LARGEST_ENTRY=%lX\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp, (long unsigned int)OPSTACKSIZE*LARGEST_ENTRY);
 #endif
   if (basicvars.stacktop.bytesp-OPSTACKSIZE*LARGEST_ENTRY<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
   basicvars.stacktop.opstacksp->itemtype = STACK_OPSTACK;
