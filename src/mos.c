@@ -1527,6 +1527,13 @@ static void cmd_help(char *command)
 	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4]==' ' ? '0' : mos_patchdate[4],
 	mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 #endif
+#ifdef __LP64__
+  emulate_printf("\n  Workspace is at &%llX, size is &%X\r\n  PAGE = &%llX, HIMEM = &%llX\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+#else
+  emulate_printf("\n  Workspace is at &%X, size is &%X\r\n  PAGE = &%X, HIMEM = &%X\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+#endif /*LP64*/
 	// NB: Adjust spaces in above to align version and date strings correctly
 
     break;

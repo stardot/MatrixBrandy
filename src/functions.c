@@ -99,40 +99,10 @@ static void bad_token(void)  {
 }
 
 /*
-** 'eval_integer' evaluates a numeric expression where an integer value
-** is required, returning the value
-*/
-int32 eval_integer(void) {
-  stackitem numtype;
-  expression();
-  numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
-  if (numtype == STACK_FLOAT) return TOINT(pop_float());
-  error(ERR_TYPENUM);
-  return 0;	/* Keep Acorn's compiler happy */
-}
-
-/*
-** 'eval_intfactor' evaluates a numeric factor where an integer is
-** required. The function returns the value obtained.
-*/
-int32 eval_intfactor(void) {
-  stackitem numtype;
-  (*factor_table[*basicvars.current])();
-  numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
-  if (numtype == STACK_FLOAT) return TOINT(pop_float());
-  error(ERR_TYPENUM);
-  return 0;	/* Keep Acorn's compiler happy */
-}
-
-/*
 ** 'fn_himem' pushes the value of HIMEM on to the Basic stack
 */
 static void fn_himem(void) {
-  push_int(basicvars.himem-basicvars.offbase);
+  push_int64(basicvars.himem-basicvars.offbase);
 }
 
 /*
@@ -222,7 +192,7 @@ static void fn_left(void) {
 ** to the Basic stack
 */
 static void fn_lomem(void) {
-  push_int(basicvars.lomem-basicvars.offbase);
+  push_int64(basicvars.lomem-basicvars.offbase);
 }
 
 /*
@@ -275,7 +245,7 @@ static void fn_mid(void) {
 ** Basic stack
 */
 static void fn_page(void) {
-  push_int(basicvars.page-basicvars.offbase);
+  push_int64(basicvars.page-basicvars.offbase);
 }
 
 /*
@@ -660,7 +630,7 @@ static void fn_deg(void) {
 */
 void fn_end(void) {
   basicvars.current++;
-  push_int(basicvars.vartop-basicvars.offbase);
+  push_int64(basicvars.vartop-basicvars.offbase);
 }
 
 /*
@@ -1582,7 +1552,7 @@ void fn_top(void) {
   p = get_srcaddr(basicvars.current);		/* Find the address of the variable */
   if (*p != 'P') error(ERR_SYNTAX);		/* But it does not start with the letter 'P' */
   basicvars.current+=LOFFSIZE + 1;
-  push_int(basicvars.top-basicvars.offbase);
+  push_int64(basicvars.top-basicvars.offbase);
 }
 
 /*

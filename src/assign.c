@@ -2634,16 +2634,14 @@ void assign_stringvar(void) {
 ** when LOCAL ERROR has not been used and so forth.
 */
 static void assign_himem(void) {
-  int32 offset;
-  byte *address;
+  byte *newhimem;
   basicvars.current++;		/* Skip HIMEM */
   if (*basicvars.current!='=') error(ERR_EQMISS);
   basicvars.current++;
-  offset = ALIGN(eval_integer());
+  newhimem = (byte *)ALIGN(eval_int64());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  address = basicvars.offbase+offset;
-  if (basicvars.himem == address) return; /* Always OK to set HIMEM to its existing value */
-  if (address<(basicvars.vartop+1024) || address>basicvars.end)
+  if (basicvars.himem == newhimem) return; /* Always OK to set HIMEM to its existing value */
+  if (newhimem<(basicvars.vartop+1024) || newhimem>basicvars.end)
     error(WARN_BADHIMEM);	/* Flag error (execution continues after this one) */
   else if (!safestack())
     error(ERR_HIMEMFIXED);	/* Cannot alter HIMEM here */
@@ -2652,7 +2650,7 @@ static void assign_himem(void) {
 ** Reset HIMEM. The Basic stack is created afresh at the new value
 ** of HIMEM.
 */
-    basicvars.himem = address;
+    basicvars.himem = newhimem;
     init_stack();
     init_expressions();
   }
@@ -2761,7 +2759,7 @@ static void assign_lomem(void) {
   basicvars.current++;		/* Skip LOMEM token */
   if (*basicvars.current!='=') error(ERR_EQMISS);
   basicvars.current++;
-  address = basicvars.offbase+ALIGN(eval_integer());
+  address = basicvars.offbase+ALIGN(eval_int64());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   if (address<basicvars.top || address>=basicvars.himem)
     error(WARN_BADLOMEM);	/* Flag error (execution continues after this one) */
@@ -2837,17 +2835,17 @@ static void assign_mid(void) {
 ** adjusting 'PAGE'
 */
 static void assign_page(void) {
-  int32 offset;
+  byte *newpage;
   basicvars.current++;		/* Skip PAGE token */
   if (*basicvars.current!='=') error(ERR_EQMISS);
   basicvars.current++;
-  offset = eval_integer();
+  newpage = (byte *)ALIGN(eval_int64());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  if (offset<0 || offset>=basicvars.worksize) {
+  if (newpage<basicvars.workspace || newpage>=(basicvars.workspace+basicvars.worksize)) {
     error(WARN_BADPAGE);	/* Flag error (execution continues after this one) */
     return;
   }
-  basicvars.page = basicvars.offbase + offset;
+  basicvars.page = (byte *)newpage;
   clear_program();	/* Issue 'NEW' to ensure everything is the way it should be */
 }
 

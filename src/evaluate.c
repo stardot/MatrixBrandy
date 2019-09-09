@@ -177,6 +177,47 @@ static void show_result(void) {
 #endif
 
 /*
+** 'eval_integer' evaluates a numeric expression where an integer value
+** is required, returning the value
+*/
+int32 eval_integer(void) {
+  stackitem numtype;
+  expression();
+  numtype = GET_TOPITEM;
+  if (numtype == STACK_INT) return pop_int();
+  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
+  if (numtype == STACK_FLOAT) return TOINT(pop_float());
+  error(ERR_TYPENUM);
+  return 0;	/* Keep Acorn's compiler happy */
+}
+
+int64 eval_int64(void) {
+  stackitem numtype;
+  expression();
+  numtype = GET_TOPITEM;
+  if (numtype == STACK_INT) return pop_int();
+  if (numtype == STACK_INT64) return pop_int64();
+  if (numtype == STACK_FLOAT) return TOINT64(pop_float());
+  error(ERR_TYPENUM);
+  return 0;	/* Keep Acorn's compiler happy */
+}
+
+/*
+** 'eval_intfactor' evaluates a numeric factor where an integer is
+** required. The function returns the value obtained.
+*/
+int32 eval_intfactor(void) {
+  stackitem numtype;
+  (*factor_table[*basicvars.current])();
+  numtype = GET_TOPITEM;
+  if (numtype == STACK_INT) return pop_int();
+  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
+  if (numtype == STACK_FLOAT) return TOINT(pop_float());
+  error(ERR_TYPENUM);
+  return 0;	/* Keep Acorn's compiler happy */
+}
+
+/*
 ** 'check_arrays' returns 'true' if the two arrays passed to it
 ** have the same number of dimensions and the bounds of each
 ** dimension are the same. It does not check the types of the
