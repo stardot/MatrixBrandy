@@ -44,7 +44,6 @@ extern int32 get_integer(int32);
 extern float64 get_float(int32);
 extern void store_integer(int32, int32);
 extern void store_float(int32, float64);
-extern byte *alignaddr(byte *);
 extern char *skip_blanks(char *);
 extern byte *skip(byte *);
 extern char *tocstring(char *, int32);

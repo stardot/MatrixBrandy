@@ -92,15 +92,6 @@ byte *skip(byte *p) {
 }
 
 /*
-** 'alignaddr' aligns an address on a word boundary.
-*/
-byte *alignaddr(byte *addr) {
-  int32 offset = addr-basicvars.offbase;
-  offset = ALIGN(offset);
-  return basicvars.offbase+offset;
-}
-
-/*
 ** 'check_read' is called to ensure that the address from which
 ** data is read using an indirection operator is valid, that is,
 ** lies within the Basic workspace. This check is not carried out

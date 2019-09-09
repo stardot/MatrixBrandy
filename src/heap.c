@@ -126,9 +126,10 @@ void release_heap(void) {
 ** for this
 */
 void *allocmem(int32 size) {
-  byte *newlimit;
+  byte *newlimit, bsize;
   size = ALIGN(size);
-  newlimit = basicvars.stacklimit.bytesp+size;
+  bsize=size;
+  newlimit = basicvars.stacklimit.bytesp+bsize;
   if (newlimit>=basicvars.stacktop.bytesp) error(ERR_NOROOM);	/* Have run out of memory */
   basicvars.stacklimit.bytesp = newlimit;
   newlimit = basicvars.vartop;

@@ -1534,6 +1534,10 @@ static void cmd_help(char *command)
   emulate_printf("\n  Workspace is at &%X, size is &%X\r\n  PAGE = &%X, HIMEM = &%X\r\n",
    basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
 #endif /*LP64*/
+#ifdef DEBUG
+  emulate_printf("  stacktop=&%llX, stacklimit=&%llX\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+
+#endif
 	// NB: Adjust spaces in above to align version and date strings correctly
 
     break;
