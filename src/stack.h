@@ -52,7 +52,7 @@ extern void push_floatfor(lvalue, byte *, float64, float64, boolean);
 extern void push_data(byte *);
 extern void push_error(errorblock);
 extern int32 *make_opstack(void);
-extern jmp_buf *make_restart(void);
+extern sigjmp_buf *make_restart(void);
 extern stackitem get_topitem(void);
 extern byte *get_stacktop(void);
 extern byte *get_safestack(void);

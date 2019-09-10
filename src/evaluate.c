@@ -53,7 +53,7 @@
 ** dyadic operators are evaluated using operator precedence but recursive
 ** descent is used as well, for example, in function calls.
 ** Error handling: all errors are dealt with by calls to function 'error'.
-** This function does not return (it does a 'longjmp' to a well-defined
+** This function does not return (it does a 'siglongjmp' to a well-defined
 ** position in the interpreter)
 */
 
@@ -1275,7 +1275,7 @@ static void do_getfloat(void) {
 ** nested function calls. It also simplifies managing the stack.
 **
 ** One thing to note is that each function call needs its own environment
-** block that 'longjmp' can use when returning control to the program
+** block that 'siglongjmp' can use when returning control to the program
 ** when handling an error when 'ON ERROR LOCAL' is being used to trap
 ** errors. The existing environment block has to be saved. What the
 ** program does is allocate a block on the stack for each environment
@@ -1323,7 +1323,7 @@ static void do_function(void) {
     if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
   }
-  if (setjmp(*basicvars.local_restart) == 0)
+  if (sigsetjmp(*basicvars.local_restart, 1) == 0)
     exec_fnstatements(dp->fnprocaddr);
   else {
 /*

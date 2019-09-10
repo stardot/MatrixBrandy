@@ -447,12 +447,12 @@ typedef struct {
   byte *current;			/* Current pointer into Basic program */
   byte *lastvartop;			/* Used to note the address of the top of the Basic heap */
   char *stringwork;			/* Pointer to string workspace */
-  jmp_buf restart;			/* For trapping errors */
+  sigjmp_buf restart;			/* For trapping errors */
   int32 error_line;			/* Line number of last error */
   int32 error_number;			/* Number of last error */
   errorblock error_handler;		/* 'ON ERROR' error handler details */
-  jmp_buf error_restart;		/* For restarting the interpreter when an 'ON ERROR' is executed */
-  jmp_buf *local_restart;		/* For restarting the interpreter when an 'ON ERROR LOCAL' is executed */
+  sigjmp_buf error_restart;		/* For restarting the interpreter when an 'ON ERROR' is executed */
+  sigjmp_buf *local_restart;		/* For restarting the interpreter when an 'ON ERROR LOCAL' is executed */
   fnprocinfo *procstack;		/* Pointer to return block of current PROC/FN */
   gosubinfo *gosubstack;		/* Pointer to return block of current GOSUB subroutine */
   byte *datacur;			/* Pointer to position in DATA statement */
