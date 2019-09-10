@@ -21,6 +21,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Bug fix for VAL - it should ONLY handle decimal numbers (not hex or binary)
 - Fix flood fill (it just didn't work right), new implementation is however
   quite memory hungry and recursive.
+- Signal handler updated, longjmps now use siglongjmp. check_read() and
+  check_write() no longer required. Note this also allows a program to trample
+  on the BASIC stack.
 
 * V1.22.0 - 23 July 2019
 - Change identifier to BASIC VI (which is BASIC V with 64-bit FP maths, which

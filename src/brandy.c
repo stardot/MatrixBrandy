@@ -446,11 +446,11 @@ static void init_timer() {
 /*
 ** 'run_interpreter' is the main command loop for the interpreter.
 ** It reads commands and executes then. Control is also returned
-** here in the event of an error by means of a 'longjmp' to
+** here in the event of an error by means of a 'siglongjmp' to
 ** 'basicvars.restart'
 */
 static void run_interpreter(void) {
-  if (setjmp(basicvars.restart)==0) {
+  if (sigsetjmp(basicvars.restart, 1)==0) {
     if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
     init_errors();	/* Set up the signal handlers */
 #ifdef BRANDYAPP
@@ -466,7 +466,7 @@ static void run_interpreter(void) {
     }
 #endif
   }
-/* Control passes to this point in the event of an error via a 'longjmp' */
+/* Control passes to this point in the event of an error via a 'siglongjmp' */
   while (TRUE) {
     read_command();
     tokenize(inputline, thisline, HASLINE, TRUE);

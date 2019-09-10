@@ -226,7 +226,7 @@ void end_run(void) {
   if (basicvars.debug_flags.stats) show_stringstats();
 #endif
   if (basicvars.runflags.quitatend) exit_interpreter(EXIT_SUCCESS);	/* Exit from the interpreter once program has finished */
-  longjmp(basicvars.restart, 1);	/* Restart at the command line */
+  siglongjmp(basicvars.restart, 1);	/* Restart at the command line */
 }
 
 static void next_line(void) {
@@ -452,7 +452,7 @@ void run_program(byte *lp) {
   basicvars.datacur = NIL;
   basicvars.runflags.outofdata = FALSE;
   basicvars.runflags.running = TRUE;	/* Say that ' RUN' command has been issued */
-  if (setjmp(basicvars.error_restart) == 0) {	/* Mark restart point */
+  if (sigsetjmp(basicvars.error_restart, 1) == 0) {	/* Mark restart point */
     basicvars.local_restart = &basicvars.error_restart;
     exec_statements(FIND_EXEC(lp));	/* Start normal run at first token */
   }

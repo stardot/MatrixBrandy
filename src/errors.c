@@ -23,6 +23,7 @@
 */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -50,8 +51,8 @@
 ** --------------
 ** The way in which the interpreter deals with any error is to call
 ** 'error' and then either branch back to the start of the interpreter's
-** command loop using 'longjmp' or to execute the code defined on a
-** 'ON ERROR' statement (again using 'longjmp' to jump back into the
+** command loop using 'siglongjmp' or to execute the code defined on a
+** 'ON ERROR' statement (again using 'siglongjmp' to jump back into the
 ** interpreter). A number of signal handlers are also set up to trap
 ** errors such as the 'escape' key being pressed or out-of-range
 ** addresses. Note that the use of 'SIGINT' to trap 'escape' being
@@ -115,24 +116,25 @@ static void handle_signal(int signo) {
     return;
 #endif
   case SIGINT:
-    (void) signal(SIGINT, handle_signal);
     if (basicvars.escape_enabled) basicvars.escape = TRUE;
     return;
   case SIGFPE:
-    (void) signal(SIGFPE, handle_signal);
     error(ERR_ARITHMETIC);
   case SIGSEGV:
-    (void) signal(SIGSEGV, handle_signal);
     error(ERR_ADDREXCEPT);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
   case SIGCONT:
-    (void) signal(SIGCONT, handle_signal);
 #ifdef NEWKBD
     kbd_init();
 #else
     init_keyboard();
 #endif
     return;
+#endif
+#ifndef BODGEDJP
+  case SIGTTIN:
+  case SIGTTOU:
+    return; 
 #endif
   default:
     error(ERR_UNKNOWN, signo);
@@ -182,20 +184,27 @@ void watch_signals(void) {
 void init_errors(void) {
   errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
+    struct sigaction sa;
+    
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handle_signal;
+    sa.sa_flags=SA_RESTART;
+    sigemptyset(&sa.sa_mask);
+
 #ifndef TARGET_MINGW
-    (void) signal(SIGUSR1, handle_signal);
-    (void) signal(SIGUSR2, handle_signal);
+    sigaction(SIGUSR1, &sa, NULL);
+    sigaction(SIGUSR2, &sa, NULL);
 #ifndef BODGEDJP
-    (void) signal(SIGTTIN, SIG_IGN);
-    (void) signal(SIGTTOU, SIG_IGN);
+    sigaction(SIGTTIN, &sa, NULL);
+    sigaction(SIGTTOU, &sa, NULL);
 #endif
-    (void) signal(SIGPIPE, handle_signal);
+    sigaction(SIGPIPE, &sa, NULL);
 #endif
-    (void) signal(SIGFPE, handle_signal);
-    (void) signal(SIGSEGV, handle_signal);
-    (void) signal(SIGINT, handle_signal);
+    sigaction(SIGFPE, &sa, NULL);
+    sigaction(SIGSEGV, &sa, NULL);
+    sigaction(SIGINT, &sa, NULL);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
-    (void) signal(SIGCONT, handle_signal);
+    sigaction(SIGCONT, &sa, NULL);
 #endif
 #ifdef TARGET_DJGPP
     sigintkey = __djgpp_set_sigint_key(ESCKEY);
@@ -679,12 +688,12 @@ static void handle_error(errortype severity) {
   }
 #endif
     if (basicvars.error_handler.islocal)        /* Trapped via 'ON ERROR LOCAL' */
-      longjmp(*basicvars.local_restart, 1);
+      siglongjmp(*basicvars.local_restart, 1);
     else {      /* Trapped via 'ON ERROR' - Reset everything and return to main interpreter loop */
       basicvars.procstack = NIL;
       basicvars.gosubstack = NIL;
       init_expressions();
-      longjmp(basicvars.error_restart, 1);      /* Branch back to the main interpreter loop */
+      siglongjmp(basicvars.error_restart, 1);      /* Branch back to the main interpreter loop */
     }
   }
   else {        /* Print error message and halt program */
@@ -700,7 +709,7 @@ static void handle_error(errortype severity) {
     basicvars.current = NIL;
     basicvars.procstack = NIL;
     basicvars.gosubstack = NIL;
-    longjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
+    siglongjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
   }
 }
 
@@ -732,7 +741,6 @@ void error(int32 errnumber, ...) {
 #ifdef NEWKBD
   kbd_escack();				/* Acknowledge and process Escape effects */
 #else // OLDKBD
-
   basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */
 #ifdef TARGET_MINGW
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
