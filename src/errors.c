@@ -119,8 +119,14 @@ static void handle_signal(int signo) {
     if (basicvars.escape_enabled) basicvars.escape = TRUE;
     return;
   case SIGFPE:
+#ifdef TARGET_MINGW
+    signal(SIGFPE, handle_signal);
+#endif
     error(ERR_ARITHMETIC);
   case SIGSEGV:
+#ifdef TARGET_MINGW
+    signal(SIGSEGV, handle_signal);
+#endif
     error(ERR_ADDREXCEPT);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
   case SIGCONT:
@@ -131,10 +137,10 @@ static void handle_signal(int signo) {
 #endif
     return;
 #endif
-#ifndef BODGEDJP
+#if !defined(BODGEDJP) && !defined(TARGET_MINGW)
   case SIGTTIN:
   case SIGTTOU:
-    return; 
+    return;
 #endif
   default:
     error(ERR_UNKNOWN, signo);
@@ -184,8 +190,32 @@ void watch_signals(void) {
 void init_errors(void) {
   errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
+#if defined(TARGET_MINGW) || defined(TARGET_DJGPP)
+#ifndef TARGET_MINGW
+    signal(SIGUSR1, handle_signal);
+    signal(SIGUSR2, handle_signal);
+#ifndef BODGEDJP
+    signal(SIGTTIN, handle_signal);
+    signal(SIGTTOU, handle_signal);
+#endif
+    signal(SIGPIPE, handle_signal);
+#endif
+    signal(SIGFPE, handle_signal);
+    signal(SIGSEGV, handle_signal);
+    signal(SIGINT, handle_signal);
+#ifdef TARGET_DJGPP
+    sigintkey = __djgpp_set_sigint_key(ESCKEY);
+#endif
+
+#ifdef TARGET_MINGW
+    /* Launch a thread to poll the escape key to emulate asynchronous SIGINTs */
+    if (sigintthread == 0)
+      sigintthread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&watch_escape, NULL, 0, NULL);
+#endif
+
+#else /* TARGET_MINGW | TARGET_DJGPP */
     struct sigaction sa;
-    
+
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = handle_signal;
     sa.sa_flags=SA_RESTART;
@@ -206,14 +236,8 @@ void init_errors(void) {
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
     sigaction(SIGCONT, &sa, NULL);
 #endif
-#ifdef TARGET_DJGPP
-    sigintkey = __djgpp_set_sigint_key(ESCKEY);
-#endif
-#ifdef TARGET_MINGW
-    /* Launch a thread to poll the escape key to emulate asynchronous SIGINTs */
-    if (sigintthread == 0)
-      sigintthread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&watch_escape, NULL, 0, NULL);
-#endif
+
+#endif /* TARGET_MINGW | TARGET_DJGPP */
   }
 }
 

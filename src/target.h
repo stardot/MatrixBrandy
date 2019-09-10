@@ -317,4 +317,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define ALIGN(x) ((x+sizeof(int32)-1) & -(int)sizeof(int32))
 #endif
 
+#ifdef TARGET_MINGW
+#include <setjmp.h>
+#define sigsetjmp(env, savesigs) setjmp(env)
+#define siglongjmp(env, val) longjmp(env, val)
+typedef jmp_buf sigjmp_buf;
+#endif
+
 #endif
