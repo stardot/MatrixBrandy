@@ -221,7 +221,6 @@ void init_errors(void) {
     sa.sa_flags=SA_RESTART;
     sigemptyset(&sa.sa_mask);
 
-#ifndef TARGET_MINGW
     sigaction(SIGUSR1, &sa, NULL);
     sigaction(SIGUSR2, &sa, NULL);
 #ifndef BODGEDJP
@@ -229,7 +228,6 @@ void init_errors(void) {
     sigaction(SIGTTOU, &sa, NULL);
 #endif
     sigaction(SIGPIPE, &sa, NULL);
-#endif
     sigaction(SIGFPE, &sa, NULL);
     sigaction(SIGSEGV, &sa, NULL);
     sigaction(SIGINT, &sa, NULL);
