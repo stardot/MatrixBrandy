@@ -302,8 +302,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** is the minimum it can be changed to.
 */
 
-//#define DEFAULTSIZE (512*1024)
-#define DEFAULTSIZE 688124
+#define DEFAULTSIZE (512*1024)
 #define MINSIZE 16384
 
 
