@@ -80,7 +80,7 @@ static int32 get_number(void) {
 ** 'basicvars.current' points at the first item after the token for the
 ** command for which it is being used
 */
-static void get_pair(size_t *first, size_t *second, int32 firstdef, int32 secondef) {
+static void get_pair(size_t *first, size_t *second, size_t firstdef, size_t secondef) {
   size_t low, high = 0;
   *first = firstdef;
   *second = secondef;
