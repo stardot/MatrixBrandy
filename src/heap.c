@@ -75,6 +75,7 @@ boolean init_workspace(int32 heapsize) {
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
   basicvars.offbase = 0;
   basicvars.page = wp;
+  basicvars.memdump_lastaddr = (size_t)wp;
 
 /* Under RISC OS, find out the address of the end of wimp slot */
 #ifdef TARGET_RISCOS

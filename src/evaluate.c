@@ -657,7 +657,7 @@ static void do_staticvar(void) {
 ** value pointed at by the variable on to the Basic stack
 */
 static void do_statindvar(void) {
-  int32 address;
+  size_t address;
   byte operator;
   address = basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger;
   basicvars.current+=2;
@@ -666,8 +666,10 @@ static void do_statindvar(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)	/* Calculate the address to be referenced */
     address+=pop_int();
+  else if (GET_TOPITEM == STACK_INT64)	/* Calculate the address to be referenced */
+    address+=pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    address+=TOINT(pop_float());
+    address+=TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }
@@ -813,7 +815,8 @@ static void do_arrayvar(void) {
 static void do_arrayref(void) {
   variable *vp;
   byte operator;
-  int32 vartype, maxdims, index = 0, dimcount, element = 0, offset = 0;
+  int32 vartype, maxdims, index = 0, dimcount, element = 0;
+  size_t offset = 0;
   basicarray *descriptor;
 
 #ifdef DEBUG
@@ -883,8 +886,10 @@ static void do_arrayref(void) {
   else {	/* Array reference is followed by an indirection operator */
     if (vartype == VAR_INTARRAY) 	/* Fetch the element value */
       offset = vp->varentry.vararray->arraystart.intbase[element];
+    else if (vartype == VAR_INT64ARRAY) 	/* Fetch the element value */
+      offset = vp->varentry.vararray->arraystart.int64base[element];
     else if (vartype == VAR_FLOATARRAY)
-      offset = TOINT(vp->varentry.vararray->arraystart.floatbase[element]);
+      offset = TOINT64(vp->varentry.vararray->arraystart.floatbase[element]);
     else {
       error(ERR_TYPENUM);
     }
@@ -893,8 +898,10 @@ static void do_arrayref(void) {
     (*factor_table[*basicvars.current])();
     if (GET_TOPITEM == STACK_INT)	/* Calculate the offset to be referenced */
       offset+=pop_int();
+    else if (GET_TOPITEM == STACK_INT64)	/* Calculate the offset to be referenced */
+      offset+=pop_int64();
     else if (GET_TOPITEM == STACK_FLOAT)
-      offset+=TOINT(pop_float());
+      offset+=TOINT64(pop_float());
     else {
       error(ERR_TYPENUM);
     }
@@ -914,14 +921,14 @@ static void do_arrayref(void) {
 */
 static void do_indrefvar(void) {
   byte operator;
-  int32 offset;
+  size_t offset;
 #ifdef USE_SDL
   int32 msx, msy, loop, val = 0;
 #endif
   if (*basicvars.current == TOKEN_INTINDVAR)	/* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
   else {
-    offset = TOINT(*GET_ADDRESS(basicvars.current, float64 *));
+    offset = TOINT64(*GET_ADDRESS(basicvars.current, float64 *));
   }
   basicvars.current+=LOFFSIZE+1;		/* Skip pointer to variable */
   operator = *basicvars.current;
@@ -929,8 +936,10 @@ static void do_indrefvar(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)	/* Calculate the offset to be referenced */
     offset+=pop_int();
+  else if (GET_TOPITEM == STACK_INT64)	/* Calculate the offset to be referenced */
+    offset+=pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    offset+=TOINT(pop_float());
+    offset+=TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }
@@ -1148,13 +1157,15 @@ static void do_unaryminus(void) {
 ** the stack
 */
 static void do_getbyte(void) {
-  uint32 offset = 0;
+  size_t offset = 0;
 #ifdef USE_SDL
   uint32 msx, msy;
 #endif
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
+    offset = pop_int();
+  else if (GET_TOPITEM == STACK_INT64)
     offset = pop_int();
   else if (GET_TOPITEM == STACK_FLOAT)
     offset = TOINT(pop_float());
@@ -1187,7 +1198,7 @@ static void do_getbyte(void) {
 ** the stack. The address of the word to be pushed is byte-aligned
 */
 static void do_getword(void) {
-  int32 offset = 0;
+  size_t offset = 0;
 #ifdef USE_SDL
   int32 msx, msy, loop, val = 0;
 #endif
@@ -1195,8 +1206,10 @@ static void do_getword(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     offset = pop_int();
+  else if (GET_TOPITEM == STACK_INT64)
+    offset = pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT(pop_float());
+    offset = TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }
@@ -1231,13 +1244,16 @@ static void do_getword(void) {
 ** of the string, a null string is pushed on to the stack.
 */
 static void do_getstring(void) {
-  int32 offset = 0, len;
+  size_t offset = 0;
+  int32 len;
   basicvars.current++;		/* Skip '$' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     offset = pop_int();
+  else if (GET_TOPITEM == STACK_INT64)
+    offset = pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT(pop_float());
+    offset = TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }
@@ -1252,13 +1268,15 @@ static void do_getstring(void) {
 ** to the Basic stack
 */
 static void do_getfloat(void) {
-  int32 offset = 0;
+  size_t offset = 0;
   basicvars.current++;		/* Skip '|' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     offset = pop_int();
+  else if (GET_TOPITEM == STACK_INT64)
+    offset = pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT(pop_float());
+    offset = TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }

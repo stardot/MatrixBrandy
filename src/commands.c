@@ -51,8 +51,6 @@
 
 #define PAGESIZE 20     /* Number of lines listed before pausing */
 
-static int32 lastaddr = 0;
-
 static char editname[80];       /* Default Name of editor invoked by 'EDIT' command */
 
 #ifndef NOINLINEHELP
@@ -82,8 +80,8 @@ static int32 get_number(void) {
 ** 'basicvars.current' points at the first item after the token for the
 ** command for which it is being used
 */
-static void get_pair(int32 *first, int32 *second, int32 firstdef, int32 secondef) {
-  int32 low, high = 0;
+static void get_pair(size_t *first, size_t *second, int32 firstdef, int32 secondef) {
+  size_t low, high = 0;
   *first = firstdef;
   *second = secondef;
   if (isateol(basicvars.current)) return;       /* Return if there is nothing to do */
@@ -299,7 +297,7 @@ static void set_listopt(void) {
 ** 'delete' is called to delete a range of lines from the program
 */
 static void delete(void) {
-  int32 low, high;
+  size_t low, high;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
   basicvars.current++;
@@ -313,7 +311,7 @@ static void delete(void) {
 ** 'renumber' renumbers a Basic program
 */
 static void renumber(void) {
-  int32 start, step;
+  size_t start, step;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
   basicvars.current++;
@@ -330,10 +328,10 @@ static void renumber(void) {
 */
 static void show_memory(void) {
   byte which;
-  int32 lowaddr, highaddr;
+  size_t lowaddr, highaddr;
   which = *basicvars.current;
   basicvars.current++;
-  get_pair(&lowaddr, &highaddr, lastaddr, lastaddr+0x40);
+  get_pair(&lowaddr, &highaddr, basicvars.memdump_lastaddr, basicvars.memdump_lastaddr+0x40);
   check_ateol();
   if (highaddr == lowaddr) highaddr = lowaddr+0x40;
   if (which == TOKEN_LISTB)
@@ -341,14 +339,15 @@ static void show_memory(void) {
   else {
     show_word(lowaddr, highaddr);
   }
-  lastaddr = highaddr;
+  basicvars.memdump_lastaddr = highaddr;
 }
 
 /*
 ** 'list_program' lists the source of a Basic  program
 */
 static void list_program(void) {
-  int32 lowline, highline, count;
+  size_t lowline, highline;
+  int32 count;
   boolean more, paused;
   byte *p;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
@@ -416,7 +415,8 @@ static void list_program(void) {
 ** 'list_hexline' lists a line as a hex dump
 */
 static void list_hexline(void) {
-  int32 length, theline;
+  int32 length;
+  size_t theline;
   byte *where;
   basicvars.current++;
   get_pair(&theline, &theline, 0, 0);

@@ -523,6 +523,7 @@ typedef struct {
   variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions */
   int64 centiseconds;			/* Centisecond timer, populated by sub-thread */
   int64 monotonictimebase;		/* Baseline for OS_ReadMonotonicTime */
+  size_t memdump_lastaddr;		/* Last address used by LISTB/LISTW */
 #ifdef USE_SDL
   SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
 #endif  
