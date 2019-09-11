@@ -1166,7 +1166,7 @@ static void do_getbyte(void) {
   if (GET_TOPITEM == STACK_INT)
     offset = pop_int();
   else if (GET_TOPITEM == STACK_INT64)
-    offset = pop_int();
+    offset = pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
     offset = TOINT(pop_float());
   else {
