@@ -233,13 +233,8 @@ void clear_program(void) {
 ** is being edited
 */
 static void adjust_heaplimits(void) {
-#ifdef __LP64__
-  basicvars.lomem = basicvars.vartop = (byte *)ALIGN((uint64)basicvars.top+ENDMARKSIZE);
-  basicvars.stacklimit.bytesp = basicvars.vartop+(uint64)STACKBUFFER;
-#else
-  basicvars.lomem = basicvars.vartop = (byte *)ALIGN((uint32)basicvars.top+ENDMARKSIZE);
-  basicvars.stacklimit.bytesp = basicvars.vartop+(uint32)STACKBUFFER;
-#endif
+  basicvars.lomem = basicvars.vartop = (byte *)ALIGN((size_t)basicvars.top+ENDMARKSIZE);
+  basicvars.stacklimit.bytesp = basicvars.vartop+(size_t)STACKBUFFER;
 }
 
 /*

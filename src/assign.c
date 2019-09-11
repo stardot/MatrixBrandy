@@ -2638,11 +2638,7 @@ static void assign_himem(void) {
   basicvars.current++;		/* Skip HIMEM */
   if (*basicvars.current!='=') error(ERR_EQMISS);
   basicvars.current++;
-#ifdef __LP64__
-  newhimem = (byte *)ALIGN(eval_int64());
-#else
-  newhimem = (byte *)ALIGN(eval_integer());
-#endif
+  newhimem = (byte *)(size_t)ALIGN(eval_int64());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   if (basicvars.himem == newhimem) return; /* Always OK to set HIMEM to its existing value */
   if (newhimem<(basicvars.vartop+1024) || newhimem>basicvars.end)
@@ -2763,11 +2759,7 @@ static void assign_lomem(void) {
   basicvars.current++;		/* Skip LOMEM token */
   if (*basicvars.current!='=') error(ERR_EQMISS);
   basicvars.current++;
-#ifdef __LP64__
-  address = (byte *)ALIGN(eval_int64());
-#else
-  address = (byte *)ALIGN(eval_integer());
-#endif
+  address = (byte *)(size_t)ALIGN(eval_int64());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   if (address<basicvars.top || address>=basicvars.himem)
     error(WARN_BADLOMEM);	/* Flag error (execution continues after this one) */
@@ -2847,11 +2839,7 @@ static void assign_page(void) {
   basicvars.current++;		/* Skip PAGE token */
   if (*basicvars.current!='=') error(ERR_EQMISS);
   basicvars.current++;
-#ifdef __LP64__
-  newpage = (byte *)ALIGN(eval_int64());
-#else
-  newpage = (byte *)ALIGN(eval_integer());
-#endif
+  newpage = (byte *)(size_t)ALIGN(eval_int64());
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   if (newpage<basicvars.workspace || newpage>=(basicvars.workspace+basicvars.worksize)) {
     error(WARN_BADPAGE);	/* Flag error (execution continues after this one) */

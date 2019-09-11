@@ -176,11 +176,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
   FILE *file_handle;
   char *vptr;
 
-#ifdef __LP64__
-  out64=(int64)outstring;
-#else
-  out64=(int64)(int32)outstring; /* Ugh. Multiple casting to shut the compiler up */
-#endif
+  out64=(int64)(size_t)outstring; /* Ugh. Multiple casting to shut the compiler up */
   memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
     inregs[0]=swino-256;
