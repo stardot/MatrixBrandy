@@ -62,13 +62,15 @@ static void detailed_help(char *);
 ** integer value. It is used by the functions handling the various
 ** Basic commands in this file
 */
-static int32 get_number(void) {
+static int64 get_number(void) {
   factor();
   switch (get_topitem()) {
   case STACK_INT:
     return pop_int();
+  case STACK_INT64:
+    return pop_int64();
   case STACK_FLOAT:
-    return TOINT(pop_float());
+    return TOINT64(pop_float());
   default:
     error(ERR_TYPENUM);
   }
