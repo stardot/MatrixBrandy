@@ -1031,25 +1031,28 @@ void mos_waitdelay(int32 time) {
 ** 'time' is the time to wait in centiseconds.
 */
 void mos_waitdelay(int32 time) {
-  int32 tbase;
+  int64 tbase;
 
   if (time<=0) return;			/* Nothing to do */
-  tbase=mos_centiseconds();
-  while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
+  tbase=basicvars.centiseconds;
+  while(basicvars.centiseconds < tbase + time) {
     mode7flipbank();
 #ifdef NEWKBD
     if(basicvars.escape_enabled && kbd_inkey(-113)) {
 #else
     if(basicvars.escape_enabled && emulate_inkey(-113)) {
-#endif
+#endif /* NEWKBD */
       basicvars.escape=TRUE;
       time=0;
       error(ERR_ESCAPE);
     }
-#endif
-    usleep(1000);
+    usleep(2000);
   }
+#else /* SDL */
+  tbase=mos_centiseconds();
+  while(mos_centiseconds() < tbase + time) usleep(5000);
+#endif /* USE_SDL */
 }
 #endif
 #endif
