@@ -58,4 +58,14 @@ check:
 clean:
 	rm -f $(SRCDIR)/*.o brandy
 
+cleanall:
+	rm -f $(SRCDIR)/*.o brandy sbrandy tbrandy
+
+text:
+	$(MAKE) -f makefile.text
+
+textclean:
+	rm -f $(SRCDIR)/*.o sbrandy tbrandy
+
 all:	brandy
+
