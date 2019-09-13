@@ -72,11 +72,12 @@ static unsigned char snd_rd[8],snd_wr[8];
 static unsigned short int soffset[8], *poffset;
 static int sactive=0;
 static unsigned char ssl[8],ssr[8];
-static const unsigned char chantype[10]={0,0,1,1,1,1,2,2,2,3};
+static const unsigned char chantype[10]={0,0,4,1,1,5,2,2,2,3};
 static unsigned char chanvoice[8];
 static unsigned char sintab[1025];
 static unsigned int steptab[312];
 static unsigned int stime[8];
+// static unsigned char sbuffer[4098];
 
 static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
 
@@ -103,8 +104,8 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
     poffset = & soffset[cm1];
 
     s = (snd->vol)*snd_volume;
-    vl = s >> (5 + ssl[cm1]);
-    vr = s >> (5 + ssr[cm1]);
+    vl = s >> (7 + ssl[cm1]);
+    vr = s >> (7 + ssr[cm1]);
 
     if((vl>0 || vr>0) && snd->step>0 )
      switch(snd->chant) {
@@ -114,13 +115,13 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
         *poffset += snd->step;
         s = sintab[(*poffset)>>6]-128;
 
-        tmp=((int)ByteStream[i])+((vl*s)>>6);
+        tmp=((int)ByteStream[i])+((vl*s)>>7);
         if(tmp<0)tmp=0;else if(tmp>255)tmp=255;
         ByteStream[i] = tmp;
 
         i++;
 
-        tmp=((int)ByteStream[i])+((vr*s)>>6);
+        tmp=((int)ByteStream[i])+((vr*s)>>7);
         if(tmp<0)tmp=0;else if(tmp>255)tmp=255;
         ByteStream[i] = tmp;
 
@@ -242,6 +243,44 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
       }
       break;
 
+      case 4: /*  triangle wave */
+
+       for(i=0; i<Length; i++){
+        *poffset += snd->step;
+        s = *poffset;
+        if(s >= 32768) s= 65535 -s;
+        s -= 16384;
+
+        tmp=((int)ByteStream[i])+((vl*s)>>14);
+        if(tmp>255)tmp=255;else if(tmp<0) tmp=0;
+        ByteStream[i] = tmp;
+
+        i++;
+
+        tmp=((int)ByteStream[i])+((vr*s)>>14);
+        if(tmp>255)tmp=255;else if(tmp<0) tmp=0;
+        ByteStream[i] = tmp;
+       }
+      break;
+
+      case 5: /*  saw tooth wave */
+
+       for(i=0; i<Length; i++){
+        *poffset += snd->step;
+        s = (*poffset) - 32768;
+
+        tmp=((int)ByteStream[i])+((vl*s)>>15);
+        if(tmp>255)tmp=255;else if(tmp<0) tmp=0;
+        ByteStream[i] = tmp;
+
+        i++;
+
+        tmp=((int)ByteStream[i])+((vr*s)>>15);
+        if(tmp>255)tmp=255;else if(tmp<0) tmp=0;
+        ByteStream[i] = tmp;
+       }
+      break;
+
       default:
       break;
       }
@@ -263,6 +302,7 @@ static void audio_callback(void *unused, Uint8 *ByteStream, int Length) {
    }
   }
  }
+//  {int j=0;for(i=0;i< Length; i+=2) sbuffer[j++] = ByteStream[i]; }
 }
 
 static void clear_sndtab() {
@@ -349,13 +389,6 @@ void init_sound(){
 }
 
 void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int32 delay){
-// channel &0xxx - sound generator  &000h ssss xxxf cccc  hold, sync, flush, channel
-// channel &1xxx - sound generator  &000h xxxx xxxx xxxx  hold, rest ignored
-// channel &20xx - Watford speech
-// channel &21xx
-//      to &FDxx - other things
-// channel &FExx - MIDI control
-// channel &FFxx - BBC speech
 
  unsigned int step;
  int tvol;
@@ -372,6 +405,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  if(!snd_ison ) return;
 
+//  for(t=0;t< 256;t++){ printf("%02x ",sbuffer[t]); };putchar('\n');
+ channel &= 31;
  if(duration <= 0 || channel < 1 || channel > snd_nvoices) return;
 
  cm1 = channel-1;
@@ -387,8 +422,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  step = (int)floor((fhz * (65536.0/20480.0))+0.5);
 */
-
  if(pitch < 0 ) {
+
   step = (((-pitch)<< 16)+10240)/20480;
 
  }else if(pitch < 256) {
@@ -401,7 +436,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
   t=(int)f;
   diff =  floor(0.5 + (1.0/65536.0)*e*((double)(steptab[t+1] - steptab[t])));
   step = (steptab[t] >> 16) + diff;
-  //fprintf(stderr,"t is %3d e is %6.3f diff is %5d\n",t, e, diff);
+  // fprintf(stderr,"t is %3d step is %d e is %6.3f diff is %5d\n",t, step, e, diff);
  }
 
  if(step > 32767) step = 32767;
@@ -416,9 +451,10 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
  else
  if(amplitude > 383)amplitude= 383;
 
- if(amplitude < 0 && amplitude >= -15) tvol = 1-amplitude;
+ if(amplitude < 0 && amplitude >= -15) tvol = (1-amplitude)<<3;
  else
- if(amplitude >=256 && amplitude <= 383) tvol = 1+((amplitude-256)>>3);
+ if(amplitude >=256 && amplitude <= 383) tvol= ((t=((amplitude-255)*3)-77)<0) ? steptab[t+96] >> 26 : steptab[t] >> 24;
+ else tvol = amplitude >> 1;
 
  cht=chantype[chanvoice[cm1]];
 
