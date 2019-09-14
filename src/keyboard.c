@@ -1935,6 +1935,7 @@ static void shift_up(char buffer[], int32 offset) {
 readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   int32 ch, lastplace;
   int32 pendch=0;
+  byte oldopt;
 
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
@@ -1950,6 +1951,8 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 #ifdef USE_SDL
   reset_vdu14lines();
 #endif
+  oldopt=sysvar[sv_KeyOptions];
+  sysvar[sv_KeyOptions]=oldopt | 192;
   highplace = strlen(buffer);
   if (highplace > 0) emulate_vdustr(buffer, highplace);
   place = highplace;
@@ -1969,6 +1972,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 
     if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) {
       basicvars.escape=TRUE; // bodge
+      sysvar[sv_KeyOptions]=oldopt;
       return READ_ESC;
     }
 //	/* Check if the escape key has been pressed and bail out if it has */
@@ -2117,6 +2121,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       }
     }
   } while (ch != asc_CR && ch != asc_LF);
+  sysvar[sv_KeyOptions]=oldopt;
   return READ_OK;
 }
 
