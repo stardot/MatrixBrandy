@@ -75,17 +75,18 @@
 **                  Found a couple of obscure errors in dostable[] translation.
 ** 30-Aug-2019 JGH: Testing, minor bugs in BBC/JP keyboard layout. US/UK all ok.
 **                  Some builds don't "see" Print/Pause/Width. SDL only one that sees Print.
-**
 ** 07-Sep-2019 JGH: Last bits of emulate_get() now migrated into kbd_get0(). Loads of
 **                  redundant code removed. Escape processing moving into here.
 **                  *FX229 tested: DJGPP, MinGW, WinSDL, CentOS/SDL
 **                  *FX220 starting to work, pollesc() and SIGINT check physical key, needs
 **                  to check character.
 **
+** 14-Sep-2019 JGH: ANSI keypresses working again. Amputated entirety of decode_sequence(),
+**                  replaced with parsing code from JGH Console library. Needs negative
+**                  INKEY code for Unix+NoSDL.
+**
 ** Issues: Alt+alphanum gives &180+n instead of &080+n.
 **         A few outstanding bugs in BBC/JP keyboard layout.
-**         Can't get a working build using ANSI keycodes. Unixy defaults to SDL, so no longer
-**          a default build that uses ANSI. See notes at decode_sequence().
 **
 ** To do:  Implementing *FX225,etc will resolve raw/cooked keycode issue, cf below.
 **
@@ -138,6 +139,7 @@
 // #include <sys/types.h>
 #include <errno.h>
 // #include <unistd.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 // Move these later
 static struct termios origtty;  /* Copy of original keyboard parameters */
@@ -303,7 +305,7 @@ static boolean waitkey(int wait);		/* Forward reference	*/
 static int32 pop_key(void);			/* Forward reference	*/
 static int32 read_fn_string(void);		/* Forward reference	*/
 static int32 switch_fn_string(int32 key);	/* Forward reference	*/
-static int32 decode_sequence(void);		/* Forward reference	*/
+// static int32 decode_sequence(void);		/* Forward reference	*/
 
 
 /* Keyboard initialise and finalise */
@@ -446,16 +448,35 @@ void kbd_quit() {
 /* Test state of keyboard system */
 /* ============================= */
 
-int32 kbd_buffered() { return 0; }			// is there anything in the keyboard buffer - ADVAL(-1)
-int32 kbd_pending()  { return 0; }			// will the next GET/INKEY fetch something  - EOF#0
-int32 kbd_escpoll()  { checkforescape(); return 0; }	// to do
-int32 kbd_esctest()  { return basicvars.escape; }	// test for pending Escape state
+/* kbd_buffered() - is there anything in the keyboard buffer - ADVAL(-1) */
+/* --------------------------------------------------------------------- */
+int32 kbd_buffered() {
+  int num=0;
+#ifdef TARGET_UNIX
+  ioctl(STDIN_FILENO, FIONREAD, &num);		/* Count bytes in keyboard buffer	*/
+#endif
+  return num;
+}
+
+/* kbd_pending() - will the next GET/INKEY fetch something - EOF#0 */
+/* --------------------------------------------------------------- */
+int32 kbd_pending() {
+  if (matrixflags.doexec) {
+    if (!feof(matrixflags.doexec)) return TRUE;	/* Still bytes from exec file		*/
+    }
+  if (holdcount) return TRUE;			/* Pushed keypresses pending		*/
+  if (fn_string_count) return TRUE;		/* Soft key being expanded		*/
+  return kbd_buffered()!=0;			/* Test keyboard buffer			*/
+}
+
+int   kbd_escpoll()  { checkforescape(); return 0; }	// to do
+int   kbd_esctest()  { return basicvars.escape; }	// test for pending Escape state
 void  kbd_escset()   { basicvars.escape=TRUE; }		// set Escape state
 void  kbd_escclr()   { basicvars.escape=FALSE; }	// clear Escape state
 
 /* kbd_escack() - acknowledge and clear Escape state */
 /* ------------------------------------------------- */
-int32 kbd_escack() {
+int kbd_escack() {
   byte tmp;
 
   tmp=sysvar[sv_EscapeEffect] ^ 0x0f;
@@ -856,6 +877,7 @@ basicvars.escape_enabled=!sysvar[sv_EscapeAction];
     fclose(matrixflags.doexec);
     matrixflags.doexec=NULL;
   }
+
   if (basicvars.runflags.inredir) {		/* Input redirected at command line	*/
 #if defined(TARGET_UNIX) || defined(CYGWINBUILD)
     if ((ch=getchar()) != EOF) return ch;
@@ -864,12 +886,15 @@ basicvars.escape_enabled=!sysvar[sv_EscapeAction];
 #endif
     else error(ERR_READFAIL);			/* I/O error occured on STDIN		*/
   }
+
   if (fn_string != NIL) return read_fn_string(); /* Function key active			*/
 
 // To do, allow *FX221-8 to specify special keypress expansion and *FX4 cursor key control
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
-raw=0; // raw=!cooked
+// raw=0; // raw=!cooked
+raw=(sysvar[sv_KeyOptions]&192)!=192;
+
   if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
     if (!raw) {
       if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
@@ -1037,6 +1062,23 @@ static byte dostable[] = {
 0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff };
 #endif
 
+#if defined(TARGET_UNIX) && !defined(USE_SDL)
+/* This table gives the mapping from Unix ANSI keypresses to modified RISC OS keycodes.
+** As with the DOS translations, these 'keyboard buffer' values are slightly different
+** to RISC OS values to make them easier to translate from host values. The low level
+** 'buffer' values are the regular 'Console library' values where all function keys are
+** 0x180+n and non-function special keys are all 0x1C0+n. They are then translated higher
+** up to the RISC OS values documented in the PRMs.
+*/
+unsigned char ansikey[]={
+0x00,0xC8,0xC6,0xC7,0xC9,0xCB,0xCA,0x00, /* 0,Home,Ins,Del,End,PgUp,PgDn,7 */
+0x00,0x00,0x00,0x81,0x82,0x83,0x84,0x85, /* 8,9,10,F1,F2,F3,F4,F5          */
+0x00,0x86,0x87,0x88,0x89,0x8A,0x00,0x8B, /* 16,F6,F7,F8,F9,F10,22,F11      */
+0x8C,0x8D,0x8E,0x00,0x8F,0x00,0x00,0x00, /* F12,F13,F14,27,F15,F16,30,F17  */
+0x00,0x00,0x00,0x00,0xCC,0xCD,0xCE,0xCF  /* F18,F19,F20,35,<-,->,Down,Up   */
+};
+#endif
+
 
 /* kbd_get0() is the low level code to fetch a keypress from the keyboard input.
  * It is the equivalent of the BBC/RISC OS code to fetch from the current input
@@ -1080,15 +1122,60 @@ int32 kbd_get0(void) {
   }
   return ch;					/* 0x00+nn - normal keypress		*/
 #else
-  if ((ch=read_key()) != 0) return ch;		/* Fetch keypress or NULL		*/
+
+ #if defined(TARGET_UNIX) && !defined(USE_SDL)
+  int key, mod;
+
+  fflush(stdout);
+  read(STDIN_FILENO, &ch, 1);			/* Read without flushing		*/
+  ch=ch & 0xFF;
+  if (ch != 27) return ch;			/* Not <esc>				*/
+  ioctl(STDIN_FILENO, FIONREAD, &key);		/* Count bytes in keyboard buffer	*/
+  if (key == 0) return ch;			/* Nothing pending			*/
+
+/* ANSI key sequence is:
+ *    <esc> [ (<num>) (;<num>) non-digit
+ * or <esc> O non-digit				*/
+
+  key=0; mod=0;
+  ch=getchar();					/* Get next character			*/
+  if (ch=='O') mod=1;				/* Convert <esc>O to <esc>[1		*/
+  else if (ch != '[') return (ch | 0x100);	/* Not opening <esc>[ or <esc>O		*/
+
+  while ((ch=getchar())<'@') {			/* Parse through non-alphas		*/
+    if (ch>='0' && ch<='9') {			/* Digit, add to current num		*/
+      mod=mod*10+(ch-'0');
+      }
+    if (ch==';') {				/* Semicolon, step to next number	*/
+      key=mod; mod=0;
+      }
+    }
+  if (key==0) { key=mod; mod=1; }		/* Special cases			*/
+  if (ch>='A' && ch<='D') key=39-(ch-'A');	/* Cursor keys				*/
+  if (ch>='P' && ch<='S') key=11+(ch-'P');	/* f1 - f4				*/
+  if (ch=='F') key=4;				/* End					*/
+  if (ch=='H') key=1;				/* Home					*/
+
+  if (key > 39) return 0;			/* Out of range (should loop)		*/
+  ch=ansikey[key];				/* Translate keypress			*/
+
+  mod=mod-1;					/* Convert modifiers to bitmap		*/
+  if (mod & 1) ch=ch ^ 0x10;			/* SHIFT pressed			*/
+  if (mod & 4) ch=ch ^ 0x20;			/* CTRL pressed				*/
+  if (mod & 2) ch=ch ^ 0x30;			/* ALT pressed				*/
+  return (ch | 0x100);
+
+//  if ((ch=read_key()) != 27)  return ch;	/* Fetch keypress or ESC		*/
+//  if (decode_sequence() == 0) ch = pop_key();	/* Decode ANSI keypress sequence	*/
+//  if (ch & 0x80)              ch = ch | 0x100;	/* Test for extended byte from keyboard	*/
+//  return ch;
+ #else
+  if ((ch=read_key()) != 0)   return ch;	/* Fetch keypress or NULL		*/
   if ((ch=read_key()) & 0x80) ch = ch | 0x100;	/* Fetch extended byte from keyboard	*/
   return ch;
+ #endif
 #endif
 }
-// NOTE: ANSI keyboard sequences no longer working, as no longer a build that uses them.
-// Previously, Linux build used ANSI keys, but Linux now defaults to SDL. Build with SDL
-//  output interfers with ANSI input.
-// TO DO: Get an ANSI build working again so working of ANSI key decoding can be ensured.
 
 
 /* Legacy code from here onwards */
@@ -1411,258 +1498,258 @@ if (holdcount > 0) return pop_key();	// moved to here
   }
 #endif
   return ch;
-  ch=decode_sequence();		/* Temp'y, stop compiler complaining */
+//  ch=decode_sequence();		/* Temp'y, stop compiler complaining */
 }
 
-// deal with this bit next
-/*
-** 'decode_sequence' reads a possible ANSI escape sequence and attempts
-** to decode it, converting it to a low level key code. It returns the first
-** character of the key code (a null) if the sequence is recognised or
-** the first character of the sequence read if it cannot be identified.
-** Note that the decoding is incomplete as the function only deals
-** with keys of interest to it. Note also that it deals with both Linux
-** and NetBSD key sequences, for example, the one for 'F1' under Linux
-** is 1B 5B 5B 41 and for NetBSD it is 1B 4F 50. It should also be noted
-** that the range of keys that can be decoded is a long way  short of the
-** key combinations possible. Lastly, the same ANSI sequences are used for
-** more than one key, for example, F11 and shift-F1 both return the same
-** code.
-**
-** States:
-** 1  ESC read          2  ESC 'O'              3  ESC '['
-** 4  ESC '[' '1'       5  ESC '[' '2'          6  ESC '[' '3'
-** 7  ESC '[' '4'       8  ESC '[' '5'          9  ESC '[' '6'
-** 10 ESC '[' '['
-** 11 ESC '[' '1' '1'   12 ESC '[' '1' '2'      13 ESC '[' '1' '3'
-** 14 ESC '[' '1' '4'   15 ESC '[' '1' '5'      16 ESC '[' '1' '7'
-** 17 ESC '[' '1' '8'   18 ESC '[' '1' '9'
-** 19 ESC '[' '2' '0'   20 ESC '[' '2' '1'      21 ESC '[' '2' '3'
-** 12 ESC '[' '2' '4'   23 ESC '[' '2' '5'      24 ESC '[' '2' '6'
-** 25 ESC '[' '2' '8'   26 ESC '[' '2' '9'
-** 27 ESC '[' '3' '1'   28 ESC '[' '3' '2'      29 ESC '[' '3' '3'
-** 30 ESC '[' '3' '4'
-**
-** This code cannot deal with the 'alt' key sequences that KDE passes
-** through. alt-home, for example, is presented as ESC ESC '[' 'H' and
-** as 'ESC ESC' is not a recognised sequence the function simply passes
-** on the data as supplied.
-**
-** Note: there seem to be some NetBSD escape sequences missing here
-*/
-static int32 decode_sequence(void) {
-  int state, newstate;
-  int32 ch;
-  boolean ok;
-  static int32 state2key [] = { /* Maps states 11 to 24 to function key */
-    KEY_F1, KEY_F2, KEY_F3, KEY_F4,             /* [11..[14 */
-    KEY_F5, KEY_F6, KEY_F7, KEY_F8,             /* [15..[19 */
-    KEY_F9, KEY_F10-64, KEY_F11-64, KEY_F12-64, /* [20..[24 */
-    SHIFT_F3, SHIFT_F4, SHIFT_F5, SHIFT_F6,     /* [25..[29 */
-    SHIFT_F7, SHIFT_F8, SHIFT_F9, SHIFT_F10-64  /* [31..[34 */
-  };
-  static int statelbno[] = {4, 5, 6, 7, 8, 9};
-/*
-** The following tables give the next machine state for the character
-** input when handling the ESC '[' '1', ESC '[' '2' and ESC '[' '3'
-** sequences
-*/
-  static int state1[] = {11, 12, 13, 14, 15, 0, 16, 17, 18};    /* 1..9 */
-  static int state2[] = {19, 20, 0, 21, 22, 23, 24, 0, 25, 26}; /* 0..9 */
-  static int state3[] = {27, 28, 29, 30};       		/* 1..4 */
-  state = 1;    /* ESC read */
-  ok = TRUE;
-// emulate_printf("decode");
-  while (ok && waitkey(WAITTIME)) {
-    ch = read_key();
-    switch (state) {
-    case 1:     /* ESC read */
-      if (ch == 'O')    /* ESC 'O' */
-        state = 2;
-      else if (ch == '[')       /* ESC '[' */
-        state = 3;
-      else {    /* Bad sequence */
-        ok = FALSE;
-      }
-      break;
-    case 2:     /* ESC 'O' read */
-      if (ch >= 'P' && ch <= 'S') {     /* ESC 'O' 'P'..'S' */
-        push_key(ch - 'P' + KEY_F1);    /* Got NetBSD F1..F4. Map to RISC OS F1..F4 */
-        return asc_NUL;     /* RISC OS first char of key sequence */
-      }
-      else {    /* Not a known key sequence */
-        ok = FALSE;
-      }
-      break;
-    case 3:     /* ESC '[' read */
-      switch (ch) {
-      case 'A': /* ESC '[' 'A' - cursor up */
-        push_key(UP+64);
-        return asc_NUL;
-      case 'B': /* ESC '[' 'B' - cursor down */
-        push_key(DOWN+64);
-        return asc_NUL;
-      case 'C': /* ESC '[' 'C' - cursor right */
-        push_key(RIGHT+64);
-        return asc_NUL;
-      case 'D': /* ESC '[' 'D' - cursor left */
-        push_key(LEFT+64);
-        return asc_NUL;
-      case 'F': /* ESC '[' 'F' - 'End' key */
-        push_key(0xC9);
-        return asc_NUL;
-      case 'H': /* ESC '[' 'H' - 'Home' key */
-        push_key(0xC8);
-        return asc_NUL;
-      case '1': case '2': case '3': case '4': case '5': case '6': /* ESC '[' '1'..'6' */
-        state = statelbno[ch - '1'];
-        break;
-      case '[': /* ESC '[' '[' */
-        state = 10;
-        break;
-      default:
-        ok = FALSE;
-      }
-      break;
-    case 4:     /* ESC '[' '1' read */
-      if (ch >= '1' && ch <= '9') {     /* ESC '[' '1' '1'..'9' */
-        newstate = state1[ch - '1'];
-        if (newstate == 0)      /* Bad character */
-          ok = FALSE;
-        else {
-          state = newstate;
-        }
-      }
-      else if (ch == '~') {      /* ESC '[' '1 '~' - 'Home' key */
-        push_key(0xC8);
-        return asc_NUL;
-      }
-      else {
-        ok = FALSE;
-      }
-      break;
-    case 5:     /* ESC '[' '2' read */
-      if (ch >= '0' && ch <= '9') {     /* ESC '[' '2' '0'..'9' */
-        newstate = state2[ch - '0'];
-        if (newstate == 0)      /* Bad character */
-          ok = FALSE;
-        else {
-          state = newstate;
-        }
-      }
-      else if (ch == '~') {     /* ESC '[' '2' '~' - 'Insert' key */
-        push_key(0xC6);
-        return asc_NUL;
-      }
-      else {
-        ok = FALSE;
-      }
-      break;
-    case 6:     /* ESC '[' '3' read */
-      if (ch >= '1' && ch <= '4') {     /* ESC '[' '3' '1'..'4' */
-        newstate = state3[ch - '1'];
-        if (newstate == 0)      /* Bad character */
-          ok = FALSE;
-        else {
-          state = newstate;
-        }
-      }
-      else if (ch == '~') {     /* ESC '[' '3' '~' - 'Del' key */
-        push_key(0xC7);
-        return asc_NUL;
-      }
-      else {
-        ok = FALSE;
-      }
-      break;
-    case 7:     /* ESC '[' '4' read */
-      if (ch == '~') {  /* ESC '[' '4' '~' - 'End' key */
-        push_key(0xC9);
-        return asc_NUL;
-      }
-      ok = FALSE;
-      break;
-    case 8:     /* ESC '[' '5' read */
-      if (ch == '~') {  /* ESC '[' '5' '~' - 'Page up' key */
-        push_key(0xCB);
-        return asc_NUL;
-      }
-      ok = FALSE;
-      break;
-    case 9:     /* ESC '[' '6' read */
-      if (ch == '~') {  /* ESC '[' '6' '~' - 'Page down' key */
-        push_key(0xCA);
-        return asc_NUL;
-      }
-      ok = FALSE;
-      break;
-    case 10:    /* ESC '[' '[' read */
-      if (ch >= 'A' && ch <= 'E') {     /* ESC '[' '[' 'A'..'E' -  Linux F1..F5 */
-        push_key(ch - 'A' + KEY_F1);
-        return asc_NUL;
-      }
-      ok = FALSE;
-      break;
-    case 11: case 12: case 13: case 14: /* ESC '[' '1' '1'..'4' */
-    case 15: case 16: case 17: case 18: /* ESC '[' '1' '5'..'9' */
-    case 19: case 20:                           /* ESC '[' '2' '0'..'1' */
-    case 21: case 22: case 23: case 24: /* ESC '[' '2' '3'..'6' */
-    case 25: case 26:                           /* ESC '[' '2' '8'..'9' */
-    case 27: case 28: case 29: case 30: /* ESC '[' '3' '1'..'4' */
-      if (ch == '~') {
-        push_key(state2key[state - 11]);
-        return asc_NUL;
-      }
-      ok = FALSE;
-    }
-  }
-/*
-** Incomplete or bad sequence found. If it is bad then 'ok' will be set to
-** 'false'. If incomplete, 'ok' will be 'true'. 'ch' will be undefined
-** in this case.
-*/
-  if (!ok) push_key(ch);
-  switch (state) {
-  case 1:       /* ESC read */
-    return ESCAPE;
-  case 2:       /* ESC 'O' read */
-    push_key('O');
-    return ESCAPE;
-  case 3:       /* ESC '[' read */
-    break;
-  case 4: case 5: case 6: case 7:
-  case 8: case 9:       /* ESC '[' '1'..'6' read */
-    push_key('1' + state - 4);
-    break;
-  case 10:      /* ESC '[' '[' read */
-    push_key('[');
-    break;
-  case 11: case 12: case 13: case 14: case 15:  /* ESC '[' '1' '1'..'5' read */
-    push_key(1 + state - 11);
-    push_key('1');
-    break;
-  case 16: case 17: case 18:    /* ESC '[' '1' '7'..'9' read */
-    push_key('7' + state - 16);
-    push_key('1');
-    break;
-  case 19: case 20:                     /* ESC '[' '2' '0'..'1' read */
-    push_key('0' + state - 19);
-    push_key('2');
-    break;
-  case 21: case 22: case 23: case 24:   /* ESC '[' '2' '3'..'6' read */
-    push_key('3' + state - 21);
-    push_key('2');
-    break;
-  case 25: case 26:                     /* ESC '[' '2' '8'..'9' read */
-    push_key('8' + state - 25);
-    push_key('2');
-  case 27: case 28: case 29: case 30:   /* ESC '[' '3' '1'..'4' */
-    push_key('1' + state - 27);
-    push_key(3);
-  }
-  push_key('[');
-  return ESCAPE;
-}
+// // deal with this bit next
+// /*
+// ** 'decode_sequence' reads a possible ANSI escape sequence and attempts
+// ** to decode it, converting it to a low level key code. It returns the first
+// ** character of the key code (a null) if the sequence is recognised or
+// ** the first character of the sequence read if it cannot be identified.
+// ** Note that the decoding is incomplete as the function only deals
+// ** with keys of interest to it. Note also that it deals with both Linux
+// ** and NetBSD key sequences, for example, the one for 'F1' under Linux
+// ** is 1B 5B 5B 41 and for NetBSD it is 1B 4F 50. It should also be noted
+// ** that the range of keys that can be decoded is a long way  short of the
+// ** key combinations possible. Lastly, the same ANSI sequences are used for
+// ** more than one key, for example, F11 and shift-F1 both return the same
+// ** code.
+// **
+// ** States:
+// ** 1  ESC read          2  ESC 'O'              3  ESC '['
+// ** 4  ESC '[' '1'       5  ESC '[' '2'          6  ESC '[' '3'
+// ** 7  ESC '[' '4'       8  ESC '[' '5'          9  ESC '[' '6'
+// ** 10 ESC '[' '['
+// ** 11 ESC '[' '1' '1'   12 ESC '[' '1' '2'      13 ESC '[' '1' '3'
+// ** 14 ESC '[' '1' '4'   15 ESC '[' '1' '5'      16 ESC '[' '1' '7'
+// ** 17 ESC '[' '1' '8'   18 ESC '[' '1' '9'
+// ** 19 ESC '[' '2' '0'   20 ESC '[' '2' '1'      21 ESC '[' '2' '3'
+// ** 12 ESC '[' '2' '4'   23 ESC '[' '2' '5'      24 ESC '[' '2' '6'
+// ** 25 ESC '[' '2' '8'   26 ESC '[' '2' '9'
+// ** 27 ESC '[' '3' '1'   28 ESC '[' '3' '2'      29 ESC '[' '3' '3'
+// ** 30 ESC '[' '3' '4'
+// **
+// ** This code cannot deal with the 'alt' key sequences that KDE passes
+// ** through. alt-home, for example, is presented as ESC ESC '[' 'H' and
+// ** as 'ESC ESC' is not a recognised sequence the function simply passes
+// ** on the data as supplied.
+// **
+// ** Note: there seem to be some NetBSD escape sequences missing here
+// */
+// static int32 decode_sequence(void) {
+//   int state, newstate;
+//   int32 ch;
+//   boolean ok;
+//   static int32 state2key [] = { /* Maps states 11 to 24 to function key */
+//     KEY_F1, KEY_F2, KEY_F3, KEY_F4,             /* [11..[14 */
+//     KEY_F5, KEY_F6, KEY_F7, KEY_F8,             /* [15..[19 */
+//     KEY_F9, KEY_F10-64, KEY_F11-64, KEY_F12-64, /* [20..[24 */
+//     SHIFT_F3, SHIFT_F4, SHIFT_F5, SHIFT_F6,     /* [25..[29 */
+//     SHIFT_F7, SHIFT_F8, SHIFT_F9, SHIFT_F10-64  /* [31..[34 */
+//   };
+//   static int statelbno[] = {4, 5, 6, 7, 8, 9};
+// /*
+// ** The following tables give the next machine state for the character
+// ** input when handling the ESC '[' '1', ESC '[' '2' and ESC '[' '3'
+// ** sequences
+// */
+//   static int state1[] = {11, 12, 13, 14, 15, 0, 16, 17, 18};    /* 1..9 */
+//   static int state2[] = {19, 20, 0, 21, 22, 23, 24, 0, 25, 26}; /* 0..9 */
+//   static int state3[] = {27, 28, 29, 30};       		/* 1..4 */
+//   state = 1;    /* ESC read */
+//   ok = TRUE;
+// // emulate_printf("decode");
+//   while (ok && waitkey(WAITTIME)) {
+//     ch = read_key();
+//     switch (state) {
+//     case 1:     /* ESC read */
+//       if (ch == 'O')    /* ESC 'O' */
+//         state = 2;
+//       else if (ch == '[')       /* ESC '[' */
+//         state = 3;
+//       else {    /* Bad sequence */
+//         ok = FALSE;
+//       }
+//       break;
+//     case 2:     /* ESC 'O' read */
+//       if (ch >= 'P' && ch <= 'S') {     /* ESC 'O' 'P'..'S' */
+//         push_key(ch - 'P' + KEY_F1);    /* Got NetBSD F1..F4. Map to RISC OS F1..F4 */
+//         return asc_NUL;     /* RISC OS first char of key sequence */
+//       }
+//       else {    /* Not a known key sequence */
+//         ok = FALSE;
+//       }
+//       break;
+//     case 3:     /* ESC '[' read */
+//       switch (ch) {
+//       case 'A': /* ESC '[' 'A' - cursor up */
+//         push_key(UP+64);
+//         return asc_NUL;
+//       case 'B': /* ESC '[' 'B' - cursor down */
+//         push_key(DOWN+64);
+//         return asc_NUL;
+//       case 'C': /* ESC '[' 'C' - cursor right */
+//         push_key(RIGHT+64);
+//         return asc_NUL;
+//       case 'D': /* ESC '[' 'D' - cursor left */
+//         push_key(LEFT+64);
+//         return asc_NUL;
+//       case 'F': /* ESC '[' 'F' - 'End' key */
+//         push_key(0xC9);
+//         return asc_NUL;
+//       case 'H': /* ESC '[' 'H' - 'Home' key */
+//         push_key(0xC8);
+//         return asc_NUL;
+//       case '1': case '2': case '3': case '4': case '5': case '6': /* ESC '[' '1'..'6' */
+//         state = statelbno[ch - '1'];
+//         break;
+//       case '[': /* ESC '[' '[' */
+//         state = 10;
+//         break;
+//       default:
+//         ok = FALSE;
+//       }
+//       break;
+//     case 4:     /* ESC '[' '1' read */
+//       if (ch >= '1' && ch <= '9') {     /* ESC '[' '1' '1'..'9' */
+//         newstate = state1[ch - '1'];
+//         if (newstate == 0)      /* Bad character */
+//           ok = FALSE;
+//         else {
+//           state = newstate;
+//         }
+//       }
+//       else if (ch == '~') {      /* ESC '[' '1 '~' - 'Home' key */
+//         push_key(0xC8);
+//         return asc_NUL;
+//       }
+//       else {
+//         ok = FALSE;
+//       }
+//       break;
+//     case 5:     /* ESC '[' '2' read */
+//       if (ch >= '0' && ch <= '9') {     /* ESC '[' '2' '0'..'9' */
+//         newstate = state2[ch - '0'];
+//         if (newstate == 0)      /* Bad character */
+//           ok = FALSE;
+//         else {
+//           state = newstate;
+//         }
+//       }
+//       else if (ch == '~') {     /* ESC '[' '2' '~' - 'Insert' key */
+//         push_key(0xC6);
+//         return asc_NUL;
+//       }
+//       else {
+//         ok = FALSE;
+//       }
+//       break;
+//     case 6:     /* ESC '[' '3' read */
+//       if (ch >= '1' && ch <= '4') {     /* ESC '[' '3' '1'..'4' */
+//         newstate = state3[ch - '1'];
+//         if (newstate == 0)      /* Bad character */
+//           ok = FALSE;
+//         else {
+//           state = newstate;
+//         }
+//       }
+//       else if (ch == '~') {     /* ESC '[' '3' '~' - 'Del' key */
+//         push_key(0xC7);
+//         return asc_NUL;
+//       }
+//       else {
+//         ok = FALSE;
+//       }
+//       break;
+//     case 7:     /* ESC '[' '4' read */
+//       if (ch == '~') {  /* ESC '[' '4' '~' - 'End' key */
+//         push_key(0xC9);
+//         return asc_NUL;
+//       }
+//       ok = FALSE;
+//       break;
+//     case 8:     /* ESC '[' '5' read */
+//       if (ch == '~') {  /* ESC '[' '5' '~' - 'Page up' key */
+//         push_key(0xCB);
+//         return asc_NUL;
+//       }
+//       ok = FALSE;
+//       break;
+//     case 9:     /* ESC '[' '6' read */
+//       if (ch == '~') {  /* ESC '[' '6' '~' - 'Page down' key */
+//         push_key(0xCA);
+//         return asc_NUL;
+//       }
+//       ok = FALSE;
+//       break;
+//     case 10:    /* ESC '[' '[' read */
+//       if (ch >= 'A' && ch <= 'E') {     /* ESC '[' '[' 'A'..'E' -  Linux F1..F5 */
+//         push_key(ch - 'A' + KEY_F1);
+//         return asc_NUL;
+//       }
+//       ok = FALSE;
+//       break;
+//     case 11: case 12: case 13: case 14: /* ESC '[' '1' '1'..'4' */
+//     case 15: case 16: case 17: case 18: /* ESC '[' '1' '5'..'9' */
+//     case 19: case 20:                           /* ESC '[' '2' '0'..'1' */
+//     case 21: case 22: case 23: case 24: /* ESC '[' '2' '3'..'6' */
+//     case 25: case 26:                           /* ESC '[' '2' '8'..'9' */
+//     case 27: case 28: case 29: case 30: /* ESC '[' '3' '1'..'4' */
+//       if (ch == '~') {
+//         push_key(state2key[state - 11]);
+//         return asc_NUL;
+//       }
+//       ok = FALSE;
+//     }
+//   }
+// /*
+// ** Incomplete or bad sequence found. If it is bad then 'ok' will be set to
+// ** 'false'. If incomplete, 'ok' will be 'true'. 'ch' will be undefined
+// ** in this case.
+// */
+//   if (!ok) push_key(ch);
+//   switch (state) {
+//   case 1:       /* ESC read */
+//     return ESCAPE;
+//   case 2:       /* ESC 'O' read */
+//     push_key('O');
+//     return ESCAPE;
+//   case 3:       /* ESC '[' read */
+//     break;
+//   case 4: case 5: case 6: case 7:
+//   case 8: case 9:       /* ESC '[' '1'..'6' read */
+//     push_key('1' + state - 4);
+//     break;
+//   case 10:      /* ESC '[' '[' read */
+//     push_key('[');
+//     break;
+//   case 11: case 12: case 13: case 14: case 15:  /* ESC '[' '1' '1'..'5' read */
+//     push_key(1 + state - 11);
+//     push_key('1');
+//     break;
+//   case 16: case 17: case 18:    /* ESC '[' '1' '7'..'9' read */
+//     push_key('7' + state - 16);
+//     push_key('1');
+//     break;
+//   case 19: case 20:                     /* ESC '[' '2' '0'..'1' read */
+//     push_key('0' + state - 19);
+//     push_key('2');
+//     break;
+//   case 21: case 22: case 23: case 24:   /* ESC '[' '2' '3'..'6' read */
+//     push_key('3' + state - 21);
+//     push_key('2');
+//     break;
+//   case 25: case 26:                     /* ESC '[' '2' '8'..'9' read */
+//     push_key('8' + state - 25);
+//     push_key('2');
+//   case 27: case 28: case 29: case 30:   /* ESC '[' '3' '1'..'4' */
+//     push_key('1' + state - 27);
+//     push_key(3);
+//   }
+//   push_key('[');
+//   return ESCAPE;
+// }
 
 
 #endif

@@ -77,16 +77,21 @@ boolean init_workspace(int32 heapsize) {
   } else {
     basicvars.page = wp + 0x8F00; /* Default RISC OS PAGE value */
   }
-  basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
 #ifdef TARGET_RISCOS
   basicvars.offbase = 0;
 #else
   basicvars.offbase = wp;
 #endif
 ////
-  basicvars.offbase = 0;
-  basicvars.page = wp;
+//  basicvars.offbase = 0;			// PAGE=long address of claimed memory
+//  basicvars.page = wp;
 ////
+  basicvars.page = basicvars.workspace = wp;	// PAGE=0
+  basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
+  basicvars.offbase = wp;
+////
+  basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
+
 /* Under RISC OS, find out the address of the end of wimp slot */
 #ifdef TARGET_RISCOS
   {
