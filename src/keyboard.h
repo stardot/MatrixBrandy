@@ -47,10 +47,10 @@ extern int   kbd_fnkeyset(int key, char *string, int length);
 // ern int   kbd_fnkeyset(int key, int length, char *string);
 extern char *kbd_fnkeyget(int key, int *length);
 extern int32 kbd_readline(char *buffer, int32 length, int32 chars);
-extern int   kbd_buffered(void);
-extern int   kbd_pending(void);
-extern int32 kbd_escack(void);
-#else
+extern int32 kbd_buffered(void);
+extern int32 kbd_pending(void);
+extern int   kbd_escpoll(void);
+extern int   kbd_escack(void);
 extern int32 emulate_get(void); /* Legacy code still referenced */
 extern int32 emulate_inkey(int32);
 extern int32 emulate_inkey2(int32);
