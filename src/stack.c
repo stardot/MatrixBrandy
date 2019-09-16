@@ -114,7 +114,7 @@ static char *entryname(stackitem what) {
     case STACK_ERROR:		return "ON ERROR";
     case STACK_DATA:		return "DATA";
     case STACK_OPSTACK:		return "operator stack";
-    case STACK_RESTART:		return "longjmp block";
+    case STACK_RESTART:		return "siglongjmp block";
     default:
     sprintf(entry, "** Bad type %d **", what);
     return entry;
@@ -163,11 +163,11 @@ int32 *make_opstack(void) {
 
 /*
 ** 'make_restart' creates an entry on the Basic stack for the
-** environment block used by 'longjmp' when handling errors when
+** environment block used by 'siglongjmp' when handling errors when
 ** an 'ON ERROR LOCAL' has been executed. It returns a pointer to
-** the block for the longjmp's 'jmp_buf' structure
+** the block for the siglongjmp's 'sigjmp_buf' structure
 */
-jmp_buf *make_restart(void) {
+sigjmp_buf *make_restart(void) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_restart);
   if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
   basicvars.stacktop.restartsp->itemtype = STACK_RESTART;

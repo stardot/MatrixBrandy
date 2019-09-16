@@ -97,14 +97,6 @@
 **
 */
 
-// This is done in target.h
-// // Not ideal, but to enable NEWKBD by default.
-// #ifndef OLDKBD
-// #ifndef NEWKBD
-// #define NEWKBD
-// #endif
-// #endif
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

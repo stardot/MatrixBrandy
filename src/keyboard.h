@@ -51,8 +51,7 @@ extern int32 kbd_buffered(void);
 extern int32 kbd_pending(void);
 extern int   kbd_escpoll(void);
 extern int   kbd_escack(void);
-#else
-extern int32 emulate_get(void);
+extern int32 emulate_get(void); /* Legacy code still referenced */
 extern int32 emulate_inkey(int32);
 extern int32 emulate_inkey2(int32);
 extern int set_fn_string(int key, char *string, int length);

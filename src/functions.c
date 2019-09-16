@@ -934,7 +934,7 @@ static void fn_int(void) {
       else
        push_float(localfloat);
     } else {
-      push_int(TOINT(pop_float()));
+      push_int(TOINT(floor(pop_float())));
     }
   }
   else if (GET_TOPITEM != STACK_INT) {

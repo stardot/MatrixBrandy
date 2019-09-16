@@ -107,8 +107,10 @@ byte *alignaddr(byte *addr) {
 ** when running under RISC OS
 */
 void check_read(uint32 low, uint32 size) {
+#if 0 /* Make this function a no-op */
 #ifndef TARGET_RISCOS
   byte *lowaddr = basicvars.offbase+low;
+  
   if (matrixflags.gpio) {
     if ((lowaddr >= matrixflags.gpiomem) && (lowaddr+size < (0x1000 + matrixflags.gpiomem))) return;
   }
@@ -117,7 +119,8 @@ void check_read(uint32 low, uint32 size) {
   if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
 #endif
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
-#endif
+#endif /* TARGET_RISCOS */
+#endif /* 0 */
 }
 
 /*
@@ -133,6 +136,7 @@ void check_read(uint32 low, uint32 size) {
 ** assumptions about the RISC OS memory map
 */
 void check_write(uint32 low, uint32 size) {
+#if 0 /* Make this function a no-op */
   byte *lowaddr, *highaddr;
   lowaddr = basicvars.offbase+low;
   highaddr = lowaddr+size;
@@ -162,14 +166,14 @@ void check_write(uint32 low, uint32 size) {
    lowaddr>=basicvars.slotend) return;
 #else
   if (lowaddr>=basicvars.lomem && highaddr<basicvars.end) return;
-#endif
+#endif /* TARGET_RISCOS */
 
 #ifdef USE_SDL
   /* Mode 7 screen memory */
   if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
 #endif
 
-#else
+#else /* 1 */
 
 /* Version that stops stack being overwritten */
 
@@ -180,10 +184,11 @@ void check_write(uint32 low, uint32 size) {
 #else
   if (lowaddr>=basicvars.lomem && highaddr<basicvars.stacktop.bytesp ||
    lowaddr>=basicvars.himem && highaddr<basicvars.end) return;
-#endif
+#endif /* TARGET_RISCOS */
 
-#endif
+#endif /* 1 */
   error(ERR_ADDRESS);
+#endif /* 0 */
 }
 
 /*
@@ -554,6 +559,6 @@ FILE *secure_tmpnam(char *name)
 }
 
 int32 TOINT(float64 fltmp) {
-  if ((fltmp > 2147483647.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
-  return (int32)(floor(fltmp));
+  if ((fltmp >= 2147483648.0) || (fltmp <= -2147483649.0)) error(ERR_RANGE);
+  return (int32)fltmp;
 }
