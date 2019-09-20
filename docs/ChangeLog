@@ -1,6 +1,11 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.2
+- Merge in 64-bit int capability
+- Remove offset memory model, PAGE, HIMEM and indirection operators now
+  use actual memory locations.
+
 * V1.22.1
 - Make the old BASIC I-IV compatible integer mathematics available via a
   run-time switchable setting.
