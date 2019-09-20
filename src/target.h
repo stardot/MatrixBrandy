@@ -31,8 +31,8 @@
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
-#define BRANDY_PATCHLEVEL "0"
-#define BRANDY_DATE       "23 Jul 2019"
+#define BRANDY_PATCHLEVEL "1"
+#define BRANDY_DATE       "20 Sep 2019"
 // Stripping legacy code from keyboard.c
 // #define BRANDY_PATCHDATE  "JGH190829"
 
