@@ -1991,6 +1991,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
           shift_down(buffer, place);
         }
       }
+      break;
     case CTRL_D:        /* Delete character under the cursor */
       if (place < highplace) shift_down(buffer, place);
       break;
@@ -2089,7 +2090,9 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
         }
         break;
       case KEY_DELETE:      /* Delete character at the cursor */
-        if (place < highplace) shift_down(buffer, place);
+        if (!matrixflags.delcandelete) {
+          if (place < highplace) shift_down(buffer, place);
+        }
         break;
       case INSERT:      /* Toggle between 'insert' and 'overwrite' mode */
         enable_insert = !enable_insert;
