@@ -108,6 +108,7 @@ typedef struct {
 #define SWI_Brandy_LegacyIntMaths			0x140006
 #define SWI_Brandy_Hex64				0x140007
 #define SWI_Brandy_DELisBS				0x140008
+#define SWI_Brandy_ExtendVAL				0x140009
 
 #define SWI_RaspberryPi_GPIOInfo			0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode			0x140101
@@ -186,6 +187,7 @@ static switable swilist[] = {
 	{SWI_Brandy_LegacyIntMaths,			"Brandy_LegacyIntMaths"},
 	{SWI_Brandy_Hex64,				"Brandy_Hex64"},
 	{SWI_Brandy_DELisBS,				"Brandy_DELisBS"},
+	{SWI_Brandy_ExtendVAL,				"Brandy_ExtendVAL"},
 
 	{SWI_RaspberryPi_GPIOInfo,			"RaspberryPi_GPIOInfo"},
 	{SWI_RaspberryPi_GetGPIOPortMode,		"RaspberryPi_GetGPIOPortMode"},

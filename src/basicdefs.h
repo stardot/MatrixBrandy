@@ -548,6 +548,7 @@ typedef struct {
   uint32 int_uses_float;		/* Does INT() use floats? */
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
   boolean hex64;			/* Decode hex in 64-bit? */
+  boolean extendval;			/* VAL decodes hex and binary? */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer */
   uint32 modescreen_sz;			/* Mode screen size */

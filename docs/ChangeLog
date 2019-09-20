@@ -5,6 +5,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Merge in 64-bit int capability
 - Remove offset memory model, PAGE, HIMEM and indirection operators now
   use actual memory locations.
+- Old VAL behaviour (decoded hex and binary) available as an option
+  (SYS "Brandy_ExtendVAL",1 to enable)
 
 * V1.22.1
 - Make the old BASIC I-IV compatible integer mathematics available via a
