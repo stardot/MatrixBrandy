@@ -1020,6 +1020,9 @@ void exec_singlif(void) {
   if (GET_TOPITEM == STACK_INT) {
     if (pop_int() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
   }
+  else if (GET_TOPITEM == STACK_INT64) {
+    if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
+  }
   else if (GET_TOPITEM == STACK_FLOAT) {
     if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
   }
@@ -1049,7 +1052,7 @@ void exec_singlif(void) {
 */
 void exec_xif(void) {
   byte *lp2 = NULL, *dest, *ifplace, *thenplace, *elseplace;
-  int32 result = 0;
+  int64 result = 0;
   boolean single;
   ifplace = basicvars.current; 		/* Set up a pointer to the 'IF' token */
   thenplace = ifplace+1;		/* Set up addresses where offsets will be stored */
@@ -1058,8 +1061,10 @@ void exec_xif(void) {
   expression();
   if (GET_TOPITEM == STACK_INT)
     result = pop_int();
+  else if (GET_TOPITEM == STACK_INT64)
+    result = pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    result = TOINT(pop_float());
+    result = TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }

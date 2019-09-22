@@ -259,7 +259,7 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
 /* 'string$' type string */
  {ERR_BROKEN,  ERR_BROKEN,  ERR_PARMSTR, ERR_PARMSTR,
-  ERR_NONE,    ERR_NONE,    ERR_PARMSTR, ERR_PARMSTR,
+  ERR_NONE,    ERR_NONE,    ERR_NONE,    ERR_PARMSTR,
   ERR_PARMSTR, ERR_PARMSTR, ERR_PARMSTR, ERR_PARMSTR},
 /* '$string' type string */
  {ERR_BROKEN,  ERR_BROKEN,  ERR_PARMSTR, ERR_PARMSTR,
@@ -388,7 +388,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       arrayparm = *retparm.address.arrayaddr;
       parmtype = STACK_INT64ARRAY;
       break;
-   case VAR_FLOATARRAY:		/* Array of floating point values */
+    case VAR_FLOATARRAY:		/* Array of floating point values */
       arrayparm = *retparm.address.arrayaddr;
       parmtype = STACK_FLOATARRAY;
       break;
