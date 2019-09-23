@@ -98,11 +98,18 @@ static void bad_token(void)  {
   error(ERR_BROKEN, __LINE__, "expressions");
 }
 
+static uint64 resize32(size_t value) {
+  if (sizeof(size_t) == 4) { /* 32-bit */
+    value &= 0xFFFFFFFFll;
+  }
+  return value;
+}
+
 /*
 ** 'fn_himem' pushes the value of HIMEM on to the Basic stack
 */
 static void fn_himem(void) {
-  push_int64(basicvars.himem-basicvars.offbase);
+  push_int64(resize32(basicvars.himem-basicvars.offbase));
 }
 
 /*
@@ -192,7 +199,7 @@ static void fn_left(void) {
 ** to the Basic stack
 */
 static void fn_lomem(void) {
-  push_int64(basicvars.lomem-basicvars.offbase);
+  push_int64(resize32(basicvars.lomem-basicvars.offbase));
 }
 
 /*
@@ -245,7 +252,7 @@ static void fn_mid(void) {
 ** Basic stack
 */
 static void fn_page(void) {
-  push_int64(basicvars.page-basicvars.offbase);
+  push_int64(resize32(basicvars.page-basicvars.offbase));
 }
 
 /*
@@ -630,7 +637,7 @@ static void fn_deg(void) {
 */
 void fn_end(void) {
   basicvars.current++;
-  push_int64(basicvars.vartop-basicvars.offbase);
+  push_int64(resize32(basicvars.vartop-basicvars.offbase));
 }
 
 /*
@@ -1552,7 +1559,7 @@ void fn_top(void) {
   p = get_srcaddr(basicvars.current);		/* Find the address of the variable */
   if (*p != 'P') error(ERR_SYNTAX);		/* But it does not start with the letter 'P' */
   basicvars.current+=LOFFSIZE + 1;
-  push_int64(basicvars.top-basicvars.offbase);
+  push_int64(resize32(basicvars.top-basicvars.offbase));
 }
 
 /*
