@@ -92,21 +92,12 @@ byte *skip(byte *p) {
 }
 
 /*
-** 'alignaddr' aligns an address on a word boundary.
-*/
-byte *alignaddr(byte *addr) {
-  int32 offset = addr-basicvars.offbase;
-  offset = ALIGN(offset);
-  return basicvars.offbase+offset;
-}
-
-/*
 ** 'check_read' is called to ensure that the address from which
 ** data is read using an indirection operator is valid, that is,
 ** lies within the Basic workspace. This check is not carried out
 ** when running under RISC OS
 */
-void check_read(uint32 low, uint32 size) {
+void check_read(size_t low, uint32 size) {
 #if 0 /* Make this function a no-op */
 #ifndef TARGET_RISCOS
   byte *lowaddr = basicvars.offbase+low;
@@ -135,7 +126,7 @@ void check_read(uint32 low, uint32 size) {
 ** the RMA and dynamic areas). Note that the code makes some
 ** assumptions about the RISC OS memory map
 */
-void check_write(uint32 low, uint32 size) {
+void check_write(size_t low, uint32 size) {
 #if 0 /* Make this function a no-op */
   byte *lowaddr, *highaddr;
   lowaddr = basicvars.offbase+low;
@@ -196,7 +187,7 @@ void check_write(uint32 low, uint32 size) {
 ** 'offset' in the Basic workspace. This is used to return the
 ** value pointed at by an indirection operator
 */
-int32 get_integer(int32 offset) {
+int32 get_integer(size_t offset) {
   check_read(offset, sizeof(int32));
   return basicvars.offbase[offset]+(basicvars.offbase[offset+1]<<BYTESHIFT)+
    (basicvars.offbase[offset+2]<<(2*BYTESHIFT))+(basicvars.offbase[offset+3]<<(3*BYTESHIFT));
@@ -207,7 +198,7 @@ int32 get_integer(int32 offset) {
 ** at offset 'offset' in the Basic workspace. This is used to
 ** return the value pointed at by an indirection operator
 */
-float64 get_float(int32 offset) {
+float64 get_float(size_t offset) {
   float64 value;
   check_read(offset, sizeof(float64));
   memmove(&value, &basicvars.offbase[offset], sizeof(float64));
@@ -220,7 +211,7 @@ float64 get_float(int32 offset) {
 ** offset within the basic workspace. 'offset' is the location at
 ** which the value is to be stored
 */
-void store_integer(int32 offset, int32 value) {
+void store_integer(size_t offset, int32 value) {
   check_write(offset, sizeof(int32));
   basicvars.offbase[offset] = value;
   basicvars.offbase[offset+1] = value>>BYTESHIFT;
@@ -233,7 +224,7 @@ void store_integer(int32 offset, int32 value) {
 ** arbitrary offset within the basic workspace. 'offset' is the
 ** location at which the value is to be stored
 */
-void store_float(int32 offset, float64 value) {
+void store_float(size_t offset, float64 value) {
   check_write(offset, sizeof(float64));
   memmove(&basicvars.offbase[offset], &value, sizeof(float64));
 }
@@ -391,7 +382,7 @@ byte *find_line(int32 lineno) {
 ** 'show_byte' displays the contents of memory between the addresses
 **'low' and 'high' as bytes of data
 */
-void show_byte(int32 low, int32 high) {
+void show_byte(size_t low, size_t high) {
   int32 n, x, ll, count;
   byte ch;
   //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
@@ -436,7 +427,7 @@ void show_byte(int32 low, int32 high) {
 ** 'show_word' displays the contents of memory between the addresses
 **'low' and 'high' as four-byte words of data
 */
-void show_word(int32 low, int32 high) {
+void show_word(size_t low, size_t high) {
   int32 n, ll, count;
   byte ch;
   low = ALIGN(low);
@@ -558,7 +549,23 @@ FILE *secure_tmpnam(char *name)
 #endif /* TARGET_MINGW */
 }
 
+/* These are reimplemented from macros */
 int32 TOINT(float64 fltmp) {
   if ((fltmp >= 2147483648.0) || (fltmp <= -2147483649.0)) error(ERR_RANGE);
   return (int32)fltmp;
+}
+
+int64 TOINT64(float64 fltmp) {
+  if ((fltmp > ((int64)1<<62)-1) || (fltmp < (-(int64)1<<63))) error(ERR_RANGE);
+  return (int64)fltmp;
+}
+
+/* This function reduces a 64-bit int to 32-bit int, with range checking.
+** The first, commented out line is strict range checking, the second one allows the 32nd bit to be set,
+** to allow negative 32-bit ints to be entered as hex.
+*/
+int32 INT64TO32(int64 itmp) {
+  if ((itmp > 2147483647ll) || (itmp < -2147483648ll)) error(ERR_RANGE);
+//  if ((itmp > 4294967295ll) || (itmp < -2147483648ll)) error(ERR_RANGE); /* Allow &80000000-FFFFFFFF */
+  return (int32)itmp;
 }

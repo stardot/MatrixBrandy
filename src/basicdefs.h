@@ -74,6 +74,7 @@
 #define DEBUG_STATS 0x1000		/* Show string heap statistics */
 #define DEBUG_STACK 0x2000		/* Show structures pushed and popped from stack */
 #define DEBUG_ALLSTACK 0x4000		/* Show in detail items pushed and popped from stack */
+#define DEBUG_FUNCTIONS 0x8000		/* Show which functions are called - very incomplete */
 
 /* Variable type flags */
 
@@ -82,8 +83,10 @@
 #define VAR_FLOAT 3				/* Eight byte floating point */
 #define VAR_STRINGDOL 4				/* String ('string$' type) */
 #define VAR_DOLSTRING 5				/* String ('$string' type) */
+#define VAR_INTLONG 6				/* 64-bit integer */
 #define VAR_ARRAY 0x08				/* Array */
 #define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)	/* Integer array */
+#define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)	/* Integer array */
 #define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)	/* Floating point array */
 #define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)	/* String array */
 #define VAR_POINTER 0x10			/* Pointer */
@@ -105,6 +108,7 @@
 /* Values used to mark type of value in file create with 'PRINT#' */
 
 #define PRINT_INT 0x40			/* Marks value in file as binary integer */
+#define PRINT_INT64 0x60		/* Marks value in file as binary 64-bit integer */
 #define PRINT_FLOAT5 0x80		/* Marks value in file as five byte binary floating point */
 #define PRINT_FLOAT 0x88		/* Marks value in file as binary floating point */
 #define PRINT_SHORTSTR 0x00		/* Marks value in file as a short string */
@@ -122,6 +126,9 @@
 #define X_PERCENT 24
 #define Y_PERCENT 25
 
+/* Debug hack */
+char *collapse;
+
 /* 'basicstring' defines the layout of a string descriptor */
 
 typedef struct {
@@ -136,6 +143,7 @@ typedef struct {
   int32 arrsize;			/* Total number of elements in array */
   union {
     int32 *intbase;			/* Pointer to start of integer elements */
+    int64 *int64base;			/* Pointer to start of 64-bit integer elements */
     float64 *floatbase;			/* Pointer to start of floating point elements */
     basicstring *stringbase;		/* Pointer to start of string elements */
     void *arraybase;			/* Pointer to start of array */
@@ -146,6 +154,7 @@ typedef struct {
 typedef union {
   char *charaddr;			/* Pointer to a character */
   int32 *intaddr;			/* Pointer to Basic integer value */
+  int64 *int64addr;			/* Pointer to 64-bit integer value */
   float64 *floataddr;			/* Pointer to Basic floating point value */
   basicstring *straddr;			/* Pointer to Basic string descriptor */
   basicarray **arrayaddr;		/* Pointer to pointer to Basic array descriptor */
@@ -195,7 +204,8 @@ typedef struct variable {
   int32 varhash;			/* Hash value for symbol's name */
   struct library *varowner;		/* Library in which var was defined or NIL */
   union {
-    int32 varinteger;			/* Value if an integer */
+    int32 varinteger;			/* Value if a 32-bit integer */
+    int64 var64int;			/* Value if a 64-bit integer */
     float64 varfloat;			/* Value if floating point */
     basicstring varstring;		/* Descriptor if a string */
     basicarray *vararray;		/* Pointer to array's dope vector */
@@ -250,15 +260,16 @@ typedef struct library {
 } library;
 
 /* Following are the types describing items found on the Basic stack */
-
 typedef enum {
-  STACK_UNKNOWN, STACK_LVALUE, STACK_INT, STACK_FLOAT, STACK_STRING,	/* 04 */
-  STACK_STRTEMP, STACK_INTARRAY, STACK_IATEMP, STACK_FLOATARRAY,	/* 08 */
-  STACK_FATEMP, STACK_STRARRAY, STACK_SATEMP, STACK_LOCARRAY,		/* 0C */
-  STACK_LOCSTRING, STACK_GOSUB, STACK_PROC, STACK_FN, STACK_LOCAL,	/* 11 */
-  STACK_RETPARM, STACK_WHILE, STACK_REPEAT, STACK_INTFOR,		/* 15 */
-  STACK_FLOATFOR, STACK_ERROR, STACK_DATA, STACK_OPSTACK,		/* 19 */
-  STACK_RESTART, STACK_HIGHEST						/* 1B */
+  STACK_UNKNOWN,
+  STACK_LVALUE,     STACK_INT,      STACK_INT64,      STACK_FLOAT,		/* 04 */
+  STACK_STRING,     STACK_STRTEMP,  STACK_INTARRAY,   STACK_IATEMP,		/* 08 */
+  STACK_INT64ARRAY, STACK_I64ATEMP, STACK_FLOATARRAY, STACK_FATEMP,		/* 0C */
+  STACK_STRARRAY,   STACK_SATEMP,   STACK_LOCARRAY,   STACK_LOCSTRING,		/* 10 */
+  STACK_GOSUB,      STACK_PROC,     STACK_FN,         STACK_LOCAL,		/* 14 */
+  STACK_RETPARM,    STACK_WHILE,    STACK_REPEAT,     STACK_INTFOR,		/* 18 */
+  STACK_INT64FOR,   STACK_FLOATFOR, STACK_ERROR,      STACK_DATA,		/* 1C */
+  STACK_OPSTACK,    STACK_RESTART,  STACK_HIGHEST				/* 1F */
 } stackitem;
 
 typedef struct {		/* Operator stack */
@@ -271,10 +282,15 @@ typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
   jmp_buf restart;		/* Environment block */
 } stack_restart;
 
-typedef struct {		/* Integer value */
+typedef struct {		/* 32-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
   int32 intvalue;		/* Value of integer */
 } stack_int;
+
+typedef struct {		/* 64-bit integer value */
+  stackitem itemtype;		/* Type of item pushed on to stack */
+  int64 int64value;		/* Value of integer */
+} stack_int64;
 
 typedef struct {		/* FLoating point value */
   stackitem itemtype;		/* Type of item pushed on to stack */
@@ -323,7 +339,8 @@ typedef struct {		/* Saved local variable */
   stackitem itemtype;
   lvalue savedetails;		/* Details of item saved */
   union {
-    int32 savedint;		/* Saved integer value */
+    int32 savedint;		/* Saved 32-bit integer value */
+    int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
     basicstring savedstring;	/* Saved string descriptor */
     basicarray *savedarray;	/* Saved pointer to array descriptor */
@@ -335,7 +352,8 @@ typedef struct {		/* Saved RETURN-type local variable */
   lvalue savedetails;		/* Details of item saved */
   lvalue retdetails;		/* Details of where to save returned value */
   union {
-    int32 savedint;		/* Saved integer value */
+    int32 savedint;		/* Saved 32-bit integer value */
+    int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
     basicstring savedstring;	/* Saved string descriptor */
     basicarray *savedarray;	/* Saved pointer to array descriptor */
@@ -376,6 +394,7 @@ typedef struct {		/* 'LOCAL ERROR' control block */
 
 typedef union {		/* This type represents everything that goes on the stack */
   stack_int *intsp;
+  stack_int64 *int64sp;
   stack_float *floatsp;
   stack_string *stringsp;
   stack_array *arraysp;
@@ -481,6 +500,7 @@ typedef struct {
     unsigned int stats:1;		/* Show string heap statistics */
     unsigned int stack:1;		/* Show important stack push/pop info */
     unsigned int allstack:1;		/* Show detailed stack push/pop info */
+    unsigned int functions:1;		/* Show functions entered (incomplete) */
   } debug_flags;			/* Interpreter debugging options */
   struct {
     unsigned int badprogram:1;		/* TRUE if program is invalid */
@@ -503,6 +523,7 @@ typedef struct {
   variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions */
   int64 centiseconds;			/* Centisecond timer, populated by sub-thread */
   int64 monotonictimebase;		/* Baseline for OS_ReadMonotonicTime */
+  size_t memdump_lastaddr;		/* Last address used by LISTB/LISTW */
 #ifdef USE_SDL
   SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
 #endif  
@@ -526,6 +547,7 @@ typedef struct {
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
   uint32 int_uses_float;		/* Does INT() use floats? */
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
+  boolean hex64;			/* Decode hex in 64-bit? */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer */
   uint32 modescreen_sz;			/* Mode screen size */

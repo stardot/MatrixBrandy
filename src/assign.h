@@ -29,6 +29,7 @@
 extern void exec_assignment(void);
 extern void assign_staticvar(void);
 extern void assign_intvar(void);
+extern void assign_int64var(void);
 extern void assign_floatvar(void);
 extern void assign_stringvar(void);
 extern void assign_pseudovar(void);

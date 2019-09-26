@@ -233,8 +233,8 @@ void clear_program(void) {
 ** is being edited
 */
 static void adjust_heaplimits(void) {
-  basicvars.lomem = basicvars.vartop = alignaddr(basicvars.top+ENDMARKSIZE);
-  basicvars.stacklimit.bytesp = basicvars.vartop+STACKBUFFER;
+  basicvars.lomem = basicvars.vartop = (byte *)ALIGN((size_t)basicvars.top+ENDMARKSIZE);
+  basicvars.stacklimit.bytesp = basicvars.vartop+(size_t)STACKBUFFER;
 }
 
 /*
@@ -657,8 +657,8 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 
 static void blockread(void *ptr, size_t size, size_t nmemb) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
-  unsigned char *blobend = (unsigned char *)&_binary_app_end;
-  unsigned long int blobsize = (intptr_t)&_binary_app_size;
+//  unsigned char *blobend = (unsigned char *)&_binary_app_end;
+//  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
   if (matrixflags.scrunge) do_scrunge(size*nmemb, ptr);
@@ -668,7 +668,7 @@ static void blockread(void *ptr, size_t size, size_t nmemb) {
 static char *blockgets(char *s, int size) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
   unsigned char *blobend = (unsigned char *)&_binary_app_end;
-  unsigned long int blobsize = (intptr_t)&_binary_app_size;
+//  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   unsigned int p = 0;
   int l = 1;
@@ -801,7 +801,7 @@ void read_basic(char *name) {
 
 #ifdef BRANDYAPP
 void read_basic_block() {
-  int32 length, ftype;
+  int32 length;
 
   last_added = NIL;
   clear_program();

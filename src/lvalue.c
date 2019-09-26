@@ -84,6 +84,10 @@ static void fix_address(lvalue *destination) {
   variable *vp;
   byte *base, *tp, *np;
   boolean isarray = 0;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function lvalue.c:fix_address\n");
+#endif
   base = get_srcaddr(basicvars.current);	/* Point 'base' at start of variable name */
   tp = skip_name(base);		/* Find to end of name */
   np = basicvars.current+1+LOFFSIZE;	/* Point at token after the XVAR token */
@@ -133,6 +137,10 @@ static void fix_address(lvalue *destination) {
       *basicvars.current = TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
     break;
+    case VAR_INTLONG:		/* Simple reference to integer variable */
+      *basicvars.current = TOKEN_INT64VAR;
+      set_address(basicvars.current, &vp->varentry.var64int);
+    break;
     case VAR_FLOAT:		/* Simple reference to floating point variable */
       *basicvars.current = TOKEN_FLOATVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
@@ -151,6 +159,9 @@ static void fix_address(lvalue *destination) {
     }
   }
   (*lvalue_table[*basicvars.current])(destination);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:fix_address\n");
+#endif
 }
 
 /*
@@ -167,11 +178,21 @@ static void do_staticvar(lvalue *destination) {
 
 /*
 ** 'do_intvar' fills in the lvalue structure for a simple reference to
-** an integer variable
+** a 32-bit integer variable
 */
 static void do_intvar(lvalue *destination) {
   destination->typeinfo = VAR_INTWORD;
   destination->address.intaddr = GET_ADDRESS(basicvars.current, int32 *);
+  basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
+}
+
+/*
+** 'do_int64var' fills in the lvalue structure for a simple reference to
+** a 64-bit integer variable
+*/
+static void do_int64var(lvalue *destination) {
+  destination->typeinfo = VAR_INTLONG;
+  destination->address.int64addr = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }
 
@@ -224,6 +245,8 @@ static void do_elementvar(lvalue *destination) {
     expression();	/* Evaluate the array index */
     if (GET_TOPITEM==STACK_INT)
       element = pop_int();
+    else if (GET_TOPITEM==STACK_INT64)
+      element = INT64TO32(pop_int64());
     else if (GET_TOPITEM==STACK_FLOAT)
       element = TOINT(pop_float());
     else {
@@ -238,6 +261,8 @@ static void do_elementvar(lvalue *destination) {
       expression();	/* Evaluate an array index */
       if (GET_TOPITEM==STACK_INT)
         index = pop_int();
+      else if (GET_TOPITEM==STACK_INT64)
+        index = INT64TO32(pop_int64());
       else if (GET_TOPITEM==STACK_FLOAT)
         index = TOINT(pop_float());
       else {
@@ -261,6 +286,8 @@ static void do_elementvar(lvalue *destination) {
 /* Calculate the address of the required element */
     if (vartype==VAR_INTWORD)	/* Integer array */
       destination->address.intaddr = descriptor->arraystart.intbase+element;
+    else if (vartype==VAR_INTLONG)	/* Integer array */
+      destination->address.int64addr = descriptor->arraystart.int64base+element;
     else if (vartype==VAR_FLOAT)	/* Floating point array */
       destination->address.floataddr = descriptor->arraystart.floatbase+element;
     else {	/* String array */
@@ -275,6 +302,8 @@ static void do_elementvar(lvalue *destination) {
 */
   if (vartype==VAR_INTWORD)	/* Integer array */
     offset = descriptor->arraystart.intbase[element];
+  else if (vartype==VAR_INTLONG)	/* Integer array */
+    offset = descriptor->arraystart.int64base[element];
   else if (vartype==VAR_FLOAT)	/* Floating point array */
     offset = TOINT(descriptor->arraystart.floatbase[element]);
   else {	/* Must use a numeric array with an indirection operator */
@@ -290,6 +319,8 @@ static void do_elementvar(lvalue *destination) {
   factor();		/* Evaluate the RH operand */
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = offset+pop_int();
+  else if (GET_TOPITEM==STACK_INT64)
+    destination->address.offset = offset+pop_int64();
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = offset+TOINT(pop_float());
   else {
@@ -314,6 +345,8 @@ static void do_intindvar(lvalue *destination) {
   factor();		/* Evaluate the RH operand */
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = *ip+pop_int();
+  else if (GET_TOPITEM==STACK_INT64)
+    destination->address.offset = *ip+INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = *ip+TOINT(pop_float());
   else {
@@ -338,6 +371,8 @@ static void do_floatindvar(lvalue *destination) {
   factor();		/* Evaluate the RH operand */
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = TOINT(*fp)+pop_int();
+  else if (GET_TOPITEM==STACK_INT64)
+    destination->address.offset = TOINT(*fp)+INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = TOINT(*fp)+TOINT(pop_float());
   else {
@@ -390,6 +425,8 @@ static void do_unaryind(lvalue *destination) {
   factor();
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = pop_int();
+  else if (GET_TOPITEM==STACK_INT64)
+    destination->address.offset = INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = TOINT(pop_float());
   else {
@@ -406,7 +443,7 @@ static void (*lvalue_table[256])(lvalue *) = {
   bad_syntax, fix_address, do_staticvar, do_intvar,		/* 00..03 */
   do_floatvar, do_stringvar, do_arrayvar, do_elementvar,	/* 04..07 */
   do_elementvar, do_intindvar, do_floatindvar, do_statindvar,	/* 08..0B */
-  bad_token, bad_token, bad_token, bad_token,			/* 0C..0F */
+  bad_token, bad_token, do_int64var, bad_token,			/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
   bad_token, bad_token, bad_token, bad_token,			/* 18..1B */
@@ -479,6 +516,9 @@ static void (*lvalue_table[256])(lvalue *) = {
 ** at the byte after the variable's name.
 */
 void get_lvalue(lvalue *destination) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug) fprintf(stderr, "get_lvalue: token=&%X\n", *basicvars.current);
+#endif
   (*lvalue_table[*basicvars.current])(destination);
 }
 

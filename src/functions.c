@@ -98,39 +98,18 @@ static void bad_token(void)  {
   error(ERR_BROKEN, __LINE__, "expressions");
 }
 
-/*
-** 'eval_integer' evaluates a numeric expression where an integer value
-** is required, returning the value
-*/
-int32 eval_integer(void) {
-  stackitem numtype;
-  expression();
-  numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_FLOAT) return TOINT(pop_float());
-  error(ERR_TYPENUM);
-  return 0;	/* Keep Acorn's compiler happy */
-}
-
-/*
-** 'eval_intfactor' evaluates a numeric factor where an integer is
-** required. The function returns the value obtained.
-*/
-int32 eval_intfactor(void) {
-  stackitem numtype;
-  (*factor_table[*basicvars.current])();
-  numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_FLOAT) return TOINT(pop_float());
-  error(ERR_TYPENUM);
-  return 0;	/* Keep Acorn's compiler happy */
+static uint64 resize32(size_t value) {
+  if (sizeof(size_t) == 4) { /* 32-bit */
+    value &= 0xFFFFFFFFll;
+  }
+  return value;
 }
 
 /*
 ** 'fn_himem' pushes the value of HIMEM on to the Basic stack
 */
 static void fn_himem(void) {
-  push_int(basicvars.himem-basicvars.offbase);
+  push_int64(resize32(basicvars.himem-basicvars.offbase));
 }
 
 /*
@@ -220,7 +199,7 @@ static void fn_left(void) {
 ** to the Basic stack
 */
 static void fn_lomem(void) {
-  push_int(basicvars.lomem-basicvars.offbase);
+  push_int64(resize32(basicvars.lomem-basicvars.offbase));
 }
 
 /*
@@ -273,7 +252,7 @@ static void fn_mid(void) {
 ** Basic stack
 */
 static void fn_page(void) {
-  push_int(basicvars.page-basicvars.offbase);
+  push_int64(resize32(basicvars.page-basicvars.offbase));
 }
 
 /*
@@ -369,11 +348,11 @@ static void fn_abs(void) {
   numtype = GET_TOPITEM;
   if (numtype == STACK_INT)
     ABS_INT;
+  else if (numtype == STACK_INT64)
+    ABS_INT64;
   else if (numtype == STACK_FLOAT)
     ABS_FLOAT;
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -383,11 +362,11 @@ static void fn_acs(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(acos(TOFLOAT(pop_int())));
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(acos(TOFLOAT(pop_int64())));
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(acos(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -450,9 +429,7 @@ static void fn_asc(void) {
       if (topitem == STACK_STRTEMP) free_string(descriptor);
     }
   }
-  else {
-    error(ERR_TYPESTR);	/* String wanted */
-  }
+  else error(ERR_TYPESTR);	/* String wanted */
 }
 
 /*
@@ -462,11 +439,11 @@ static void fn_asn(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(asin(TOFLOAT(pop_int())));
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(asin(TOFLOAT(pop_int64())));
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(asin(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -476,11 +453,11 @@ static void fn_atn(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(atan(TOFLOAT(pop_int())));
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(atan(TOFLOAT(pop_int64())));
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(atan(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -522,14 +499,17 @@ static void fn_chr(void) {
     *cp = pop_int();
     push_strtemp(1, cp);
   }
+  else if (GET_TOPITEM == STACK_INT64) {
+    cp = alloc_string(1);
+    *cp = pop_int64();
+    push_strtemp(1, cp);
+  }
   else if (GET_TOPITEM == STACK_FLOAT) {
     cp = alloc_string(1);	/* obtain memory for a single character string */
     *cp = TOINT(pop_float());	/* Cast rounds towards zero */
     push_strtemp(1, cp);
   }
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -563,11 +543,11 @@ static void fn_cos(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(cos(TOFLOAT(pop_int())));
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(cos(TOFLOAT(pop_int64())));
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(cos(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -644,11 +624,11 @@ static void fn_deg(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(TOFLOAT(pop_int())*RADCONV);
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(TOFLOAT(pop_int64())*RADCONV);
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(pop_float()*RADCONV);
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -657,7 +637,7 @@ static void fn_deg(void) {
 */
 void fn_end(void) {
   basicvars.current++;
-  push_int(basicvars.vartop-basicvars.offbase);
+  push_int64(resize32(basicvars.vartop-basicvars.offbase));
 }
 
 /*
@@ -726,11 +706,11 @@ static void fn_exp(void) {
   topitem = GET_TOPITEM;
   if (topitem == STACK_INT)
     push_float(exp(TOFLOAT(pop_int())));
+  else if (topitem == STACK_INT64)
+    push_float(exp(TOFLOAT(pop_int64())));
   else if (topitem == STACK_FLOAT)
     push_float(exp(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -923,21 +903,27 @@ static void fn_instr(void) {
 */
 static void fn_int(void) {
   int32 localint = 0;
+  int64 localint64 = 0;
   float64 localfloat = 0;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
     if (matrixflags.int_uses_float) {
       localfloat = floor(pop_float());
       localint = localfloat;
-      if (localint == localfloat)
+      localint64 = localfloat;
+      if (localint == localfloat) {
         push_int(localint);
-      else
-       push_float(localfloat);
+      } else {
+        if (localint64 == localfloat) {
+          push_int64(localint64);
+        } else {
+          push_float(localfloat);
+        }
+      }
     } else {
-      push_int(TOINT(pop_float()));
+      push_int(TOINT(floor(pop_float())));
     }
-  }
-  else if (GET_TOPITEM != STACK_INT) {
+  } else if (GET_TOPITEM != STACK_INT && GET_TOPITEM != STACK_INT64) {
     error(ERR_TYPENUM);
   }
 }
@@ -981,6 +967,12 @@ static void fn_ln(void) {
     push_float(log(TOFLOAT(value)));
     break;
   }
+  case STACK_INT64: {
+    int64 value = pop_int64();
+    if (value<=0) error(ERR_LOGRANGE);
+    push_float(log(TOFLOAT(value)));
+    break;
+  }
   case STACK_FLOAT:
     floatvalue = pop_float();
     if (floatvalue<=0.0) error(ERR_LOGRANGE);
@@ -999,6 +991,12 @@ static void fn_log(void) {
   switch (GET_TOPITEM) {
   case STACK_INT: {
     int32 value = pop_int();
+    if (value<=0) error(ERR_LOGRANGE);
+    push_float(log10(TOFLOAT(value)));
+    break;
+  }
+  case STACK_INT64: {
+    int64 value = pop_int64();
     if (value<=0) error(ERR_LOGRANGE);
     push_float(log10(TOFLOAT(value)));
     break;
@@ -1041,6 +1039,13 @@ void fn_mod(void) {
     push_float(sqrt(fpsum));
     break;
   }
+  case VAR_INT64ARRAY: {	/* Calculate the modulus of an integer array */
+    int64 *p = vp->varentry.vararray->arraystart.int64base;
+    fpsum = 0;
+    for (n=0; n<elements; n++) fpsum+=TOFLOAT(p[n])*TOFLOAT(p[n]);
+    push_float(sqrt(fpsum));
+    break;
+  }
   case VAR_FLOATARRAY: {	/* Calculate the modulus of a floating point array */
     float64 *p = vp->varentry.vararray->arraystart.floatbase;
     fpsum = 0;
@@ -1075,12 +1080,12 @@ void fn_not(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     NOT_INT;
+  else if (GET_TOPITEM == STACK_INT64)
+    NOT_INT64;
   else if (GET_TOPITEM == STACK_FLOAT) {
     push_int(~TOINT(pop_float()));
   }
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -1172,6 +1177,8 @@ static void fn_rad(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(TOFLOAT(pop_int())/RADCONV);
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(TOFLOAT(pop_int64())/RADCONV);
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(pop_float()/RADCONV);
   else {
@@ -1237,20 +1244,16 @@ static void fn_rnd(void) {
       lastrandom = value;
       randomoverflow = 0;
       push_int(value);
-    }
-    else if (value == 0) {	/* Return last result */
+    } else if (value == 0) {	/* Return last result */
       push_float(randomfraction());
-    }
-    else if (value == 1) {	/* Return value in range 0 to 0.9999999999 */
+    } else if (value == 1) {	/* Return value in range 0 to 0.9999999999 */
       nextrandom();
       push_float(randomfraction());
-    }
-    else {
+    } else {
       nextrandom();
       push_int(TOINT(1+randomfraction()*TOFLOAT(value)));
     }
-  }
-  else {	/* Return number in the range 0x80000000..0x7fffffff */
+  } else {	/* Return number in the range 0x80000000..0x7fffffff */
     nextrandom();
     push_int(lastrandom);
   }
@@ -1266,29 +1269,30 @@ static void fn_sgn(void) {
     int32 value = pop_int();
     if (value>0) {
       PUSH_INT(1);
-    }
-    else if (value == 0) {
+    } else if (value == 0) {
       PUSH_INT(0);
-    }
-    else {
+    } else {
       PUSH_INT(-1);
     }
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
+  } else if (GET_TOPITEM == STACK_INT64) {
+    int64 value = pop_int64();
+    if (value>0) {
+      PUSH_INT(1);
+    } else if (value == 0) {
+      PUSH_INT(0);
+    } else {
+      PUSH_INT(-1);
+    }
+  } else if (GET_TOPITEM == STACK_FLOAT) {
     floatvalue = pop_float();
     if (floatvalue>0.0) {
       PUSH_INT(1);
-    }
-    else if (floatvalue == 0.0) {
+    } else if (floatvalue == 0.0) {
       PUSH_INT(0);
-    }
-    else {
+    } else {
       PUSH_INT(-1);
     }
-  }
-  else {
-    error(ERR_TYPENUM);
-  }
+  } else error(ERR_TYPENUM);
 }
 
 /*
@@ -1298,11 +1302,11 @@ static void fn_sin(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(sin(TOFLOAT(pop_int())));
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(sin(TOFLOAT(pop_int64())));
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(sin(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  else error(ERR_TYPENUM);
 }
 
 /*
@@ -1314,15 +1318,15 @@ static void fn_sqr(void) {
     int32 value = pop_int();
     if (value<0) error(ERR_NEGROOT);
     push_float(sqrt(TOFLOAT(value)));
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
+  } else if (GET_TOPITEM == STACK_INT64) {
+    int64 value = pop_int64();
+    if (value<0) error(ERR_NEGROOT);
+    push_float(sqrt(TOFLOAT(value)));
+  } else if (GET_TOPITEM == STACK_FLOAT) {
     floatvalue = pop_float();
     if (floatvalue<0.0) error(ERR_NEGROOT);
     push_float(sqrt(floatvalue));
-  }
-  else {
-    error(ERR_TYPENUM);
-  }
+  } else error(ERR_TYPENUM);
 }
 
 /*
@@ -1343,8 +1347,16 @@ static void fn_str(void) {
     else {
       length = sprintf(basicvars.stringwork, "%d", pop_int());
     }
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
+  } else if (GET_TOPITEM == STACK_INT64) {
+    if (ishex) {
+      if (matrixflags.hex64)
+        length = sprintf(basicvars.stringwork, "%llX", pop_int64());
+      else
+        length = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
+    } else {
+      length = sprintf(basicvars.stringwork, "%lld", pop_int64());
+    }
+  } else if (GET_TOPITEM == STACK_FLOAT) {
     if (ishex)
       length = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
     else {
@@ -1366,8 +1378,7 @@ static void fn_str(void) {
       if (numdigits == 0) numdigits = DEFDIGITS;
       length = sprintf(basicvars.stringwork, fmt, numdigits, pop_float());
     }
-  }
-  else {
+  } else {
     error(ERR_TYPENUM);
   }
   cp = alloc_string(length);
@@ -1451,6 +1462,14 @@ static void fn_sum(void) {
       push_int(intsum);
       break;
     }
+    case VAR_INT64ARRAY: {	/* Calculate sum of elements in an integer array */
+      int64 intsum, *p;
+      p = vp->varentry.vararray->arraystart.int64base;
+      intsum = 0;
+      for (n=0; n<elements; n++) intsum+=p[n];
+      push_int(intsum);
+      break;
+    }
     case VAR_FLOATARRAY: {	/* Calculate sum of elements in a floating point array */
       float64 fpsum, *p;
       fpsum = 0;
@@ -1493,6 +1512,8 @@ static void fn_tan(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
     push_float(tan(TOFLOAT(pop_int())));
+  else if (GET_TOPITEM == STACK_INT64)
+    push_float(tan(TOFLOAT(pop_int64())));
   else if (GET_TOPITEM == STACK_FLOAT)
     push_float(tan(pop_float()));
   else {
@@ -1538,7 +1559,7 @@ void fn_top(void) {
   p = get_srcaddr(basicvars.current);		/* Find the address of the variable */
   if (*p != 'P') error(ERR_SYNTAX);		/* But it does not start with the letter 'P' */
   basicvars.current+=LOFFSIZE + 1;
-  push_int(basicvars.top-basicvars.offbase);
+  push_int64(resize32(basicvars.top-basicvars.offbase));
 }
 
 /*
@@ -1582,7 +1603,12 @@ static void fn_val(void) {
   char *cp;
   boolean isint;
   int32 intvalue;
+  int64 int64value;
   static float64 fpvalue;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function functions.c:fn_val\n");
+#endif
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
@@ -1593,16 +1619,22 @@ static void fn_val(void) {
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
     basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
-    cp = todecimal(basicvars.stringwork, &isint, &intvalue, &fpvalue);
+    cp = todecimal(basicvars.stringwork, &isint, &intvalue, &int64value, &fpvalue);
     if (cp == NIL) {	/* Error found when converting number */
       error(intvalue);	/* 'intvalue' is used to return the precise error */
     }
     if (isint)
-      push_int(intvalue);
+      if (intvalue == int64value)
+        push_int(intvalue);
+      else
+        push_int64(int64value);
     else {
       push_float(fpvalue);
     }
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function functions.c:fn_val\n");
+#endif
 }
 
 /*

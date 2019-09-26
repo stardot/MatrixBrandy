@@ -39,7 +39,7 @@ extern void  mos_rdrtc(char *);
 extern void  mos_wrrtc(char *);
 extern void  mos_call(int32, int32, int32 []);
 extern int32 mos_usr(int32);
-extern void  mos_sys(int32, int32[], int32[], int32*);
+extern void  mos_sys(int64, int64[], int64[], int64*);
 extern int32 mos_getswinum(char *, int32);
 extern void  mos_setend(int32);
 extern void  mos_waitdelay(int32);
@@ -49,7 +49,11 @@ extern void  mos_mouse_to(int32, int32);
 extern void  mos_mouse_step(int32, int32);
 extern void  mos_mouse_colour(int32, int32, int32, int32);
 extern void  mos_mouse_rectangle(int32, int32, int32, int32);
+#ifdef TARGET_RISCOS
 extern void  mos_mouse(int32 []);
+#else
+extern void  mos_mouse(int64 []);
+#endif
 extern void  mos_wrbeat(int32);
 extern int32 mos_rdbeat(void);
 extern int32 mos_rdbeats(void);

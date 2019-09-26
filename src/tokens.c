@@ -464,6 +464,17 @@ static void store_intconst(int32 value) {
   }
 }
 
+static void store_int64const(int64 value) {
+  int n;
+
+  if (next+INT64SIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  for (n=1; n<=INT64SIZE; n++) {
+    tokenbase[next] = CAST(value, byte);
+    value = value>>8;
+    next++;
+  }
+}
+
 /*
 ** 'store_fpvalue' is a grubby bit of code used to store an eight-byte
 ** floating point value in the tokenised line buffer
@@ -709,7 +720,10 @@ static void copy_token(void) {
 ** clear_varaddrs() below)
 */
 static void copy_variable(void) {
-  if (*lp>='@' && *lp<='Z' && lp[1] == '%' && lp[2] != '(' && lp[2] != '[') {   /* Static integer variable */
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:copy_variable, lp=%s\n\n", lp);
+#endif
+  if (*lp>='@' && *lp<='Z' && lp[1] == '%' && lp[2] != '%' && lp[2] != '(' && lp[2] != '[') {   /* Static integer variable */
     store(*lp);
     lp++;
   }
@@ -720,10 +734,21 @@ static void copy_variable(void) {
       lp++;
     }
   }
-  if (*lp == '%' || *lp == '$') {       /* Integer or string variable */
+  if (*lp == '%') {	/* Integer variable */
+    store(*lp);
+    lp++;
+    if (*lp == '%') {	/* %% for 64-bit int */
+      store(*lp);
+      lp++;
+    }
+  }
+  if (*lp == '$') {	/* String variable */
     store(*lp);
     lp++;
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:copy_variable\n");
+#endif
 }
 
 /*
@@ -979,7 +1004,7 @@ static void tokenise_source(char *start, boolean haslineno) {
         linenoposs = firstitem = FALSE;
       }
     }
-    else if (ch == '@' && *(lp+1) == '%') {     /* Buiit-in variable @% */
+    else if (ch == '@' && *(lp+1) == '%' && *(lp+2) != '%') {     /* Built-in variable @% */
       copy_variable();
       linenoposs = firstitem = FALSE;
     }
@@ -1113,6 +1138,7 @@ static void do_dynamvar(void) {
   store_longoffset(next-1-source);      /* Store offset back to name from here */
   while (isident(tokenbase[source])) source++;  /* Skip name */
   if (tokenbase[source] == '%' || tokenbase[source] == '$') source++;   /* Skip integer or string variable marker */
+  if (tokenbase[source] == '%') source++;   /* Skip 64-bit integer second variable marker */
   if (tokenbase[source] == '(' || tokenbase[source] == '[') source++;   /* Skip '(' (is part of name if an array) */
   firstitem = FALSE;
 }
@@ -1141,30 +1167,44 @@ static void do_linenumber(void) {
 
 static void do_number(void) {
   int32 value;
+  int64 value64;
   static float64 fpvalue;
   boolean isintvalue;
+  boolean isbinhex=FALSE;
   char *p;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:do_number\n");
+#endif
   value = 0;
+  value64 = 0;
   isintvalue = TRUE;    /* Number is an integer */
   switch(tokenbase[source]) {
   case '&':     /* Hex value */
     source++;
+    isbinhex=TRUE;
     while (isxdigit(tokenbase[source])) {
       value = (value<<4)+todigit(tokenbase[source]);
+      value64 = (value64<<4)+todigit(tokenbase[source]);
       source++;
     }
     break;
   case '%':     /* Binary value */
     source++;
+    isbinhex=TRUE;
     while (tokenbase[source] == '0' || tokenbase[source] == '1') {
       value = (value<<1)+(tokenbase[source]-'0');
+      value64 = (value64<<1)+(tokenbase[source]-'0');
       source++;
     }
     break;
   default:      /* Decimal or floating point */
-    p = tonumber(CAST(&tokenbase[source], char *), &isintvalue, &value, &fpvalue);
+    p = tonumber(CAST(&tokenbase[source], char *), &isintvalue, &value, &value64, &fpvalue);
     if (p == NIL) {
       lasterror = ERR_BADEXPR;
+#ifdef DEBUG
+      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:do_number by throwing error\n");
+#endif
       error(value);     /* Error found in number - flag it */
       return;
     }
@@ -1173,17 +1213,30 @@ static void do_number(void) {
   firstitem = FALSE;
 /* Store the constant in the executable token portion of the line */
   if (isintvalue) {     /* Decide on type of integer constant */
-    if (value == 0)
-    store(TOKEN_INTZERO);               /* Integer 0 */
-    else if (value == 1)
-      store(TOKEN_INTONE);              /* Integer 1 */
-    else if (value>1 && value<=SMALLCONST) {
-      store(TOKEN_SMALLINT);            /* Integer 1..256 */
-      store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
-    }
-    else {
-      store(TOKEN_INTCON);              /* Anything else */
+    if ((!matrixflags.hex64 && isbinhex) || value == value64) {
+      if (value64 == 0)
+      store(TOKEN_INTZERO);               /* Integer 0 */
+      else if (value64 == 1)
+        store(TOKEN_INTONE);              /* Integer 1 */
+      else if (value64>1 && value64<=SMALLCONST) {
+        store(TOKEN_SMALLINT);            /* Integer 1..256 */
+        store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
+      } else {
+      store(TOKEN_INTCON);              /* 32-bit int */
       store_intconst(value);
+      }
+    } else {
+      if (value64 == 0)
+      store(TOKEN_INTZERO);               /* Integer 0 */
+      else if (value64 == 1)
+        store(TOKEN_INTONE);              /* Integer 1 */
+      else if (value64>1 && value64<=SMALLCONST) {
+        store(TOKEN_SMALLINT);            /* Integer 1..256 */
+        store(value-1);                   /* Move number 1..256 to range 0..255 when saved */
+      } else {
+        store(TOKEN_INT64CON);              /* 64-bit int */
+        store_int64const(value64);
+      }
     }
   }
   else {        /* Decide on type of floating point constant */
@@ -1196,6 +1249,9 @@ static void do_number(void) {
       store_fpvalue(fpvalue);
     }
   }
+#ifdef DEBUG
+      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:do_number\n");
+#endif
 }
 
 /*
@@ -1273,6 +1329,10 @@ static void do_star(void) {
 */
 static void translate(void) {
   byte token;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:translate\n");
+#endif
   source = OFFSOURCE;           /* Offset of first byte of tokenised source */
   token = tokenbase[source];
   firstitem = TRUE;
@@ -1281,7 +1341,7 @@ static void translate(void) {
       do_star();
     else if (token>=TOKEN_LOWEST)       /* Have found a keyword token */
       do_keyword();
-    else if (token>='@' && token<='Z' && tokenbase[source+1] == '%')
+    else if (token>='@' && token<='Z' && tokenbase[source+1] == '%' && tokenbase[source+2] != '%')
       do_statvar();
     else if (token == TOKEN_XVAR)
       do_dynamvar();
@@ -1328,6 +1388,9 @@ static void translate(void) {
   }
   store(asc_NUL);
   store_linelen(next);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:translate\n");
+#endif
 }
 
 /*
@@ -1361,6 +1424,9 @@ static void mark_badline(void) {
 ** 2)  The executable version of the line is created
 */
 void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediatemode) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:tokenize\n");
+#endif
   immediate = immediatemode;
   tokenbase = tokenbuf;
   tokenise_source(start, haslineno);
@@ -1368,6 +1434,9 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
     mark_badline();
   else 
     translate();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:tokenize\n");
+#endif
 }
 
 /*
@@ -1377,38 +1446,38 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
 ** probably been corrupted
 */
 static int skiptable [] = {
-  0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,     /* 00..07 */
-  LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, -1, -1,  /* 08..0F */
-  0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE, OFFSIZE+SIZESIZE,  /* 10..17 */
-  OFFSIZE+SIZESIZE, -1, -1, -1, -1, -1, LOFFSIZE, LOFFSIZE,     /* 18..1F */
-  -1,  0, -1,  0,  0,  0,  0,  0,                               /* 20..27 */
-   0,  0,  0,  0,  0,  0,  0,  0,                               /* 28..2F */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 30..37 */
-  -1, -1,  0,  0,  0,  0,  0,  0,                               /* 38..3F */
-   0, -1, -1, -1, -1, -1, -1, -1,                               /* 40..47 */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 48..4F */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 50..57 */
-  -1, -1, -1,  0,  0,  0,  0,  0,                               /* 58..5F */
-   0, -1, -1, -1, -1, -1, -1, -1,                               /* 60..67 */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 68..6F */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* 70..77 */
-  -1, -1, -1,  0,  0,  0,  0, -1,                               /* 78..7F */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* 80..87 */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* 88..8F */
-  LOFFSIZE, LOFFSIZE, 0, 0, 0, 0, 0, 0,                         /* 90..97 */ /* CASE */
-  0, OFFSIZE, 0, 0, 0, 0, 0, OFFSIZE,                           /* 98..9F */ /* DATA, ELSE */
-  OFFSIZE, OFFSIZE, OFFSIZE, 0, 0, 0, 0, 0,                     /* A0..A7 */ /* ELSE */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* A8..AF */
-  0, 0, 2*OFFSIZE, 2*OFFSIZE, 2*OFFSIZE, 0, 0, 0,               /* B0..B7 */ /* IF */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* B8..BF */
-  0, 0, 0, 0, 0, OFFSIZE, OFFSIZE, 0,                           /* C0..C7 */ /* OTHERWISE */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* C8..CF */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* D0..D7 */
-  OFFSIZE, 0, 0, 0, 0, 0, 0, 0,                                 /* D8..DF */ /* *command */
-  0, 0, 0, 0, 0, 0, 0, 0,                                       /* E0..E7 */
-  0, OFFSIZE, OFFSIZE, OFFSIZE, OFFSIZE, 0, -1, -1,             /* E8..EF */ /* WHEN, WHILE */
-  -1, -1, -1, -1, -1, -1, -1, -1,                               /* F0..F7 */
-  -1, -1, -1, -1, 1, 1, 1, 1                                    /* F8..FF */
+  0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,	/* 00..07 */
+  LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, -1,	/* 08..0F */
+  0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE, OFFSIZE+SIZESIZE,		/* 10..17 */
+  OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
+  -1,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
+   0,  0,  0,  0,  0,  0,  0,  0,					/* 28..2F */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 30..37 */
+  -1, -1,  0,  0,  0,  0,  0,  0,					/* 38..3F */
+   0, -1, -1, -1, -1, -1, -1, -1,					/* 40..47 */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 48..4F */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 50..57 */
+  -1, -1, -1,  0,  0,  0,  0,  0,					/* 58..5F */
+   0, -1, -1, -1, -1, -1, -1, -1,					/* 60..67 */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 68..6F */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* 70..77 */
+  -1, -1, -1,  0,  0,  0,  0, -1,					/* 78..7F */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* 80..87 */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* 88..8F */
+  LOFFSIZE, LOFFSIZE, 0, 0, 0, 0, 0, 0,					/* 90..97 */ /* CASE */
+  0, OFFSIZE, 0, 0, 0, 0, 0, OFFSIZE,					/* 98..9F */ /* DATA, ELSE */
+  OFFSIZE, OFFSIZE, OFFSIZE, 0, 0, 0, 0, 0,				/* A0..A7 */ /* ELSE */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* A8..AF */
+  0, 0, 2*OFFSIZE, 2*OFFSIZE, 2*OFFSIZE, 0, 0, 0,			/* B0..B7 */ /* IF */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* B8..BF */
+  0, 0, 0, 0, 0, OFFSIZE, OFFSIZE, 0,					/* C0..C7 */ /* OTHERWISE */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* C8..CF */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* D0..D7 */
+  OFFSIZE, 0, 0, 0, 0, 0, 0, 0,						/* D8..DF */ /* *command */
+  0, 0, 0, 0, 0, 0, 0, 0,						/* E0..E7 */
+  0, OFFSIZE, OFFSIZE, OFFSIZE, OFFSIZE, 0, -1, -1,			/* E8..EF */ /* WHEN, WHILE */
+  -1, -1, -1, -1, -1, -1, -1, -1,					/* F0..F7 */
+  -1, -1, -1, -1, 1, 1, 1, 1						/* F8..FF */
 };
 
 /*
@@ -1431,11 +1500,18 @@ byte *skip_token(byte *p) {
 ** starts at 'p'
 */
 byte *skip_name(byte *p) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:skip_name\n");
+#endif
   do
     p++;
   while (ISIDCHAR(*p));
   if (*p == '%' || *p == '$') p++;      /* If integer or string, skip the suffix character */
+  if (*p == '%') p++;      /* If 64-bit integer skip the second suffix character */
   if (*p == '(' || *p == '[') p++;      /* If an array, the first '(' or '[' is part of the name so skip it */
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:skip_name\n");
+#endif
   return p;
 }
 
@@ -1752,7 +1828,7 @@ static void clear_varaddrs(byte *bp) {
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
-    if (*tp == TOKEN_XVAR || (*tp >= TOKEN_INTVAR && *tp <= TOKEN_FLOATINDVAR)) {
+    if (*tp == TOKEN_XVAR || *tp == TOKEN_INT64VAR || (*tp >= TOKEN_INTVAR && *tp <= TOKEN_FLOATINDVAR)) {
       while (*sp != TOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
       if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
       sp++;     /* Point at first char of name */

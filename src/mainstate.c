@@ -398,6 +398,10 @@ void exec_dim(void) {
   variable *vp;
   boolean blockdef;		/* TRUE if we are allocating a block of memory and not creating an array */
   boolean islocal;		/* TRUE if we are defining a local array on the stack */
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_dim\n");
+#endif
   do {
     basicvars.current++;	/* Skip 'DIM' token or ',' */
 /* Must always have a variable name next */
@@ -438,6 +442,9 @@ void exec_dim(void) {
     }
   } while (*basicvars.current == ',');
   check_ateol();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_dim\n");
+#endif
 }
 
 /*
@@ -612,6 +619,7 @@ void exec_endproc(void) {
 void exec_fnreturn(void) {
   stackitem resultype;
   int32 intresult = 0;
+  int64 int64result = 0;
   static float64 fpresult;
   basicstring stresult = {0, NULL};
   char *sp;
@@ -622,6 +630,8 @@ void exec_fnreturn(void) {
   resultype = GET_TOPITEM;
   if (resultype == STACK_INT)	/* Pop result from stack and ensure type is legal */
     intresult = pop_int();
+  else if (resultype == STACK_INT64)
+    int64result = pop_int64();
   else if (resultype == STACK_FLOAT)
     fpresult = pop_float();
   else if (resultype == STACK_STRING) {	/* Have to make a copy of the string for safety */
@@ -641,6 +651,9 @@ void exec_fnreturn(void) {
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had arguments - restore old values */
   if (resultype == STACK_INT) {	/* Lastly, put the result back on the stack */
     PUSH_INT(intresult);
+  }
+  else if (resultype == STACK_INT64) {
+    PUSH_INT64(int64result);
   }
   else if (resultype == STACK_FLOAT) {
     PUSH_FLOAT(fpresult);
@@ -1020,6 +1033,9 @@ void exec_singlif(void) {
   if (GET_TOPITEM == STACK_INT) {
     if (pop_int() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
   }
+  else if (GET_TOPITEM == STACK_INT64) {
+    if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
+  }
   else if (GET_TOPITEM == STACK_FLOAT) {
     if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
   }
@@ -1049,7 +1065,7 @@ void exec_singlif(void) {
 */
 void exec_xif(void) {
   byte *lp2 = NULL, *dest, *ifplace, *thenplace, *elseplace;
-  int32 result = 0;
+  int64 result = 0;
   boolean single;
   ifplace = basicvars.current; 		/* Set up a pointer to the 'IF' token */
   thenplace = ifplace+1;		/* Set up addresses where offsets will be stored */
@@ -1058,8 +1074,10 @@ void exec_xif(void) {
   expression();
   if (GET_TOPITEM == STACK_INT)
     result = pop_int();
+  else if (GET_TOPITEM == STACK_INT64)
+    result = pop_int64();
   else if (GET_TOPITEM == STACK_FLOAT)
-    result = TOINT(pop_float());
+    result = TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }
@@ -1824,13 +1842,31 @@ static void read_numeric(lvalue destination) {
   restore_current();
   itemtype = GET_TOPITEM;
   switch (destination.typeinfo) {	/* Now save the value just read */
-  case VAR_INTWORD:	/* Integer variable */
+  case VAR_INTWORD:	/* 32-bit integer variable */
     switch (itemtype) {
     case STACK_INT:
       *destination.address.intaddr = pop_int();
       break;
+    case STACK_INT64:
+      *destination.address.intaddr = INT64TO32(pop_int64());
+      break;
     case STACK_FLOAT:
       *destination.address.intaddr = TOINT(pop_float());
+      break;
+    default:
+      error(ERR_TYPENUM);
+    }
+    break;
+  case VAR_INTLONG:	/* 64-bit integer variable */
+    switch (itemtype) {
+    case STACK_INT:
+      *destination.address.int64addr = (int64)pop_int();
+      break;
+    case STACK_INT64:
+      *destination.address.int64addr = pop_int64();
+      break;
+    case STACK_FLOAT:
+      *destination.address.int64addr = TOINT64(pop_float());
       break;
     default:
       error(ERR_TYPENUM);
@@ -1840,6 +1876,9 @@ static void read_numeric(lvalue destination) {
     switch (itemtype) {
     case STACK_INT:
       *destination.address.floataddr = TOFLOAT(pop_int());
+      break;
+    case STACK_INT64:
+      *destination.address.floataddr = TOFLOAT(pop_int64());
       break;
     case STACK_FLOAT:
       *destination.address.floataddr = pop_float();
@@ -1946,7 +1985,7 @@ void exec_read(void) {
   while (TRUE) {
     get_lvalue(&destination);
     find_data();
-    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT)	/* Numeric value */
+    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_INTLONG)	/* Numeric value */
       read_numeric(destination);
     else {	/* Character string */
       read_string(destination);
@@ -2312,8 +2351,8 @@ void exec_swap(void) {
 ** as 'SWIs'.
 */
 void exec_sys(void) {
-  int32 n, parmcount, flags, swino = 0;
-  int32 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+  int32 n, parmcount, swino = 0;
+  int64 flags, inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
   stackitem parmtype;
   basicstring descriptor, tempdesc[MAXSYSPARMS];
   lvalue destination;
@@ -2323,6 +2362,9 @@ void exec_sys(void) {
   switch (parmtype) {	/* Untangle the SWI number */
   case STACK_INT:
     swino = pop_int();
+    break;
+  case STACK_INT64:
+    swino = INT64TO32(pop_int64());
     break;
   case STACK_FLOAT:
     swino = TOINT(pop_float());
@@ -2350,6 +2392,9 @@ void exec_sys(void) {
       switch (parmtype) {
       case STACK_INT:
         inregs[parmcount] = pop_int();
+        break;
+      case STACK_INT64:
+        inregs[parmcount] = INT64TO32(pop_int());
         break;
       case STACK_FLOAT:
         inregs[parmcount] = TOINT(pop_float());

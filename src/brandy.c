@@ -89,6 +89,8 @@ int main(int argc, char *argv[]) {
 //#ifdef TARGET_RISCOS
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
+  /* DEBUG HACK */
+  collapse=NULL;
   init1();
   init_timer();	/* Initialise the timer thread */
 #ifndef NONET
@@ -183,6 +185,7 @@ static void init1(void) {
   matrixflags.failovermode = 255;	/* Report Bad Mode on unavailable screen mode */
   matrixflags.int_uses_float = 0;	/* Does INT() use floats? Default no = RISC OS and BBC behaviour */
   matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
+  matrixflags.hex64 = 0;		/* Decode hex as 64-bit? Default no = BASIC VI behaviour */
 #if defined(TARGET_UNIX) & !defined(USE_SDL)
   matrixflags.delcandelete = 1;		/* DEL character can delete? */
 #else
@@ -240,7 +243,7 @@ static void init2(void) {
     exit(EXIT_FAILURE);
   }
 #ifdef USE_SDL
-  if (worksize && (worksize <= 0x7C00)) {
+  if ((size_t)basicvars.page >= 0x8000) {
     matrixflags.mode7fb = 0x7C00;
   } else {
     matrixflags.mode7fb = 0xFFFF7C00;

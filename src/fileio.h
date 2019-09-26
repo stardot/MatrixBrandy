@@ -39,6 +39,7 @@ extern int32 fileio_getstring(int32, char *);
 extern void fileio_bput(int32, int32);
 extern void fileio_bputstr(int32, char *, int32);
 extern void fileio_printint(int32, int32);
+extern void fileio_printint64(int32, int64);
 extern void fileio_printfloat(int32, float64);
 extern void fileio_printstring(int32, char *, int32);
 extern int32 fileio_eof(int32);

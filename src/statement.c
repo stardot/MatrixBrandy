@@ -226,7 +226,7 @@ void end_run(void) {
   if (basicvars.debug_flags.stats) show_stringstats();
 #endif
   if (basicvars.runflags.quitatend) exit_interpreter(EXIT_SUCCESS);	/* Exit from the interpreter once program has finished */
-  longjmp(basicvars.restart, 1);	/* Restart at the command line */
+  siglongjmp(basicvars.restart, 1);	/* Restart at the command line */
 }
 
 static void next_line(void) {
@@ -246,48 +246,38 @@ static void next_line(void) {
 ** null-terminated string. This is only used by the code that deals
 ** with the SYS statement
 **
-** The code assumes that pointers are 32 bits wide. This affects
-** string variables in that the value returned by the SWI is
-** assumed to be a pointer to a null-terminated string. This is
-** passed back as a 32-bit integer. This problem cannot be avoided
-** with the SYS statement, which was only designed for use on a
-** 32-bit ARM processor
-**
-** Strings are now returned via an indirection within the BASIC
-** workspace, so a 32-bit pointer can be returned. This in turn
-** points to a 64-bit value. Unfortunately this results in
-** compiler warnings on 32-bit platforms, but does seem to work
-** on my system.
+** While SYS is specced to only handle 32-bit values, Matrix Brandy
+** has been modified to use 64-bit values. This is to allow the
+** passing of pointers on 64-bit platforms where otherwise the
+** passing back of strings could result in a segmentation fault.
+** This represents a deviation from the ARM SWI spec but it's only
+** a skin-deep emulation here.
 */
 
-void store_value(lvalue destination, int32 valuex, boolean nostring) {
+void store_value(lvalue destination, int64 valuex, boolean nostring) {
   int32 length;
-#ifdef __LP64__
-  uint64 *indirect;
-#else
-  uint32 *indirect;
-#endif
   intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function statement.c:store_value\n");
+#endif
   switch (destination.typeinfo) {
   case VAR_INTWORD:
     *destination.address.intaddr = value;
     break;
+  case VAR_INTLONG:
+    *destination.address.int64addr = valuex;
+    break;
   case VAR_FLOAT:
-    *destination.address.floataddr = TOFLOAT(value);
+    *destination.address.floataddr = TOFLOAT(valuex);
     break;
   case VAR_STRINGDOL:
     if (nostring) error(ERR_VARNUM);
-#ifdef __LP64__
-    indirect = (uint64 *)(value + basicvars.offbase);
-#else
-    indirect = (uint32 *)(value + basicvars.offbase);
-#endif
-    length = strlen(TOSTRING(*indirect));
+    length = strlen(TOSTRING(value));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     free_string(*destination.address.straddr);
     cp = alloc_string(length);
-    if (length>0) memmove(cp, TOSTRING(*indirect), length);
+    if (length>0) memmove(cp, TOSTRING(value), length);
     destination.address.straddr->stringlen = length;
     destination.address.straddr->stringaddr = cp;
     break;
@@ -299,19 +289,14 @@ void store_value(lvalue destination, int32 valuex, boolean nostring) {
     store_integer(destination.address.offset, value);
     break;
   case VAR_FLOATPTR:
-    store_float(destination.address.offset, TOFLOAT(value));
+    store_float(destination.address.offset, TOFLOAT(valuex));
     break;
   case VAR_DOLSTRPTR:
     if (nostring) error(ERR_VARNUM);
-#ifdef __LP64__
-    indirect = (uint64 *)(value + basicvars.offbase);
-#else
-    indirect = (uint32 *)(value + basicvars.offbase);
-#endif
-    length = strlen(TOSTRING(*indirect));
+    length = strlen(TOSTRING(value));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
-    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(*indirect), length);
+    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value), length);
     basicvars.offbase[destination.address.offset+length] = asc_CR;
     break;
   default:
@@ -327,10 +312,10 @@ static void (*statements[256])(void) = {
   next_line, exec_assignment, assign_staticvar,	assign_intvar,	/* 00.03 */
   assign_floatvar, assign_stringvar, exec_assignment, exec_assignment,	/* 04..07 */
   exec_assignment, exec_assignment, exec_assignment, exec_assignment, 	/* 08..0B */
-  exec_xproc, exec_proc, bad_token, bad_token,			/* 0C..0F */
+  exec_xproc, exec_proc, assign_int64var, bad_token,			/* 0C..0F */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 10..13 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,		/* 14..17 */
-  bad_syntax, bad_token, bad_token, bad_token,			/* 18..1B */
+  bad_syntax, bad_syntax, bad_token, bad_token,			/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, exec_assignment, bad_syntax, bad_syntax,		/* 20..23 */
   exec_assignment, bad_syntax, bad_syntax, bad_syntax,		/* 24..27 */
@@ -398,6 +383,9 @@ static void (*statements[256])(void) = {
 */
 void exec_fnstatements(byte *lp) {
   byte token;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function statement.c:exec_fnstatements\n");
+#endif
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
     token = *basicvars.current;
@@ -415,6 +403,9 @@ static void exec_statements(byte *lp) {
 #ifdef USE_SDL
       kbd_escpoll();
 //    if (basicvars.escape_enabled) checkforescape();
+#endif
+#ifdef DEBUG
+    if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token %X\n", *basicvars.current);
 #endif
     (*statements[*basicvars.current])();	/* Dispatch a statement */
   } while (TRUE);
@@ -454,7 +445,7 @@ void run_program(byte *lp) {
   basicvars.datacur = NIL;
   basicvars.runflags.outofdata = FALSE;
   basicvars.runflags.running = TRUE;	/* Say that ' RUN' command has been issued */
-  if (setjmp(basicvars.error_restart) == 0) {	/* Mark restart point */
+  if (sigsetjmp(basicvars.error_restart, 1) == 0) {	/* Mark restart point */
     basicvars.local_restart = &basicvars.error_restart;
     exec_statements(FIND_EXEC(lp));	/* Start normal run at first token */
   }

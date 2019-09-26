@@ -111,14 +111,21 @@ static void fn_tab(void) {
 static char *input_number(lvalue destination, char *p) {
   boolean isint;
   int32 intvalue;
+  int64 int64value;
   static float64 fpvalue;
-  p = tonumber(p, &isint, &intvalue, &fpvalue);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:input_number\n");
+#endif
+  p = tonumber(p, &isint, &intvalue, &int64value, &fpvalue);
   if (p == NIL) return NIL;	/* 'tonumber' hit an error - return to caller */
   while (*p != asc_NUL && *p != ',') p++;	/* Find the end of the field */
   if (*p == ',') p++;		/* Move to start of next field */
   switch (destination.typeinfo) {
   case VAR_INTWORD:	/* Normal integer variable */
     *destination.address.intaddr = isint ? intvalue : TOINT(fpvalue);
+    break;
+  case VAR_INTLONG:	/* Normal integer variable */
+    *destination.address.int64addr = isint ? int64value : TOINT64(fpvalue);
     break;
   case VAR_FLOAT:	/* Normal floating point variable */
     *destination.address.floataddr = isint ? TOFLOAT(intvalue) : fpvalue;
@@ -135,6 +142,9 @@ static char *input_number(lvalue destination, char *p) {
     break;
   }
   return p;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function iostate.c:input_number\n");
+#endif
 }
 
 /*
@@ -279,8 +289,8 @@ static void read_input(boolean inputline) {
         cp = &line[0];
       }
       switch (destination.typeinfo) {
-      case VAR_INTWORD: case VAR_FLOAT: case VAR_INTBYTEPTR:	/* Numeric items */
-      case VAR_INTWORDPTR: case VAR_FLOATPTR:
+      case VAR_INTWORD: case VAR_INTLONG: case VAR_FLOAT:	/* Numeric items */
+      case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_FLOATPTR:
         do {
           cp = input_number(destination, cp);	/* Try to read a number */
           bad = cp == NIL;
@@ -1181,7 +1191,7 @@ static void exec_mouse_rectangle(void) {
 ** 'exec_mouse_position' reads the current position of the mouse
 */
 static void exec_mouse_position(void) {
-  int32 mousevalues[4];
+  int64 mousevalues[4];
   lvalue destination;
   mos_mouse(mousevalues);		/* Note: this code does not check the type of the variable to receive the values */
   get_lvalue(&destination);
@@ -1353,6 +1363,10 @@ static void print_screen(void) {
   boolean hex, rightjust, newline;
   int32 format, fieldwidth, numdigits, size;
   char *leftfmt, *rightfmt;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:print_screen\n");
+#endif
   hex = FALSE;
   rightjust = TRUE;
   newline = TRUE;
@@ -1433,17 +1447,47 @@ static void print_screen(void) {
     switch (resultype) {
     case STACK_INT:
       if (rightjust) {
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_int());
-        else {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, (int64)pop_int());
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_int());
+        } else {
           size = sprintf(basicvars.stringwork, "%*d", fieldwidth, pop_int());
         }
       }
       else {	/* Left justify the value */
-        if (hex)
-          size = sprintf(basicvars.stringwork, "%X", pop_int());
-        else {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", (int64)pop_int());
+          else
+            size = sprintf(basicvars.stringwork, "%X", pop_int());
+        } else {
           size = sprintf(basicvars.stringwork, "%d", pop_int());
+        }
+      }
+      emulate_vdustr(basicvars.stringwork, size);
+      basicvars.printcount+=size;
+      break;
+    case STACK_INT64:
+      if (rightjust) {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_int64());
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_int64());
+        } else {
+          size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_int64());
+        }
+      }
+      else {	/* Left justify the value */
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", pop_int64());
+          else
+            size = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
+        } else {
+          size = sprintf(basicvars.stringwork, "%lld", pop_int64());
         }
       }
       emulate_vdustr(basicvars.stringwork, size);
@@ -1452,14 +1496,20 @@ static void print_screen(void) {
     case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
         if (hex) {
-          size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, TOINT64(pop_float()));
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_float());
         }
       }
       else {	/* Left justify the value */
         if (hex)
-          size = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", TOINT64(pop_float()));
+          else
+            size = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
         else {
           size = sprintf(basicvars.stringwork, leftfmt, numdigits, pop_float());
         }
@@ -1485,6 +1535,9 @@ static void print_screen(void) {
     emulate_newline();
     basicvars.printcount = 0;
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function iostate.c:print_screen\n");
+#endif
 }
 
 /*
@@ -1504,6 +1557,9 @@ static void print_file(void) {
     switch (GET_TOPITEM) {
     case STACK_INT:
       fileio_printint(handle, pop_int());
+      break;
+    case STACK_INT64:
+      fileio_printint64(handle, pop_int64());
       break;
     case STACK_FLOAT:
       fileio_printfloat(handle, pop_float());

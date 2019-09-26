@@ -211,6 +211,11 @@ void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
     memmove(ip, temp, sizeof(int32));
     *isint = TRUE;
     break;
+  case PRINT_INT64:
+    for (n=1; n<=sizeof(int64); n++) temp[sizeof(int64)-n] = read(handle);
+    memmove(ip, temp, sizeof(int64));
+    *isint = 2;
+    break;
   case PRINT_FLOAT:
     for (n=0; n<sizeof(float64); n++) temp[n] = read(handle);
     memmove(fp, temp, sizeof(float64));
@@ -311,6 +316,13 @@ void fileio_printint(int32 handle, int32 value) {
   fileio_bput(handle, PRINT_INT);
   memmove(temp, &value, sizeof(int32));
   for (n=1; n<=sizeof(int32); n++) fileio_bput(handle, temp[sizeof(int32)-n]);
+}
+void fileio_printint64(int32 handle, int64 value) {
+  int32 n;
+  char temp[sizeof(int64)];
+  fileio_bput(handle, PRINT_INT64);
+  memmove(temp, &value, sizeof(int64));
+  for (n=1; n<=sizeof(int64); n++) fileio_bput(handle, temp[sizeof(int64)-n]);
 }
 
 /*
@@ -879,6 +891,19 @@ void fileio_printint(int32 handle, int32 value) {
   stream = fileinfo[handle].stream;
   write(stream, PRINT_INT);
   for (n=24; n>=0; n-=8) write(stream, value >> n);
+  fileinfo[handle].lastwaswrite = TRUE;
+}
+void fileio_printint64(int32 handle, int64 value) {
+  FILE *stream;
+  int32 n;
+
+  if (handle==0) error(ERR_BADHANDLE);
+  handle = map_handle(handle);
+  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  fileinfo[handle].eofstatus = OKAY;
+  stream = fileinfo[handle].stream;
+  write(stream, PRINT_INT64);
+  for (n=56; n>=0; n-=8) write(stream, value >> n);
   fileinfo[handle].lastwaswrite = TRUE;
 }
 

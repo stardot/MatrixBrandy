@@ -34,6 +34,7 @@ extern void *alloc_stackstrmem(int32);
 extern void free_stackmem(void);
 extern void push_lvalue(int32, pointers);
 extern void push_int(int32);
+extern void push_int64(int64);
 extern void push_float(float64);
 extern void push_string(basicstring);
 extern void push_strtemp(int32, char *);
@@ -58,6 +59,7 @@ extern byte *get_safestack(void);
 extern boolean safestack(void);
 extern lvalue pop_lvalue(void);
 extern int32 pop_int(void);
+extern int64 pop_int64(void);
 extern float64 pop_float(void);
 extern basicstring pop_string(void);
 extern basicarray *pop_array(void);
@@ -74,14 +76,14 @@ extern void pop_for(void);
 extern byte *pop_data(void);
 extern errorblock pop_error(void);
 extern void save_int(lvalue, int32);
+extern void save_int64(lvalue, int64);
 extern void save_float(lvalue, float64);
 extern void save_string(lvalue, basicstring);
 extern void save_array(lvalue);
 extern void save_retint(lvalue, lvalue, int32);
+extern void save_retint64(lvalue, lvalue, int64);
 extern void save_retfloat(lvalue, lvalue, float64);
 extern void save_retstring(lvalue, lvalue, basicstring);
-extern void intdiv_int(int32);
-extern void intmod_int(int32);
 extern void restore_parameters(int32);
 extern void empty_stack(stackitem);
 extern void reset_stack(byte *);
@@ -101,6 +103,9 @@ extern void *alloc_local(int32);
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
 		basicvars.stacktop.intsp->itemtype = STACK_INT; \
 		basicvars.stacktop.intsp->intvalue = (x);
+#define PUSH_INT64(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int64)); \
+		basicvars.stacktop.int64sp->itemtype = STACK_INT64; \
+		basicvars.stacktop.int64sp->int64value = (x);
 #define PUSH_FLOAT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_float)); \
 		basicvars.stacktop.floatsp->itemtype = STACK_FLOAT; \
 		basicvars.stacktop.floatsp->floatvalue = (x);
@@ -112,30 +117,48 @@ extern void *alloc_local(int32);
 #define DECR_INT(x) basicvars.stacktop.intsp->intvalue-=(x)
 #define DECR_FLOAT(x) basicvars.stacktop.floatsp->floatvalue-=(x)
 #define INTDIV_INT(x) basicvars.stacktop.intsp->intvalue/=(x)
+#define INTDIV_INT64(x) basicvars.stacktop.int64sp->int64value/=(x)
 #define DIV_FLOAT(x) basicvars.stacktop.floatsp->floatvalue/=(x)
 #define INTMOD_INT(x) basicvars.stacktop.intsp->intvalue%=(x)
-#define LSL_INT(x) basicvars.stacktop.intsp->intvalue<<=(x)
-#define ASR_INT(x) basicvars.stacktop.intsp->intvalue>>=(x)
+#define INTMOD_INT64(x) basicvars.stacktop.int64sp->int64value%=(x)
 #define AND_INT(x) basicvars.stacktop.intsp->intvalue&=(x)
+#define AND_INT64(x) basicvars.stacktop.int64sp->int64value&=(x)
 #define OR_INT(x) basicvars.stacktop.intsp->intvalue|=(x)
+#define OR_INT64(x) basicvars.stacktop.int64sp->int64value|=(x)
 #define EOR_INT(x) basicvars.stacktop.intsp->intvalue^=(x)
+#define EOR_INT64(x) basicvars.stacktop.int64sp->int64value^=(x)
 #define NEGATE_INT basicvars.stacktop.intsp->intvalue = -basicvars.stacktop.intsp->intvalue
+#define NEGATE_INT64 basicvars.stacktop.int64sp->int64value = -basicvars.stacktop.int64sp->int64value
 #define NEGATE_FLOAT basicvars.stacktop.floatsp->floatvalue = -basicvars.stacktop.floatsp->floatvalue
 #define NOT_INT basicvars.stacktop.intsp->intvalue = ~basicvars.stacktop.intsp->intvalue
+#define NOT_INT64 basicvars.stacktop.int64sp->int64value = ~basicvars.stacktop.int64sp->int64value
 #define ABS_INT basicvars.stacktop.intsp->intvalue = abs(basicvars.stacktop.intsp->intvalue)
+#define ABS_INT64 basicvars.stacktop.int64sp->int64value = llabs(basicvars.stacktop.int64sp->int64value)
 #define ABS_FLOAT basicvars.stacktop.floatsp->floatvalue = fabs(basicvars.stacktop.floatsp->floatvalue)
 #define CPEQ_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue==(x) ? BASTRUE : BASFALSE)
+#define CPEQ_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value==(x) ? BASTRUE : BASFALSE)
 #define CPNE_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue!=(x) ? BASTRUE : BASFALSE)
+#define CPNE_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value!=(x) ? BASTRUE : BASFALSE)
 #define CPGT_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue>(x) ? BASTRUE : BASFALSE)
+#define CPGT_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value>(x) ? BASTRUE : BASFALSE)
 #define CPLT_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue<(x) ? BASTRUE : BASFALSE)
+#define CPLT_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value<(x) ? BASTRUE : BASFALSE)
 #define CPGE_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue>=(x) ? BASTRUE : BASFALSE)
+#define CPGE_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value>=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT(x) basicvars.stacktop.intsp->intvalue = \
 		(basicvars.stacktop.intsp->intvalue<=(x) ? BASTRUE : BASFALSE)
+#define CPLE_INT64(x) basicvars.stacktop.int64sp->int64value = \
+		(basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
 
 /*
 ** If the debug version of the code is being used, replace some
@@ -144,9 +167,11 @@ extern void *alloc_local(int32);
 */
 #ifdef DEBUG
 #undef PUSH_INT
+#undef PUSH_INT64
 #undef PUSH_FLOAT
 #undef PUSH_STRING
 #define PUSH_INT(x) push_int(x)
+#define PUSH_INT64(x) push_int64(x)
 #define PUSH_FLOAT(x) push_float(x)
 #define PUSH_STRING(x) push_string(x)
 #endif

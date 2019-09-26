@@ -72,25 +72,10 @@ boolean init_workspace(int32 heapsize) {
   if (wp==NIL) heapsize = 0;	/* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
   basicvars.workspace = wp;
-  if (heapsize <= 65536) {
-    basicvars.page = wp + 0xE00; /* Default BBC/Master PAGE value */
-  } else {
-    basicvars.page = wp + 0x8F00; /* Default RISC OS PAGE value */
-  }
-#ifdef TARGET_RISCOS
+  basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
   basicvars.offbase = 0;
-#else
-  basicvars.offbase = wp;
-#endif
-////
-//  basicvars.offbase = 0;			// PAGE=long address of claimed memory
-//  basicvars.page = wp;
-////
-  basicvars.page = basicvars.workspace = wp;	// PAGE=0
-  basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
-  basicvars.offbase = wp;
-////
-  basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
+  basicvars.page = wp;
+  basicvars.memdump_lastaddr = (size_t)wp;
 
 /* Under RISC OS, find out the address of the end of wimp slot */
 #ifdef TARGET_RISCOS
@@ -142,9 +127,10 @@ void release_heap(void) {
 ** for this
 */
 void *allocmem(int32 size) {
-  byte *newlimit;
+  byte *newlimit, bsize;
   size = ALIGN(size);
-  newlimit = basicvars.stacklimit.bytesp+size;
+  bsize=size;
+  newlimit = basicvars.stacklimit.bytesp+bsize;
   if (newlimit>=basicvars.stacktop.bytesp) error(ERR_NOROOM);	/* Have run out of memory */
   basicvars.stacklimit.bytesp = newlimit;
   newlimit = basicvars.vartop;

@@ -114,8 +114,6 @@ static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
 static void native_oscli(char *command, char *respfile, FILE *respfh);
 
-extern void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags);
-
 /* Address range used to identify emulated calls to the BBC Micro MOS */
 
 #define LOW_MOS 0xFFC0
@@ -797,7 +795,7 @@ void mos_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
 /*
 ** 'mos_mouse' emulates the Basic 'MOUSE' statement
 */
-void mos_mouse(int32 values[]) {
+void mos_mouse(int64 values[]) {
 #ifdef USE_SDL
   get_sdl_mouse(values);
 #else
@@ -841,7 +839,7 @@ void mos_mouse(int32 values[]) {
 ** -12- other buffers		etc
 */
 int32 mos_adval(int32 x) {
-  int32 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
+  int64 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
 
   x = x & 0xFFFF;				/* arg is a 16-bit value		*/
   if((x>6) & (x<10)) {
@@ -1031,7 +1029,7 @@ void mos_waitdelay(int32 time) {
 ** 'time' is the time to wait in centiseconds.
 */
 void mos_waitdelay(int32 time) {
-  int32 tbase;
+  int64 tbase;
 
   if (time<=0) return;			/* Nothing to do */
   tbase=mos_centiseconds();
@@ -1050,7 +1048,7 @@ void mos_waitdelay(int32 time) {
       error(ERR_ESCAPE);
     }
 #endif
-    usleep(1000);
+    usleep(2000);
   }
 }
 #endif
@@ -1530,6 +1528,17 @@ static void cmd_help(char *command)
 	emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
 	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4]==' ' ? '0' : mos_patchdate[4],
 	mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+#endif
+#ifdef __LP64__
+  emulate_printf("\n  Workspace is at &%llX, size is &%X\r\n  PAGE = &%llX, HIMEM = &%llX\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+#else
+  emulate_printf("\n  Workspace is at &%X, size is &%X\r\n  PAGE = &%X, HIMEM = &%X\r\n",
+   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+#endif /*LP64*/
+#ifdef DEBUG
+  emulate_printf("  stacktop=&%llX, stacklimit=&%llX\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+
 #endif
 	// NB: Adjust spaces in above to align version and date strings correctly
 
@@ -2233,7 +2242,7 @@ int32 mos_getswinum(char *name, int32 length) {
 ** Most SWI calls are defined in mos_sys.c except the few that
 ** call other functions in this file.
 */
-void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
+void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
   int32 ptr, rtn;
   int32 xflag;
 

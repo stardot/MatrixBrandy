@@ -39,6 +39,7 @@
 #endif
 
 #define MAXINTVAL 2147483647
+#define MAXINT64VAL 9223372036854775807ll
 #define SMALLCONST 256
 #define MAXFLOATVAL 1.7976931348623157E+308
 #define TINYFLOATVAL 2.2250738585072014E-308
@@ -48,7 +49,8 @@
 #define MINSTATELEN 7		/* Minimum legal length of a tokenised line */
 #define MAXLINENO 65279		/* Highest line number allowed */
 #define ENDLINENO 0xFF00	/* Line number value used to mark end of program */
-#define INTSIZE 4		/* Size of an integer in bytes */
+#define INTSIZE 4		/* Size of a 32-bit integer in bytes */
+#define INT64SIZE 8		/* Size of a 64-bit integer in bytes */
 #define SMALLSIZE 1		/* Size of a small integer */
 #define FLOATSIZE 8		/* Size of a floating point value */
 #define STRINGSIZE 8		/* Size of a string descriptor block */

@@ -61,15 +61,14 @@ static void restore(int32 parmcount);
 ** basic stack
 */
 static int32 entrysize [] = {
-  0, 0, ALIGNSIZE(stack_int), ALIGNSIZE(stack_float),
-  ALIGNSIZE(stack_string), ALIGNSIZE(stack_string), ALIGNSIZE(stack_array),
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array), ALIGNSIZE(stack_arraytemp),
-  ALIGNSIZE(stack_array), ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),
-  ALIGNSIZE(stack_locarray), ALIGNSIZE(stack_gosub), ALIGNSIZE(stack_proc),
-  ALIGNSIZE(stack_fn), ALIGNSIZE(stack_local), ALIGNSIZE(stack_retparm),
-  ALIGNSIZE(stack_while), ALIGNSIZE(stack_repeat), ALIGNSIZE(stack_for),
-  ALIGNSIZE(stack_for), ALIGNSIZE(stack_error), ALIGNSIZE(stack_data),
-  ALIGNSIZE(stack_opstack), ALIGNSIZE(stack_restart)
+  0, 0, ALIGNSIZE(stack_int), ALIGNSIZE(stack_int64),   ALIGNSIZE(stack_float),					/* 04 */
+  ALIGNSIZE(stack_string),  ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),    ALIGNSIZE(stack_arraytemp),	/* 08 */
+  ALIGNSIZE(stack_array),   ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),    ALIGNSIZE(stack_arraytemp),	/* 0C */
+  ALIGNSIZE(stack_array),   ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray), ALIGNSIZE(stack_locarray),	/* 10 */
+  ALIGNSIZE(stack_gosub),   ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),       ALIGNSIZE(stack_local),	/* 14 */
+  ALIGNSIZE(stack_retparm), ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),   ALIGNSIZE(stack_for),	/* 18 */
+  ALIGNSIZE(stack_for),     ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),    ALIGNSIZE(stack_data),	/* 1C */
+  ALIGNSIZE(stack_opstack), ALIGNSIZE(stack_restart)								/* 1E */
 };
 
 /*
@@ -77,25 +76,29 @@ static int32 entrysize [] = {
 ** from the Basic stack
 */
 static boolean disposible [] = {
-  FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE,
-  TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, FALSE,
-  FALSE, FALSE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE
+  FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
+  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
+  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  FALSE, FALSE,
+  FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE, TRUE
 };
 
 #ifdef DEBUG
 
-static char entry [50];
+static char entry [64];
 
 static char *entryname(stackitem what) {
   switch (what) {
     case STACK_UNKNOWN:		return "<unknown>";
     case STACK_LVALUE:		return "lvalue";
     case STACK_INT:		return "integer";
+    case STACK_INT64:		return "int64";
     case STACK_FLOAT:		return "floating point";
     case STACK_STRING:		return "string";
     case STACK_STRTEMP:		return "temporary string";
     case STACK_INTARRAY:	return "ineger array";
     case STACK_IATEMP:		return "temp integer array";
+    case STACK_INT64ARRAY:	return "int64 array";
+    case STACK_I64ATEMP:	return "temp int64 array";
     case STACK_FLOATARRAY:	return "floating point array";
     case STACK_FATEMP:		return "temp floating point array";
     case STACK_STRARRAY:	return "string array";
@@ -110,13 +113,14 @@ static char *entryname(stackitem what) {
     case STACK_WHILE:		return "WHILE";
     case STACK_REPEAT:		return "REPEAT";
     case STACK_INTFOR:		return "integer FOR";
+    case STACK_INT64FOR:	return "int64 FOR";
     case STACK_FLOATFOR:	return "floating point FOR";
     case STACK_ERROR:		return "ON ERROR";
     case STACK_DATA:		return "DATA";
     case STACK_OPSTACK:		return "operator stack";
     case STACK_RESTART:		return "siglongjmp block";
     default:
-    sprintf(entry, "** Bad type %d **", what);
+    sprintf(entry, "** Bad type %X **", what);
     return entry;
   }
 }
@@ -153,6 +157,9 @@ boolean safestack(void) {
 */
 int32 *make_opstack(void) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_opstack);
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "stack.c:make_opstack: stacktop=%p, stacklimit=%p, OPSTACKSIZE*LARGEST_ENTRY=%lX\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp, (long unsigned int)OPSTACKSIZE*LARGEST_ENTRY);
+#endif
   if (basicvars.stacktop.bytesp-OPSTACKSIZE*LARGEST_ENTRY<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
   basicvars.stacktop.opstacksp->itemtype = STACK_OPSTACK;
 #ifdef DEBUG
@@ -211,7 +218,19 @@ void push_int(int32 x) {
   basicvars.stacktop.intsp->itemtype = STACK_INT;
   basicvars.stacktop.intsp->intvalue = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 32-bit integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
+#endif
+}
+
+/*
+** 'push_int64' pushes an integer value on to the Basic stack
+*/
+void push_int64(int64 x) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_int64);
+  basicvars.stacktop.int64sp->itemtype = STACK_INT64;
+  basicvars.stacktop.int64sp->int64value = x;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 64-bit integer value on to stack at %p, value %lld\n", basicvars.stacktop.int64sp, x);
 #endif
 }
 
@@ -274,12 +293,12 @@ void push_dolstring(int32 strlength, char *strtext) {
 
 static stackitem arraytype [] = {	/* Variable type -> array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_INTARRAY, STACK_FLOATARRAY,
-  STACK_STRARRAY, STACK_UNKNOWN, STACK_UNKNOWN, STACK_UNKNOWN
+  STACK_STRARRAY, STACK_UNKNOWN, STACK_INT64ARRAY, STACK_UNKNOWN
 };
 
 static stackitem arraytemptype [] = {	/* Variable type -> temporary array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_IATEMP, STACK_FATEMP,
-  STACK_SATEMP, STACK_UNKNOWN, STACK_UNKNOWN, STACK_UNKNOWN
+  STACK_SATEMP, STACK_UNKNOWN, STACK_I64ATEMP, STACK_UNKNOWN
 };
 
 /*
@@ -452,6 +471,24 @@ void push_intfor(lvalue forvar, byte *foraddr, int32 limit, int32 step, boolean 
 }
 
 /*
+** 'push_intfor' creates a control block on the Basic stack for a 'FOR'
+** loop with an integer control variable
+*/
+void push_int64for(lvalue forvar, byte *foraddr, int64 limit, int64 step, boolean simple) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.forsp->itemtype = STACK_INT64FOR;
+  basicvars.stacktop.forsp->simplefor = simple;
+  basicvars.stacktop.forsp->forvar = forvar;
+  basicvars.stacktop.forsp->foraddr = foraddr;
+  basicvars.stacktop.forsp->fortype.intfor.intlimit = limit;
+  basicvars.stacktop.forsp->fortype.intfor.intstep = step;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Create integer 'FOR' block at %p\n", basicvars.stacktop.forsp);
+#endif
+}
+
+/*
 ** 'push_floatfor' creates a control block on the Basic stack for a 'FOR'
 ** loop with a floating point control variable
 */
@@ -508,8 +545,24 @@ void save_int(lvalue details, int32 value) {
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint = value;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving integer from %p at %p\n",
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 32-bit integer from %p at %p\n",
    details.address.intaddr, basicvars.stacktop.localsp);
+#endif
+}
+
+/*
+** 'save_int64' saves an integer value on the stack. It is used when
+** dealing with local variables
+*/
+void save_int64(lvalue details, int64 value) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
+  basicvars.stacktop.localsp->savedetails = details;
+  basicvars.stacktop.localsp->value.savedint64 = value;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 64-bit integer from %p at %p with value &%llX\n",
+   details.address.intaddr, basicvars.stacktop.localsp, value);
 #endif
 }
 
@@ -581,7 +634,24 @@ void save_retint(lvalue retdetails, lvalue details, int32 value) {
   basicvars.stacktop.retparmsp->savedetails = details;
   basicvars.stacktop.retparmsp->value.savedint = value;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving integer variable from %p at %p\n",
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving 32-bit integer variable from %p at %p\n",
+   details.address.intaddr, basicvars.stacktop.retparmsp);
+#endif
+}
+
+/*
+** 'save_retint64' sets up the control block on the stack for a floating point
+**'RETURN' type PROC/FN parameter
+*/
+void save_retint64(lvalue retdetails, lvalue details, int64 value) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
+  basicvars.stacktop.retparmsp->retdetails = retdetails;
+  basicvars.stacktop.retparmsp->savedetails = details;
+  basicvars.stacktop.retparmsp->value.savedint64 = value;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving 64-bit integer variable from %p at %p\n",
    details.address.intaddr, basicvars.stacktop.retparmsp);
 #endif
 }
@@ -750,6 +820,9 @@ static void restore(int32 parmcount) {
       *p->savedetails.address.intaddr = p->value.savedint;
     else {
       switch (p->savedetails.typeinfo & PARMTYPEMASK) {
+      case VAR_INTLONG:
+        *p->savedetails.address.int64addr = p->value.savedint64;
+        break;
       case VAR_FLOAT:
         *p->savedetails.address.floataddr = p->value.savedfloat;
         break;
@@ -803,16 +876,32 @@ void restore_parameters(int32 parmcount) {
 }
 
 /*
-** 'pop_int' pops an integer from the Basic stack
+** 'pop_int' pops a 32-bit integer from the Basic stack
 */
 int32 pop_int(void) {
   stack_int *p = basicvars.stacktop.intsp;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop integer from stack at %p, value %d\n",
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 32-bit integer from stack at %p, value %d\n",
    p, p->intvalue);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
   return p->intvalue;
+}
+
+/*
+** 'pop_int64' pops a 64-bit integer from the Basic stack
+*/
+int64 pop_int64(void) {
+  stack_int64 *p = basicvars.stacktop.int64sp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 64-bit integer from stack at %p, value %lld\n",
+   p, p->int64value);
+#endif
+  basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: returning %lld\n", p->int64value);
+#endif
+  return p->int64value;
 }
 
 /*
@@ -1077,7 +1166,7 @@ errorblock pop_error(void) {
 void empty_stack(stackitem required) {
   do
     discard(GET_TOPITEM);
-  while (GET_TOPITEM!=required);
+  while (GET_TOPITEM && GET_TOPITEM!=required);
 }
 
 /*

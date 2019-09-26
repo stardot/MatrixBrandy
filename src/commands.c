@@ -51,8 +51,6 @@
 
 #define PAGESIZE 20     /* Number of lines listed before pausing */
 
-static int32 lastaddr = 0;
-
 static char editname[80];       /* Default Name of editor invoked by 'EDIT' command */
 
 #ifndef NOINLINEHELP
@@ -64,13 +62,15 @@ static void detailed_help(char *);
 ** integer value. It is used by the functions handling the various
 ** Basic commands in this file
 */
-static int32 get_number(void) {
+static int64 get_number(void) {
   factor();
   switch (get_topitem()) {
   case STACK_INT:
     return pop_int();
+  case STACK_INT64:
+    return pop_int64();
   case STACK_FLOAT:
-    return TOINT(pop_float());
+    return TOINT64(pop_float());
   default:
     error(ERR_TYPENUM);
   }
@@ -82,8 +82,8 @@ static int32 get_number(void) {
 ** 'basicvars.current' points at the first item after the token for the
 ** command for which it is being used
 */
-static void get_pair(int32 *first, int32 *second, int32 firstdef, int32 secondef) {
-  int32 low, high = 0;
+static void get_pair(size_t *first, size_t *second, size_t firstdef, size_t secondef) {
+  size_t low, high = 0;
   *first = firstdef;
   *second = secondef;
   if (isateol(basicvars.current)) return;       /* Return if there is nothing to do */
@@ -292,13 +292,14 @@ static void set_listopt(void) {
   basicvars.debug_flags.stats = (listopts & DEBUG_STATS) != 0;
   basicvars.debug_flags.stack = (listopts & DEBUG_STACK) != 0;
   basicvars.debug_flags.allstack = (listopts & DEBUG_ALLSTACK) != 0;
+  basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
 }
 
 /*
 ** 'delete' is called to delete a range of lines from the program
 */
 static void delete(void) {
-  int32 low, high;
+  size_t low, high;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
   basicvars.current++;
@@ -312,7 +313,7 @@ static void delete(void) {
 ** 'renumber' renumbers a Basic program
 */
 static void renumber(void) {
-  int32 start, step;
+  size_t start, step;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
   basicvars.current++;
@@ -329,10 +330,10 @@ static void renumber(void) {
 */
 static void show_memory(void) {
   byte which;
-  int32 lowaddr, highaddr;
+  size_t lowaddr, highaddr;
   which = *basicvars.current;
   basicvars.current++;
-  get_pair(&lowaddr, &highaddr, lastaddr, lastaddr+0x40);
+  get_pair(&lowaddr, &highaddr, basicvars.memdump_lastaddr, basicvars.memdump_lastaddr+0x40);
   check_ateol();
   if (highaddr == lowaddr) highaddr = lowaddr+0x40;
   if (which == TOKEN_LISTB)
@@ -340,14 +341,15 @@ static void show_memory(void) {
   else {
     show_word(lowaddr, highaddr);
   }
-  lastaddr = highaddr;
+  basicvars.memdump_lastaddr = highaddr;
 }
 
 /*
 ** 'list_program' lists the source of a Basic  program
 */
 static void list_program(void) {
-  int32 lowline, highline, count;
+  size_t lowline, highline;
+  int32 count;
   boolean more, paused;
   byte *p;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
@@ -418,7 +420,8 @@ static void list_program(void) {
 ** 'list_hexline' lists a line as a hex dump
 */
 static void list_hexline(void) {
-  int32 length, theline;
+  int32 length;
+  size_t theline;
   byte *where;
   basicvars.current++;
   get_pair(&theline, &theline, 0, 0);
@@ -784,7 +787,7 @@ static void alter_line(void) {
 ** to it. To avoid this, the code just branches back into the command
 ** loop via 'longjump()'. This is a kludge.
 */
-  longjmp(basicvars.restart, 1);
+  siglongjmp(basicvars.restart, 1);
 }
 
 /*
@@ -865,7 +868,7 @@ static void exec_auto(void) {
     edit_line();
     lineno += linestep;
   }
-  longjmp(basicvars.restart, 1);
+  siglongjmp(basicvars.restart, 1);
 }
 
 /*
@@ -875,7 +878,7 @@ static void exec_auto(void) {
 ** are called with 'current' pointing at the command's token. 'current'
 ** should be left pointing at the end of the statement. The functions
 ** should also check that the statement ends properly. All errors are
-** handled by 'setjmp' and 'longjmp' in the normal way
+** handled by 'sigsetjmp' and 'siglongjmp' in the normal way
 */
 void exec_command(void) {
   basicvars.current++;  /* Point at command type token */
@@ -1126,6 +1129,9 @@ static void detailed_help(char *cmd) {
     emulate_printf("LISTIF <pattern>: lists lines of the program that match <pattern>.");
   } else if (!strcmp(cmd, "LISTO")) {
     emulate_printf("LISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
+#ifdef DEBUG
+    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)");
+#endif
   } else if (!strcmp(cmd, "LN")) {
     emulate_printf("This function gives the natural logarithm (base e) of a number(<factor>).");
   } else if (!strcmp(cmd, "LOAD")) {
