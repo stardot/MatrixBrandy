@@ -78,16 +78,22 @@
 ** 07-Sep-2019 JGH: Last bits of emulate_get() now migrated into kbd_get0(). Loads of
 **                  redundant code removed. Escape processing moving into here.
 **                  *FX229 tested: DJGPP, MinGW, WinSDL, CentOS/SDL
-**                  *FX220 starting to work, pollesc() and SIGINT check physical key, needs
+**                  *FX220 starting to work, escpoll() and SIGINT check physical key, needs
 **                  to check character.
-**
 ** 14-Sep-2019 JGH: ANSI keypresses working again. Amputated entirety of decode_sequence(),
 **                  replaced with parsing code from JGH Console library. Needs negative
 **                  INKEY code for Unix+NoSDL.
 **
+** 25-Sep-2019 JGH: Moved all Escape polling into here, solves EscapeEscape problems on non-SDL.
+**                  Escape setting checks sysvars, character input checks sv_EscapeChar.
+**                  WinDJPP:  ok
+**                  WinMinGW: Escape is Ctrl-C
+**                  WinSDL:   EscapeEscape
+**                  UnixSDL:  Escape is Ctrl-C
+**                  Background Escape still checks physical key.
+**
 ** Issues: Alt+alphanum gives &180+n instead of &080+n.
 **         A few outstanding bugs in BBC/JP keyboard layout.
-**
 ** To do:  Implementing *FX225,etc will resolve raw/cooked keycode issue, cf below.
 **
 ** Think: if OSBYTE 0 says "not RISC OS", GET shouldn't be returning RISC OS-numbered keys
@@ -145,6 +151,7 @@ static struct termios origtty;  /* Copy of original keyboard parameters */
 extern void mode7flipbank();
 extern void reset_vdu14lines();
 Uint8 mousestate, *keystate=NULL;
+int64 esclast=0;
 #endif
 
 #ifdef TARGET_RISCOS
@@ -461,10 +468,45 @@ int32 kbd_pending() {
   return kbd_buffered()!=0;			/* Test keyboard buffer			*/
 }
 
-int   kbd_escpoll()  { checkforescape(); return 0; }	// to do
-int   kbd_esctest()  { return basicvars.escape; }	// test for pending Escape state
-void  kbd_escset()   { basicvars.escape=TRUE; }		// set Escape state
-void  kbd_escclr()   { basicvars.escape=FALSE; }	// clear Escape state
+/* kbd_escpoll() - is there a pending Escape state */
+/* ----------------------------------------------- */
+/* With background keypress processing, this just tests the flag set by the background,
+ * similar to BIT ESCFLG in other BASICs. However, on some targets we can't see
+ * keypresses in the background, we don't have an equivalent of SIGINT, so this routine
+ * also polls the Escape key.
+ * To do: the Escape key needs to be definable, but in this routine we need the keynumber
+ * not the character code.
+ */
+int kbd_escpoll() {
+int64 tmp;
+
+  if (kbd_esctest()) {
+#ifdef USE_SDL
+    tmp=basicvars.centiseconds;
+    if (tmp > esclast) {
+      esclast=tmp;
+      if (kbd_inkey(-113)) basicvars.escape=TRUE;		// Should check key character, not keycode
+    }
+#else
+//  if (GetAsyncKeyState(VK_ESCAPE)) basicvars.escape=TRUE;	// Should check key character, not keycode
+#endif
+  }
+  return basicvars.escape;			/* Return Escape state			*/
+}
+
+/* kbd_esctest() - set Escape state if allowed */
+/* ------------------------------------------- */
+int kbd_esctest() {
+  if (sysvar[sv_EscapeAction]==0) {		/* Does Escape key generate Escapes?	*/
+    if ((sysvar[sv_EscapeBreak] & 1)==0) {	/* Do Escapes set Escape state?		*/
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+void kbd_escset()   { basicvars.escape=TRUE; }		// set Escape state
+void kbd_escclr()   { basicvars.escape=FALSE; }		// clear Escape state
 
 /* kbd_escack() - acknowledge and clear Escape state */
 /* ------------------------------------------------- */
@@ -480,12 +522,10 @@ int kbd_escack() {
     }
     holdcount=0;					/* Cancel pending keypress  	*/
     fn_string_count=0; fn_string = NIL;			/* Cancel soft key expansion	*/
-#ifdef USE_SDL
-    purge_keys();					/* Cancel pending key stack	*/
-#endif
 #ifdef TARGET_MINGW
     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
 #endif
+    purge_keys();					/* Cancel pending keypresses	*/
 //  cancel VDU queue
 //  cancel sounds
   }
@@ -886,7 +926,6 @@ basicvars.escape_enabled=!sysvar[sv_EscapeAction];
 
 // raw=0; // raw=!cooked
 raw=(sysvar[sv_KeyOptions]&192)!=192;
-
   if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
     if (!raw) {
       if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
@@ -896,10 +935,13 @@ raw=(sysvar[sv_KeyOptions]&192)!=192;
       if (ch == 0x1C7)          ch=127;		/* DELETE    */
       if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
     }
-    if (ch == sysvar[sv_EscapeChar]) {
-      if (basicvars.escape_enabled) basicvars.escape=TRUE;
-    }
   }
+//printf("$%02X",basicvars.escape);
+  if (ch == sysvar[sv_EscapeChar]) {
+//  if (basicvars.escape_enabled) basicvars.escape=TRUE;
+    if (kbd_esctest()) basicvars.escape=TRUE;	/* If not ASCII key, set Escape state	*/
+  }
+//printf("$%02X",basicvars.escape);
   if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key		*/
   if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined	*/
   return switch_fn_string(fnkey);		/* Switch and return first char	*/
@@ -1063,8 +1105,8 @@ static byte dostable[] = {
 ** up to the RISC OS values documented in the PRMs.
 */
 unsigned char ansikey[]={
-0x00,0xC8,0xC6,0xC7,0xC9,0xCB,0xCA,0x00, /* 0,Home,Ins,Del,End,PgUp,PgDn,7 */
-0x00,0x00,0x00,0x81,0x82,0x83,0x84,0x85, /* 8,9,10,F1,F2,F3,F4,F5          */
+0x00,0xC8,0xC6,0xC7,0xC9,0xCB,0xCA,0xC8, /* 0,Home,Ins,Del,End,PgUp,PgDn,Home */
+0xC9,0x00,0x00,0x81,0x82,0x83,0x84,0x85, /* End,9,10,F1,F2,F3,F4,F5           */
 0x00,0x86,0x87,0x88,0x89,0x8A,0x00,0x8B, /* 16,F6,F7,F8,F9,F10,22,F11      */
 0x8C,0x8D,0x8E,0x00,0x8F,0x00,0x00,0x00, /* F12,F13,F14,27,F15,F16,30,F17  */
 0x00,0x00,0x00,0x00,0xCC,0xCD,0xCE,0xCF  /* F18,F19,F20,35,<-,->,Down,Up   */
@@ -1157,10 +1199,6 @@ int32 kbd_get0(void) {
   if (mod & 2) ch=ch ^ 0x30;			/* ALT pressed				*/
   return (ch | 0x100);
 
-//  if ((ch=read_key()) != 27)  return ch;	/* Fetch keypress or ESC		*/
-//  if (decode_sequence() == 0) ch = pop_key();	/* Decode ANSI keypress sequence	*/
-//  if (ch & 0x80)              ch = ch | 0x100;	/* Test for extended byte from keyboard	*/
-//  return ch;
  #else
   if ((ch=read_key()) != 0)   return ch;	/* Fetch keypress or NULL		*/
   if ((ch=read_key()) & 0x80) ch = ch | 0x100;	/* Fetch extended byte from keyboard	*/
@@ -1226,12 +1264,14 @@ void purge_keys(void) {
   SDL_Event ev;
   holdcount = 0;
   while(SDL_PollEvent(&ev)) ;
+#else
 #endif
+  while (kbd_inkey(0)>-1);		/* Suck everything out of keyboard	*/
 }
 
 
 
-int64 esclast=0;
+// int64 esclast=0;
 
 // Should be called kbd_something, escenabled should be tested here, should be a function
 /* The check for escape_enabled moved to the calling point in statement.c */
@@ -1259,7 +1299,7 @@ void osbyte44(int x) {
 static boolean waitkey(int wait) {
   int tmp;
   tmp=clock()+wait; //*(CLOCKS_PER_SEC/100);
-  for(;;) { if(kbhit() || (clock()>tmp)) break; }
+  for(;;) { if (kbhit() || (clock()>tmp)) break; }
   return kbhit();
 }
 #endif
@@ -1370,7 +1410,7 @@ int32 read_key(void) {
 #endif
   SDL_Event ev;
 
-#ifndef USE_SDL
+#ifndef USE_SDL // but this is within USE_SDL
   if ((read(keyboard, &ch, 1)) < 0) {		/* Read from keyboard stream		*/
 //    if(basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);       /* Assume CTRL-C has been pressed */
 //    error(ERR_BROKEN, __LINE__, "keyboard");
@@ -1492,257 +1532,6 @@ if (holdcount > 0) return pop_key();	// moved to here
   return ch;
 //  ch=decode_sequence();		/* Temp'y, stop compiler complaining */
 }
-
-// // deal with this bit next
-// /*
-// ** 'decode_sequence' reads a possible ANSI escape sequence and attempts
-// ** to decode it, converting it to a low level key code. It returns the first
-// ** character of the key code (a null) if the sequence is recognised or
-// ** the first character of the sequence read if it cannot be identified.
-// ** Note that the decoding is incomplete as the function only deals
-// ** with keys of interest to it. Note also that it deals with both Linux
-// ** and NetBSD key sequences, for example, the one for 'F1' under Linux
-// ** is 1B 5B 5B 41 and for NetBSD it is 1B 4F 50. It should also be noted
-// ** that the range of keys that can be decoded is a long way  short of the
-// ** key combinations possible. Lastly, the same ANSI sequences are used for
-// ** more than one key, for example, F11 and shift-F1 both return the same
-// ** code.
-// **
-// ** States:
-// ** 1  ESC read          2  ESC 'O'              3  ESC '['
-// ** 4  ESC '[' '1'       5  ESC '[' '2'          6  ESC '[' '3'
-// ** 7  ESC '[' '4'       8  ESC '[' '5'          9  ESC '[' '6'
-// ** 10 ESC '[' '['
-// ** 11 ESC '[' '1' '1'   12 ESC '[' '1' '2'      13 ESC '[' '1' '3'
-// ** 14 ESC '[' '1' '4'   15 ESC '[' '1' '5'      16 ESC '[' '1' '7'
-// ** 17 ESC '[' '1' '8'   18 ESC '[' '1' '9'
-// ** 19 ESC '[' '2' '0'   20 ESC '[' '2' '1'      21 ESC '[' '2' '3'
-// ** 12 ESC '[' '2' '4'   23 ESC '[' '2' '5'      24 ESC '[' '2' '6'
-// ** 25 ESC '[' '2' '8'   26 ESC '[' '2' '9'
-// ** 27 ESC '[' '3' '1'   28 ESC '[' '3' '2'      29 ESC '[' '3' '3'
-// ** 30 ESC '[' '3' '4'
-// **
-// ** This code cannot deal with the 'alt' key sequences that KDE passes
-// ** through. alt-home, for example, is presented as ESC ESC '[' 'H' and
-// ** as 'ESC ESC' is not a recognised sequence the function simply passes
-// ** on the data as supplied.
-// **
-// ** Note: there seem to be some NetBSD escape sequences missing here
-// */
-// static int32 decode_sequence(void) {
-//   int state, newstate;
-//   int32 ch;
-//   boolean ok;
-//   static int32 state2key [] = { /* Maps states 11 to 24 to function key */
-//     KEY_F1, KEY_F2, KEY_F3, KEY_F4,             /* [11..[14 */
-//     KEY_F5, KEY_F6, KEY_F7, KEY_F8,             /* [15..[19 */
-//     KEY_F9, KEY_F10-64, KEY_F11-64, KEY_F12-64, /* [20..[24 */
-//     SHIFT_F3, SHIFT_F4, SHIFT_F5, SHIFT_F6,     /* [25..[29 */
-//     SHIFT_F7, SHIFT_F8, SHIFT_F9, SHIFT_F10-64  /* [31..[34 */
-//   };
-//   static int statelbno[] = {4, 5, 6, 7, 8, 9};
-// /*
-// ** The following tables give the next machine state for the character
-// ** input when handling the ESC '[' '1', ESC '[' '2' and ESC '[' '3'
-// ** sequences
-// */
-//   static int state1[] = {11, 12, 13, 14, 15, 0, 16, 17, 18};    /* 1..9 */
-//   static int state2[] = {19, 20, 0, 21, 22, 23, 24, 0, 25, 26}; /* 0..9 */
-//   static int state3[] = {27, 28, 29, 30};       		/* 1..4 */
-//   state = 1;    /* ESC read */
-//   ok = TRUE;
-// // emulate_printf("decode");
-//   while (ok && waitkey(WAITTIME)) {
-//     ch = read_key();
-//     switch (state) {
-//     case 1:     /* ESC read */
-//       if (ch == 'O')    /* ESC 'O' */
-//         state = 2;
-//       else if (ch == '[')       /* ESC '[' */
-//         state = 3;
-//       else {    /* Bad sequence */
-//         ok = FALSE;
-//       }
-//       break;
-//     case 2:     /* ESC 'O' read */
-//       if (ch >= 'P' && ch <= 'S') {     /* ESC 'O' 'P'..'S' */
-//         push_key(ch - 'P' + KEY_F1);    /* Got NetBSD F1..F4. Map to RISC OS F1..F4 */
-//         return asc_NUL;     /* RISC OS first char of key sequence */
-//       }
-//       else {    /* Not a known key sequence */
-//         ok = FALSE;
-//       }
-//       break;
-//     case 3:     /* ESC '[' read */
-//       switch (ch) {
-//       case 'A': /* ESC '[' 'A' - cursor up */
-//         push_key(UP+64);
-//         return asc_NUL;
-//       case 'B': /* ESC '[' 'B' - cursor down */
-//         push_key(DOWN+64);
-//         return asc_NUL;
-//       case 'C': /* ESC '[' 'C' - cursor right */
-//         push_key(RIGHT+64);
-//         return asc_NUL;
-//       case 'D': /* ESC '[' 'D' - cursor left */
-//         push_key(LEFT+64);
-//         return asc_NUL;
-//       case 'F': /* ESC '[' 'F' - 'End' key */
-//         push_key(0xC9);
-//         return asc_NUL;
-//       case 'H': /* ESC '[' 'H' - 'Home' key */
-//         push_key(0xC8);
-//         return asc_NUL;
-//       case '1': case '2': case '3': case '4': case '5': case '6': /* ESC '[' '1'..'6' */
-//         state = statelbno[ch - '1'];
-//         break;
-//       case '[': /* ESC '[' '[' */
-//         state = 10;
-//         break;
-//       default:
-//         ok = FALSE;
-//       }
-//       break;
-//     case 4:     /* ESC '[' '1' read */
-//       if (ch >= '1' && ch <= '9') {     /* ESC '[' '1' '1'..'9' */
-//         newstate = state1[ch - '1'];
-//         if (newstate == 0)      /* Bad character */
-//           ok = FALSE;
-//         else {
-//           state = newstate;
-//         }
-//       }
-//       else if (ch == '~') {      /* ESC '[' '1 '~' - 'Home' key */
-//         push_key(0xC8);
-//         return asc_NUL;
-//       }
-//       else {
-//         ok = FALSE;
-//       }
-//       break;
-//     case 5:     /* ESC '[' '2' read */
-//       if (ch >= '0' && ch <= '9') {     /* ESC '[' '2' '0'..'9' */
-//         newstate = state2[ch - '0'];
-//         if (newstate == 0)      /* Bad character */
-//           ok = FALSE;
-//         else {
-//           state = newstate;
-//         }
-//       }
-//       else if (ch == '~') {     /* ESC '[' '2' '~' - 'Insert' key */
-//         push_key(0xC6);
-//         return asc_NUL;
-//       }
-//       else {
-//         ok = FALSE;
-//       }
-//       break;
-//     case 6:     /* ESC '[' '3' read */
-//       if (ch >= '1' && ch <= '4') {     /* ESC '[' '3' '1'..'4' */
-//         newstate = state3[ch - '1'];
-//         if (newstate == 0)      /* Bad character */
-//           ok = FALSE;
-//         else {
-//           state = newstate;
-//         }
-//       }
-//       else if (ch == '~') {     /* ESC '[' '3' '~' - 'Del' key */
-//         push_key(0xC7);
-//         return asc_NUL;
-//       }
-//       else {
-//         ok = FALSE;
-//       }
-//       break;
-//     case 7:     /* ESC '[' '4' read */
-//       if (ch == '~') {  /* ESC '[' '4' '~' - 'End' key */
-//         push_key(0xC9);
-//         return asc_NUL;
-//       }
-//       ok = FALSE;
-//       break;
-//     case 8:     /* ESC '[' '5' read */
-//       if (ch == '~') {  /* ESC '[' '5' '~' - 'Page up' key */
-//         push_key(0xCB);
-//         return asc_NUL;
-//       }
-//       ok = FALSE;
-//       break;
-//     case 9:     /* ESC '[' '6' read */
-//       if (ch == '~') {  /* ESC '[' '6' '~' - 'Page down' key */
-//         push_key(0xCA);
-//         return asc_NUL;
-//       }
-//       ok = FALSE;
-//       break;
-//     case 10:    /* ESC '[' '[' read */
-//       if (ch >= 'A' && ch <= 'E') {     /* ESC '[' '[' 'A'..'E' -  Linux F1..F5 */
-//         push_key(ch - 'A' + KEY_F1);
-//         return asc_NUL;
-//       }
-//       ok = FALSE;
-//       break;
-//     case 11: case 12: case 13: case 14: /* ESC '[' '1' '1'..'4' */
-//     case 15: case 16: case 17: case 18: /* ESC '[' '1' '5'..'9' */
-//     case 19: case 20:                           /* ESC '[' '2' '0'..'1' */
-//     case 21: case 22: case 23: case 24: /* ESC '[' '2' '3'..'6' */
-//     case 25: case 26:                           /* ESC '[' '2' '8'..'9' */
-//     case 27: case 28: case 29: case 30: /* ESC '[' '3' '1'..'4' */
-//       if (ch == '~') {
-//         push_key(state2key[state - 11]);
-//         return asc_NUL;
-//       }
-//       ok = FALSE;
-//     }
-//   }
-// /*
-// ** Incomplete or bad sequence found. If it is bad then 'ok' will be set to
-// ** 'false'. If incomplete, 'ok' will be 'true'. 'ch' will be undefined
-// ** in this case.
-// */
-//   if (!ok) push_key(ch);
-//   switch (state) {
-//   case 1:       /* ESC read */
-//     return ESCAPE;
-//   case 2:       /* ESC 'O' read */
-//     push_key('O');
-//     return ESCAPE;
-//   case 3:       /* ESC '[' read */
-//     break;
-//   case 4: case 5: case 6: case 7:
-//   case 8: case 9:       /* ESC '[' '1'..'6' read */
-//     push_key('1' + state - 4);
-//     break;
-//   case 10:      /* ESC '[' '[' read */
-//     push_key('[');
-//     break;
-//   case 11: case 12: case 13: case 14: case 15:  /* ESC '[' '1' '1'..'5' read */
-//     push_key(1 + state - 11);
-//     push_key('1');
-//     break;
-//   case 16: case 17: case 18:    /* ESC '[' '1' '7'..'9' read */
-//     push_key('7' + state - 16);
-//     push_key('1');
-//     break;
-//   case 19: case 20:                     /* ESC '[' '2' '0'..'1' read */
-//     push_key('0' + state - 19);
-//     push_key('2');
-//     break;
-//   case 21: case 22: case 23: case 24:   /* ESC '[' '2' '3'..'6' read */
-//     push_key('3' + state - 21);
-//     push_key('2');
-//     break;
-//   case 25: case 26:                     /* ESC '[' '2' '8'..'9' read */
-//     push_key('8' + state - 25);
-//     push_key('2');
-//   case 27: case 28: case 29: case 30:   /* ESC '[' '3' '1'..'4' */
-//     push_key('1' + state - 27);
-//     push_key(3);
-//   }
-//   push_key('[');
-//   return ESCAPE;
-// }
-
 
 #endif
 
@@ -1932,9 +1721,9 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
     p = fgets(buffer, length, stdin);	/* Get all in one go */
-    if (p == NIL) {     /* Call failed */
+    if (p == NIL) {     		/* Call failed */
       if (ferror(stdin)) error(ERR_READFAIL);   /* I/O error occured on stdin */
-      buffer[0] = asc_NUL;          /* End of file */
+      buffer[0] = asc_NUL;          	/* End of file */
       return READ_EOF;
     }
     return READ_OK;
@@ -1951,7 +1740,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   lastplace = length-2;         /* Index of last position that can be used in buffer	*/
   init_recall();
   do {
+//basicvars.escape=FALSE;
+//printf("$%02X",basicvars.escape);
     ch = kbd_get();		/* Get 9-bit keypress or expanded function key		*/
+//printf("$%02X$%03X",basicvars.escape,ch);
     if ((ch & 0x100) || ((ch == DEL) & !matrixflags.delcandelete)) {
       pendch=ch & 0xFF;		/* temp */
       ch = asc_NUL;
@@ -1962,13 +1754,13 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 //    if (basicvars.escape) return READ_ESC;
 //	/* Check if the escape key has been pressed and bail out if it has */
 
-    if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) {
-      basicvars.escape=TRUE; // bodge
+//  if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) {
+//    basicvars.escape=TRUE; // bodge
+    if (basicvars.escape) {	/* Will have been set within kbd_get()	*/
       sysvar[sv_KeyOptions]=oldopt;
       return READ_ESC;
     }
-//	/* Check if the escape key has been pressed and bail out if it has */
-    switch (ch) {       /* Normal keys */
+    switch (ch) {       	/* Normal keys */
     case asc_CR: case asc_LF:   /* End of line */
       emulate_vdu('\r');
       emulate_vdu('\n');
@@ -1991,6 +1783,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
           shift_down(buffer, place);
         }
       }
+      break;
     case CTRL_D:        /* Delete character under the cursor */
       if (place < highplace) shift_down(buffer, place);
       break;
@@ -2089,7 +1882,9 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
         }
         break;
       case KEY_DELETE:      /* Delete character at the cursor */
-        if (place < highplace) shift_down(buffer, place);
+        if (!matrixflags.delcandelete) {
+          if (place < highplace) shift_down(buffer, place);
+        }
         break;
       case INSERT:      /* Toggle between 'insert' and 'overwrite' mode */
         enable_insert = !enable_insert;

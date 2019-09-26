@@ -378,10 +378,12 @@ static void list_program(void) {
         paused = TRUE;
         emulate_printf("-- More --");
         do {
-          if (basicvars.escape) error(ERR_ESCAPE);
 #ifdef NEWKBD
+//        if (basicvars.escape) error(ERR_ESCAPE);
+          if (kbd_escpoll()) error(ERR_ESCAPE);
           count = kbd_get();
 #else
+          if (basicvars.escape) error(ERR_ESCAPE);
           count = emulate_get();
 #endif
           switch (count) {
@@ -402,7 +404,8 @@ static void list_program(void) {
     }
 #ifdef USE_SDL
 #ifdef NEWKBD
-    if (kbd_inkey(-113)) basicvars.escape=TRUE;
+    if (kbd_escpoll()) error(ERR_ESCAPE);
+//  if (kbd_inkey(-113)) basicvars.escape=TRUE;
 #else
     if (emulate_inkey(-113)) basicvars.escape=TRUE;
 #endif
@@ -781,7 +784,7 @@ static void alter_line(void) {
 ** to it. To avoid this, the code just branches back into the command
 ** loop via 'longjump()'. This is a kludge.
 */
-  siglongjmp(basicvars.restart, 1);
+  longjmp(basicvars.restart, 1);
 }
 
 /*
@@ -862,7 +865,7 @@ static void exec_auto(void) {
     edit_line();
     lineno += linestep;
   }
-  siglongjmp(basicvars.restart, 1);
+  longjmp(basicvars.restart, 1);
 }
 
 /*
@@ -872,7 +875,7 @@ static void exec_auto(void) {
 ** are called with 'current' pointing at the command's token. 'current'
 ** should be left pointing at the end of the statement. The functions
 ** should also check that the statement ends properly. All errors are
-** handled by 'sigsetjmp' and 'siglongjmp' in the normal way
+** handled by 'setjmp' and 'longjmp' in the normal way
 */
 void exec_command(void) {
   basicvars.current++;  /* Point at command type token */
