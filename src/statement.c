@@ -226,7 +226,7 @@ void end_run(void) {
   if (basicvars.debug_flags.stats) show_stringstats();
 #endif
   if (basicvars.runflags.quitatend) exit_interpreter(EXIT_SUCCESS);	/* Exit from the interpreter once program has finished */
-  siglongjmp(basicvars.restart, 1);	/* Restart at the command line */
+  longjmp(basicvars.restart, 1);	/* Restart at the command line */
 }
 
 static void next_line(void) {
@@ -401,13 +401,15 @@ static void exec_statements(byte *lp) {
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
-    if (basicvars.escape_enabled) checkforescape();
+      kbd_escpoll();
+//    if (basicvars.escape_enabled) checkforescape();
 #endif
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token %X\n", *basicvars.current);
 #endif
     (*statements[*basicvars.current])();	/* Dispatch a statement */
   } while (TRUE);
+// to do: put kbd_escpoll() in while()?
 }
 
 /*
@@ -443,7 +445,7 @@ void run_program(byte *lp) {
   basicvars.datacur = NIL;
   basicvars.runflags.outofdata = FALSE;
   basicvars.runflags.running = TRUE;	/* Say that ' RUN' command has been issued */
-  if (sigsetjmp(basicvars.error_restart, 1) == 0) {	/* Mark restart point */
+  if (setjmp(basicvars.error_restart) == 0) {	/* Mark restart point */
     basicvars.local_restart = &basicvars.error_restart;
     exec_statements(FIND_EXEC(lp));	/* Start normal run at first token */
   }
