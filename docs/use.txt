@@ -901,25 +901,29 @@ built-in line editor. Apart from allowing input lines to be edited, there is
 also a command line history feature that allows the last twenty or so lines
 entered to be recalled. The editing commands are:
 
-Cursor left or Ctrl-B	Move one character left
-Cursor right or Ctrl-F	Move one character right
-Home or Ctrl-A		Go to start of line
-End or Ctrl-E		Go to end of line
-Delete or Ctrl-D	Delete character under cursor
-Backspace or Ctrl-H	Delete character to left of cursor
-Ctrl-K			Delete from cursor to end of line
-Ctrl-U			Delete whole line
-Insert			Toggle between 'insert' and 'overwrite' mode
-Cursor up or CTRL-P	Go back one entry in the command line history
-Cursor down or CTRL-N	Go forwards one entry in the command line history
+LEFT      or Ctrl-B	Move left one character
+RIGHT     or Ctrl-F	Move right one character
+HOME      or Ctrl-A	Go to start of line
+END       or Ctrl-E	Go to end of line
+DELETE    or Ctrl-D	Delete right, deleting character under cursor
+BACKSPACE or Ctrl-H	Delete left, deleting character to left of cursor
+             Ctrl-K	Delete from cursor to end of line
+             Ctrl-U	Delete from cursor to start of line
+INSERT			Toggle between 'insert' and 'overwrite' mode
+UP        or CTRL-P	Go to previous entry in the command line history
+DOWN      or CTRL-N	Go to next entry in the command line history
+RETURN    or CTRL-M	Finish editing
+             CTRL-J	Finish editing, as with RETURN/CTRL-M
+ESCAPE			Abort editing
 
 The aim is to provide both DOS and Unix (emacs) style editing.
 
 The 'Escape' Key
 ----------------
-In builds other than SDL, the 'escape' key is not the 'Esc' key but Control-C,
+In builds other than SDL, the 'Escape' key is not the 'Esc' key but Control-C,
 that is, to break into a program press the keys 'Ctrl' and 'C' at the same
-time.  In graphical SDL builds, the 'escape' key works as normal.
+time. In graphical SDL builds, the 'Escape' key works as normal.
+(Note: being updated)
 
 
 Identifying the Environment Under Which Brandy is Running

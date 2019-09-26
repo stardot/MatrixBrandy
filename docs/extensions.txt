@@ -1,17 +1,21 @@
-Extensions to the BBC API called by BBC BASIC
+Extensions to the MOS API called by BBC BASIC
 ---------------------------------------------
 These are defined extensions, some may or may not be included in Brandy.
 
 
-INKEY(&FF00+nn) - BBC keyscan (standard)
-INKEY(&FE00+nn) - DOS keyscan
-INKEY(&FC00+nn) - SDL keyscan
-INKEY(&8000+nn) - 16-bit INKEY
+INKEY(&FF00+nn)  - BBC keyscan (standard)
+INKEY(&FE00+nn)  - DOS keyscan
+INKEY(&FC00+nn)  - SDL keyscan
+INKEY(&8000+nn)  - 16-bit INKEY
 
-ADVAL(n)        - read I/O device (standard)
-ADVAL(-n)       - test buffer contents (standard)
-ADVAL(128-n)    - low-level read of buffer n
-ADVAL(128-1)    - fetch untranslated entry from keyboard buffer, 16-bit GET
+ADVAL(n)         - read I/O device (standard)
+ADVAL(-n)        - test buffer contents (standard)
+ADVAL(128-n)     - low-level read of buffer n
+ADVAL(128-1)     - fetch untranslated entry from keyboard buffer, 16-bit GET
+
+BPUT#n,byte      - put single byte (standard)
+BPUT#n,string[;] - put string (most non-8-bit BASICs)
+BPUT#n,byte[,byte....] - put multiple bytes
 
 BPUT#0 - VDU
 BGET#0 - GET
