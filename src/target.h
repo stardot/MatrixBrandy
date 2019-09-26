@@ -34,7 +34,7 @@
 #define BRANDY_PATCHLEVEL "1"
 #define BRANDY_DATE       "20 Sep 2019"
 // Stripping legacy code from keyboard.c
-#define BRANDY_PATCHDATE  "JGH190925"
+// #define BRANDY_PATCHDATE  "JGH190925"
 
 
 #ifndef __target_h
@@ -280,9 +280,9 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef NODISPLAYOS
-#define IDSTRING "Matrix Brandy BASIC V/VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
-#define IDSTRING "Matrix Brandy BASIC V/VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
 #endif
 
 /*
@@ -315,6 +315,13 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define ALIGN(x) ((x+sizeof(double)-1) & -(int)sizeof(double))
 #else
 #define ALIGN(x) ((x+sizeof(int32)-1) & -(int)sizeof(int32))
+#endif
+
+#ifdef TARGET_MINGW
+#include <setjmp.h>
+#define sigsetjmp(env, savesigs) setjmp(env)
+#define siglongjmp(env, val) longjmp(env, val)
+typedef jmp_buf sigjmp_buf;
 #endif
 
 #endif

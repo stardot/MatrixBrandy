@@ -1029,7 +1029,7 @@ void mos_waitdelay(int32 time) {
 ** 'time' is the time to wait in centiseconds.
 */
 void mos_waitdelay(int32 time) {
-  int32 tbase;
+  int64 tbase;
 
   if (time<=0) return;			/* Nothing to do */
   tbase=mos_centiseconds();
@@ -1048,7 +1048,7 @@ void mos_waitdelay(int32 time) {
       error(ERR_ESCAPE);
     }
 #endif
-    usleep(1000);
+    usleep(2000);
   }
 }
 #endif

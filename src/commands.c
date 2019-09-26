@@ -787,7 +787,7 @@ static void alter_line(void) {
 ** to it. To avoid this, the code just branches back into the command
 ** loop via 'longjump()'. This is a kludge.
 */
-  longjmp(basicvars.restart, 1);
+  siglongjmp(basicvars.restart, 1);
 }
 
 /*
@@ -868,7 +868,7 @@ static void exec_auto(void) {
     edit_line();
     lineno += linestep;
   }
-  longjmp(basicvars.restart, 1);
+  siglongjmp(basicvars.restart, 1);
 }
 
 /*
@@ -878,7 +878,7 @@ static void exec_auto(void) {
 ** are called with 'current' pointing at the command's token. 'current'
 ** should be left pointing at the end of the statement. The functions
 ** should also check that the statement ends properly. All errors are
-** handled by 'setjmp' and 'longjmp' in the normal way
+** handled by 'sigsetjmp' and 'siglongjmp' in the normal way
 */
 void exec_command(void) {
   basicvars.current++;  /* Point at command type token */

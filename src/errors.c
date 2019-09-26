@@ -23,6 +23,7 @@
 */
 
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
@@ -50,8 +51,8 @@
 ** --------------
 ** The way in which the interpreter deals with any error is to call
 ** 'error' and then either branch back to the start of the interpreter's
-** command loop using 'longjmp' or to execute the code defined on a
-** 'ON ERROR' statement (again using 'longjmp' to jump back into the
+** command loop using 'siglongjmp' or to execute the code defined on a
+** 'ON ERROR' statement (again using 'siglongjmp' to jump back into the
 ** interpreter). A number of signal handlers are also set up to trap
 ** errors such as the 'escape' key being pressed or out-of-range
 ** addresses. Note that the use of 'SIGINT' to trap 'escape' being
@@ -115,19 +116,27 @@ static void handle_signal(int signo) {
     return;
 #endif
   case SIGINT:
+#ifdef TARGET_MINGW
     (void) signal(SIGINT, handle_signal);
+#endif
 //  if (basicvars.escape_enabled) basicvars.escape = TRUE;
     if (kbd_esctest()) basicvars.escape = TRUE;
     return;
   case SIGFPE:
+#ifdef TARGET_MINGW
     (void) signal(SIGFPE, handle_signal);
+#endif
     error(ERR_ARITHMETIC);
   case SIGSEGV:
+#ifdef TARGET_MINGW
     (void) signal(SIGSEGV, handle_signal);
+#endif
     error(ERR_ADDREXCEPT);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
   case SIGCONT:
+#ifdef TARGET_MINGW
     (void) signal(SIGCONT, handle_signal);
+#endif
 #ifdef NEWKBD
     kbd_init();
 #else
@@ -183,6 +192,7 @@ void watch_signals(void) {
 void init_errors(void) {
   errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
+#if defined(TARGET_MINGW) || defined(TARGET_DJGPP)
 #ifndef TARGET_MINGW
     (void) signal(SIGUSR1, handle_signal);
     (void) signal(SIGUSR2, handle_signal);
@@ -195,17 +205,39 @@ void init_errors(void) {
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
     (void) signal(SIGINT, handle_signal);
-#if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
-    (void) signal(SIGCONT, handle_signal);
-#endif
 #ifdef TARGET_DJGPP
     sigintkey = __djgpp_set_sigint_key(ESCKEY);
 #endif
+
 #ifdef TARGET_MINGW
     /* Launch a thread to poll the escape key to emulate asynchronous SIGINTs */
     if (sigintthread == 0)
       sigintthread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&watch_escape, NULL, 0, NULL);
 #endif
+
+#else /* TARGET_MINGW | TARGET_DJGPP */
+    struct sigaction sa;
+
+    (void) memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handle_signal;
+    sa.sa_flags=SA_RESTART;
+    (void) sigemptyset(&sa.sa_mask);
+
+    (void) sigaction(SIGUSR1, &sa, NULL);
+    (void) sigaction(SIGUSR2, &sa, NULL);
+#ifndef BODGEDJP
+    (void) sigaction(SIGTTIN, &sa, NULL);
+    (void) sigaction(SIGTTOU, &sa, NULL);
+#endif
+    (void) sigaction(SIGPIPE, &sa, NULL);
+    (void) sigaction(SIGFPE, &sa, NULL);
+    (void) sigaction(SIGSEGV, &sa, NULL);
+    (void) sigaction(SIGINT, &sa, NULL);
+#if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
+    (void) sigaction(SIGCONT, &sa, NULL);
+#endif
+
+#endif /* TARGET_MINGW | TARGET_DJGPP */
   }
 }
 
@@ -683,12 +715,12 @@ static void handle_error(errortype severity) {
   }
 #endif
     if (basicvars.error_handler.islocal)        /* Trapped via 'ON ERROR LOCAL' */
-      longjmp(*basicvars.local_restart, 1);
+      siglongjmp(*basicvars.local_restart, 1);
     else {      /* Trapped via 'ON ERROR' - Reset everything and return to main interpreter loop */
       basicvars.procstack = NIL;
       basicvars.gosubstack = NIL;
       init_expressions();
-      longjmp(basicvars.error_restart, 1);      /* Branch back to the main interpreter loop */
+      siglongjmp(basicvars.error_restart, 1);      /* Branch back to the main interpreter loop */
     }
   }
   else {        /* Print error message and halt program */
@@ -704,7 +736,7 @@ static void handle_error(errortype severity) {
     basicvars.current = NIL;
     basicvars.procstack = NIL;
     basicvars.gosubstack = NIL;
-    longjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
+    siglongjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
   }
 }
 
