@@ -3795,7 +3795,7 @@ static void filled_ellipse(SDL_Surface *sr,
 
 }
 
-void get_sdl_mouse(int64 values[]) {
+void get_sdl_mouse(int32 values[]) {
   int x, y;
   Uint8 b, xb;
   SDL_Event ev;
@@ -3931,6 +3931,7 @@ int32 osbyte42(int x) {
 
 void osbyte112(int x) {
   /* OSBYTE 112 selects which bank of video memory is to be written to */
+  sysvar[250]=x;
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) writebank=(x-1);
@@ -3938,6 +3939,7 @@ void osbyte112(int x) {
 
 void osbyte113(int x) {
   /* OSBYTE 113 selects which bank of video memory is to be displayed */
+  sysvar[251]=x;
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) displaybank=(x-1);
