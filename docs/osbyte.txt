@@ -1,22 +1,31 @@
-Certain OSBYTE calls are supported by Matrix Brandy, either by
-CALL &FFF4 or result%=USR&FFF4, or SYS "OS_Byte",A[,X[,Y]]
+OSBYTE and *FX calls
+====================
 
-Where a return value is supported, it will be &00YYXXAA.
+Brandy implements a limited set of OSBYTE calls, either by *FX, CALL &FFF4,
+result%=USR &FFF4, or SYS "OS_Byte",A[,X[,Y]] [TO ...]. Where a return value
+is supported, it will be &00YYXXAA.
 
-Supported OSBYTE calls are:
-A=0:
-	X=0: return the MOS version as an error.
-	X=1: Return the OS version in the X register (as per the 'use' doc)
+OSBYTE 176-255 read and write system variables with
+    newvalue = (oldvalue AND Y) EOR X
+so *FX a,x[,0] and OSBYTE A,X,0 writes the value and OSBYTE A,0,255 reads
+the value. Different combinations of X and Y can set and reset individual
+bits.
 
-A=42:	[Brandy only] Get or set various states
+
+Supported OSBYTE calls
+----------------------
+A=0:	X=0:  return the MOS version as an error with ERR=247.
+	X<>0: Return the host OS version in the X register (as per the 'use' doc)
+
+A=42:	Get or set various states [Brandy only]
 	If NO bits set: return state in X register.
 	If ALL bits set: Analogue of Linux's "stty sane" - enables Refresh,
 		issues a VDU 6 and sets both video bank controls to 0.
 	Bits 0 and 1 control or contain the *REFRESH state:
 	  00: No operation.
-	  01: Equivalent to *REFRESH OFF
-	  10: Equivalent to *REFRESH ON
-	  11: Equivalent to *REFRESH ONERROR
+	  01: Set with *REFRESH OFF
+	  10: Set with *REFRESH ON
+	  11: Set with *REFRESH ONERROR
 	  Returned values: 01, 10 or 11.
 	Bits 2 and 3 control or contain the Full Screen state:
 	  00: No operation.
@@ -26,14 +35,16 @@ A=42:	[Brandy only] Get or set various states
 	  Returned values: 00 (off) or 10 (on).
 	Bit 4: If set, do immediate display refresh, equivalent to *REFRESH
 	  Value not returned.
-A=43:	[Brandy only] Perform a VDU X to the controlling Linux terminal.
-A=44:	[Brandy only] X=1: CTRL-N and CTRL-P do line editing (default).
-		      X=0: CTRL-N and CTRL-P just send their codes.
-			   Arrow keys still do line editing.
+A=43:	Perform a VDU X to the controlling Linux terminal. [Brandy only]
+A=44:	X=1: CTRL-N and CTRL-P do line editing (default). [Brandy only]
+	X=0: CTRL-N and CTRL-P just send their codes.
+		   Arrow keys still do line editing.
+
 A=106	Select mouse pointer. Due to SDL limitations, this simply turns the
 	pointer on or off, and unlinking does nothing.
 A=112:	Selects which video bank the VDU drivers access. 4 available.
 A=113:	Selects which video bank is drawn to the display window.
+A=128:  ADVAL. As with BASIC ADVAL, only some subfuntions supported.
 A=129:	INKEY. As with BASIC INKEY, scanning for range of keys not supported.
 A=130:	High word of user memory.
 A=131:	Bottom of user memory.
@@ -51,13 +62,73 @@ A=163:	Application Support - all these are local to Brandy
 	X=127: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
 A=165	Return text cursor position in X and Y. Identical to 134.
-A=200:	Set ESCAPE and BREAK effect - only ESCAPE effect supported.
+
+A=200:	Set Escape key and Reset effects - only Escape key effect supported.
+A=220:  Set TAB character
+A=220:  Set ESCAPE character
 A=229:	Enable or disable ESCAPE, disabled if X non-zero.
-A=250:	X must equal 0, Y must equal 255. Get display write bank set with
-	OSBYTE 112 returned in X register and display video bank set with
-	OSBYTE 113 returned in Y register.
-A=251:	X must equal 0, Y must equal 255. Get display video bank set with
-	OSBYTE 113 returned in X register.
+A=230:  Define Escape effects.
+A=250:	Read and write video bank set with OSBYTE 112, returns bank set with
+        OSBYTE 113 in Y
+A=251:	Read and write video bank set with OSBYTE 113.
 
 OSBYTEs 166-255 read and write OSBYTE system variables with new=(old AND Y) EOR X,
 but only those listed have any effect.
+
+
+Keyboard OSBYTEs
+----------------
+INKEY/GET fetches
+   a keypress
+       |
+    Key=TAB ----No-->-+
+       |              |
+Char=OSBYTE(219)      | *not yet implemented
+       |              |
+       +------------<-+
+       |
+Char=OSBYTE(222) -No-->--------------+
+       |                             |
+ OSBYTE(229)=0  --No-->--------------+
+       |                             |
+OSBYTE(200).b0=0 -No->-+   OSBYTE(254).b6=0 -No->-+
+       |               |             |            |
+Set Escape state       |        Translate to      | *FX221-*FX228
+       |               |        RISC OS key       |    not yet
+       +-------------<-+          mapping         |  implemented
+       |                             |            |
+       |                             +------------+
+       |                             |
+    Return                        Return
+   'no key'                      keypress
+
+The difference between *FX229 and *FX200 is that *FX229,1 results in the Escape
+key returning an ASCII character, and *FX200,1 results in the Escape key not
+generating an Escape state.
+
+Escape handler generates an "Escape" error. The error handler then calls the
+EscapeAcknowledge code called by OSBYTE 126. This examines OSBYTE 230 to
+determine what to do. bit0-bit3 indicate what to do after an Escape, bit4-bit7
+indicate that these actions should be done for all errors, not just Escapes.
+The default is &00 to do all Escape actions on Escape only.
+
+bit 0=0: close Exec, cancel VDU queue, clear sounds, cancel pending keypresses
+bit 1=0: refresh display
+bit 2=0: reserved
+bit 3=0: reserved
+bit 4=1: clear Exec/VDU/Sound/keyboard on errors
+bit 5=1: refresh display on errors
+bit 6=1: reserved
+bit 7=1: reserved
+
+*FX11/12/196/197 keyboard repeat settings are not implemented.
+*FX172/173 to return keyboard translation not implemented
+*FX178 keyboard interupt disable not implemented
+*FX201 keyboard disable not implemented
+*FX202 keyboard status no implemented
+*FX221-228 top-bit set translations not implemented
+*FX4/237 cursor key settings not implemented
+*FX238 keypad base not implemented
+*FX240 country not implemented
+*FX247 soft Break key effects not implemented
+
