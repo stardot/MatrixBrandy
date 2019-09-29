@@ -83,21 +83,24 @@
 ** 14-Sep-2019 JGH: ANSI keypresses working again. Amputated entirety of decode_sequence(),
 **                  replaced with parsing code from JGH Console library. Needs negative
 **                  INKEY code for Unix+NoSDL.
-**
 ** 25-Sep-2019 JGH: Moved all Escape polling into here, solves EscapeEscape problems on non-SDL.
 **                  Escape setting checks sysvars, character input checks sv_EscapeChar.
-**                  WinDJPP:  ok
-**                  WinMinGW: Escape is Ctrl-C
-**                  WinSDL:   EscapeEscape
-**                  UnixSDL:  Escape is Ctrl-C
 **                  Background Escape still checks physical key.
+**
+** 28-Sep-2019 JGH: WinDJPP:  CHR$27=Esc, CHR$3=null, CtrlBreak=null, no EscEsc
+**                  WinMinGW: CHR$27=Esc, CHR$3=Esc,  CtrlBreak=Quit, EscEsc fixed
+**                  WinSDL:   CHR$27=Esc, CHR$3=null, CtrlBreak=null, EscEsc fixed
+**                  WinSDL loses some keypresses
+**                         probably background and foreground Escape checking clashing
+**                         cf cZ80Tube and PDPTube
+**                  UnixSDL:  CHR$27=Esc, CHR$3=null, CtrlBreak=null, no EscEsc
+**                  UnixSDL doesn't seem to lose keypresses
+**                  tbrandy:  CHR$27=null, CHR$3=Esc, CtrlBreak=null, no EscEsc
+**                  sbrandy:  CHR$27=null, CHR$3=Esc, CtrlBreak=null, no EscEsc
 **
 ** Issues: Alt+alphanum gives &180+n instead of &080+n.
 **         A few outstanding bugs in BBC/JP keyboard layout.
 ** To do:  Implementing *FX225,etc will resolve raw/cooked keycode issue, cf below.
-**
-** Think: if OSBYTE 0 says "not RISC OS", GET shouldn't be returning RISC OS-numbered keys
-** Existing code says, eg, "If Windows and GET=&C6 Then HOME pressed"
 **
 ** Note: This is the only file that tests for BEOS.
 **
@@ -485,10 +488,15 @@ int64 tmp;
     tmp=basicvars.centiseconds;
     if (tmp > esclast) {
       esclast=tmp;
-      if (kbd_inkey(-113)) basicvars.escape=TRUE;		// Should check key character, not keycode
+      if (kbd_inkey(-113)) basicvars.escape=TRUE;	// Should check key character, not keycode
     }
 #else
-//  if (GetAsyncKeyState(VK_ESCAPE)) basicvars.escape=TRUE;	// Should check key character, not keycode
+#ifdef TARGET_MINGW
+    if (GetAsyncKeyState(VK_ESCAPE)) {			// Should check key character, not keycode
+      while (GetAsyncKeyState(VK_ESCAPE));	/* Wait until key not pressed		*/
+      basicvars.escape=TRUE;
+    }
+#endif
 #endif
   }
   return basicvars.escape;			/* Return Escape state			*/
@@ -901,7 +909,8 @@ int32 kbd_get(void) {
   int raw=0;
 
 // Temp'y patch, copy keyboard sysvars into basicvars.*
-basicvars.escape_enabled=!sysvar[sv_EscapeAction];
+// basicvars.escape_enabled=!sysvar[sv_EscapeAction];
+// basicvars.escape=FALSE;
 
   if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
     ch=fgetc(matrixflags.doexec);
@@ -925,7 +934,7 @@ basicvars.escape_enabled=!sysvar[sv_EscapeAction];
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
 // raw=0; // raw=!cooked
-raw=(sysvar[sv_KeyOptions]&192)!=192;
+  raw=(sysvar[sv_KeyOptions]&192)!=192;
   if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
     if (!raw) {
       if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
@@ -936,12 +945,12 @@ raw=(sysvar[sv_KeyOptions]&192)!=192;
       if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
     }
   }
-//printf("$%02X",basicvars.escape);
+#if defined(TARGET_MINGW) || defined(USE_SDL)
+  while (kbd_escpoll()) basicvars.escape=FALSE;	/* Rather brute-force		*/
+#endif
   if (ch == sysvar[sv_EscapeChar]) {
-//  if (basicvars.escape_enabled) basicvars.escape=TRUE;
     if (kbd_esctest()) basicvars.escape=TRUE;	/* If not ASCII key, set Escape state	*/
   }
-//printf("$%02X",basicvars.escape);
   if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key		*/
   if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined	*/
   return switch_fn_string(fnkey);		/* Switch and return first char	*/
@@ -1028,7 +1037,8 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
   chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
 
 // Temp'y patch, copy keyboard sysvars into basicvars.*
-basicvars.escape_enabled=!sysvar[sv_EscapeAction];
+// basicvars.escape_enabled=!sysvar[sv_EscapeAction];
+basicvars.escape=FALSE;
 
   length=(int32)emulate_readline(&buffer[0], length, chars & 0xFF);
   if (length==READ_OK)  return strlen(buffer);
