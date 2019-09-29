@@ -3795,7 +3795,7 @@ static void filled_ellipse(SDL_Surface *sr,
 
 }
 
-void get_sdl_mouse(int32 values[]) {
+void get_sdl_mouse(int64 values[]) {
   int x, y;
   Uint8 b, xb;
   SDL_Event ev;
