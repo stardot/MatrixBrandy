@@ -2200,7 +2200,7 @@ static void (*assidiv_table[])(pointers) = {
 ** The main purpose of 'exec_assignment' is to deal with the more complex
 ** assignments. However all assignments are handled by this function the
 ** first time they are seen, that is, when the token type of the variable
-** on the left hand side is 'TOKEN_XVAR'. The call to 'get_lvalue' will
+** on the left hand side is 'BASIC_TOKEN_XVAR'. The call to 'get_lvalue' will
 ** change the token type so that on future calls simple cases, for example,
 ** assignments to integer variables, will be dealt with by specific functions
 ** rather than this general one. Any of the more complex types, for example,
@@ -2223,19 +2223,19 @@ void exec_assignment(void) {
     expression();
     (*assign_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_PLUSAB) {
+  else if (assignop==BASIC_TOKEN_PLUSAB) {
     basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assiplus_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_MINUSAB) {
+  else if (assignop==BASIC_TOKEN_MINUSAB) {
     basicvars.current++;
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assiminus_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_AND) {
+  else if (assignop==BASIC_TOKEN_AND) {
     basicvars.current++;
     if (*basicvars.current != '=') error(ERR_EQMISS);
     basicvars.current++;
@@ -2243,7 +2243,7 @@ void exec_assignment(void) {
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assiand_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_OR) {
+  else if (assignop==BASIC_TOKEN_OR) {
     basicvars.current++;
     if (*basicvars.current != '=') error(ERR_EQMISS);
     basicvars.current++;
@@ -2251,7 +2251,7 @@ void exec_assignment(void) {
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assior_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_EOR) {
+  else if (assignop==BASIC_TOKEN_EOR) {
     basicvars.current++;
     if (*basicvars.current != '=') error(ERR_EQMISS);
     basicvars.current++;
@@ -2259,7 +2259,7 @@ void exec_assignment(void) {
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assieor_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_MOD) {
+  else if (assignop==BASIC_TOKEN_MOD) {
     basicvars.current++;
     if (*basicvars.current != '=') error(ERR_EQMISS);
     basicvars.current++;
@@ -2267,7 +2267,7 @@ void exec_assignment(void) {
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     (*assimod_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==TOKEN_DIV) {
+  else if (assignop==BASIC_TOKEN_DIV) {
     basicvars.current++;
     if (*basicvars.current != '=') error(ERR_EQMISS);
     basicvars.current++;
@@ -2368,8 +2368,8 @@ void assign_staticvar(void) {
   basicvars.current++;		/* Skip index */
   assignop = *basicvars.current;
   basicvars.current++;
-  if (assignop!='=' && assignop!=TOKEN_PLUSAB && assignop!=TOKEN_MINUSAB && assignop!=TOKEN_AND && assignop!=TOKEN_OR && assignop!=TOKEN_EOR && assignop!=TOKEN_MOD && assignop!=TOKEN_DIV) error(ERR_EQMISS);
-  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) {
+  if (assignop!='=' && assignop!=BASIC_TOKEN_PLUSAB && assignop!=BASIC_TOKEN_MINUSAB && assignop!=BASIC_TOKEN_AND && assignop!=BASIC_TOKEN_OR && assignop!=BASIC_TOKEN_EOR && assignop!=BASIC_TOKEN_MOD && assignop!=BASIC_TOKEN_DIV) error(ERR_EQMISS);
+  if (assignop==BASIC_TOKEN_AND || assignop==BASIC_TOKEN_OR || assignop==BASIC_TOKEN_EOR || assignop==BASIC_TOKEN_MOD || assignop==BASIC_TOKEN_DIV) {
     if (*basicvars.current != '=') error(ERR_EQMISS);
     basicvars.current++;
   }
@@ -2405,17 +2405,17 @@ void assign_staticvar(void) {
     }
     if (assignop=='=')
       basicvars.staticvars[varindex].varentry.varinteger = value;
-    else if (assignop==TOKEN_PLUSAB)
+    else if (assignop==BASIC_TOKEN_PLUSAB)
       basicvars.staticvars[varindex].varentry.varinteger+=value;
-    else if (assignop==TOKEN_AND)
+    else if (assignop==BASIC_TOKEN_AND)
       basicvars.staticvars[varindex].varentry.varinteger &= value;
-    else if (assignop==TOKEN_OR)
+    else if (assignop==BASIC_TOKEN_OR)
       basicvars.staticvars[varindex].varentry.varinteger |= value;
-    else if (assignop==TOKEN_EOR)
+    else if (assignop==BASIC_TOKEN_EOR)
       basicvars.staticvars[varindex].varentry.varinteger ^= value;
-    else if (assignop==TOKEN_MOD)
+    else if (assignop==BASIC_TOKEN_MOD)
       basicvars.staticvars[varindex].varentry.varinteger %= value;
-    else if (assignop==TOKEN_DIV)
+    else if (assignop==BASIC_TOKEN_DIV)
       basicvars.staticvars[varindex].varentry.varinteger /= value;
     else {
       basicvars.staticvars[varindex].varentry.varinteger-=value;
@@ -2452,7 +2452,7 @@ void assign_intvar(void) {
   basicvars.current+=1+LOFFSIZE;	/* Skip the pointer to the variable */
   assignop = *basicvars.current;
   basicvars.current++;
-  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) basicvars.current++;
+  if (assignop==BASIC_TOKEN_AND || assignop==BASIC_TOKEN_OR || assignop==BASIC_TOKEN_EOR || assignop==BASIC_TOKEN_MOD || assignop==BASIC_TOKEN_DIV) basicvars.current++;
   expression();
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
@@ -2468,17 +2468,17 @@ void assign_intvar(void) {
   }
   if (assignop=='=')
     *ip = value;
-  else if (assignop==TOKEN_PLUSAB)
+  else if (assignop==BASIC_TOKEN_PLUSAB)
     *ip+=value;
-  else if (assignop==TOKEN_AND)
+  else if (assignop==BASIC_TOKEN_AND)
     *ip &= value;
-  else if (assignop==TOKEN_OR)
+  else if (assignop==BASIC_TOKEN_OR)
     *ip |= value;
-  else if (assignop==TOKEN_EOR)
+  else if (assignop==BASIC_TOKEN_EOR)
     *ip ^= value;
-  else if (assignop==TOKEN_MOD)
+  else if (assignop==BASIC_TOKEN_MOD)
     *ip %= value;
-  else if (assignop==TOKEN_DIV)
+  else if (assignop==BASIC_TOKEN_DIV)
     *ip /= value;
   else {
     *ip-=value;
@@ -2506,7 +2506,7 @@ void assign_int64var(void) {
   basicvars.current+=1+LOFFSIZE;	/* Skip the pointer to the variable */
   assignop = *basicvars.current;
   basicvars.current++;
-  if (assignop==TOKEN_AND || assignop==TOKEN_OR || assignop==TOKEN_EOR || assignop==TOKEN_MOD || assignop==TOKEN_DIV) basicvars.current++;
+  if (assignop==BASIC_TOKEN_AND || assignop==BASIC_TOKEN_OR || assignop==BASIC_TOKEN_EOR || assignop==BASIC_TOKEN_MOD || assignop==BASIC_TOKEN_DIV) basicvars.current++;
   expression();
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
@@ -2520,17 +2520,17 @@ void assign_int64var(void) {
   }
   if (assignop=='=')
     *ip = value;
-  else if (assignop==TOKEN_PLUSAB)
+  else if (assignop==BASIC_TOKEN_PLUSAB)
     *ip+=value;
-  else if (assignop==TOKEN_AND)
+  else if (assignop==BASIC_TOKEN_AND)
     *ip &= value;
-  else if (assignop==TOKEN_OR)
+  else if (assignop==BASIC_TOKEN_OR)
     *ip |= value;
-  else if (assignop==TOKEN_EOR)
+  else if (assignop==BASIC_TOKEN_EOR)
     *ip ^= value;
-  else if (assignop==TOKEN_MOD)
+  else if (assignop==BASIC_TOKEN_MOD)
     *ip %= value;
-  else if (assignop==TOKEN_DIV)
+  else if (assignop==BASIC_TOKEN_DIV)
     *ip /= value;
   else {
     *ip-=value;
@@ -2575,7 +2575,7 @@ void assign_floatvar(void) {
   }
   if (assignop=='=')
     *fp = value;
-  else if (assignop==TOKEN_PLUSAB)
+  else if (assignop==BASIC_TOKEN_PLUSAB)
     *fp+=value;
   else {
     *fp-=value;
@@ -2609,12 +2609,12 @@ void assign_stringvar(void) {
     expression();
     assign_stringdol(address);
   }
-  else if (assignop==TOKEN_PLUSAB) {
+  else if (assignop==BASIC_TOKEN_PLUSAB) {
     expression();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     assiplus_stringdol(address);
   }
-  else if (assignop==TOKEN_MINUSAB)
+  else if (assignop==BASIC_TOKEN_MINUSAB)
     assiminus_badtype(address);
   else {
     error(ERR_EQMISS);
@@ -2951,9 +2951,9 @@ void assign_pseudovar(void) {
   byte token;
   basicvars.current++;
   token = *basicvars.current;
-  if (token>=TOKEN_HIMEM && token<=TOKEN_TIMEDOL)
+  if (token>=BASIC_TOKEN_HIMEM && token<=BASIC_TOKEN_TIMEDOL)
     (*pseudovars[token])();	/* Dispatch an assignment to a pseudo variable */
-  else if (token<=TOKEN_VPOS)	/* Function call on left hand side of assignment */
+  else if (token<=BASIC_TOKEN_VPOS)	/* Function call on left hand side of assignment */
     error(ERR_SYNTAX);
   else {
     error(ERR_BROKEN, __LINE__, "assign");

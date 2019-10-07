@@ -566,9 +566,9 @@ static void fn_count(void) {
 */
 static variable *get_arrayname(void) {
   variable *vp = NULL;
-  if (*basicvars.current == TOKEN_ARRAYVAR)	/* Known reference */
+  if (*basicvars.current == BASIC_TOKEN_ARRAYVAR)	/* Known reference */
     vp = GET_ADDRESS(basicvars.current, variable *);
-  else if (*basicvars.current == TOKEN_XVAR) {	/* Reference not seen before */
+  else if (*basicvars.current == BASIC_TOKEN_XVAR) {	/* Reference not seen before */
     byte *base, *ep;
     base = get_srcaddr(basicvars.current);	/* Find address of array's name */
     ep = skip_name(base);
@@ -576,7 +576,7 @@ static variable *get_arrayname(void) {
     if (vp == NIL) error(ERR_ARRAYMISS, tocstring(CAST(base, char *), ep-base));
     if ((vp->varflags & VAR_ARRAY) == 0) error(ERR_VARARRAY);	/* Not an array */
     if (*(basicvars.current+LOFFSIZE+1) != ')') error(ERR_RPMISS);	/* Array name must be suppled as 'array()' */
-    *basicvars.current = TOKEN_ARRAYVAR;
+    *basicvars.current = BASIC_TOKEN_ARRAYVAR;
     set_address(basicvars.current, vp);
   }
   else {	/* Not an array name */
@@ -1431,7 +1431,7 @@ static void fn_sum(void) {
   int32 n, elements;
   variable *vp;
   boolean sumlen;
-  sumlen = *basicvars.current == TYPE_FUNCTION && *(basicvars.current+1) == TOKEN_LEN;
+  sumlen = *basicvars.current == TYPE_FUNCTION && *(basicvars.current+1) == BASIC_TOKEN_LEN;
   if (sumlen) basicvars.current+=2;	/* Skip the 'LEN' token */
   if(*basicvars.current == '(') {	/* One level of parentheses is allowed */
     basicvars.current++;
@@ -1555,7 +1555,7 @@ void fn_tint(void) {
 void fn_top(void) {
   byte *p;
   basicvars.current++;		/* Skip the 'TO' token */
-  if (*basicvars.current != TOKEN_XVAR) error(ERR_SYNTAX);	/* 'TO' is not followed by a variable name */
+  if (*basicvars.current != BASIC_TOKEN_XVAR) error(ERR_SYNTAX);	/* 'TO' is not followed by a variable name */
   p = get_srcaddr(basicvars.current);		/* Find the address of the variable */
   if (*p != 'P') error(ERR_SYNTAX);		/* But it does not start with the letter 'P' */
   basicvars.current+=LOFFSIZE + 1;
@@ -1853,7 +1853,7 @@ static void (*function_table[])(void) = {
 void exec_function(void) {
   byte token = *(basicvars.current+1);
   basicvars.current+=2;
-  if (token>TOKEN_XLATEDOL) bad_token();	/* Function token is out of range */
+  if (token>BASIC_TOKEN_XLATEDOL) bad_token();	/* Function token is out of range */
   (*function_table[token])();
 }
 
