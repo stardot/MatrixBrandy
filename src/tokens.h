@@ -73,7 +73,7 @@
 #define TOKEN_ARRAYVAR	0x06u		/* Array or array followed by an indirection operator */
 #define TOKEN_ARRAYREF	0x07u		/* Reference to whole array */
 #define TOKEN_ARRAYINDVAR 0x08u		/* Array element followed by indirection operator */
-#define TOKEN_INTINDVAR	0x09u		/* Integer variable followed by indirection operator */
+#define TOKEN_INTINDVAR	  0x09u		/* Integer variable followed by indirection operator */
 #define TOKEN_FLOATINDVAR 0x0Au		/* Floating point variable followed by indirection operator */
 #define TOKEN_STATINDVAR 0x0Bu		/* Static variable followed by indirection operator */
 
