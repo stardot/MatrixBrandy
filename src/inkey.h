@@ -180,7 +180,13 @@ int32 inkeylookup[] = {
 #if defined(TARGET_DOSWIN)
 #define KBD_PC 1
 #ifndef VK_SHIFT
+#ifdef CYGWINBUILD
+#include "errno.h"
+#include "wtypesbase.h"
+#include "winuser.h"
+#else
 #include "keysym.h"
+#endif
 #endif
 
 /* Lookup table from jgh 'console' library */

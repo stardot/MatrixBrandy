@@ -164,6 +164,7 @@ int64 esclast=0;
  #include <stdlib.h>
  #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
   #include <sys/time.h>
+  #include <sys/types.h>
   #ifndef CYGWINBUILD
     #include <keysym.h>
   #endif
@@ -1147,13 +1148,21 @@ int32 kbd_get0(void) {
 #if defined(TARGET_DOSWIN) && !defined(USE_SDL)
   int s,c,a;
 
+#ifdef CYGWINBUILD
+  ch=getchar();
+#else
   ch=getch();
+#endif
   if (ch == NUL || ch == 0xE0) {		/* DOS escaped characters		*/
     // When kbd_modkeys() returns all keys, change this to call it
     s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
     c=(GetAsyncKeyState(VK_CONTROL)<0);
     if(a=(GetAsyncKeyState(VK_MENU)<0)) c=0;
-    ch=getch();					/* Get second key byte			*/
+#ifdef CYGWINBUILD
+    ch=getchar();
+#else
+    ch=getch();
+#endif
     if (ch == 0x29) return 0xAC;		/* Alt-top-left key			*/
     if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
     ch=dostable[ch];				/* Translate escaped character		*/
@@ -1325,10 +1334,10 @@ static boolean waitkey(int wait) {
 **
 */
 static boolean waitkey(int wait) {
-#ifndef TARGET_MINGW
+//#ifndef TARGET_MINGW
   fd_set keyset;
   struct timeval waitime;
-#endif
+//#endif
 #ifdef BODGEMGW
   int tmp;
 #endif
