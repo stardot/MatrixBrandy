@@ -1,0 +1,2 @@
+I've added to the top-level makefiles, the option to read from environment variable BRANDY_BUILD_FLAGS so you can add additional defines without having to modify the makefiles - this might be useful for your keyboard work instead of maintaining separate makefiles?
+

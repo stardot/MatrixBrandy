@@ -1,12 +1,12 @@
-# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
+# Makefile for brandy under Windows x86 with MinGW, not using Cygwin as the 
 # toolchain
 
 CC = gcc
 LD = gcc
 
-#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DUSE_SDL_SOUND -DDEFAULT_IGNORE
-CFLAGS  = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -DNEWKBD -Wall
-CFLAGS2 = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -DNEWKBD -w
+#CFLAGS += -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE
+CFLAGS  = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -D OLDKBD -Wall
+CFLAGS2 = -IC:/Apps/Programming/TDM-GCC-32/include/SDL12 -O2 -DUSE_SDL -DDEFAULT_IGNORE -DNONET -DBODGESDL -D OLDKBD -w
 
 LDFLAGS +=
 
@@ -22,7 +22,6 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/soundsdl.o \
 	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
@@ -32,7 +31,6 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/soundsdl.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
 brandy:	$(OBJ)
