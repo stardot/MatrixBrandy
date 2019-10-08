@@ -137,11 +137,11 @@ static void handle_signal(int signo) {
 #ifdef TARGET_MINGW
     (void) signal(SIGCONT, handle_signal);
 #endif
-#ifdef NEWKBD
-    kbd_init();
-#else
-    init_keyboard();
-#endif
+//#ifdef NEWKBD
+//    kbd_init();		// shouldn't be re-init'ing kbd in middle of a signal
+//#else
+//    init_keyboard();
+//#endif
     return;
 #endif
   default:
@@ -155,7 +155,7 @@ static void handle_signal(int signo) {
 ** since the escape key doesn't produce a SIGINT in itself
 */
 static DWORD watch_escape(LPVOID unused) {
-  boolean       alreadyraised = FALSE;
+  boolean alreadyraised = FALSE;
 
   while (1) {
 //  if (GetAsyncKeyState(VK_ESCAPE) < 0)
@@ -213,7 +213,6 @@ void init_errors(void) {
     /* Launch a thread to poll the escape key to emulate asynchronous SIGINTs */
     if (sigintthread == 0)
       sigintthread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&watch_escape, NULL, 0, NULL);
-// Should also turn CHR$3=ASCII
 #endif
 
 #else /* TARGET_MINGW | TARGET_DJGPP */

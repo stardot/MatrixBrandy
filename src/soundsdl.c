@@ -389,6 +389,13 @@ void init_sound(){
 }
 
 void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int32 delay){
+// channel &0xxx - sound generator  &000h ssss xxxf cccc  hold, sync, flush, channel
+// channel &1xxx - sound generator  &000h xxxx xxxx xxxx  hold, rest ignored
+// channel &20xx - Watford speech
+// channel &21xx
+//      to &FDxx - other things
+// channel &FExx - MIDI control
+// channel &FFxx - BBC speech
 
  unsigned int step;
  int tvol;
@@ -401,8 +408,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  unsigned int tnow=0;
 
+ if(channel & 0xE000) return;
  if(!snd_inited) init_sound();
-
  if(!snd_ison ) return;
 
 //  for(t=0;t< 256;t++){ printf("%02x ",sbuffer[t]); };putchar('\n');

@@ -1,10 +1,10 @@
-# Makefile for Brandy under DOS (using gcc and MINGW)
+# Makefile for Brandy under DOS (using gcc and DJGPP)
 
 CC = gcc
 LD = gcc
 
-CFLAGS =  -march=i586 -c -g -DDEBUG -DNONET -DBODGEMGW -DNEWKBD -w
-CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DBODGEMGW -DNEWKBD -w
+CFLAGS1 = -march=i586 -c -g -DDEBUG -DNONET -DOLDKBD -DBODGEDJP
+CFLAGS2 = -march=i586 -O2 -fomit-frame-pointer -DNONET -DOLDKBD -DBODGEDJP
 
 LDFLAGS =
 
@@ -36,20 +36,19 @@ brandy:	$(OBJ)
 include depends.mk
 
 .c.o:
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS1) $< -o $@
 
 recompile:
-	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o brandy
+	$(CC) $(CFLAGS1) $(SRC) $(LIBS) -o brandy
 
 nodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(LIBS) -o brandy
-	strip brandy.exe
+	strip brandy
 
 check:
-	$(CC) $(CFLAGS) -Wall $(SRC) $(LIBS) -o brandy
+	$(CC) $(CFLAGS1) -Wall $(SRC) $(LIBS) -o brandy
 
 clean:
-	del /q $(SRCDIR)\*.o
-	del /q brandy.exe
+	rm $(SRCDIR)/*.o brandy
 
 all:	brandy

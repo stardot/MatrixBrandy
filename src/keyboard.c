@@ -86,17 +86,19 @@
 ** 25-Sep-2019 JGH: Moved all Escape polling into here, solves EscapeEscape problems on non-SDL.
 **                  Escape setting checks sysvars, character input checks sv_EscapeChar.
 **                  Background Escape still checks physical key.
-**
 ** 28-Sep-2019 JGH: WinDJPP:  CHR$27=Esc, CHR$3=null, CtrlBreak=null, no EscEsc
 **                  WinMinGW: CHR$27=Esc, CHR$3=Esc,  CtrlBreak=Quit, EscEsc fixed
 **                  WinSDL:   CHR$27=Esc, CHR$3=null, CtrlBreak=null, EscEsc fixed
 **                  WinSDL loses some keypresses
 **                         probably background and foreground Escape checking clashing
-**                         cf cZ80Tube and PDPTube
+**                         cf cZ80Tube and PDPTube.
 **                  UnixSDL:  CHR$27=Esc, CHR$3=null, CtrlBreak=null, no EscEsc
 **                  UnixSDL doesn't seem to lose keypresses
 **                  tbrandy:  CHR$27=null, CHR$3=Esc, CtrlBreak=null, no EscEsc
 **                  sbrandy:  CHR$27=null, CHR$3=Esc, CtrlBreak=null, no EscEsc
+**
+** 07-Oct-2019 JGH: Background Escape polling disabled during foreground key polling.
+**                  Prevents lost keypresses during input.
 **
 ** Issues: Alt+alphanum gives &180+n instead of &080+n.
 **         A few outstanding bugs in BBC/JP keyboard layout.
@@ -295,9 +297,10 @@ static int32
   highbuffer,			/* Index of first free character in 'histbuffer'	*/
   recalline;			/* Index of last line recalled from history display	*/
 
-static boolean enable_insert;     /* TRUE if keyboard input code is in insert mode	*/
-static char histbuffer[HISTSIZE]; /* Command history buffer				*/
-static int32 histlength[MAXHIST]; /* Table of sizes of entries in history buffer	*/
+static boolean backgnd_escape=TRUE; /* Escape polled in the background			*/
+static boolean enable_insert;       /* TRUE if keyboard input code is in insert mode	*/
+static char histbuffer[HISTSIZE];   /* Command history buffer				*/
+static int32 histlength[MAXHIST];   /* Table of sizes of entries in history buffer	*/
 
 static int nokeyboard=0;
 static int fx44x=1;
@@ -405,6 +408,7 @@ boolean kbd_init() {
   tty.c_cflag |= CREAD;			/* Enable reading			*/
   tty.c_cc[VTIME] = 1;			/* 1cs timeout				*/
   tty.c_cc[VMIN] = 1;			/* One character at a time		*/
+//  tty.c_cc[VINTR] = 27; // doing this here stops get0() working and kills tbrandy
   if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
 					/* Could not set up keyboard in the way desired	*/
   return TRUE;
@@ -484,23 +488,26 @@ int32 kbd_pending() {
 int kbd_escpoll() {
 int64 tmp;
 
-  if (kbd_esctest()) {
+  if (backgnd_escape) {				/* Only poll when not doing key input	*/
+    if (kbd_esctest()) {			/* Only poll if Escapes are enabled	*/
 #ifdef USE_SDL
-    tmp=basicvars.centiseconds;
-    if (tmp > esclast) {
-      esclast=tmp;
-      if (kbd_inkey(-113)) basicvars.escape=TRUE;	// Should check key character, not keycode
-    }
+      tmp=basicvars.centiseconds;
+      if (tmp > esclast) {
+        esclast=tmp;
+        if (kbd_inkey(-113)) basicvars.escape=TRUE;	// Should check key character, not keycode
+      }
 #else
 #ifdef TARGET_MINGW
-    if (GetAsyncKeyState(VK_ESCAPE)) {			// Should check key character, not keycode
-      while (GetAsyncKeyState(VK_ESCAPE));	/* Wait until key not pressed		*/
-      basicvars.escape=TRUE;
+      if (GetAsyncKeyState(VK_ESCAPE)) {		// Should check key character, not keycode
+        while (GetAsyncKeyState(VK_ESCAPE));	/* Wait until key not pressed		*/
+        basicvars.escape=TRUE;
+      }
+#endif
+#endif
     }
-#endif
-#endif
   }
   return basicvars.escape;			/* Return Escape state			*/
+  tmp=tmp;					/* Keep compiler happy			*/
 }
 
 /* kbd_esctest() - set Escape state if allowed */
@@ -906,12 +913,8 @@ int32 kbd_get(void) {
 
 #else /* !RISCOS */
 
-  int ch, fnkey;
-  int raw=0;
-
-// Temp'y patch, copy keyboard sysvars into basicvars.*
-// basicvars.escape_enabled=!sysvar[sv_EscapeAction];
-// basicvars.escape=FALSE;
+  int ch, fnkey, cooked;
+//  int raw=0;
 
   if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
     ch=fgetc(matrixflags.doexec);
@@ -934,10 +937,15 @@ int32 kbd_get(void) {
 // To do, allow *FX221-8 to specify special keypress expansion and *FX4 cursor key control
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
-// raw=0; // raw=!cooked
-  raw=(sysvar[sv_KeyOptions]&192)!=192;
-  if ((ch=kbd_get0()) & 0x100) {	  	/* Get a keypress from 'keyboard buffer'*/
-    if (!raw) {
+  backgnd_escape=FALSE;				/* We poll Escape during key input	*/
+  ch=kbd_get0();				/* Get a keypress from 'keyboard buffer'*/
+  backgnd_escape=TRUE;
+
+//  raw=(sysvar[sv_KeyOptions]&192)!=192;
+//  if (!raw) {
+  cooked=(sysvar[sv_KeyOptions]&192)==192;
+  if (cooked) {
+    if (ch & 0x100) {				/* Translate special keys		*/
       if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
       if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;	/* PGDN/PGUP */
       if ((ch & 0x0CF) == 0xC9) ch=ch - 62;	/* END       */
@@ -947,14 +955,14 @@ int32 kbd_get(void) {
     }
   }
 #if defined(TARGET_MINGW) || defined(USE_SDL)
-  while (kbd_escpoll()) basicvars.escape=FALSE;	/* Rather brute-force		*/
+  while (kbd_escpoll()) basicvars.escape=FALSE;	/* Rather brute-force			*/
 #endif
   if (ch == sysvar[sv_EscapeChar]) {
     if (kbd_esctest()) basicvars.escape=TRUE;	/* If not ASCII key, set Escape state	*/
   }
-  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key		*/
-  if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined	*/
-  return switch_fn_string(fnkey);		/* Switch and return first char	*/
+  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key			*/
+  if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined		*/
+  return switch_fn_string(fnkey);		/* Switch and return first char		*/
 
 #endif /* !RISCOS */
 }

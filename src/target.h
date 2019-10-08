@@ -33,8 +33,7 @@
 #define BRANDY_MINOR "22"
 #define BRANDY_PATCHLEVEL "1"
 #define BRANDY_DATE       "20 Sep 2019"
-// Stripping legacy code from keyboard.c
-// #define BRANDY_PATCHDATE  "JGH190925"
+// #define BRANDY_PATCHDATE  "JGH191007"
 
 
 #ifndef __target_h
@@ -265,24 +264,28 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #error Target operating system for interpreter is either missing or not supported
 #endif
 
-#ifdef NEWKBD
- #ifdef USE_SDL
-  #define SUFFIX "/SDL) "
- #else
-  #define SUFFIX ") "
- #endif
+#ifdef USE_SDL
+#define SFX1 "/SDL"
 #else
- #ifdef USE_SDL
-  #define SUFFIX "/SDL/OLDKBD) "
- #else
-  #define SUFFIX "/OLDKBD) "
- #endif
+#define SFX1 ""
+#endif
+
+#ifdef NEWKBD
+#define SFX2 ""
+#else
+#define SFX2 "/OLDKBD"
+#endif
+
+#ifdef USE_ANSI
+#define SFX3 "/ANSI"
+#else
+#define SFX3 ""
 #endif
 
 #ifdef NODISPLAYOS
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
-#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SUFFIX BRANDY_DATE
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SFX1 SFX2 SFX3 ") " BRANDY_DATE
 #endif
 
 /*
