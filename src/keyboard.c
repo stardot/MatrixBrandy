@@ -1179,7 +1179,7 @@ int32 kbd_get0(void) {
     // When kbd_modkeys() returns all keys, change this to call it
     s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
     c=(GetAsyncKeyState(VK_CONTROL)<0);
-    if(a=(GetAsyncKeyState(VK_MENU)<0)) c=0;
+    if((a=(GetAsyncKeyState(VK_MENU)<0))) c=0;
 #ifdef CYGWINBUILD
     ch=getchar();
 #else
