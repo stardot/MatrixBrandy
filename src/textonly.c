@@ -185,6 +185,19 @@ static void write_vduflag(unsigned int flags, int yesno) {
 }
 
 #ifdef USE_ANSI
+#if 0
+static void set_esc_key(unsigned int esckey) {
+  struct termios tty;
+  int fdkbd;
+  
+  fdkbd=fileno(stdin);
+  if (tcgetattr(fdkbd, &tty) < 0) return; /* Didn't work, so forget it */
+  
+  tty.c_cc[VINTR] = esckey;
+  tcsetattr(fdkbd, TCSADRAIN, &tty);
+  return;
+}
+#endif
 /*
 ** 'find_cursor' reads the position of the cursor on the text
 ** screen. It can only do this if input is coming from the
@@ -196,6 +209,7 @@ void find_cursor(void) {
   int ch, column, row;
   column = row = 0;
   if (!basicvars.runflags.outredir && !basicvars.runflags.inredir) {
+    // set_esc_key(_POSIX_VDISABLE); /* Disable INTR */
     printf("\033[6n");  /* ANSI/VTxxx sequence to find the position of the cursor */
     fflush(stdout);
     ch = read_key();    /* Sequence expected back is ' ESC[<no>;<no>R' */
@@ -225,6 +239,7 @@ void find_cursor(void) {
     else if (SCRHEIGHT!=0 && ytext>twinbottom) {
       ytext = twinbottom;
     }
+    // set_esc_key(27); /* Put INTR back on ESC key */
   }
 }
 
