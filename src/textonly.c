@@ -1426,7 +1426,7 @@ static void setup_mode(int32 mode) {
     SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), newsize);
 
     /* When running interactively change the console title bar too */
-    if (!basicvars.runflags.loadngo) SetConsoleTitle(TEXT("Brandy"));
+    if (!basicvars.runflags.loadngo) SetConsoleTitle(TEXT("Matrix Brandy Basic VI Interpreter"));
   }
 #endif
 }
