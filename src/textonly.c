@@ -51,6 +51,7 @@
 
 #if defined(TARGET_MINGW)
 #include <windows.h>
+#include <conio.h>
 #endif
 
 #if defined(TARGET_UNIX) | defined(TARGET_DJGPP)
@@ -189,10 +190,10 @@ static void write_vduflag(unsigned int flags, int yesno) {
 static void set_esc_key(unsigned int esckey) {
   struct termios tty;
   int fdkbd;
-  
+
   fdkbd=fileno(stdin);
   if (tcgetattr(fdkbd, &tty) < 0) return; /* Didn't work, so forget it */
-  
+
   tty.c_cc[VINTR] = esckey;
   tcsetattr(fdkbd, TCSADRAIN, &tty);
   return;
@@ -459,7 +460,24 @@ static int wherey(void) {
 ** -- conio (Win32) --
 */
 void clrscr(void) {
+#ifdef CYGWINBUILD
+  COORD coordScreen = {0,0};
+  DWORD cCharsWritten;
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  DWORD dwConSize;
+  HANDLE hConsole;
+
+  hConsole=GetStdHandle(STD_OUTPUT_HANDLE);
+
+  if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) return;
+  dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+  if (!FillConsoleOutputCharacter(hConsole,(TCHAR)' ',dwConSize,coordScreen,&cCharsWritten)) return;
+  if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) return;
+  if (!FillConsoleOutputAttribute(hConsole,csbi.wAttributes,dwConSize,coordScreen,&cCharsWritten)) return;
+  SetConsoleCursorPosition(hConsole,coordScreen);
+#else
   system("cls");
+#endif
 }
 
 /*
@@ -1275,7 +1293,7 @@ void emulate_vdu(int32 charvalue) {
     }
   }
 }
-    
+
 /*
 ** 'emulate_vdustr' is called to print a string via the 'VDU driver'
 */
@@ -1819,7 +1837,7 @@ boolean init_screen(void) {
   write_vduflag(VDU_FLAG_ENAPRINT,0);
   setup_mode(mode);
   find_cursor();
- 
+
   return TRUE;
 }
 
