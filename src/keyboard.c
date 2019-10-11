@@ -389,7 +389,7 @@ boolean kbd_init() {
 
   // Windows target, little to do
   // ----------------------------
-#ifdef CYGWINBUILD
+#if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
   reinitWinConsole();
 #endif
   nokeyboard=0;
