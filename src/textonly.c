@@ -1424,9 +1424,6 @@ static void setup_mode(int32 mode) {
     newsize.X = twinright + 1;
     newsize.Y = twinbottom + 1;
     SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), newsize);
-
-    /* When running interactively change the console title bar too */
-    if (!basicvars.runflags.loadngo) SetConsoleTitle(TEXT("Matrix Brandy Basic VI Interpreter"));
   }
 #endif
 }
@@ -1836,6 +1833,8 @@ boolean init_screen(void) {
   setup_mode(mode);
   find_cursor();
 
+  /* When running interactively change the console title bar too */
+  if (!basicvars.runflags.loadngo) set_wintitle("Matrix Brandy Basic VI Interpreter");
   return TRUE;
 }
 
