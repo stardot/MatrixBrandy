@@ -323,6 +323,7 @@ static void textbackground(int32 colour) {
 static void clrscr(void) {
   printf("\033[2J\033[H");      /* VTxxx/ANSI sequence for clearing the screen and to 'home' the cursor */
   fflush(stdout);
+  reinitWinConsole();
 }
 
 /*

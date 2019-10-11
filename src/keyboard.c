@@ -316,6 +316,20 @@ static int32 read_fn_string(void);		/* Forward reference	*/
 static int32 switch_fn_string(int32 key);	/* Forward reference	*/
 // static int32 decode_sequence(void);		/* Forward reference	*/
 
+void reinitWinConsole() {
+#if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
+  HANDLE hStdin;
+  DWORD mode;
+  hStdin = (HANDLE) _get_osfhandle(STDIN_FILENO);
+  if (GetFileType(hStdin) == FILE_TYPE_CHAR) {
+	GetConsoleMode(hStdin, &mode);
+	mode &= ~(ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
+	SetConsoleMode(hStdin, mode);
+  }
+  _setmode(_fileno(stdin), O_BINARY);
+#endif /* Windows Text-mode under Cygwin */
+  return;
+}
 
 /* Keyboard initialise and finalise */
 /* ================================ */
@@ -372,17 +386,7 @@ boolean kbd_init() {
 
   // Windows target, little to do
   // ----------------------------
-#if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
-  HANDLE hStdin;
-  DWORD mode;
-  hStdin = (HANDLE) _get_osfhandle(STDIN_FILENO);
-  if (GetFileType(hStdin) == FILE_TYPE_CHAR) {
-	GetConsoleMode(hStdin, &mode);
-	mode &= ~(ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
-	SetConsoleMode(hStdin, mode);
-  }
-  _setmode(_fileno(stdin), O_BINARY);
-#endif /* Windows Text-mode under Cygwin */
+  reinitWinConsole();
   nokeyboard=0;
   return TRUE;
 
