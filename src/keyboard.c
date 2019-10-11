@@ -316,7 +316,7 @@ static int32 read_fn_string(void);		/* Forward reference	*/
 static int32 switch_fn_string(int32 key);	/* Forward reference	*/
 // static int32 decode_sequence(void);		/* Forward reference	*/
 
-void reinitWinConsole() {
+static void reinitWinConsole() {
 #if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
   HANDLE hStdin;
   DWORD mode;

@@ -53,7 +53,6 @@ extern int32 kbd_pending(void);
 extern int   kbd_escpoll(void);
 extern int   kbd_esctest(void);
 extern int   kbd_escack(void);
-extern void  reinitWinConsole(void);
 #else
 extern int32 emulate_get(void);
 extern int32 emulate_inkey(int32);

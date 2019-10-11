@@ -764,7 +764,6 @@ static void vdu_cleartext(void) {
     xtext = twinleft;
     ytext = twintop;
   }
-  reinitWinConsole();
 }
 
 /*
@@ -1447,7 +1446,6 @@ void emulate_mode(int32 mode) {
   textbackground(text_physbackcol);
   reset_screen();
   clrscr();
-  reinitWinConsole();
 }
 
 /*
