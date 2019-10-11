@@ -257,6 +257,7 @@ static void init2(void) {
   init_interpreter();
 }
 
+#ifndef BRANDYAPP
 /*
 ** 'check_cmdline' is called to parse the command line.
 ** Note that any unrecognised parameters are assumed to be destined
@@ -381,6 +382,7 @@ static void check_cmdline(int argc, char *argv[]) {
     basicvars.arglist->argvalue = loadfile;
   }
 }
+#endif
 
 /*
 ** 'read_command' reads the next command
@@ -404,6 +406,7 @@ static void interpret_line(void) {
   }
 }
 
+#ifndef BRANDYAPP
 /*
 ** 'load_libraries' loads the libraries specified on the command line
 ** via the option '-lib'. In the event of an error control either
@@ -417,6 +420,7 @@ static void load_libraries(void) {
     p = p->next;
   } while (p!=NIL);
 }
+#endif
 
 #ifdef USE_SDL
 static int timer_thread(void *data) {
