@@ -305,7 +305,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** is the minimum it can be changed to.
 */
 
+#ifdef BRANDY_DEFAULT_SIZE
+#define DEFAULTSIZE (BRANDY_DEFAULT_SIZE * 1024)
+#else
 #define DEFAULTSIZE (512*1024)
+#endif
 #define MINSIZE 16384
 
 
