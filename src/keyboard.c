@@ -326,6 +326,7 @@ void reinitWinConsole() {
 	mode &= ~(ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
 	SetConsoleMode(hStdin, mode);
   }
+  _setmode(_fileno(stdin), O_TEXT);
   _setmode(_fileno(stdin), O_BINARY);
 #endif /* Windows Text-mode under Cygwin */
   return;
