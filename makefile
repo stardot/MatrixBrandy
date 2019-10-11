@@ -17,57 +17,59 @@ LIBS = -lX11 -lm -lSDL
 
 SRCDIR = src
 
-OBJ = $(SRCDIR)/graphsdl.o \
+OBJ = \
 	$(SRCDIR)/evaluate.o \
+	$(SRCDIR)/graphsdl.o \
 	$(SRCDIR)/assign.o \
 	$(SRCDIR)/mainstate.o \
 	$(SRCDIR)/tokens.o \
-	$(SRCDIR)/commands.o \
 	$(SRCDIR)/mos.o \
+	$(SRCDIR)/commands.o \
 	$(SRCDIR)/functions.o \
 	$(SRCDIR)/iostate.o \
-	$(SRCDIR)/keyboard.o \
-	$(SRCDIR)/stack.o \
-	$(SRCDIR)/errors.o \
 	$(SRCDIR)/variables.o \
-	$(SRCDIR)/editor.o \
-	$(SRCDIR)/statement.o \
-	$(SRCDIR)/lvalue.o \
-	$(SRCDIR)/mos_sys.o \
+	$(SRCDIR)/fileio.o \
 	$(SRCDIR)/soundsdl.o \
+	$(SRCDIR)/keyboard.o \
 	$(SRCDIR)/miscprocs.o \
+	$(SRCDIR)/editor.o \
+	$(SRCDIR)/stack.o \
+	$(SRCDIR)/mos_sys.o \
 	$(SRCDIR)/strings.o \
+	$(SRCDIR)/lvalue.o \
+	$(SRCDIR)/errors.o \
 	$(SRCDIR)/convert.o \
 	$(SRCDIR)/brandy.o \
-	$(SRCDIR)/fileio.o \
-	$(SRCDIR)/heap.o \
-	$(SRCDIR)/net.o
+	$(SRCDIR)/statement.o \
+	$(SRCDIR)/net.o \
+	$(SRCDIR)/heap.o
 
-SRC = $(SRCDIR)/graphsdl.c \
+SRC = \
 	$(SRCDIR)/evaluate.c \
+	$(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/assign.c \
 	$(SRCDIR)/mainstate.c \
 	$(SRCDIR)/tokens.c \
-	$(SRCDIR)/commands.c \
 	$(SRCDIR)/mos.c \
+	$(SRCDIR)/commands.c \
 	$(SRCDIR)/functions.c \
 	$(SRCDIR)/iostate.c \
-	$(SRCDIR)/keyboard.c \
-	$(SRCDIR)/stack.c \
-	$(SRCDIR)/errors.c \
 	$(SRCDIR)/variables.c \
-	$(SRCDIR)/editor.c \
-	$(SRCDIR)/statement.c \
-	$(SRCDIR)/lvalue.c \
-	$(SRCDIR)/mos_sys.c \
+	$(SRCDIR)/fileio.c \
 	$(SRCDIR)/soundsdl.c \
+	$(SRCDIR)/keyboard.c \
 	$(SRCDIR)/miscprocs.c \
+	$(SRCDIR)/editor.c \
+	$(SRCDIR)/stack.c \
+	$(SRCDIR)/mos_sys.c \
 	$(SRCDIR)/strings.c \
+	$(SRCDIR)/lvalue.c \
+	$(SRCDIR)/errors.c \
 	$(SRCDIR)/convert.c \
 	$(SRCDIR)/brandy.c \
-	$(SRCDIR)/fileio.c \
-	$(SRCDIR)/heap.c \
-	$(SRCDIR)/net.c
+	$(SRCDIR)/statement.c \
+	$(SRCDIR)/net.c \
+	$(SRCDIR)/heap.c
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
