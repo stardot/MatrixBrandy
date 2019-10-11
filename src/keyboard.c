@@ -316,8 +316,8 @@ static int32 read_fn_string(void);		/* Forward reference	*/
 static int32 switch_fn_string(int32 key);	/* Forward reference	*/
 // static int32 decode_sequence(void);		/* Forward reference	*/
 
-static void reinitWinConsole() {
 #if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
+static void reinitWinConsole() {
   HANDLE hStdin;
   DWORD mode;
   hStdin = (HANDLE) _get_osfhandle(STDIN_FILENO);
@@ -330,9 +330,9 @@ static void reinitWinConsole() {
 	SetConsoleMode(hStdin, mode);
 	_setmode(_fileno(stdin), O_BINARY);
   }
-#endif /* Windows Text-mode under Cygwin */
   return;
 }
+#endif /* Windows Text-mode under Cygwin */
 
 /* Keyboard initialise and finalise */
 /* ================================ */
@@ -389,7 +389,9 @@ boolean kbd_init() {
 
   // Windows target, little to do
   // ----------------------------
+#ifdef CYGWINBUILD
   reinitWinConsole();
+#endif
   nokeyboard=0;
   return TRUE;
 
