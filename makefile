@@ -17,25 +17,59 @@ LIBS = -lX11 -lm -lSDL
 
 SRCDIR = src
 
-OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/graphsdl.o \
-	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
-	$(SRCDIR)/miscprocs.o $(SRCDIR)/mainstate.o $(SRCDIR)/lvalue.o \
-	$(SRCDIR)/keyboard.o $(SRCDIR)/iostate.o $(SRCDIR)/heap.o \
-	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
-	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
-	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o \
-	$(SRCDIR)/soundsdl.o
+OBJ = \
+	$(SRCDIR)/evaluate.o \
+	$(SRCDIR)/graphsdl.o \
+	$(SRCDIR)/assign.o \
+	$(SRCDIR)/mainstate.o \
+	$(SRCDIR)/tokens.o \
+	$(SRCDIR)/mos.o \
+	$(SRCDIR)/commands.o \
+	$(SRCDIR)/functions.o \
+	$(SRCDIR)/iostate.o \
+	$(SRCDIR)/variables.o \
+	$(SRCDIR)/fileio.o \
+	$(SRCDIR)/soundsdl.o \
+	$(SRCDIR)/keyboard.o \
+	$(SRCDIR)/miscprocs.o \
+	$(SRCDIR)/editor.o \
+	$(SRCDIR)/stack.o \
+	$(SRCDIR)/mos_sys.o \
+	$(SRCDIR)/strings.o \
+	$(SRCDIR)/lvalue.o \
+	$(SRCDIR)/errors.o \
+	$(SRCDIR)/convert.o \
+	$(SRCDIR)/brandy.o \
+	$(SRCDIR)/statement.o \
+	$(SRCDIR)/net.o \
+	$(SRCDIR)/heap.o
 
-SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
-	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
-	$(SRCDIR)/miscprocs.c $(SRCDIR)/mainstate.c $(SRCDIR)/lvalue.c \
-	$(SRCDIR)/keyboard.c $(SRCDIR)/iostate.c $(SRCDIR)/heap.c \
-	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
-	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
-	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c \
-	$(SRCDIR)/soundsdl.c
+SRC = \
+	$(SRCDIR)/evaluate.c \
+	$(SRCDIR)/graphsdl.c \
+	$(SRCDIR)/assign.c \
+	$(SRCDIR)/mainstate.c \
+	$(SRCDIR)/tokens.c \
+	$(SRCDIR)/mos.c \
+	$(SRCDIR)/commands.c \
+	$(SRCDIR)/functions.c \
+	$(SRCDIR)/iostate.c \
+	$(SRCDIR)/variables.c \
+	$(SRCDIR)/fileio.c \
+	$(SRCDIR)/soundsdl.c \
+	$(SRCDIR)/keyboard.c \
+	$(SRCDIR)/miscprocs.c \
+	$(SRCDIR)/editor.c \
+	$(SRCDIR)/stack.c \
+	$(SRCDIR)/mos_sys.c \
+	$(SRCDIR)/strings.c \
+	$(SRCDIR)/lvalue.c \
+	$(SRCDIR)/errors.c \
+	$(SRCDIR)/convert.c \
+	$(SRCDIR)/brandy.c \
+	$(SRCDIR)/statement.c \
+	$(SRCDIR)/net.c \
+	$(SRCDIR)/heap.c
 
 brandy:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)

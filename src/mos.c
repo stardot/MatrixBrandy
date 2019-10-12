@@ -1190,6 +1190,7 @@ static unsigned int cmd_parse_num(char** text)
 #define HELP_MOS		1026
 #define HELP_MATRIX		1027
 #define HELP_SOUND		1028
+#define HELP_MEMINFO		1029
 
 #define CMDTABSIZE 256
 
@@ -1289,11 +1290,12 @@ void make_cmdtab(){
   add_cmd( "pointer",      CMD_POINTER );
   add_cmd( "sound",        HELP_SOUND  );
 #endif
-  add_cmd( "basic",        HELP_BASIC  );
-  add_cmd( "host",         HELP_HOST   );
-  add_cmd( "mos",          HELP_MOS    );
-  add_cmd( "matrix",       HELP_MATRIX );
-  add_cmd( "os",           HELP_MOS    );
+  add_cmd( "basic",        HELP_BASIC   );
+  add_cmd( "host",         HELP_HOST    );
+  add_cmd( "mos",          HELP_MOS     );
+  add_cmd( "matrix",       HELP_MATRIX  );
+  add_cmd( "meminfo",      HELP_MEMINFO );
+  add_cmd( "os",           HELP_MOS     );
 }
 
 /*
@@ -1530,17 +1532,6 @@ static void cmd_help(char *command)
 	mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
 	// NB: Adjust spaces in above to align version and date strings correctly
 #endif
-#ifdef DEBUG
-#ifdef __LP64__
-  emulate_printf("\n  Workspace is at &%llX, size is &%X\r\n  PAGE = &%llX, HIMEM = &%llX\r\n",
-   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-#else
-  emulate_printf("\n  Workspace is at &%X, size is &%X\r\n  PAGE = &%X, HIMEM = &%X\r\n",
-   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-#endif /*LP64*/
-  emulate_printf("  stacktop=&%llX, stacklimit=&%llX\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
-#endif
-
     break;
     case HELP_HOST:
     case HELP_MOS:
@@ -1568,6 +1559,27 @@ static void cmd_help(char *command)
 	emulate_printf("  ScreenSave <filename.bmp>\r\n");
 #endif /* USE_SDL */
 	emulate_printf("  WinTitle   <window title>\r\n");
+    break;
+    case HELP_MEMINFO:
+      emulate_printf("Memory allocation information:\r\n\r\n");
+#ifdef __LP64__
+      emulate_printf("Workspace is at &%llX, size is &%X\r\nPAGE = &%llX, HIMEM = &%llX\r\n",
+       basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+      emulate_printf("stacktop = &%llX, stacklimit = &%llX\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+#ifdef USE_SDL
+      emulate_printf("Video frame buffer is at &%llX, size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+      emulate_printf("MODE 7 Teletext frame buffer is at &%llX\r\n", matrixflags.mode7fb);
+#endif /* USE_SDL */
+#else /* ! LP64 */
+      emulate_printf("Workspace is at &%X, size is &%X\r\nPAGE = &%X, HIMEM = &%X\r\n",
+       basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+      emulate_printf("stacktop = &%X, stacklimit = &%X\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+#ifdef USE_SDL
+      emulate_printf("Video frame buffer is at &%X, size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+      emulate_printf("MODE 7 Teletext frame buffer is at &%X\r\n", matrixflags.mode7fb);
+#endif /* USE_SDL */
+#endif /* LP64 */
+      emulate_printf("\r\n");
     break;
 #ifdef USE_SDL
     case HELP_SOUND:
@@ -1634,6 +1646,7 @@ static void cmd_help(char *command)
 #ifdef USE_SDL
 	    emulate_printf("  SOUND\r\n");
 #endif
+	    emulate_printf("  MEMINFO\r\n");
 	}
   }
 }

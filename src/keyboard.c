@@ -127,6 +127,9 @@
 
 #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
  #include <windows.h>
+#ifdef CYGWINBUILD
+ #include <fcntl.h>
+#endif
 #endif
 
 #ifdef TARGET_DJGPP
@@ -166,6 +169,7 @@ int64 esclast=0;
  #include <stdlib.h>
  #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
   #include <sys/time.h>
+  #include <sys/types.h>
   #ifndef CYGWINBUILD
     #include <keysym.h>
   #endif
@@ -312,6 +316,23 @@ static int32 read_fn_string(void);		/* Forward reference	*/
 static int32 switch_fn_string(int32 key);	/* Forward reference	*/
 // static int32 decode_sequence(void);		/* Forward reference	*/
 
+#if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
+static void reinitWinConsole() {
+  HANDLE hStdin;
+  DWORD mode;
+  hStdin = (HANDLE) _get_osfhandle(STDIN_FILENO);
+  if (GetFileType(hStdin) == FILE_TYPE_CHAR) {
+	GetConsoleMode(hStdin, &mode);
+	mode |= (ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
+	SetConsoleMode(hStdin, mode);
+	_setmode(_fileno(stdin), O_TEXT);
+	mode &= ~(ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
+	SetConsoleMode(hStdin, mode);
+	_setmode(_fileno(stdin), O_BINARY);
+  }
+  return;
+}
+#endif /* Windows Text-mode under Cygwin */
 
 /* Keyboard initialise and finalise */
 /* ================================ */
@@ -368,6 +389,9 @@ boolean kbd_init() {
 
   // Windows target, little to do
   // ----------------------------
+#if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
+  reinitWinConsole();
+#endif
   nokeyboard=0;
   return TRUE;
 
@@ -688,7 +712,7 @@ static int32 switch_fn_string(int32 key) {
  *          if last character fetched, fn_string set to NIL
  */
 static int32 read_fn_string(void) {
-  int32 ch;  
+  int32 ch;
   ch = *fn_string;
   fn_string++;
   fn_string_count--;
@@ -1155,13 +1179,21 @@ int32 kbd_get0(void) {
 #if defined(TARGET_DOSWIN) && !defined(USE_SDL)
   int s,c,a;
 
+#ifdef CYGWINBUILD
+  ch=getchar();
+#else
   ch=getch();
+#endif
   if (ch == NUL || ch == 0xE0) {		/* DOS escaped characters		*/
     // When kbd_modkeys() returns all keys, change this to call it
     s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
     c=(GetAsyncKeyState(VK_CONTROL)<0);
-    if(a=(GetAsyncKeyState(VK_MENU)<0)) c=0;
-    ch=getch();					/* Get second key byte			*/
+    if((a=(GetAsyncKeyState(VK_MENU)<0))) c=0;
+#ifdef CYGWINBUILD
+    ch=getchar();
+#else
+    ch=getch();
+#endif
     if (ch == 0x29) return 0xAC;		/* Alt-top-left key			*/
     if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
     ch=dostable[ch];				/* Translate escaped character		*/
@@ -1333,10 +1365,10 @@ static boolean waitkey(int wait) {
 **
 */
 static boolean waitkey(int wait) {
-#ifndef TARGET_MINGW
+//#ifndef TARGET_MINGW
   fd_set keyset;
   struct timeval waitime;
-#endif
+//#endif
 #ifdef BODGEMGW
   int tmp;
 #endif
@@ -1350,7 +1382,7 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
-    while (SDL_PollEvent(&ev) > 0) 
+    while (SDL_PollEvent(&ev) > 0)
       switch(ev.type)
       {
         case SDL_USEREVENT:

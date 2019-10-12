@@ -926,7 +926,7 @@ static void do_indrefvar(void) {
 #ifdef USE_SDL
   int32 msx, msy, loop, val = 0;
 #endif
-  if (*basicvars.current == TOKEN_INTINDVAR)	/* Fetch variable's value */
+  if (*basicvars.current == BASIC_TOKEN_INTINDVAR)	/* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
   else {
     offset = TOINT64(*GET_ADDRESS(basicvars.current, float64 *));
@@ -1021,11 +1021,11 @@ static void do_xvar(void) {
   if (!isarray && (*np == '?' || *np == '!')) {		/* Variable is followed by an indirection operator */
     switch (vartype) {
     case VAR_INTWORD:
-      *basicvars.current = TOKEN_INTINDVAR;
+      *basicvars.current = BASIC_TOKEN_INTINDVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       break;
     case VAR_FLOAT:
-      *basicvars.current = TOKEN_FLOATINDVAR;
+      *basicvars.current = BASIC_TOKEN_FLOATINDVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
     default:
@@ -1035,33 +1035,33 @@ static void do_xvar(void) {
   }
   else {	/* Simple reference to variable or reference to an array */
     if (vartype == VAR_INTWORD) {
-      *basicvars.current = TOKEN_INTVAR;
+      *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       do_intvar();
     }
     else if (vartype == VAR_INTLONG) {
-      *basicvars.current = TOKEN_INT64VAR;
+      *basicvars.current = BASIC_TOKEN_INT64VAR;
       set_address(basicvars.current, &vp->varentry.var64int);
       do_int64var();
     }
     else if (vartype == VAR_FLOAT) {
-      *basicvars.current = TOKEN_FLOATVAR;
+      *basicvars.current = BASIC_TOKEN_FLOATVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       do_floatvar();
     }
     else if (vartype == VAR_STRINGDOL) {
-      *basicvars.current = TOKEN_STRINGVAR;
+      *basicvars.current = BASIC_TOKEN_STRINGVAR;
       set_address(basicvars.current, &vp->varentry.varstring);
       do_stringvar();
     }
     else {	/* Array or array followed by an indirection operator */
       if (*np == ')') {	/* Reference is to entire array */
-        *basicvars.current = TOKEN_ARRAYVAR;
+        *basicvars.current = BASIC_TOKEN_ARRAYVAR;
         set_address(basicvars.current, vp);
         do_arrayvar();
       }
       else {	/* Reference is to an array element */
-        *basicvars.current = TOKEN_ARRAYREF;
+        *basicvars.current = BASIC_TOKEN_ARRAYREF;
         set_address(basicvars.current, vp);
         do_arrayref();
       }
@@ -1372,13 +1372,13 @@ static void do_xfunction(void) {
   variable *vp;
   boolean gotparms;
   base = get_srcaddr(basicvars.current);		/* Point 'base' at start of function's name */
-  if (*base != TOKEN_FN) error(ERR_NOTAFN);	/* Ensure a function is being called */
+  if (*base != BASIC_TOKEN_FN) error(ERR_NOTAFN);	/* Ensure a function is being called */
   tp = skip_name(base);
   gotparms = *(tp-1) == '(';
   if (gotparms) tp--;	/* '(' found but it is not part of name */
   vp = find_fnproc(base, tp-base);
   dp = vp->varentry.varfnproc;
-  *basicvars.current = TOKEN_FNPROCALL;
+  *basicvars.current = BASIC_TOKEN_FNPROCALL;
   set_address(basicvars.current, vp);
   if (gotparms) {	/* PROC/FN call has some parameters */
     if (dp->parmlist == NIL) error(ERR_TOOMANY, vp->varname);	/* Got a '(' but function has no parameters */

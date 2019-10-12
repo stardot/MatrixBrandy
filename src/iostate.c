@@ -233,15 +233,15 @@ static void read_input(boolean inputline) {
     line [0] = asc_NUL;
     prompted = FALSE;
 /* Deal with prompt */
-    while (token == TOKEN_STRINGCON || token == TOKEN_QSTRINGCON || token == '\'' || token == TYPE_PRINTFN) {
+    while (token == BASIC_TOKEN_STRINGCON || token == BASIC_TOKEN_QSTRINGCON || token == '\'' || token == TYPE_PRINTFN) {
       prompted = TRUE;
       switch(token) {
-      case TOKEN_STRINGCON:	/* Got a prompt string */
+      case BASIC_TOKEN_STRINGCON:	/* Got a prompt string */
         length =GET_SIZE(basicvars.current+1+OFFSIZE);
         if (length>0) emulate_vdustr(TOSTRING(get_srcaddr(basicvars.current)), length);
         basicvars.current = skip_token(basicvars.current);
         break;
-      case TOKEN_QSTRINGCON:	/* Prompt string with '""' in it */
+      case BASIC_TOKEN_QSTRINGCON:	/* Prompt string with '""' in it */
         cp = TOSTRING(get_srcaddr(basicvars.current));
         length = GET_SIZE(basicvars.current+1+OFFSIZE);
         for (n=0; n<length; n++) {
@@ -257,11 +257,11 @@ static void read_input(boolean inputline) {
         break;
       case TYPE_PRINTFN:	/* 'SPC()' and 'TAB()' */
         switch (*(basicvars.current+1)) {
-        case TOKEN_SPC:
+        case BASIC_TOKEN_SPC:
           basicvars.current+=2;		/* Skip two byte function token */
           fn_spc();
           break;
-        case TOKEN_TAB:
+        case BASIC_TOKEN_TAB:
           basicvars.current+=2;		/* Skip two byte function token */
           fn_tab();
           break;
@@ -279,7 +279,7 @@ static void read_input(boolean inputline) {
 			/* This points at a NUL here */
 /* Now go through all the variables listed and attempt to assign values to them */
     while (!ateol[*basicvars.current]
-     && *basicvars.current != TOKEN_STRINGCON && *basicvars.current != TOKEN_QSTRINGCON
+     && *basicvars.current != BASIC_TOKEN_STRINGCON && *basicvars.current != BASIC_TOKEN_QSTRINGCON
      && *basicvars.current != '\'' && *basicvars.current != TYPE_PRINTFN) {
       get_lvalue(&destination);
       if (*cp == asc_NUL) {	 /* There be nowt left to read on the line */
@@ -392,7 +392,7 @@ void exec_circle(void) {
   int32 x, y, radius;
   boolean filled;
   basicvars.current++;		/* Skip CIRCLE token */
-  filled = *basicvars.current == TOKEN_FILL;
+  filled = *basicvars.current == BASIC_TOKEN_FILL;
   if (filled) basicvars.current++;
   x = eval_integer();		/* Get x coordinate of centre */
   if (*basicvars.current != ',') error(ERR_COMISS);
@@ -461,7 +461,7 @@ static void exec_colofon(void) {
 ** Bit 2: 1 = Change foreground
 ** Bit 3: 1 = Change background
 */
-  if (*basicvars.current == TOKEN_OF) {
+  if (*basicvars.current == BASIC_TOKEN_OF) {
     basicvars.current++;	/* Skip OF */
     form += 4;
     red = eval_integer();
@@ -474,7 +474,7 @@ static void exec_colofon(void) {
       blue = eval_integer();
     }
   }
-  if (*basicvars.current == TOKEN_ON) {		/* COLOUR OF ... ON */
+  if (*basicvars.current == BASIC_TOKEN_ON) {		/* COLOUR OF ... ON */
     basicvars.current++;
     form += 8;
     backred = eval_integer();
@@ -511,7 +511,7 @@ static void exec_colnum(void) {
   int32 colour, tint, parm2, parm3, parm4;
   colour = eval_integer();
   switch (*basicvars.current) {
-  case TOKEN_TINT:		/* Got 'COLOUR ... TINT' */
+  case BASIC_TOKEN_TINT:		/* Got 'COLOUR ... TINT' */
     basicvars.current++;
     tint = eval_integer();
     check_ateol();
@@ -551,7 +551,7 @@ static void exec_colnum(void) {
 */
 void exec_colour(void) {
   basicvars.current++;
-  if (*basicvars.current == TOKEN_OF || *basicvars.current == TOKEN_ON)
+  if (*basicvars.current == BASIC_TOKEN_OF || *basicvars.current == BASIC_TOKEN_ON)
     exec_colofon();
   else {
     exec_colnum();
@@ -594,7 +594,7 @@ void exec_ellipse(void) {
   static float64 angle;
   boolean isfilled;
   basicvars.current++;		/* Skip ELLIPSE token */
-  isfilled = *basicvars.current == TOKEN_FILL;
+  isfilled = *basicvars.current == BASIC_TOKEN_FILL;
   if (isfilled) basicvars.current++;
   x = eval_integer();		/* Get x coordinate of centre */
   if (*basicvars.current != ',') error(ERR_COMISS);
@@ -689,7 +689,7 @@ static void exec_gcolofon(void) {
 ** Bit 2: 1 = Change foreground
 ** Bit 3: 1 = Change background
 */
-  if (*basicvars.current == TOKEN_OF) {
+  if (*basicvars.current == BASIC_TOKEN_OF) {
     form += 4;
     basicvars.current++;
     red = eval_integer();
@@ -715,7 +715,7 @@ static void exec_gcolofon(void) {
     }
   }
 /* Now look for background colour details */
-  if (*basicvars.current == TOKEN_ON) {
+  if (*basicvars.current == BASIC_TOKEN_ON) {
     form += 8;
     basicvars.current++;
     backred = eval_integer();
@@ -774,7 +774,7 @@ static void exec_gcolnum(void) {
     action = colour;
     colour = eval_integer();
   }
-  if (*basicvars.current == TOKEN_TINT) {
+  if (*basicvars.current == BASIC_TOKEN_TINT) {
     basicvars.current++;
     tint = eval_integer();
   }
@@ -806,7 +806,7 @@ static void exec_gcolnum(void) {
 */
 void exec_gcol(void) {
   basicvars.current++;
-  if (*basicvars.current == TOKEN_OF || *basicvars.current == TOKEN_ON)
+  if (*basicvars.current == BASIC_TOKEN_OF || *basicvars.current == BASIC_TOKEN_ON)
     exec_gcolofon();
   else {
     exec_gcolnum();
@@ -885,7 +885,7 @@ static void input_file(void) {
 void exec_input(void) {
   basicvars.current++;		/* Skip INPUT token */
   switch (*basicvars.current) {
-  case TOKEN_LINE:	/* Got 'INPUT LINE' - Read from keyboard */
+  case BASIC_TOKEN_LINE:	/* Got 'INPUT LINE' - Read from keyboard */
     basicvars.current++;	/* Skip LINE token */
     read_input(TRUE);	/* TRUE = handling 'INPUT LINE' */
     break;
@@ -903,7 +903,7 @@ void exec_input(void) {
 */
 void exec_line(void) {
   basicvars.current++;	/* Skip LINE token */
-  if (*basicvars.current == TOKEN_INPUT) {	/* Got 'LINE INPUT' - Read from keyboard */
+  if (*basicvars.current == BASIC_TOKEN_INPUT) {	/* Got 'LINE INPUT' - Read from keyboard */
     basicvars.current++;	/* Skip INPUT token */
     read_input(TRUE);
   }
@@ -1219,22 +1219,22 @@ static void exec_mouse_position(void) {
 void exec_mouse(void) {
   basicvars.current++;		/* Skip MOUSE token */
   switch (*basicvars.current) {
-  case TOKEN_ON:	/* MOUSE ON */
+  case BASIC_TOKEN_ON:	/* MOUSE ON */
     exec_mouse_on();
     break;
-  case TOKEN_OFF:	/* MOUSE OFF */
+  case BASIC_TOKEN_OFF:	/* MOUSE OFF */
     exec_mouse_off();
     break;
-  case TOKEN_TO:	/* MOUSE TO */
+  case BASIC_TOKEN_TO:	/* MOUSE TO */
     exec_mouse_to();
     break;
-  case TOKEN_STEP:	/* MOUSE STEP */
+  case BASIC_TOKEN_STEP:	/* MOUSE STEP */
     exec_mouse_step();
     break;
-  case TOKEN_COLOUR:	/* MOUSE COLOUR */
+  case BASIC_TOKEN_COLOUR:	/* MOUSE COLOUR */
     exec_mouse_colour();
     break;
-  case TOKEN_RECTANGLE:	/* MOUSE RECTANGLE */
+  case BASIC_TOKEN_RECTANGLE:	/* MOUSE RECTANGLE */
     exec_mouse_rectangle();
     break;
   default:
@@ -1392,11 +1392,11 @@ static void print_screen(void) {
      || *basicvars.current == '\'' || *basicvars.current == TYPE_PRINTFN) {
       if (*basicvars.current == TYPE_PRINTFN) {	/* Have to use an 'if' here as LCC generate bad code for a switch */
         newline = TRUE;
-        if (*(basicvars.current+1) == TOKEN_TAB) {
+        if (*(basicvars.current+1) == BASIC_TOKEN_TAB) {
           basicvars.current+=2;		/* Skip two byte function token */
           fn_tab();
         }
-        else if (*(basicvars.current+1) == TOKEN_SPC) {
+        else if (*(basicvars.current+1) == BASIC_TOKEN_SPC) {
           basicvars.current+=2;		/* Skip two byte function token */
           fn_spc();
         }
@@ -1600,7 +1600,7 @@ void exec_rectangle(void) {
   int32 x1, y1, width, height, x2, y2;
   boolean filled;
   basicvars.current++;		/* Skip RECTANGLE token */
-  filled = *basicvars.current == TOKEN_FILL;
+  filled = *basicvars.current == BASIC_TOKEN_FILL;
   if (filled) basicvars.current++;
   x1 = eval_integer();		/* Get x coordinate of a corner */
   if (*basicvars.current != ',') error(ERR_COMISS);
@@ -1616,7 +1616,7 @@ void exec_rectangle(void) {
   else {	/* Height is not specified - Assume height = width */
     height = width;
   }
-  if (*basicvars.current == TOKEN_TO) {	/* Got 'RECTANGLE ... TO' form of statement */
+  if (*basicvars.current == BASIC_TOKEN_TO) {	/* Got 'RECTANGLE ... TO' form of statement */
     basicvars.current++;
     x2 = eval_integer();		/* Get destination x coordinate */
     if (*basicvars.current != ',') error(ERR_COMISS);
@@ -1638,12 +1638,12 @@ void exec_sound(void) {
   int32 channel, amplitude, pitch, duration, delay;
   basicvars.current++;		/* Skip sound token */
   switch (*basicvars.current) {
-  case TOKEN_ON:
+  case BASIC_TOKEN_ON:
     basicvars.current++;
     check_ateol();
     mos_sound_on();
     break;
-  case TOKEN_OFF:
+  case BASIC_TOKEN_OFF:
     basicvars.current++;
     check_ateol();
     mos_sound_off();

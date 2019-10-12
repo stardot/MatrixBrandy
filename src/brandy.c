@@ -66,17 +66,20 @@ matrixbits matrixflags;		/* This contains flags used by Matrix Brandy extensions
 static void init1(void);
 static void init2(void);
 static void gpio_init(void);
-static void check_cmdline(int, char *[]);
 static void run_interpreter(void);
 static void init_timer(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
-static char *loadfile;			/* Pointer to name of file to load when interpreter starts */
 static int32 worksize;			/* Initial workspace size */
 
 static cmdarg *arglast;			/* Pointer to end of command line argument list */
 
 static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
+
+#ifndef BRANDYAPP
+static void check_cmdline(int, char *[]);
+static char *loadfile;			/* Pointer to name of file to load when interpreter starts */
+#endif
 
 /*
 ** 'main' just starts things going. Control does not returns here after
@@ -257,6 +260,7 @@ static void init2(void) {
   init_interpreter();
 }
 
+#ifndef BRANDYAPP
 /*
 ** 'check_cmdline' is called to parse the command line.
 ** Note that any unrecognised parameters are assumed to be destined
@@ -381,6 +385,7 @@ static void check_cmdline(int argc, char *argv[]) {
     basicvars.arglist->argvalue = loadfile;
   }
 }
+#endif
 
 /*
 ** 'read_command' reads the next command
@@ -404,6 +409,7 @@ static void interpret_line(void) {
   }
 }
 
+#ifndef BRANDYAPP
 /*
 ** 'load_libraries' loads the libraries specified on the command line
 ** via the option '-lib'. In the event of an error control either
@@ -417,6 +423,7 @@ static void load_libraries(void) {
     p = p->next;
   } while (p!=NIL);
 }
+#endif
 
 #ifdef USE_SDL
 static int timer_thread(void *data) {

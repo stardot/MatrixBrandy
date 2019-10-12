@@ -336,7 +336,7 @@ static void show_memory(void) {
   get_pair(&lowaddr, &highaddr, basicvars.memdump_lastaddr, basicvars.memdump_lastaddr+0x40);
   check_ateol();
   if (highaddr == lowaddr) highaddr = lowaddr+0x40;
-  if (which == TOKEN_LISTB)
+  if (which == BASIC_TOKEN_LISTB)
     show_byte(lowaddr, highaddr);
   else {
     show_word(lowaddr, highaddr);
@@ -883,61 +883,61 @@ static void exec_auto(void) {
 void exec_command(void) {
   basicvars.current++;  /* Point at command type token */
   switch (*basicvars.current) {
-  case TOKEN_NEW:
+  case BASIC_TOKEN_NEW:
     exec_new();
     break;
-  case TOKEN_OLD:
+  case BASIC_TOKEN_OLD:
     exec_old();
     break;
-  case TOKEN_LOAD: case TOKEN_TEXTLOAD:
+  case BASIC_TOKEN_LOAD: case BASIC_TOKEN_TEXTLOAD:
     load_program();
     break;
-  case TOKEN_SAVE: case TOKEN_TEXTSAVE:
+  case BASIC_TOKEN_SAVE: case BASIC_TOKEN_TEXTSAVE:
     save_program();
     break;
-  case TOKEN_SAVEO: case TOKEN_TEXTSAVEO:
+  case BASIC_TOKEN_SAVEO: case BASIC_TOKEN_TEXTSAVEO:
     saveo_program();
     break;
-  case TOKEN_INSTALL:
+  case BASIC_TOKEN_INSTALL:
     install_library();
     break;
-  case TOKEN_LIST:
+  case BASIC_TOKEN_LIST:
     list_program();
     break;
-  case TOKEN_LISTB: case TOKEN_LISTW:
+  case BASIC_TOKEN_LISTB: case BASIC_TOKEN_LISTW:
     show_memory();
     break;
-  case TOKEN_LISTL:
+  case BASIC_TOKEN_LISTL:
     list_hexline();
     break;
-  case TOKEN_LISTIF:
+  case BASIC_TOKEN_LISTIF:
     list_if();
     break;
-  case TOKEN_LISTO:
+  case BASIC_TOKEN_LISTO:
     set_listopt();
     break;
-  case TOKEN_LVAR:
+  case BASIC_TOKEN_LVAR:
     list_vars();
     break;
-  case TOKEN_RENUMBER:
+  case BASIC_TOKEN_RENUMBER:
     renumber();
     break;
-  case TOKEN_DELETE:
+  case BASIC_TOKEN_DELETE:
     delete();
     break;
-  case TOKEN_HELP:
+  case BASIC_TOKEN_HELP:
     print_help();
     break;
-  case TOKEN_EDIT: case TOKEN_TWIN:
+  case BASIC_TOKEN_EDIT: case BASIC_TOKEN_TWIN:
     exec_editor();
     break;
-  case TOKEN_EDITO: case TOKEN_TWINO:
+  case BASIC_TOKEN_EDITO: case BASIC_TOKEN_TWINO:
     exec_edito();
     break;
-  case TOKEN_CRUNCH:
+  case BASIC_TOKEN_CRUNCH:
     exec_crunch();
     break;
-  case TOKEN_AUTO:
+  case BASIC_TOKEN_AUTO:
     exec_auto();
     break;
   default:
@@ -1253,7 +1253,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "SWAP")) {
     emulate_printf("SWAP <variable>,<variable>: exchange the contents.");
   } else if (!strcmp(cmd, "SYS")) {
-    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nIn Matrix Brandy, only built-in functionality is supported.");
+    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nIn Matrix Brandy, only built-in functionality is supported.\r\nNote that Matrix Brandy's SYS interface can return 64-bit values especially on\r\n64-bit hardware so programs should store such values in 64-bit integers.");
   } else if (!strcmp(cmd, "TAB(")) {
     emulate_printf("In PRINT or INPUT statements:\r\nTAB to column n: PRINT TAB(10)s$.\r\nTAB to screen position x,y: PRINT TAB(10,20)s$.");
   } else if (!strcmp(cmd, "TAN")) {

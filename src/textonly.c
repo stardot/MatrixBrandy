@@ -51,6 +51,7 @@
 
 #if defined(TARGET_MINGW)
 #include <windows.h>
+#include <conio.h>
 #endif
 
 #if defined(TARGET_UNIX) | defined(TARGET_DJGPP)
@@ -185,6 +186,19 @@ static void write_vduflag(unsigned int flags, int yesno) {
 }
 
 #ifdef USE_ANSI
+#if 0
+static void set_esc_key(unsigned int esckey) {
+  struct termios tty;
+  int fdkbd;
+
+  fdkbd=fileno(stdin);
+  if (tcgetattr(fdkbd, &tty) < 0) return; /* Didn't work, so forget it */
+
+  tty.c_cc[VINTR] = esckey;
+  tcsetattr(fdkbd, TCSADRAIN, &tty);
+  return;
+}
+#endif
 /*
 ** 'find_cursor' reads the position of the cursor on the text
 ** screen. It can only do this if input is coming from the
@@ -196,6 +210,7 @@ void find_cursor(void) {
   int ch, column, row;
   column = row = 0;
   if (!basicvars.runflags.outredir && !basicvars.runflags.inredir) {
+    // set_esc_key(_POSIX_VDISABLE); /* Disable INTR */
     printf("\033[6n");  /* ANSI/VTxxx sequence to find the position of the cursor */
     fflush(stdout);
     ch = read_key();    /* Sequence expected back is ' ESC[<no>;<no>R' */
@@ -225,6 +240,7 @@ void find_cursor(void) {
     else if (SCRHEIGHT!=0 && ytext>twinbottom) {
       ytext = twinbottom;
     }
+    // set_esc_key(27); /* Put INTR back on ESC key */
   }
 }
 
@@ -444,7 +460,24 @@ static int wherey(void) {
 ** -- conio (Win32) --
 */
 void clrscr(void) {
+#ifdef CYGWINBUILD
+  COORD coordScreen = {0,0};
+  DWORD cCharsWritten;
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  DWORD dwConSize;
+  HANDLE hConsole;
+
+  hConsole=GetStdHandle(STD_OUTPUT_HANDLE);
+
+  if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) return;
+  dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
+  if (!FillConsoleOutputCharacter(hConsole,(TCHAR)' ',dwConSize,coordScreen,&cCharsWritten)) return;
+  if (!GetConsoleScreenBufferInfo(hConsole, &csbi)) return;
+  if (!FillConsoleOutputAttribute(hConsole,csbi.wAttributes,dwConSize,coordScreen,&cCharsWritten)) return;
+  SetConsoleCursorPosition(hConsole,coordScreen);
+#else
   system("cls");
+#endif
 }
 
 /*
@@ -1259,7 +1292,7 @@ void emulate_vdu(int32 charvalue) {
     }
   }
 }
-    
+
 /*
 ** 'emulate_vdustr' is called to print a string via the 'VDU driver'
 */
@@ -1391,9 +1424,6 @@ static void setup_mode(int32 mode) {
     newsize.X = twinright + 1;
     newsize.Y = twinbottom + 1;
     SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), newsize);
-
-    /* When running interactively change the console title bar too */
-    if (!basicvars.runflags.loadngo) SetConsoleTitle(TEXT("Brandy"));
   }
 #endif
 }
@@ -1802,7 +1832,9 @@ boolean init_screen(void) {
   write_vduflag(VDU_FLAG_ENAPRINT,0);
   setup_mode(mode);
   find_cursor();
- 
+
+  /* When running interactively change the console title bar too */
+  if (!basicvars.runflags.loadngo) set_wintitle("Matrix Brandy Basic VI Interpreter");
   return TRUE;
 }
 

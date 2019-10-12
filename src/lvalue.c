@@ -120,11 +120,11 @@ static void fix_address(lvalue *destination) {
   if (!isarray && (*np=='?' || *np=='!')) {	/* Variable is followed by an indirection operator */
     switch (vp->varflags) {
     case VAR_INTWORD:		/* Op follows an integer variable */
-      *basicvars.current = TOKEN_INTINDVAR;
+      *basicvars.current = BASIC_TOKEN_INTINDVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       break;
     case VAR_FLOAT:		/* Op follows a floating point variable */
-      *basicvars.current = TOKEN_FLOATINDVAR;
+      *basicvars.current = BASIC_TOKEN_FLOATINDVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
     default:
@@ -134,26 +134,26 @@ static void fix_address(lvalue *destination) {
   else {	/* Simple variable reference or any type of array reference */
     switch (vp->varflags) {
     case VAR_INTWORD:		/* Simple reference to integer variable */
-      *basicvars.current = TOKEN_INTVAR;
+      *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
     break;
     case VAR_INTLONG:		/* Simple reference to integer variable */
-      *basicvars.current = TOKEN_INT64VAR;
+      *basicvars.current = BASIC_TOKEN_INT64VAR;
       set_address(basicvars.current, &vp->varentry.var64int);
     break;
     case VAR_FLOAT:		/* Simple reference to floating point variable */
-      *basicvars.current = TOKEN_FLOATVAR;
+      *basicvars.current = BASIC_TOKEN_FLOATVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
     case VAR_STRINGDOL:	/* Simple reference to string variable */
-      *basicvars.current = TOKEN_STRINGVAR;
+      *basicvars.current = BASIC_TOKEN_STRINGVAR;
       set_address(basicvars.current, &vp->varentry.varstring);
       break;
     default:			/* Array or array reference with indirection operator */
       if (*np==')')		/* Reference to an entire array */
-        *basicvars.current = TOKEN_ARRAYVAR;
+        *basicvars.current = BASIC_TOKEN_ARRAYVAR;
       else {	/* Reference to array element */
-        *basicvars.current = TOKEN_ARRAYREF;
+        *basicvars.current = BASIC_TOKEN_ARRAYREF;
       }
       set_address(basicvars.current, vp);
     }

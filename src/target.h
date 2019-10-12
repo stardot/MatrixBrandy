@@ -305,7 +305,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** is the minimum it can be changed to.
 */
 
+#ifdef BRANDY_DEFAULT_SIZE
+#define DEFAULTSIZE (BRANDY_DEFAULT_SIZE * 1024)
+#else
 #define DEFAULTSIZE (512*1024)
+#endif
 #define MINSIZE 16384
 
 
@@ -321,6 +325,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef TARGET_MINGW
+#define __USE_MINGW_ANSI_STDIO 1
 #include <setjmp.h>
 #define sigsetjmp(env, savesigs) setjmp(env)
 #define siglongjmp(env, val) longjmp(env, val)
