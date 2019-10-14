@@ -376,12 +376,12 @@ static void define_byte_array(variable *vp) {
     highindex = eval_integer();
     if (highindex < -1) error(ERR_NEGDIM, vp->varname);	/* Dimension is out of range */
 
-    if (highindex == -1)	/* Treat size of -1 as special case, although it does not have to be */
+    if (highindex == -1) {	/* Treat size of -1 as special case, although it does not have to be */
       ep = basicvars.vartop;
 #ifdef __LP64__
       if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
-    else {
+    } else {
 #ifdef __LP64__
       if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
