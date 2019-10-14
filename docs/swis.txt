@@ -125,6 +125,25 @@ Brandy_xxx  (SWI numbers start &140000)
 				and will promote to float when needed.
 				R0=1 to enable, 0 to disable. Default: disabled.
 
+&140007 Brandy_Hex64		This switches Brandy into rendering and
+				interpreting Base 16 (Hexadecimal) values as
+				64-bit.
+				R0=1 to enable, 0 to disable. Default: disabled.
+
+&140008 Brandy_DELisBS		Toggles whether the DEL key functions as
+				backsppace (DELETE in old BBC terminology).
+				R0=1 to enable, 0 to disable.
+				Default: Enabled on UNIX text-mode builds,
+					 Disabled otherwise.
+
+&140009 Brandy_PseudovarsUnsigned
+				Only effective on 32-bit hardware. Toggles
+				whether memory pseudo-variables (e.g. PAGE,
+				HIMEM etc) return large positive numbers
+				above &7FFFFFFF.
+				R0=1 to enable, 0 to disable. Default: disabled.
+
+
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
