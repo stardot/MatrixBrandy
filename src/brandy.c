@@ -189,6 +189,7 @@ static void init1(void) {
   matrixflags.int_uses_float = 0;	/* Does INT() use floats? Default no = RISC OS and BBC behaviour */
   matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
   matrixflags.hex64 = 0;		/* Decode hex as 64-bit? Default no = BASIC VI behaviour */
+  matrixflags.pseudovarsunsigned = 0;	/* Are memory pseudovariables unsigned on 32-bit? */
 #if defined(TARGET_UNIX) & !defined(USE_SDL)
   matrixflags.delcandelete = 1;		/* DEL character can delete? */
 #else
