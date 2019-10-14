@@ -343,22 +343,24 @@ void exec_def(void) {
 */
 static void define_byte_array(variable *vp) {
   boolean isindref, islocal;
-  int32 offset = 0, highindex;
+  int64 offset = 0, highindex;
   byte *ep;
 /*
 ** Allocate a byte *array* (index range 0..highindex) of the requested
 ** size. The address stored is in fact the byte offset of the array
 ** from the start of the Basic workspace
 */
-  if (vp->varflags  !=  VAR_INTWORD && vp->varflags  !=  VAR_FLOAT) error(ERR_VARNUM);
+  if (vp->varflags  !=  VAR_INTWORD && vp->varflags  !=  VAR_INTLONG && vp->varflags  !=  VAR_FLOAT) error(ERR_VARNUM);
   isindref = *basicvars.current == '!';
   if (isindref) {
 /* Deal with indirection operator in DIM <variable>!<offset> <size> */
     basicvars.current++;
     if (vp->varflags == VAR_INTWORD)
       offset = vp->varentry.varinteger + eval_intfactor();
+    else if (vp->varflags == VAR_INTLONG)
+      offset = vp->varentry.var64int + eval_intfactor();
     else {
-      offset = TOINT(vp->varentry.varfloat) + eval_intfactor();
+      offset = TOINT64(vp->varentry.varfloat) + eval_intfactor();
     }
   }
   islocal = *basicvars.current == BASIC_TOKEN_LOCAL;
@@ -385,6 +387,8 @@ static void define_byte_array(variable *vp) {
     store_integer(offset, ep-basicvars.offbase);
   else if (vp->varflags == VAR_INTWORD)
     vp->varentry.varinteger = ep-basicvars.offbase;
+  else if (vp->varflags == VAR_INTLONG)
+    vp->varentry.var64int = ep-basicvars.offbase;
   else {
     vp->varentry.varfloat = TOFLOAT(ep-basicvars.offbase);
   }
