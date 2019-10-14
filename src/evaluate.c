@@ -3860,7 +3860,7 @@ static void eval_vpow(void) {
 static void eval_vlsl(void) {
   stackitem lhitem, rhitem;
   int32 lhint = 0, rhint = 0, val32;
-  int64 lhint64 = 0, val64;
+  int64 lhint64 = 0;
   rhitem = GET_TOPITEM;
   switch(rhitem) {
     case STACK_INT:
@@ -3882,11 +3882,8 @@ static void eval_vlsl(void) {
   if (lhitem == STACK_INT) {
     lhint = pop_int();
     val32 = lhint << rhint;
-    val64 = (int64)lhint << rhint;
-    if ((rhint < 64) && (val32 == val64)) {
+    if (rhint < 32) {
       push_int(val32);
-    } else if (rhint < 64) {
-      push_int64(val64);
     } else push_int(0);
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
     lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
