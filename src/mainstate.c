@@ -378,7 +378,13 @@ static void define_byte_array(variable *vp) {
 
     if (highindex == -1)	/* Treat size of -1 as special case, although it does not have to be */
       ep = basicvars.vartop;
+#ifdef __LP64__
+      if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) error(ERR_ADDRESS);
+#endif
     else {
+#ifdef __LP64__
+      if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
+#endif
       ep = condalloc(highindex+1);
       if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
     }
