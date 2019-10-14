@@ -2076,7 +2076,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
   char buf;
 #endif
 #endif
-#ifdef TARGET_MINGW
+#if defined(TARGET_MINGW) && defined(USE_SDL)
   int getChar;
   SECURITY_ATTRIBUTES saAttr;
 
