@@ -1507,11 +1507,15 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   for (yloop=top;yloop<=bottom; yloop++) {
+    if (clipping) {
+      roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
+      if ((roy < gwinbottom) || (roy > gwintop)) continue;
+    }
     for (xloop=left; xloop<=right; xloop++) {
       if (clipping) {
         rox=xloop * modetable[screenmode].xscale * 2;
         roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
-        if ((rox < gwinleft) || (rox > gwinright) || (roy < gwinbottom) || (roy > gwintop)) continue;
+        if ((rox < gwinleft) || (rox > gwinright)) continue;
       }
       pxoffset = xloop + yloop*vscrwidth;
       prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
