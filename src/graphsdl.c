@@ -1126,7 +1126,7 @@ static void write_char(int32 ch) {
 ** 'x' and 'y' direction but never in just the 'x' direction.
 */
 static void plot_char(int32 ch) {
-  int32 y, topx, topy, scrwidth, line;
+  int32 y, topx, topy, line;
   SDL_Rect clip_rect;
   if (clipping) {
     clip_rect.x = GXTOPX(gwinleft);
@@ -1137,7 +1137,6 @@ static void plot_char(int32 ch) {
   }
   topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
   topy = GYTOPY(ylast);	/* top left-hand corner of the character */
-  scrwidth=modetable[screenmode].xres*modetable[screenmode].xscale;
   place_rect.x = topx;
   place_rect.y = topy;
   for (y=0; y<YPPC; y++) {
