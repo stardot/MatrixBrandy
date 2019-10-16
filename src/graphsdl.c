@@ -1503,10 +1503,16 @@ static void vdu_return(void) {
 
 static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom, Uint32 colour, Uint32 action) {
   Uint32 xloop, yloop, pxoffset, prevcolour, a, altcolour = 0;
+  int32 rox = 0, roy = 0;
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   for (yloop=top;yloop<=bottom; yloop++) {
     for (xloop=left; xloop<=right; xloop++) {
+      if (clipping) {
+        rox=xloop * modetable[screenmode].xscale * 2;
+        roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
+        if ((rox < gwinleft) || (rox > gwinright) || (roy < gwinbottom) || (roy > gwintop)) continue;
+      }
       pxoffset = xloop + yloop*vscrwidth;
       prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
@@ -2552,11 +2558,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.y = top;
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
-    if (action==0) {
-    SDL_FillRect(modescreen, &plot_rect, colour);
-    } else {
-      fill_rectangle(left, top, right, bottom, colour, action);
-    }
+    fill_rectangle(left, top, right, bottom, colour, action);
     hide_cursor();
     blit_scaled(left, top, right, bottom);
     reveal_cursor();
