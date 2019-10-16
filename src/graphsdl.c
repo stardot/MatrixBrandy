@@ -1520,7 +1520,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
       prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
       if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
-      switch (graph_back_action) {
+      switch (graph_fore_action) {
 	case 0:
 	  altcolour=colour;
 	  break;
