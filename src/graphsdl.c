@@ -1514,7 +1514,6 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
     for (xloop=left; xloop<=right; xloop++) {
       if (clipping) {
         rox=xloop * modetable[screenmode].xscale * 2;
-        roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
         if ((rox < gwinleft) || (rox > gwinright)) continue;
       }
       pxoffset = xloop + yloop*vscrwidth;
