@@ -103,7 +103,7 @@ static int writebank=0;
 static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
-static SDL_Surface *sdl_fontbuf, *sdl_v5fontbuf, *sdl_m7fontbuf;
+static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
@@ -1125,7 +1125,7 @@ static void write_char(int32 ch) {
 ** 'x' and 'y' direction but never in just the 'x' direction.
 */
 static void plot_char(int32 ch) {
-  int32 y, topx, topy, line;
+  int32 y, topx, topy, scrwidth, line;
   SDL_Rect clip_rect;
   if (clipping) {
     clip_rect.x = GXTOPX(gwinleft);
@@ -1136,23 +1136,22 @@ static void plot_char(int32 ch) {
   }
   topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
   topy = GYTOPY(ylast);	/* top left-hand corner of the character */
+  scrwidth=modetable[screenmode].xres*modetable[screenmode].xscale;
   place_rect.x = topx;
   place_rect.y = topy;
-  SDL_FillRect(sdl_v5fontbuf, NULL, gb_colour);
   for (y=0; y<YPPC; y++) {
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) *((Uint32*)sdl_v5fontbuf->pixels + 0 + y*XPPC) = gf_colour;
-      if (line & 0x40) *((Uint32*)sdl_v5fontbuf->pixels + 1 + y*XPPC) = gf_colour;
-      if (line & 0x20) *((Uint32*)sdl_v5fontbuf->pixels + 2 + y*XPPC) = gf_colour;
-      if (line & 0x10) *((Uint32*)sdl_v5fontbuf->pixels + 3 + y*XPPC) = gf_colour;
-      if (line & 0x08) *((Uint32*)sdl_v5fontbuf->pixels + 4 + y*XPPC) = gf_colour;
-      if (line & 0x04) *((Uint32*)sdl_v5fontbuf->pixels + 5 + y*XPPC) = gf_colour;
-      if (line & 0x02) *((Uint32*)sdl_v5fontbuf->pixels + 6 + y*XPPC) = gf_colour;
-      if (line & 0x01) *((Uint32*)sdl_v5fontbuf->pixels + 7 + y*XPPC) = gf_colour;
+      if (line & 0x80) *((Uint32*)modescreen->pixels + topx + 0 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x40) *((Uint32*)modescreen->pixels + topx + 1 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x20) *((Uint32*)modescreen->pixels + topx + 2 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x10) *((Uint32*)modescreen->pixels + topx + 3 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x08) *((Uint32*)modescreen->pixels + topx + 4 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x04) *((Uint32*)modescreen->pixels + topx + 5 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x02) *((Uint32*)modescreen->pixels + topx + 6 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x01) *((Uint32*)modescreen->pixels + topx + 7 + (topy+y)*scrwidth) = gf_colour;
     }
   }
-  SDL_BlitSurface(sdl_v5fontbuf, &font_rect, modescreen, &place_rect);
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
@@ -3134,7 +3133,7 @@ void emulate_origin(int32 x, int32 y) {
 ** interpreter to run)
 */
 boolean init_screen(void) {
-  static SDL_Surface *fontbuf, *v5fontbuf, *m7fontbuf;
+  static SDL_Surface *fontbuf, *m7fontbuf;
   int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
   int p;
 
@@ -3163,14 +3162,10 @@ boolean init_screen(void) {
   screen3 = SDL_DisplayFormat(screen0);
   screen3A = SDL_DisplayFormat(screen0);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-  v5fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   sdl_fontbuf = SDL_ConvertSurface(fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
-  sdl_v5fontbuf = SDL_ConvertSurface(v5fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
   sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
-  SDL_SetColorKey(sdl_v5fontbuf, SDL_SRCCOLORKEY, 0);
   SDL_FreeSurface(fontbuf);
-  SDL_FreeSurface(v5fontbuf);
   SDL_FreeSurface(m7fontbuf);
 
   vdunext = 0;
