@@ -10,7 +10,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   line with the way the Acorn MOS handles it.
 - Separate out memory information from *HELP BASIC (in Debug mode) to
   *HELP MEMINFO (available on any build).
-- Fixed VDU5 font painting in black.
+- Fixed VDU5 font painting in black. It now honours the graphics window and
+  the GCOL action code.
+- RECTANGLE FILL now honours the graphics window.
 
 * V1.22.1
 - Make the old BASIC I-IV compatible integer mathematics available via a
