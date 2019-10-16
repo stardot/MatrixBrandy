@@ -1140,6 +1140,7 @@ static void plot_char(int32 ch) {
   place_rect.x = topx;
   place_rect.y = topy;
   for (y=0; y<YPPC; y++) {
+    if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
       if (line & 0x80) *((Uint32*)modescreen->pixels + topx + 0 + (topy+y)*scrwidth) = gf_colour;
