@@ -119,6 +119,7 @@ Uint32 xor_mask;
 */
 
 static void reveal_cursor(void);
+static void plot_pixel(SDL_Surface *, int64, Uint32, Uint32);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
 static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
@@ -1143,14 +1144,14 @@ static void plot_char(int32 ch) {
     if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) *((Uint32*)modescreen->pixels + topx + 0 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x40) *((Uint32*)modescreen->pixels + topx + 1 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x20) *((Uint32*)modescreen->pixels + topx + 2 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x10) *((Uint32*)modescreen->pixels + topx + 3 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x08) *((Uint32*)modescreen->pixels + topx + 4 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x04) *((Uint32*)modescreen->pixels + topx + 5 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x02) *((Uint32*)modescreen->pixels + topx + 6 + (topy+y)*scrwidth) = gf_colour;
-      if (line & 0x01) *((Uint32*)modescreen->pixels + topx + 7 + (topy+y)*scrwidth) = gf_colour;
+      if (line & 0x80) plot_pixel(modescreen, (topx + 0 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x40) plot_pixel(modescreen, (topx + 1 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x20) plot_pixel(modescreen, (topx + 2 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x10) plot_pixel(modescreen, (topx + 3 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x08) plot_pixel(modescreen, (topx + 4 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x04) plot_pixel(modescreen, (topx + 5 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x02) plot_pixel(modescreen, (topx + 6 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x01) plot_pixel(modescreen, (topx + 7 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
     }
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
