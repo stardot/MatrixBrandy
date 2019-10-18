@@ -1520,7 +1520,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
       prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
       if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
-      switch (graph_fore_action) {
+      switch (action) {
 	case 0:
 	  altcolour=colour;
 	  break;
@@ -1559,7 +1559,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 static void vdu_cleargraph(void) {
   if (istextonly()) return;
   hide_cursor();	/* Remove cursor */
-  if (graph_back_action == 0) {
+  if (graph_back_action == 0 && !clipping) {
     SDL_FillRect(modescreen, NULL, gb_colour);
   } else {
     fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), gb_colour, graph_back_action);
