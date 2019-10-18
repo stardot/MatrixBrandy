@@ -2369,7 +2369,7 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
 
   if (clipping) {
     rox = (offset % screenwidth)*xgupp;
-    roy = ygraphunits - ygupp - (offset / screenwidth)*ygupp/yscale;
+    roy = ygraphunits - ygupp - (offset / vscrwidth)*ygupp;
     if ((rox < gwinleft) || (rox > gwinright) || (roy < gwinbottom) || (roy > gwintop)) return;
   }
   if (plot_inverse ==1) {
