@@ -2561,7 +2561,11 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.y = top;
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
-    fill_rectangle(left, top, right, bottom, colour, action);
+    if (action==0 && !clipping) {
+      SDL_FillRect(modescreen, &plot_rect, colour);
+    } else {
+      fill_rectangle(left, top, right, bottom, colour, action);
+    }
     hide_cursor();
     blit_scaled(left, top, right, bottom);
     reveal_cursor();
