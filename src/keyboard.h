@@ -50,6 +50,7 @@ extern char *kbd_fnkeyget(int key, int *length);
 extern int32 kbd_readline(char *buffer, int32 length, int32 chars);
 extern int32 kbd_buffered(void);
 extern int32 kbd_pending(void);
+extern void  kbd_escchar(char, char);
 extern int   kbd_escpoll(void);
 extern int   kbd_esctest(void);
 extern int   kbd_escack(void);

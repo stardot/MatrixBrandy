@@ -544,6 +544,7 @@ int kbd_esctest() {
   return FALSE;
 }
 
+void kbd_escchar(char a, char b) { return; }		// set Escape character
 void kbd_escset()   { basicvars.escape=TRUE; }		// set Escape state
 void kbd_escclr()   { basicvars.escape=FALSE; }		// clear Escape state
 

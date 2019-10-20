@@ -58,6 +58,7 @@
 ** 05-Jan-2019 JGH: GSTrans returns string+length, so embedded |@ allowed in *KEY.
 ** 30-Aug-2019 JGH: Preparing to generalise OSBYTE 166+.
 ** 04-Sep-2019 JGH: Added OSBYTE system variables for OSBYTE 166+.
+** 18-Oct-2019 JGH: Some keyboard OSBYTEs have to call keyboard module.
 **
 ** Note to developers: after calling external command that generates screen output,
 ** need find_cursor() to restore VDU state and sometimes emulate_printf("\r\n") as well.
@@ -2604,20 +2605,18 @@ byte *sysvar = _sysvar-166;
 
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
 {
-int tmp;
+int tmp,new;
 
 tmp=(areg=areg & 0xFF);	// Prevent any sillyness
 
 if (areg>=166) {
-  tmp=sysvar[areg];
-  sysvar[areg] = (byte)(sysvar[areg] & yreg) ^ xreg;
-  // Temporary test until special-case generalised
-//  if (areg!=200 && areg!=229 && areg!=250 && areg!=251) {
-  if (areg!=250 && areg!=251) {
-    xreg=tmp & 0xFF;
-    yreg=sysvar[areg+1] & 0xFF;
-    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
-  }
+  new  = (byte)(sysvar[areg] & yreg) ^ xreg;
+  xreg = sysvar[areg] & 0xFF;
+  yreg = sysvar[areg+1] & 0xFF;
+  sysvar[areg] = new;
+// Some variables are 'unclean' because we don't control the kernel
+  if (areg==220) kbd_escchar(new, xreg);
+  return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
 }
 
 switch (areg) {
@@ -2629,31 +2628,7 @@ switch (areg) {
 	case 1: case 3: case 4: case 5: case 6:
 		if (areg==3 || areg==4) tmp=tmp-7;
 		return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
-	case 20:
-#ifdef USE_SDL
-		reset_sysfont(8);
-		return 0x030114;
-#else
-		return 0xC003FF14;
-#endif
-	case 25:
-#ifdef USE_SDL
-		if ((xreg >= 0) && (xreg <= 7)) {
-		  reset_sysfont(xreg);
-		  return(0x19);
-		} else {
-		  return(0x19 + (xreg << 8));
-		}
-#else
-		return 0xC000FF19;
-#endif
-	case 42:		// OSBYTE 42 - local to Brandy
-#ifdef USE_SDL
-		return osbyte42(xreg);
-		break;
-#else
-		return 0xC000FF2A;
-#endif
+
 	case 43:
 		printf("%c", xreg);
 		fflush(stdout);
@@ -2661,26 +2636,42 @@ switch (areg) {
 	case 44:
 		osbyte44(xreg);
 		break;
-	case 106:
-#ifdef USE_SDL
-		sdl_mouse_onoff(xreg & 0x7);
-#endif
-		break;
-	case 112:
-#ifdef USE_SDL
-		osbyte112(xreg);
-#endif
-		break;
-	case 113:
-#ifdef USE_SDL
-		osbyte113(xreg);
-#endif
-		break;
 
-	case 128:		// OSBYTE 128 - ADVAL
+#ifdef USE_SDL
+	case 20:			// OSBYTE 20, reset font
+		reset_sysfont(8);
+		return 0x030114;
+	case 25:			// OSBYTE 25, reset font
+		if ((xreg >= 0) && (xreg <= 7)) {
+		  reset_sysfont(xreg);
+		  return(0x19);
+		} else {
+		  return(0x19 + (xreg << 8));
+		}
+	case 42:			// OSBYTE 42 - local to Brandy
+		return osbyte42(xreg);
+		break;
+	case 106:			// OSBYTE 106 - select pointer
+		sdl_mouse_onoff(xreg & 0x7);
+		break;
+	case 112:			// OSBYTE 112 - screen bank written to 
+		osbyte112(xreg);
+		break;
+	case 113:			// OSBYTE 113 - screen bank displayed
+		osbyte113(xreg);
+		break;
+	case 134:			// OSBYTE 134 - Read POS and VPOS
+	case 165:			// OSBYTE 165 - Read editing cursor position (we don't have seperate cursors)
+		return osbyte134_165(areg);
+	case 135:			// OSBYTE 135 - Read character and screen MODE
+		return osbyte135();
+#endif
+
+
+	case 128:			// OSBYTE 128 - ADVAL
 		return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
 
-	case 129:		// OSBYTE 129 - INKEY
+	case 129:			// OSBYTE 129 - INKEY
 #ifdef NEWKBD
 		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
 // NB: Real OSBYTE 129 returns weird result for Escape/Timeout
@@ -2695,86 +2686,74 @@ switch (areg) {
 		}
 #endif
 		break;
-	case 130:		// OSBYTE 130 - High word of user memory
+
+	case 130:			// OSBYTE 130 - High word of user memory
 		areg = basicvars.workspace - basicvars.offbase;
 		return ((areg & 0xFFFF0000) >> 8) | 130;
 
-	case 131:		// OSBYTE 132 - Bottom of user memory
+	case 131:			// OSBYTE 132 - Bottom of user memory
 		areg = basicvars.workspace - basicvars.offbase;
 		if (areg < 0xFFFF)	return (areg << 8) | 131;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
-	case 132:		// OSBYTE 132 - Top of user memory
+	case 132:			// OSBYTE 132 - Top of user memory
 		areg = basicvars.slotend - basicvars.offbase;
 		if (areg < 0xFFFF)	return (areg << 8) | 132;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
+//	case 133:			// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 
-//	case 133:		// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
-	case 134:		// OSBYTE 134 - Read POS and VPOS
-	case 165:		// Identical, since we don't have an editing cursor
-// The ifdefs here should be devolved into the called functions
-#ifdef USE_SDL
-		return osbyte134_165(areg);
-#else
-		return 0xC000FFA5;
-#endif
-	case 135:
-#ifdef USE_SDL
-		return osbyte135();
-#else
-		return 0xC000FF87;
-#endif
-	case 160:		// OSBYTE 160 - Read VDU variable
+	case 160:			// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
-	case 163:		// OSBYTE 163 - Application Support.
 #ifdef USE_SDL
-		if (xreg==1) {	// get/set REFRESH state
+	case 163:			// OSBYTE 163 - Application Support.
+		if (xreg==1) {		// get/set REFRESH state
 		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
 		  else {
 		    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
 		    else star_refresh(yreg);
 		  }
 		}
-		if (xreg==2) { // Set Escape Check Interval, 0 resets defaults
+		if (xreg==2) {		// Set Escape Check Interval, 0 resets defaults
 		  //set_escint(yreg);
 		}
-		if (xreg==3) { // Set Escape Check Interval, multiplied by 256.
+		if (xreg==3) {		// Set Escape Check Interval, multiplied by 256.
 		  //set_escmul(yreg);
 		}
-		if (xreg==127) { // Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
+		if (xreg==127) {	// Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
 		  star_refresh(1);
 		  osbyte112(1);
 		  osbyte113(1);
 		  emulate_vdu(6);
 		}
-#endif
 		break;
+#endif
+
 // This is now in keyboard.c
-	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
-		if (xreg & 1) {
-		  basicvars.escape_enabled = TRUE;
-		} else {
-		  basicvars.escape_enabled = FALSE;
-		}
-		break;
+//	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
+//		if (xreg & 1) {
+//		  basicvars.escape_enabled = TRUE;
+//		} else {
+//		  basicvars.escape_enabled = FALSE;
+//		}
+//		break;
 // This is now in keyboard.c
-	case 229:		// OSBYTE 229 - Enable or disable escape
-		if (xreg) {
-		  basicvars.escape_enabled = FALSE;
-		} else {
-		  basicvars.escape_enabled = TRUE;
-		}
-		break;
-	case 250:
-#ifdef USE_SDL
-		if ((xreg == 0) && (yreg == 255)) return osbyte250();
-#endif
-		break;
-	case 251:
-#ifdef USE_SDL
-		if ((xreg == 0) && (yreg == 255)) return osbyte251();
-#endif
-		break;
+//	case 229:		// OSBYTE 229 - Enable or disable escape
+//		if (xreg) {
+//		  basicvars.escape_enabled = FALSE;
+//		} else {
+//		  basicvars.escape_enabled = TRUE;
+//		}
+//		break;
+//	case 250:
+//#ifdef USE_SDL
+//		if ((xreg == 0) && (yreg == 255)) return osbyte250();
+//#endif
+//		break;
+//	case 251:
+//#ifdef USE_SDL
+//		if ((xreg == 0) && (yreg == 255)) return osbyte251();
+//#endif
+//		break;
 	}
 if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
 	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
