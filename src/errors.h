@@ -50,8 +50,6 @@ typedef enum {
     ERR_PROCMISS,       /* Unknown procedure */
     ERR_TOOMANY,        /* Too many parameters in FN or PROC call */
     ERR_NOTENUFF,       /* Not enough parameters in FN or PROC call */
-    ERR_FNTOOMANY,      /* Too many parameters in call to built-in function */
-    ERR_FNNOTENUFF,     /* Not enough parameters in call to built-in function */
     ERR_BADDIM,         /* Not enough room to create an array */
     ERR_BADBYTEDIM,     /* Not enough room to create a byte array */
     ERR_NEGDIM,         /* Array dimension is negative */
@@ -96,7 +94,6 @@ typedef enum {
     ERR_PARMNUM,        /* Parameter type mismatch: number wanted */
     ERR_PARMSTR,        /* Parameter type mismatch: string wanted */
     ERR_VARNUM,         /* Type mismatch: numeric variable wanted */
-    ERR_VARSTR,         /* Type mismatch: string variable wanted */
     ERR_VARNUMSTR,      /* Integer or string value wanted */
     ERR_VARARRAY,       /* Type mismatch: array wanted */
     ERR_INTARRAY,       /* Type mismatch: integer array wanted */
@@ -107,7 +104,6 @@ typedef enum {
     ERR_TYPEARRAY,      /* Type mismatch: arrays must be the same size */
     ERR_MATARRAY,       /* Type mismatch: cannot perform matrix multiplication on these arrays */
     ERR_NOSWAP,         /* Type mismatch: cannot swap variables of different types */
-    ERR_BADCOMP,        /* Cannot compare these types of operand */
     ERR_BADARITH,       /* Cannot perform arithmetic operations on these types of operand */
     ERR_BADEXPR,        /* Syntax error in expression */
     ERR_RETURN,         /* RETURN encountered outside a subroutine */
@@ -130,7 +126,6 @@ typedef enum {
     ERR_BADTRACE,       /* Bad TRACE option */
     ERR_ERRNOTOP,       /* Error block not on top of stack */
     ERR_DATANOTOP,      /* DATA pointer not on top of stack */
-    ERR_BADPLACE,       /* SPC() or TAB() found outside INPUT or PRINT */
     ERR_BADMODESC,      /* Bad mode descriptor */
     ERR_BADMODE,        /* Screen mode unavailable */
     WARN_LIBLOADED,     /* Library already loaded */
@@ -147,10 +142,9 @@ typedef enum {
     ERR_READFAIL,       /* Cannot read file */
     ERR_NOTCREATED,     /* Cannot create file */
     ERR_WRITEFAIL,      /* Could not finish writing to file */
-    ERR_EMPTYFILE,      /* Basic program file is empty */
     ERR_FILEIO,         /* Some other I/O error */
-    ERR_UNKNOWN,        /* Unexpected signal received */
     ERR_CMDFAIL,        /* OS command failed */
+    ERR_UNKNOWN,        /* Unexpected signal received */
     ERR_BADHANDLE,      /* Handle is invalid or file associated with it is closed */
     ERR_SETPTRFAIL,     /* File pointer cannot be changed */
     ERR_GETPTRFAIL,     /* File pointer cannot be read */
@@ -162,18 +156,14 @@ typedef enum {
     ERR_RENUMBER,       /* RENUMBER failed */
     WARN_LINENO,        /* Line number too large (warning) */
     WARN_LINEMISS,      /* Line number missing (warning) */
-    WARN_RENUMBERED,    /* Program renumbered */
     WARN_RPMISS,        /* ')' missing (warning) */
     WARN_RPAREN,        /* Too many ')' (warning) */
     WARN_PARNEST,       /* '()' nested incorrectly */
     WARN_NEWSIZE,       /* Size of workspace changed */
-    WARN_ONEFILE,       /* One file closed */
-    WARN_MANYFILES,     /* Many files closed */
     ERR_EDITFAIL,       /* Edit session failed */
     ERR_OSCLIFAIL,      /* OSCLI failed */
     ERR_NOGZIP,         /* gzip support not available */
     WARN_FUNNYFLOAT,    /* Unknown floating point format */
-    ERR_EMUCMDFAIL,     /* Emulated RISC OS command failed */
     ERR_SWINAMENOTKNOWN,/* SWI name not known */
     ERR_SWINUMNOTKNOWN,	/* SWI &xxx not known */
     ERR_DIRNOTFOUND,	/* Directory not found */
@@ -182,19 +172,16 @@ typedef enum {
 // From JGH's Banana Brandy fork
     ERR_BADCOMMAND,	/* 254, Bad command */
     ERR_BADSTRING,	/* 253, Bad string */
-    ERR_BADADDRESS,	/* 252, Bad address */
     ERR_BADNUMBER,	/* 252, Bad number */
     ERR_BADKEY,		/* 251, Bad key */
     ERR_KEYINUSE,	/* 250, Key in use */
-    ERR_BADLANGUAGE,	/* 249, No language */
-    ERR_BADFILING,	/* 248, Bad filing system */
     ERR_MOSVERSION,	/* 247, MOS x,yz */
     ERR_BADSYNTAX,	/* 220, Bad syntax */
 // Network errors
-    ERR_NET_CONNREFUSED,	/* 246, Connection refused */
-    ERR_NET_NOTFOUND,	/* 246, Host not found */
-    ERR_NET_MAXSOCKETS,	/* 246, Maximum number of sockets already open */
-    ERR_NET_NOTSUPP,	/* 246, Network operation not supported */
+    ERR_NET_CONNREFUSED,/* 165, Connection refused */
+    ERR_NET_NOTFOUND,	/* 213, Host not found */
+    ERR_NET_MAXSOCKETS,	/* 192, Maximum number of sockets already open */
+    ERR_NET_NOTSUPP,	/* 157, Network operation not supported */
     ERR_NO_RPI_GPIO,	/* 510, Raspberry Pi GPIO not available */
     HIGHERROR		/* Leave last, dummy error */
 } errnum;

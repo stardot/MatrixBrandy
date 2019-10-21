@@ -648,7 +648,6 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   mark_end(base);
   if (needsnumbers) {		/* Line numbers are missing */
     renumber_program(filebase, 1, 1);
-//    if (!silent) error(WARN_RENUMBERED);
   }
   return ALIGN(base-filebase+ENDMARKSIZE);
 }
@@ -731,7 +730,6 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
   mark_end(base);
   if (needsnumbers) {		/* Line numbers are missing */
     renumber_program(filebase, 1, 1);
-//    if (!silent) error(WARN_RENUMBERED);
   }
   return ALIGN(base-filebase+ENDMARKSIZE);
 }
