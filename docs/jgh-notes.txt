@@ -1,0 +1,76 @@
+Matrix Brandy updates by JGH
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Bugs identified
+---------------
+Needs a *ESC OFF/*FX229,1 ability. - done, but still bugs.
+Escape state somehow being set after *FX229,0 when CHR$27 has been in buffer.
+KBDTest Esc+Esc should return to menu, not give an error just after *FX229.
+Affects: WinSDL, WinMinGW but not WinDJP. Unix not tested.
+Background Escape test needs to check sv_EscapeChar not physical keypress.
+
+DJPP build embeds keyboard layout of machine the binary is built on.
+
+Abbreviated *commands report errors to DOS Window, eg "K.10O. not a recognised command"
+No abbreviations supported at all! Fix by rewriting command parser and dispatcher.
+
+VDU(n) not returning some correct values, see:
+ graphsdl.c
+ simpletext.c
+ textonly.c
+
+Unable to test in Linux with JP keyboard as can't select JP keyboard in CentOS.
+
+Fixed
+-----
+Foreground keypresses sometimes lost on SDL - fixed by turning off background Escape polling
+implement EOF#0 to test KBD, test softkey expansion, pushkey, kbd buffer - done
+implement ADVAL-1, test just keyboard buffer (and pushkey?) - done
+PTR#0, EXT#0, EOF#0 give UNTRAPPABLE ERROR! - fixed
+PRINT blah blah ;SPCn sometimes doesn't print newline - fixed
+BODGE workarounds:
+ keyboard - fixing by rewriting whole module
+ brandy.c - DOS target tried to open GPIO ports
+ errors.c - DOS target tries to claim non-DOS signals
+ mos.c - waitdelay needs to use appropriate sleep/usleep/etc calls
+ miscprocs.c - needs to use tmpnam where mkstemp does not exist - fixed
+DOS build will only be able to do negative INKEY for Shift/Ctrl/Alt
+ as DOS API does not have equivalent of Windows GetAsyncKeyState. - done
+MODE &87 doesn't select MODE 7 - fixed
+DJPP: VDU 127 kills brandy - fixed, was table overrun
+*cd outputs blank line
+ djpp - fixed
+ mingw - text cursor goes awry, also with *help, etc - fixed, was tail from *.
+ sdl - fixed
+*badcommand (eg *>) cursor goes awry - fixed
+*SHOW to list function keys - done
+
+Have these been fixed?
+----------------------
+DJGPP: After MODE x line wrapping fails.
+Non-graphics versions should default to not bombing out with errors
+
+To do
+-----
+*FX254 option for BBfW keymap? b7-b4=keymap, b3-b0=reserved (Master sets to &0F)
+Document that Win8 needs specific 64-bit version of SDL.dll
+Should theoretically be able to build for ARM CoPro
+Allow background oscli, OSCLI "command &"
+Need *LOAD, *SAVE - done, but need generalising
+cli command lookup needs to use generic table, not string matching
+
+Things like 'has misled interpreter' should be 'Mistake'
+Eg:
+>jjjj<ret>
+Mistake
+>
+
+Optimise VDU dispatcher, should have single VDU queue collector that dispatches
+to individual VDU support code, instead of VDU queue collector duplicated in
+every single VDU module.
+
+Notes
+-----
+MS document ANSI keycodes:
+Pause = 0x1A
+Ctrl-Space = 0x00

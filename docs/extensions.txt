@@ -13,29 +13,25 @@ ADVAL(-n)        - test buffer contents (standard)
 ADVAL(128-n)     - low-level read of buffer n
 ADVAL(128-1)     - fetch untranslated entry from keyboard buffer, 16-bit GET
 
-BPUT#n,byte      - put single byte (standard)
-BPUT#n,string[;] - put string (most non-8-bit BASICs)
-BPUT#n,byte[,byte....] - put multiple bytes
-
-BPUT#0 - VDU
-BGET#0 - GET
-EOF#0  - input pending, soft key being expanded or key in keyboard buffer
-         (contrast with ADVAL(-1) which only tests keyboard buffer)
+BPUT#0           - VDU
+BGET#0           - GET
+EOF#0            - input pending, soft key being expanded or key in keyboard buffer
+                   (contrast with ADVAL(-1) which only tests keyboard buffer)
 PTR#0
 EXT#0
 
 
-COLOUR &00+n - foreground colour (standard)
-COLOUR &40+n - reserved
-COLOUR &80+n - background colour (standard)
-COLOUR &C0+n - border colour
+COLOUR &00+n              - foreground colour (standard)
+COLOUR &40+n              - reserved (various functionality)
+COLOUR &80+n              - background colour (standard)
+COLOUR &C0+n              - border colour
 
 VDU 19,<128,p,r,g,b       - set logical colour
 VDU 19,-1  ,p,r,g,b       - set border colour (-1 is sent as CHR$255)
 
 VDU 19,l,  0+RGB   ,r,g,b - steady physical colour (standard)
 VDU 19,l,  8+RGB   ,r,g,b - flashing or bright physical colour (standard)
-VDU 19,l, 16+action,r,g,b - RGB colour
+VDU 19,l, 16+action,r,g,b - RGB colour (standard extension)
 VDU 19,l, 32+RGB   ,r,g,b - first flashing physical colour
 VDU 19,l, 48+RGB   ,r,g,b - second flashing physical colour
 VDU 19,l, 64+action,r,g,b - reserved
@@ -50,12 +46,14 @@ VDU 23,18,1,update,mask|   - set update type
                               b1=update display after every character
 VDU 23,18,2,reveal,mask|   - reveal concealed display
                               b0=reveal concealed characters
-VDU 23,18,3,enable,mask|   - enable extended control characters, setting=(oldsetting AND and) XOR xor
+VDU 23,18,3,enable,mask|   - enable extended control characters
                               b0=black foreground enabled (CHR$&80, CHR$&90)
                               b1=double width enable (CHR$&8E, CHR$&8F)
+                              b7-b2=reserved for eg Level 3 features
 VDU 23,18,4,fontLo,fontHi| - select teletext font as per SAA505x series.
 VDU 23,18,16,quality,mask| - select character display quality
                               b0=render high quality text
+VDU 23,18,255,width|       - Set Teletext character cell width.
 
 VDU 23,22 - define screen mode (BBfSDL)
 VDU 23,23 - set line thickness (BBfSDL)
@@ -74,19 +72,30 @@ GCOL 96+,c                 - reserved
 
 Extensions to BBC BASIC
 -----------------------
-COLOUR l,p
-COLOUR l,r,g,b
-GCOL c
-PLOT x,y
+BPUT#n,byte             - put single byte (standard)
+BPUT#n,string[;]        - put string (standard extension)
+BPUT#n,byte[,byte....]  - put multiple bytes
+
+BGET#n                  - get single byte (standard)
+GET$#n                  - get string (standard extension)
+
+COLOUR l,p              - do VDU 19,l,p,0,0,0
+COLOUR l,r,g,b          - do VDU 19,l,16,r,g,b or VDU 19,l,24,r,g,b if l<0
+GCOL c                  - do GCOL 0,c
+PLOT x,y                - do PLOT 69,x,y
 =COLOUR(x,y)
 =COLOUR(r,g,b)
 =GCOL(x,y)
 =GCOL(r,g,b)
-=CHR$(x,y)
-PTR(number)  does bigendian !number
-PTR(string$) returns address of start of string$
-&o           octal constant, eg &o107
-%            binary constant, eg %100111
+=CHR$(x,y)              - read character from screen at x,y
+SOUND ON                - turn sound on (*FX210,0)
+SOUND OFF               - turn sound off (*FX210,1)
+PTR(number)             - does bigendian !number
+PTR(string$)            - returns address of start of string$
+&o                      - octal constant, eg &o107
+%                       - binary constant, eg %100111 (standard extension)
+
+ON <various> ...        - interact with GUI system
 
 
 Notes on ADVAL(-1) and EOF#0
