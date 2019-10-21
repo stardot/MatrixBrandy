@@ -52,8 +52,6 @@ typedef enum {
     ERR_NOTENUFF,       /* Not enough parameters in FN or PROC call */
     ERR_FNTOOMANY,      /* Too many parameters in call to built-in function */
     ERR_FNNOTENUFF,     /* Not enough parameters in call to built-in function */
-    ERR_BADRET,         /* Parameter is not a valid 'return' parameter */
-    ERR_CRASH,          /* Run into procedure or function */
     ERR_BADDIM,         /* Not enough room to create an array */
     ERR_BADBYTEDIM,     /* Not enough room to create a byte array */
     ERR_NEGDIM,         /* Array dimension is negative */
@@ -127,7 +125,7 @@ typedef enum {
     WARN_BADHIMEM,      /* Attempted to set HIMEM to a bad value */
     WARN_BADLOMEM,      /* Attempted to set LOMEM to a bad value */
     WARN_BADPAGE,       /* Attempted to set PAGE to a bad value */
-    ERR_NOTINPROC,      /* Cannot change HIMEM in a function or procedure */
+    ERR_LOMEMFIXED,     /* Cannot change LOMEM in a function or procedure */
     ERR_HIMEMFIXED,     /* Cannot change HIMEM here */
     ERR_BADTRACE,       /* Bad TRACE option */
     ERR_ERRNOTOP,       /* Error block not on top of stack */

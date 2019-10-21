@@ -408,11 +408,6 @@ static detail errortable [] = {
 /* ERR_NOTENUFF */	{NONFATAL, BSTRING, 31, "There are not enough parameters in the call to '%s'"},
 /* ERR_FNTOOMANY */	{NONFATAL, NOPARM,  31, "Call to built-in function has too many parameters"},
 /* ERR_FNNOTENUFF */	{NONFATAL, NOPARM,  31, "Call to built-in function does not have enough parameters"},
-/* ERR_BADRET */	{NONFATAL, INTEGER, 31, "Parameter no. %d is not a valid 'RETURN' parameter"},
-//
-// Not actually an error, is specifically allowed functionality, error no longer generated:
-/* ERR_CRASH */		{FATAL,    NOPARM,   0, "Program execution has run into a PROC or FN"},
-//
 /* ERR_BADDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create array '%s)'"},
 /* ERR_BADBYTEDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create a byte array"},
 /* ERR_NEGDIM */	{NONFATAL, STRING,  10, "Dimension of array '%s)' is negative"},
@@ -451,7 +446,7 @@ static detail errortable [] = {
 /* ERR_ONRANGE */	{NONFATAL, INTEGER, 40, "'ON' statement index value of %d is out of range"},
 /* ERR_ARITHMETIC */	{NONFATAL, NOPARM,  20, "Floating point exception"},
 /* ERR_STRINGLEN */	{NONFATAL, NOPARM,  19, "Character string is too long"},
-/* ERR_BADOPER */	{NONFATAL, NOPARM,   0, "Unrecognisable operand"}, // need to check what uses this
+/* ERR_BADOPER */	{NONFATAL, NOPARM,   0, "Unrecognisable operand"},
 /* ERR_TYPENUM */	{NONFATAL, NOPARM,   6, "Type mismatch: number wanted"},
 /* ERR_TYPESTR */	{NONFATAL, NOPARM,   6, "Type mismatch: string wanted"},
 /* ERR_PARMNUM */	{NONFATAL, INTEGER,  6, "Type mismatch: number wanted for PROC/FN parameter no. %d"},
@@ -486,7 +481,7 @@ static detail errortable [] = {
 /* WARN_BADHIMEM */	{WARNING,  NOPARM,   0, "Value of HIMEM must be in the range END to end of the Basic workspace"},
 /* WARN_BADLOMEM */	{WARNING,  NOPARM,   0, "Value of LOMEM must be in the range TOP to end of the Basic workspace"},
 /* WARN_BADPAGE */	{WARNING,  NOPARM,   0, "Value of PAGE must lie in the Basic workspace"},
-/* ERR_NOTINPROC */	{NONFATAL, NOPARM,   0, "LOMEM cannot be changed in a PROC or FN"}, // need to check what uses this
+/* ERR_LOMEMFIXED */	{NONFATAL, NOPARM,   0, "LOMEM cannot be changed in a PROC or FN"}, // need to check what uses this
 /* ERR_HIMEMFIXED */	{NONFATAL, NOPARM,   0, "HIMEM cannot be changed in a PROC, FN or any other program structure"},
 /* ERR_BADTRACE */	{NONFATAL, NOPARM,   0, "Invalid option found after 'TRACE'"},
 /* ERR_ERRNOTOP */	{NONFATAL, NOPARM,  54, "'RESTORE ERROR' information is not the top item on the Basic stack"},

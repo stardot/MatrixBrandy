@@ -2764,7 +2764,7 @@ static void assign_lomem(void) {
   if (address<basicvars.top || address>=basicvars.himem)
     error(WARN_BADLOMEM);	/* Flag error (execution continues after this one) */
   else if (basicvars.procstack!=NIL)	/* Cannot alter LOMEM in a procedure */
-    error(ERR_NOTINPROC);
+    error(ERR_LOMEMFIXED);
   else {
     basicvars.lomem = basicvars.vartop = address;
     basicvars.stacklimit.bytesp = address+STACKBUFFER;
