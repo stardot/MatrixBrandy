@@ -428,7 +428,7 @@ static detail errortable [] = {
 /* WARN_BADBIN */	{WARNING,  NOPARM,  28, "Warning: bad binary constant"},
 /* WARN_EXPOFLO */	{WARNING,  NOPARM,  20, "Warning: exponent is too large"},
 /* ERR_NAMEMISS */	{NONFATAL, NOPARM,   0, "Variable name expected"},
-/* ERR_EQMISS */	{NONFATAL, NOPARM,   4,  "'=' missing or syntax error in statement has misled interpreter"},
+/* ERR_EQMISS */	{NONFATAL, NOPARM,   4, "Mistake"},
 /* ERR_COMISS */	{NONFATAL, NOPARM,  27, "Missing ','"},
 /* ERR_LPMISS */	{NONFATAL, NOPARM,  27, "Missing '('"},
 /* ERR_RPMISS */	{NONFATAL, NOPARM,  27, "Missing ')'"},
