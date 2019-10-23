@@ -8,6 +8,8 @@ Source: http://brandy.matrixnetwork.co.uk/releases/%{name}-%{version}.tar.gz
 URL: http://brandy.matrixnetwork.co.uk/
 BuildRequires: SDL-devel
 
+%define debug_package %{nil}
+
 %description
 Brandy is an interpreter for BBC BASIC VI that runs under a variety of
 operating systems. BASIC V and BASIC VI are versions of BASIC supplied with

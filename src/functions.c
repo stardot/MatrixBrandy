@@ -93,7 +93,7 @@ static float64 floatvalue;		/* Temporary for holding floating point values */
 */
 static void bad_token(void)  {
 #ifdef DEBUG
-  printf("Bad token value %x at %p\n", *basicvars.current, basicvars.current);
+  fprintf(stderr, "Bad token value %x at %p\n", *basicvars.current, basicvars.current);
 #endif
   error(ERR_BROKEN, __LINE__, "expressions");
 }
