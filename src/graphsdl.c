@@ -572,6 +572,12 @@ static void toggle_cursor(void) {
     for (x=left; x <= right; x++) {
       *((Uint32*)screen0->pixels + x + y) ^= xor_mask;
       if (yscale != 1) *((Uint32*)screen0->pixels + x + y + vscrwidth) ^= xor_mask;
+      if ((screenmode == 3) || (screenmode==6) || (screenmode == 11) || (screenmode == 14) || (screenmode == 17)) {
+        *((Uint32*)screen0->pixels + x + y - vscrwidth) ^= xor_mask;
+        *((Uint32*)screen0->pixels + x + y - (vscrwidth*2)) ^= xor_mask;
+        *((Uint32*)screen0->pixels + x + y - (vscrwidth*3)) ^= xor_mask;
+      }
+      if (screenmode ==7) *((Uint32*)screen0->pixels + x + y - vscrwidth) ^= xor_mask;
     }
   }
   else if (cursmode == BLOCK) {
