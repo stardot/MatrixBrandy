@@ -576,6 +576,7 @@ static void toggle_cursor(void) {
         *((Uint32*)screen0->pixels + x + y - vscrwidth) ^= xor_mask;
         *((Uint32*)screen0->pixels + x + y - (vscrwidth*2)) ^= xor_mask;
         *((Uint32*)screen0->pixels + x + y - (vscrwidth*3)) ^= xor_mask;
+        *((Uint32*)screen0->pixels + x + y - (vscrwidth*4)) ^= xor_mask;
       }
       if (screenmode ==7) *((Uint32*)screen0->pixels + x + y - vscrwidth) ^= xor_mask;
     }
@@ -3906,6 +3907,17 @@ void star_refresh(int flag) {
       mode7renderscreen();
     } else {
       SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+      if ((screenmode == 3) || (screenmode == 6)) {
+	int p;
+	hide_cursor();
+	scroll_rect.x=0;
+	scroll_rect.w=screenwidth*xscale;
+	scroll_rect.h=4;
+	for (p=0; p<25; p++) {
+	  scroll_rect.y=16+(p*20);
+	  SDL_FillRect(screen0, &scroll_rect, 0);
+	}
+      }
       SDL_Flip(screen0);
     }
   }
