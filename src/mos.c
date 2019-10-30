@@ -1600,8 +1600,8 @@ static void cmd_help(char *command)
 	emulate_printf("  0 or Off restores the windowws mode, and with no parameter given,\r\n");
 	emulate_printf("  toggles fullscreen mode.\r\n");
 #ifdef CYGWINBUILD
-	emulate_printf("  Please note drawing on a fullscreen surface on the Windows build is known to\r\n");
-	emulate_printf("  be glitchy, at least on some systems. MODE 7 seems to mostly work.\r\n");
+	emulate_printf("\r\n  Please note drawing on a fullscreen surface on the Windows build is known to\r\n");
+	emulate_printf("  be glitchy, at least on some systems, due to an SDL bug.\r\n  MODE 7 seems to mostly work.\r\n");
 #endif
     break;
     case CMD_NEWMODE:
