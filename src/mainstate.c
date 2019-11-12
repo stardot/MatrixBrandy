@@ -957,7 +957,7 @@ void exec_gosub(void) {
     basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
   }
   else {	/* Destination line number is given by an expression */
-    line = eval_intfactor();
+    line = eval_integer();
     if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
     dest = find_line(line);	/* Find start of destination line */
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
@@ -990,7 +990,7 @@ void exec_goto(void) {
     basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
   }
   else {	/* Destination line number is given by an expression */
-    line = eval_intfactor();
+    line = eval_integer();
     if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
     dest = find_line(line);
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
