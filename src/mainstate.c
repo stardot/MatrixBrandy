@@ -958,6 +958,7 @@ void exec_gosub(void) {
   }
   else {	/* Destination line number is given by an expression */
     line = eval_intfactor();
+    if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
     dest = find_line(line);	/* Find start of destination line */
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
     dest = FIND_EXEC(dest);		/* Move from start of line to first token */
