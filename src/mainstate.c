@@ -956,14 +956,11 @@ void exec_gosub(void) {
     dest = set_linedest(basicvars.current);
     basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
   }
-  else if (*basicvars.current == '(') {	/* Destination line number is given by an expression */
+  else {	/* Destination line number is given by an expression */
     line = eval_intfactor();
     dest = find_line(line);	/* Find start of destination line */
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
     dest = FIND_EXEC(dest);		/* Move from start of line to first token */
-  }
-  else {
-    error(ERR_SYNTAX);
   }
   check_ateol();
   push_gosub();
@@ -991,15 +988,12 @@ void exec_goto(void) {
     dest = set_linedest(basicvars.current);
     basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
   }
-  else if (*basicvars.current == '(') {	/* Destination line number is given by an expression */
+  else {	/* Destination line number is given by an expression */
     line = eval_intfactor();
     if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
     dest = find_line(line);
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
     dest = FIND_EXEC(dest);
-  }
-  else {	/* Anything else is an error */
-    error(ERR_SYNTAX);
   }
   check_ateol();
   if (basicvars.traces.branches) trace_branch(basicvars.current, dest);
