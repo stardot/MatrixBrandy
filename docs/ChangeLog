@@ -14,6 +14,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   the GCOL action code.
 - RECTANGLE FILL now honours the graphics window.
 - GOTO and GOSUB no longer require parentheses around an expression.
+- Tek graphics added to tbrandy (textonly.c), but not enabled by default
 
 * V1.22.1
 - Make the old BASIC I-IV compatible integer mathematics available via a
