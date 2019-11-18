@@ -180,10 +180,8 @@ static byte colourmap [] = {
 
 /* Tektronix variables */
 static int32
-  vscrwidth,			/* Width of virtual screen in pixels */
-  vscrheight,			/* Height of virtual screen in pixels */
-  xgupp,			/* RISC OS graphic units per pixel in X direction */
-  ygupp,			/* RISC OS graphic units per pixel in Y direction */
+  xgupp = 2,			/* RISC OS graphic units per pixel in X direction */
+  ygupp = 2,			/* RISC OS graphic units per pixel in Y direction */
   xlast,			/* Graphics X coordinate of last point visited */
   ylast,			/* Graphics Y coordinate of last point visited */
   xlast2,			/* Graphics X coordinate of last-but-one point visited */
@@ -1643,7 +1641,6 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
     my1=y1 / 2;
     my2=y2 / 2;
     printf("%c%c%c%c%c%c%c%c%c%c", 29, (my1>>5)+32, (my1 & 31)+96, (mx1>>5)+32, (mx1 & 31)+64, (my2>>5)+32, (my2 & 31)+96, (mx2>>5)+32, (mx2 & 31)+64, 31);
-
   } else {
 
     if (style & 0x20) skip=1;
@@ -1747,14 +1744,10 @@ static void draw_ellipse(int32 x0, int32 y0, int32 a, int32 b, int32 shearx) {
   while (g < 0) {
     s=shearx*(1.0*y/ym);
     si=s;
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(x0 - x + si, y0 - y);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(x0 + x + si, y0 - y);
-    }
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(x0 - x - si, y0 + y);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(x0 + x - si, y0 + y);
-    }
+    plot_pixel(x0 - x + si, y0 - y);
+    plot_pixel(x0 + x + si, y0 - y);
+    plot_pixel(x0 - x - si, y0 + y);
+    plot_pixel(x0 + x - si, y0 + y);
 
     if (h < 0) {
       d = ((FAST_2_MUL(x)) + 3) * bb;
@@ -1778,14 +1771,10 @@ static void draw_ellipse(int32 x0, int32 y0, int32 a, int32 b, int32 shearx) {
   while (y <= y1) {
     s=shearx*(1.0*y/ym);
     si=s;
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(x0 - x + si, y0 - y);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(x0 + x + si, y0 - y);
-    } 
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(x0 - x - si, y0 + y);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(x0 + x - si, y0 + y);
-    }
+    plot_pixel(x0 - x + si, y0 - y);
+    plot_pixel(x0 + x + si, y0 - y);
+    plot_pixel(x0 - x - si, y0 + y);
+    plot_pixel(x0 + x - si, y0 + y);
 
     if (h < 0)
       h += ((FAST_2_MUL(y)) + 3) * aa;
@@ -1863,7 +1852,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     xlast+=x;	/* These probably have to be treated as 16-bit values */
     ylast+=y;
   }
-  if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) return;	/* Just moving graphics cursor, so finish here */
+  if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) {
+    tekexit();
+    return;	/* Just moving graphics cursor, so finish here */
+  }
   sx = xlast2;
   sy = ylast2;
   ex = xlast;
