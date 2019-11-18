@@ -190,6 +190,7 @@ static void init1(void) {
   matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
   matrixflags.hex64 = 0;		/* Decode hex as 64-bit? Default no = BASIC VI behaviour */
   matrixflags.pseudovarsunsigned = 0;	/* Are memory pseudovariables unsigned on 32-bit? */
+  matrixflags.tekenabled = 0;		/* Tektronix enabled in text mode (default: no) */
 #if defined(TARGET_UNIX) & !defined(USE_SDL)
   matrixflags.delcandelete = 1;		/* DEL character can delete? */
 #else

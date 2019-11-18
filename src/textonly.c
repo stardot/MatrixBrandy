@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <math.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -176,6 +177,27 @@ static byte colourmap [] = {
 #endif
 
 #endif
+
+/* Tektronix variables */
+static int32
+  vscrwidth,			/* Width of virtual screen in pixels */
+  vscrheight,			/* Height of virtual screen in pixels */
+  xgupp,			/* RISC OS graphic units per pixel in X direction */
+  ygupp,			/* RISC OS graphic units per pixel in Y direction */
+  xlast,			/* Graphics X coordinate of last point visited */
+  ylast,			/* Graphics Y coordinate of last point visited */
+  xlast2,			/* Graphics X coordinate of last-but-one point visited */
+  ylast2,			/* Graphics Y coordinate of last-but-one point visited */
+  xorigin,			/* X coordinate of graphics origin */
+  yorigin;			/* Y coordinate of graphics origin */
+#define MAX_XRES 16384
+#define MAX_YRES 16384
+#define FAST_2_MUL(x) ((x)<<1)
+#define FAST_3_MUL(x) (((x)<<1)+x)
+#define FAST_4_MUL(x) ((x)<<2)
+#define FAST_4_DIV(x) ((x)>>2)
+
+static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 static unsigned int vduflag(unsigned int flags) {
   return (vduflags & flags) ? 1 : 0;
@@ -1056,6 +1078,20 @@ static void vdu_hometext(void) {
   move_cursor(twinleft, twintop);
 }
 
+static void tekinit(void) {
+  printf("%c%c%c%c%c%c", 27, 91, 63, 51, 56, 104);
+}
+static void tekexit(void) {
+  printf("%c%c", 27, 3);
+}
+
+static void vdu_cleargraph(void) {
+  if (! matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+  tekinit();
+  printf("%c%c", 27, 12);
+  tekexit();
+}
+
 /*
 ** 'vdu_movetext' moves the text cursor to the given column and row in
 ** the text window (VDU 31). This is the version of the function used
@@ -1068,6 +1104,16 @@ static void vdu_movetext(void) {
   if (column>twinright || (SCRHEIGHT!=0 && row>twinbottom)) return;       /* Ignore command if values are out of range */
   move_cursor(column, row);
 }
+
+static void vdu_origin(void) {
+  int32 x, y;
+  
+  x = vduqueue[0]+vduqueue[1]*256;
+  y = vduqueue[2]+vduqueue[3]*256;
+  xorigin = x<=32767 ? x : -(0x10000-x);
+  yorigin = y<=32767 ? y : -(0x10000-y);
+}
+
 
 /*
 ** 'nogo' is called in cases where VDU commands cannot be used
@@ -1135,6 +1181,15 @@ static void print_char(int32 charvalue) {
 
 #endif
 
+static void vdu_plot(void) {
+  int32 x, y;
+  x = vduqueue[1]+vduqueue[2]*256;
+  if (x > 0x7FFF) x = -(0x10000-x);	/* X is negative */
+  y = vduqueue[3]+vduqueue[4]*256;
+  if (y > 0x7FFF) y = -(0x10000-y);	/* Y is negative */
+  emulate_plot(vduqueue[0], x, y);	/* vduqueue[0] gives the plot code */
+}
+
 /*
 ** 'emulate_vdu' is a simple emulation of the RISC OS VDU driver. It
 ** accepts characters as per the RISC OS driver and uses them to imitate
@@ -1171,22 +1226,24 @@ void emulate_vdu(int32 charvalue) {
     case VDU_NULL:      /* 0 - Do nothing */
     case VDU_ENAPRINT:  /* 2 - Enable the sending of characters to the printer (ignored) */
     case VDU_DISPRINT:  /* 3 - Disable the sending of characters to the printer (ignored) */
-    case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
     case VDU_ENABLE:    /* 6 - Enable the VDU driver (ignored) */
     case VDU_ENAPAGE:   /* 14 - Enable page mode (ignored) */
     case VDU_DISPAGE:   /* 15 - Disable page mode (ignored) */
     case VDU_DISABLE:   /* 21 - Disable the VDU driver (ignored) */
       break;
-    case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
-    case VDU_CLEARGRAPH:        /* 16 - Clear graphics window */
     case VDU_GRAPHCOL:  /* 18 - Change current graphics colour */
     case VDU_DEFGRAPH:  /* 24 - Define graphics window */
-    case VDU_PLOT:      /* 25 - Issue graphics command */
-    case VDU_ORIGIN:    /* 29 - Define graphics origin */
       error(ERR_NOGRAPHICS);
       break;
     case VDU_PRINT:     /* 1 - Send next character to the print stream */
       echo_char();
+      break;
+    case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
+      if (matrixflags.tekenabled) tekexit();
+      break;
+    case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
+      if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+      tekinit();
       break;
     case VDU_BEEP:      /* 7 - Sound the bell */
       putch('\7');
@@ -1213,6 +1270,9 @@ void emulate_vdu(int32 charvalue) {
     case VDU_TEXTCOL:   /* 17 - Change current text colour */
       vdu_textcol();
       break;
+    case VDU_CLEARGRAPH:        /* 16 - Clear graphics window */
+      vdu_cleargraph();
+      break;
     case VDU_LOGCOL:    /* 19 - Map logical colour to physical colour */
       vdu_setpalette();
       break;
@@ -1227,6 +1287,9 @@ void emulate_vdu(int32 charvalue) {
     case VDU_COMMAND:   /* 23 - Assorted VDU commands */
       vdu_23command();
       break;
+    case VDU_PLOT:      /* 25 - Issue graphics command */
+      vdu_plot();
+      break;
     case VDU_RESTWIND:  /* 26 - Restore default windows */
       vdu_restwind();
       break;
@@ -1235,6 +1298,9 @@ void emulate_vdu(int32 charvalue) {
       break;
     case VDU_DEFTEXT:   /* 28 - Define text window */
       vdu_textwind();
+      break;
+    case VDU_ORIGIN:    /* 29 - Define graphics origin */
+      vdu_origin();
       break;
     case VDU_HOMETEXT:  /* 30 - Send cursor to top left-hand corner of screen */
       vdu_hometext();
@@ -1490,12 +1556,446 @@ int32 emulate_modefn(void) {
   return screenmode;
 }
 
+/* Graphics primitives */
+static void plot_pixel(px, py) {
+  int32 mx, my;
+
+  mx = (px + xorigin) / 2;
+  my = (py + yorigin) / 2;
+  printf("%c%c%c%c%c%c%c%c%c%c", 29, (my>>5)+32, (my & 31)+96, (mx>>5)+32, (mx & 31)+64, (my>>5)+32, (my & 31)+96, (mx>>5)+32, (mx & 31)+64, 31);
+}
+
+static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
+  int32 dx, dy, xf, yf, a, b, t, i;
+
+  if (x1 == x2 && y1 == y2) return;
+
+  if (x2 > x1) {
+    dx = x2 - x1;
+    xf = 1;
+  }
+  else {
+    dx = x1 - x2;
+    xf = -1;
+  }
+
+  if (y2 > y1) {
+    dy = y2 - y1;
+    yf = 1;
+  }
+  else {
+    dy = y1 - y2;
+    yf = -1;
+  }
+
+  if (dx > dy) {
+    a = dy + dy;
+    t = a - dx;
+    b = t - dx;
+    for (i = 0; i <= dx; i++) {
+      if (y1 >= 0 && x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (y1 >= 0 && x1 > geom_right[y1]) geom_right[y1] = x1;
+      x1 += xf;
+      if (t < 0)
+        t += a;
+      else {
+        t += b;
+        y1 += yf;
+      }
+    }
+  }
+  else {
+    a = dx + dx;
+    t = a - dy;
+    b = t - dy;
+    for (i = 0; i <= dy; i++) {
+      if (y1 >= 0 && x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (y1 >= 0 && x1 > geom_right[y1]) geom_right[y1] = x1;
+      y1 += yf;
+      if (t < 0)
+        t += a;
+      else {
+        t += b;
+        x1 += xf;
+      }
+    }
+  }
+}
+
+static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
+  int d, x, y, ax, ay, sx, sy, dx, dy, tt, mx1, my1, mx2, my2, skip=0;
+  if (x1 > x2) {
+    tt = x1; x1 = x2; x2 = tt;
+    tt = y1; y1 = y2; y2 = tt;
+  }
+  dx = x2 - x1;
+  ax = abs(dx) << 1;
+  sx = ((dx < 0) ? -1 : 1);
+  dy = y2 - y1;
+  ay = abs(dy) << 1;
+  sy = ((dy < 0) ? -1 : 1);
+  x = x1;
+  y = y1;
+
+  if (style == 0) {
+    mx1=x1 / 2;
+    mx2=x2 / 2;
+    my1=y1 / 2;
+    my2=y2 / 2;
+    printf("%c%c%c%c%c%c%c%c%c%c", 29, (my1>>5)+32, (my1 & 31)+96, (mx1>>5)+32, (mx1 & 31)+64, (my2>>5)+32, (my2 & 31)+96, (mx2>>5)+32, (mx2 & 31)+64, 31);
+
+  } else {
+
+    if (style & 0x20) skip=1;
+
+    if (ax > ay) {
+      d = ay - (ax >> 1);
+      while (x != x2) {
+        if (skip) {
+          skip=0;
+        } else {
+	  plot_pixel(x, y);
+	  if (style & 0x10) skip=1;
+        }
+        if (d >= 0) {
+          y += sy;
+          d -= ax;
+        }
+        x += sx;
+        d += ay;
+      }
+    } else {
+      d = ax - (ay >> 1);
+      while (y != y2) {
+        if (skip) {
+          skip=0;
+        } else {
+	  plot_pixel(x, y);
+	  if (style & 0x10) skip=1;
+        }
+        if (d >= 0) {
+          x += sx;
+          d -= ay;
+        }
+        y += sy;
+        d += ax;
+      }
+    }
+    if ( ! (style & 0x08)) {
+      plot_pixel(x, y);
+    }
+  }
+}
+
+static void draw_h_line(int32 x1, int32 y, int32 x2) {
+  draw_line(x1, y, x2, y ,0);
+}
+
+static void buff_convex_poly(int32 n, int32 *x, int32 *y) {
+  int32 i, iy;
+  int32 low = 32767, high = 0;
+
+  /* set highest and lowest points to visit */
+  for (i = 0; i < n; i++) {
+    if (y[i] > high) high = y[i];
+    if (y[i] < low) low = y[i];
+  }
+  /* reset the minumum amount of the edge tables */
+  for (iy = (low < 0) ? 0: low; iy <= high; iy++) {
+    geom_left[iy] = MAX_XRES + 1;
+    geom_right[iy] = - 1;
+  }
+
+  /* define edges */
+  trace_edge(x[n - 1], y[n - 1], x[0], y[0]);
+
+  for (i = 0; i < n - 1; i++)
+    trace_edge(x[i], y[i], x[i + 1], y[i + 1]);
+
+  /* fill horizontal spans of pixels from geom_left[] to geom_right[] */
+  for (iy = low; iy <= high; iy++)
+    draw_h_line(geom_left[iy], iy, geom_right[iy]);
+}
+
+static void filled_triangle(int32 x1, int32 y1, int32 x2, int32 y2,
+                     int32 x3, int32 y3) {
+  int x[3], y[3];
+
+  x[0]=x1;
+  x[1]=x2;
+  x[2]=x3;
+
+  y[0]=y1;
+  y[1]=y2;
+  y[2]=y3;
+
+  buff_convex_poly(3, x, y);
+}
+
+static void draw_ellipse(int32 x0, int32 y0, int32 a, int32 b, int32 shearx) {
+  int32 x, y, y1, aa, bb, d, g, h, ym, si;
+  float64 s;
+
+  aa = a * a;
+  bb = b * b;
+
+  h = (FAST_4_DIV(aa)) - b * aa + bb;
+  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
+  x = 0;
+  ym = y = b;
+
+  while (g < 0) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(x0 - x + si, y0 - y);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(x0 + x + si, y0 - y);
+    }
+    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(x0 - x - si, y0 + y);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(x0 + x - si, y0 + y);
+    }
+
+    if (h < 0) {
+      d = ((FAST_2_MUL(x)) + 3) * bb;
+      g += d;
+    }
+    else {
+      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
+      g += (d + (FAST_2_MUL(aa)));
+      --y;
+    }
+
+    h += d;
+    ++x;
+  }
+
+  y1 = y;
+  h = (FAST_4_DIV(bb)) - a * bb + aa;
+  x = a;
+  y = 0;
+
+  while (y <= y1) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(x0 - x + si, y0 - y);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(x0 + x + si, y0 - y);
+    } 
+    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(x0 - x - si, y0 + y);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(x0 + x - si, y0 + y);
+    }
+
+    if (h < 0)
+      h += ((FAST_2_MUL(y)) + 3) * aa;
+    else {
+      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
+      --x;
+    }
+    ++y;
+  }
+}
+
+static void filled_ellipse(
+  int32 x0, /* Centre X */
+  int32 y0, /* Centre Y */
+  int32 a, /* Width */
+  int32 b, /* Height */
+  int32 shearx /* X shear */
+) {
+
+  int32 x, y, width, aa, bb, aabb, ym, dx, si;
+  float64 s;
+
+  aa = a * a;
+  bb = b * b;
+  aabb=aa*bb;
+
+  x = 0;
+  width=a;
+  dx = 0;
+  ym = y = b;
+
+  draw_h_line(x0-a, y0, x0 + a);
+
+  for (y=1; y <= b; y++) {
+    s=shearx*(1.0*y/ym);
+    si=s;
+    x=width-(dx-1);
+    for (;x>0; x--)
+      if (x*x*bb + y*y*aa < aabb) break;
+    dx = width -x;
+    width = x;
+    draw_h_line(x0-width+si, y0-y, x0+width+si);
+    draw_h_line(x0-width-si, y0+y, x0+width-si);
+  }
+
+}
+
+static void fill_rectangle(uint32 left, uint32 top, uint32 right, uint32 bottom) {
+  uint32 yloop;
+
+  for (yloop=top;yloop<=bottom; yloop++)
+    draw_h_line(left, yloop, right);
+}
+
+
 /*
 ** Version of 'emulate_plot' used when interpreter does not
 ** include any graphics support
 */
 void emulate_plot(int32 code, int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  int32 xlast3, ylast3, sx, sy, ex, ey;
+
+  if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+/* Decode the command */
+  tekinit();
+  xlast3 = xlast2;
+  ylast3 = ylast2;
+  xlast2 = xlast;
+  ylast2 = ylast;
+  if ((code & ABSCOORD_MASK) != 0 ) {		/* Coordinate (x,y) is absolute */
+    xlast = x+xorigin;	/* These probably have to be treated as 16-bit values */
+    ylast = y+yorigin;
+  }
+  else {	/* Coordinate (x,y) is relative */
+    xlast+=x;	/* These probably have to be treated as 16-bit values */
+    ylast+=y;
+  }
+  if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) return;	/* Just moving graphics cursor, so finish here */
+  sx = xlast2;
+  sy = ylast2;
+  ex = xlast;
+  ey = ylast;
+  if ((code & GRAPHOP_MASK) != SHIFT_RECTANGLE) {		/* Move and copy rectangle are a special case */
+    /* Do nothing, not supported */
+  }
+  switch (code & GRAPHOP_MASK) {
+  case DRAW_SOLIDLINE:
+  case DRAW_SOLIDLINE+8:
+  case DRAW_DOTLINE:
+  case DRAW_DOTLINE+8:
+  case DRAW_SOLIDLINE2:
+  case DRAW_SOLIDLINE2+8:
+  case DRAW_DOTLINE2:
+  case DRAW_DOTLINE2+8: {	/* Draw line */
+    int32 top, left;
+    left = sx;	/* Find top left-hand corner of rectangle containing line */
+    top = sy;
+    if (ex < sx) left = ex;
+    if (ey < sy) top = ey;
+    draw_line(sx, sy, ex, ey, (code & DRAW_STYLEMASK));
+    break;
+  }
+  case PLOT_POINT:	/* Plot a single point */
+    plot_pixel(ex, ey);
+    break;
+  case FILL_TRIANGLE: {		/* Plot a filled triangle */
+    int32 left, right, top, bottom;
+    filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
+/*  Now figure out the coordinates of the rectangle that contains the triangle */
+    left = right = xlast3;
+    top = bottom = ylast3;
+    if (xlast2 < left) left = xlast2;
+    if (xlast < left) left = xlast;
+    if (xlast2 > right) right = xlast2;
+    if (xlast > right) right = xlast;
+    if (ylast2 > top) top = ylast2;
+    if (ylast > top) top = ylast;
+    if (ylast2 < bottom) bottom = ylast2;
+    if (ylast < bottom) bottom = ylast;
+    break;
+  }
+  case FILL_RECTANGLE: {		/* Plot a filled rectangle */
+    int32 left, right, top, bottom;
+    left = sx;
+    top = sy;
+    if (ex < sx) left = ex;
+    if (ey < sy) top = ey;
+    right = sx+ex-left;
+    bottom = sy+ey-top;
+/* sx and sy give the bottom left-hand corner of the rectangle */
+/* x and y are its width and height */
+    fill_rectangle(left, top, right, bottom);
+    break;
+  }
+  case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
+    int32 vx, vy, left, right, top, bottom;
+    filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
+    vx = xlast3-xlast2+xlast;
+    vy = ylast3-ylast2+ylast;
+    filled_triangle(ex, ey, vx, vy, xlast3, ylast3);
+/*  Now figure out the coordinates of the rectangle that contains the parallelogram */
+    left = right = xlast3;
+    top = bottom = ylast3;
+    if (xlast2 < left) left = xlast2;
+    if (xlast < left) left = xlast;
+    if (vx < left) left = vx;
+    if (xlast2 > right) right = xlast2;
+    if (xlast > right) right = xlast;
+    if (vx > right) right = vx;
+    if (ylast2 > top) top = ylast2;
+    if (ylast > top) top = ylast;
+    if (vy > top) top = vy;
+    if (ylast2 < bottom) bottom = ylast2;
+    if (ylast < bottom) bottom = ylast;
+    if (vy < bottom) bottom = vy;
+    break;
+  }
+  case PLOT_CIRCLE:		/* Plot the outline of a circle */
+  case FILL_CIRCLE: {		/* Plot a filled circle */
+    int32 xradius, yradius, xr;
+/*
+** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
+** point on the circumference, specifically the left-most point of the
+** circle.
+*/
+    xradius = abs(xlast2-xlast)/xgupp;
+    yradius = abs(xlast2-xlast)/ygupp;
+    xr=xlast2-xlast;
+    if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
+      draw_ellipse(sx, sy, xradius, yradius, 0);
+    else {
+      filled_ellipse(sx, sy, xradius, yradius, 0);
+    }
+    /* To match RISC OS, xlast needs to be the right-most point not left-most. */
+    xlast+=(xr*2);
+    ex = sx-xradius;
+    ey = sy-yradius;
+/* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
+    break;
+  }
+  case PLOT_ELLIPSE:		/* Draw an ellipse outline */
+  case FILL_ELLIPSE: {		/* Draw a filled ellipse */
+    int32 semimajor, semiminor, shearx;
+/*
+** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
+** point on the circumference in the +ve X direction and (xlast, ylast)
+** is a point on the circumference in the +ve Y direction
+*/
+    semimajor = abs(xlast2-xlast3)/xgupp;
+    semiminor = abs(ylast-ylast3)/ygupp;
+    sx = xlast3;
+    sy = ylast3;
+    shearx=xlast-sx;
+
+    if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
+      draw_ellipse(sx, sy, semimajor, semiminor, shearx);
+    else {
+      filled_ellipse(sx, sy, semimajor, semiminor, shearx);
+    }
+    ex = sx-semimajor;
+    ey = sy-semiminor;
+/* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
+    break;
+  }
+  //default:
+    //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
+  }
+  tekexit();
+
+
 }
 
 /*
@@ -1680,60 +2180,99 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 */
 
 void emulate_move(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
 }
 
 void emulate_moveby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
 }
 
 void emulate_draw(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
 }
 
 void emulate_drawby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
   emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
 }
 
 void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
+  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x2, y2);
 }
 
 void emulate_point(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
 }
 
 void emulate_pointby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
 }
 
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
-  error(ERR_NOGRAPHICS);
+  int32 slicew, shearx, maxy;
+  
+  float64 cosv, sinv;
+  
+  cosv = cos(angle);
+  sinv = sin(angle);
+  maxy = sqrt(((minorlen*cosv)*(minorlen*cosv))+((majorlen*sinv)*(majorlen*sinv)));
+  slicew = (minorlen*majorlen)/maxy;
+  shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
+
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
+  if (isfilled)
+    emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
+  else {
+    emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
+  }
 }
 
 void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of circle */
+  if (isfilled)
+    emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);	/* Plot to a point on the circumference */
+  else {
+    emulate_plot(PLOT_CIRCLE+DRAW_ABSOLUTE, x-radius, y);
+  }
 }
 
 void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isfilled) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
+  if (isfilled)
+    emulate_plot(FILL_RECTANGLE+DRAW_RELATIVE, width, height);
+  else {
+    emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, width, 0);
+    emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, 0, height);
+    emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, -width, 0);
+    emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, 0, -height);
+  }
 }
 
 void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, int32 y2, boolean ismove) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, width, height);
+  if (ismove)	/* Move the area just marked */
+    emulate_plot(MOVE_RECTANGLE, x2, y2);
+  else {
+    emulate_plot(COPY_RECTANGLE, x2, y2);
+  }
 }
 
 void emulate_fill(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(FLOOD_BACKGROUND+DRAW_ABSOLUTE, x, y);
 }
 
 void emulate_fillby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_plot(FLOOD_BACKGROUND+DRAW_RELATIVE, x, y);
 }
 
 void emulate_origin(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
+  emulate_vdu(VDU_ORIGIN);
+  emulate_vdu(x & BYTEMASK);
+  emulate_vdu((x>>BYTESHIFT) & BYTEMASK);
+  emulate_vdu(y & BYTEMASK);
+  emulate_vdu((y>>BYTESHIFT) & BYTEMASK);
 }
 
 /*

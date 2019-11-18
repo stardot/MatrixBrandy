@@ -549,6 +549,7 @@ typedef struct {
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
   boolean hex64;			/* Decode hex in 64-bit? */
   boolean pseudovarsunsigned;		/* Unsigned pseudovars on 32-bit */
+  boolean tekenabled;			/* Tektronix enabled in text mode (default: no) */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer */
   uint32 modescreen_sz;			/* Mode screen size */
