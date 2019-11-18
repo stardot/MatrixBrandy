@@ -1,6 +1,8 @@
 REM NOTE: This program will only run using a version of the
-REM interpreter that supports graphics.
+REM interpreter that supports graphics, either the SDL or text-mode tbrandy
+REM when run in an xterm window.
 :
+SYS "Brandy_TekEnabled", 1
 MODE 27
 ORIGIN 640, 512
 xlow = -10

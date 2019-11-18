@@ -1506,6 +1506,7 @@ void emulate_mode(int32 mode) {
   textcolor(text_physforecol);
   textbackground(text_physbackcol);
   reset_screen();
+  if (matrixflags.tekenabled) vdu_cleargraph();
   clrscr();
 }
 
