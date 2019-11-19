@@ -1,0 +1,15 @@
+REM This program works either in the SDL build of Matrix Brandy, or
+REM the full text mode version (tbrandy) when run from an xterm window.
+:
+SYS "Brandy_TekEnabled",1
+MODE 20
+x%=0
+ORIGIN 0, 512
+LINE 0, 0, 1279, 0
+LINE 0, -480, 0, 480
+MOVE 0,0
+FOR angle=0 TO 2*PI STEP PI/50
+DRAW x%, 480*SIN(angle)
+x%+=12
+NEXT
+END

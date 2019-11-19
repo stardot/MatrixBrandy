@@ -1,6 +1,5 @@
-REM NOTE: This program will only run using a version of the
-REM interpreter that supports graphics, either the SDL or text-mode tbrandy
-REM when run in an xterm window.
+REM This program works either in the SDL build of Matrix Brandy, or
+REM the full text mode version (tbrandy) when run from an xterm window.
 :
 SYS "Brandy_TekEnabled", 1
 MODE 27

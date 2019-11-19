@@ -1,0 +1,27 @@
+REM This program works either in the SDL build of Matrix Brandy, or
+REM the full text mode version (tbrandy) when run from an xterm window.
+:
+SYS "Brandy_TekEnabled", 1
+MODE 20
+R%=2500
+H%=R%/2
+REM rotated towards viewer by:
+R=-PI/4
+U=COS(R):V=SIN(R)
+PROCP(4,0)
+FORI%=1TOR%
+PROCP(5,I%)
+NEXT
+END
+DEFPROCP(C%,S%)
+T=PI*(S%-H%)/R%
+C=COS(T)
+X=COS(50*T)*C
+Z=SIN(50*T)*C
+Y=SIN(T)
+W=Y*U+Z*V
+Z=-Y*V+Z*U
+Y=W
+P=3500/(8-Z)
+IFC%=4 THEN MOVE 640+X*P,512+Y*P ELSE DRAW 640+X*P,512+Y*P
+ENDPROC
