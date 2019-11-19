@@ -1556,7 +1556,7 @@ int32 emulate_modefn(void) {
 }
 
 /* Graphics primitives */
-static void plot_pixel(px, py) {
+static void plot_pixel(int32 px, int32 py) {
   int32 mx, my;
 
   mx = (px + xorigin) / 2;
@@ -1873,11 +1873,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case DRAW_SOLIDLINE2+8:
   case DRAW_DOTLINE2:
   case DRAW_DOTLINE2+8: {	/* Draw line */
-    int32 top, left;
-    left = sx;	/* Find top left-hand corner of rectangle containing line */
-    top = sy;
-    if (ex < sx) left = ex;
-    if (ey < sy) top = ey;
     draw_line(sx, sy, ex, ey, (code & DRAW_STYLEMASK));
     break;
   }
