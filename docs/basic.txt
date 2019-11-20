@@ -2452,6 +2452,9 @@ this to work. Another example:
 This would preserve the integer value at address block%!4, the
 byte at block%?20 and the string at $text%.
 
+Variables declared LOCAL can be restored to their global state by
+'RESTORE LOCAL'.
+
 b) 'LOCAL DATA' saves the current value of the DATA statement
 pointer. It can be reset to its original value by 'RESTORE DATA'.
 Example:
@@ -3301,7 +3304,8 @@ RESTORE
 Syntax: a) RESTORE [ <line number> ]
 	b) RESTORE + <expression>
 	c) RESTORE DATA
-	d) RESTORE ERROR
+	d) RESTORE LOCAL
+	e) RESTORE ERROR
 
 The RESTORE statement has two uses: firstly, it is used to control
 which DATA statement is to be used to provide data for a READ
@@ -3349,7 +3353,17 @@ Example:
 	RESTORE DATA
 
 
-d) RESTORE ERROR restores the Basic error handler set up by ON
+d) RESTORE LOCAL restores the variable states which were previously
+declared LOCAL within a function or procedure.
+
+Example:
+	LOCAL a
+	a=42
+	PRINT a
+	RESTORE LOCAL
+	PRINT a
+
+e) RESTORE ERROR restores the Basic error handler set up by ON
 ERROR or ON ERROR LOCAL to its condition when the last  LOCAL
 ERROR statement was executed. RESTORE error has to match up with
 a LOCAL ERROR statement.
