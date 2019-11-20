@@ -2119,6 +2119,12 @@ void exec_restore(void) {
     if (GET_TOPITEM != STACK_ERROR) error(ERR_ERRNOTOP);	/* Saved error block not on top of stack */
     basicvars.error_handler = pop_error();
     break;
+  case BASIC_TOKEN_LOCAL:	/* RESTORE LOCAL */
+    basicvars.current = skip_token(basicvars.current);
+    check_ateol();
+    if (basicvars.procstack == NIL) error(ERR_LOCAL);		/* LOCAL found outside a PROC/FN */
+    if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);
+    break;
   case BASIC_TOKEN_DATA:	/* RESTORE DATA */
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
