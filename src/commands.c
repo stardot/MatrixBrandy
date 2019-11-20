@@ -1217,7 +1217,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "REPORT")) {
     emulate_printf("REPORT: print last error message.\r\nREPORT$ function gives string of last error string.");
   } else if (!strcmp(cmd, "RESTORE")) {
-    emulate_printf("RESTORE [+][<number>]: restore the data pointer to first or given line, or move\r\nforward <number> lines from the start of the next line.\r\nRESTORE DATA: restore DATA pointer from stack.\r\nRESTORE ERROR: restore error control status from stack.");
+    emulate_printf("RESTORE [+][<number>]: restore the data pointer to first or given line, or move\r\nforward <number> lines from the start of the next line.\r\nRESTORE DATA: restore DATA pointer from stack.\r\nRESTORE ERROR: restore error control status from stack.\r\nRESTORE LOCAL: Restore variables declared LOCAL to their global state.");
   } else if (!strcmp(cmd, "RETURN")) {
     emulate_printf("End of subroutine. See GOSUB");
   } else if (!strcmp(cmd, "RIGHT$(")) {
