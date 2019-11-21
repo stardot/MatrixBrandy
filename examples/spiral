@@ -3,7 +3,7 @@ REM the full text mode version (tbrandy) when run from an xterm window.
 :
 SYS "Brandy_TekEnabled", 1
 MODE 20
-VDU5
+VDU5:CLG
 R%=2500
 H%=R%/2
 REM rotated towards viewer by:
