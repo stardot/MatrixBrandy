@@ -1265,6 +1265,10 @@ static void def_locvar(void) {
       save_int(locvar, *locvar.address.intaddr);
       *locvar.address.intaddr = 0;
       break;
+    case VAR_INTLONG:
+      save_int64(locvar, *locvar.address.int64addr);
+      *locvar.address.int64addr = 0;
+      break;
     case VAR_FLOAT:
       save_float(locvar, *locvar.address.floataddr);
       *locvar.address.floataddr = 0.0;
