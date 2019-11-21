@@ -86,6 +86,7 @@ extern void save_retfloat(lvalue, lvalue, float64);
 extern void save_retstring(lvalue, lvalue, basicstring);
 extern void restore_parameters(int32);
 extern void empty_stack(stackitem);
+extern stackitem stack_unwindlocal(void);
 extern void reset_stack(byte *);
 extern void init_stack(void);
 extern void clear_stack(void);

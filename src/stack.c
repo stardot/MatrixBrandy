@@ -1164,9 +1164,14 @@ errorblock pop_error(void) {
 ** required sort. (This should be the most common case)
 */
 void empty_stack(stackitem required) {
-  do
+  while (GET_TOPITEM && GET_TOPITEM!=required)
     discard(GET_TOPITEM);
-  while (GET_TOPITEM && GET_TOPITEM!=required);
+}
+
+stackitem stack_unwindlocal() {
+  while (GET_TOPITEM && GET_TOPITEM!=STACK_ERROR && GET_TOPITEM!=STACK_PROC && GET_TOPITEM!=STACK_FN)
+    discard(GET_TOPITEM);
+  return GET_TOPITEM;
 }
 
 /*

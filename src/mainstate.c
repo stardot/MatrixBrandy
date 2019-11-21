@@ -606,7 +606,11 @@ void exec_endifcase(void) {
 */
 void exec_endproc(void) {
   fnprocinfo returnblock;
+  stackitem item;
+
   if (basicvars.procstack == NIL) error(ERR_ENDPROC);	/* ENDPROC found outside a PROC */
+  item = stack_unwindlocal();
+  if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);	/* Throw away unwanted entries on Basic stack */
   returnblock = pop_proc();	/* Fetch return address and so forth */
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had parameters - Restore old values */
@@ -627,7 +631,7 @@ void exec_endproc(void) {
 ** heap
 */
 void exec_fnreturn(void) {
-  stackitem resultype;
+  stackitem resultype, item;
   int32 intresult = 0;
   int64 int64result = 0;
   static float64 fpresult;
@@ -656,6 +660,8 @@ void exec_fnreturn(void) {
   else {
     error(ERR_VARNUMSTR);
   }
+  item = stack_unwindlocal();
+  if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   empty_stack(STACK_FN);	/* Throw away unwanted entries on Basic stack */
   returnblock = pop_fn();	/* Fetch return address and so forth */
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had arguments - restore old values */
@@ -1464,6 +1470,7 @@ static void exec_onerror(void) {
     break;
   case BASIC_TOKEN_LOCAL:	/* Got 'ON ERROR LOCAL' */
     basicvars.current++;
+    push_error(basicvars.error_handler);
     set_local_error();
     while (*basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
     break;
@@ -1763,6 +1770,7 @@ void exec_proc(void) {
     if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
   }
+  basicvars.local_restart = &basicvars.error_restart;
   basicvars.current = dp->fnprocaddr;
 }
 
@@ -2138,6 +2146,8 @@ static void restore_dataptr(void) {
 ** 'exec_restore' handles the Basic 'RESTORE' statement.
 */
 void exec_restore(void) {
+  stackitem item;
+
   basicvars.current++;		/* Skip RESTORE token */
   switch (*basicvars.current) {
   case BASIC_TOKEN_ERROR:	/* RESTORE ERROR */
@@ -2150,6 +2160,10 @@ void exec_restore(void) {
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
     if (basicvars.procstack == NIL) error(ERR_LOCAL);		/* LOCAL found outside a PROC/FN */
+    item = stack_unwindlocal();
+    if (item == STACK_ERROR) {
+      basicvars.error_handler = pop_error();
+    }
     if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);
     break;
   case BASIC_TOKEN_DATA:	/* RESTORE DATA */

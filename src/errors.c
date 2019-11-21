@@ -695,12 +695,18 @@ static void handle_error(errortype severity) {
      basicvars.error_handler.current, basicvars.error_handler.stacktop, basicvars.opstop);
   }
 #endif
-    if (basicvars.error_handler.islocal)        /* Trapped via 'ON ERROR LOCAL' */
+    if (basicvars.error_handler.islocal) {        /* Trapped via 'ON ERROR LOCAL' */
+#ifdef DEBUG
+      if (basicvars.debug_flags.debug) fprintf(stderr, "About to siglongjmp(*basicvars.local_restart,1), local_restart = %p\n", basicvars.local_restart);
+#endif
       siglongjmp(*basicvars.local_restart, 1);
-    else {      /* Trapped via 'ON ERROR' - Reset everything and return to main interpreter loop */
+    } else {      /* Trapped via 'ON ERROR' - Reset everything and return to main interpreter loop */
       basicvars.procstack = NIL;
       basicvars.gosubstack = NIL;
       init_expressions();
+#ifdef DEBUG
+      if (basicvars.debug_flags.debug) fprintf(stderr, "About to siglongjmp(*basicvars.error_restart,1), localrestart = %p\n", basicvars.error_restart);
+#endif
       siglongjmp(basicvars.error_restart, 1);      /* Branch back to the main interpreter loop */
     }
   }
