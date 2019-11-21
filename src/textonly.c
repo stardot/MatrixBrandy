@@ -187,7 +187,8 @@ static int32
   xlast2,			/* Graphics X coordinate of last-but-one point visited */
   ylast2,			/* Graphics Y coordinate of last-but-one point visited */
   xorigin,			/* X coordinate of graphics origin */
-  yorigin;			/* Y coordinate of graphics origin */
+  yorigin,			/* Y coordinate of graphics origin */
+  graphicurs;			/* Text at graphics cursor */
 #define MAX_XRES 16384
 #define MAX_YRES 16384
 #define FAST_2_MUL(x) ((x)<<1)
@@ -1077,10 +1078,10 @@ static void vdu_hometext(void) {
 }
 
 static void tekinit(void) {
-  printf("%c%c%c%c%c%c", 27, 91, 63, 51, 56, 104);
+  if (!graphicurs) printf("%c%c%c%c%c%c", 27, 91, 63, 51, 56, 104);
 }
 static void tekexit(void) {
-  printf("%c%c", 27, 3);
+  if (!graphicurs) printf("%c%c", 27, 3);
 }
 
 static void vdu_cleargraph(void) {
@@ -1219,141 +1220,93 @@ void emulate_vdu(int32 charvalue) {
 
 /* There are now enough entries in the queue for the current command */
 
-  if (!basicvars.runflags.outredir) {   /* Output is going to a screen - Can use VDU commands */
-    switch (vducmd) {   /* Emulate the various control codes */
-    case VDU_NULL:      /* 0 - Do nothing */
-    case VDU_ENAPRINT:  /* 2 - Enable the sending of characters to the printer (ignored) */
-    case VDU_DISPRINT:  /* 3 - Disable the sending of characters to the printer (ignored) */
-    case VDU_ENABLE:    /* 6 - Enable the VDU driver (ignored) */
-    case VDU_ENAPAGE:   /* 14 - Enable page mode (ignored) */
-    case VDU_DISPAGE:   /* 15 - Disable page mode (ignored) */
-    case VDU_DISABLE:   /* 21 - Disable the VDU driver (ignored) */
-      break;
-    case VDU_GRAPHCOL:  /* 18 - Change current graphics colour */
-    case VDU_DEFGRAPH:  /* 24 - Define graphics window */
-      error(ERR_NOGRAPHICS);
-      break;
-    case VDU_PRINT:     /* 1 - Send next character to the print stream */
-      echo_char();
-      break;
-    case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
-      if (matrixflags.tekenabled) tekexit();
-      break;
-    case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
-      if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
-      tekinit();
-      break;
-    case VDU_BEEP:      /* 7 - Sound the bell */
-      putch('\7');
-      break;
-    case VDU_CURBACK:   /* 8 - Move cursor left one character */
-    case DEL:		/* 127 - Delete */
-      move_curback();
-      break;
-    case VDU_CURFORWARD:        /* 9 - Move cursor right one character */
-      move_curforward();
-      break;
-    case VDU_CURDOWN:   /* 10 - Move cursor down one line (linefeed) */
-      move_curdown();
-      break;
-    case VDU_CURUP:     /* 11 - Move cursor up one line */
-      move_curup();
-      break;
-    case VDU_CLEARTEXT: /* 12 - Clear text window (formfeed) */
-      vdu_cleartext();
-      break;
-    case VDU_RETURN:    /* 13 - Carriage return */
-      vdu_return();
-      break;
-    case VDU_TEXTCOL:   /* 17 - Change current text colour */
-      vdu_textcol();
-      break;
-    case VDU_CLEARGRAPH:        /* 16 - Clear graphics window */
-      vdu_cleargraph();
-      break;
-    case VDU_LOGCOL:    /* 19 - Map logical colour to physical colour */
-      vdu_setpalette();
-      break;
-    case VDU_RESTCOL:   /* 20 - Restore logical colours to default values */
-      reset_colours();
-      textcolor(text_physforecol);
-      textbackground(text_physbackcol);
-      break;
-    case VDU_SCRMODE:   /* 22 - Change screen mode */
-      emulate_mode(vduqueue[0]);
-      break;
-    case VDU_COMMAND:   /* 23 - Assorted VDU commands */
-      vdu_23command();
-      break;
-    case VDU_PLOT:      /* 25 - Issue graphics command */
-      vdu_plot();
-      break;
-    case VDU_RESTWIND:  /* 26 - Restore default windows */
-      vdu_restwind();
-      break;
-    case VDU_ESCAPE:    /* 27 - Do nothing (but char is sent to screen anyway) */
-      putch(vducmd);
-      break;
-    case VDU_DEFTEXT:   /* 28 - Define text window */
-      vdu_textwind();
-      break;
-    case VDU_ORIGIN:    /* 29 - Define graphics origin */
-      vdu_origin();
-      break;
-    case VDU_HOMETEXT:  /* 30 - Send cursor to top left-hand corner of screen */
-      vdu_hometext();
-      break;
-    case VDU_MOVETEXT:  /* 31 - Send cursor to column x, row y on screen */
-      vdu_movetext();
-    }
-  }
-  else {
-/*
-** Output is not to the screen (it is most probably going to a
-** file). The majority of the VDU commands are meaningless under
-** these circumstances.
-*/
-    switch (vducmd) {
-    case VDU_NULL:              /* 0 - Do nothing */
-    case VDU_PRINT:             /* 1 - Send next character to the print stream (ignored) */
-    case VDU_ENAPRINT:          /* 2 - Enable the sending of characters to the printer (ignored) */
-    case VDU_DISPRINT:          /* 3 - Disable the sending of characters to the printer (ignored) */
-    case VDU_TEXTCURS:          /* 4 - Print text at text cursor (ignored) */
-    case VDU_ENABLE:            /* 6 - Enable the VDU driver (ignored) */
-    case VDU_ENAPAGE:           /* 14 - Enable page mode (ignored) */
-    case VDU_DISPAGE:           /* 15 - Disable page mode (ignored) */
-    case VDU_DISABLE:           /* 21 - Disable the VDU driver (ignored) */
-      break;
-    case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
-    case VDU_CLEARGRAPH:        /* 16 - Clear graphics window */
-    case VDU_GRAPHCOL:          /* 18 - Change current graphics colour */
-    case VDU_DEFGRAPH:          /* 24 - Define graphics window */
-    case VDU_PLOT:              /* 25 - Issue graphics command */
-    case VDU_ORIGIN:            /* 29 - Define graphics origin */
-      error(ERR_NOGRAPHICS);
-      break;
-    case VDU_CURUP:             /* 11 - Move cursor up one line */
-    case VDU_CLEARTEXT:         /* 12 - Clear text window (formfeed) */
-    case VDU_TEXTCOL:           /* 17 - Change current text colour */
-    case VDU_LOGCOL:            /* 19 - Map logical colour to physical colour */
-    case VDU_RESTCOL:           /* 20 - Restore logical colours to default values */
-    case VDU_SCRMODE:           /* 22 - Change screen mode */
-    case VDU_COMMAND:           /* 23 - Assorted VDU commands */
-    case VDU_RESTWIND:          /* 26 - Restore default windows */
-    case VDU_DEFTEXT:           /* 28 - Define text window */
-    case VDU_HOMETEXT:          /* 30 - Send cursor to top left-hand corner of screen */
-    case VDU_MOVETEXT:          /* 31 - Send cursor to column x, row y on screen */
-      nogo();
-      break;
-    case VDU_BEEP:              /* 7 - Sound the bell */
-    case VDU_CURBACK:           /* 8 - Move cursor left one character */
-    case VDU_CURFORWARD:        /* 9 - Move cursor right one character */
-    case VDU_CURDOWN:           /* 10 - Move cursor down one line (linefeed) */
-    case VDU_RETURN:            /* 13 - Carriage return */
-    case VDU_ESCAPE:            /* 27 - Do nothing (but char is sent to screen anyway) */
-      putchar(vducmd);
-      break;
-    }
+  switch (vducmd) {   /* Emulate the various control codes */
+  case VDU_NULL:      /* 0 - Do nothing */
+  case VDU_ENAPRINT:  /* 2 - Enable the sending of characters to the printer (ignored) */
+  case VDU_DISPRINT:  /* 3 - Disable the sending of characters to the printer (ignored) */
+  case VDU_ENABLE:    /* 6 - Enable the VDU driver (ignored) */
+  case VDU_ENAPAGE:   /* 14 - Enable page mode (ignored) */
+  case VDU_DISPAGE:   /* 15 - Disable page mode (ignored) */
+  case VDU_DISABLE:   /* 21 - Disable the VDU driver (ignored) */
+    break;
+  case VDU_GRAPHCOL:  /* 18 - Change current graphics colour */
+  case VDU_DEFGRAPH:  /* 24 - Define graphics window */
+    error(ERR_NOGRAPHICS);
+    break;
+  case VDU_PRINT:     /* 1 - Send next character to the print stream */
+    echo_char();
+    break;
+  case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
+    graphicurs = 0;
+    if (matrixflags.tekenabled) tekexit();
+    break;
+  case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
+    if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+    tekinit();
+    graphicurs = 1;
+    break;
+  case VDU_BEEP:      /* 7 - Sound the bell */
+    putch('\7');
+    break;
+  case VDU_CURBACK:   /* 8 - Move cursor left one character */
+  case DEL:		/* 127 - Delete */
+    move_curback();
+    break;
+  case VDU_CURFORWARD:        /* 9 - Move cursor right one character */
+    move_curforward();
+    break;
+  case VDU_CURDOWN:   /* 10 - Move cursor down one line (linefeed) */
+    move_curdown();
+    break;
+  case VDU_CURUP:     /* 11 - Move cursor up one line */
+    move_curup();
+    break;
+  case VDU_CLEARTEXT: /* 12 - Clear text window (formfeed) */
+    vdu_cleartext();
+    break;
+  case VDU_RETURN:    /* 13 - Carriage return */
+    vdu_return();
+    break;
+  case VDU_TEXTCOL:   /* 17 - Change current text colour */
+    vdu_textcol();
+    break;
+  case VDU_CLEARGRAPH:        /* 16 - Clear graphics window */
+    vdu_cleargraph();
+    break;
+  case VDU_LOGCOL:    /* 19 - Map logical colour to physical colour */
+    vdu_setpalette();
+    break;
+  case VDU_RESTCOL:   /* 20 - Restore logical colours to default values */
+    reset_colours();
+    textcolor(text_physforecol);
+    textbackground(text_physbackcol);
+    break;
+  case VDU_SCRMODE:   /* 22 - Change screen mode */
+    emulate_mode(vduqueue[0]);
+    break;
+  case VDU_COMMAND:   /* 23 - Assorted VDU commands */
+    vdu_23command();
+    break;
+  case VDU_PLOT:      /* 25 - Issue graphics command */
+    vdu_plot();
+    break;
+  case VDU_RESTWIND:  /* 26 - Restore default windows */
+    vdu_restwind();
+    break;
+  case VDU_ESCAPE:    /* 27 - Do nothing (but char is sent to screen anyway) */
+    putch(vducmd);
+    break;
+  case VDU_DEFTEXT:   /* 28 - Define text window */
+    vdu_textwind();
+    break;
+  case VDU_ORIGIN:    /* 29 - Define graphics origin */
+    vdu_origin();
+    break;
+  case VDU_HOMETEXT:  /* 30 - Send cursor to top left-hand corner of screen */
+    vdu_hometext();
+    break;
+  case VDU_MOVETEXT:  /* 31 - Send cursor to column x, row y on screen */
+    vdu_movetext();
   }
 }
 
@@ -1506,6 +1459,7 @@ void emulate_mode(int32 mode) {
   textcolor(text_physforecol);
   textbackground(text_physbackcol);
   reset_screen();
+  graphicurs = 0;
   if (matrixflags.tekenabled) vdu_cleargraph();
   clrscr();
 }

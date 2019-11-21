@@ -3,6 +3,7 @@ REM the full text mode version (tbrandy) when run from an xterm window.
 :
 SYS "Brandy_TekEnabled", 1
 MODE 27
+VDU5
 ORIGIN 640, 512
 xlow = -10
 xhigh = 10
@@ -25,4 +26,5 @@ FOR y = ylow TO yhigh
     DRAW xscale*(x+y), yscale*(y-x)+c/(x*x+y*y+depth)
   NEXT
 NEXT
+VDU4
 END

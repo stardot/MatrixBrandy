@@ -3,6 +3,7 @@ REM the full text mode version (tbrandy) when run from an xterm window.
 :
 SYS "Brandy_TekEnabled",1
 MODE 20
+VDU5
 x%=0
 ORIGIN 0, 512
 LINE 0, 0, 1279, 0
@@ -12,4 +13,5 @@ FOR angle=0 TO 2*PI STEP PI/50
 DRAW x%, 480*SIN(angle)
 x%+=12
 NEXT
+VDU4
 END
