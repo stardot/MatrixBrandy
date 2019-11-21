@@ -143,7 +143,13 @@ Brandy_xxx  (SWI numbers start &140000)
 				above &7FFFFFFF.
 				R0=1 to enable, 0 to disable. Default: disabled.
 
-
+&14000A Brandy_TekEnabled	Only effective on the 'tbrandy' build, ignored
+				without error on other builds.
+				This switch enables Tektronix graphics to
+				be generated for graphics operations, with
+				particular reference to the Tek emulation
+				in xterm.
+				R0=1 to enable, 0 to disable. Default: disabled
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt

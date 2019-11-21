@@ -790,6 +790,9 @@ void exec_for(void) {
     case STACK_INT:
       *forvar.address.intaddr = pop_int();
       break;
+    case STACK_INT64:
+      *forvar.address.intaddr = TOINT(pop_int64());
+      break;
     case STACK_FLOAT:
       *forvar.address.intaddr = TOINT(pop_float());
       break;
@@ -801,6 +804,9 @@ void exec_for(void) {
     switch (GET_TOPITEM) {
     case STACK_INT:
       *forvar.address.floataddr = TOFLOAT(pop_int());
+      break;
+    case STACK_INT64:
+      *forvar.address.floataddr = TOFLOAT(pop_int64());
       break;
     case STACK_FLOAT:
       *forvar.address.floataddr = pop_float();
@@ -815,6 +821,9 @@ void exec_for(void) {
     case STACK_INT:
       basicvars.offbase[forvar.address.offset] = pop_int();
       break;
+    case STACK_INT64:
+      basicvars.offbase[forvar.address.offset] = TOINT(pop_int64());
+      break;
     case STACK_FLOAT:
       basicvars.offbase[forvar.address.offset] = TOINT(pop_float());
       break;
@@ -827,6 +836,9 @@ void exec_for(void) {
     case STACK_INT:
       store_integer(forvar.address.offset, pop_int());
       break;
+    case STACK_INT64:
+      store_integer(forvar.address.offset, TOINT(pop_int()));
+      break;
     case STACK_FLOAT:
       store_integer(forvar.address.offset, TOINT(pop_float()));
       break;
@@ -838,6 +850,9 @@ void exec_for(void) {
     switch (GET_TOPITEM) {
     case STACK_INT:
       store_float(forvar.address.offset, TOFLOAT(pop_int()));
+      break;
+    case STACK_INT64:
+      store_float(forvar.address.offset, TOFLOAT(pop_int64()));
       break;
     case STACK_FLOAT:
       store_float(forvar.address.offset, pop_float());
@@ -856,6 +871,8 @@ void exec_for(void) {
   if (isinteger) {	/* Loop is an integer loop */
     if (GET_TOPITEM == STACK_INT)
       intlimit = pop_int();
+    else if (GET_TOPITEM == STACK_INT64)
+      intlimit = TOINT(pop_int64());
     else if (GET_TOPITEM == STACK_FLOAT)
       intlimit = TOINT(pop_float());
     else {
@@ -865,6 +882,8 @@ void exec_for(void) {
   else {	/* Loop is a floating point loop */
     if (GET_TOPITEM == STACK_INT)
       floatlimit = TOFLOAT(pop_int());
+    else if (GET_TOPITEM == STACK_INT64)
+      floatlimit = TOFLOAT(pop_int64());
     else if (GET_TOPITEM == STACK_FLOAT)
       floatlimit = pop_float();
     else {
@@ -877,6 +896,8 @@ void exec_for(void) {
     if (isinteger) {	/* Loop is an integer loop */
       if (GET_TOPITEM == STACK_INT)
         intstep = pop_int();
+      else if (GET_TOPITEM == STACK_INT64)
+        intstep = TOINT(pop_int64());
       else if (GET_TOPITEM == STACK_FLOAT)
         intstep = TOINT(pop_float());
       else {
@@ -887,6 +908,8 @@ void exec_for(void) {
     else {	/* Loop is a floating point loop */
       if (GET_TOPITEM == STACK_INT)
         floatstep = TOFLOAT(pop_int());
+      else if (GET_TOPITEM == STACK_INT64)
+        floatstep = TOFLOAT(pop_int64());
       else if (GET_TOPITEM == STACK_FLOAT)
         floatstep = pop_float();
       else {
