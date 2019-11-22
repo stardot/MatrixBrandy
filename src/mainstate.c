@@ -608,6 +608,7 @@ void exec_endproc(void) {
   fnprocinfo returnblock;
   stackitem item;
 
+  basicvars.errorislocal = 0;
   if (basicvars.procstack == NIL) error(ERR_ENDPROC);	/* ENDPROC found outside a PROC */
   item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
@@ -638,6 +639,8 @@ void exec_fnreturn(void) {
   basicstring stresult = {0, NULL};
   char *sp;
   fnprocinfo returnblock;
+
+  basicvars.errorislocal = 0;
   if (basicvars.procstack == NIL) error(ERR_FNRETURN);	/* '=<expr>' found outside a FN */
   basicvars.current++;
   expression();
@@ -1330,6 +1333,7 @@ void exec_local(void) {
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
     push_error(basicvars.error_handler);
+    basicvars.errorislocal = 1;
     break;
   case BASIC_TOKEN_DATA:	/* Got 'LOCAL DATA' */
     basicvars.current = skip_token(basicvars.current);
@@ -1475,7 +1479,12 @@ static void exec_onerror(void) {
     while (*basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
     break;
   default: /* Got 'ON ERROR <statements>' */
-    set_error();
+    if (basicvars.errorislocal) {
+      push_error(basicvars.error_handler);
+      set_local_error();
+    } else {
+      set_error();
+    }
     while (*basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
   }
 }

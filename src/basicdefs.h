@@ -453,6 +453,7 @@ typedef struct {
   errorblock error_handler;		/* 'ON ERROR' error handler details */
   sigjmp_buf error_restart;		/* For restarting the interpreter when an 'ON ERROR' is executed */
   sigjmp_buf *local_restart;		/* For restarting the interpreter when an 'ON ERROR LOCAL' is executed */
+  int32 errorislocal;			/* Flag for LOCAL ERROR */
   fnprocinfo *procstack;		/* Pointer to return block of current PROC/FN */
   gosubinfo *gosubstack;		/* Pointer to return block of current GOSUB subroutine */
   byte *datacur;			/* Pointer to position in DATA statement */

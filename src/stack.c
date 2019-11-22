@@ -859,6 +859,26 @@ static void restore(int32 parmcount) {
   if (parmcount>0 && localitem==STACK_RETPARM) restore_retparm(parmcount);
 }
 
+static void dummyrestore(int32 parmcount) {
+  stack_local *p;
+  stackitem localitem;
+
+  do {
+    p = basicvars.stacktop.localsp;
+    basicvars.stacktop.bytesp+=ALIGNSIZE(stack_local);
+#ifdef DEBUG
+    if (basicvars.debug_flags.stack) fprintf(stderr, "Unstacking without estoring variable at %p from %p\n", p->savedetails.address.intaddr, p);
+#endif
+
+/* Now discard the next parameter */
+
+    parmcount--;
+    localitem = GET_TOPITEM;
+  } while (parmcount>0 && localitem==STACK_LOCAL);
+  if (parmcount>0 && localitem==STACK_RETPARM) restore_retparm(parmcount);
+}
+
+
 /*
 ** 'restore_parameters' is called when returning from a procedure or
 ** function to restore its parameters to their original values. The
@@ -1005,7 +1025,7 @@ gosubinfo pop_gosub(void) {
 ** 'discard' removes an item from the Basic stack, carrying out any
 ** work needed to undo the effects of that item
 */
-static void discard(stackitem item) {
+static void discard(stackitem item, boolean restorevars) {
   basicstring temp;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Drop '%s' entry at %p\n",
@@ -1017,7 +1037,11 @@ static void discard(stackitem item) {
     free_string(temp);
     break;
   case STACK_LOCAL: 	/* Restore local variable to its old value */
-    restore(1);
+    if (restorevars) {
+      restore(1);
+    } else {
+      dummyrestore(1);
+    }
     break;
   case STACK_RETPARM:	/* Deal with a 'return' parameter and restore local parameter */
     restore_retparm(1);
@@ -1058,7 +1082,7 @@ stack_while *get_while(void) {
   stackitem item;
   item = basicvars.stacktop.whilesp->itemtype;
   while (disposible[item]) {
-    discard(item);
+    discard(item,1);
     item = basicvars.stacktop.whilesp->itemtype;
     if (item==STACK_WHILE) return basicvars.stacktop.whilesp;
   }
@@ -1086,7 +1110,7 @@ stack_repeat *get_repeat(void) {
   stackitem item;
   item = basicvars.stacktop.repeatsp->itemtype;
   while (disposible[item]) {
-    discard(item);
+    discard(item,1);
     item = basicvars.stacktop.repeatsp->itemtype;
     if (item==STACK_REPEAT) return basicvars.stacktop.repeatsp;
   }
@@ -1113,7 +1137,7 @@ stack_for *get_for(void) {
   stackitem item;
   item = basicvars.stacktop.forsp->itemtype;
   while (disposible[item]) {
-    discard(item);
+    discard(item,1);
     item = basicvars.stacktop.forsp->itemtype;
     if (item==STACK_INTFOR || item==STACK_FLOATFOR) return basicvars.stacktop.forsp;
   }
@@ -1165,12 +1189,12 @@ errorblock pop_error(void) {
 */
 void empty_stack(stackitem required) {
   while (GET_TOPITEM && GET_TOPITEM!=required)
-    discard(GET_TOPITEM);
+    discard(GET_TOPITEM, 1);
 }
 
 stackitem stack_unwindlocal() {
   while (GET_TOPITEM && GET_TOPITEM!=STACK_ERROR && GET_TOPITEM!=STACK_PROC && GET_TOPITEM!=STACK_FN)
-    discard(GET_TOPITEM);
+    discard(GET_TOPITEM, 1);
   return GET_TOPITEM;
 }
 
@@ -1185,7 +1209,7 @@ void reset_stack(byte *newstacktop) {
     if (basicvar.debug_flags.stack) fprintf(stderr, "Reset stack - Discard entry at %p\n",
      basicvars.stacktop.bytesp);
 #endif
-    discard(GET_TOPITEM);
+    discard(GET_TOPITEM,0);
   }
   if (basicvars.stacktop.bytesp != basicvars.safestack.bytesp
    && basicvars.stacktop.bytesp != newstacktop) {

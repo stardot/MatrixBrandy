@@ -161,6 +161,7 @@ static void init1(void) {
   basicvars.debug_flags.stats = FALSE;
   basicvars.debug_flags.stack = FALSE;
   basicvars.debug_flags.allstack = FALSE;
+  basicvars.errorislocal = 0;
 
   basicvars.runflags.inredir = FALSE;           /* Input is being taken from the keyboard */
   basicvars.runflags.outredir = FALSE;          /* Output is going to the screen */
