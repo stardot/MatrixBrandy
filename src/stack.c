@@ -860,13 +860,15 @@ static void restore(int32 parmcount) {
 }
 
 static void dummyrestore(int32 parmcount) {
-  stack_local *p;
   stackitem localitem;
+#ifdef DEBUG
+  stack_local *p;
+#endif
 
   do {
-    p = basicvars.stacktop.localsp;
     basicvars.stacktop.bytesp+=ALIGNSIZE(stack_local);
 #ifdef DEBUG
+    p = basicvars.stacktop.localsp;
     if (basicvars.debug_flags.stack) fprintf(stderr, "Unstacking without estoring variable at %p from %p\n", p->savedetails.address.intaddr, p);
 #endif
 
