@@ -8,14 +8,21 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Text-mode builds available for Windows with Cygwin build environment.
 - Change to Escape handling (thanks Jonathan Harston), bringing it more in
   line with the way the Acorn MOS handles it.
+- Many more keyboard fixes from Jonathan Harston.
 - Separate out memory information from *HELP BASIC (in Debug mode) to
   *HELP MEMINFO (available on any build).
 - Fixed VDU5 font painting in black. It now honours the graphics window and
   the GCOL action code.
 - RECTANGLE FILL now honours the graphics window.
 - GOTO and GOSUB no longer require parentheses around an expression.
-- Tek graphics added to tbrandy (textonly.c), but not enabled by default
+- Tektronix graphics added to tbrandy (textonly.c), but not enabled by
+  default.
+- New graphics demos (converted from Teklib demos), and all non-Teklib
+  graphics demos checked to work with both regular graphics and the newly
+  Tek-enhanced text-mode build.
 - RESTORE LOCAL (BB4W/BBCSDL extension) implemented.
+- ON ERROR behaviour corrected, variables declared LOCAL shouldn't be
+  restored to their global values when the stack is unwound.
 
 * V1.22.1
 - Make the old BASIC I-IV compatible integer mathematics available via a
