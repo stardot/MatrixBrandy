@@ -1,5 +1,5 @@
 REM NOTE: this library can only be used in an xterm session under
-REM Linux and NetBSD
+REM Linux and NetBSD, or the Tektronix
 :
 REM This is a simple library that allows graphics to be plotted
 REM in a xterm window running under NetBSD or Linux using the
@@ -16,13 +16,31 @@ REM PROCmode initialises the variables used by the library and
 REM clears the graphics screen. It has to be called before any
 REM other procedure in this library
 :
-DEF PROCmode(M%)
+:
+:
+REM PROCtekvdu allows for a slowed-down Tek drawing, to simulate a
+REM serial-connected Tektronix terminal at approximately 9600bps
+REM Use a MODE >= 128 to run at full speed.
+:
+DEF PROCtekvdu(v%)
+IF tekfast% = 0 THEN SYS "Brandy_uSleep",890
+SYS 6,43,v%
+ENDPROC
+
+REM PROCclg clears the graphics screen
+:
+DEF PROCclg
+PROCtekvdu(27)
+PROCtekvdu(12)
+ENDPROC
+:
+DEF PROCmode(tekmode%)
 tek_gcx%=0
 tek_gcy%=0
 tek_originx%=0
 tek_originy%=0
-SYS6,43,27
-SYS6,43,12
+IF tekmode% > 127 THEN tekfast% = 1 ELSE tekfast% = 0
+PROCclg
 ENDPROC
 :
 :
@@ -31,14 +49,6 @@ REM PROCorigin sets the coordinates of the graphics origin
 DEF PROCorigin(X%, Y%)
 tek_originx%=X%
 tek_originy%=Y%
-ENDPROC
-:
-:
-REM PROCclg clears the graphics screen
-:
-DEF PROCclg
-SYS6,43,27
-SYS6,43,12
 ENDPROC
 :
 :
@@ -56,16 +66,16 @@ REM to the coordinates given, making them the new cursor position
 DEF PROCdraw(X%, Y%)
 X%=(X%+tek_originx%) DIV 2
 Y%=(Y%+tek_originy%) DIV 2
-SYS6,43,29
-SYS6,43,(tek_gcy%>>5)+32
-SYS6,43,(tek_gcy% AND 31)+96
-SYS6,43,(tek_gcx%>>5)+32
-SYS6,43,(tek_gcx% AND 31)+64
-SYS6,43,(Y%>>5)+32
-SYS6,43,(Y% AND 31)+96
-SYS6,43,(X%>>5)+32
-SYS6,43,(X% AND 31)+64
-SYS6,43,31
+PROCtekvdu(29)
+PROCtekvdu((tek_gcy%>>5)+32)
+PROCtekvdu((tek_gcy% AND 31)+96)
+PROCtekvdu((tek_gcx%>>5)+32)
+PROCtekvdu((tek_gcx% AND 31)+64)
+PROCtekvdu((Y%>>5)+32)
+PROCtekvdu((Y% AND 31)+96)
+PROCtekvdu((X%>>5)+32)
+PROCtekvdu((X% AND 31)+64)
+PROCtekvdu(31)
 tek_gcx%=X%
 tek_gcy%=Y%
 ENDPROC
@@ -79,16 +89,16 @@ sx%=(sx%+tek_originx%) DIV 2
 sy%=(sy%+tek_originy%) DIV 2
 ex%=(ex%+tek_originx%) DIV 2
 ey%=(ey%+tek_originy%) DIV 2
-SYS6,43,29
-SYS6,43,(sy%>>5)+32
-SYS6,43,(sy% AND 31)+96
-SYS6,43,(sx%>>5)+32
-SYS6,43,(sx% AND 31)+64
-SYS6,43,(ey%>>5)+32
-SYS6,43,(ey% AND 31)+96
-SYS6,43,(ex%>>5)+32
-SYS6,43,(ex% AND 31)+64
-SYS6,43,31
+PROCtekvdu(29)
+PROCtekvdu((sy%>>5)+32)
+PROCtekvdu((sy% AND 31)+96)
+PROCtekvdu((sx%>>5)+32)
+PROCtekvdu((sx% AND 31)+64)
+PROCtekvdu((ey%>>5)+32)
+PROCtekvdu((ey% AND 31)+96)
+PROCtekvdu((ex%>>5)+32)
+PROCtekvdu((ex% AND 31)+64)
+PROCtekvdu(31)
 tek_gcx%=ex%
 tek_gcy%=ey%
 ENDPROC
@@ -99,30 +109,31 @@ REM PROCpoint plots a single point
 DEF PROCpoint(X%, Y%)
 X%=(X%+tek_originx%) DIV 2
 Y%=(Y%+tek_originy%) DIV 2
-SYS6,43,29
-SYS6,43,(Y%>>5)+32
-SYS6,43,(Y% AND 31)+96
-SYS6,43,(X%>>5)+32
-SYS6,43,(X% AND 31)+64
-SYS6,43,(Y%>>5)+32
-SYS6,43,(Y% AND 31)+96
-SYS6,43,(X%>>5)+32
-SYS6,43,(X% AND 31)+64
-SYS6,43,31
+PROCtekvdu(29)
+PROCtekvdu((Y%>>5)+32)
+PROCtekvdu((Y% AND 31)+96)
+PROCtekvdu((X%>>5)+32)
+PROCtekvdu((X% AND 31)+64)
+PROCtekvdu((Y%>>5)+32)
+PROCtekvdu((Y% AND 31)+96)
+PROCtekvdu((X%>>5)+32)
+PROCtekvdu((X% AND 31)+64)
+PROCtekvdu(31)
 tek_gcx%=X%
 tek_gcy%=Y%
 ENDPROC
 :
 DEFPROCtekinit
-SYS6,43,27
-SYS6,43,91
-SYS6,43,63
-SYS6,43,51
-SYS6,43,56
-SYS6,43,104
+tekfast%=0
+PROCtekvdu(27)
+PROCtekvdu(91)
+PROCtekvdu(63)
+PROCtekvdu(51)
+PROCtekvdu(56)
+PROCtekvdu(104)
 ENDPROC
 :
 DEFPROCtekexit
-SYS6,43,27
-SYS6,43,3
+PROCtekvdu(27)
+PROCtekvdu(3)
 ENDPROC

@@ -151,6 +151,8 @@ Brandy_xxx  (SWI numbers start &140000)
 				in xterm.
 				R0=1 to enable, 0 to disable. Default: disabled
 
+&14000B Brandy_uSleep		Calls the OS function usleep(R0).
+
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
 
