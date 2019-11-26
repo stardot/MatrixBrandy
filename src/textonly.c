@@ -1409,7 +1409,7 @@ static void setup_mode(int32 mode) {
   }
   else {
     if (mode>HIGHMODE) mode = modecopy = 0;     /* User-defined modes are mapped to mode 0 */
-    if (modetable[mode].xtext>SCRWIDTH) error(ERR_BADMODE);
+    if (modetable[mode].xtext>SCRWIDTH && (!matrixflags.tekenabled)) error(ERR_BADMODE);
 /* Set up VDU driver parameters for mode */
     screenmode = modecopy;
     colourdepth = modetable[mode].coldepth;
