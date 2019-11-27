@@ -208,10 +208,8 @@ static void write_vduflag(unsigned int flags, int yesno) {
 
 static void tekvdu(chr) {
   putchar(chr);
-  if (matrixflags.tekspeed > 0) {
-    fflush(stdout);
-    usleep(9000000/matrixflags.tekspeed);
-  }
+  fflush(stdout);
+  if (matrixflags.tekspeed > 0) usleep(9000000/matrixflags.tekspeed);
 }
 
 #ifdef USE_ANSI
@@ -1522,8 +1520,8 @@ int32 emulate_modefn(void) {
 static void plot_pixel(int32 px, int32 py) {
   int32 mx, my;
 
-  mx = (px + xorigin) / 2;
-  my = (py + yorigin) / 2;
+  mx = px / 2;
+  my = py / 2;
   tekvdu(29);
   tekvdu((my>>5)+32);
   tekvdu((my & 31)+96);
@@ -1532,7 +1530,8 @@ static void plot_pixel(int32 px, int32 py) {
   tekvdu((my>>5)+32);
   tekvdu((my & 31)+96);
   tekvdu((mx>>5)+32);
-  tekvdu((mx & 31)+64, 31);
+  tekvdu((mx & 31)+64);
+  tekvdu(31);
 }
 
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {

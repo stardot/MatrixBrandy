@@ -1,0 +1,14 @@
+   10ONERRORVDU4:END
+   20SYS "Brandy_TekEnabled",1,115200
+   30MODE 74
+   40VDU5:CLG
+   50DIM X%(3),Y%(3)
+   60X%(1)=32:Y%(1)=32
+   70X%(2)=2016:Y%(2)=32
+   80X%(3)=1024:Y%(3)=1528
+   90X%=RND(2048):Y%=RND(1560)
+  100REPEAT
+  110N%=RND(3)
+  120X% = (X%+X%(N%))/2 : Y% = (Y%+Y%(N%))/2
+  130PLOT 69,X%,Y%
+  140UNTIL FALSE
