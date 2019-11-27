@@ -150,6 +150,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				particular reference to the Tek emulation
 				in xterm.
 				R0=1 to enable, 0 to disable. Default: disabled
+				R1=simulated baud rate, 0 to run at full speed.
 
 &14000B Brandy_uSleep		Calls the OS function usleep(R0).
 

@@ -551,6 +551,7 @@ typedef struct {
   boolean hex64;			/* Decode hex in 64-bit? */
   boolean pseudovarsunsigned;		/* Unsigned pseudovars on 32-bit */
   boolean tekenabled;			/* Tektronix enabled in text mode (default: no) */
+  uint32 tekspeed;			/* Emulated bit rate of Tek terminal (0=no slowdown) */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer */
   uint32 modescreen_sz;			/* Mode screen size */

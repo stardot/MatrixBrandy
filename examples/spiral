@@ -1,7 +1,7 @@
 REM This program works either in the SDL build of Matrix Brandy, or
 REM the full text mode version (tbrandy) when run from an xterm window.
 :
-SYS "Brandy_TekEnabled", 1
+SYS "Brandy_TekEnabled", 1, 100000
 MODE 20
 VDU5:CLG
 R%=2500

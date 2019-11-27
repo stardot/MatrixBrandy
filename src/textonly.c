@@ -206,6 +206,14 @@ static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
 }
 
+static void tekvdu(chr) {
+  putchar(chr);
+  if (matrixflags.tekspeed > 0) {
+    fflush(stdout);
+    usleep(9000000/matrixflags.tekspeed);
+  }
+}
+
 #ifdef USE_ANSI
 #if 0
 static void set_esc_key(unsigned int esckey) {
@@ -1087,7 +1095,8 @@ static void tekexit(void) {
 static void vdu_cleargraph(void) {
   if (! matrixflags.tekenabled) error(ERR_NOGRAPHICS);
   tekinit();
-  printf("%c%c", 27, 12);
+  tekvdu(27);
+  tekvdu(12);
   tekexit();
 }
 
@@ -1515,7 +1524,15 @@ static void plot_pixel(int32 px, int32 py) {
 
   mx = (px + xorigin) / 2;
   my = (py + yorigin) / 2;
-  printf("%c%c%c%c%c%c%c%c%c%c", 29, (my>>5)+32, (my & 31)+96, (mx>>5)+32, (mx & 31)+64, (my>>5)+32, (my & 31)+96, (mx>>5)+32, (mx & 31)+64, 31);
+  tekvdu(29);
+  tekvdu((my>>5)+32);
+  tekvdu((my & 31)+96);
+  tekvdu((mx>>5)+32);
+  tekvdu((mx & 31)+64);
+  tekvdu((my>>5)+32);
+  tekvdu((my & 31)+96);
+  tekvdu((mx>>5)+32);
+  tekvdu((mx & 31)+64, 31);
 }
 
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
@@ -1595,7 +1612,16 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
     mx2=x2 / 2;
     my1=y1 / 2;
     my2=y2 / 2;
-    printf("%c%c%c%c%c%c%c%c%c%c", 29, (my1>>5)+32, (my1 & 31)+96, (mx1>>5)+32, (mx1 & 31)+64, (my2>>5)+32, (my2 & 31)+96, (mx2>>5)+32, (mx2 & 31)+64, 31);
+    tekvdu(29);
+    tekvdu((my1>>5)+32);
+    tekvdu((my1 & 31)+96);
+    tekvdu((mx1>>5)+32);
+    tekvdu((mx1 & 31)+64);
+    tekvdu((my2>>5)+32);
+    tekvdu((my2 & 31)+96);
+    tekvdu((mx2>>5)+32);
+    tekvdu((mx2 & 31)+64);
+    tekvdu(31);
   } else {
 
     if (style & 0x20) skip=1;

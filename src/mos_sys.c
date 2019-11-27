@@ -395,6 +395,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_TekEnabled:
         matrixflags.tekenabled = inregs[0];
+        matrixflags.tekspeed = inregs[1];
       break;
     case SWI_Brandy_uSleep:
         usleep(inregs[0]);
