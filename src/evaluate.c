@@ -2312,9 +2312,26 @@ static void eval_ivmul(void) {
       else
         push_int64(lhint64);
     }
+  } else if (lhitem == STACK_INT64) {	/* Now look at left-hand operand */
+    float64 lhfloat;
+    int32 lhint32;
+    int64 lhint64 = pop_int64();
+    lhint32=(int32)lhint64;
+    lhfloat=TOFLOAT(lhint64);
+    lhint32 *= rhint32;
+    lhint64 *= rhint32;
+    lhfloat *= TOFLOAT(rhint32);
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else {
+      if (llabs((int64)lhfloat) >= MAXINT64VAL)
+        push_float(lhfloat);
+      else
+        push_int64(lhint64);
+    }
   } else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*TOFLOAT(rhint32));
-  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -2372,10 +2389,27 @@ static void eval_iv64mul(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
     float64 lhfloat;
+    int64 lhint64;
+    int32 lhint32 = pop_int();
+    lhint64 = (int64)lhint32;
+    lhfloat=TOFLOAT(lhint32);
+    lhint32 *= rhint64;
+    lhint64 *= rhint64;
+    lhfloat *= TOFLOAT(rhint64);
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else {
+      if (llabs((int64)lhfloat) >= MAXINT64VAL)
+        push_float(lhfloat);
+      else
+        push_int64(lhint64);
+    }
+  } else if (lhitem == STACK_INT64) {	/* Now look at left-hand operand */
+    float64 lhfloat;
     int32 lhint32;
     int64 lhint64 = pop_int64();
     lhint32 = (int32)lhint64;
-    lhfloat=TOFLOAT(lhint32);
+    lhfloat=TOFLOAT(lhint64);
     lhint32 *= rhint64;
     lhint64 *= rhint64;
     lhfloat *= TOFLOAT(rhint64);

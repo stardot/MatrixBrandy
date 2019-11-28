@@ -214,11 +214,14 @@ byte *get_safestack(void) {
 ** 'push_int' pushes an integer value on to the Basic stack
 */
 void push_int(int32 x) {
+#ifdef DEBUG
+  byte *oldsp = basicvars.stacktop.bytesp;
+#endif
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_int);
   basicvars.stacktop.intsp->itemtype = STACK_INT;
   basicvars.stacktop.intsp->intvalue = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 32-bit integer value on to stack at %p, value %d\n", basicvars.stacktop.intsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 32-bit integer value on to stack at %p (moved from %p), value %d\n", basicvars.stacktop.intsp, oldsp, x);
 #endif
 }
 
@@ -226,11 +229,14 @@ void push_int(int32 x) {
 ** 'push_int64' pushes an integer value on to the Basic stack
 */
 void push_int64(int64 x) {
+#ifdef DEBUG
+  byte *oldsp = basicvars.stacktop.bytesp;
+#endif
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_int64);
   basicvars.stacktop.int64sp->itemtype = STACK_INT64;
   basicvars.stacktop.int64sp->int64value = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 64-bit integer value on to stack at %p, value %lld\n", basicvars.stacktop.int64sp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 64-bit integer value on to stack at %p (moved from %p), value %lld\n", basicvars.stacktop.int64sp, oldsp, x);
 #endif
 }
 
@@ -238,11 +244,14 @@ void push_int64(int64 x) {
 ** 'push_float' pushes a floating point value on to the Basic stack
 */
 void push_float(float64 x) {
+#ifdef DEBUG
+  byte *oldsp = basicvars.stacktop.bytesp;
+#endif
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_float);
   basicvars.stacktop.floatsp->itemtype = STACK_FLOAT;
   basicvars.stacktop.floatsp->floatvalue = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push floating point value on to stack at %p, value %g\n", basicvars.stacktop.floatsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push floating point value on to stack at %p (moved from %p), value %g\n", basicvars.stacktop.floatsp, oldsp, x);
 #endif
 }
 
@@ -907,6 +916,9 @@ int32 pop_int(void) {
    p, p->intvalue);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int: new SP at %p\n", basicvars.stacktop.bytesp);
+#endif
   return p->intvalue;
 }
 
@@ -921,7 +933,7 @@ int64 pop_int64(void) {
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: returning %lld\n", p->int64value);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: new SP at %p\n", basicvars.stacktop.bytesp);
 #endif
   return p->int64value;
 }
@@ -936,6 +948,9 @@ float64 pop_float(void) {
    p, p->floatvalue);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_float);
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_float: new SP at %p\n", basicvars.stacktop.bytesp);
+#endif
   return p->floatvalue;
 }
 
