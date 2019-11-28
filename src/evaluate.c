@@ -1498,7 +1498,7 @@ static void eval_ivplus(void) {
     } else {
       int64 lhint64;
       int32 lhint32=pop_int();
-      lhint64 = (int64)(lhint32 + rhint32);
+      lhint64 = (int64)lhint32 + (int64)rhint32;
       lhint32 += rhint32;
       if (lhint64 == lhint32)
         push_int(lhint32);
@@ -1506,9 +1506,8 @@ static void eval_ivplus(void) {
         push_int64(lhint64);
     }
   } else if (lhitem == STACK_INT64) {
-    int64 lhint64;
     int32 lhint32;
-    lhint64=pop_int64();
+    int64 lhint64=pop_int64();
     lhint32=((int32)lhint64 + rhint32);
     lhint64 += (int64)rhint32;
     if (lhint64 == lhint32)
@@ -1561,7 +1560,7 @@ static void eval_iv64plus(void) {
   if (lhitem == STACK_INT) {
     int64 lhint64;
     int32 lhint32=pop_int();
-    lhint64 = (int64)((int64)lhint32+rhint64);
+    lhint64 = (int64)lhint32 + rhint64;
     lhint32 += (int32)rhint64;
     if (lhint64 == lhint32)
       push_int(lhint32);
@@ -1964,7 +1963,7 @@ static void eval_ivminus(void) {
     } else {
       int64 lhint64;
       int32 lhint32=pop_int();
-      lhint64=(int64)(lhint32-rhint32);
+      lhint64=(int64)lhint32-(int64)rhint32;
       lhint32 -= rhint32;
       if (lhint64 == lhint32)
         push_int(lhint32);
@@ -1975,7 +1974,7 @@ static void eval_ivminus(void) {
     int32 lhint32;
     int64 lhint64=pop_int64();
     lhint32 = (int32)lhint64 - rhint32;
-    lhint64=(int64)(lhint64-rhint32);
+    lhint64 -= (int64)rhint32;
     if (lhint64 == lhint32)
       push_int(lhint32);
     else
@@ -2025,7 +2024,7 @@ static void eval_iv64minus(void) {
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
     int64 lhint64;
     int32 lhint32=pop_int();
-    lhint64=(int64)(lhint32)-rhint64;
+    lhint64 = (int64)lhint32 - rhint64;
     lhint32 -= (int32)rhint64;
     if (lhint64 == lhint32)
       push_int(lhint32);
@@ -2034,8 +2033,8 @@ static void eval_iv64minus(void) {
   } else if (lhitem == STACK_INT64) {	/* Branch according to type of left-hand operand */
     int32 lhint32;
     int64 lhint64=pop_int64();
-    lhint32 = (int32)(lhint64 - rhint64);
-    lhint64=lhint64-rhint64;
+    lhint64= lhint64 - rhint64;
+    lhint32 = (int32)lhint64;
     if (lhint64 == lhint32)
       push_int(lhint32);
     else
