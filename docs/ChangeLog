@@ -1,6 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.3
+- Fix stack and array regressions caused by the 64-bit int work.
+- Fix a flood filling crash when new colour is the same as the old colour.
+
 * V1.22.2
 - Merge in 64-bit int capability
 - Remove offset memory model, PAGE, HIMEM and indirection operators now
