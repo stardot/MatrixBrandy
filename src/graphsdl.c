@@ -2429,18 +2429,23 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
 **
 ** This code is slow but does the job, and is HIGHLY recursive (and memory hungry).
 */
+
 static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
   if (*((Uint32*)modescreen->pixels + x + y*vscrwidth) != gb_colour) return;
+
   plot_pixel(modescreen, x + y*vscrwidth, colour, action); /* Plot this pixel */
   if (x >= 1) /* Left */
     if (*((Uint32*)modescreen->pixels + (x-1) + y*vscrwidth) == gb_colour)
       flood_fill_inner(x-1, y, colour, action);
+
   if (x < (vscrwidth-1)) /* Right */
     if (*((Uint32*)modescreen->pixels + (x+1) + y*vscrwidth) == gb_colour)
       flood_fill_inner(x+1, y, colour, action);
+
   if (y >= 1) /* Up */
     if (*((Uint32*)modescreen->pixels + x + (y-1)*vscrwidth) == gb_colour)
       flood_fill_inner(x, y-1, colour, action);
+
   if (y < (vscrheight-1)) /* Down */
     if (*((Uint32*)modescreen->pixels + x + (y+1)*vscrwidth) == gb_colour)
       flood_fill_inner(x, y+1, colour, action);
@@ -2452,6 +2457,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
   pwinright = GXTOPX(gwinright);
   pwintop = GYTOPY(gwintop);
   pwinbottom = GYTOPY(gwinbottom);
+  if (colour == gb_colour) return;
   if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom) return;
   if (*((Uint32*)modescreen->pixels + x + y*vscrwidth) == gb_colour)
     flood_fill_inner(x, y, colour, action);
