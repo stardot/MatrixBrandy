@@ -508,9 +508,9 @@ static void assign_floatarray(pointers address) {
       do {
         if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
         switch(exprtype) {
-          case STACK_INT:	p[n]=pop_int(); break;
-          case STACK_INT64:	p[n]=INT64TO32(pop_int64()); break;
-          case STACK_FLOAT:	p[n]=TOINT(pop_float()); break;
+          case STACK_INT:	p[n]=TOFLOAT(pop_int()); break;
+          case STACK_INT64:	p[n]=TOFLOAT(pop_int64()); break;
+          case STACK_FLOAT:	p[n]=pop_float(); break;
           default:		error(ERR_TYPENUM);
         }
         n++;
