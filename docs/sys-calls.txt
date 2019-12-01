@@ -1,10 +1,10 @@
-SWIs in Matrix Brandy
-=====================
+SYS calls in Matrix Brandy
+==========================
 
-A number of SWIs are supported in Matrix Brandy, most of which are emulations
-of the equivalent RISC OS SWIs.  Where a RISC OS SWI is emulated, the SWI
-number used is the same as that used by RISC OS, in order to allow code
-that uses the number rather than the name for performance reasons to run
+A number of SYS calls are supported in Matrix Brandy, some of which are
+emulations of the equivalent RISC OS SWIs.  Where a RISC OS SWI is emulated,
+the SWI number used is the same as that used by RISC OS, in order to allow
+code that uses the number rather than the name for performance reasons to run
 correctly.
 
 In this document, the parameters listed are labelled as ARM registers as
@@ -12,7 +12,7 @@ if the SWI were called in RISC OS.
 
 Where a parameter returns a pointer to a string, it MUST be picked up with a
 string variable; picking it up with a numeric variable and attempting to
-access the buffer will not work, due to Brandy's memory offsetting.
+access the buffer will not work.
 
 OS_xxx
 ======
@@ -78,6 +78,8 @@ Brandy_xxx  (SWI numbers start &140000)
 				R3: Git commit SHA (if available)
 				R4: Pointer to host OS name string
 				R5: 1 if SDL build, otherwise 0.
+				R6: Returns a fixed 64-bit value:
+				    &123456789ABCDEF0
 
 &140001 Brandy_Swap16Palette	Returns nothing.
 				In 16-colour modes, as Flash isn't supported,
@@ -89,7 +91,7 @@ Brandy_xxx  (SWI numbers start &140000)
 &140002 Brandy_GetVideoDriver	Returns:
 				R0: Pointer to SDL video driver name string
 				R1: Length of string in R0
-				R2: Offset pointer to screen memory base
+				R2: Pointer to screen memory base
 				R3: Size of screen memory.
 				R4: Base of MODE 7 frame buffer
 

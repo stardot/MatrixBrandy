@@ -1,11 +1,11 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.3
+* V1.22.3 - 29 November 2019
 - Fix stack and array regressions caused by the 64-bit int work.
 - Fix a flood filling crash when new colour is the same as the old colour.
 
-* V1.22.2
+* V1.22.2 - 25 November 2019
 - Merge in 64-bit int capability
 - Remove offset memory model, PAGE, HIMEM and indirection operators now
   use actual memory locations.
@@ -28,7 +28,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - ON ERROR behaviour corrected, variables declared LOCAL shouldn't be
   restored to their global values when the stack is unwound.
 
-* V1.22.1
+* V1.22.1 - 20 September 2019
 - Make the old BASIC I-IV compatible integer mathematics available via a
   run-time switchable setting.
 - Integer addition and subtraction will now return integer if it fits, else a
