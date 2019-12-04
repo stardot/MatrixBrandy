@@ -201,7 +201,7 @@
  2010PRINT CHR$(132);"D: text blue       T: graphics blue"
  2020PRINT CHR$(133);"E: text magenta    U: graphics magenta"
  2030PRINT CHR$(134);"F: text cyan       V: graphics cyan"
- 2040PRINT CHR$(135);"G: text cyan       W: graphics cyan"
+ 2040PRINT CHR$(135);"G: text white      W: graphics white"
  2050PRINT CHR$(136);"H: Flash On";CHR$(137);"       X: Conceal"
  2060PRINT CHR$(137);"I: Flash Off       Y: Contiguous gfx"
  2070PRINT " J: &8A (End Box)   Z: Separated gfx"
