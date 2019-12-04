@@ -358,7 +358,10 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[3]=matrixflags.modescreen_sz;
       outregs[4]=matrixflags.mode7fb;
 #else
-     strncpy(vptr,"no_sdl",64);
+      strncpy(vptr,"no_sdl",64);
+      outregs[2] = 0;
+      outregs[3] = 0;
+      outregs[4] = 0;
 #endif
       outregs[1]=strlen(vptr);
       outregs[0]=out64;
