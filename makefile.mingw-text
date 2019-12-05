@@ -1,10 +1,10 @@
 # Makefile for brandy in text mode under NetBSD and Linux
 
 # Find MinGW gcc
-compiler=\""$(shell which i686-w64-mingw32-gcc.exe 2>/dev/null)"\"
-ifeq ($(compiler),\"""\")
-  compiler=\""$(shell which x86_64-w64-mingw32-gcc.exe 2>/dev/null)"\"
-  ifeq ($(compiler),\"""\")
+compiler=$(shell which i686-w64-mingw32-gcc.exe 2>/dev/null)
+ifeq ($(compiler),)
+  compiler=$(shell which x86_64-w64-mingw32-gcc.exe 2>/dev/null)
+  ifeq ($(compiler),)
     $(error Unable to find MinGW gcc compiler)
   endif
 endif
