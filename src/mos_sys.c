@@ -344,6 +344,11 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[5]=0;
 #endif
       outregs[6]=0x123456789ABCDEF0ll;
+#if defined(__LP64__) || defined(__WIN64__)
+      outregs[7]=1;
+#else
+      outregs[7]=0;
+#endif
       break;
     case SWI_Brandy_Swap16Palette:
 #ifdef USE_SDL

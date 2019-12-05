@@ -273,11 +273,11 @@ void announce(void) {
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
-#ifdef __LP64__
+#if defined(__LP64__) || defined(__WIN64__)
   emulate_printf("Basicvars is at &%llX, tokenised line is at &%llX\r\nWorkspace is at &%llX, size is &%X\r\nPAGE = &%llX, HIMEM = &%llX\r\n",
 #else
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\nWorkspace is at &%X, size is &%X\r\nPAGE = &%X, HIMEM = &%X\r\n",
-#endif /*LP64*/
+#endif /*LP64/WIN64*/
    &basicvars, &thisline, basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
 #endif /*DEBUG*/
 }
