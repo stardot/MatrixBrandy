@@ -269,7 +269,7 @@ void restore_handlers(void) {
 void announce(void) {
 //cmd_ver(); emulate_prinf("\n");
 #if defined(__LP64__) || defined(__WIN64__)
-  emulate_printf("\n%s\r\n\nStarting with %lld bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
+  emulate_printf("\n%s\r\n\nStarting with " FMT_LLD " bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #else
   emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #endif /*LP64/WIN64*/
@@ -278,7 +278,7 @@ void announce(void) {
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
 #if defined(__LP64__) || defined(__WIN64__)
-  emulate_printf("Basicvars is at &%llX, tokenised line is at &%llX\r\nWorkspace is at &%llX, size is &%X\r\nPAGE = &%llX, HIMEM = &%llX\r\n",
+  emulate_printf("Basicvars is at &" FMT_LLX ", tokenised line is at &" FMT_LLX "\r\nWorkspace is at &" FMT_LLX ", size is &%X\r\nPAGE = &" FMT_LLX ", HIMEM = &" FMT_LLX "\r\n",
 #else
   emulate_printf("Basicvars is at &%X, tokenised line is at &%X\r\nWorkspace is at &%X, size is &%X\r\nPAGE = &%X, HIMEM = &%X\r\n",
 #endif /*LP64/WIN64*/

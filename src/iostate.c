@@ -1449,7 +1449,7 @@ static void print_screen(void) {
       if (rightjust) {
         if (hex) {
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, (int64)pop_int());
+            size = sprintf(basicvars.stringwork, FMT_SLLX, fieldwidth, (int64)pop_int());
           else
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_int());
         } else {
@@ -1459,7 +1459,7 @@ static void print_screen(void) {
       else {	/* Left justify the value */
         if (hex) {
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", (int64)pop_int());
+            size = sprintf(basicvars.stringwork, FMT_LLX, (int64)pop_int());
           else
             size = sprintf(basicvars.stringwork, "%X", pop_int());
         } else {
@@ -1473,21 +1473,21 @@ static void print_screen(void) {
       if (rightjust) {
         if (hex) {
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_int64());
+            size = sprintf(basicvars.stringwork, FMT_SLLX, fieldwidth, pop_int64());
           else
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_int64());
         } else {
-          size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_int64());
+          size = sprintf(basicvars.stringwork, FMT_SLLD, fieldwidth, pop_int64());
         }
       }
       else {	/* Left justify the value */
         if (hex) {
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", pop_int64());
+            size = sprintf(basicvars.stringwork, FMT_LLX, pop_int64());
           else
             size = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
         } else {
-          size = sprintf(basicvars.stringwork, "%lld", pop_int64());
+          size = sprintf(basicvars.stringwork, FMT_LLD, pop_int64());
         }
       }
       emulate_vdustr(basicvars.stringwork, size);
@@ -1497,7 +1497,7 @@ static void print_screen(void) {
       if (rightjust) {	/* Value is printed right justified */
         if (hex) {
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, TOINT64(pop_float()));
+            size = sprintf(basicvars.stringwork, FMT_SLLX, fieldwidth, TOINT64(pop_float()));
           else
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
         } else {
@@ -1507,7 +1507,7 @@ static void print_screen(void) {
       else {	/* Left justify the value */
         if (hex)
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", TOINT64(pop_float()));
+            size = sprintf(basicvars.stringwork, FMT_LLX, TOINT64(pop_float()));
           else
             size = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
         else {

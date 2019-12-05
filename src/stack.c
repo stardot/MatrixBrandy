@@ -236,7 +236,7 @@ void push_int64(int64 x) {
   basicvars.stacktop.int64sp->itemtype = STACK_INT64;
   basicvars.stacktop.int64sp->int64value = x;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 64-bit integer value on to stack at %p (moved from %p), value %lld\n", basicvars.stacktop.int64sp, oldsp, x);
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push 64-bit integer value on to stack at %p (moved from %p), value " FMT_LLD "\n", basicvars.stacktop.int64sp, oldsp, x);
 #endif
 }
 
@@ -570,7 +570,7 @@ void save_int64(lvalue details, int64 value) {
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint64 = value;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 64-bit integer from %p at %p with value &%llX\n",
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 64-bit integer from %p at %p with value &" FMT_LLX "\n",
    details.address.intaddr, basicvars.stacktop.localsp, value);
 #endif
 }
@@ -928,7 +928,7 @@ int32 pop_int(void) {
 int64 pop_int64(void) {
   stack_int64 *p = basicvars.stacktop.int64sp;
 #ifdef DEBUG
-  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 64-bit integer from stack at %p, value %lld\n",
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 64-bit integer from stack at %p, value " FMT_LLD "\n",
    p, p->int64value);
 #endif
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);

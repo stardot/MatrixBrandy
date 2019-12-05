@@ -1564,12 +1564,12 @@ static void cmd_help(char *command)
     case HELP_MEMINFO:
       emulate_printf("Memory allocation information:\r\n\r\n");
 #if defined(__LP64__) || defined(__WIN64__)
-      emulate_printf("Workspace is at &%llX, size is &%X\r\nPAGE = &%llX, HIMEM = &%llX\r\n",
+      emulate_printf("Workspace is at &" FMT_LLX ", size is &" FMT_LLX "\r\nPAGE = &" FMT_LLX ", HIMEM = &" FMT_LLX "\r\n",
        basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-      emulate_printf("stacktop = &%llX, stacklimit = &%llX\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+      emulate_printf("stacktop = &" FMT_LLX ", stacklimit = &" FMT_LLX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
 #ifdef USE_SDL
-      emulate_printf("Video frame buffer is at &%llX, size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
-      emulate_printf("MODE 7 Teletext frame buffer is at &%llX\r\n", matrixflags.mode7fb);
+      emulate_printf("Video frame buffer is at &" FMT_LLX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+      emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_LLX "\r\n", matrixflags.mode7fb);
 #endif /* USE_SDL */
 #else /* ! LP64/WIN64 */
       emulate_printf("Workspace is at &%X, size is &%X\r\nPAGE = &%X, HIMEM = &%X\r\n",
