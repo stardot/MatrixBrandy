@@ -246,6 +246,11 @@ static void init2(void) {
   }
   if (!init_heap() || !init_workspace(worksize)) {
     cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
+#ifdef NEWKBD
+    kbd_quit();
+#else
+    end_keyboard();
+#endif
     exit(EXIT_FAILURE);
   }
 #ifdef USE_SDL
