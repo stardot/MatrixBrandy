@@ -80,6 +80,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				R5: 1 if SDL build, otherwise 0.
 				R6: Returns a fixed 64-bit value:
 				    &123456789ABCDEF0
+				R7: 1 if 64-bit build, otherwise 0.
 
 &140001 Brandy_Swap16Palette	Returns nothing.
 				In 16-colour modes, as Flash isn't supported,
