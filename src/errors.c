@@ -268,11 +268,7 @@ void restore_handlers(void) {
 */
 void announce(void) {
 //cmd_ver(); emulate_prinf("\n");
-#if defined(__LP64__) || defined(__WIN64__)
-  emulate_printf("\n%s\r\n\nStarting with %lld bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
-#else
-  emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
-#endif /*LP64/WIN64*/
+  emulate_printf("\n%s\r\n\nStarting with %zd bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
