@@ -268,7 +268,7 @@ void restore_handlers(void) {
 */
 void announce(void) {
 //cmd_ver(); emulate_prinf("\n");
-  emulate_printf("\n%s\r\n\nStarting with %d bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
+  emulate_printf("\n%s\r\n\nStarting with %lld bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #ifdef DEBUG
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
@@ -323,7 +323,7 @@ void show_help(void) {
   printf("  -help          Print this message\n");
   printf("  -version       Print version\n");
   printf("  -size <size>   Set Basic workspace size to <size> bytes when starting\n");
-  printf("                 Suffix with K or M to specify size in kilobytes or megabytes.\n");
+  printf("                 Suffix with K, M or G to specify size in KiB, MiB or GiB.\n");
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");
   printf("  -chain <file>  Run Basic program <file> and stay in interpreter when it ends\n");

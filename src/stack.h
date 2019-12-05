@@ -51,7 +51,7 @@ extern void push_intfor(lvalue, byte *, int32, int32, boolean);
 extern void push_floatfor(lvalue, byte *, float64, float64, boolean);
 extern void push_data(byte *);
 extern void push_error(errorblock);
-extern int32 *make_opstack(void);
+extern size_t *make_opstack(void);
 extern sigjmp_buf *make_restart(void);
 extern stackitem get_topitem(void);
 extern byte *get_stacktop(void);

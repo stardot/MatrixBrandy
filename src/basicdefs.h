@@ -274,7 +274,7 @@ typedef enum {
 
 typedef struct {		/* Operator stack */
   stackitem itemtype;		/* Type of item */
-  int32 opstack[OPSTACKSIZE];	/* Operator stack */
+  size_t opstack[OPSTACKSIZE];	/* Operator stack */
 } stack_opstack;
 
 typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
@@ -325,8 +325,8 @@ typedef struct {		/* PROC return block */
 typedef struct {		/* Function return block */
   stackitem itemtype;
   fnprocinfo fnprocblock;	/* Function return information */
-  int32 *lastopstop;		/* Saved value of Basic operator stack pointer */
-  int32 *lastopstlimit;		/* Saved pointer to end of operator stack */
+  size_t *lastopstop;		/* Saved value of Basic operator stack pointer */
+  size_t *lastopstlimit;		/* Saved pointer to end of operator stack */
   jmp_buf *lastrestart;		/* Last function statement restart block for longjmp */
 } stack_fn;
 
@@ -428,10 +428,10 @@ typedef struct cmdarg {		/* Command line argument structure */
 */
 typedef struct {
   byte *workspace;			/* Address of start of Basic's memory */
-  int32 worksize;			/* Size of Basic's memory */
+  size_t worksize;			/* Size of Basic's memory */
   byte *offbase;			/* Indirection op addresses are offsets from here */
-  int32 *opstop;			/* Basic operator stack pointer */
-  int32 *opstlimit;			/* Pointer to end of operator stack */
+  size_t *opstop;			/* Basic operator stack pointer */
+  size_t *opstlimit;			/* Pointer to end of operator stack */
   byte *page;				/* The program starts here */
   byte *start;				/* Pointer to the first line of the program */
   byte *top;				/* Address of top of source code */

@@ -32,7 +32,7 @@
 
 extern boolean init_heap(void);
 extern void release_heap(void);
-extern boolean init_workspace(int32);
+extern boolean init_workspace(size_t);
 extern void release_workspace(void);
 extern void *allocmem(int32);
 extern void *condalloc(int32);

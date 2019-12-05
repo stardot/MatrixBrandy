@@ -70,7 +70,7 @@ static void run_interpreter(void);
 static void init_timer(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
-static int32 worksize;			/* Initial workspace size */
+static size_t worksize;			/* Initial workspace size */
 
 static cmdarg *arglast;			/* Pointer to end of command line argument list */
 
@@ -356,11 +356,13 @@ static void check_cmdline(int argc, char *argv[]) {
           cmderror(CMD_NOSIZE, p);		/* Workspace size missing */
         else {
           char *sp;
-          worksize = CAST(strtol(argv[n], &sp, 10), int32);	/* Fetch workspace size (n.b. no error checking) */
-          if (tolower(*sp)=='k')	/* Size is in kilobytes */
+          worksize = CAST(strtol(argv[n], &sp, 10), size_t);	/* Fetch workspace size (n.b. no error checking) */
+          if (tolower(*sp)=='k') {	/* Size is in kilobytes */
             worksize = worksize*1024;
-          else if (tolower(*sp)=='m') {	/* Size is in megabytes */
+          } else if (tolower(*sp)=='m') {	/* Size is in megabytes */
             worksize = worksize*1024*1024;
+          } else if (tolower(*sp)=='g') {	/* Size is in gigabytes */
+            worksize = worksize*1024*1024*1024;
           }
         }
       }

@@ -1,6 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.4 - 
+- Enable building on Cygwin 64-bit
+- Remove 2GB size limit, and add 'G' suffix for the -s option.
+
 * V1.22.3 - 29 November 2019
 - Fix stack and array regressions caused by the 64-bit int work.
 - Fix a flood filling crash when new colour is the same as the old colour.
