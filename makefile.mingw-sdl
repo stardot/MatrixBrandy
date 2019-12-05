@@ -1,10 +1,12 @@
-# Makefile for brandy under Windows x86 with MinGW using Cygwin as the 
+# Makefile for brandy under Windows x86 / x64 with MinGW using Cygwin as the 
 # toolchain
 
 # Find MinGW gcc
 compiler=$(shell which i686-w64-mingw32-gcc.exe 2>/dev/null)
+MINGWPATH=/usr/i686-w64-mingw32/sys-root/mingw
 ifeq ($(compiler),)
   compiler=$(shell which x86_64-w64-mingw32-gcc.exe 2>/dev/null)
+  MINGWPATH=/usr/x86_64-w64-mingw32/sys-root/mingw
   ifeq ($(compiler),)
     $(error Unable to find MinGW gcc compiler)
   endif
@@ -17,13 +19,13 @@ ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
 
-#CFLAGS = -g -DDEBUG -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -Wall $(ADDFLAGS)
-#CFLAGS = -g -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
-CFLAGS = -O3 -I/usr/i686-w64-mingw32/sys-root/mingw/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -DDEBUG -I$(MINGWPATH)/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -Wall $(ADDFLAGS)
+#CFLAGS = -g -I$(MINGWPATH)/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O3 -I$(MINGWPATH)/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS +=
 
-LIBS = -lm /usr/i686-w64-mingw32/sys-root/mingw/lib/libSDL.a -lws2_32 -mwindows /usr/i686-w64-mingw32/sys-root/mingw/lib/libdxguid.a /usr/i686-w64-mingw32/sys-root/mingw/lib/libwinmm.a
+LIBS = -lm $(MINGWPATH)/lib/libSDL.a -lws2_32 -mwindows $(MINGWPATH)/lib/libdxguid.a $(MINGWPATH)/lib/libwinmm.a
 
 SRCDIR = src
 

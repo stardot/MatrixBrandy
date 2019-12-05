@@ -1,9 +1,12 @@
-# Makefile for brandy in text mode under NetBSD and Linux
+# Makefile for brandy under Windows x86 / x64 with MinGW using Cygwin as the 
+# toolchain
 
 # Find MinGW gcc
 compiler=$(shell which i686-w64-mingw32-gcc.exe 2>/dev/null)
+MINGWPATH=/usr/i686-w64-mingw32/sys-root/mingw
 ifeq ($(compiler),)
   compiler=$(shell which x86_64-w64-mingw32-gcc.exe 2>/dev/null)
+  MINGWPATH=/usr/x86_64-w64-mingw32/sys-root/mingw
   ifeq ($(compiler),)
     $(error Unable to find MinGW gcc compiler)
   endif
@@ -22,7 +25,7 @@ CFLAGS = -O3 -DCYGWINBUILD -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAG
 
 LDFLAGS =
 
-LIBS = -lm -lws2_32 -mconsole /usr/i686-w64-mingw32/sys-root/mingw/lib/libdxguid.a /usr/i686-w64-mingw32/sys-root/mingw/lib/libwinmm.a
+LIBS = -lm -lws2_32 -mconsole $(MINGWPATH)/lib/libdxguid.a $(MINGWPATH)/lib/libwinmm.a
 
 SRCDIR = src
 
