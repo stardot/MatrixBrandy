@@ -207,7 +207,7 @@ static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
 }
 
-static void tekvdu(chr) {
+static void tekvdu(int chr) {
   putchar(chr);
   fflush(stdout);
   if (matrixflags.tekspeed > 0) usleep(9000000/matrixflags.tekspeed);
@@ -534,7 +534,10 @@ void textbackground(int32 colour) {
 ** -- conio --
 */
 static void scroll_text(updown direction) {
+#ifndef TARGET_MINGW
   int n;
+#endif
+
   if (!vduflag(VDU_FLAG_TEXTWIN) && direction==SCROLL_UP)         /* Text window is the whole screen and scrolling is upwards */
     putch('\n');        /* Output a linefeed */
   else {        /* Writing to a text window */
