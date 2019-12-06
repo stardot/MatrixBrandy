@@ -1366,11 +1366,11 @@ static void fn_str(void) {
   } else if (GET_TOPITEM == STACK_INT64) {
     if (ishex) {
       if (matrixflags.hex64)
-        length = sprintf(basicvars.stringwork, FMT_LLX, pop_int64());
+        length = sprintf(basicvars.stringwork, "%llX", pop_int64());
       else
         length = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
     } else {
-      length = sprintf(basicvars.stringwork, FMT_LLD, pop_int64());
+      length = sprintf(basicvars.stringwork, "%lld", pop_int64());
     }
   } else if (GET_TOPITEM == STACK_FLOAT) {
     if (ishex)

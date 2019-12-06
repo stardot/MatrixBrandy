@@ -331,10 +331,6 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 typedef jmp_buf sigjmp_buf;
 #endif /* TARGET_MINGW */
 
-#define FMT_LLX "%llX"
-#define FMT_SLLX "%*llX"
-#define FMT_LLD "%lld"
-#define FMT_SLLD "%*lld"
 #if defined(__LP64__) || defined(__WIN64__)
 #define FMT_SZX "%llX"
 #define FMT_SZD "%lld"

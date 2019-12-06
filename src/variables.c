@@ -116,9 +116,9 @@ static void list_varlist(char which, library *lp) {
           break;
         case VAR_INTLONG:
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s = " FMT_LLD, vp, vp->varname, vp->varentry.var64int);
+            len = sprintf(temp, "%p  %s = %lld", vp, vp->varname, vp->varentry.var64int);
           else {
-            len = sprintf(temp, "%s = " FMT_LLD, vp->varname, vp->varentry.var64int);
+            len = sprintf(temp, "%s = %lld", vp->varname, vp->varentry.var64int);
           }
           break;
         case VAR_FLOAT:
