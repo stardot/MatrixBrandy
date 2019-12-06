@@ -36,6 +36,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <math.h>
+#include <unistd.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
