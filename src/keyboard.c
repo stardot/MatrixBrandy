@@ -861,7 +861,7 @@ int32 kbd_inkey(int32 arg) {
     /* adapted from con_keyscan() from JGH 'console' library */
     if (arg < 0x080) {				/* Test for single keypress, INKEY-key	*/
 #ifndef TARGET_DJGPP				/* DOS doesn't support GetKbdLayout	*/
-      if (((int)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {	/* BBC layout keyboard	*/
+      if (((size_t)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {	/* BBC layout keyboard	*/
 	/* Note: as a console app, this is the ID from when the program started		*/
         switch (arg) {
           case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);	/* ^~        		*/
