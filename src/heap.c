@@ -24,11 +24,11 @@
 **	for strings
 */
 
+#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "common.h"
-#include "target.h"
 #include "heap.h"
 #include "basicdefs.h"
 #include "errors.h"

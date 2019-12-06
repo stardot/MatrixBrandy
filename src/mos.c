@@ -66,6 +66,7 @@
 
 #define _MOS_C
 
+#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,7 +75,6 @@
 #include <ctype.h>
 #include <time.h>
 #include "common.h"
-#include "target.h"
 #include "errors.h"
 #include "basicdefs.h"
 #include "mos.h"

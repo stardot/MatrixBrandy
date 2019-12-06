@@ -23,10 +23,10 @@
 **	character and binary format
 */
 
+#include "target.h"
 #include <ctype.h>
 #include <math.h>
 #include "common.h"
-#include "target.h"
 #include "convert.h"
 #include "errors.h"
 #include "miscprocs.h"

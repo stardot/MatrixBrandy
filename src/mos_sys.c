@@ -22,12 +22,12 @@
 ** are the implemented system calls available through the BASIC "SYS"
 ** command.
 */
+#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include "common.h"
-#include "target.h"
 #include "errors.h"
 #include "basicdefs.h"
 #include "mos.h"

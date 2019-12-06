@@ -28,6 +28,9 @@
 **
 */
 
+#ifndef __target_h
+#define __target_h
+
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
@@ -35,9 +38,6 @@
 #define BRANDY_DATE       "29 Nov 2019"
 // #define BRANDY_PATCHDATE  "JGH191007"
 
-
-#ifndef __target_h
-#define __target_h
 
 /* Make NEWKBD the default */
 #ifndef OLDKBD

@@ -23,10 +23,10 @@
 **	memory manangement for strings
 */
 
+#include "target.h"
 #include <string.h>
 #include <stdlib.h>
 #include "common.h"
-#include "target.h"
 #include "basicdefs.h"
 #include "strings.h"
 #include "heap.h"

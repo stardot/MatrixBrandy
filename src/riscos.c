@@ -27,12 +27,12 @@
 **
 */
 
+#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include "common.h"
-#include "target.h"
 #include "errors.h"
 #include "basicdefs.h"
 #include "scrcommon.h"

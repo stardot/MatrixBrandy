@@ -24,12 +24,12 @@
 **	in the running program and any libraries that have been loaded.
 */
 
+#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "common.h"
-#include "target.h"
 #include "basicdefs.h"
 #include "variables.h"
 #include "evaluate.h"
