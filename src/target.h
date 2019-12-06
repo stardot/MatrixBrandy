@@ -28,9 +28,6 @@
 **
 */
 
-#ifndef __target_h
-#define __target_h
-
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
@@ -38,6 +35,9 @@
 #define BRANDY_DATE       "29 Nov 2019"
 // #define BRANDY_PATCHDATE  "JGH191007"
 
+
+#ifndef __target_h
+#define __target_h
 
 /* Make NEWKBD the default */
 #ifndef OLDKBD
@@ -325,34 +325,34 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef TARGET_MINGW
-  #define __USE_MINGW_ANSI_STDIO 1
-  #include <setjmp.h>
-  #define sigsetjmp(env, savesigs) setjmp(env)
-  #define siglongjmp(env, val) longjmp(env, val)
-  typedef jmp_buf sigjmp_buf;
-  #define FMT_LLX "%I64llX"
-  #define FMT_SLLX "%*I64llX"
-  #define FMT_LLD "%I64lld"
-  #define FMT_SLLD "%*I64lld"
-  #ifdef __WIN64__
-    #define FMT_SZX "%I64llX"
-    #define FMT_SZD "%I64lld"
-  #else
-    #define FMT_SZX "%X"
-    #define FMT_SZD "%d"
-  #endif /* WIN64 */
-#else /* !TARGET_MINGW */
-  #define FMT_LLX "%llX"
-  #define FMT_SLLX "%*llX"
-  #define FMT_LLD "%lld"
-  #define FMT_SLLD "%*lld"
-  #ifdef __LP64__
-    #define FMT_SZX "%llX"
-    #define FMT_SZD "%lld"
-  #else
-    #define FMT_SZX "%X"
-    #define FMT_SZD "%d"
-  #endif /* LP64 */
+#define __USE_MINGW_ANSI_STDIO 1
+#include <setjmp.h>
+#define sigsetjmp(env, savesigs) setjmp(env)
+#define siglongjmp(env, val) longjmp(env, val)
+typedef jmp_buf sigjmp_buf;
+#define FMT_LLX "%I64X"
+#define FMT_SLLX "%*I64X"
+#define FMT_LLD "%I64d"
+#define FMT_SLLD "%*I64d"
+#ifdef __WIN64__
+#define FMT_SZX "%I64X"
+#define FMT_SZD "%I64d"
+#else
+#define FMT_SZX "%X"
+#define FMT_SZD "%d"
+#endif /* WIN64 */
+#else
+#define FMT_LLX "%llX"
+#define FMT_SLLX "%*llX"
+#define FMT_LLD "%lld"
+#define FMT_SLLD "%*lld"
+#ifdef __LP64__
+#define FMT_SZX "%llX"
+#define FMT_SZD "%lld"
+#else
+#define FMT_SZX "%X"
+#define FMT_SZD "%d"
+#endif /* LP64 */
 #endif /* TARGET_MINGW */
 
 #endif

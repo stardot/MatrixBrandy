@@ -22,9 +22,9 @@
 **	This file contains functions for dealing with lvalues
 */
 
-#include "target.h"
 #include <string.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "evaluate.h"

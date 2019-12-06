@@ -27,7 +27,6 @@
 **	MODE 7 implementation by Michael McConnell.
 **
 */
-#include "target.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -37,6 +36,7 @@
 #include <sys/time.h>
 #include <math.h>
 #include "common.h"
+#include "target.h"
 #include "errors.h"
 #include "basicdefs.h"
 #include "scrcommon.h"

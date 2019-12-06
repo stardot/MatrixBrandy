@@ -23,9 +23,9 @@
 **	Basic stack
 */
 
-#include "target.h"
 #include <string.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "stack.h"
 #include "miscprocs.h"

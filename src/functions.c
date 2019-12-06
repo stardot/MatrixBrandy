@@ -29,7 +29,6 @@
 ** 05-Apr-2014 JGH: Seperated BEAT from BEATS, they do different things.
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +36,7 @@
 #include <time.h>
 #include <ctype.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "variables.h"

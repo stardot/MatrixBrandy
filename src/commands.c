@@ -22,13 +22,13 @@
 **      This file contains all the 'immediate' Basic commands
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "miscprocs.h"
 #include "tokens.h"

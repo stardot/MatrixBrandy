@@ -30,7 +30,6 @@
 **
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +38,7 @@
 #include <math.h>
 #include <unistd.h>
 #include "common.h"
+#include "target.h"
 #include "errors.h"
 #include "basicdefs.h"
 #include "scrcommon.h"
@@ -205,9 +205,9 @@ static unsigned int vduflag(unsigned int flags) {
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
-} 
+}
 
-static void tekvdu(int chr) {
+static void tekvdu(chr) {
   putchar(chr);
   fflush(stdout);
   if (matrixflags.tekspeed > 0) usleep(9000000/matrixflags.tekspeed);

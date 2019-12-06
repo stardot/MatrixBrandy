@@ -22,7 +22,6 @@
 **      This module contains functions for dealing with errors.
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -31,6 +30,7 @@
 #include <setjmp.h>
 #include <stdarg.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "errors.h"
 #include "stack.h"

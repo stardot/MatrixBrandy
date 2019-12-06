@@ -108,11 +108,11 @@
 **
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "errors.h"
 #include "screen.h"

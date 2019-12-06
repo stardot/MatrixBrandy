@@ -27,12 +27,12 @@
 ** provided by the underlying operating system.
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include "common.h"
 #include "miscprocs.h"
+#include "target.h"
 #include "errors.h"
 #include "fileio.h"
 #include "strings.h"

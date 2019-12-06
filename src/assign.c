@@ -23,12 +23,12 @@
 **	all types of variable and also the pseudo variables
 */
 
-#include "target.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "heap.h"

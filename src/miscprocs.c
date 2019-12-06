@@ -25,7 +25,6 @@
 **
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -33,6 +32,7 @@
 #include <errno.h>
 #include <math.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "errors.h"

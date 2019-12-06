@@ -23,7 +23,6 @@
 **	apart from the built-in Basic functions which are in functions.c
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,6 +30,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include "common.h"
+#include "target.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "variables.h"

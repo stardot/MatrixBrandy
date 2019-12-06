@@ -4,13 +4,13 @@
 **
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 #include <SDL.h>
 #include <SDL_audio.h>
 #include "basicdefs.h"
+#include "target.h"
 #include "mos.h"
 #include "screen.h"
 #include "soundsdl.h"

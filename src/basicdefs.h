@@ -25,13 +25,13 @@
 #ifndef __basicdefs_h
 #define __basicdefs_h
 
-#include "target.h"
 #include <setjmp.h>
 #include <stdio.h>
 #ifdef USE_SDL
 #include <SDL.h>
 #endif
 #include "common.h"
+#include "target.h"
 
 #define OPSTACKSIZE 20			/* Size of operator stack */
 
