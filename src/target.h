@@ -348,7 +348,7 @@ typedef jmp_buf sigjmp_buf;
 #define FMT_SLLD "%*lld"
 #ifdef __LP64__
 #define FMT_SZX "%llX"
-#define FMT_SZD "lld"
+#define FMT_SZD "%lld"
 #else
 #define FMT_SZX "%X"
 #define FMT_SZD "%d"
