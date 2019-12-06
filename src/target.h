@@ -339,7 +339,7 @@ typedef jmp_buf sigjmp_buf;
 #define FMT_SZD "%I64d"
 #else
 #define FMT_SZX "%X"
-#define FMT_SZd "%d"
+#define FMT_SZD "%d"
 #endif /* WIN64 */
 #else
 #define FMT_LLX "%llX"
