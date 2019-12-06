@@ -1563,23 +1563,13 @@ static void cmd_help(char *command)
     break;
     case HELP_MEMINFO:
       emulate_printf("Memory allocation information:\r\n\r\n");
-#if defined(__LP64__) || defined(__WIN64__)
-      emulate_printf("Workspace is at &" FMT_LLX ", size is &" FMT_LLX "\r\nPAGE = &" FMT_LLX ", HIMEM = &" FMT_LLX "\r\n",
+      emulate_printf("Workspace is at &" FMT_SZX ", size is &" FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
        basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-      emulate_printf("stacktop = &" FMT_LLX ", stacklimit = &" FMT_LLX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+      emulate_printf("stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
 #ifdef USE_SDL
-      emulate_printf("Video frame buffer is at &" FMT_LLX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
-      emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_LLX "\r\n", matrixflags.mode7fb);
+      emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+      emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
 #endif /* USE_SDL */
-#else /* ! LP64/WIN64 */
-      emulate_printf("Workspace is at &%X, size is &%X\r\nPAGE = &%X, HIMEM = &%X\r\n",
-       basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-      emulate_printf("stacktop = &%X, stacklimit = &%X\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
-#ifdef USE_SDL
-      emulate_printf("Video frame buffer is at &%X, size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
-      emulate_printf("MODE 7 Teletext frame buffer is at &%X\r\n", matrixflags.mode7fb);
-#endif /* USE_SDL */
-#endif /* LP64/WIN64 */
       emulate_printf("\r\n");
     break;
 #ifdef USE_SDL
