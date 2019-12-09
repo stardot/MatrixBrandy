@@ -271,7 +271,9 @@ int64 esclast=0;
 ** characters are stored here so that they can be returned by future calls
 ** to 'kbd_get0()'. Note that this is a *stack* not a queue.
 */
+#if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
 static int32 keyboard;          /* File descriptor for keyboard */
+#endif
 static int32 holdcount;		/* Number of characters held on stack			*/
 static int32 holdstack[8];	/* Hold stack - Characters waiting to be passed back via 'get' */
 
@@ -1366,10 +1368,10 @@ static boolean waitkey(int wait) {
 **
 */
 static boolean waitkey(int wait) {
-//#ifndef TARGET_MINGW
+#if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   fd_set keyset;
   struct timeval waitime;
-//#endif
+#endif
 #ifdef BODGEMGW
   int tmp;
 #endif
@@ -1447,7 +1449,9 @@ static boolean waitkey(int wait) {
 ** or gets the next keypress from the SDL event queue
 */
 int32 read_key(void) {
+#if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   int errcode;
+#endif
   byte ch = 0;
 
 #if defined(TARGET_BEOS) || defined(TARGET_AMIGA)
