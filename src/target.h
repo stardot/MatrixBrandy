@@ -333,10 +333,10 @@ typedef jmp_buf sigjmp_buf;
 
 #if defined(__LP64__) || defined(__WIN64__)
 #define FMT_SZX "%llX"
-#define FMT_SZD "%lld"
+#define FMT_SZD "%llu"
 #else
 #define FMT_SZX "%X"
-#define FMT_SZD "%d"
+#define FMT_SZD "%u"
 #endif /* LP64 */
 
 
