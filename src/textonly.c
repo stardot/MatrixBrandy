@@ -179,6 +179,7 @@ static byte colourmap [] = {
 
 #endif
 
+#ifndef NOTEKGFX
 /* Tektronix variables */
 static int32
   xgupp = 2,			/* RISC OS graphic units per pixel in X direction */
@@ -198,6 +199,7 @@ static int32
 #define FAST_4_DIV(x) ((x)>>2)
 
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
+#endif
 
 static unsigned int vduflag(unsigned int flags) {
   return (vduflags & flags) ? 1 : 0;
@@ -207,11 +209,13 @@ static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
 }
 
+#ifndef NOTEKGFX
 static void tekvdu(int chr) {
   putchar(chr);
   fflush(stdout);
   if (matrixflags.tekspeed > 0) usleep(9000000/matrixflags.tekspeed);
 }
+#endif
 
 #ifdef USE_ANSI
 #if 0
@@ -1087,6 +1091,7 @@ static void vdu_hometext(void) {
   move_cursor(twinleft, twintop);
 }
 
+#ifndef NOTEKGFX
 static void tekinit(void) {
   if (!graphicurs) printf("%c%c%c%c%c%c", 27, 91, 63, 51, 56, 104);
 }
@@ -1101,6 +1106,11 @@ static void vdu_cleargraph(void) {
   tekvdu(12);
   tekexit();
 }
+#else
+static void vdu_cleargraph(void) {
+  error(ERR_NOGRAPHICS);
+}
+#endif
 
 /*
 ** 'vdu_movetext' moves the text cursor to the given column and row in
@@ -1116,12 +1126,16 @@ static void vdu_movetext(void) {
 }
 
 static void vdu_origin(void) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   int32 x, y;
   
   x = vduqueue[0]+vduqueue[1]*256;
   y = vduqueue[2]+vduqueue[3]*256;
   xorigin = x<=32767 ? x : -(0x10000-x);
   yorigin = y<=32767 ? y : -(0x10000-y);
+#endif
 }
 
 
@@ -1248,13 +1262,19 @@ void emulate_vdu(int32 charvalue) {
     echo_char();
     break;
   case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
+#ifndef NOTEKGFX
     graphicurs = 0;
     if (matrixflags.tekenabled) tekexit();
+#endif
     break;
   case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
+#ifdef NOTEKGFX
+    error(ERR_NOGRAPHICS);
+#else
     if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
     tekinit();
     graphicurs = 1;
+#endif
     break;
   case VDU_BEEP:      /* 7 - Sound the bell */
     putch('\7');
@@ -1470,8 +1490,10 @@ void emulate_mode(int32 mode) {
   textcolor(text_physforecol);
   textbackground(text_physbackcol);
   reset_screen();
+#ifndef NOTEKGFX
   graphicurs = 0;
   if (matrixflags.tekenabled) vdu_cleargraph();
+#endif
   clrscr();
 }
 
@@ -1520,6 +1542,7 @@ int32 emulate_modefn(void) {
   return screenmode;
 }
 
+#ifndef NOTEKGFX
 /* Graphics primitives */
 static void plot_pixel(int32 px, int32 py) {
   int32 mx, my;
@@ -1813,7 +1836,6 @@ static void fill_rectangle(uint32 left, uint32 top, uint32 right, uint32 bottom)
     draw_h_line(left, yloop, right);
 }
 
-
 /*
 ** Version of 'emulate_plot' used when interpreter does not
 ** include any graphics support
@@ -1965,9 +1987,13 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
   tekexit();
-
-
 }
+
+#else /* NOTEKGFX */
+void emulate_plot(int32 code, int32 x, int32 y) {
+  error(ERR_NOGRAPHICS);
+}
+#endif /* NOTEKGFX */
 
 /*
 ** Version of 'emulate_pointfn' used when interpreter does not
@@ -2147,39 +2173,69 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 
 /*
 ** Following are the functions that emulate graphics statements.
-** None of these are supported so they are just flagged as errors
 */
 
 void emulate_move(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
+#endif
 }
 
 void emulate_moveby(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
+#endif
 }
 
 void emulate_draw(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
+#endif
 }
 
 void emulate_drawby(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
+#endif
 }
 
 void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x2, y2);
+#endif
 }
 
 void emulate_point(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
+#endif
 }
 
 void emulate_pointby(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
+#endif
 }
 
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   int32 slicew, shearx, maxy;
   
   float64 cosv, sinv;
@@ -2197,18 +2253,26 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
   else {
     emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   }
+#endif
 }
 
 void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of circle */
   if (isfilled)
     emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);	/* Plot to a point on the circumference */
   else {
     emulate_plot(PLOT_CIRCLE+DRAW_ABSOLUTE, x-radius, y);
   }
+#endif
 }
 
 void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isfilled) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   if (isfilled)
     emulate_plot(FILL_RECTANGLE+DRAW_RELATIVE, width, height);
@@ -2218,9 +2282,13 @@ void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isf
     emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, -width, 0);
     emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, 0, -height);
   }
+#endif
 }
 
 void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, int32 y2, boolean ismove) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, width, height);
   if (ismove)	/* Move the area just marked */
@@ -2228,22 +2296,35 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
   }
+#endif
 }
 
 void emulate_fill(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(FLOOD_BACKGROUND+DRAW_ABSOLUTE, x, y);
+#endif
 }
 
 void emulate_fillby(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_plot(FLOOD_BACKGROUND+DRAW_RELATIVE, x, y);
+#endif
 }
 
 void emulate_origin(int32 x, int32 y) {
+#ifdef NOTEKGFX
+  error(ERR_NOGRAPHICS);
+#else
   emulate_vdu(VDU_ORIGIN);
   emulate_vdu(x & BYTEMASK);
   emulate_vdu((x>>BYTESHIFT) & BYTEMASK);
   emulate_vdu(y & BYTEMASK);
   emulate_vdu((y>>BYTESHIFT) & BYTEMASK);
+#endif
 }
 
 /*

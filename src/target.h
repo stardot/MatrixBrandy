@@ -98,6 +98,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULT_EDITOR  "Filer_Run"
 #define DIR_SEPS ".:"
 #define DIR_SEP  '.'
+#define NOTEKGFX 1
 #endif
 
 #ifdef __NetBSD__
@@ -183,6 +184,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULT_EDITOR  "edit"
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
+#define NOTEKGFX 1
 #endif
 
 #ifdef __MINGW32__
@@ -197,6 +199,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULT_EDITOR  "edit"
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
+#define NOTEKGFX 1
 #endif
 
 #if defined(__LCC__) & defined(WIN32)
@@ -209,6 +212,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULT_EDITOR  "edit"
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
+#define NOTEKGFX 1
 #endif
 
 #ifdef __BORLANDC__
@@ -221,6 +225,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULT_EDITOR  "edit"
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
+#define NOTEKGFX 1
 #endif
 
 #if defined(__GNUC__) && ( defined(__APPLE_CPP__) || defined(__APPLE_CC__) )
@@ -243,6 +248,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DEFAULT_EDITOR  "ed"
 #define DIR_SEPS "/:"
 #define DIR_SEP  '/'
+#define NOTEKGFX 1
 #endif
 
 // Nothing tests for BEOS, but set up defines here to claim OSVER=&FB.
