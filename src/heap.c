@@ -65,8 +65,8 @@ boolean init_workspace(uint32 heapsize) {
     heapsize = DEFAULTSIZE;
   else if (heapsize<MINSIZE)
     heapsize = MINSIZE;
-  else if (heapsize>0xFFFFFFFFu)
-    heapsize = 0xFFFFFFFFu;
+  else if (heapsize>0x7FFFFFFFu)
+    heapsize = 0x80000000u;
   else {
     heapsize = ALIGN(heapsize);
   }
