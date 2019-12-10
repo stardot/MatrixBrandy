@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -408,6 +409,10 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_uSleep:
         usleep(inregs[0]);
+      break;
+    case SWI_Brandy_dlopen:
+      break;
+    case SWI_Brandy_dlcall:
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
