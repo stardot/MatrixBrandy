@@ -59,12 +59,14 @@ boolean init_heap(void) {
 ** start of the Basic workspace but under RISC OS it has to be from the
 ** start of memory otherwise the SYS statement does not work.
 */
-boolean init_workspace(size_t heapsize) {
+boolean init_workspace(uint32 heapsize) {
   byte *wp;
   if (heapsize==0)
     heapsize = DEFAULTSIZE;
   else if (heapsize<MINSIZE)
     heapsize = MINSIZE;
+  else if (heapsize>0xFFFFFFFFu)
+    heapsize = 0xFFFFFFFFu;
   else {
     heapsize = ALIGN(heapsize);
   }
