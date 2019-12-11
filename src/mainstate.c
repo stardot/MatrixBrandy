@@ -2455,10 +2455,10 @@ void exec_sys(void) {
         inregs[parmcount] = pop_int();
         break;
       case STACK_INT64:
-        inregs[parmcount] = INT64TO32(pop_int());
+        inregs[parmcount] = pop_int64();
         break;
       case STACK_FLOAT:
-        inregs[parmcount] = TOINT(pop_float());
+        inregs[parmcount] = TOINT64(pop_float());
         break;
       case STACK_STRING: case STACK_STRTEMP: {
         int32 length;
