@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include "target.h"
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+#define __USE_GNU
 #include <dlfcn.h>
 #endif
 #include "common.h"
@@ -427,7 +428,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         char *errcond;
 
         dlerror(); /* Flush the error state */
-        *(void **)(&dlsh)=dlsym(NULL, (void *)(size_t)inregs[0]);
+        *(void **)(&dlsh)=dlsym(RTLD_DEFAULT, (void *)(size_t)inregs[0]);
         errcond=dlerror();
         if (errcond != NULL) { 
           if (!xflag) error(ERR_DL_NOSYM, errcond);
