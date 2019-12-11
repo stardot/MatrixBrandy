@@ -114,6 +114,20 @@ static uint32 mossys_getboardfrommodel(uint32 model) {
   return (boards[ptr].boardtype);
 }
 
+#ifdef TARGET_MINGW
+static void *rtrdlsym (void *handle, const char *symbol) {
+  void *procaddr ;
+  HMODULE modules[100] ;
+  long unsigned int i, needed ;
+  K32EnumProcessModules ((HANDLE)-1, modules, sizeof (modules), &needed) ;
+  for (i = 0; i < needed / sizeof (HMODULE); i++) {
+    procaddr = GetProcAddress (modules[i], symbol) ;
+    if (procaddr != NULL) break ;
+  }
+  return procaddr ;
+}
+#endif
+
 static uint32 gpio2rpi(uint32 boardtype) {
   int32 ptr;
   for (ptr=0; rpiboards[ptr].boardtype!=255; ptr++) {
