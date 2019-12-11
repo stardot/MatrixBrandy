@@ -26,9 +26,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <dlfcn.h>
-#include "common.h"
 #include "target.h"
+#if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+#include <dlfcn.h>
+#endif
+#include "common.h"
 #include "errors.h"
 #include "basicdefs.h"
 #include "mos.h"
@@ -290,6 +292,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_OS_Plot:
       emulate_plot(inregs[0], inregs[1], inregs[2]); break;
+      break;
     case SWI_OS_WriteN:	/* This is extended in Brandy - normally only R0 and R1
 			   are acted upon; in Brandy, if R2 is set to 42, the
 			   characters are output to the controlling terminal. */
@@ -299,8 +302,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       } else {
         for (a=0; a<inregs[1]; a++) emulate_vdu(*(basicvars.offbase+inregs[0]+a));
       }
-
-    
+      break;
     case SWI_OS_ScreenMode:
 #ifdef USE_SDL
       outregs[0]=inregs[0];
@@ -411,8 +413,33 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         usleep(inregs[0]);
       break;
     case SWI_Brandy_dlopen:
+#if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+      outregs[0]=(size_t)dlopen((char *)inregs[0], RTLD_LAZY);
+#else
+      if (!xflag) error(ERR_DL_NODL);
+      outregs[0]=0;
+#endif
       break;
     case SWI_Brandy_dlcall:
+#if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+      if (1) {
+        size_t (*dlsh)(void *, ...);
+        char *errcond;
+
+        dlerror(); /* Flush the error state */
+        *(void **)(&dlsh)=dlsym(NULL, (void *)(size_t)inregs[0]);
+        errcond=dlerror();
+        if (errcond != NULL) { 
+          if (!xflag) error(ERR_DL_NOSYM, errcond);
+          outregs[0]=0;
+        } else {
+          outregs[0]=(*dlsh)(inregs[1], inregs[2], inregs[3], inregs[4], inregs[5], inregs[6], inregs[7], inregs[8], inregs[9]);
+        }
+      }
+#else
+      if (!xflag) error(ERR_DL_NODL);
+      outregs[0]=0;
+#endif
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);

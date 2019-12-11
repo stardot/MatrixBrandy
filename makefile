@@ -13,7 +13,7 @@ CFLAGS = -O3 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(A
 
 LDFLAGS +=
 
-LIBS = -lX11 -lm -lSDL
+LIBS = -lX11 -lm -lSDL -ldl
 
 SRCDIR = src
 

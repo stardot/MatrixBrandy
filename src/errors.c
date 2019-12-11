@@ -546,6 +546,10 @@ static detail errortable [] = {
 /* ERR_NET_NOTSUPP */	{NONFATAL, NOPARM, 157, "Network operation not supported"},	// 'Unsupported operation'
 /* ERR_NO_RPI_GPIO */	{NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
 //
+// Dynamic Linker errors
+/* ERR_DL_NODL */	{FATAL,    NOPARM,   0, "Dynamic Linking not available"},
+/* ERR_DL_NOSYM */	{FATAL,    STRING,   0, "%s"},
+//
 /* HIGHERROR */		{NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
 };
 
@@ -740,6 +744,7 @@ static void handle_error(errortype severity) {
 void error(int32 errnumber, ...) {
   va_list parms;
   byte *badline;
+
 #ifdef USE_SDL
   hide_cursor();
 #endif

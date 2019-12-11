@@ -183,6 +183,9 @@ typedef enum {
     ERR_NET_MAXSOCKETS,	/* 192, Maximum number of sockets already open */
     ERR_NET_NOTSUPP,	/* 157, Network operation not supported */
     ERR_NO_RPI_GPIO,	/* 510, Raspberry Pi GPIO not available */
+// Dynamic Linker errors
+    ERR_DL_NODL,	/* 0, dlopen() and friends not available */
+    ERR_DL_NOSYM,	/* 0, Symbol not found */
     HIGHERROR		/* Leave last, dummy error */
 } errnum;
 

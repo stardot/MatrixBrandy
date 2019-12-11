@@ -25,7 +25,7 @@ CFLAGS = -O3 -I$(MINGWPATH)/include/SDL -DUSE_SDL -DCYGWINBUILD -DDEFAULT_IGNORE
 
 LDFLAGS +=
 
-LIBS = -lm $(MINGWPATH)/lib/libSDL.a -lws2_32 -mwindows $(MINGWPATH)/lib/libdxguid.a $(MINGWPATH)/lib/libwinmm.a
+LIBS = -lm $(MINGWPATH)/lib/libSDL.a -lws2_32 -mwindows $(MINGWPATH)/lib/libdxguid.a $(MINGWPATH)/lib/libwinmm.a $(MINGWPATH)/lib/libdl.a
 
 SRCDIR = src
 
