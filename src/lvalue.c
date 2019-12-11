@@ -426,9 +426,9 @@ static void do_unaryind(lvalue *destination) {
   if (GET_TOPITEM==STACK_INT)
     destination->address.offset = pop_int();
   else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = INT64TO32(pop_int64());
+    destination->address.offset = pop_int64();
   else if (GET_TOPITEM==STACK_FLOAT)
-    destination->address.offset = TOINT(pop_float());
+    destination->address.offset = TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }

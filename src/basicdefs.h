@@ -158,7 +158,7 @@ typedef union {
   float64 *floataddr;			/* Pointer to Basic floating point value */
   basicstring *straddr;			/* Pointer to Basic string descriptor */
   basicarray **arrayaddr;		/* Pointer to pointer to Basic array descriptor */
-  int32 offset;				/* Byte offset in workspace for indirection operators */
+  size_t offset;			/* Byte offset in workspace for indirection operators */
 } pointers;
 
 /* 'lvalue' refers to an item when a writable address is needed rather than its value */
