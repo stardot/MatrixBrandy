@@ -443,6 +443,13 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[0]=0;
 #endif
       break;
+    case SWI_Brandy_MAlloc:
+        outregs[0]=(size_t)malloc((size_t)inregs[0]);
+        if (!xflag && outregs[0] == 0) error(ERR_NOMEMORY);
+      break;
+    case SWI_Brandy_Free:
+        free((void *)(size_t)inregs[0]);
+      break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;

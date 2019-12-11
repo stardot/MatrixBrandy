@@ -113,6 +113,8 @@ typedef struct {
 #define SWI_Brandy_uSleep				0x14000B
 #define SWI_Brandy_dlopen				0x14000C
 #define SWI_Brandy_dlcall				0x14000D
+#define SWI_Brandy_MAlloc				0x14000E
+#define SWI_Brandy_Free					0x14000F
 
 #define SWI_RaspberryPi_GPIOInfo			0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode			0x140101
@@ -196,6 +198,8 @@ static switable swilist[] = {
 	{SWI_Brandy_uSleep,				"Brandy_uSleep"},
 	{SWI_Brandy_dlopen,				"Brandy_dlopen"},
 	{SWI_Brandy_dlcall,				"Brandy_dlcall"},
+	{SWI_Brandy_MAlloc,				"Brandy_MAlloc"},
+	{SWI_Brandy_Free,				"Brandy_Free"},
 
 	{SWI_RaspberryPi_GPIOInfo,			"RaspberryPi_GPIOInfo"},
 	{SWI_RaspberryPi_GetGPIOPortMode,		"RaspberryPi_GetGPIOPortMode"},
