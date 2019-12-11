@@ -414,7 +414,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_dlopen:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-      outregs[0]=(size_t)dlopen((char *)inregs[0], RTLD_LAZY);
+      outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0], RTLD_LAZY);
 #else
       if (!xflag) error(ERR_DL_NODL);
       outregs[0]=0;
@@ -423,7 +423,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_Brandy_dlcall:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       if (1) {
-        size_t (*dlsh)(void *, ...);
+        size_t (*dlsh)(size_t, ...);
         char *errcond;
 
         dlerror(); /* Flush the error state */
@@ -433,7 +433,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
           if (!xflag) error(ERR_DL_NOSYM, errcond);
           outregs[0]=0;
         } else {
-          outregs[0]=(*dlsh)(inregs[1], inregs[2], inregs[3], inregs[4], inregs[5], inregs[6], inregs[7], inregs[8], inregs[9]);
+
+          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
         }
       }
 #else
