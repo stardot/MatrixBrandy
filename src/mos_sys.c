@@ -42,6 +42,11 @@
 #include "SDL.h"
 #include "graphsdl.h"
 #endif
+#ifdef TARGET_MINGW
+#include <minwindef.h>
+#include <libloaderapi.h>
+#include <psapi.h>
+#endif
 
 typedef struct {
   uint32 model;
@@ -119,7 +124,7 @@ static void *rtrdlsym (void *handle, const char *symbol) {
   void *procaddr ;
   HMODULE modules[100] ;
   long unsigned int i, needed ;
-  K32EnumProcessModules ((HANDLE)-1, modules, sizeof (modules), &needed) ;
+  EnumProcessModules ((HANDLE)-1, modules, sizeof (modules), &needed) ; /* was K32EnumProcessModules */
   for (i = 0; i < needed / sizeof (HMODULE); i++) {
     procaddr = GetProcAddress (modules[i], symbol) ;
     if (procaddr != NULL) break ;
@@ -439,9 +444,20 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       if (1) {
         size_t (*dlsh)(size_t, ...);
+#ifndef TARGET_MINGW
         char *errcond;
+#endif
 
         dlerror(); /* Flush the error state */
+#ifdef TARGET_MINGW
+        *(void **)(&dlsh)=rtrdlsym(RTLD_DEFAULT, (void *)(size_t)inregs[0]);
+        if (dlsh == NULL) { 
+          if (!xflag) error(ERR_DL_NOSYM, "Symbol not found");
+          outregs[0]=0;
+        } else {
+          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
+        }
+#else
         *(void **)(&dlsh)=dlsym(RTLD_DEFAULT, (void *)(size_t)inregs[0]);
         errcond=dlerror();
         if (errcond != NULL) { 
@@ -451,6 +467,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 
           outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
         }
+#endif
       }
 #else
       if (!xflag) error(ERR_DL_NODL);
