@@ -101,7 +101,7 @@ static int writebank=0;
 ** SDL related defines, Variables and params
 */
 static SDL_Surface *screenbank[MAXBANKS];
-static SDL_Surface *screen0, *screen1, *screen2, *screen2A, *screen3, *screen3A;
+static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
 
@@ -422,7 +422,7 @@ static void vdu_2318(void) {
       M7XPPC = charwidth;
       SDL_FreeSurface(sdl_m7fontbuf);
       m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-      sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, screen0->format, 0);
+      sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);
       SDL_FreeSurface(m7fontbuf);
       modetable[7].xres = 40*M7XPPC;
       modetable[7].xgraphunits = 80*M7XPPC;
@@ -441,11 +441,11 @@ static void vdu_2318(void) {
 	line_rect.w = vscrwidth;
 	line_rect.h = vscrheight;
 	SDL_FillRect(modescreen, NULL, tb_colour);
-	SDL_FillRect(screen0, NULL, tb_colour);
+	SDL_FillRect(matrixflags.surface, NULL, tb_colour);
 	SDL_FillRect(screen2, NULL, tb_colour);
 	SDL_FillRect(screen3, NULL, tb_colour);
-	do_sdl_flip(screen0);
-	SDL_SetClipRect(screen0, &line_rect);
+	do_sdl_flip(matrixflags.surface);
+	SDL_SetClipRect(matrixflags.surface, &line_rect);
       }
     }
   }
@@ -570,15 +570,15 @@ static void toggle_cursor(void) {
   if (cursmode == UNDERLINE) {
     y = ((ytext+1)*yscale*myppc - yscale) * vscrwidth;
     for (x=left; x <= right; x++) {
-      *((Uint32*)screen0->pixels + x + y) ^= xor_mask;
-      if (yscale != 1) *((Uint32*)screen0->pixels + x + y + vscrwidth) ^= xor_mask;
+      *((Uint32*)matrixflags.surface->pixels + x + y) ^= xor_mask;
+      if (yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + vscrwidth) ^= xor_mask;
       if ((screenmode == 3) || (screenmode==6) || (screenmode == 11) || (screenmode == 14) || (screenmode == 17)) {
-        *((Uint32*)screen0->pixels + x + y - vscrwidth) ^= xor_mask;
-        *((Uint32*)screen0->pixels + x + y - (vscrwidth*2)) ^= xor_mask;
-        *((Uint32*)screen0->pixels + x + y - (vscrwidth*3)) ^= xor_mask;
-        *((Uint32*)screen0->pixels + x + y - (vscrwidth*4)) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*2)) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*3)) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*4)) ^= xor_mask;
       }
-      if (screenmode ==7) *((Uint32*)screen0->pixels + x + y - vscrwidth) ^= xor_mask;
+      if (screenmode ==7) *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= xor_mask;
     }
   }
   else if (cursmode == BLOCK) {
@@ -586,10 +586,10 @@ static void toggle_cursor(void) {
     bottom = top + myppc*yscale -1;
     for (y = top; y <= bottom; y++) {
       for (x = left; x <= right; x++)
-        *((Uint32*)screen0->pixels + x + y*vscrwidth) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y*vscrwidth) ^= xor_mask;
     }
   }
-  if (instate != cursorstate) do_sdl_updaterect(screen0, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
 /*
@@ -629,7 +629,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
     SDL_BlitSurface(modescreen, &scale_rect, screenbank[writebank], &scale_rect);
-    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(modescreen, &scale_rect, screen0, &scale_rect);
+    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(modescreen, &scale_rect, matrixflags.surface, &scale_rect);
   } else {
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
@@ -641,7 +641,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
           for (ii = 1; ii <= xscale; ii++) {
             *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             if ((autorefresh==1) && (displaybank == writebank)) {
-	      *((Uint32*)screen0->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+	      *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             }
 	    xx++;
           }
@@ -662,10 +662,10 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scroll_rect.h=4;
     for (p=0; p<25; p++) {
       scroll_rect.y=16+(p*20);
-      SDL_FillRect(screen0, &scroll_rect, 0);
+      SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
     }
   }
-  if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(screen0, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+  if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -879,7 +879,7 @@ static void scroll(updown direction) {
     scroll_rect.h = myppc * (twinbottom - twintop);
     if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, NULL);
     if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
-      SDL_BlitSurface(screen0, &scroll_rect, screen1, NULL);
+      SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, NULL);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
@@ -920,7 +920,7 @@ static void scroll(updown direction) {
     line_rect.y = myppc;
     if (screenmode != 7) SDL_BlitSurface(modescreen, &scroll_rect, screen1, &line_rect);
     if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
-      SDL_BlitSurface(screen0, &scroll_rect, screen1, &line_rect);
+      SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, &line_rect);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
     }
@@ -959,11 +959,11 @@ static void scroll(updown direction) {
     SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
   }
   if (screenmode == 7) {
-    if (vduflag(MODE7_UPDATE)) SDL_BlitSurface(screen1, &line_rect, screen0, &scroll_rect);
+    if (vduflag(MODE7_UPDATE)) SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
   } else {
     blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
   }
-  do_sdl_flip(screen0);
+  do_sdl_flip(matrixflags.surface);
 }
 
 /*
@@ -974,7 +974,7 @@ static void scroll(updown direction) {
 static void echo_text(void) {
   if (xtext == 0) return;	/* Return if nothing has changed */
   if (screenmode == 7) {
-    do_sdl_flip(screen0);
+    do_sdl_flip(matrixflags.surface);
     return;
   }
     blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
@@ -989,18 +989,18 @@ void mode7flipbank() {
     mytime=basicvars.centiseconds;
     if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
-      do_sdl_updaterect(screen0, 0, 0, 0, 0);
+      do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
       m7updatetimer=mytime;
     }
     if ((mode7timer - mytime) <= 0) {
       hide_cursor();
       if (!vduflag(MODE7_UPDATE)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
-	SDL_BlitSurface(screen2, NULL, screen0, NULL);
+	SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
 	write_vduflag(MODE7_BANK,0);
 	mode7timer=mytime + 100;
       } else {
-	SDL_BlitSurface(screen3, NULL, screen0, NULL);
+	SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
 	write_vduflag(MODE7_BANK,1);
 	mode7timer=mytime + 33;
       }
@@ -1480,7 +1480,7 @@ static void vdu_cleartext(void) {
     ytext = textyhome();
     reveal_cursor();	/* Redraw cursor */
   }
-  do_sdl_flip(screen0);
+  do_sdl_flip(matrixflags.surface);
 }
 
 /*
@@ -1573,7 +1573,7 @@ static void vdu_cleargraph(void) {
   }
   blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
   if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();	/* Redraw cursor */
-  do_sdl_flip(screen0);
+  do_sdl_flip(matrixflags.surface);
 }
 
 /*
@@ -2168,7 +2168,7 @@ int32 emulate_vpos(void) {
 static void setup_mode(int32 mode) {
   int32 modecopy;
   Uint32 sx, sy, ox, oy;
-  int flags = screen0->flags;
+  int flags = matrixflags.surface->flags;
   int p;
   SDL_Surface *m7fontbuf;
 
@@ -2191,22 +2191,22 @@ static void setup_mode(int32 mode) {
     setm7font16();
     SDL_FreeSurface(sdl_m7fontbuf);
     m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-    sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, screen0->format, 0);
+    sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);
     SDL_FreeSurface(m7fontbuf);
     modetable[7].xres = 40*M7XPPC;
     modetable[7].xgraphunits = 80*M7XPPC;
   }
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
-  SDL_BlitSurface(screen0, NULL, screen1, NULL);
-  SDL_FreeSurface(screen0);
-  screen0 = SDL_SetVideoMode(sx, sy, 32, flags);
-  if (!screen0) {
+  SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
+  SDL_FreeSurface(matrixflags.surface);
+  matrixflags.surface = SDL_SetVideoMode(sx, sy, 32, flags);
+  if (!matrixflags.surface) {
     /* Reinstate previous display mode */
     sx=ox; sy=oy;
-    screen0 = SDL_SetVideoMode(ox, oy, 32, flags);
-    SDL_BlitSurface(screen1, NULL, screen0, NULL);
-    do_sdl_updaterect(screen0, 0, 0, 0, 0);
+    matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, flags);
+    SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
+    do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
     if (matrixflags.failovermode == 255) error(ERR_BADMODE);
   }
   autorefresh=1;
@@ -2214,24 +2214,24 @@ static void setup_mode(int32 mode) {
   vscrheight = sy;
   for (p=0; p<4; p++) {
     SDL_FreeSurface(screenbank[p]);
-    screenbank[p]=SDL_DisplayFormat(screen0);
+    screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   SDL_FreeSurface(modescreen);
-  modescreen = SDL_DisplayFormat(screen0);
+  modescreen = SDL_DisplayFormat(matrixflags.surface);
   matrixflags.modescreen_ptr = modescreen->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
   writebank=0;
   SDL_FreeSurface(screen1);
-  screen1 = SDL_DisplayFormat(screen0);
+  screen1 = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen2);
-  screen2 = SDL_DisplayFormat(screen0);
+  screen2 = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen2A);
-  screen2A = SDL_DisplayFormat(screen0);
+  screen2A = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen3);
-  screen3 = SDL_DisplayFormat(screen0);
+  screen3 = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen3A);
-  screen3A = SDL_DisplayFormat(screen0);
+  screen3A = SDL_DisplayFormat(matrixflags.surface);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
   YPPC=8; if ((mode == 3) || (mode == 6) || (mode == 11) || (mode == 14) || (mode == 17)) YPPC=10;
@@ -2272,12 +2272,12 @@ static void setup_mode(int32 mode) {
   init_palette();
   write_vduflag(VDU_FLAG_ENAPAGE,0);
   if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
-  SDL_FillRect(screen0, NULL, tb_colour);
+  SDL_FillRect(matrixflags.surface, NULL, tb_colour);
   SDL_FillRect(modescreen, NULL, tb_colour);
   SDL_FillRect(screen2, NULL, tb_colour);
   SDL_FillRect(screen3, NULL, tb_colour);
-  SDL_SetClipRect(screen0, NULL);
-  sdl_mouse_onoff((screen0->flags & SDL_FULLSCREEN) ? 0 : 1);
+  SDL_SetClipRect(matrixflags.surface, NULL);
+  sdl_mouse_onoff((matrixflags.surface->flags & SDL_FULLSCREEN) ? 0 : 1);
   if (screenmode == 7) {
     font_rect.w = place_rect.w = M7XPPC;
     font_rect.h = place_rect.h = M7YPPC;
@@ -2296,11 +2296,11 @@ static void setup_mode(int32 mode) {
 void emulate_mode(int32 mode) {
   setup_mode(mode);
 /* Reset colours, clear screen and home cursor */
-  SDL_FillRect(screen0, NULL, tb_colour);
+  SDL_FillRect(matrixflags.surface, NULL, tb_colour);
   SDL_FillRect(modescreen, NULL, tb_colour);
   xtext = textxhome();
   ytext = textyhome();
-  do_sdl_flip(screen0);
+  do_sdl_flip(matrixflags.surface);
   emulate_vdu(VDU_CLEARGRAPH);
 }
 
@@ -2823,7 +2823,7 @@ void emulate_pointto(int32 x, int32 y) {
 ** This doesn't always work, but better this than a no-op or an Unsupported error message.
 */
 void emulate_wait(void) {
-  SDL_Flip(screen0);
+  SDL_Flip(matrixflags.surface);
 }
 
 /*
@@ -3163,27 +3163,27 @@ boolean init_screen(void) {
 
   reset_sysfont(0);
   if (basicvars.runflags.startfullscreen) flags |= SDL_FULLSCREEN;
-  screen0 = SDL_SetVideoMode(640, 512, 32, flags); /* MODE 0 */
-  if (!screen0) {
+  matrixflags.surface = SDL_SetVideoMode(640, 512, 32, flags); /* MODE 0 */
+  if (!matrixflags.surface) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;
   }
   for (p=0; p<4; p++) {
     SDL_FreeSurface(screenbank[p]);
-    screenbank[p]=SDL_DisplayFormat(screen0);
+    screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
-  modescreen = SDL_DisplayFormat(screen0);
+  modescreen = SDL_DisplayFormat(matrixflags.surface);
   displaybank=0;
   writebank=0;
-  screen1 = SDL_DisplayFormat(screen0);
-  screen2 = SDL_DisplayFormat(screen0);
-  screen2A = SDL_DisplayFormat(screen0);
-  screen3 = SDL_DisplayFormat(screen0);
-  screen3A = SDL_DisplayFormat(screen0);
+  screen1 = SDL_DisplayFormat(matrixflags.surface);
+  screen2 = SDL_DisplayFormat(matrixflags.surface);
+  screen2A = SDL_DisplayFormat(matrixflags.surface);
+  screen3 = SDL_DisplayFormat(matrixflags.surface);
+  screen3A = SDL_DisplayFormat(matrixflags.surface);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-  sdl_fontbuf = SDL_ConvertSurface(fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
-  sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, screen0->format, 0);  /* copy surface to get same format as main windows */
+  sdl_fontbuf = SDL_ConvertSurface(fontbuf, matrixflags.surface->format, 0);  /* copy surface to get same format as main windows */
+  sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);  /* copy surface to get same format as main windows */
   SDL_FreeSurface(fontbuf);
   SDL_FreeSurface(m7fontbuf);
 
@@ -3461,8 +3461,8 @@ static void mode7renderline(int32 ypos) {
 	break;
     }
   }
-  SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, screen0, &m7_rect);
-  do_sdl_updaterect(screen0, 0, topy, 40*M7XPPC, M7YPPC);
+  SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
+  do_sdl_updaterect(matrixflags.surface, 0, topy, 40*M7XPPC, M7YPPC);
 
   write_vduflag(MODE7_VDU141ON,0);
   write_vduflag(MODE7_HIGHBIT,0);
@@ -3850,7 +3850,7 @@ void set_wintitle(char *title) {
 }
 
 void fullscreenmode(int onoff) {
-  Uint32 flags = screen0->flags;
+  Uint32 flags = matrixflags.surface->flags;
   if (onoff == 1) {
     flags |= SDL_FULLSCREEN;
   } else if (onoff == 2) {
@@ -3858,10 +3858,10 @@ void fullscreenmode(int onoff) {
   } else {
     flags &= ~SDL_FULLSCREEN;
   }
-  SDL_BlitSurface(screen0, NULL, screen1, NULL);
-  SDL_SetVideoMode(screen0->w, screen0->h, screen0->format->BitsPerPixel, flags);
-  SDL_BlitSurface(screen1, NULL, screen0, NULL);
-  do_sdl_updaterect(screen0, 0, 0, 0, 0);
+  SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
+  SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, flags);
+  SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
+  do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
@@ -3908,7 +3908,7 @@ void star_refresh(int flag) {
     if (screenmode == 7) {
       mode7renderscreen();
     } else {
-      SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
+      SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
       if ((screenmode == 3) || (screenmode == 6)) {
 	int p;
 	hide_cursor();
@@ -3917,10 +3917,10 @@ void star_refresh(int flag) {
 	scroll_rect.h=4;
 	for (p=0; p<25; p++) {
 	  scroll_rect.y=16+(p*20);
-	  SDL_FillRect(screen0, &scroll_rect, 0);
+	  SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
 	}
       }
-      SDL_Flip(screen0);
+      SDL_Flip(matrixflags.surface);
     }
   }
 }
@@ -3933,7 +3933,7 @@ int32 osbyte42(int x) {
   int fullscreen=0, ref=(x & 3), fsc=((x & 12) >> 2);
   int outx;
   
-  if (screen0->flags & SDL_FULLSCREEN) fullscreen=8;
+  if (matrixflags.surface->flags & SDL_FULLSCREEN) fullscreen=8;
   if (x == 0) {
     outx = fullscreen + (autorefresh+1);
     return ((outx << 8) + 42);
@@ -3968,15 +3968,15 @@ void osbyte113(int x) {
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) displaybank=(x-1);
-  SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
-  SDL_Flip(screen0);
+  SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
+  SDL_Flip(matrixflags.surface);
 }
 
 void screencopy(int32 src, int32 dst) {
   SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
   if (dst==(displaybank+1)) {
-    SDL_BlitSurface(screenbank[displaybank], NULL, screen0, NULL);
-    SDL_Flip(screen0);
+    SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
+    SDL_Flip(matrixflags.surface);
   }
 }
 
@@ -4048,8 +4048,8 @@ void sdl_screenload(char *fname) {
   } else {
     SDL_BlitSurface(placeholder, NULL, screenbank[writebank], NULL);
     if (displaybank == writebank) {
-      SDL_BlitSurface(placeholder, NULL, screen0, NULL);
-      SDL_Flip(screen0);
+      SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
+      SDL_Flip(matrixflags.surface);
     }
     SDL_FreeSurface(placeholder);
   }
