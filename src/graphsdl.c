@@ -639,9 +639,9 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 	xx = dleft;
 	for (i = left; i <= right; i++) {
           for (ii = 1; ii <= xscale; ii++) {
-            *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+            *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*screenwidth);
             if ((autorefresh==1) && (displaybank == writebank)) {
-	      *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+	      *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*screenwidth);
             }
 	    xx++;
           }
@@ -2170,7 +2170,7 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int flags = matrixflags.surface->flags;
   int p;
-  SDL_Surface *m7fontbuf;
+  SDL_Surface *m7fontbuf, *msctmp;
 
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
@@ -2217,7 +2217,11 @@ static void setup_mode(int32 mode) {
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   SDL_FreeSurface(modescreen);
-  modescreen = SDL_DisplayFormat(matrixflags.surface);
+  msctmp = SDL_CreateRGBSurface(SDL_SWSURFACE, modetable[mode].xres, modetable[mode].yres, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+  modescreen = SDL_ConvertSurface(msctmp, matrixflags.surface->format, 0);
+  SDL_FreeSurface(msctmp);
+
+//  modescreen = SDL_DisplayFormat(matrixflags.surface);
   matrixflags.modescreen_ptr = modescreen->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
