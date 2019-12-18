@@ -102,7 +102,7 @@ static int writebank=0;
 */
 static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
-static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
+static SDL_Surface *modescreen, *intermediatescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
@@ -612,6 +612,7 @@ static void toggle_cursor(void) {
 */
 static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   int32 dleft, dtop, xx, yy, i, j, ii, jj;
+  void *pixels;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
@@ -634,14 +635,19 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
     yy = dtop;
+#ifdef SDL_INTERMEDIATE
+    pixels=intermediatescreen->pixels;
+#else
+    pixels=matrixflags.surface->pixels;
+#endif
     for (j = top; j <= bottom; j++) {
       for (jj = 1; jj <= yscale; jj++) {
 	xx = dleft;
 	for (i = left; i <= right; i++) {
           for (ii = 1; ii <= xscale; ii++) {
-            *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*screenwidth);
+            *((size_t*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((size_t*)modescreen->pixels + i + j*screenwidth);
             if ((autorefresh==1) && (displaybank == writebank)) {
-	      *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*screenwidth);
+	      *((size_t*)pixels + xx + yy*vscrwidth) = *((size_t*)modescreen->pixels + i + j*screenwidth);
             }
 	    xx++;
           }
@@ -649,23 +655,31 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 	yy++;
       } 
     }
+    if ((screenmode == 3) || (screenmode == 6)) {
+      int p;
+      hide_cursor();
+      scroll_rect.x=0;
+      scroll_rect.w=screenwidth*xscale;
+      scroll_rect.h=4;
+      for (p=0; p<25; p++) {
+        scroll_rect.y=16+(p*20);
+        SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
+      }
+    }
+#ifdef SDL_INTERMEDIATE
+    scale_rect.x = left*xscale;
+    scale_rect.y = top*yscale;
+    scale_rect.w = (right+1 - left)*xscale;
+    scale_rect.h = (bottom+1 - top)*yscale;
+    SDL_BlitSurface(intermediatescreen, &scale_rect, screenbank[writebank], &scale_rect);
+    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(intermediatescreen, &scale_rect, matrixflags.surface, &scale_rect);
+#endif
     scale_rect.x = dleft;
     scale_rect.y = dtop;
     scale_rect.w = (right+1 - left) * xscale;
     scale_rect.h = (bottom+1 - top) * yscale;
+    if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
   }
-  if ((screenmode == 3) || (screenmode == 6)) {
-    int p;
-    hide_cursor();
-    scroll_rect.x=0;
-    scroll_rect.w=screenwidth*xscale;
-    scroll_rect.h=4;
-    for (p=0; p<25; p++) {
-      scroll_rect.y=16+(p*20);
-      SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
-    }
-  }
-  if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -2170,7 +2184,7 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int flags = matrixflags.surface->flags;
   int p;
-  SDL_Surface *m7fontbuf, *msctmp;
+  SDL_Surface *m7fontbuf, *msctmp, *isctmp;
 
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
@@ -2221,7 +2235,10 @@ static void setup_mode(int32 mode) {
   modescreen = SDL_ConvertSurface(msctmp, matrixflags.surface->format, 0);
   SDL_FreeSurface(msctmp);
 
-//  modescreen = SDL_DisplayFormat(matrixflags.surface);
+  SDL_FreeSurface(intermediatescreen);
+  isctmp = SDL_CreateRGBSurface(SDL_SWSURFACE, sx, sy, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+  intermediatescreen = SDL_ConvertSurface(isctmp, matrixflags.surface->format, 0);
+  SDL_FreeSurface(isctmp);
   matrixflags.modescreen_ptr = modescreen->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
@@ -3177,6 +3194,7 @@ boolean init_screen(void) {
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   modescreen = SDL_DisplayFormat(matrixflags.surface);
+  intermediatescreen = SDL_DisplayFormat(matrixflags.surface);
   displaybank=0;
   writebank=0;
   screen1 = SDL_DisplayFormat(matrixflags.surface);

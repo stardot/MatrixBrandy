@@ -331,6 +331,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #endif
 
 #ifdef TARGET_MINGW
+#define SDL_INTERMEDIATE
 #include <setjmp.h>
 #define sigsetjmp(env, savesigs) setjmp(env)
 #define siglongjmp(env, val) longjmp(env, val)
