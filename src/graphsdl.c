@@ -3153,7 +3153,8 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
-  int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+//  int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+  int flags = SDL_SWSURFACE;
   int p;
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
