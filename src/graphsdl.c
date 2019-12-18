@@ -675,13 +675,17 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left)*xscale;
     scale_rect.h = (bottom+1 - top)*yscale;
     SDL_BlitSurface(intermediatescreen, &scale_rect, screenbank[writebank], &scale_rect);
-    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(intermediatescreen, &scale_rect, matrixflags.surface, &scale_rect);
-#endif
+    if ((autorefresh==1) && (displaybank == writebank)) {
+      SDL_BlitSurface(intermediatescreen, &scale_rect, matrixflags.surface, &scale_rect);
+      SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+    }
+#else
     scale_rect.x = dleft;
     scale_rect.y = dtop;
     scale_rect.w = (right+1 - left) * xscale;
     scale_rect.h = (bottom+1 - top) * yscale;
     if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+#endif
   }
 }
 
