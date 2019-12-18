@@ -102,8 +102,11 @@ static int writebank=0;
 */
 static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
-static SDL_Surface *modescreen, *intermediatescreen;	/* Buffer used when screen mode is scaled to fit real screen */
+static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
+#ifdef SDL_INTERMEDIATE
+static SDL_Surface *intermediatescreen;
+#endif
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
@@ -2191,7 +2194,10 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int flags = matrixflags.surface->flags;
   int p;
-  SDL_Surface *m7fontbuf, *msctmp, *isctmp;
+  SDL_Surface *m7fontbuf, *msctmp;
+#ifdef SDL_INTERMEDIATE
+  SDL_Surface *isctmp;
+#endif
 
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
@@ -2233,19 +2239,28 @@ static void setup_mode(int32 mode) {
   autorefresh=1;
   vscrwidth = sx;
   vscrheight = sy;
-  for (p=0; p<4; p++) {
-    SDL_FreeSurface(screenbank[p]);
-    screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
-  }
+
   SDL_FreeSurface(modescreen);
   msctmp = SDL_CreateRGBSurface(SDL_SWSURFACE, modetable[mode].xres, modetable[mode].yres, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   modescreen = SDL_ConvertSurface(msctmp, matrixflags.surface->format, 0);
   SDL_FreeSurface(msctmp);
 
+#ifdef SDL_INTERMEDIATE
   SDL_FreeSurface(intermediatescreen);
   isctmp = SDL_CreateRGBSurface(SDL_SWSURFACE, sx, sy, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   intermediatescreen = SDL_ConvertSurface(isctmp, matrixflags.surface->format, 0);
   SDL_FreeSurface(isctmp);
+#endif
+
+  for (p=0; p<4; p++) {
+    SDL_FreeSurface(screenbank[p]);
+#ifdef SDL_INTERMEDIATE
+    screenbank[p]=SDL_DisplayFormat(intermediatescreen);
+#else
+    screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
+#endif
+  }
+
   matrixflags.modescreen_ptr = modescreen->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
@@ -3201,7 +3216,9 @@ boolean init_screen(void) {
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   modescreen = SDL_DisplayFormat(matrixflags.surface);
+#ifdef SDL_INTERMEDIATE
   intermediatescreen = SDL_DisplayFormat(matrixflags.surface);
+#endif
   displaybank=0;
   writebank=0;
   screen1 = SDL_DisplayFormat(matrixflags.surface);
