@@ -630,7 +630,10 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
     SDL_BlitSurface(modescreen, &scale_rect, screenbank[writebank], &scale_rect);
-    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(modescreen, &scale_rect, matrixflags.surface, &scale_rect);
+    if ((autorefresh==1) && (displaybank == writebank)) {
+      SDL_BlitSurface(modescreen, &scale_rect, matrixflags.surface, &scale_rect);
+      SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+    }
   } else {
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
