@@ -3153,7 +3153,7 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
-  int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+  int flags = SDL_SWSURFACE;
   int p;
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -3860,13 +3860,13 @@ void fullscreenmode(int onoff) {
   } else {
     flags &= ~SDL_FULLSCREEN;
   }
-//  SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
+  SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
   matrixflags.surface = SDL_SetVideoMode(0, 0, 0, flags);
   if (matrixflags.surface == NULL) {
     matrixflags.surface = SDL_SetVideoMode(0, 0, 0, oldflags);
   }
-//  SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
-//  do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
+  SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
+  do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
