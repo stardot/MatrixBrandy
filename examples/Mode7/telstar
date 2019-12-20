@@ -6,7 +6,7 @@
    60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
    70REM are from RISC OS 5.
    80:
-   90VER$="Viewdata client version 20191204"
+   90VER$="Viewdata client version 20191220"
   100:
   110SYS "Brandy_GetVideoDriver" TO v$,,,,v%
   120IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
@@ -140,7 +140,7 @@
  1400PRINT
  1410PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1420PRINT CHR$(131);"5 - NXtel"
- 1430PRINT CHR$(131);"6 - TEEFAX - P999 to exit"
+ 1430PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Local Teletext"
  1440PRINT
  1450PRINT CHR$(129);"0 - Exit"
  1460PRINT TAB(0,14)CHR$(134);"While the session is running:":PRINT
