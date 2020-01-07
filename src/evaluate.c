@@ -3855,6 +3855,16 @@ static void eval_famod(void) {
   } else want_number();
 }
 
+/* Replicate the error conditions found in RISC OS BASIC VI
+ * (FPA build on RISC OS 3.7).
+ * It is slightly more permissive than BASIC versions I to V.
+ */
+static float64 mpow(float64 lh, float64 rh) {
+  float64 result=pow(lh,rh);
+  if (!isfinite(result)) error(ERR_ARITHMETIC);
+  return result;
+}
+
 /*
 ** 'eval_vpow' deals with the 'raise' operator when the right-hand operand is
 ** a 32-bit or 64-bit integer, or a floating point value
@@ -3878,11 +3888,11 @@ static void eval_vpow(void) {
   }
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)
-     push_float(pow(TOFLOAT(pop_int()), floatvalue));
+     push_float(mpow(TOFLOAT(pop_int()), floatvalue));
   else if (lhitem == STACK_INT64)
-     push_float(pow(TOFLOAT(pop_int64()), floatvalue));
+     push_float(mpow(TOFLOAT(pop_int64()), floatvalue));
   else if (lhitem == STACK_FLOAT)
-    push_float(pow(pop_float(), floatvalue));
+    push_float(mpow(pop_float(), floatvalue));
   else want_number();
 }
 
