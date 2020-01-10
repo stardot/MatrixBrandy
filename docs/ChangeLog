@@ -7,6 +7,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Initial steps to allow SYS to call host library functions. Enabled for
   Linux and Windows (thank you Richard Russell for the code snippet!)
 - SDL surface handle now available from Brandy_GetVideoDriver in R5.
+- Raise function now handles invalid values gracefully. Range is slightly
+  more permissive than BASIC I-V, but closely matches BASIC VI.
 
 * V1.22.3 - 29 November 2019
 - Fix stack and array regressions caused by the 64-bit int work.
