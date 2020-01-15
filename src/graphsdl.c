@@ -3850,16 +3850,15 @@ void set_wintitle(char *title) {
 }
 
 void fullscreenmode(int onoff) {
-  Uint32 flags = matrixflags.surface->flags;
   if (onoff == 1) {
-    flags |= SDL_FULLSCREEN;
+    matrixflags.sdl_flags |= SDL_FULLSCREEN;
   } else if (onoff == 2) {
-    flags ^= SDL_FULLSCREEN;
+    matrixflags.sdl_flags ^= SDL_FULLSCREEN;
   } else {
-    flags &= ~SDL_FULLSCREEN;
+    matrixflags.sdl_flags &= ~SDL_FULLSCREEN;
   }
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
-  SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, flags);
+  matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
   SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
   do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
 }
