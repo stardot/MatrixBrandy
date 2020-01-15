@@ -314,12 +314,21 @@ void show_options(int32 showextra) {
 
 void show_help(void) {
   printf("%s\n\n%s\nThe command syntax is:\n\n", IDSTRING, COPYRIGHT);
+#ifdef BRANDYAPP
+  printf("    thisapp [<options>]\n\n");
+#else
   printf("    brandy [<options>]\n\n");
+#endif
   printf("where <options> is one or more of the following options:\n");
   printf("  -help          Print this message\n");
   printf("  -version       Print version\n");
   printf("  -size <size>   Set Basic workspace size to <size> bytes when starting\n");
   printf("                 Suffix with K, M or G to specify size in KiB, MiB or GiB.\n");
+#ifdef USE_SDL
+  printf("  -fullscreen    Start Brandy in fullscreen mode\n");
+  printf("  -swsurface     Use a software SDL surface\n");
+#endif
+#ifndef BRANDYAPP
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");
   printf("  -chain <file>  Run Basic program <file> and stay in interpreter when it ends\n");
@@ -330,13 +339,11 @@ void show_help(void) {
 #else
   printf("  -ignore        Ignore 'unsupported feature' where possible\n");
 #endif
-#ifdef USE_SDL
-  printf("  -fullscreen    Start Brandy in fullscreen mode\n");
-#endif
   printf("  <file>         Run Basic program <file> and leave interpreter when it ends\n\n");
 #ifdef HAVE_ZLIB_H
   printf("Basic program files may be gzipped.\n\n");
 #endif
+#endif /* BRANDYAPP */
 }
 
 static detail badcmdtable [] = {

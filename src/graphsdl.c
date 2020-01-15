@@ -2168,7 +2168,6 @@ int32 emulate_vpos(void) {
 static void setup_mode(int32 mode) {
   int32 modecopy;
   Uint32 sx, sy, ox, oy;
-  int flags = matrixflags.surface->flags;
   int p;
   SDL_Surface *m7fontbuf;
 
@@ -2200,11 +2199,11 @@ static void setup_mode(int32 mode) {
   sy=(modetable[mode].yres * modetable[mode].yscale);
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
   SDL_FreeSurface(matrixflags.surface);
-  matrixflags.surface = SDL_SetVideoMode(sx, sy, 32, flags);
+  matrixflags.surface = SDL_SetVideoMode(sx, sy, 32, matrixflags.sdl_flags);
   if (!matrixflags.surface) {
     /* Reinstate previous display mode */
     sx=ox; sy=oy;
-    matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, flags);
+    matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
     do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
     if (matrixflags.failovermode == 255) error(ERR_BADMODE);
@@ -3153,17 +3152,18 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
-  int flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
   int p;
 
+  matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
     fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
     return FALSE;
   }
 
   reset_sysfont(0);
-  if (basicvars.runflags.startfullscreen) flags |= SDL_FULLSCREEN;
-  matrixflags.surface = SDL_SetVideoMode(640, 512, 32, flags); /* MODE 0 */
+  if (basicvars.runflags.swsurface) matrixflags.sdl_flags = SDL_SWSURFACE;
+  if (basicvars.runflags.startfullscreen) matrixflags.sdl_flags |= SDL_FULLSCREEN;
+  matrixflags.surface = SDL_SetVideoMode(640, 512, 32, matrixflags.sdl_flags); /* MODE 0 */
   if (!matrixflags.surface) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;

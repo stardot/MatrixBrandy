@@ -474,6 +474,7 @@ typedef struct {
     unsigned int flag_cosmetic:1;	/* TRUE if all unsupported features flagged as errors */
     unsigned int ignore_starcmd:1;	/* TRUE if built-in '*' commands are ignored */
     unsigned int startfullscreen:1;	/* TRUE if we start in fullscreen in SDL mode */
+    unsigned int swsurface:1;		/* TRUE if we want a software surface */
   } runflags;				/* Various runtime flags */
   struct {
     unsigned int enabled:1;		/* TRUE if any trace options are enabled */
@@ -557,6 +558,7 @@ typedef struct {
   uint32 modescreen_sz;			/* Mode screen size */
   uint32 mode7fb;			/* Start of MODE 7 frame buffer space */
   SDL_Surface *surface;			/* SDL Surface handle for screen0 */
+  int32 sdl_flags;			/* SDL surface flags */
 #endif
 } matrixbits;
 extern matrixbits matrixflags;

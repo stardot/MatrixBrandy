@@ -9,7 +9,7 @@
 # the code has to assume the name "app" - so copy it first!
 
 # Then, you can build your standalone app with:
-# gcc -o yourapp app.o /path/to/brandyapp.a -lX11 -lm -lSDL
+# gcc -o yourapp app.o /path/to/brandyapp.a -lX11 -lm -lSDL -ldl
 
 CC = gcc
 LD = gcc

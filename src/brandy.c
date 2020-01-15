@@ -76,8 +76,8 @@ static cmdarg *arglast;			/* Pointer to end of command line argument list */
 
 static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 
-#ifndef BRANDYAPP
 static void check_cmdline(int, char *[]);
+#ifndef BRANDYAPP
 static char *loadfile;			/* Pointer to name of file to load when interpreter starts */
 #endif
 
@@ -100,11 +100,10 @@ int main(int argc, char *argv[]) {
   brandynet_init();
 #endif
 #ifdef BRANDYAPP
-   basicvars.runflags.quitatend = TRUE;
-   basicvars.runflags.loadngo = TRUE;
-#else
-  check_cmdline(argc, argv);
+  basicvars.runflags.quitatend = TRUE;
+  basicvars.runflags.loadngo = TRUE;
 #endif
+  check_cmdline(argc, argv);
   init2();
   gpio_init();
   run_interpreter();
@@ -268,7 +267,6 @@ static void init2(void) {
   init_interpreter();
 }
 
-#ifndef BRANDYAPP
 /*
 ** 'check_cmdline' is called to parse the command line.
 ** Note that any unrecognised parameters are assumed to be destined
@@ -277,7 +275,9 @@ static void init2(void) {
 static void check_cmdline(int argc, char *argv[]) {
   int n;
   char optchar, *p;
+#ifndef BRANDYAPP
   loadfile = NIL;
+#endif
   n = 1;
   while (n<argc) {
     p = argv[n];
@@ -299,7 +299,11 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='f') {		/* -fullscreen */
         basicvars.runflags.startfullscreen=TRUE;
       }
+      else if (optchar=='s' && tolower(*(p+2))=='w') {
+        basicvars.runflags.swsurface=TRUE;
+      }
 #endif
+#ifndef BRANDYAPP
       else if (optchar == 'c' || optchar == 'q' || (optchar == 'l' && tolower(*(p+2)) == 'o')) {	/* -chain, -quit or -load */
         n++;
         if (n==argc)
@@ -377,7 +381,9 @@ static void check_cmdline(int argc, char *argv[]) {
 /* Any unrecognised options are assumed to be for the Basic program */
         add_arg(argv[n]);
       }
+#endif /* BRANDYAPP */
     }
+#ifndef BRANDYAPP
     else {	/* Name of file to run supplied */
       if (loadfile==NIL) {
         loadfile = p;	/* Make note of name of file to load */
@@ -387,15 +393,17 @@ static void check_cmdline(int argc, char *argv[]) {
         add_arg(argv[n]);
       }
     }
+#endif /* BRANDYAPP */
     n++;
   }
 
+#ifndef BRANDYAPP
 /* Update program's name in Basic's command line list */
   if (loadfile != NIL) {
     basicvars.arglist->argvalue = loadfile;
   }
-}
 #endif
+}
 
 /*
 ** 'read_command' reads the next command
