@@ -3296,6 +3296,7 @@ static void mode7renderline(int32 ypos) {
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   for (xtext=0; xtext<=39; xtext++) {
     ch=mode7frame[ypos][xtext];
+    if (ch < 32) ch = ch | 0x80;
     /* Check the Set At codes here */
     switch (ch) {
       case TELETEXT_FLASH_OFF:
@@ -3336,12 +3337,15 @@ static void mode7renderline(int32 ypos) {
       ch=mode7prevchar;
     } else {
       if (vduflag(MODE7_HIGHBIT)) {
+	if (ch==35) ch = 223;
+	if (ch==96) ch = 163;
+	if (ch==95) ch = 224;
 	ch = ch | 0x80;
 	if (ch==223) ch=35;
 	if ((ch >= 0xC0) && (ch <= 0xDF)) ch = ch & 0x7F;
 	write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
       } else {
-        if (ch==163) ch=96;
+	if (ch==163) ch=96;
 	if (ch==223) ch=35;
 	if (ch==224) ch=95;
 	ch = ch & 0x7F;
