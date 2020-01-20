@@ -279,7 +279,7 @@ typedef struct {		/* Operator stack */
 
 typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
   stackitem itemtype;		/* Type of item */
-  jmp_buf restart;		/* Environment block */
+  sigjmp_buf restart;		/* Environment block */
 } stack_restart;
 
 typedef struct {		/* 32-bit integer value */

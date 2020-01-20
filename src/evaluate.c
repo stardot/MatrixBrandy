@@ -1346,7 +1346,7 @@ static void do_function(void) {
     if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
   }
-  if (setjmp(*basicvars.local_restart) == 0)
+  if (sigsetjmp(*basicvars.local_restart, 1) == 0)
     exec_fnstatements(dp->fnprocaddr);
   else {
 /*
