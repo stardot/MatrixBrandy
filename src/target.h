@@ -332,8 +332,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #ifdef TARGET_MINGW
 #include <setjmp.h>
-#define sigsetjmp(env, savesigs) setjmp(env)
-#define siglongjmp(env, val) longjmp(env, val)
+#define sigsetjmp(env, savesigs) __builtin_setjmp(env)
+#define siglongjmp(env, val) __builtin_longjmp(env, val)
 typedef jmp_buf sigjmp_buf;
 #endif /* TARGET_MINGW */
 
