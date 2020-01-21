@@ -1841,7 +1841,7 @@ static void clear_varaddrs(byte *bp) {
     }
     else if (*tp == BASIC_TOKEN_FNPROCALL || *tp == BASIC_TOKEN_XFNPROCALL) {
       while (*sp != BASIC_TOKEN_PROC && *sp != BASIC_TOKEN_FN && *sp != asc_NUL) sp++;  /* Find PROC/FN name */
-      if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");
+      //if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");
       if (*tp == BASIC_TOKEN_FNPROCALL) {     /* Reset PROC/FN ref that has been filled in */
         *tp = BASIC_TOKEN_XFNPROCALL;
         offset = tp-sp;         /* Offset from 'XVAR' token to variable name */
