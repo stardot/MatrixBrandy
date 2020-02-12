@@ -550,6 +550,7 @@ typedef struct {
   uint32 int_uses_float;		/* Does INT() use floats? */
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
   boolean hex64;			/* Decode hex in 64-bit? */
+  boolean bitshift64;			/* Do bit shifts work in 64-bit space? */
   boolean pseudovarsunsigned;		/* Unsigned pseudovars on 32-bit */
   boolean tekenabled;			/* Tektronix enabled in text mode (default: no) */
   uint32 tekspeed;			/* Emulated bit rate of Tek terminal (0=no slowdown) */

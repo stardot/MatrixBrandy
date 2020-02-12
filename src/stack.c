@@ -915,6 +915,7 @@ int32 pop_int(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 32-bit integer from stack at %p, value %d\n",
    p, p->intvalue);
 #endif
+  if (GET_TOPITEM != STACK_INT) error(ERR_BROKEN, __LINE__, "stack");
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int: new SP at %p\n", basicvars.stacktop.bytesp);
@@ -931,6 +932,7 @@ int64 pop_int64(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 64-bit integer from stack at %p, value %lld\n",
    p, p->int64value);
 #endif
+  if (GET_TOPITEM != STACK_INT64) error(ERR_BROKEN, __LINE__, "stack");
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: new SP at %p\n", basicvars.stacktop.bytesp);
@@ -947,6 +949,7 @@ float64 pop_float(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop floating point value from stack at %p, value %g\n",
    p, p->floatvalue);
 #endif
+  if (GET_TOPITEM != STACK_FLOAT) error(ERR_BROKEN, __LINE__, "stack");
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_float);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_float: new SP at %p\n", basicvars.stacktop.bytesp);

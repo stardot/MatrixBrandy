@@ -1099,7 +1099,7 @@ void fn_not(void) {
   else if (GET_TOPITEM == STACK_INT64)
     NOT_INT64;
   else if (GET_TOPITEM == STACK_FLOAT) {
-    push_int(~TOINT(pop_float()));
+    push_int64(~TOINT64(pop_float()));
   }
   else error(ERR_TYPENUM);
 }

@@ -483,6 +483,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_Brandy_Free:
         free((void *)(size_t)inregs[0]);
       break;
+    case SWI_Brandy_BitShift64:
+        matrixflags.bitshift64 = inregs[0];
+        break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;

@@ -3897,13 +3897,18 @@ static void eval_vpow(void) {
 }
 
 /*
-** 'eval_ivlsl' deals with the logical left shift operator when the right-hand
+** 'eval_vlsl' deals with the logical left shift operator when the right-hand
 ** operand is a 32-bit or 64-bit integer value, or a floating point value.
 */
 static void eval_vlsl(void) {
   stackitem lhitem, rhitem;
   int32 lhint = 0, rhint = 0, val32;
   int64 lhint64 = 0;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vlsl\n");
+#endif
+
   rhitem = GET_TOPITEM;
   switch(rhitem) {
     case STACK_INT:
@@ -3930,10 +3935,19 @@ static void eval_vlsl(void) {
     } else push_int(0);
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
     lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
-    if (rhint < 64) {
-      push_int64(lhint64 << rhint);
-    } else push_int(0);
+    if (matrixflags.bitshift64) {
+      if (rhint < 64) {
+        push_int64(lhint64 << rhint);
+      } else push_int(0);
+    } else {
+      if (rhint < 32) {
+        push_int(((int32)lhint64) << rhint);
+      } else push_int(0);
+    }
   } else want_number();
+#ifdef DEBUG
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsl at end of function\n");
+#endif
 }
 
 /*
@@ -3948,6 +3962,12 @@ static void eval_vlsr(void) {
   stackitem lhitem, rhitem;
   uint32 lhuint=0, rhuint=0;
   uint64 lhuint64 = 0;
+  float lhfloat = 0;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vlsr\n");
+#endif
+
   rhitem = GET_TOPITEM;
   switch(rhitem) {
     case STACK_INT:
@@ -3971,12 +3991,26 @@ static void eval_vlsr(void) {
       push_int((lhuint >> rhuint) & 0x7FFFFFFF);
     } else push_int(0);
   }
-  else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
-    lhuint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+  else if (lhitem == STACK_INT64) {
+    lhuint64 = pop_int64();
+    lhuint = INT64TO32(lhuint64);
     if (rhuint < 64) {
-      push_int64((lhuint64 >> rhuint) & 0x7FFFFFFFFFFFFFFFll);
+      if ((lhuint == lhuint64) || !matrixflags.bitshift64) {
+        push_int((lhuint >> rhuint) & 0x7FFFFFFF);
+      } else {
+        push_int64((lhuint64 >> rhuint) & 0x7FFFFFFFFFFFFFFFll);
+      }
+    } else push_int(0);
+  }
+  else if (lhitem == STACK_FLOAT) {
+    lhfloat = pop_float();
+    if (rhuint < 32) {
+      push_int(((uint32)lhfloat >> rhuint) & 0x7FFFFFFF);
     } else push_int(0);
   } else want_number();
+#ifdef DEBUG
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of function\n");
+#endif
 }
 
 /*
@@ -3987,6 +4021,11 @@ static void eval_vasr(void) {
   stackitem lhitem, rhitem;
   int32 lhint = 0, rhint = 0;
   int64 lhint64;
+
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vasr\n");
+#endif
+
   rhitem = GET_TOPITEM;
   switch(rhitem) {
     case STACK_INT:
@@ -4012,10 +4051,20 @@ static void eval_vasr(void) {
     } else push_int(0);
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
     lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
-    if (rhint < 64) {
-      push_int64((lhint64 >> rhint) | (lhint64 & 0x8000000000000000ll));
-    } else push_int(0);
+    if (matrixflags.bitshift64) {
+      if (rhint < 64) {
+        push_int64((lhint64 >> rhint) | (lhint64 & 0x8000000000000000ll));
+      } else push_int(0);
+    } else {
+      if (rhint < 32) {
+        lhint = (int32)lhint64;
+        push_int((lhint >> rhint) | (lhint & 0x80000000));
+      } else push_int(0);
+    }
   } else want_number();
+#ifdef DEBUG
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vasr at end of function\n");
+#endif
 }
 
 /*
@@ -4515,7 +4564,7 @@ static void eval_ivand(void) {
   else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
     AND_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) & rhint);
+    push_int64(TOINT64(pop_float()) & rhint);
   else want_number();
 }
 
@@ -4549,7 +4598,7 @@ static void eval_fvand(void) {
   else if (lhitem == STACK_INT64)
     AND_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) & rhint);
+    push_int64(TOINT64(pop_float()) & rhint);
   else want_number();
 }
 
@@ -4617,7 +4666,7 @@ static void eval_iveor(void) {
   else if (lhitem == STACK_INT64)	/* Branch according to type of left-hand operand */
     EOR_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) ^ rhint);
+    push_int64(TOINT64(pop_float()) ^ rhint);
   else want_number();
 }
 
@@ -4627,7 +4676,7 @@ static void eval_iveor(void) {
 */
 static void eval_iv64eor(void) {
   stackitem lhitem;
-  int64 rhint = pop_int();
+  int64 rhint = pop_int64();
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
     EOR_INT(rhint);
@@ -4651,7 +4700,7 @@ static void eval_fveor(void) {
   else if (lhitem == STACK_INT64)
     EOR_INT64(rhint);
   else if (lhitem == STACK_FLOAT)
-    push_int(TOINT(pop_float()) ^ rhint);
+    push_int64(TOINT64(pop_float()) ^ rhint);
   else want_number();
 }
 
