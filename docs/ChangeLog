@@ -13,6 +13,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   accept some command line options.
 - Fix a setjmp crash in Win64.
 - Correct a substitution error in MODE 7 high-bit graphics.
+- Fix an incorrect stack pull, and add verification to the stack pull code.
+- Bit shifts now 32-bit by default (as per old behaviour and BASIC VI),
+  switchable to 64-bit with SYS "Brandy_BitShift64",1
 
 * V1.22.3 - 29 November 2019
 - Fix stack and array regressions caused by the 64-bit int work.

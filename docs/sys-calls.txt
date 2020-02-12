@@ -129,8 +129,8 @@ Brandy_xxx  (SWI numbers start &140000)
 				and will promote to float when needed.
 				R0=1 to enable, 0 to disable. Default: disabled.
 
-&140007 Brandy_Hex64		This switches Brandy into rendering and
-				interpreting Base 16 (Hexadecimal) values as
+&140007 Brandy_Hex64		This controls whether Brandy renders and
+				interprets Base 16 (Hexadecimal) values as
 				64-bit.
 				R0=1 to enable, 0 to disable. Default: disabled.
 
@@ -169,6 +169,11 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &14000F Brandy_Free		Frees memory pointed to in R0 from earlier
 				malloc. Nothing returned.
+
+&140010 Brandy_BitShift64	This controls whether Brandy calculates bit
+				shifts in 64-bit space. 32-bit space is used
+				when disabled as per ARM BBC BASIC VI.
+				R0=1 to enable, 0 to disable. Default: disabled.
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
