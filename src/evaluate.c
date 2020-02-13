@@ -3989,13 +3989,13 @@ static void eval_vlsr(void) {
   }
   rhuint %= 256;
   lhitem = GET_TOPITEM;
-  if ((lhitem == STACK_INT) && (!matrixflags.bitshift64)) {	/* Branch according to type of left-hand operand */
-    lhuint = pop_int();
+  if ((!matrixflags.bitshift64) && ((lhitem == STACK_INT) || (lhitem == STACK_FLOAT))) {	/* Branch according to type of left-hand operand */
+    lhuint = lhitem == STACK_INT ? pop_int() : TOINT(pop_float());
     if (rhuint < 32) {
       push_int(lhuint >> rhuint);
     } else push_int(0);
 #ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of int32 handler\n");
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of 32-bit handler\n");
 #endif
     return;
   } else if ((lhitem == STACK_INT) && matrixflags.bitshift64) {
