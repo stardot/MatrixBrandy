@@ -4025,7 +4025,7 @@ static void eval_vlsr(void) {
 static void eval_vasr(void) {
   stackitem lhitem, rhitem;
   int32 rhint = 0;
-  int64 lhint64, res64 = 0;
+  int64 lhint64 = 0, res64 = 0;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vasr\n");
