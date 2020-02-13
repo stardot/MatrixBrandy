@@ -3950,8 +3950,13 @@ static void eval_vlsl(void) {
 #endif
 }
 
+/* The code in the next two functions assumes GCC behaviour, that it performs
+ * logical shifts to the right on unsigned values, and arithmetic shifts
+ * on signed values.
+ */
+
 /*
-** 'eval_vlsr' handles the logical right shift operator when the right-hand
+** 'eval_vlsr' handles the logical right shift operator (>>>) when the right-hand
 ** operand is a 32-bit or 64-bit integer value, or a floating point value.
 ** It should be noted that this code assumes that using unsigned operands
 ** will result in the C compiler generating a logical shift. This is not
@@ -3961,8 +3966,7 @@ static void eval_vlsl(void) {
 static void eval_vlsr(void) {
   stackitem lhitem, rhitem;
   uint32 lhuint=0, rhuint=0;
-  uint64 lhuint64 = 0;
-  float lhfloat = 0;
+  uint64 lhuint64 = 0, res64 = 0;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vlsr\n");
@@ -3985,42 +3989,43 @@ static void eval_vlsr(void) {
   }
   rhuint %= 256;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
+  if ((lhitem == STACK_INT) && (!matrixflags.bitshift64)) {	/* Branch according to type of left-hand operand */
     lhuint = pop_int();
     if (rhuint < 32) {
-      push_int((lhuint >> rhuint) & 0x7FFFFFFF);
+      push_int(lhuint >> rhuint);
     } else push_int(0);
-  }
-  else if (lhitem == STACK_INT64) {
-    lhuint64 = pop_int64();
-    lhuint = INT64TO32(lhuint64);
-    if (rhuint < 64) {
-      if ((lhuint == lhuint64) || !matrixflags.bitshift64) {
-        push_int((lhuint >> rhuint) & 0x7FFFFFFF);
-      } else {
-        push_int64((lhuint64 >> rhuint) & 0x7FFFFFFFFFFFFFFFll);
-      }
-    } else push_int(0);
-  }
-  else if (lhitem == STACK_FLOAT) {
-    lhfloat = pop_float();
-    if (rhuint < 32) {
-      push_int(((uint32)lhfloat >> rhuint) & 0x7FFFFFFF);
-    } else push_int(0);
-  } else want_number();
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of function\n");
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of int32 handler\n");
+#endif
+    return;
+  } else if ((lhitem == STACK_INT) && matrixflags.bitshift64) {
+    lhuint64 = (uint64)pop_int();
+  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
+    lhuint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+  } else want_number();
+  if ((rhuint >= 64) || ((!matrixflags.bitshift64) && (rhuint >= 32))) {
+    push_int(0);
+  } else {
+    res64 = (lhuint64 >> rhuint);
+    if (matrixflags.bitshift64) {
+      push_int64(res64);
+    } else {
+      push_int(TOINT(res64));
+    }
+  }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of function\n");
 #endif
 }
 
 /*
-** 'eval_vasr' deals with arithmetic right shifts when the right-hand operand
-** is a 32-bit or 64-bit integer value, or a floating point value.
+** 'eval_vasr' deals with arithmetic right shifts (>>)  when the right-hand
+** operand is a 32-bit or 64-bit integer value, or a floating point value.
 */
 static void eval_vasr(void) {
   stackitem lhitem, rhitem;
-  int32 lhint = 0, rhint = 0;
-  int64 lhint64;
+  int32 rhint = 0;
+  int64 lhint64, res64 = 0;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vasr\n");
@@ -4045,25 +4050,22 @@ static void eval_vasr(void) {
   while (rhint < 0) rhint += 256;
   lhitem = GET_TOPITEM;	/* Branch according to type of left-hand operand */
   if (lhitem == STACK_INT) {
-    lhint = pop_int();
-    if (rhint < 32) {
-      push_int((lhint >> rhint) | (lhint & 0x80000000));
-    } else push_int(0);
+    lhint64 = (int64)pop_int();
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
     lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
-    if (matrixflags.bitshift64) {
-      if (rhint < 64) {
-        push_int64((lhint64 >> rhint) | (lhint64 & 0x8000000000000000ll));
-      } else push_int(0);
-    } else {
-      if (rhint < 32) {
-        lhint = (int32)lhint64;
-        push_int((lhint >> rhint) | (lhint & 0x80000000));
-      } else push_int(0);
-    }
   } else want_number();
+  if ((rhint >= 64) || ((!matrixflags.bitshift64) && (rhint >= 32))) {
+    push_int(0);
+  } else {
+    res64 = (lhint64 >> rhint);
+    if (matrixflags.bitshift64) {
+      push_int64(res64);
+    } else {
+      push_int(TOINT(res64));
+    }
+  }
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vasr at end of function\n");
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vasr at end of function\n");
 #endif
 }
 
