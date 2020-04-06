@@ -1473,7 +1473,8 @@ static void vdu_cleartext(void) {
     top = twintop*myppc;
     bottom = twinbottom*myppc+myppc-1;
     SDL_FillRect(modescreen, NULL, tb_colour);
-    blit_scaled(left, top, right, bottom);
+    // blit_scaled(left, top, right, bottom);
+    blit_scaled(0, 0, screenwidth-1, screenheight-1);
     SDL_FillRect(screen2, NULL, tb_colour);
     SDL_FillRect(screen3, NULL, tb_colour);
     xtext = textxhome();

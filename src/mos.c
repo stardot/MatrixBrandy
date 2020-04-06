@@ -1602,7 +1602,7 @@ static void cmd_help(char *command)
 	emulate_printf("  yres:    Y resolution in pixels, minimum 8.\r\n");
 	emulate_printf("  colours: Colour depth, valid values 2, 4, 16, 256 or 16777216.\r\n");
 	emulate_printf("  xsc:     X scaling (e.g. Mode 1 uses 2, Mode 0 uses 1)\r\n");
-	emulate_printf("  ysc:     Y scaling (e.g. Mode 0 uses 2, Mode 18 uses 0)\r\n");
+	emulate_printf("  ysc:     Y scaling (e.g. Mode 0 uses 2, Mode 18 uses 1)\r\n");
 	emulate_printf("  xeig:    X eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
 	emulate_printf("  yeig:    Y eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
     break;
