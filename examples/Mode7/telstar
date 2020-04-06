@@ -3,28 +3,28 @@
    30REM This is a basic Viewdata/Videotex client written in BBC BASIC. but
    40REM using some Matrix Brandy extensions. For instance, the networking
    50REM interface is a local extension, as is the screen memory access and
-   60REM the *WinTitle command. The VDU23 commands in PROCdhscan and PROCreveal
-   70REM are from RISC OS 5.
-   80:
-   90VER$="Viewdata client version 20191220"
-  100:
-  110SYS "Brandy_GetVideoDriver" TO v$,,,,v%
-  120IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
-  130:
-  140*FX229,1
-  150OSCLI"Key1"+CHR$(31)
-  160*WinTitle Matrix Network Viewdata/Teletext Client
-  170ON ERROR GOTO 520
-  180MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
-  190IFv$="fbcon"THENMOUSEOFF
-  200reveal%=0:scan%=0:width%=1
-  210dh%=0:dhline%=0:borked%=0
-  220allowfs%=1:DIM scr% 1000
-  230REM Variables for downloading
-  240screen%=0
-  250download%=0
-  260X%=OPENUP(FNwelcome)
-  270BPUT#X%,&FF,&FD,&03:REM Telnet init data
+   60REM the *WinTitle command.
+   70:
+   80VER$="Viewdata client version 20200406"
+   90:
+  100SYS "Brandy_GetVideoDriver" TO v$,,,,v%
+  110IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
+  120:
+  130*FX229,1
+  140OSCLI"Key1"+CHR$(31)
+  150*WinTitle Matrix Network Viewdata/Teletext Client
+  160ON ERROR GOTO 520
+  170MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
+  180IFv$="fbcon"THENMOUSEOFF
+  190reveal%=0:scan%=0:width%=1
+  200dh%=0:dhline%=0:borked%=0:telnet%=1
+  210allowfs%=1:DIM scr% 1000
+  220REM Variables for downloading
+  230screen%=0
+  240download%=0
+  250X%=OPENUP(FNwelcome)
+  260REM Send Telnet init data if required
+  270IF telnet%=1 THEN BPUT#X%,&FF,&FD,&03 ELSE BPUT#X%,13
   280REPEAT
   290M%=BGET#X%: IF M%=-2 THEN GOTO 510
   300IF M% >= 0 THEN PROCvdu(M%): GOTO 510
@@ -131,89 +131,96 @@
  1310ENDPROC
  1320:
  1330DEFFNwelcome
- 1340PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
- 1350PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
- 1360PRINT
- 1370PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
- 1380PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
- 1390PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
- 1400PRINT
- 1410PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
- 1420PRINT CHR$(131);"5 - NXtel"
- 1430PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Local Teletext"
- 1440PRINT
- 1450PRINT CHR$(129);"0 - Exit"
- 1460PRINT TAB(0,14)CHR$(134);"While the session is running:":PRINT
- 1470IF allowfs%=1 THEN PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
- 1480PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
- 1490PRINT CHR$(134);" Press CTRL-X to exit immediately"
- 1500PRINT CHR$(134);" Press CTRL-D to disconnect":PRINT
- 1510PRINT CHR$(130);" F1 or CTRL-/ for help & other keys"
- 1520PRINT TAB(4,23)CHR$(129);"Please make your selection..."
- 1530PRINT CHR$(132);CHR$(157);CHR$(135);VER$;
- 1540REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24
- 1550IF A% = 23 THEN PROCwidth:GOTO 1540
- 1560IF A% = 24 OR A% = 48 THEN PRINT:ON:OSCLI"FX229":END
- 1570IF A% = 6 THEN PROCtogglescreen: GOTO 1540
- 1580IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
- 1590IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
- 1600IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
- 1610IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
- 1620IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
- 1630IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
- 1640CLS
- 1650="ip0:"+S$
- 1660:
- 1670DEFPROChelp
- 1680x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
- 1690PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
- 1700PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
- 1710PRINT
- 1720PRINT CHR$(134);"Special keys available:":PRINT
- 1730IF allowfs%=1 THEN PRINT CHR$(134);" Press";CHR$(131);"CTRL-F";CHR$(134);"to toggle Full Screen":
- 1740PRINT CHR$(134);" Press";CHR$(131);"CTRL-R";CHR$(134);"to toggle Reveal":
- 1750PRINT CHR$(134);" Press";CHR$(131);"CTRL-X";CHR$(134);"to exit immediately"
- 1760PRINT CHR$(134);" Press";CHR$(131);"CTRL-D";CHR$(134);"to disconnect": PRINT
- 1770PRINT
- 1780PRINT CHR$(131);" CTRL-[";CHR$(134);"Select previous frame";CHR$(129);"(*#)"
- 1790PRINT CHR$(131);" CTRL-^";CHR$(134);"Select main index frame";CHR$(129);"(*0#)"
- 1800PRINT CHR$(131);" PgUp";CHR$(134);" redraw current frame";CHR$(129);"(*00)"
- 1810PRINT CHR$(131);" PgDn";CHR$(134);" Request updated frame";CHR$(129);"(*09)"
- 1820PRINT CHR$(131);" CTRL-END";CHR$(134);"Request disconnect";CHR$(129);"(*90#)"
- 1830PRINT
- 1840PRINT CHR$(130);" F2: Send teletext control code"
- 1850IFGET
- 1860VDU31,x%,y%
- 1870FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
- 1880ENDPROC
- 1890:
- 1900DEFFNcontrolcode
- 1910x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
- 1920PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
- 1930PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
- 1940PRINT
- 1950PRINT CHR$(141);CHR$(134);SPC(10);"Control codes:"
- 1960PRINT CHR$(141);CHR$(134);SPC(10);"Control codes:"
- 1970PRINT " @:(text black)     P:(graphics black)"
- 1980PRINT CHR$(129);"A: text red        Q: graphics red"
- 1990PRINT CHR$(130);"B: text green      R: graphics green"
- 2000PRINT CHR$(131);"C: text yellow     S: graphics yellow"
- 2010PRINT CHR$(132);"D: text blue       T: graphics blue"
- 2020PRINT CHR$(133);"E: text magenta    U: graphics magenta"
- 2030PRINT CHR$(134);"F: text cyan       V: graphics cyan"
- 2040PRINT CHR$(135);"G: text white      W: graphics white"
- 2050PRINT CHR$(136);"H: Flash On";CHR$(137);"       X: Conceal"
- 2060PRINT CHR$(137);"I: Flash Off       Y: Contiguous gfx"
- 2070PRINT " J: &8A (End Box)   Z: Separated gfx"
- 2080PRINT " K: &8B (Start Box) [: &9B (Esc/Switch)"
- 2090PRINT " L: Dbl Height Off  |: Black background"
- 2100PRINT " M: Dbl Height On   ]: Set bg colour"
- 2110PRINT " N: &8E (dbl width) ^: Hold graphics"
- 2120PRINT " O: &8F (dbl size)  _: Release graphics"
- 2130PRINT
- 2140PRINT CHR$(134);"Note: Codes &8A, &8B, &8E, &8F and &9B"
- 2150PRINT CHR$(134);"have no effect in this client."
- 2160t%=GET
- 2170VDU31,x%,y%
- 2180FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
- 2190=(t% AND 31)+128
+ 1340PROCwelcomescreen
+ 1350REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24 OR A%=84 OR A%=116
+ 1360IF A% = 24 OR A% = 48 THEN PRINT:ON:OSCLI"FX229":END
+ 1370IF A% = 6 THEN PROCtogglescreen: GOTO 1350
+ 1380IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
+ 1390IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
+ 1400IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1410IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
+ 1420IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
+ 1430IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
+ 1440IF A% = 84 OR A% = 116 THEN telnet%=telnet% EOR 1: GOTO 1340
+ 1450CLS
+ 1460="ip0:"+S$
+ 1470:
+ 1480DEFPROCwelcomescreen:CLS
+ 1490PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 1500PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 1510PRINT
+ 1520PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
+ 1530PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+ 1540PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+ 1550PRINT
+ 1560PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
+ 1570PRINT CHR$(131);"5 - NXtel"
+ 1580PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Local Teletext"
+ 1590PRINT
+ 1600PRINT CHR$(131);"T - Toggle Telnet codes -";
+ 1610IF telnet%=1 THEN PRINT CHR$(130);"ON" ELSE PRINT CHR$(129);"OFF"
+ 1620PRINT
+ 1630PRINT CHR$(129);"0 - Exit"
+ 1640PRINT TAB(0,15)CHR$(134);"While the session is running:":PRINT
+ 1650IF allowfs%=1 THEN PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
+ 1660PRINT CHR$(134);" Press CTRL-R to toggle Reveal":
+ 1670PRINT CHR$(134);" Press CTRL-X to exit immediately"
+ 1680PRINT CHR$(134);" Press CTRL-D to disconnect":PRINT
+ 1690PRINT CHR$(130);" F1 or CTRL-/ for help & other keys"
+ 1700PRINT TAB(4,23)CHR$(129);"Please make your selection..."
+ 1710PRINT CHR$(132);CHR$(157);CHR$(135);VER$;
+ 1720ENDPROC
+ 1730:
+ 1740DEFPROChelp
+ 1750x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
+ 1760PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 1770PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 1780PRINT
+ 1790PRINT CHR$(134);"Special keys available:":PRINT
+ 1800IF allowfs%=1 THEN PRINT CHR$(134);" Press";CHR$(131);"CTRL-F";CHR$(134);"to toggle Full Screen":
+ 1810PRINT CHR$(134);" Press";CHR$(131);"CTRL-R";CHR$(134);"to toggle Reveal":
+ 1820PRINT CHR$(134);" Press";CHR$(131);"CTRL-X";CHR$(134);"to exit immediately"
+ 1830PRINT CHR$(134);" Press";CHR$(131);"CTRL-D";CHR$(134);"to disconnect": PRINT
+ 1840PRINT
+ 1850PRINT CHR$(131);" CTRL-[";CHR$(134);"Select previous frame";CHR$(129);"(*#)"
+ 1860PRINT CHR$(131);" CTRL-^";CHR$(134);"Select main index frame";CHR$(129);"(*0#)"
+ 1870PRINT CHR$(131);" PgUp";CHR$(134);" redraw current frame";CHR$(129);"(*00)"
+ 1880PRINT CHR$(131);" PgDn";CHR$(134);" Request updated frame";CHR$(129);"(*09)"
+ 1890PRINT CHR$(131);" CTRL-END";CHR$(134);"Request disconnect";CHR$(129);"(*90#)"
+ 1900PRINT
+ 1910PRINT CHR$(130);" F2: Send teletext control code"
+ 1920IFGET
+ 1930VDU31,x%,y%
+ 1940FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
+ 1950ENDPROC
+ 1960:
+ 1970DEFFNcontrolcode
+ 1980x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
+ 1990PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 2000PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
+ 2010PRINT
+ 2020PRINT CHR$(141);CHR$(134);SPC(10);"Control codes:"
+ 2030PRINT CHR$(141);CHR$(134);SPC(10);"Control codes:"
+ 2040PRINT " @:(text black)     P:(graphics black)"
+ 2050PRINT CHR$(129);"A: text red        Q: graphics red"
+ 2060PRINT CHR$(130);"B: text green      R: graphics green"
+ 2070PRINT CHR$(131);"C: text yellow     S: graphics yellow"
+ 2080PRINT CHR$(132);"D: text blue       T: graphics blue"
+ 2090PRINT CHR$(133);"E: text magenta    U: graphics magenta"
+ 2100PRINT CHR$(134);"F: text cyan       V: graphics cyan"
+ 2110PRINT CHR$(135);"G: text white      W: graphics white"
+ 2120PRINT CHR$(136);"H: Flash On";CHR$(137);"       X: Conceal"
+ 2130PRINT CHR$(137);"I: Flash Off       Y: Contiguous gfx"
+ 2140PRINT " J: &8A (End Box)   Z: Separated gfx"
+ 2150PRINT " K: &8B (Start Box) [: &9B (Esc/Switch)"
+ 2160PRINT " L: Dbl Height Off  |: Black background"
+ 2170PRINT " M: Dbl Height On   ]: Set bg colour"
+ 2180PRINT " N: &8E (dbl width) ^: Hold graphics"
+ 2190PRINT " O: &8F (dbl size)  _: Release graphics"
+ 2200PRINT
+ 2210PRINT CHR$(134);"Note: Codes &8A, &8B, &8E, &8F and &9B"
+ 2220PRINT CHR$(134);"have no effect in this client."
+ 2230t%=GET
+ 2240VDU31,x%,y%
+ 2250FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
+ 2260=(t% AND 31)+128
