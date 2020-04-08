@@ -5,7 +5,7 @@
    50REM interface is a local extension, as is the screen memory access and
    60REM the *WinTitle command.
    70:
-   80VER$="Viewdata client version 20200406"
+   80VER$="Viewdata client version 20200408"
    90:
   100SYS "Brandy_GetVideoDriver" TO v$,,,,v%
   110IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
@@ -24,7 +24,7 @@
   240download%=0
   250X%=OPENUP(FNwelcome)
   260REM Send Telnet init data if required
-  270IF telnet%=1 THEN BPUT#X%,&FF,&FD,&03 ELSE BPUT#X%,13
+  270IF telnet%=1 THEN BPUT#X%,&FF,&FD,&03 ELSE VDU23,18,1,2|:BPUT#X%,13
   280REPEAT
   290M%=BGET#X%: IF M%=-2 THEN GOTO 510
   300IF M% >= 0 THEN PROCvdu(M%): GOTO 510
@@ -74,7 +74,7 @@
   740:
   750DEFPROCactvdu
   760IFdhline%<>VPOS THEN dh%=0
-  770VDU (M% OR 128)
+  770VDU (M% OR 128):IF VPOS=24 OR (VPOS=23 AND POS=40) THEN VDU30
   780ENDPROC
   790:
   800DEFPROCcheckline
@@ -155,7 +155,7 @@
  1550PRINT
  1560PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1570PRINT CHR$(131);"5 - NXtel"
- 1580PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Local Teletext"
+ 1580PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Teletext"
  1590PRINT
  1600PRINT CHR$(131);"T - Toggle Telnet codes -";
  1610IF telnet%=1 THEN PRINT CHR$(130);"ON" ELSE PRINT CHR$(129);"OFF"

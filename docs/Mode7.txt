@@ -14,7 +14,10 @@ of mosaic graphics, especially separated graphics. Two fonts are used,
 the main one is the high-res font based on the one from RISC OS 5, the other
 being the classic SAA5050 font.
 
-Direct screen memory access is implemented at addresses &FFFF7C00 to &FFFF7FFF.
+Direct screen memory access is implemented, the address can be obtained by
+doing SYS "Brandy_GetVideoDriver" TO ,,,,addr%
+Usually this will return &7C00 but will return &FFFF7C00 if &7C00 is in
+BASIC workspace. It will always be a 32-bit address.
 
 Some RISC OS 5 extensions are also supported:
   (source: http://beebwiki.mdfs.net/VDU_23)
