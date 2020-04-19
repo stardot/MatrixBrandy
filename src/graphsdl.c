@@ -4008,7 +4008,7 @@ int32 osbyte251() {
   return (((displaybank+1) << 8) + 251);
 }
 
-void osword10(int32 x) {
+void osword10(int64 x) {
   char *block;
   int32 offset, i;
   
@@ -4016,6 +4016,21 @@ void osword10(int32 x) {
   offset = block[0]-32;
   if (offset < 0) return;
   for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
+}
+
+/* Like OSWORD 10 but for the MODE 7 16x20 font
+ */
+void osword121(int64 x) {
+  char *block;
+  int32 offset, i;
+  
+  block=(char *)(basicvars.offbase+x);
+  offset = (block[0] % 0x7F) -32;
+  if ((offset < 0) || (offset > 95)) return;
+  for (i=0; i<= 19; i++) {
+    block[(2*i)+1]=mode7fontro5[offset][i] / 256;
+    block[(2*i)+2]=mode7fontro5[offset][i] % 256;
+  }
 }
 
 void sdl_screensave(char *fname) {

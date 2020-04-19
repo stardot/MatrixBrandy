@@ -2307,12 +2307,16 @@ void mos_final(void) {
 }
 
 static void mos_osword(int32 areg, int32 xreg) {
-   switch (areg) {
-     case 10:
+  switch (areg) {
+    case 10:
 #ifdef USE_SDL
-       osword10(xreg);
+      osword10(xreg);
 #endif
-       break;
+    case 121:
+#ifdef USE_SDL
+      osword121(xreg);
+#endif
+    break;
    }
 }
 
