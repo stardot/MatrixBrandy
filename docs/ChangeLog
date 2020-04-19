@@ -4,6 +4,11 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.5 - 
 * Fixed a bug in CLS where it missed the bottom of the screen if the
   vertical resolution wasn't a multiple of the text height.
+* Implemented an equivalent to OSWORD 10 for the Teletext font. Using
+  OSWORD &79 as it appears to be undefined. Requires a 41-byte block.
+* Changed the appearance of the * character in MODE 7, as I never really
+  liked the RISC OS 5 shape, it's now much closer to the SAA5050 shape
+  while retaining the RISC OS 5 dimensions.
 
 * V1.22.4 - 10 March 2020
 - Enable building on Cygwin 64-bit
