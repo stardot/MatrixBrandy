@@ -4022,10 +4022,15 @@ void osword10(int64 x) {
  */
 void osword121(int64 x) {
   char *block;
-  int32 offset, i;
+  int32 offset, i, ch;
   
   block=(char *)(basicvars.offbase+x);
-  offset = (block[0] % 0x7F) -32;
+  ch=block[0];
+  if (ch==163) ch=96;
+  if (ch==223) ch=35;
+  if (ch==224) ch=95;
+  ch = ch & 0x7F;
+  offset = ch -32;
   if ((offset < 0) || (offset > 95)) return;
   for (i=0; i<= 19; i++) {
     block[(2*i)+1]=mode7fontro5[offset][i] / 256;
