@@ -16,7 +16,8 @@ Supported OSBYTE calls
 ----------------------
 A=0:	X=0:  return the MOS version as an error with ERR=247.
 	X<>0: Return the host OS version in the X register (as per the 'use' doc)
-
+A=20:	Resets the system font (SDL build only)
+A=25:	Resets parts of the system font (SDL build only)
 A=42:	Get or set various states [Brandy only]
 	If NO bits set: return state in X register.
 	If ALL bits set: Analogue of Linux's "stty sane" - enables Refresh,
