@@ -4040,7 +4040,21 @@ void osword139(int64 x) {
 }
 
 void osword140(int64 x) {
-  /* Placeholder */
+  char *block;
+  int32 offset, i, ch;
+  
+  block=(char *)(basicvars.offbase+x);
+  if (block[0] < 43) return;
+  ch=block[2];
+  if (ch==163) ch=96;
+  if (ch==223) ch=35;
+  if (ch==224) ch=95;
+  ch = ch & 0x7F;
+  offset = ch -32;
+  if ((offset < 0) || (offset > 95)) return;
+  for (i=0; i<= 19; i++) {
+    mode7font[offset][i] = block[(2*i)+4] + (256*block[(2*i)+3]);
+  }
 }
 
 void sdl_screensave(char *fname) {
