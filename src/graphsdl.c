@@ -4022,11 +4022,10 @@ void osword10(int64 x) {
  */
 void osword139(int64 x) {
   char *block;
-  int32 offset, i, ch, bsz;
+  int32 offset, i, ch;
   
   block=(char *)(basicvars.offbase+x);
-  bsz = block[0] + (256*block[1]);
-  if ( bsz < 43 ) return;
+  if ( ( block[0] < 3 ) || ( block[1] < 43 ) ) return;
   ch=block[2];
   if (ch==163) ch=96;
   if (ch==223) ch=35;
