@@ -4035,9 +4035,13 @@ void osword139(int64 x) {
   offset = ch -32;
   if ((offset < 0) || (offset > 95)) return;
   for (i=0; i<= 19; i++) {
-    block[(2*i)+3]=mode7fontro5[offset][i] / 256;
-    block[(2*i)+4]=mode7fontro5[offset][i] % 256;
+    block[(2*i)+3]=mode7font[offset][i] / 256;
+    block[(2*i)+4]=mode7font[offset][i] % 256;
   }
+}
+
+void osword140(int64 x) {
+  /* Placeholder */
 }
 
 void sdl_screensave(char *fname) {
