@@ -2186,9 +2186,9 @@ static void setup_mode(int32 mode) {
       modecopy = mode = matrixflags.failovermode;
     }
   }
+  setm7font16();
   if (mode == 7) { /* Reset width to 16 */
     M7XPPC=16;
-    setm7font16();
     SDL_FreeSurface(sdl_m7fontbuf);
     m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
     sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);
