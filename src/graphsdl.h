@@ -44,7 +44,7 @@ extern void reset_sysfont(int x);
 extern void hide_cursor(void);
 //extern void reveal_cursor(void);
 extern void osword10(int64 x);
-extern void osword121(int64 x);
+extern void osword139(int64 x);
 extern void sdl_screensave(char *fname);
 extern void sdl_screenload(char *fname);
 extern void reset_vdu14lines(void);

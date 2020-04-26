@@ -4020,12 +4020,14 @@ void osword10(int64 x) {
 
 /* Like OSWORD 10 but for the MODE 7 16x20 font
  */
-void osword121(int64 x) {
+void osword139(int64 x) {
   char *block;
-  int32 offset, i, ch;
+  int32 offset, i, ch, bsz;
   
   block=(char *)(basicvars.offbase+x);
-  ch=block[0];
+  bsz = block[0] + (256*block[1]);
+  if ( bsz < 43 ) return;
+  ch=block[2];
   if (ch==163) ch=96;
   if (ch==223) ch=35;
   if (ch==224) ch=95;
@@ -4033,8 +4035,8 @@ void osword121(int64 x) {
   offset = ch -32;
   if ((offset < 0) || (offset > 95)) return;
   for (i=0; i<= 19; i++) {
-    block[(2*i)+1]=mode7fontro5[offset][i] / 256;
-    block[(2*i)+2]=mode7fontro5[offset][i] % 256;
+    block[(2*i)+3]=mode7fontro5[offset][i] / 256;
+    block[(2*i)+4]=mode7fontro5[offset][i] % 256;
   }
 }
 

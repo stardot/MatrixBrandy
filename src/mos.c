@@ -2312,9 +2312,9 @@ static void mos_osword(int32 areg, int32 xreg) {
 #ifdef USE_SDL
       osword10(xreg);
 #endif
-    case 121:
+    case 139:
 #ifdef USE_SDL
-      osword121(xreg);
+      osword139(xreg);
 #endif
     break;
    }
