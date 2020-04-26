@@ -426,12 +426,12 @@ static void vdu_2318(void) {
       SDL_FreeSurface(m7fontbuf);
       modetable[7].xres = 40*M7XPPC;
       modetable[7].xgraphunits = 80*M7XPPC;
+      if (M7XPPC==12 || (vduqueue[2] & 1)) {
+	setm7font12();
+      } else {
+	setm7font16();
+      }
       if (screenmode == 7) {
-	if (M7XPPC==12 || (vduqueue[2] & 1)) {
-	  setm7font12();
-	} else {
-	  setm7font16();
-	}
 	screenwidth = modetable[7].xres;
 	screenheight = modetable[7].yres;
 	xgraphunits = modetable[7].xgraphunits;
