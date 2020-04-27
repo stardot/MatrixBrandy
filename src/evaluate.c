@@ -926,9 +926,11 @@ static void do_indrefvar(void) {
 #ifdef USE_SDL
   int32 msx, msy, loop, val = 0;
 #endif
-  if (*basicvars.current == BASIC_TOKEN_INTINDVAR)	/* Fetch variable's value */
+  if (*basicvars.current == BASIC_TOKEN_INTINDVAR) {	/* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
-  else {
+  } else if (*basicvars.current == BASIC_TOKEN_INT64INDVAR) {	/* Fetch variable's value */
+    offset = *GET_ADDRESS(basicvars.current, int64 *);
+  } else {
     offset = TOINT64(*GET_ADDRESS(basicvars.current, float64 *));
   }
   basicvars.current+=LOFFSIZE+1;		/* Skip pointer to variable */
@@ -1023,6 +1025,10 @@ static void do_xvar(void) {
     case VAR_INTWORD:
       *basicvars.current = BASIC_TOKEN_INTINDVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
+      break;
+    case VAR_INTLONG:
+      *basicvars.current = BASIC_TOKEN_INT64INDVAR;
+      set_address(basicvars.current, &vp->varentry.var64int);
       break;
     case VAR_FLOAT:
       *basicvars.current = BASIC_TOKEN_FLOATINDVAR;

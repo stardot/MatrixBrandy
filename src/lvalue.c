@@ -119,9 +119,13 @@ static void fix_address(lvalue *destination) {
 */
   if (!isarray && (*np=='?' || *np=='!')) {	/* Variable is followed by an indirection operator */
     switch (vp->varflags) {
-    case VAR_INTWORD:		/* Op follows an integer variable */
+    case VAR_INTWORD:		/* Op follows a 32-bit integer variable */
       *basicvars.current = BASIC_TOKEN_INTINDVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
+      break;
+    case VAR_INTLONG:		/* Op follows a 64-bit integer variable */
+      *basicvars.current = BASIC_TOKEN_INT64INDVAR;
+      set_address(basicvars.current, &vp->varentry.var64int);
       break;
     case VAR_FLOAT:		/* Op follows a floating point variable */
       *basicvars.current = BASIC_TOKEN_FLOATINDVAR;
@@ -330,7 +334,7 @@ static void do_elementvar(lvalue *destination) {
 
 /*
 ** 'do_intindvar' fills in the lvalue structure for the case
-** of an iteger variable followed by an indirection operator
+** of a 32-bit iteger variable followed by an indirection operator
 */
 static void do_intindvar(lvalue *destination) {
   int32 *ip;
@@ -349,6 +353,32 @@ static void do_intindvar(lvalue *destination) {
     destination->address.offset = *ip+INT64TO32(pop_int64());
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = *ip+TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
+** 'do_int64indvar' fills in the lvalue structure for the case
+** of a 64-bit iteger variable followed by an indirection operator
+*/
+static void do_int64indvar(lvalue *destination) {
+  int64 *ip;
+  ip = GET_ADDRESS(basicvars.current, int64 *);
+  basicvars.current+=LOFFSIZE+1;
+  if (*basicvars.current=='?')		/* Decide on the type of the result from the operator */
+    destination->typeinfo = VAR_INTBYTEPTR;
+  else {	/* Four byte integer */
+    destination->typeinfo = VAR_INTWORDPTR;
+  }
+  basicvars.current++;	/* Skip the operator */
+  factor();		/* Evaluate the RH operand */
+  if (GET_TOPITEM==STACK_INT)
+    destination->address.offset = *ip+pop_int();
+  else if (GET_TOPITEM==STACK_INT64)
+    destination->address.offset = *ip+pop_int64();
+  else if (GET_TOPITEM==STACK_FLOAT)
+    destination->address.offset = *ip+TOINT64(pop_float());
   else {
     error(ERR_TYPENUM);
   }
@@ -443,7 +473,7 @@ static void (*lvalue_table[256])(lvalue *) = {
   bad_syntax, fix_address, do_staticvar, do_intvar,		/* 00..03 */
   do_floatvar, do_stringvar, do_arrayvar, do_elementvar,	/* 04..07 */
   do_elementvar, do_intindvar, do_floatindvar, do_statindvar,	/* 08..0B */
-  bad_token, bad_token, do_int64var, bad_token,			/* 0C..0F */
+  bad_token, bad_token, do_int64var, do_int64indvar,		/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
   bad_token, bad_token, bad_token, bad_token,			/* 18..1B */

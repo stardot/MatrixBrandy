@@ -8,7 +8,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   liked the RISC OS 5 shape, it's now much closer to the SAA5050 shape
   while retaining the RISC OS 5 dimensions.
 * Implemented an equivalent to OSWORD 10 for the Teletext font. Using
-  OSWORD &8B as it appears to be undefined. Requires a 41-byte block.
+  OSWORD &8B as it appears to be undefined. Requires a 43-byte block.
 * Implemented OSWORD &8C to change a Teletext character definition.
   These two are specific to Matrix Brandy and Richard Russell's BBCSDL
   (and were developed in parallel).
