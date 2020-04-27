@@ -110,7 +110,7 @@
 #endif
 
 static int check_command(char *text);
-static void mos_osword(int32 areg, int32 xreg);
+static void mos_osword(int32 areg, int64 xreg);
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
 static void native_oscli(char *command, char *respfile, FILE *respfh);
@@ -162,6 +162,7 @@ static time_t startime;		/* Adjustment subtracted in 'TIME' */
 /*
 ** 'emulate_mos' provides an emulation of some of the BBC Micro
 ** MOS calls emulated by the Acorn interpreter
+** This is only 32-bit clean, it will not work reliably on 64-bit systems.
 */
 static int32 emulate_mos(int32 address) {
   int32 areg, xreg, yreg;
@@ -180,7 +181,15 @@ static int32 emulate_mos(int32 address) {
 #ifdef TARGET_RISCOS
     (void) _kernel_osword(areg, (int *)xreg);
 #else
-    mos_osword(areg, xreg);
+    if ((yreg & 0xFF000000) == 0xFF000000) {
+      /* Y register borked due to high bit. Let's try to shore it up. */
+      yreg = (yreg & 0xFFFFFF) -1;
+    }
+    if ((xreg & 0xFFFFFF00) == 0xFFFFFF00) {
+      /* MOD on a high-bit value sets ALL the bits. So, if MOD 256 used, let's strip them out. */
+      xreg &= 0xFF;
+    }
+    mos_osword(areg, xreg | ( yreg << 8));
 #endif
     return areg;
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
@@ -2306,7 +2315,7 @@ boolean mos_init(void) {
 void mos_final(void) {
 }
 
-static void mos_osword(int32 areg, int32 xreg) {
+static void mos_osword(int32 areg, int64 xreg) {
   switch (areg) {
     case 10:
 #ifdef USE_SDL
