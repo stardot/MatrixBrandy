@@ -12,6 +12,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * Implemented OSWORD &8C to change a Teletext character definition.
   These two are specific to Matrix Brandy and Richard Russell's BBCSDL
   (and were developed in parallel).
+* Fixed an omission - indirection offsets on 64-bit variables are now
+  supported.
 
 * V1.22.4 - 10 March 2020
 - Enable building on Cygwin 64-bit
