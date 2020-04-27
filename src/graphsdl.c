@@ -4008,11 +4008,21 @@ int32 osbyte251() {
   return (((displaybank+1) << 8) + 251);
 }
 
-void osword10(int64 x) {
-  char *block;
+void osword09(int64 x) {
+  unsigned char *block;
+  int32 px, py;
+
+  block=(unsigned char *)(basicvars.offbase+x);
+  px=block[0] + (block[1] << 8);
+  py=block[2] + (block[3] << 8);
+  block[4] = emulate_pointfn(px, py);
+}
+
+void osword0A(int64 x) {
+  unsigned char *block;
   int32 offset, i;
   
-  block=(char *)(basicvars.offbase+x);
+  block=(unsigned char *)(basicvars.offbase+x);
   offset = block[0]-32;
   if (offset < 0) return;
   for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
@@ -4020,11 +4030,11 @@ void osword10(int64 x) {
 
 /* Like OSWORD 10 but for the MODE 7 16x20 font
  */
-void osword139(int64 x) {
-  char *block;
+void osword8B(int64 x) {
+  unsigned char *block;
   int32 offset, i, ch;
-  
-  block=(char *)(basicvars.offbase+x);
+
+  block=(unsigned char *)(basicvars.offbase+x);
   if ( ( block[0] < 3 ) || ( block[1] < 43 ) ) return;
   ch=block[2];
   if (ch==163) ch=96;
@@ -4039,11 +4049,11 @@ void osword139(int64 x) {
   }
 }
 
-void osword140(int64 x) {
-  char *block;
+void osword8C(int64 x) {
+  unsigned char *block;
   int32 offset, i, ch;
-  
-  block=(char *)(basicvars.offbase+x);
+
+  block=(unsigned char *)(basicvars.offbase+x);
   if (block[0] < 43) return;
   ch=block[2];
   if (ch==163) ch=96;
