@@ -98,7 +98,6 @@
 
 /* Unused tokens */
 
-#define UNUSED_0F	0x0Fu
 #define UNUSED_1A	0x1Au
 #define UNUSED_1B	0x1Bu
 #define UNUSED_1C	0x1Cu

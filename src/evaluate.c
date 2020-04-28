@@ -926,6 +926,9 @@ static void do_indrefvar(void) {
 #ifdef USE_SDL
   int32 msx, msy, loop, val = 0;
 #endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_indrefvar\n");
+#endif
   if (*basicvars.current == BASIC_TOKEN_INTINDVAR) {	/* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
   } else if (*basicvars.current == BASIC_TOKEN_INT64INDVAR) {	/* Fetch variable's value */
@@ -989,6 +992,9 @@ static void do_indrefvar(void) {
     push_int(get_integer(offset));
 #endif
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_indrefvar\n");
+#endif
 }
 
 /*

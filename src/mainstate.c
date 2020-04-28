@@ -350,6 +350,9 @@ static void define_byte_array(variable *vp) {
 ** size. The address stored is in fact the byte offset of the array
 ** from the start of the Basic workspace
 */
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:define_byte_array\n");
+#endif
   if (vp->varflags  !=  VAR_INTWORD && vp->varflags  !=  VAR_INTLONG && vp->varflags  !=  VAR_FLOAT) error(ERR_VARNUM);
   isindref = *basicvars.current == '!';
   if (isindref) {
@@ -398,6 +401,9 @@ static void define_byte_array(variable *vp) {
   else {
     vp->varentry.varfloat = TOFLOAT(ep-basicvars.offbase);
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:define_byte_array\n");
+#endif
 }
 
 /*

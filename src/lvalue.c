@@ -334,7 +334,7 @@ static void do_elementvar(lvalue *destination) {
 
 /*
 ** 'do_intindvar' fills in the lvalue structure for the case
-** of a 32-bit iteger variable followed by an indirection operator
+** of a 32-bit integer variable followed by an indirection operator
 */
 static void do_intindvar(lvalue *destination) {
   int32 *ip;
@@ -360,7 +360,7 @@ static void do_intindvar(lvalue *destination) {
 
 /*
 ** 'do_int64indvar' fills in the lvalue structure for the case
-** of a 64-bit iteger variable followed by an indirection operator
+** of a 64-bit integer variable followed by an indirection operator
 */
 static void do_int64indvar(lvalue *destination) {
   int64 *ip;

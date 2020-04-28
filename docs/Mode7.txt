@@ -40,8 +40,26 @@ VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
               control code &90 selects graphics black.
 Enabling or disabling this will cause an immediate refresh of the display.
 
-A Brandy-specific extension:
-VDU 23,18,255,width,0,0,0,0,0,0 - Set Teletext character cell width and font.
-  Valid values are 12 - 17. All other values are ignored.
-  Bit 0 sets the font, if set use the classic SAA5050 font, if not set use
-  SAA5050 for width 12, and the RISC OS 5 font for 14 and 16.
+Two new OSWORD calls are available, one to read the character definition
+of a teletext character, another to change a character with a new definition.
+These OSWORD calls are specific to Matrix Brandy and Richard Russell's BBCSDL
+with whom these extensions were developed in parallel.
+
+OSWORD &8B (139) - Read a Teletext character definition.
+Requires a block size of 43 or 44.
+block%?0 = 3                     block%?0 = 4
+block%?1 = 43                    block%?1 = 44
+block%?2 = Character code        block%?2 = Character code
+                                 block%?3 = Bank selecter, default 0
+block%?3..42 - Returned data     block%?4..43 - Returned data
+
+OSWORD &8C (140) - Write a Teletext character definition to bank 0
+Requires a block size of 43
+block%?0 = 43
+block%?1 unused
+block%?2 = Character code
+block%?3..42 = Character definition, in the same layout as &8B.
+
+OSBYTE 20 will reset the definition back to default along with the regular
+non-MODE7 font.
+OSBYTE 25 has been extended, if X=16 then reset teletext font only.

@@ -151,6 +151,9 @@ static void assign_intbyteptr(pointers address) {
   uint32 msx, msy, addr;
   Uint8 value=0;
 
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:assign_intbyteptr: address=%p\n", address.offset);
+#endif
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
@@ -2218,6 +2221,9 @@ void exec_assignment(void) {
 #endif
   get_lvalue(&destination);
   assignop = *basicvars.current;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:exec_assignment: assignop=&%X, typeinfo=&%X\n", assignop, destination.typeinfo);
+#endif
   if (assignop=='=') {
     basicvars.current++;
     expression();

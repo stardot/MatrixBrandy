@@ -2660,7 +2660,7 @@ switch (areg) {
 		reset_sysfont(8);
 		return 0x030114;
 	case 25:			// OSBYTE 25, reset font
-		if ((xreg >= 0) && (xreg <= 7)) {
+		if (((xreg >= 0) && (xreg <= 7)) || (xreg == 16)) {
 		  reset_sysfont(xreg);
 		  return(0x19);
 		} else {

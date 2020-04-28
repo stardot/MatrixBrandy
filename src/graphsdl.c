@@ -235,14 +235,6 @@ static void reset_mode7() {
   }
 }
 
-static void setm7font12() {
-  memcpy(mode7font, mode7fontsaa5050, sizeof(mode7font));
-}
-
-static void setm7font16() {
-  memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-}
-
 void reset_vdu14lines(void) {
   vdu14lines=0;
 }
@@ -252,6 +244,8 @@ void reset_sysfont(int x) {
 
   if (!x) {
     memcpy(sysfont, sysfontbase, sizeof(sysfont));
+    memcpy(mode7font, mode7fontro5, sizeof(mode7font));
+    if (screenmode == 7) mode7renderscreen();
     return;
   }
   if ((x>=1) && (x<= 7)) {
@@ -262,6 +256,10 @@ void reset_sysfont(int x) {
   if (x ==8){
     for (c=0; c<=95; c++)
       for (i=0; i<= 7; i++) sysfont[c][i]=sysfontbase[c][i];
+  }
+  if (x == 16) {
+    memcpy(mode7font, mode7fontro5, sizeof(mode7font));
+    if (screenmode == 7) mode7renderscreen();
   }
 }
 
@@ -413,41 +411,6 @@ static void vdu_2318(void) {
   }
   if (vduqueue[1] == 3) {
     write_vduflag(MODE7_BLACK, vduqueue[2] & 1);
-  }
-  if (vduqueue[1] == 255) {
-    /* Brandy extension - render glyphs 12, 14 or 16 glyphs wide. If bit 0 set or width = 12 always use SAA5050 font */
-    int32 charwidth = (vduqueue[2] & 0xFE);
-    if ((charwidth == 12) || (charwidth== 14) || (charwidth == 16)) {
-      SDL_Surface *m7fontbuf;
-      M7XPPC = charwidth;
-      SDL_FreeSurface(sdl_m7fontbuf);
-      m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-      sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);
-      SDL_FreeSurface(m7fontbuf);
-      modetable[7].xres = 40*M7XPPC;
-      modetable[7].xgraphunits = 80*M7XPPC;
-      if (M7XPPC==12 || (vduqueue[2] & 1)) {
-	setm7font12();
-      } else {
-	setm7font16();
-      }
-      if (screenmode == 7) {
-	screenwidth = modetable[7].xres;
-	screenheight = modetable[7].yres;
-	xgraphunits = modetable[7].xgraphunits;
-	gwinright = xgraphunits-1;
-	line_rect.x = 0;
-	line_rect.y = 0;
-	line_rect.w = vscrwidth;
-	line_rect.h = vscrheight;
-	SDL_FillRect(modescreen, NULL, tb_colour);
-	SDL_FillRect(matrixflags.surface, NULL, tb_colour);
-	SDL_FillRect(screen2, NULL, tb_colour);
-	SDL_FillRect(screen3, NULL, tb_colour);
-	do_sdl_flip(matrixflags.surface);
-	SDL_SetClipRect(matrixflags.surface, &line_rect);
-      }
-    }
   }
   mode7renderscreen();
 }
@@ -2170,7 +2133,6 @@ static void setup_mode(int32 mode) {
   int32 modecopy;
   Uint32 sx, sy, ox, oy;
   int p;
-  SDL_Surface *m7fontbuf;
 
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
@@ -2185,16 +2147,6 @@ static void setup_mode(int32 mode) {
     } else {
       modecopy = mode = matrixflags.failovermode;
     }
-  }
-  setm7font16();
-  if (mode == 7) { /* Reset width to 16 */
-    M7XPPC=16;
-    SDL_FreeSurface(sdl_m7fontbuf);
-    m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-    sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);
-    SDL_FreeSurface(m7fontbuf);
-    modetable[7].xres = 40*M7XPPC;
-    modetable[7].xgraphunits = 80*M7XPPC;
   }
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
@@ -3227,22 +3179,9 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 
   if (y > 19) return(0); /* out of range */
   val = 0;
-  switch (M7XPPC) {
-    case 12:
-      left=0xFC00u;
-      right=0x03F0u;
-      hmask=0x79E0u;
-      break;
-    case 14:
-      left=0xFE00u;
-      right=0x01FCu;
-      hmask=0x7CF8u;
-      break;
-    default:
-      left=0xFF00u;
-      right=0x00FFu;
-      hmask=0x7E7Eu;
-  }
+  left=0xFF00u;
+  right=0x00FFu;
+  hmask=0x7E7Eu;
 
 /* Row sets - 0 to 6, 7 to 13, and 14 to 19 */
   if ((y >= 0) && (y <= 6)) {
@@ -4032,23 +3971,41 @@ void osword0A(int64 x) {
  */
 void osword8B(int64 x) {
   unsigned char *block;
-  int32 offset, i, ch;
+  int32 offset, i, ch, chbank;
 
   block=(unsigned char *)(basicvars.offbase+x);
   if ( ( block[0] < 3 ) || ( block[1] < 43 ) ) return;
-  ch=block[2];
-  if (ch==163) ch=96;
-  if (ch==223) ch=35;
-  if (ch==224) ch=95;
-  ch = ch & 0x7F;
-  offset = ch -32;
-  if ((offset < 0) || (offset > 95)) return;
-  for (i=0; i<= 19; i++) {
-    block[(2*i)+3]=mode7font[offset][i] / 256;
-    block[(2*i)+4]=mode7font[offset][i] % 256;
+  if ( ( block[0] == 4 ) && ( block[1] < 44 ) ) return;
+  if ( block[1] == 43 ) {
+    ch=block[2];
+    if (ch==163) ch=96;
+    if (ch==223) ch=35;
+    if (ch==224) ch=95;
+    ch = ch & 0x7F;
+    offset = ch -32;
+    if ((offset < 0) || (offset > 95)) return;
+    for (i=0; i<= 19; i++) {
+      block[(2*i)+3]=mode7font[offset][i] / 256;
+      block[(2*i)+4]=mode7font[offset][i] % 256;
+    }
+  } else {
+    ch=block[2];
+    chbank=block[3];
+    if (ch==163) ch=96;
+    if (ch==223) ch=35;
+    if (ch==224) ch=95;
+    ch = ch & 0x7F;
+    offset = ch -32;
+    if ((offset < 0) || (offset > 95)) return;
+    for (i=0; i<= 19; i++) {
+      block[(2*i)+4]=mode7font[offset][i] / 256;
+      block[(2*i)+5]=mode7font[offset][i] % 256;
+    }
   }
 }
 
+/* Write a character definition to the current MODE 7 font.
+ */
 void osword8C(int64 x) {
   unsigned char *block;
   int32 offset, i, ch;
