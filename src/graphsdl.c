@@ -3991,15 +3991,22 @@ void osword8B(int64 x) {
   } else {
     ch=block[2];
     chbank=block[3];
-    if (ch==163) ch=96;
-    if (ch==223) ch=35;
-    if (ch==224) ch=95;
-    ch = ch & 0x7F;
-    offset = ch -32;
-    if ((offset < 0) || (offset > 95)) return;
-    for (i=0; i<= 19; i++) {
-      block[(2*i)+4]=mode7font[offset][i] / 256;
-      block[(2*i)+5]=mode7font[offset][i] % 256;
+    if (chbank == 0) {
+      if (ch==163) ch=96;
+      if (ch==223) ch=35;
+      if (ch==224) ch=95;
+      ch = ch & 0x7F;
+      offset = ch -32;
+      if ((offset < 0) || (offset > 95)) return;
+      for (i=0; i<= 19; i++) {
+        block[(2*i)+4]=mode7font[offset][i] / 256;
+        block[(2*i)+5]=mode7font[offset][i] % 256;
+      }
+    } else {
+      for (i=0; i<= 19; i++) {
+        block[(2*i)+4]=mode7fontbanks[chbank-1][ch][i] / 256;
+        block[(2*i)+5]=mode7fontbanks[chbank-1][ch][i] % 256;
+      }
     }
   }
 }
