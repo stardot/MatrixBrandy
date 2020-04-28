@@ -8,12 +8,14 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   liked the RISC OS 5 shape, it's now much closer to the SAA5050 shape
   while retaining the RISC OS 5 dimensions.
 * Implemented an equivalent to OSWORD 10 for the Teletext font. Using
-  OSWORD &8B as it appears to be undefined. Requires a 43-byte block.
+  OSWORD &8B as it appears to be undefined. Requires a 43 or 44 byte block.
 * Implemented OSWORD &8C to change a Teletext character definition.
   These two are specific to Matrix Brandy and Richard Russell's BBCSDL
   (and were developed in parallel).
+  Details on these calls are in docs/Mode7.txt
 * Fixed an omission - indirection offsets on 64-bit variables are now
   supported.
+* Removed Teletext 12x20 and 14x20 displays, thus VDU23,18,255,x is no more.
 
 * V1.22.4 - 10 March 2020
 - Enable building on Cygwin 64-bit
