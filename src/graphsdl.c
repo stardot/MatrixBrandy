@@ -4029,6 +4029,7 @@ void osword8C(int64 x) {
   for (i=0; i<= 19; i++) {
     mode7font[offset][i] = block[(2*i)+4] + (256*block[(2*i)+3]);
   }
+  if (screenmode == 7) mode7renderscreen();
 }
 
 void sdl_screensave(char *fname) {

@@ -364,7 +364,13 @@ static void do_intindvar(lvalue *destination) {
 */
 static void do_int64indvar(lvalue *destination) {
   int64 *ip;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function lvalue.c:do_int64indvar\n");
+#endif
   ip = GET_ADDRESS(basicvars.current, int64 *);
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug) fprintf(stderr, "lvalue.c:do_int64indvar: ip=%llX\n", *ip);
+#endif
   basicvars.current+=LOFFSIZE+1;
   if (*basicvars.current=='?')		/* Decide on the type of the result from the operator */
     destination->typeinfo = VAR_INTBYTEPTR;
@@ -373,15 +379,18 @@ static void do_int64indvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  if (GET_TOPITEM==STACK_INT)
+  if (GET_TOPITEM==STACK_INT) {
     destination->address.offset = *ip+pop_int();
-  else if (GET_TOPITEM==STACK_INT64)
+  } else if (GET_TOPITEM==STACK_INT64) {
     destination->address.offset = *ip+pop_int64();
-  else if (GET_TOPITEM==STACK_FLOAT)
+  } else if (GET_TOPITEM==STACK_FLOAT) {
     destination->address.offset = *ip+TOINT64(pop_float());
-  else {
+  } else {
     error(ERR_TYPENUM);
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:do_int64indvar\n");
+#endif
 }
 
 /*
@@ -471,9 +480,9 @@ static void do_unaryind(lvalue *destination) {
 */
 static void (*lvalue_table[256])(lvalue *) = {
   bad_syntax, fix_address, do_staticvar, do_intvar,		/* 00..03 */
-  do_floatvar, do_stringvar, do_arrayvar, do_elementvar,	/* 04..07 */
-  do_elementvar, do_intindvar, do_floatindvar, do_statindvar,	/* 08..0B */
-  bad_token, bad_token, do_int64var, do_int64indvar,		/* 0C..0F */
+  do_int64var, do_floatvar, do_stringvar, do_arrayvar,		/* 04..07 */
+  do_elementvar, do_elementvar, do_intindvar, do_int64indvar,	/* 08..0B */
+   do_floatindvar,do_statindvar, bad_token, bad_token,		/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
   bad_token, bad_token, bad_token, bad_token,			/* 18..1B */

@@ -214,7 +214,7 @@ static void list_varlist(char which, library *lp) {
                 strcat(temp, "string()");
                 break;
               default:
-                error(ERR_BROKEN);
+                error(ERR_BROKEN, __LINE__, "variables");
               }
               fp = fp->nextparm;
               if (fp==NIL)
@@ -242,7 +242,10 @@ static void list_varlist(char which, library *lp) {
           break;
         }
         default:	/* Bad type of variable flag */
-          error(ERR_BROKEN);
+#ifdef DEBUG
+          fprintf(stderr, "Broken, varflags=%X\n", vp->varflags);
+#endif
+          error(ERR_BROKEN, __LINE__, "variables varflags");
         }
         next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
         if (next>=width) {	/* Not enough room on this line */

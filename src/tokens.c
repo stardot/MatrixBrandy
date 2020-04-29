@@ -1447,7 +1447,7 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
 */
 static int skiptable [] = {
   0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,	/* 00..07 */
-  LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,	/* 08..0F */
+  LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE,	/* 08..0F */
   0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE, OFFSIZE+SIZESIZE,		/* 10..17 */
   OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
   -1,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
@@ -1828,7 +1828,7 @@ static void clear_varaddrs(byte *bp) {
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
-    if (*tp == BASIC_TOKEN_XVAR || *tp == BASIC_TOKEN_INT64VAR || (*tp >= BASIC_TOKEN_INTVAR && *tp <= BASIC_TOKEN_FLOATINDVAR)) {
+    if (*tp == BASIC_TOKEN_XVAR || (*tp >= BASIC_TOKEN_INTVAR && *tp <= BASIC_TOKEN_FLOATINDVAR)) {
       while (*sp != BASIC_TOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
       if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
       sp++;     /* Point at first char of name */

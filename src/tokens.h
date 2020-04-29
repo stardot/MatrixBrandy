@@ -68,19 +68,19 @@
 #define BASIC_TOKEN_XVAR	0x01u		/* Reference to variable in source code */
 #define BASIC_TOKEN_STATICVAR	0x02u		/* Simple reference to a static variable */
 #define BASIC_TOKEN_INTVAR	0x03u		/* Simple reference to an integer variable */
-#define BASIC_TOKEN_FLOATVAR	0x04u		/* Simple reference to a floating point variable */
-#define BASIC_TOKEN_STRINGVAR	0x05u		/* Simple reference to a string variable */
-#define BASIC_TOKEN_ARRAYVAR	0x06u		/* Array or array followed by an indirection operator */
-#define BASIC_TOKEN_ARRAYREF	0x07u		/* Reference to whole array */
-#define BASIC_TOKEN_ARRAYINDVAR	0x08u		/* Array element followed by indirection operator */
-#define BASIC_TOKEN_INTINDVAR	0x09u		/* 32-bit integer variable followed by indirection operator */
-#define BASIC_TOKEN_FLOATINDVAR	0x0Au		/* Floating point variable followed by indirection operator */
-#define BASIC_TOKEN_STATINDVAR	0x0Bu		/* Static variable followed by indirection operator */
+#define BASIC_TOKEN_INT64VAR	0x04u		/* Simple reference to a 64-bit int variable */
+#define BASIC_TOKEN_FLOATVAR	0x05u		/* Simple reference to a floating point variable */
+#define BASIC_TOKEN_STRINGVAR	0x06u		/* Simple reference to a string variable */
+#define BASIC_TOKEN_ARRAYVAR	0x07u		/* Array or array followed by an indirection operator */
+#define BASIC_TOKEN_ARRAYREF	0x08u		/* Reference to whole array */
+#define BASIC_TOKEN_ARRAYINDVAR	0x09u		/* Array element followed by indirection operator */
+#define BASIC_TOKEN_INTINDVAR	0x0Au		/* 32-bit integer variable followed by indirection operator */
+#define BASIC_TOKEN_INT64INDVAR	0x0Bu		/* 64-bit integer variable followed by indirection operator */
+#define BASIC_TOKEN_FLOATINDVAR	0x0Cu		/* Floating point variable followed by indirection operator */
+#define BASIC_TOKEN_STATINDVAR	0x0Du		/* Static variable followed by indirection operator */
 
-#define BASIC_TOKEN_XFNPROCALL	0x0Cu		/* Reference to unknown PROC or FN */
-#define BASIC_TOKEN_FNPROCALL	0x0Du		/* Reference to known PROC or FN */
-#define BASIC_TOKEN_INT64VAR	0x0Eu		/* Simple reference to a 64-bit int variable */
-#define BASIC_TOKEN_INT64INDVAR	0x0Fu		/* 64-bit integer variable followed by indirection operator */
+#define BASIC_TOKEN_XFNPROCALL	0x0Eu		/* Reference to unknown PROC or FN */
+#define BASIC_TOKEN_FNPROCALL	0x0Fu		/* Reference to known PROC or FN */
 
 #define BASIC_TOKEN_INTZERO	0x10u		/* Integer 0 */
 #define BASIC_TOKEN_INTONE	0x11u		/* Integer 1 */

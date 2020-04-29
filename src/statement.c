@@ -310,9 +310,9 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
 */
 static void (*statements[256])(void) = {
   next_line, exec_assignment, assign_staticvar,	assign_intvar,		/* 00.03 */
-  assign_floatvar, assign_stringvar, exec_assignment, exec_assignment,	/* 04..07 */
+  assign_int64var, assign_floatvar, assign_stringvar, exec_assignment,	/* 04..07 */
   exec_assignment, exec_assignment, exec_assignment, exec_assignment,	/* 08..0B */
-  exec_xproc, exec_proc, assign_int64var, exec_assignment,		/* 0C..0F */
+  exec_assignment, exec_assignment, exec_xproc, exec_proc,		/* 0C..0F */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 10..13 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 14..17 */
   bad_syntax, bad_syntax, bad_token, bad_token,				/* 18..1B */
