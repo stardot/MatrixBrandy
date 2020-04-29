@@ -4,6 +4,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.5 - 
 * Fixed a bug in CLS where it missed the bottom of the screen if the
   vertical resolution wasn't a multiple of the text height.
+* Fixed various bug in 64-bit variable handling.
+* Fixed an omission - indirection offsets on 64-bit variables are now
+  supported.
 * Changed the appearance of the * character in MODE 7, as I never really
   liked the RISC OS 5 shape, it's now much closer to the SAA5050 shape
   while retaining the RISC OS 5 dimensions.
@@ -13,8 +16,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   These two are specific to Matrix Brandy and Richard Russell's BBCSDL
   (and were developed in parallel).
   Details on these calls are in docs/Mode7.txt
-* Fixed an omission - indirection offsets on 64-bit variables are now
-  supported.
 * Removed Teletext 12x20 and 14x20 displays, thus VDU23,18,255,x is no more.
 
 * V1.22.4 - 10 March 2020

@@ -4726,9 +4726,9 @@ static void eval_fveor(void) {
 */
 void (*factor_table[256])(void) = {
   bad_syntax, do_xvar, do_staticvar, do_intvar,			/* 00..03 */
-  do_floatvar, do_stringvar, do_arrayvar, do_arrayref,		/* 04..07 */
-  do_arrayref, do_indrefvar, do_indrefvar, do_statindvar,	/* 08..0B */
-  do_xfunction, do_function, do_int64var, bad_token,		/* 0C..0F */
+  do_int64var, do_floatvar, do_stringvar, do_arrayvar,		/* 04..07 */
+  do_arrayref, do_arrayref, do_indrefvar, do_indrefvar,		/* 08..0B */
+  do_indrefvar, do_statindvar, do_xfunction, do_function,	/* 0C..0F */
   do_intzero, do_intone, do_smallconst, do_intconst,		/* 10..13 */
   do_floatzero, do_floatone, do_floatconst, do_stringcon,	/* 14..17 */
   do_qstringcon, do_int64const, bad_token, bad_token,		/* 18..1B */
