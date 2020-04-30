@@ -275,6 +275,11 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[0]=out64;
       break;
 #endif
+    case SWI_OS_GetEnv:
+      outregs[0]=-1;
+      outregs[1]=basicvars.end;
+      outregs[2]=-1;
+      break;
     case SWI_OS_UpdateMEMC:
       break; /* Recognise, but do nothing with it */
     case SWI_OS_Mouse:

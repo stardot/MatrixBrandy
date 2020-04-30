@@ -2390,8 +2390,8 @@ static void mos_osword(int32 areg, int64 xreg) {
 * OSBYTE &25  37
 * OSBYTE &26  38
 * OSBYTE &27  39
-* OSBYTE &28  40 Brandy local - set ESCAPE polling interval; 0 resets defaults.
-* OSBYTE &29  41 Brandy local - set ESCAPE polling interval, multiplied by 256.
+* OSBYTE &28  40 
+* OSBYTE &29  41 
 * OSBYTE &2A  42 Brandy local - Get/set *REFRESH state
 * OSBYTE &2B  43 Brandy local - output X to Linux controlling terminal
 * OSBYTE &2C  44 Brandy local - Enable/disable CTRL-N/CTRL-P for line editing.

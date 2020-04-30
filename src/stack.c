@@ -763,6 +763,9 @@ static void restore_retparm(int32 parmcount) {
   case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:	/* Array - Do nothing */
     break;
   default:
+#ifdef DEBUG
+    fprintf(stderr,"stack.c:restore_retparm: Oops. Trying to switch on value &%X didn't work\n",(p->savedetails.typeinfo & PARMTYPEMASK));
+#endif
     error(ERR_BROKEN, __LINE__, "stack");
   }
 
