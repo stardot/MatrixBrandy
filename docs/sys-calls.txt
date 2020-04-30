@@ -59,6 +59,14 @@ OS_WriteI block		(SWIs 256-511). Call by number.
 			   output to the controlling terminal on the stderr
 			   stream.
 
+OS_Byte			R0, R1, R2 are A, X and Y.
+			Calls the OSBYTE system call, see docs/osbyte.txt
+
+OS_Word			R0 is A, R1 is the address of the data block.
+			Only R0=9, 10, 139, 140 are supported.
+			139 and 140 are specific to Matrix Brandy and
+			BBCSDL. Details in docs/Mode7.txt
+
 ColourTrans_xxx
 ===============
 ColourTrans_SetGCOL
