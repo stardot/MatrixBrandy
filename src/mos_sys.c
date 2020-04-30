@@ -277,7 +277,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
     case SWI_OS_GetEnv:
       outregs[0]=-1;
-      outregs[1]=basicvars.end;
+      outregs[1]=(size_t)basicvars.end;
       outregs[2]=-1;
       break;
     case SWI_OS_UpdateMEMC:
