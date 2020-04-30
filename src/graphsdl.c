@@ -245,7 +245,7 @@ void reset_sysfont(int x) {
   if (!x) {
     memcpy(sysfont, sysfontbase, sizeof(sysfont));
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-    if (screenmode == 7) mode7renderscreen();
+    if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
     return;
   }
   if ((x>=1) && (x<= 7)) {
@@ -259,7 +259,7 @@ void reset_sysfont(int x) {
   }
   if (x == 16) {
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-    if (screenmode == 7) mode7renderscreen();
+    if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
   }
 }
 
@@ -4029,7 +4029,7 @@ void osword8C(int64 x) {
   for (i=0; i<= 19; i++) {
     mode7font[offset][i] = block[(2*i)+4] + (256*block[(2*i)+3]);
   }
-  if (screenmode == 7) mode7renderscreen();
+  if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
 }
 
 void sdl_screensave(char *fname) {
