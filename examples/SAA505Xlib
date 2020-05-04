@@ -3,7 +3,7 @@
    30REM SAA505X family of Teletext character generators from Mullard.
    40REM Currently the supported codes are: 0 / 5050: English (default),
    50REM 1 / 5051: German, 2 / 5052: Swedish, 3 / 5053: Italian,
-   60REM 4 / 5054: Belgian and 5 / 5055: US ASCII.
+   60REM 4 / 5054: Belgian, 5 / 5055: US ASCII and 6 / 5056: Hebrew
    70DEFPROCsaa505xlibset(code%)
    80LOCAL loop%
    90SYS "OS_Byte",42,1
@@ -15,6 +15,7 @@
   150WHEN 3,5053:PROCsaa505xr(&E9,&C0):PROCsaa505xr(&B0,&DB):PROCsaa505xr(&E7,&DC):PROCsaa505xr(&D9,&E0):PROCsaa505xr(&E0,&FB):PROCsaa505xr(&D2,&FC):PROCsaa505xr(&E8,&FD):PROCsaa505xr(&EC,&FE): REM Italian
   160WHEN 4,5054:PROCsaa505xr(&E9,&A3):PROCsaa505xr(&EF,&A4):PROCsaa505xr(&E0,&C0):PROCsaa505xr(&EB,&DB):PROCsaa505xr(&EA,&DC):PROCsaa505xr(&D9,&DD):PROCsaa505xr(&EE,&DE):PROCsaa505xr(&E8,&E0):PROCsaa505xr(&E2,&FB):PROCsaa505xr(&F4,&FC):PROCsaa505xr(&FB,&FD):PROCsaa505xr(&E7,&FE): REM Belgian
   170WHEN 5,5055:PROCsaa505xr(&23,&A3):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+128):NEXT:PROCsaa505xr(&7B,&FB):PROCsaa505xr(&A6,&7C):PROCsaa505xr(&7D,&FD):PROCsaa505xr(&7E,&FE)
+  171WHEN 6,5056:FOR loop%=0 TO 27:PROCsaa505xr(loop%,loop%+224):NEXT
   180ENDCASE
   190SYS "OS_Byte",42,2
   200ENDPROC
