@@ -3,33 +3,35 @@
    30REM SAA505X family of Teletext character generators from Mullard.
    40REM Currently the supported codes are: 0 / 5050: English (default),
    50REM 1 / 5051: German, 2 / 5052: Swedish, 3 / 5053: Italian,
-   60REM 4 / 5054: Belgian, 5 / 5055: US ASCII and 6 / 5056: Hebrew
-   70DEFPROCsaa505xlibset(code%)
-   80LOCAL loop%
-   90SYS "OS_Byte",42,1
-  100SYS "OS_Byte",25,16: REM Reset to default
-  110CASE code% OF
-  120WHEN 0,5050: REM SAA5050 is the default
-  130WHEN 1,5051:PROCsaa505xr(&23,&A3):PROCsaa505xr(&A7,&C0):PROCsaa505xr(&C4,&DB):PROCsaa505xr(&D6,&DC):PROCsaa505xr(&DC,&DD):PROCsaa505xr(&5E,&DE):PROCsaa505xr(&5F,&DF):PROCsaa505xr(&B0,&E0):PROCsaa505xr(&E4,&FB):PROCsaa505xr(&F6,&FC):PROCsaa505xr(&FC,&FD):PROCsaa505xr(&DF,&FE): REM German
-  140WHEN 2,5052:PROCsaa505xr(&23,&A3):PROCsaa505xr(&A4,&A4):PROCsaa505xr(&C9,&C0):PROCsaa505xr(&C4,&DB):PROCsaa505xr(&D6,&DC):PROCsaa505xr(&C5,&DD):PROCsaa505xr(&DC,&DE):PROCsaa505xr(&5F,&DF):PROCsaa505xr(&E9,&E0):PROCsaa505xr(&E4,&FB):PROCsaa505xr(&F6,&FC):PROCsaa505xr(&E5,&FD):PROCsaa505xr(&FC,&FE): REM Swedish
-  150WHEN 3,5053:PROCsaa505xr(&E9,&C0):PROCsaa505xr(&B0,&DB):PROCsaa505xr(&E7,&DC):PROCsaa505xr(&D9,&E0):PROCsaa505xr(&E0,&FB):PROCsaa505xr(&D2,&FC):PROCsaa505xr(&E8,&FD):PROCsaa505xr(&EC,&FE): REM Italian
-  160WHEN 4,5054:PROCsaa505xr(&E9,&A3):PROCsaa505xr(&EF,&A4):PROCsaa505xr(&E0,&C0):PROCsaa505xr(&EB,&DB):PROCsaa505xr(&EA,&DC):PROCsaa505xr(&D9,&DD):PROCsaa505xr(&EE,&DE):PROCsaa505xr(&E8,&E0):PROCsaa505xr(&E2,&FB):PROCsaa505xr(&F4,&FC):PROCsaa505xr(&FB,&FD):PROCsaa505xr(&E7,&FE): REM Belgian
-  170WHEN 5,5055:PROCsaa505xr(&23,&A3):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+128):NEXT:PROCsaa505xr(&7B,&FB):PROCsaa505xr(&A6,&7C):PROCsaa505xr(&7D,&FD):PROCsaa505xr(&7E,&FE)
-  171WHEN 6,5056:FOR loop%=0 TO 27:PROCsaa505xr(loop%,loop%+224):NEXT
-  180ENDCASE
-  190SYS "OS_Byte",42,2
-  200ENDPROC
-  210DEFPROCsaa505xr(chi%, cho%)
-  220LOCAL blk%%
-  230SYS"Brandy_MAlloc",64 TO blk%%
-  240blk%%?0 = 4
-  250blk%%?1 = 44
-  260blk%%?2 = chi%
-  270blk%%?3 = 1
-  280SYS "OS_Word",&8B,blk%%
-  290blk%%?1 = 43
-  300blk%%?2 = 0
-  310blk%%?3 = cho%
-  320SYS "OS_Word",&8C,blk%%+1
-  330SYS"Brandy_Free",blk%%
-  340ENDPROC
+   60REM 4 / 5054: Belgian, 5 / 5055: US ASCII, 6 / 5056: Hebrew and
+   70REM 7 / 5057: Cyrillic
+   80DEFPROCsaa505xlibset(code%)
+   90LOCAL loop%
+  100SYS "OS_Byte",42,1
+  110SYS "OS_Byte",25,16: REM Reset to default
+  120CASE code% OF
+  130WHEN 0,5050: REM SAA5050 is the default
+  140WHEN 1,5051:PROCsaa505xr(&23,&A3,1):PROCsaa505xr(&A7,&C0,1):PROCsaa505xr(&C4,&DB,1):PROCsaa505xr(&D6,&DC,1):PROCsaa505xr(&DC,&DD,1):PROCsaa505xr(&5E,&DE,1):PROCsaa505xr(&5F,&DF,1):PROCsaa505xr(&B0,&E0,1):PROCsaa505xr(&E4,&FB,1):PROCsaa505xr(&F6,&FC,1):PROCsaa505xr(&FC,&FD,1):PROCsaa505xr(&DF,&FE,1): REM German
+  150WHEN 2,5052:PROCsaa505xr(&23,&A3,1):PROCsaa505xr(&A4,&A4,1):PROCsaa505xr(&C9,&C0,1):PROCsaa505xr(&C4,&DB,1):PROCsaa505xr(&D6,&DC,1):PROCsaa505xr(&C5,&DD,1):PROCsaa505xr(&DC,&DE,1):PROCsaa505xr(&5F,&DF,1):PROCsaa505xr(&E9,&E0,1):PROCsaa505xr(&E4,&FB,1):PROCsaa505xr(&F6,&FC,1):PROCsaa505xr(&E5,&FD,1):PROCsaa505xr(&FC,&FE,1): REM Swedish
+  160WHEN 3,5053:PROCsaa505xr(&E9,&C0,1):PROCsaa505xr(&B0,&DB,1):PROCsaa505xr(&E7,&DC,1):PROCsaa505xr(&D9,&E0,1):PROCsaa505xr(&E0,&FB,1):PROCsaa505xr(&D2,&FC,1):PROCsaa505xr(&E8,&FD,1):PROCsaa505xr(&EC,&FE,1): REM Italian
+  170WHEN 4,5054:PROCsaa505xr(&E9,&A3,1):PROCsaa505xr(&EF,&A4,1):PROCsaa505xr(&E0,&C0,1):PROCsaa505xr(&EB,&DB,1):PROCsaa505xr(&EA,&DC,1):PROCsaa505xr(&D9,&DD,1):PROCsaa505xr(&EE,&DE,1):PROCsaa505xr(&E8,&E0,1):PROCsaa505xr(&E2,&FB,1):PROCsaa505xr(&F4,&FC,1):PROCsaa505xr(&FB,&FD,1):PROCsaa505xr(&E7,&FE,1): REM Belgian
+  180WHEN 5,5055:PROCsaa505xr(&23,&A3,1):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+128,1):NEXT:PROCsaa505xr(&7B,&FB,1):PROCsaa505xr(&A6,&7C,1):PROCsaa505xr(&7D,&FD,1):PROCsaa505xr(&7E,&FE,1): REM US-ASCII
+  190WHEN 6,5056:FOR loop%=0 TO 27:PROCsaa505xr(loop%,loop%+224,1):NEXT: REM Hebrew
+  200WHEN 7,5057:PROCsaa505xr(&23,&A3,1):PROCsaa505xr(&3F,&A6,2):FOR loop%=0 TO &3E:PROCsaa505xr(loop%,loop%+&C0,2):NEXT:REM Cyrillic
+  210ENDCASE
+  220SYS "OS_Byte",42,2
+  230ENDPROC
+  240DEFPROCsaa505xr(chi%, cho%, bank%)
+  250LOCAL blk%%
+  260SYS"Brandy_MAlloc",64 TO blk%%
+  270blk%%?0 = 4
+  280blk%%?1 = 44
+  290blk%%?2 = chi%
+  300blk%%?3 = bank%
+  310SYS "OS_Word",&8B,blk%%
+  320blk%%?1 = 43
+  330blk%%?2 = 0
+  340blk%%?3 = cho%
+  350SYS "OS_Word",&8C,blk%%+1
+  360SYS"Brandy_Free",blk%%
+  370ENDPROC
