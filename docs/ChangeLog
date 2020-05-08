@@ -1,7 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.5 - 
+* V1.22.5 - 08 May 2020
 * Fixed a bug in CLS where it missed the bottom of the screen if the
   vertical resolution wasn't a multiple of the text height.
 * Fixed various bug in 64-bit variable handling.

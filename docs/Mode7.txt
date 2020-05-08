@@ -1,18 +1,8 @@
 MODE 7 support in Brandy BASIC V/VI
 ===================================
-As of version 1.21.2, MODE 7 is now running using a text buffer,
-which recalculates the line whenever a character in it is changed. This
-allows for existing lines to be modified with control codes, and existing
-characters are changed to reflect the modification.
 
-This is a change to the teletext in 1.21.0 and .1, where streams of characters
-were obeyed and displayed (mostly) correctly, but placed characters would not
-reflect existing codes, nor would placed codes affect existing characters.
-
-Glyphs are using 16x20 character cells, this allows for a decent rendering
-of mosaic graphics, especially separated graphics. Two fonts are used,
-the main one is the high-res font based on the one from RISC OS 5, the other
-being the classic SAA5050 font.
+Mode 7 teletext charactes use 16x20 character cells, this allows for a
+decent rendering of mosaic graphics, especially separated graphics.
 
 Direct screen memory access is implemented, the address can be obtained by
 doing SYS "Brandy_GetVideoDriver" TO ,,,,addr%
@@ -52,6 +42,9 @@ block%?1 = 43                    block%?1 = 44
 block%?2 = Character code        block%?2 = Character code
                                  block%?3 = Bank selecter, default 0
 block%?3..42 - Returned data     block%?4..43 - Returned data
+
+Calling OSWORD &8B with block?0=3 and bloc?1=43 is compatible with
+Richard Russel's BBCSDL as of release version  1.12a.
 
 OSWORD &8C (140) - Write a Teletext character definition to bank 0
 Requires a block size of 43
