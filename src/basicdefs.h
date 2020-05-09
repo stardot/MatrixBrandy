@@ -509,6 +509,7 @@ typedef struct {
     unsigned int trapexcp:1;		/* TRUE if exceptions are trapped by interpreter */
     unsigned int validsaved:1;		/* TRUE if 'savedstart' contains something valid */
     unsigned int validedit:1;		/* TRUE if 'edit_flags' contains something valid */
+    unsigned int usedmmap:1;		/* TRUE if we used mmap to allocate memory */
   } misc_flags;
   byte savedstart[PRESERVED];		/* Save area for start of program when 'NEW' issued */
   int32 curcount;			/* Number of entries on savedcur[] stack*/

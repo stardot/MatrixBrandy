@@ -18,7 +18,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   Details on these calls are in docs/Mode7.txt
 * Removed Teletext 12x20 and 14x20 displays, thus VDU23,18,255,x is no more.
 * Added example library SAA505Xlib, which uses the new OSWORD calls to
-  allow language changes as per the SAA505x family (0-5 supported).
+  allow language changes as per the SAA505x family (0-7 supported).
 * Telstar client updated so control code inserter page on F2 shows US-ASCII
   characters to match keytops!
 

@@ -34,9 +34,41 @@
 #include "errors.h"
 #include "miscprocs.h"
 
+#ifdef TARGET_LINUX
+#define __USE_LARGEFILE64
+#include <sys/mman.h>
+#endif
+
 #ifdef TARGET_RISCOS
 #include "kernel.h"
 #include "swis.h"
+#endif
+
+#ifdef TARGET_LINUX
+static void *mymap (unsigned int size)
+{
+	FILE *fp ;
+	char line[256] ;
+	void *start, *finish, *base = (void *) 0x400000 ;
+
+	fp = fopen ("/proc/self/maps", "r") ;
+	if (fp == NULL)
+		return NULL ;
+
+	while (NULL != fgets (line, 256, fp))
+	    {
+		sscanf (line, "%p-%p", &start, &finish) ;
+		start = (void *)((size_t)start & -0x1000) ; // page align (GCC extension)
+		if (start >= (base + size)) 
+			return base ;
+		if (finish > (void *)0xFFFFF000)
+			return NULL ;
+		base = (void *)(((size_t)finish + 0xFFF) & -0x1000) ; // page align
+		if (base > ((void *)0xFFFFFFFF - size))
+			return NULL ;
+	    }
+	return base ;
+}
 #endif
 
 /*
@@ -60,7 +92,13 @@ boolean init_heap(void) {
 ** start of memory otherwise the SYS statement does not work.
 */
 boolean init_workspace(uint32 heapsize) {
-  byte *wp;
+  byte *wp = NULL;
+#ifdef TARGET_LINUX
+  void *base = NULL;
+  uint32 heaporig;
+#endif
+
+  basicvars.misc_flags.usedmmap = 0;
   if (heapsize==0)
     heapsize = DEFAULTSIZE;
   else if (heapsize<MINSIZE)
@@ -70,7 +108,26 @@ boolean init_workspace(uint32 heapsize) {
   else {
     heapsize = ALIGN(heapsize);
   }
+#ifdef TARGET_LINUX
+  heaporig = heapsize;
+  basicvars.misc_flags.usedmmap = 1;
+  while ((heapsize > MINSIZE) && (NULL == (base = mymap (heapsize))))
+    heapsize /= 2 ;
+  if (base != NULL) {
+    fprintf(stderr, "Allocating at %p, size %X\n", base, heapsize);
+    wp = mmap64(base, heapsize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) ;
+    fprintf(stderr, "mmap returns %p\n", wp);
+    if ((size_t)wp == -1) {
+      heapsize=heaporig;
+      wp=malloc(heapsize);
+      fprintf(stderr, "malloc returns %p\n", wp);
+      basicvars.misc_flags.usedmmap = 0;
+    }
+  }
+#else
   wp = malloc(heapsize);
+#endif
+
   if (wp==NIL) heapsize = 0;	/* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
   basicvars.workspace = wp;
@@ -99,6 +156,11 @@ boolean init_workspace(uint32 heapsize) {
 */
 void release_workspace(void) {
   if (basicvars.workspace!=NIL) {
+#ifdef TARGET_LINUX
+    if (basicvars.misc_flags.usedmmap)
+      munmap(basicvars.workspace, basicvars.worksize);
+    else
+#endif
     free(basicvars.workspace);
     basicvars.workspace = NIL;
     basicvars.worksize = 0;
