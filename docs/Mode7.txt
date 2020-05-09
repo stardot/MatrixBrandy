@@ -36,22 +36,20 @@ These OSWORD calls are specific to Matrix Brandy and Richard Russell's BBCSDL
 with whom these extensions were developed in parallel.
 
 OSWORD &8B (139) - Read a Teletext character definition.
-Requires a block size of 43 or 44.
-block%?0 = 3                     block%?0 = 4
-block%?1 = 43                    block%?1 = 44
-block%?2 = Character code        block%?2 = Character code
-                                 block%?3 = Bank selecter, default 0
-block%?3..42 - Returned data     block%?4..43 - Returned data
-
-Calling OSWORD &8B with block?0=3 and bloc?1=43 is compatible with
-Richard Russel's BBCSDL as of release version  1.12a.
+Requires a block size of 44.
+block%?0 = 4
+block%?1 = 44
+block%?2 = Character code
+block%?3 = Bank selecter, default 0
+block%?4..43 - Returned data
 
 OSWORD &8C (140) - Write a Teletext character definition to bank 0
-Requires a block size of 43
-block%?0 = 43
+Requires a block size of 44
+block%?0 = 44
 block%?1 unused
 block%?2 = Character code
-block%?3..42 = Character definition, in the same layout as &8B.
+block%?3 unused
+block%?4..43 = Character definition, in the same layout as &8B.
 
 OSBYTE 20 will reset the definition back to default along with the regular
 non-MODE7 font.

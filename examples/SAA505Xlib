@@ -29,9 +29,10 @@
   290blk%%?2 = chi%
   300blk%%?3 = bank%
   310SYS "OS_Word",&8B,blk%%
-  320blk%%?1 = 43
-  330blk%%?2 = 0
-  340blk%%?3 = cho%
-  350SYS "OS_Word",&8C,blk%%+1
-  360SYS"Brandy_Free",blk%%
-  370ENDPROC
+  320blk%%?0 = 44
+  330blk%%?1 = 0
+  340blk%%?2 = cho%
+  350blk%%?3 = 0
+  360SYS "OS_Word",&8C,blk%%
+  370SYS"Brandy_Free",blk%%
+  380ENDPROC

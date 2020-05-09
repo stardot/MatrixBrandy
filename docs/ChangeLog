@@ -1,6 +1,9 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+*:V1.22.6 - 
+* Adjust new OSWORD calls to match specification in BeebWiki.
+
 * V1.22.5 - 08 May 2020
 * Fixed a bug in CLS where it missed the bottom of the screen if the
   vertical resolution wasn't a multiple of the text height.

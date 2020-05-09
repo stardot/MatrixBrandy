@@ -3974,10 +3974,10 @@ void osword8B(int64 x) {
   int32 offset, i, ch, chbank;
 
   block=(unsigned char *)(basicvars.offbase+x);
-  if ( ( block[0] < 3 ) || ( block[1] < 43 ) ) return;
-  if ( ( block[0] == 4 ) && ( block[1] < 44 ) ) return;
-  if ( block[1] == 43 ) {
-    ch=block[2];
+  if ( ( block[0] < 4 ) || ( block[1] < 44 ) ) return;
+  ch=block[2];
+  chbank=block[3];
+  if (chbank == 0) {
     if (ch==163) ch=96;
     if (ch==223) ch=35;
     if (ch==224) ch=95;
@@ -3985,28 +3985,13 @@ void osword8B(int64 x) {
     offset = ch -32;
     if ((offset < 0) || (offset > 95)) return;
     for (i=0; i<= 19; i++) {
-      block[(2*i)+3]=mode7font[offset][i] / 256;
-      block[(2*i)+4]=mode7font[offset][i] % 256;
+      block[(2*i)+4]=mode7font[offset][i] / 256;
+      block[(2*i)+5]=mode7font[offset][i] % 256;
     }
   } else {
-    ch=block[2];
-    chbank=block[3];
-    if (chbank == 0) {
-      if (ch==163) ch=96;
-      if (ch==223) ch=35;
-      if (ch==224) ch=95;
-      ch = ch & 0x7F;
-      offset = ch -32;
-      if ((offset < 0) || (offset > 95)) return;
-      for (i=0; i<= 19; i++) {
-        block[(2*i)+4]=mode7font[offset][i] / 256;
-        block[(2*i)+5]=mode7font[offset][i] % 256;
-      }
-    } else {
-      for (i=0; i<= 19; i++) {
-        block[(2*i)+4]=mode7fontbanks[chbank-1][ch][i] / 256;
-        block[(2*i)+5]=mode7fontbanks[chbank-1][ch][i] % 256;
-      }
+    for (i=0; i<= 19; i++) {
+      block[(2*i)+4]=mode7fontbanks[chbank-1][ch][i] / 256;
+      block[(2*i)+5]=mode7fontbanks[chbank-1][ch][i] % 256;
     }
   }
 }
@@ -4018,7 +4003,7 @@ void osword8C(int64 x) {
   int32 offset, i, ch;
 
   block=(unsigned char *)(basicvars.offbase+x);
-  if (block[0] < 43) return;
+  if (block[0] < 44) return;
   ch=block[2];
   if (ch==163) ch=96;
   if (ch==223) ch=35;
@@ -4027,7 +4012,7 @@ void osword8C(int64 x) {
   offset = ch -32;
   if ((offset < 0) || (offset > 95)) return;
   for (i=0; i<= 19; i++) {
-    mode7font[offset][i] = block[(2*i)+4] + (256*block[(2*i)+3]);
+    mode7font[offset][i] = block[(2*i)+5] + (256*block[(2*i)+4]);
   }
   if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
 }
