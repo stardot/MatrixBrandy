@@ -114,13 +114,10 @@ boolean init_workspace(uint32 heapsize) {
   while ((heapsize > MINSIZE) && (NULL == (base = mymap (heapsize))))
     heapsize /= 2 ;
   if (base != NULL) {
-    fprintf(stderr, "Allocating at %p, size %X\n", base, heapsize);
     wp = mmap64(base, heapsize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) ;
-    fprintf(stderr, "mmap returns %p\n", wp);
     if ((size_t)wp == -1) {
       heapsize=heaporig;
       wp=malloc(heapsize);
-      fprintf(stderr, "malloc returns %p\n", wp);
       basicvars.misc_flags.usedmmap = 0;
     }
   }
