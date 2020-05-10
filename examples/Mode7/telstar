@@ -237,7 +237,7 @@
  3180blk%%?0 = 44
  3190blk%%?1 = 0
  3200blk%%?2 = cho%
- 3205blk%%?3 = 0
- 3210SYS "OS_Word",&8C,blk%%
- 3220SYS"Brandy_Free",blk%%
- 3230ENDPROC
+ 3210blk%%?3 = 0
+ 3220SYS "OS_Word",&8C,blk%%
+ 3230SYS"Brandy_Free",blk%%
+ 3240ENDPROC
