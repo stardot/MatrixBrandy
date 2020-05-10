@@ -234,9 +234,10 @@
  3150blk%%?2 = chi%
  3160blk%%?3 = 1
  3170SYS "OS_Word",&8B,blk%%
- 3180blk%%?1 = 43
- 3190blk%%?2 = 0
- 3200blk%%?3 = cho%
- 3210SYS "OS_Word",&8C,blk%%+1
+ 3180blk%%?0 = 44
+ 3190blk%%?1 = 0
+ 3200blk%%?2 = cho%
+ 3205blk%%?3 = 0
+ 3210SYS "OS_Word",&8C,blk%%
  3220SYS"Brandy_Free",blk%%
  3230ENDPROC
