@@ -24,6 +24,11 @@
 **	for strings
 */
 
+/* Linux memory allocator based on Richard Russell's allocator
+** from BBCSDL as it aims to get memory with low addresses, and within
+** the first 1TB on 64-bit hardware.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,27 +52,26 @@
 #ifdef TARGET_LINUX
 static void *mymap (unsigned int size)
 {
-	FILE *fp ;
-	char line[256] ;
-	void *start, *finish, *base = (void *) 0x400000 ;
+  FILE *fp ;
+  char line[256] ;
+  void *start, *finish, *base = (void *) 0x400000 ;
 
-	fp = fopen ("/proc/self/maps", "r") ;
-	if (fp == NULL)
-		return NULL ;
+  fp = fopen ("/proc/self/maps", "r") ;
+  if (fp == NULL)
+    return NULL ;
 
-	while (NULL != fgets (line, 256, fp))
-	    {
-		sscanf (line, "%p-%p", &start, &finish) ;
-		start = (void *)((size_t)start & -0x1000) ; // page align (GCC extension)
-		if (start >= (base + size)) 
-			return base ;
-		if (finish > (void *)0xFFFFF000)
-			return NULL ;
-		base = (void *)(((size_t)finish + 0xFFF) & -0x1000) ; // page align
-		if (base > ((void *)0xFFFFFFFF - size))
-			return NULL ;
-	    }
-	return base ;
+  while (NULL != fgets (line, 256, fp)) {
+    sscanf (line, "%p-%p", &start, &finish) ;
+    start = (void *)((size_t)start & -0x1000) ; // page align (GCC extension)
+    if (start >= (base + size)) 
+      return base ;
+    if (finish > (void *)0xFFFFF000)
+      return NULL ;
+    base = (void *)(((size_t)finish + 0xFFF) & -0x1000) ; // page align
+    if (base > ((void *)0xFFFFFFFF - size))
+      return NULL ;
+  }
+  return base ;
 }
 #endif
 
@@ -111,13 +115,30 @@ boolean init_workspace(uint32 heapsize) {
 #ifdef TARGET_LINUX
   heaporig = heapsize;
   basicvars.misc_flags.usedmmap = 1;
-  while ((heapsize > MINSIZE) && (NULL == (base = mymap (heapsize))))
-    heapsize /= 2 ;
+#ifdef DEBUG
+  fprintf(stderr, "heap.c:init_workspace: Requested heapsize is %d (&%X)\n", heapsize, heapsize);
+#endif
+  base = mymap (heapsize);
+  while ((heapsize > MINSIZE) && (NULL == base))
+    if (heapsize >= (MINSIZE * 2))
+      heapsize /= 2;
+    else
+      heapsize = MINSIZE;
+    base = mymap (heapsize);
   if (base != NULL) {
+#ifdef DEBUG
+    fprintf(stderr, "heap.c:init_workspace: Allocating at %p, size &%X\n", base, heapsize);
+#endif
     wp = mmap64(base, heapsize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) ;
+#ifdef DEBUG
+    fprintf(stderr, "heap.c:init_workspace: mmap returns %p\n", wp);
+#endif
     if ((size_t)wp == -1) {
       heapsize=heaporig;
       wp=malloc(heapsize);
+#ifdef DEBUG
+      fprintf(stderr, "heap.c:init_workspace: Fallback, malloc returns %p\n", wp);
+#endif
       basicvars.misc_flags.usedmmap = 0;
     }
   }

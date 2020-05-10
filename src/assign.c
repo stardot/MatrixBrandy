@@ -152,7 +152,7 @@ static void assign_intbyteptr(pointers address) {
   Uint8 value=0;
 
 #ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:assign_intbyteptr: address=%p\n", address.offset);
+  if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:assign_intbyteptr: address=%p\n", (void *)address.offset);
 #endif
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
