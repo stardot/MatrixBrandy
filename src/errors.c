@@ -128,9 +128,13 @@ static void handle_signal(int signo) {
 #endif
     error(ERR_ARITHMETIC);
   case SIGSEGV:
-  case SIGABRT:
 #ifdef TARGET_MINGW
     (void) signal(SIGSEGV, handle_signal);
+#endif
+    error(ERR_ADDREXCEPT);
+  case SIGABRT:
+#ifdef TARGET_MINGW
+    (void) signal(SIGABRT, handle_signal);
 #endif
     error(ERR_ADDREXCEPT);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
