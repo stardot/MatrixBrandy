@@ -119,12 +119,13 @@ boolean init_workspace(uint32 heapsize) {
   fprintf(stderr, "heap.c:init_workspace: Requested heapsize is %d (&%X)\n", heapsize, heapsize);
 #endif
   base = mymap (heapsize);
-  while ((heapsize > MINSIZE) && (NULL == base))
+  while ((heapsize > MINSIZE) && (NULL == base)) {
     if (heapsize >= (MINSIZE * 2))
       heapsize /= 2;
     else
       heapsize = MINSIZE;
     base = mymap (heapsize);
+  }
   if (base != NULL) {
 #ifdef DEBUG
     fprintf(stderr, "heap.c:init_workspace: Allocating at %p, size &%X\n", base, heapsize);
