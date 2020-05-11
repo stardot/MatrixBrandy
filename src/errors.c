@@ -128,6 +128,7 @@ static void handle_signal(int signo) {
 #endif
     error(ERR_ARITHMETIC);
   case SIGSEGV:
+  case SIGABRT:
 #ifdef TARGET_MINGW
     (void) signal(SIGSEGV, handle_signal);
 #endif
@@ -204,6 +205,7 @@ void init_errors(void) {
 #endif
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
+    (void) signal(SIGABRT, handle_signal);
     (void) signal(SIGINT, handle_signal);
 #ifdef TARGET_DJGPP
     sigintkey = __djgpp_set_sigint_key(ESCKEY);
@@ -215,7 +217,7 @@ void init_errors(void) {
       sigintthread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&watch_escape, NULL, 0, NULL);
 #endif
 
-#else /* TARGET_MINGW | TARGET_DJGPP */
+#else /* not TARGET_MINGW | TARGET_DJGPP */
     struct sigaction sa;
 
     (void) memset(&sa, 0, sizeof(sa));
@@ -232,6 +234,7 @@ void init_errors(void) {
     (void) sigaction(SIGPIPE, &sa, NULL);
     (void) sigaction(SIGFPE, &sa, NULL);
     (void) sigaction(SIGSEGV, &sa, NULL);
+    (void) sigaction(SIGABRT, &sa, NULL);
     (void) sigaction(SIGINT, &sa, NULL);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
     (void) sigaction(SIGCONT, &sa, NULL);
@@ -250,6 +253,7 @@ void restore_handlers(void) {
   if (basicvars.misc_flags.trapexcp) {
     (void) signal(SIGFPE, SIG_DFL);
     (void) signal(SIGSEGV, SIG_DFL);
+    (void) signal(SIGABRT, SIG_DFL);
     (void) signal(SIGINT, SIG_DFL);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
     (void) signal(SIGCONT, SIG_DFL);
