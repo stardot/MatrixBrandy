@@ -1579,6 +1579,7 @@ static void cmd_help(char *command)
       emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
       emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
 #endif /* USE_SDL */
+      if (matrixflags.gpio) emulate_printf("GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
       emulate_printf("\r\n");
     break;
 #ifdef USE_SDL

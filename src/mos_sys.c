@@ -487,6 +487,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_Free:
         if ((size_t)inregs[0] == (size_t)basicvars.workspace) error(ERR_ADDREXCEPT); /* Don't be silly. */
+        if (matrixflags.gpio) {
+          if ((size_t)inregs[0] == (size_t)matrixflags.gpiomem) error(ERR_ADDREXCEPT); /* Don't deallocate GPIO mmap */
+        }
 #ifdef USE_SDL
         if ((size_t)inregs[0] == (size_t)matrixflags.modescreen_ptr) error(ERR_ADDREXCEPT); /* Don't allow deallocation of screen memory */
 #endif
