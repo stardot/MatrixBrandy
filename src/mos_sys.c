@@ -486,7 +486,10 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         if (!xflag && outregs[0] == 0) error(ERR_NOMEMORY);
       break;
     case SWI_Brandy_Free:
-        if (inregs[0] == (size_t)basicvars.workspace) error(ERR_ADDREXCEPT); /* Don't be silly. */
+        if ((size_t)inregs[0] == (size_t)basicvars.workspace) error(ERR_ADDREXCEPT); /* Don't be silly. */
+#ifdef USE_SDL
+        if ((size_t)inregs[0] == (size_t)matrixflags.modescreen_ptr) error(ERR_ADDREXCEPT); /* Don't allow deallocation of screen memory */
+#endif
         free((void *)(size_t)inregs[0]);
       break;
     case SWI_Brandy_BitShift64:
