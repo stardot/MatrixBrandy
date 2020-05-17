@@ -3398,7 +3398,7 @@ static void mode7renderline(int32 ypos) {
       /* These two break the teletext spec, but matches the behaviour in the SAA5050 and RISC OS */
       case TELETEXT_BACKGROUND_BLACK:
       case TELETEXT_BACKGROUND_SET:
-	if (!vduflag(MODE7_BLACK)) {
+	if (!vduflag(MODE7_BLACK)) { /* If we allow Black, don't emulate the SAA5050 bug */
 	  mode7prevchar=32;
 	}
 	break;
