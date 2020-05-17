@@ -3,6 +3,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 *:V1.22.6 - 
 * Adjust new OSWORD calls to match specification in BeebWiki.
+* Block attempts to free workspace memory that shouldn't be randomly freed.
+* Teletext: Don't mimic SAA5050 "hold bug" if Alpha and Graphics Black
+  enabled (VDU23,18,3,1|)
 
 * V1.22.5 - 08 May 2020
 * Fixed a bug in CLS where it missed the bottom of the screen if the

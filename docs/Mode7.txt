@@ -29,6 +29,8 @@ VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
   enable = 1: Control code &80 selects alphanumeric black,
               control code &90 selects graphics black.
 Enabling or disabling this will cause an immediate refresh of the display.
+Note that enabling black also changes the Hold behaviour to match the
+Teletext specification, when disabled it follows the "bug" in the SAA5050.
 
 Two new OSWORD calls are available, one to read the character definition
 of a teletext character, another to change a character with a new definition.
