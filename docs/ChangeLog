@@ -12,6 +12,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
 * Keyboard: Try to fix some glitches around softkeys and the cursor keys.
+* Keyboard: Rework INKEY delay as on Windows messages were sometimes just
+  getting lost in the post.
 
 * V1.22.5 - 08 May 2020
 * Fixed a bug in CLS where it missed the bottom of the screen if the

@@ -1353,10 +1353,10 @@ static boolean waitkey(int wait) {
 **
 */
 static boolean waitkey(int wait) {
+  int64 timerstart;
 #if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   fd_set keyset;
   struct timeval waitime;
-  int64 timerstart;
 #endif
 #ifdef BODGEMGW
   int tmp;
