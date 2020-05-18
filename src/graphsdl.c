@@ -3243,6 +3243,7 @@ static void mode7renderline(int32 ypos) {
 	write_vduflag(MODE7_FLASH,0);
 	break;
       case TELETEXT_SIZE_NORMAL:
+	if (vduflag(MODE7_VDU141ON)) mode7prevchar=32;
 	write_vduflag(MODE7_VDU141ON,0);
 	break;
       case TELETEXT_CONCEAL:
@@ -3365,6 +3366,7 @@ static void mode7renderline(int32 ypos) {
 	write_vduflag(MODE7_FLASH,1);
 	break;
       case TELETEXT_SIZE_DOUBLEHEIGHT:
+	if (!vduflag(MODE7_VDU141ON)) mode7prevchar=32;
 	write_vduflag(MODE7_VDU141ON,1);
 	vdu141used=1;
 	if (vdu141track[ypos] < 2) {
