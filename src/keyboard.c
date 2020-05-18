@@ -1387,6 +1387,7 @@ static boolean waitkey(int wait) {
   SDL_TimerID timer_id = NULL;
 /* set up timer if wait time not zero */
   if (wait != 0) timer_id = SDL_AddTimer(wait*10, waitkey_callbackfunc, 0);
+  if (!timer_id) return 0; /* If we can't set a timer, we'll return as if expired. */
   while ( 1 ) {
 /*
  * First check for SDL events
