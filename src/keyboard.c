@@ -1186,7 +1186,7 @@ int32 kbd_get0(void) {
   ch=getchar();
 #else
   ch=getch();
-#endif
+#endif /* CYGWINBUILD */
   if (ch == NUL || ch == 0xE0) {		/* DOS escaped characters		*/
     // When kbd_modkeys() returns all keys, change this to call it
     s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
@@ -1196,7 +1196,7 @@ int32 kbd_get0(void) {
     ch=getchar();
 #else
     ch=getch();
-#endif
+#endif /* CYGWINBUILD */
     if (ch == 0x29) return 0xAC;		/* Alt-top-left key			*/
     if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
     ch=dostable[ch];				/* Translate escaped character		*/
@@ -1208,7 +1208,7 @@ int32 kbd_get0(void) {
     return ch | 0x100;				/* 0x100+nn - top-bit special keys	*/
   }
   return ch;					/* 0x00+nn - normal keypress		*/
-#else
+#else /* not (DOSWIN and !USE_SDL) */
 
  #if defined(TARGET_UNIX) && !defined(USE_SDL)
   int key, mod;
@@ -1351,7 +1351,7 @@ void osbyte44(int x) {
 // Should be merged with following
 static boolean waitkey(int wait) {
   int tmp;
-  tmp=clock()+wait; //*(CLOCKS_PER_SEC/100);
+  tmp=clock()+wait; /*(CLOCKS_PER_SEC/100); */
   for(;;) { if (kbhit() || (clock()>tmp)) break; }
   return kbhit();
 }
@@ -1385,6 +1385,7 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
+    mode7flipbank();
     while (SDL_PollEvent(&ev) > 0)
       switch(ev.type)
       {
