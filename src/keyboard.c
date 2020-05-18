@@ -689,6 +689,9 @@ int32 kbd_isfnkey(int32 key) {
     key = key & 0xFF;
     if (key >= KEY_F0  && key <= KEY_F9)  return key - KEY_F0;
     if (key >= KEY_F10 && key <= KEY_F12) return key - KEY_F10 + 10;
+    if (matrixflags.osbyte4val == 2) {
+      if ((key >= 0x8B) && (key <= 0x8F)) return (key - 0x80);
+    }
   }
   return -1;						/* Not a function key		*/
 }
@@ -1524,13 +1527,13 @@ if (holdcount > 0) return pop_key();	// moved to here
             case SDLK_INSERT:   ch=0xC6; break;
             case SDLK_DELETE:   ch=0xC7; break;
             case SDLK_HOME:     ch=0xC8; break;
-            case SDLK_END:      ch=0xC9; break;
+            case SDLK_END:      if (matrixflags.osbyte4val == 1) ch=0x87; else ch=0xC9; break;
             case SDLK_PAGEDOWN: ch=0xCA; break;
             case SDLK_PAGEUP:   ch=0xCB; break;
-            case SDLK_LEFT:     ch=0xCC; break;
-            case SDLK_RIGHT:    ch=0xCD; break;
-            case SDLK_DOWN:     ch=0xCE; break;
-            case SDLK_UP:       ch=0xCF; break;
+            case SDLK_LEFT:     if (matrixflags.osbyte4val == 1) ch=0x88; else ch=0xCC; break;
+            case SDLK_RIGHT:    if (matrixflags.osbyte4val == 1) ch=0x89; else ch=0xCD; break;
+            case SDLK_DOWN:     if (matrixflags.osbyte4val == 1) ch=0x8A; else ch=0xCE; break;
+            case SDLK_UP:       if (matrixflags.osbyte4val == 1) ch=0x8B; else ch=0xCF; break;
 //          case SDLK_ESCAPE:
 //            if (basicvars.escape_enabled) error(ERR_ESCAPE); // Should set flag for foreground to check
 //            return ESCAPE;

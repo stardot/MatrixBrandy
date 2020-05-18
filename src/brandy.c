@@ -193,6 +193,7 @@ static void init1(void) {
   matrixflags.pseudovarsunsigned = 0;	/* Are memory pseudovariables unsigned on 32-bit? */
   matrixflags.tekenabled = 0;		/* Tektronix enabled in text mode (default: no) */
   matrixflags.tekspeed = 0;
+  matrixflags.osbyte4val = 0;		/* Default OSBYTE 4 value */
 #if defined(TARGET_UNIX) & !defined(USE_SDL)
   matrixflags.delcandelete = 1;		/* DEL character can delete? */
 #else
