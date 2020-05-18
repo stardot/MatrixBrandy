@@ -1269,27 +1269,6 @@ int32 kbd_get0(void) {
 
 /* Legacy code from here onwards */
 /* ----------------------------- */
-#ifdef USE_SDL
-
-// This is called by waitkey()
-static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
-{
-  SDL_Event event;
-  SDL_UserEvent userevent;
-  userevent.type = SDL_USEREVENT;
-  userevent.code = 0;
-  userevent.data1 = NULL;
-  userevent.data2 = NULL;
-
-  event.type = SDL_USEREVENT;
-  event.user = userevent;
-
-  SDL_PushEvent(&event);
-  return(0);  /* cancel the timer */
-}
-#endif
-
-
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX) | defined(TARGET_GNU)\
  | defined(TARGET_AMIGA) & defined(__GNUC__)
 
@@ -1377,17 +1356,15 @@ static boolean waitkey(int wait) {
 #if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   fd_set keyset;
   struct timeval waitime;
+  int64 timerstart;
 #endif
 #ifdef BODGEMGW
   int tmp;
 #endif
 
+  timerstart = basicvars.centiseconds;
 #ifdef USE_SDL
   SDL_Event ev;
-  SDL_TimerID timer_id = NULL;
-/* set up timer if wait time not zero */
-  if (wait != 0) timer_id = SDL_AddTimer(wait*10, waitkey_callbackfunc, 0);
-  if (!timer_id) return 0; /* If we can't set a timer, we'll return as if expired. */
   while ( 1 ) {
 /*
  * First check for SDL events
@@ -1396,9 +1373,6 @@ static boolean waitkey(int wait) {
     while (SDL_PollEvent(&ev) > 0)
       switch(ev.type)
       {
-        case SDL_USEREVENT:
-	  if (timer_id) SDL_RemoveTimer(timer_id);
-	  return 0;             /* timeout expired */
 	case SDL_KEYUP:
 	  break;
         case SDL_KEYDOWN:
@@ -1412,7 +1386,6 @@ static boolean waitkey(int wait) {
             case SDLK_LALT:
               break;
             default:
-	      if (timer_id) SDL_RemoveTimer(timer_id);
               SDL_PushEvent(&ev);  /* we got a char - push the event back and say we found one */
               return 1;
               break;
@@ -1422,6 +1395,8 @@ static boolean waitkey(int wait) {
           exit_interpreter(EXIT_SUCCESS);
           break;
       }
+    if (basicvars.centiseconds - timerstart >= wait) return 0;
+
 #ifndef TARGET_MINGW
 /*
  * Then for stdin keypresses
@@ -1433,7 +1408,7 @@ static boolean waitkey(int wait) {
     waitime.tv_sec = waitime.tv_usec = 0;
     if (!nokeyboard && select(1, &keyset, NIL, NIL, &waitime) > 0 ) return 1;
 #endif /* !TARGET_MINGW */
-    if (wait == 0) return 0; /* return after one check if wait time = 0 */
+    if (basicvars.centiseconds - timerstart >= wait) return 0; /* return after one check if wait time = 0, or after timeout. */
     usleep(1000);
   }
 #else /* !USE_SDL */
