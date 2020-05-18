@@ -9,6 +9,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * Teletext: Hold characer wasn't being cleared when switching between
   double height and normal size.
 * Teletext: Fixed a bug where flash wasn't flashing while INKEY(delay).
+* Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
+  *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
+* Keyboard: Try to fix some glitches around softkeys and the cursor keys.
 
 * V1.22.5 - 08 May 2020
 * Fixed a bug in CLS where it missed the bottom of the screen if the

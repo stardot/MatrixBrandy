@@ -10,7 +10,7 @@
   100SYS "Brandy_GetVideoDriver" TO v$,,,,v%
   110IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
   120:
-  130*FX229,1
+  130SYS"OS_Byte",229,1: SYS "OS_Byte",4,1
   140OSCLI"Key1"+CHR$(31)
   150*WinTitle Matrix Network Viewdata/Teletext Client
   160ON ERROR GOTO 520
@@ -38,7 +38,7 @@
   380IF I%=18 THEN PROCreveal: GOTO 290
   400IF I%=24 THEN GOTO 540
   410IF I%=8 AND borked%=1 THEN VDU8,32:GOTO500
-  420IF I%>=204 AND I%<=207 THEN I%-=196
+  420IF I%>=136 AND I%<=139 THEN I%-=128
   430IF I%=31THENPROChelp:GOTO290
   440IF I%=130THENI%=FNcontrolcode:GOTO500
   450IF I%=159ORI%=203THENBPUT#X%,42:BPUT#X%,48:I%=48:GOTO500

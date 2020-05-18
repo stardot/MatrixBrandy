@@ -942,7 +942,8 @@ int32 kbd_get(void) {
 
 #else /* !RISCOS */
 
-  int ch, fnkey, cooked;
+  int ch, fnkey;
+//  int cooked;
 //  int raw=0;
 
   if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
@@ -970,10 +971,8 @@ int32 kbd_get(void) {
   ch=kbd_get0();				/* Get a keypress from 'keyboard buffer'*/
   backgnd_escape=TRUE;
 
-//  raw=(sysvar[sv_KeyOptions]&192)!=192;
-//  if (!raw) {
-  cooked=(sysvar[sv_KeyOptions]&192)==192;
-  if (cooked) {
+//  cooked=(sysvar[sv_KeyOptions]&192)==192;
+//  if (cooked) {
     if (ch & 0x100) {				/* Translate special keys		*/
       if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
       if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;	/* PGDN/PGUP */
@@ -981,8 +980,12 @@ int32 kbd_get(void) {
       if (ch == 0x1C8)          ch=30;		/* HOME      */
       if (ch == 0x1C7)          ch=127;		/* DELETE    */
       if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
+      if (matrixflags.osbyte4val == 1) {
+        if ((ch >= 0x18B) && (ch <= 0x18F)) ch -=4;
+      }
     }
-  }
+//  }
+
 #if defined(TARGET_MINGW) || defined(USE_SDL)
   while (kbd_escpoll()) basicvars.escape=FALSE;	/* Rather brute-force			*/
 #endif
@@ -1527,13 +1530,13 @@ if (holdcount > 0) return pop_key();	// moved to here
             case SDLK_INSERT:   ch=0xC6; break;
             case SDLK_DELETE:   ch=0xC7; break;
             case SDLK_HOME:     ch=0xC8; break;
-            case SDLK_END:      if (matrixflags.osbyte4val == 1) ch=0x87; else ch=0xC9; break;
+            case SDLK_END:      ch=0xC9; break;
             case SDLK_PAGEDOWN: ch=0xCA; break;
             case SDLK_PAGEUP:   ch=0xCB; break;
-            case SDLK_LEFT:     if (matrixflags.osbyte4val == 1) ch=0x88; else ch=0xCC; break;
-            case SDLK_RIGHT:    if (matrixflags.osbyte4val == 1) ch=0x89; else ch=0xCD; break;
-            case SDLK_DOWN:     if (matrixflags.osbyte4val == 1) ch=0x8A; else ch=0xCE; break;
-            case SDLK_UP:       if (matrixflags.osbyte4val == 1) ch=0x8B; else ch=0xCF; break;
+            case SDLK_LEFT:     ch=0xCC; break;
+            case SDLK_RIGHT:    ch=0xCD; break;
+            case SDLK_DOWN:     ch=0xCE; break;
+            case SDLK_UP:       ch=0xCF; break;
 //          case SDLK_ESCAPE:
 //            if (basicvars.escape_enabled) error(ERR_ESCAPE); // Should set flag for foreground to check
 //            return ESCAPE;
@@ -1802,7 +1805,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 //basicvars.escape=FALSE;
 //printf("$%02X",basicvars.escape);
     ch = kbd_get();		/* Get 9-bit keypress or expanded function key		*/
-//printf("$%02X$%03X",basicvars.escape,ch);
+//fprintf(stderr, "&%02X &%03X\n",basicvars.escape,ch);
     if ((ch & 0x100) || ((ch == DEL) & !matrixflags.delcandelete)) {
       pendch=ch & 0xFF;		/* temp */
       ch = asc_NUL;
