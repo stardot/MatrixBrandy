@@ -981,7 +981,7 @@ int32 kbd_get(void) {
       if (ch == 0x1C7)          ch=127;		/* DELETE    */
       if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
       if (matrixflags.osbyte4val == 1) {
-        if ((ch >= 0x18B) && (ch <= 0x18F)) ch -=4;
+        if ((ch >= 0x18B) && (ch <= 0x18F)) ch -=0x104;
       }
     }
 //  }

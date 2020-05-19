@@ -1,0 +1,46 @@
+This is an inexhaustive list of keyboard codes returned by GET and INKEY(x)
+(where x >= 0).
+
+Normal keys (and shifted keys) just return their ASCII values.
+Key	Normal value	Shifted value	CTRL value	Shift-CTRL
+PrtSc	128	&80	144	&90	160	&A0	176	&B0
+F1	129	&81	145	&91	161	&A1	177	&B1
+F2	130	&82	146	&92	162	&A2	178	&B2
+F3	131	&83	147	&93	163	&A3	179	&B3
+F4	132	&84	148	&94	164	&A4	180	&B4
+F5	133	&85	149	&95	165	&A5	181	&B5
+F6	134	&86	150	&96	166	&A6	182	&B6
+F7	135	&87	151	&97	167	&A7	183	&B7
+F8	136	&88	152	&98	168	&A8	184	&B8
+F9	137	&89	153	&99	169	&A9	185	&B9
+F10	202	&CA	218	&DA	234	&EA	250	&FA
+F11	203	&CB	219	&DB	235	&EB	251	&FB
+F12	204	&CC	220	&DC	236	&EC	252	&FC
+Insert	205	&CD	221	&DD	237	&ED	253	&FD
+Pause	196	&C4	196	&C4	244	&F4	244	&F4
+Delete	127	&7F	215	&D7	231	&E7	247	&F7
+Home	 30	&1E	216	&D8	232	&E8	248	&F8
+PgUp	159	&9F	143	&8F	191	&BF	175	&AF
+PgDn	158	&9E	142	&8E	190	&BE	174	&AE
+
+PrtSc is redefinable with *KEY0
+
+
+The following keys change depending on *FX4 value.
+*FX4,0 (and *FX4,2 if not redefined with *KEY):
+Key	Normal value	Shifted value	CTRL value	Shift-CTRL
+End	139	&8B	155	&9B	171	&AB	187	&BB
+Left	140	&8C	156	&9C	172	&AC	188	&BC
+Right	141	&8D	157	&9D	173	&AD	189	&BD
+Down	142	&8E	158	&9E	174	&AE	190	&BE
+Up	143	&8F	159	&9F	175	&AF	191	&BF
+
+*FX4,1 (matches BBC Micro, End is mapped to Copy):
+Key	Normal value
+End	135	&87
+Left	136	&88
+Right	137	&89
+Down	138	&8A
+Up	139	&8B
+Values with modifier keys are not changed by *FX4,1. On the BBC Micro and
+Master, the modifier keys have no effect.
