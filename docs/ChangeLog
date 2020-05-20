@@ -9,6 +9,15 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * Teletext: Hold characer wasn't being cleared when switching between
   double height and normal size.
 * Teletext: Fixed a bug where flash wasn't flashing while INKEY(delay).
+* Teletext: Implemented the Alternative character set, toggled with &9B.
+* Implemented an equivalent to OSWORD 10 for the Teletext font. Using
+  OSWORD &8B as it appears to be undefined. Requires a 44 byte block.
+* Implemented OSWORD &8C to change a Teletext character definition.
+  These two are specific to Matrix Brandy and Richard Russell's BBCSDL
+  (and were developed in parallel).
+  Details on these calls are in docs/Mode7.txt
+* Added example library SAA505Xlib, which uses the new OSWORD calls to
+  allow language changes as per the SAA505x family (0-7 supported).
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
 * Keyboard: Try to fix some glitches around softkeys and the cursor keys.
@@ -24,17 +33,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * Changed the appearance of the * character in MODE 7, as I never really
   liked the RISC OS 5 shape, it's now much closer to the SAA5050 shape
   while retaining the RISC OS 5 dimensions.
-* Implemented an equivalent to OSWORD 10 for the Teletext font. Using
-  OSWORD &8B as it appears to be undefined. Requires a 44 byte block.
-* Implemented OSWORD &8C to change a Teletext character definition.
-  These two are specific to Matrix Brandy and Richard Russell's BBCSDL
-  (and were developed in parallel).
-  Details on these calls are in docs/Mode7.txt
 * Removed Teletext 12x20 and 14x20 displays, thus VDU23,18,255,x is no more.
-* Added example library SAA505Xlib, which uses the new OSWORD calls to
-  allow language changes as per the SAA505x family (0-7 supported).
-* Telstar client updated so control code inserter page on F2 shows US-ASCII
-  characters to match keytops!
 
 * V1.22.4 - 10 March 2020
 - Enable building on Cygwin 64-bit

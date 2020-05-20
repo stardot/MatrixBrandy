@@ -253,7 +253,7 @@ static unsigned int vduflags = 0;	/* VDU flags */
 /* Flags used by the Teletext emulation in graphsdl.c */
 #define MODE7_VDU141ON		0x00001000	/* Mode 7 VDU141 toggle */
 #define MODE7_VDU141MODE	0x00002000	/* Mode 7 VDU141 0=top, 1=bottom */
-#define MODE7_HIGHBIT		0x00004000	/* Use high bits in Mode 7 */
+#define MODE7_GRAPHICS		0x00004000	/* Mode 7 using graphics characters */
 #define MODE7_CONCEAL		0x00008000	/* CONCEAL teletext flag */
 #define MODE7_SEPGRP		0x00010000	/* Separated graphics in Mode 7 */
 #define MODE7_SEPREAL		0x00020000	/* Separated graphics in Mode 7 */
@@ -264,6 +264,7 @@ static unsigned int vduflags = 0;	/* VDU flags */
 #define MODE7_BLACK		0x00400000	/* RISC OS 5 - Allow teletext black codes */
 #define MODE7_UPDATE		0x00800000	/* RISC OS 5 - do we update bitmap and blit after each character. */
 #define MODE7_UPDATE_HIGHACC	0x01000000	/* RISC OS 5 - most accurate updates. */
+#define MODE7_ALTCHARS		0x02000000	/* Use secondary character bank? */
 
 /*
 ** The logical-to-physical table maps the RISC OS logical colours to

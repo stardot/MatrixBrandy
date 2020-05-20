@@ -5,19 +5,20 @@
    50REM 1 / 5051: German, 2 / 5052: Swedish, 3 / 5053: Italian,
    60REM 4 / 5054: Belgian, 5 / 5055: US ASCII, 6 / 5056: Hebrew and
    70REM 7 / 5057: Cyrillic
-   80DEFPROCsaa505xlibset(code%)
-   90LOCAL loop%
+   80DEFPROCsaa505xlibset(code%, alt%)
+   90LOCAL loop%, j%
+   92j%=0: IF alt% THEN j%=128
   100SYS "OS_Byte",42,1
   110SYS "OS_Byte",25,16: REM Reset to default
   120CASE code% OF
   130WHEN 0,5050: REM SAA5050 is the default
-  140WHEN 1,5051:PROCsaa505xr(&23,&A3,1):PROCsaa505xr(&A7,&C0,1):PROCsaa505xr(&C4,&DB,1):PROCsaa505xr(&D6,&DC,1):PROCsaa505xr(&DC,&DD,1):PROCsaa505xr(&5E,&DE,1):PROCsaa505xr(&5F,&DF,1):PROCsaa505xr(&B0,&E0,1):PROCsaa505xr(&E4,&FB,1):PROCsaa505xr(&F6,&FC,1):PROCsaa505xr(&FC,&FD,1):PROCsaa505xr(&DF,&FE,1): REM German
-  150WHEN 2,5052:PROCsaa505xr(&23,&A3,1):PROCsaa505xr(&A4,&A4,1):PROCsaa505xr(&C9,&C0,1):PROCsaa505xr(&C4,&DB,1):PROCsaa505xr(&D6,&DC,1):PROCsaa505xr(&C5,&DD,1):PROCsaa505xr(&DC,&DE,1):PROCsaa505xr(&5F,&DF,1):PROCsaa505xr(&E9,&E0,1):PROCsaa505xr(&E4,&FB,1):PROCsaa505xr(&F6,&FC,1):PROCsaa505xr(&E5,&FD,1):PROCsaa505xr(&FC,&FE,1): REM Swedish
-  160WHEN 3,5053:PROCsaa505xr(&E9,&C0,1):PROCsaa505xr(&B0,&DB,1):PROCsaa505xr(&E7,&DC,1):PROCsaa505xr(&D9,&E0,1):PROCsaa505xr(&E0,&FB,1):PROCsaa505xr(&D2,&FC,1):PROCsaa505xr(&E8,&FD,1):PROCsaa505xr(&EC,&FE,1): REM Italian
-  170WHEN 4,5054:PROCsaa505xr(&E9,&A3,1):PROCsaa505xr(&EF,&A4,1):PROCsaa505xr(&E0,&C0,1):PROCsaa505xr(&EB,&DB,1):PROCsaa505xr(&EA,&DC,1):PROCsaa505xr(&D9,&DD,1):PROCsaa505xr(&EE,&DE,1):PROCsaa505xr(&E8,&E0,1):PROCsaa505xr(&E2,&FB,1):PROCsaa505xr(&F4,&FC,1):PROCsaa505xr(&FB,&FD,1):PROCsaa505xr(&E7,&FE,1): REM Belgian
-  180WHEN 5,5055:PROCsaa505xr(&23,&A3,1):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+128,1):NEXT:PROCsaa505xr(&7B,&FB,1):PROCsaa505xr(&A6,&7C,1):PROCsaa505xr(&7D,&FD,1):PROCsaa505xr(&7E,&FE,1): REM US-ASCII
-  190WHEN 6,5056:FOR loop%=0 TO 27:PROCsaa505xr(loop%,loop%+224,1):NEXT: REM Hebrew
-  200WHEN 7,5057:PROCsaa505xr(&23,&A3,1):PROCsaa505xr(&3F,&A6,2):FOR loop%=0 TO &3E:PROCsaa505xr(loop%,loop%+&C0,2):NEXT:REM Cyrillic
+  140WHEN 1,5051:PROCsaa505xr(&23,j%+&23,1):PROCsaa505xr(&A7,j%+&40,1):PROCsaa505xr(&C4,j%+&5B,1):PROCsaa505xr(&D6,j%+&5C,1):PROCsaa505xr(&DC,j%+&5D,1):PROCsaa505xr(&5E,j%+&5E,1):PROCsaa505xr(&5F,j%+&5F,1):PROCsaa505xr(&B0,j%+&60,1):PROCsaa505xr(&E4,j%+&7B,1):PROCsaa505xr(&F6,j%+&7C,1):PROCsaa505xr(&FC,j%+&7D,1):PROCsaa505xr(&DF,j%+&7E,1): REM German
+  150WHEN 2,5052:PROCsaa505xr(&23,j%+&23,1):PROCsaa505xr(&A4,j%+&24,1):PROCsaa505xr(&C9,j%+&40,1):PROCsaa505xr(&C4,j%+&5B,1):PROCsaa505xr(&D6,j%+&5C,1):PROCsaa505xr(&C5,j%+&5D,1):PROCsaa505xr(&DC,j%+&5E,1):PROCsaa505xr(&5F,j%+&5F,1):PROCsaa505xr(&E9,j%+&60,1):PROCsaa505xr(&E4,j%+&7B,1):PROCsaa505xr(&F6,j%+&7C,1):PROCsaa505xr(&E5,j%+&7D,1):PROCsaa505xr(&FC,j%+&7E,1): REM Swedish
+  160WHEN 3,5053:PROCsaa505xr(&E9,j%+&40,1):PROCsaa505xr(&B0,j%+&5B,1):PROCsaa505xr(&E7,j%+&5C,1):PROCsaa505xr(&D9,j%+&60,1):PROCsaa505xr(&E0,j%+&7B,1):PROCsaa505xr(&D2,j%+&7C,1):PROCsaa505xr(&E8,j%+&7D,1):PROCsaa505xr(&EC,j%+&7E,1): REM Italian
+  170WHEN 4,5054:PROCsaa505xr(&E9,j%+&23,1):PROCsaa505xr(&EF,j%+&24,1):PROCsaa505xr(&E0,j%+&40,1):PROCsaa505xr(&EB,j%+&5B,1):PROCsaa505xr(&EA,j%+&5C,1):PROCsaa505xr(&D9,j%+&5D,1):PROCsaa505xr(&EE,j%+&5E,1):PROCsaa505xr(&E8,j%+&60,1):PROCsaa505xr(&E2,j%+&7B,1):PROCsaa505xr(&F4,j%+&7C,1):PROCsaa505xr(&FB,j%+&7D,1):PROCsaa505xr(&E7,j%+&7E,1): REM Belgian
+  180WHEN 5,5055:PROCsaa505xr(&23,j%+&23,1):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+j%,1):NEXT:PROCsaa505xr(&7B,j%+&7B,1):PROCsaa505xr(&A6,j%+&7C,1):PROCsaa505xr(&7D,j%+&7D,1):PROCsaa505xr(&7E,j%+&7E,1): REM US-ASCII
+  190WHEN 6,5056:FOR loop%=0 TO 27:PROCsaa505xr(loop%,j%+loop%+&60,1):NEXT: REM Hebrew
+  200WHEN 7,5057:PROCsaa505xr(&23,j%+&23,1):PROCsaa505xr(&3F,j%+&26,2):FOR loop%=0 TO &3E:PROCsaa505xr(loop%,j%+loop%+&40,2):NEXT:REM Cyrillic
   210ENDCASE
   220SYS "OS_Byte",42,2
   230ENDPROC

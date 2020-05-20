@@ -217,7 +217,7 @@ static void reset_mode7() {
   int p, q;
   write_vduflag(MODE7_VDU141MODE,1);
   write_vduflag(MODE7_VDU141ON,0);
-  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_GRAPHICS,0);
   write_vduflag(MODE7_SEPGRP,0);
   write_vduflag(MODE7_SEPREAL,0);
   write_vduflag(MODE7_CONCEAL,0);
@@ -1459,7 +1459,7 @@ static void vdu_return(void) {
     reveal_cursor();	/* Redraw cursor */
     if (screenmode == 7) {
       write_vduflag(MODE7_VDU141ON,0);
-      write_vduflag(MODE7_HIGHBIT,0);
+      write_vduflag(MODE7_GRAPHICS,0);
       write_vduflag(MODE7_FLASH,0);
       write_vduflag(MODE7_SEPGRP,0);
       write_vduflag(MODE7_SEPREAL,0);
@@ -1720,7 +1720,7 @@ static void vdu_plot(void) {
 */
 static void vdu_restwind(void) {
   clipping = FALSE;
-  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_GRAPHICS,0);
   xorigin = yorigin = 0;
   xlast = ylast = xlast2 = ylast2 = 0;
   gwinleft = 0;
@@ -1742,7 +1742,7 @@ static void vdu_restwind(void) {
 */
 static void vdu_textwind(void) {
   int32 left, right, top, bottom;
-  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_GRAPHICS,0);
   left = vduqueue[0];
   bottom = vduqueue[1];
   right = vduqueue[2];
@@ -1810,7 +1810,7 @@ static void vdu_movetext(void) {
   }
   if (screenmode == 7) {
     write_vduflag(MODE7_VDU141ON,0);
-    write_vduflag(MODE7_HIGHBIT,0);
+    write_vduflag(MODE7_GRAPHICS,0);
     write_vduflag(MODE7_SEPGRP,0);
     write_vduflag(MODE7_CONCEAL,0);
     write_vduflag(MODE7_HOLD,0);
@@ -3202,7 +3202,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 }
 
 static void mode7renderline(int32 ypos) {
-  int32 ch, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
+  int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
   
@@ -3221,11 +3221,12 @@ static void mode7renderline(int32 ypos) {
 
   write_vduflag(MODE7_VDU141MODE,1);
   write_vduflag(MODE7_VDU141ON,0);
-  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_GRAPHICS,0);
   write_vduflag(MODE7_SEPGRP,0);
   write_vduflag(MODE7_CONCEAL,0);
   write_vduflag(MODE7_HOLD,0);
   write_vduflag(MODE7_FLASH,0);
+  write_vduflag(MODE7_ALTCHARS,0);
   mode7prevchar=32;
 
   m7_rect.x=0;
@@ -3277,42 +3278,36 @@ static void mode7renderline(int32 ypos) {
     if (vduflag(MODE7_HOLD) && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && vduflag(MODE7_REVEAL)) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
     } else {
-      if (vduflag(MODE7_HIGHBIT)) {
-	if (ch==35) ch = 223;
-	if (ch==96) ch = 163;
-	if (ch==95) ch = 224;
-	ch = ch | 0x80;
-	if (ch==223) ch=35;
-	if ((ch >= 0xC0) && (ch <= 0xDF)) ch = ch & 0x7F;
-	write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
-      } else {
-	if (ch==163) ch=96;
-	if (ch==223) ch=35;
-	if (ch==224) ch=95;
-	ch = ch & 0x7F;
-	if (ch < 32) ch=32;
+      switch (ch) {
+        case 35: ch=95; break;
+        case 95: ch=96; break;
+        case 96: ch=35; break;
       }
+      if (ch >= 0xA0) ch = ch & 0x7F;
+      if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
     for (y=0; y < M7YPPC; y++) {
       if (vduflag(MODE7_CONCEAL) && !vduflag(MODE7_REVEAL)) {
 	line=0;
       } else {
+	ch7=(ch & 0x7F);
+        if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
 	if (vduflag(MODE7_VDU141ON)) {
 	  yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
-	  if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) {
+	  if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
 	    line = teletextgraphic(ch, yy);
 	  } else if ((ch >= 128) && (ch <= 159)) line = 0;
 	  else line = mode7font[ch-' '][yy];
 	} else {
 	  if (vdu141track[ypos] == 2) line = 0;
 	    else {
-	    if ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)) {
+	    if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
 	      line = teletextgraphic(ch, y);
 	    } else if ((ch >= 128) && (ch <= 159)) line = 0;
 	    else line = mode7font[ch-' '][y];
 	  }
 	}
-	if (vduflag(MODE7_HIGHBIT) && ((ch >= 160 && ch <= 191) || (ch >= 224 && ch <= 255)))
+	if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
 	  mode7prevchar=ch;
       }
       if (line!=0) {
@@ -3342,7 +3337,7 @@ static void mode7renderline(int32 ypos) {
     switch (ch) {
       case TELETEXT_ALPHA_BLACK:
         if (vduflag(MODE7_BLACK)) {
-	  write_vduflag(MODE7_HIGHBIT,0);
+	  write_vduflag(MODE7_GRAPHICS,0);
 	  write_vduflag(MODE7_CONCEAL,0);
 	  mode7prevchar=32;
 	  text_physforecol = text_forecol = 0;
@@ -3356,7 +3351,7 @@ static void mode7renderline(int32 ypos) {
       case TELETEXT_ALPHA_MAGENTA:
       case TELETEXT_ALPHA_CYAN:
       case TELETEXT_ALPHA_WHITE:
-	write_vduflag(MODE7_HIGHBIT,0);
+	write_vduflag(MODE7_GRAPHICS,0);
 	write_vduflag(MODE7_CONCEAL,0);
 	mode7prevchar=32;
 	text_physforecol = text_forecol = (ch - 128);
@@ -3379,7 +3374,7 @@ static void mode7renderline(int32 ypos) {
 	break;
       case TELETEXT_GRAPHICS_BLACK:
 	if (vduflag(MODE7_BLACK)) {
-	  write_vduflag(MODE7_HIGHBIT,1);
+	  write_vduflag(MODE7_GRAPHICS,1);
 	  write_vduflag(MODE7_CONCEAL,0);
 	  text_physforecol = text_forecol = 0;
 	  set_rgb();
@@ -3392,7 +3387,7 @@ static void mode7renderline(int32 ypos) {
       case TELETEXT_GRAPHICS_MAGENTA:
       case TELETEXT_GRAPHICS_CYAN:
       case TELETEXT_GRAPHICS_WHITE:
-	write_vduflag(MODE7_HIGHBIT,1);
+	write_vduflag(MODE7_GRAPHICS,1);
 	write_vduflag(MODE7_CONCEAL,0);
 	text_physforecol = text_forecol = (ch - 144);
 	set_rgb();
@@ -3407,18 +3402,26 @@ static void mode7renderline(int32 ypos) {
       case TELETEXT_GRAPHICS_RELEASE:
 	write_vduflag(MODE7_HOLD,0);
 	break;
+      case TELETEXT_ESCAPE:
+	write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
+//	if (vduflag(MODE7_ALTCHARS)) {
+//	  write_vduflag(MODE7_ALTCHARS,0);
+//	} else {
+//	  write_vduflag(MODE7_ALTCHARS,1);
+//	}
     }
   }
   SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
   do_sdl_updaterect(matrixflags.surface, 0, topy, 40*M7XPPC, M7YPPC);
 
   write_vduflag(MODE7_VDU141ON,0);
-  write_vduflag(MODE7_HIGHBIT,0);
+  write_vduflag(MODE7_GRAPHICS,0);
   write_vduflag(MODE7_SEPGRP,0);
   write_vduflag(MODE7_SEPREAL,0);
   write_vduflag(MODE7_CONCEAL,0);
   write_vduflag(MODE7_HOLD,0);
   write_vduflag(MODE7_FLASH,0);
+  write_vduflag(MODE7_ALTCHARS,0);
   text_physbackcol=l_text_physbackcol;
   text_backcol=l_text_backcol;
   text_physforecol=l_text_physforecol;
@@ -3982,12 +3985,8 @@ void osword8B(int64 x) {
   ch=block[2];
   chbank=block[3];
   if (chbank == 0) {
-    if (ch==163) ch=96;
-    if (ch==223) ch=35;
-    if (ch==224) ch=95;
-    ch = ch & 0x7F;
+    if ((ch < 0x20) || (ch > 0xFF)) return;
     offset = ch -32;
-    if ((offset < 0) || (offset > 95)) return;
     for (i=0; i<= 19; i++) {
       block[(2*i)+4]=mode7font[offset][i] / 256;
       block[(2*i)+5]=mode7font[offset][i] % 256;
@@ -4009,12 +4008,8 @@ void osword8C(int64 x) {
   block=(unsigned char *)(basicvars.offbase+x);
   if (block[0] < 44) return;
   ch=block[2];
-  if (ch==163) ch=96;
-  if (ch==223) ch=35;
-  if (ch==224) ch=95;
-  ch = ch & 0x7F;
+  if ((ch < 0x20) || (ch > 0xFF)) return;
   offset = ch -32;
-  if ((offset < 0) || (offset > 95)) return;
   for (i=0; i<= 19; i++) {
     mode7font[offset][i] = block[(2*i)+5] + (256*block[(2*i)+4]);
   }

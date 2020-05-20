@@ -56,3 +56,15 @@ block%?4..43 = Character definition, in the same layout as &8B.
 OSBYTE 20 will reset the definition back to default along with the regular
 non-MODE7 font.
 OSBYTE 25 has been extended, if X=16 then reset teletext font only.
+
+The Alternative Character Set is implemented, it is toggled with teletext code
+ESCAPE (&9B), and defaults to the US-ASCII set as implemented on the SAA5055.
+The Alternative Character Set can be read and written to, use bank 0 and
+set the high bit on the character code.
+
+Note that the characters are shuffled, so the redefinitions are as follows:
+Redefine &23, change &60 and &A3.
+Redefine &5F, change &23 and &DF.
+Redefine &60, change &5F and &E0.
+This is also true for redefining &A3, &DF and &E0 in the alternative character
+set bank.

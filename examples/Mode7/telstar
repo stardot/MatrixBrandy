@@ -190,7 +190,6 @@
  1960:
  1970DEFFNcontrolcode
  1980x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
- 1985PROCsaa5055
  1990PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  2000PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  2010PRINT
@@ -207,11 +206,11 @@
  2120PRINT CHR$(136);"H: Flash On";CHR$(137);"       X: Conceal"
  2130PRINT CHR$(137);"I: Flash Off       Y: Contiguous gfx"
  2140PRINT " J: &8A (End Box)   Z: Separated gfx"
- 2150PRINT " K: &8B (Start Box) [: &9B (Esc/Switch)"
- 2160PRINT " L: Dbl Height Off  |: Black background"
- 2170PRINT " M: Dbl Height On   ]: Set bg colour"
- 2180PRINT " N: &8E (dbl width) ^: Hold graphics"
- 2190PRINT " O: &8F (dbl size)  #: Release graphics"
+ 2150PRINT " K: &8B (Start Box)";CHR$&9B;"[: &9B (Esc/Switch)"
+ 2160PRINT " L: Dbl Height Off ";CHR$&9B;"|: Black background"
+ 2170PRINT " M: Dbl Height On  ";CHR$&9B;"]: Set bg colour"
+ 2180PRINT " N: &8E (dbl width)";CHR$&9B;"^: Hold graphics"
+ 2190PRINT " O: &8F (dbl size) ";CHR$&9B;"#: Release graphics"
  2200PRINT
  2210PRINT CHR$(134);"Note: Codes &8A, &8B, &8E, &8F and &9B"
  2220PRINT CHR$(134);"have no effect in this client."
@@ -220,24 +219,3 @@
  2240VDU31,x%,y%
  2250FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
  2260=(t% AND 31)+128
- 3000DEFPROCsaa5055
- 3010LOCAL loop%
- 3020SYS "OS_Byte",42,1
- 3060PROCsaa505xr(&23,&A3):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+128):NEXT:PROCsaa505xr(&7B,&FB):PROCsaa505xr(&A6,&7C):PROCsaa505xr(&7D,&FD):PROCsaa505xr(&7E,&FE)
- 3080SYS "OS_Byte",42,2
- 3090ENDPROC
- 3100DEFPROCsaa505xr(chi%, cho%)
- 3110LOCAL blk%%
- 3120SYS"Brandy_MAlloc",64 TO blk%%
- 3130blk%%?0 = 4
- 3140blk%%?1 = 44
- 3150blk%%?2 = chi%
- 3160blk%%?3 = 1
- 3170SYS "OS_Word",&8B,blk%%
- 3180blk%%?0 = 44
- 3190blk%%?1 = 0
- 3200blk%%?2 = cho%
- 3210blk%%?3 = 0
- 3220SYS "OS_Word",&8C,blk%%
- 3230SYS"Brandy_Free",blk%%
- 3240ENDPROC
