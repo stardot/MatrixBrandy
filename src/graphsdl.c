@@ -288,8 +288,8 @@ static int32 tint24bit(int32 colour, int32 tint) {
 
 static int32 colour24bit(int32 colour, int32 tint) {
   int32 col=(((colour & 1) << 6) + ((colour & 2) << 6)) +
-	 (((colour & 4) << 12) + ((colour & 8) << 12)) +
-	 (((colour & 16) << 18) + ((colour & 32) << 18));
+        (((colour & 4) << 12) + ((colour & 8) << 12)) +
+        (((colour & 16) << 18) + ((colour & 32) << 18));
   col = tint24bit(col, tint);
   return col;
 }
@@ -454,11 +454,11 @@ static void vdu_23command(void) {
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
       if (vduqueue[2] == 32) {
-	hide_cursor();
+        hide_cursor();
         cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
       } else if (vduqueue[2] == 114) {
         cursorstate = SUSPENDED;
-	toggle_cursor();
+        toggle_cursor();
         cursorstate = ONSCREEN;
       }
     }
@@ -599,17 +599,17 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     yy = dtop;
     for (j = top; j <= bottom; j++) {
       for (jj = 1; jj <= yscale; jj++) {
-	xx = dleft;
-	for (i = left; i <= right; i++) {
+        xx = dleft;
+        for (i = left; i <= right; i++) {
           for (ii = 1; ii <= xscale; ii++) {
             *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             if ((autorefresh==1) && (displaybank == writebank)) {
-	      *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+              *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             }
-	    xx++;
+            xx++;
           }
-	}
-	yy++;
+        }
+        yy++;
       } 
     }
     scale_rect.x = dleft;
@@ -857,14 +857,14 @@ static void scroll(updown direction) {
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
       for(n=2; n<=25; n++) { 
-	vdu141track[n-1]=vdu141track[n];
-	mode7changed[n-1]=mode7changed[n];
+        vdu141track[n-1]=vdu141track[n];
+        mode7changed[n-1]=mode7changed[n];
       }
       vdu141track[25]=0;
       vdu141track[0]=0;
       /* Scroll the Mode 7 text buffer */
       for (m=twintop+1; m<=twinbottom; m++) {
-	for (n=twinleft; n<=twinright; n++) mode7frame[m-1][n] = mode7frame[m][n];
+        for (n=twinleft; n<=twinright; n++) mode7frame[m-1][n] = mode7frame[m][n];
       }
       /* Blank the bottom line */
       for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
@@ -898,13 +898,13 @@ static void scroll(updown direction) {
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
       for(n=0; n<=24; n++) {
-	vdu141track[n+1]=vdu141track[n];
-	mode7changed[n+1]=mode7changed[n];
+        vdu141track[n+1]=vdu141track[n];
+        mode7changed[n+1]=mode7changed[n];
       }
       vdu141track[0]=0; vdu141track[1]=0;
       /* Scroll the Mode 7 text buffer */
       for (m=twintop; m<=twinbottom-1; m++) {
-	for (n=twinleft; n<=twinright; n++) mode7frame[m+1][n] = mode7frame[m][n];
+        for (n=twinleft; n<=twinright; n++) mode7frame[m+1][n] = mode7frame[m][n];
       }
       /* Blank the bottom line */
       for (n=twinleft; n<=twinright; n++) mode7frame[twintop][n] = 32;
@@ -959,13 +959,13 @@ void mode7flipbank() {
       hide_cursor();
       if (!vduflag(MODE7_UPDATE)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
-	SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
-	write_vduflag(MODE7_BANK,0);
-	mode7timer=mytime + 100;
+        SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
+        write_vduflag(MODE7_BANK,0);
+        mode7timer=mytime + 100;
       } else {
-	SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
-	write_vduflag(MODE7_BANK,1);
-	mode7timer=mytime + 33;
+        SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
+        write_vduflag(MODE7_BANK,1);
+        mode7timer=mytime + 33;
       }
       reveal_cursor();
     }
@@ -993,33 +993,32 @@ static void write_char(int32 ch) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-//	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
+          usleep(5000);
+        }
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+          if (basicvars.escape_enabled) checkforescape();
+          usleep(5000);
+        }
 #endif
-	vdu14lines=0;
+        vdu14lines=0;
       }
     }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
       if (vdu2316byte & 16) {
-	ytext=textyhome();
+        ytext=textyhome();
       } else {
-	scroll(SCROLL_UP);	/* So scroll window up */
-	ytext--;
+        scroll(SCROLL_UP);	/* So scroll window up */
+        ytext--;
       }
     }
     if (ytext < twintop) {	/* Text cursor was on the first line of the text window */
       if (vdu2316byte & 16) {
-	ytext=textyedge();
+        ytext=textyedge();
       } else {
-	scroll(SCROLL_DOWN);	/* So scroll window down */
-	ytext++;
+        scroll(SCROLL_DOWN);	/* So scroll window down */
+        ytext++;
       }
     }
   }
@@ -1055,33 +1054,32 @@ static void write_char(int32 ch) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-//	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
+          usleep(5000);
+        }
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+          if (basicvars.escape_enabled) checkforescape();
+          usleep(5000);
+        }
 #endif
-	vdu14lines=0;
+        vdu14lines=0;
       }
     }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
       if (vdu2316byte & 16) {
-	ytext=textyhome();
+        ytext=textyhome();
       } else {
-	scroll(SCROLL_UP);	/* So scroll window up */
-	ytext--;
+        scroll(SCROLL_UP);	/* So scroll window up */
+        ytext--;
       }
     }
     if (ytext < twintop) {	/* Text cursor was on the first line of the text window */
       if (vdu2316byte & 16) {
-	ytext=textyedge();
+        ytext=textyedge();
       } else {
-	scroll(SCROLL_DOWN);	/* So scroll window down */
-	ytext++;
+        scroll(SCROLL_DOWN);	/* So scroll window down */
+        ytext++;
       }
     }
   }
@@ -1341,17 +1339,16 @@ static void move_curdown(void) {
       vdu14lines++;
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-//	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
+          usleep(5000);
+        }
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+          if (basicvars.escape_enabled) checkforescape();
+          usleep(5000);
+        }
 #endif
-	vdu14lines=0;
+        vdu14lines=0;
       }
     }
     hide_cursor();	/* Remove cursor */
@@ -1374,17 +1371,16 @@ static void move_curup(void) {
 // BUG: paged mode should not stop scrolling upwards
       if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-//	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
+          usleep(5000);
+        }
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+          if (basicvars.escape_enabled) checkforescape();
+          usleep(5000);
+        }
 #endif
-	vdu14lines=0;
+        vdu14lines=0;
       }
     }
     hide_cursor();	/* Remove cursor */
@@ -1410,9 +1406,9 @@ static void vdu_cleartext(void) {
   if (vduflag(VDU_FLAG_TEXTWIN)) {	/* Text window defined that does not occupy the whole screen */
     if (screenmode == 7) {
       for (ly=twintop; ly <= twinbottom; ly++) {
-	for (lx=twinleft; lx <=twinright; lx++) {
-	  mode7frame[ly][lx]=32;
-	}
+        for (lx=twinleft; lx <=twinright; lx++) {
+          mode7frame[ly][lx]=32;
+        }
       }
     }
     left = twinleft*mxppc;
@@ -1492,29 +1488,29 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
       if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
       switch (action) {
-	case 0:
-	  altcolour=colour;
-	  break;
-	case 1:
-	  altcolour=(prevcolour | colour);
-	  break;
-	case 2:
-	  altcolour=(prevcolour & colour);
-	  break;
-	case 3:
-	  altcolour=(prevcolour ^ colour);
-	  break;
-	case 4:
-	  altcolour=(prevcolour ^ (colourdepth-1));
-	  break;
-	default:
-	  altcolour=colour;
+        case 0:
+          altcolour=colour;
+          break;
+        case 1:
+          altcolour=(prevcolour | colour);
+          break;
+        case 2:
+          altcolour=(prevcolour & colour);
+          break;
+        case 3:
+          altcolour=(prevcolour ^ colour);
+          break;
+        case 4:
+          altcolour=(prevcolour ^ (colourdepth-1));
+          break;
+        default:
+          altcolour=colour;
       }
       if (colourdepth == COL24BIT) {
         altcolour = altcolour & 0xFFFFFF;
       } else {
         a=altcolour;
-	altcolour=altcolour*3;
+        altcolour=altcolour*3;
         altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
       *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
@@ -1839,108 +1835,105 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
       if (screenmode == 7) {
-	if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
-	  xtext = textxhome();
-	  ytext+=textyinc();
-	  /* VDU14 check here */
-	  if (vduflag(VDU_FLAG_ENAPAGE)) {
-	    vdu14lines++;
-	    if (vdu14lines > (twinbottom-twintop)) {
+        if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
+          xtext = textxhome();
+          ytext+=textyinc();
+          /* VDU14 check here */
+          if (vduflag(VDU_FLAG_ENAPAGE)) {
+            vdu14lines++;
+            if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-//	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
+          usleep(5000);
+        }
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+          usleep(5000);
+        }
 #endif
-	      vdu14lines=0;
-	    }
-	  }
-	  if (ytext > twinbottom) {
-	    if (vdu2316byte & 16) {
-	      ytext=textyhome();
-	    } else {
-	      ytext--;
-	      scroll(SCROLL_UP);
-	    }
-	    mode7renderline(ytext);
-	  }
-	  if (ytext < twintop) {
-	    if (vdu2316byte & 16) {
-	      ytext=textyedge();
-	    } else {
-	      ytext++;
-	      scroll(SCROLL_DOWN);
-	    }
-	    mode7renderline(ytext);
-	  }
-	}
-	if (charvalue == 127) {
-	  move_curback();
-	  mode7frame[ytext][xtext]=32;
-	  move_curback();
-	} else {
-	  mode7frame[ytext][xtext]=charvalue;
-	}
-	mode7changed[ytext]=1;
-	if (vduflag(MODE7_UPDATE_HIGHACC)) mode7renderline(ytext);
-	xtext+=textxinc();
-	if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
-	  xtext = textxhome();
-	  ytext+=textyinc();
-	  /* VDU14 check here */
-	  if (vduflag(VDU_FLAG_ENAPAGE)) {
-	    vdu14lines++;
-	    if (vdu14lines > (twinbottom-twintop)) {
+              vdu14lines=0;
+            }
+          }
+          if (ytext > twinbottom) {
+            if (vdu2316byte & 16) {
+              ytext=textyhome();
+            } else {
+              ytext--;
+              scroll(SCROLL_UP);
+            }
+            mode7renderline(ytext);
+          }
+          if (ytext < twintop) {
+            if (vdu2316byte & 16) {
+              ytext=textyedge();
+            } else {
+              ytext++;
+              scroll(SCROLL_DOWN);
+            }
+            mode7renderline(ytext);
+          }
+        }
+        if (charvalue == 127) {
+          move_curback();
+          mode7frame[ytext][xtext]=32;
+          move_curback();
+        } else {
+          mode7frame[ytext][xtext]=charvalue;
+        }
+        mode7changed[ytext]=1;
+        if (vduflag(MODE7_UPDATE_HIGHACC)) mode7renderline(ytext);
+        xtext+=textxinc();
+        if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
+          xtext = textxhome();
+          ytext+=textyinc();
+          /* VDU14 check here */
+          if (vduflag(VDU_FLAG_ENAPAGE)) {
+            vdu14lines++;
+            if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-	while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-//	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
+          usleep(5000);
+        }
 #else
-	while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-	  if (basicvars.escape_enabled) checkforescape();
-	  usleep(5000);
-	}
+        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+          if (basicvars.escape_enabled) checkforescape();
+          usleep(5000);
+        }
 #endif
-	      vdu14lines=0;
-	    }
-	  }
-	  if (ytext > twinbottom) {
-	    ytext--;
-	    scroll(SCROLL_UP);
-	    mode7renderline(ytext);
-	  }
-	  if (ytext < twintop) {
-	    ytext++;
-	    scroll(SCROLL_DOWN);
-	    mode7renderline(ytext);
-	  }
-	}
-	return; /* End of MODE 7 block */
+              vdu14lines=0;
+            }
+          }
+          if (ytext > twinbottom) {
+            ytext--;
+            scroll(SCROLL_UP);
+            mode7renderline(ytext);
+          }
+          if (ytext < twintop) {
+            ytext++;
+            scroll(SCROLL_DOWN);
+            mode7renderline(ytext);
+          }
+        }
+        return; /* End of MODE 7 block */
       } else {
-	if (vduflag(VDU_FLAG_GRAPHICURS)) {			    /* Sending text output to graphics cursor */
-	  if (charvalue == 127) {
-	    move_curback();
-	    plot_space_opaque();
-	    move_curback();
-	  } else {
-	    plot_char(charvalue);
-	  }
-	} else {
-	  if (charvalue == 127) {
-	    move_curback();
-	    write_char(32);
-	    move_curback();
-	  } else {
-	    write_char(charvalue);
-	    reveal_cursor();	/* Redraw the cursor */
-	  }
-	}
+        if (vduflag(VDU_FLAG_GRAPHICURS)) {			    /* Sending text output to graphics cursor */
+          if (charvalue == 127) {
+            move_curback();
+            plot_space_opaque();
+            move_curback();
+          } else {
+            plot_char(charvalue);
+          }
+        } else {
+          if (charvalue == 127) {
+            move_curback();
+            write_char(32);
+            move_curback();
+          } else {
+            write_char(charvalue);
+            reveal_cursor();	/* Redraw the cursor */
+          }
+        }
       }
       return;
     }
@@ -2346,19 +2339,19 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
     if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
     switch (action) {
       case 1:
-	altcolour=(prevcolour | drawcolour);
-	break;
+        altcolour=(prevcolour | drawcolour);
+        break;
       case 2:
-	altcolour=(prevcolour & drawcolour);
-	break;
+        altcolour=(prevcolour & drawcolour);
+        break;
       case 3:
-	altcolour=(prevcolour ^ drawcolour);
-	break;
+        altcolour=(prevcolour ^ drawcolour);
+        break;
       case 4:
-	altcolour=(prevcolour ^ (colourdepth-1));
-	break;
+        altcolour=(prevcolour ^ (colourdepth-1));
+        break;
       default:
-	altcolour=drawcolour; /* Invalid GCOL action code handled as 0 */
+        altcolour=drawcolour; /* Invalid GCOL action code handled as 0 */
     }
     if (colourdepth == COL24BIT) {
       altcolour = altcolour & 0xFFFFFF;
@@ -3203,7 +3196,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 
 static void mode7renderline(int32 ypos) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
-  int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
+  int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0, is_ctrl;
   int32 vdu141used = 0;
   
   if (!vduflag(MODE7_UPDATE) || (screenmode != 7)) return;
@@ -3238,35 +3231,36 @@ static void mode7renderline(int32 ypos) {
   for (xtext=0; xtext<=39; xtext++) {
     ch=mode7frame[ypos][xtext];
     if (ch < 32) ch = ch | 0x80;
+    is_ctrl = ((ch >= 0x80) && (ch <= 0x9F));
     /* Check the Set At codes here */
-    switch (ch) {
+    if (is_ctrl) switch (ch) {
       case TELETEXT_FLASH_OFF:
-	write_vduflag(MODE7_FLASH,0);
-	break;
+        write_vduflag(MODE7_FLASH,0);
+        break;
       case TELETEXT_SIZE_NORMAL:
-	if (vduflag(MODE7_VDU141ON)) mode7prevchar=32;
-	write_vduflag(MODE7_VDU141ON,0);
-	break;
+        if (vduflag(MODE7_VDU141ON)) mode7prevchar=32;
+        write_vduflag(MODE7_VDU141ON,0);
+        break;
       case TELETEXT_CONCEAL:
-	write_vduflag(MODE7_CONCEAL,1);
-	break;
+        write_vduflag(MODE7_CONCEAL,1);
+        break;
       case TELETEXT_GRAPHICS_CONTIGUOUS:
-	write_vduflag(MODE7_SEPGRP,0);
-	break;
+        write_vduflag(MODE7_SEPGRP,0);
+        break;
       case TELETEXT_GRAPHICS_SEPARATE:
-	write_vduflag(MODE7_SEPGRP,1);
-	break;
+        write_vduflag(MODE7_SEPGRP,1);
+        break;
       case TELETEXT_BACKGROUND_BLACK:
-	text_physbackcol = text_backcol = 0;
-	set_rgb();
-	break;
+        text_physbackcol = text_backcol = 0;
+        set_rgb();
+        break;
       case TELETEXT_BACKGROUND_SET:
-	text_physbackcol = text_backcol = text_physforecol;
-	set_rgb();
-	break;
+        text_physbackcol = text_backcol = text_physforecol;
+        set_rgb();
+        break;
       case TELETEXT_GRAPHICS_HOLD:
-	write_vduflag(MODE7_HOLD,1);
-	break;
+        write_vduflag(MODE7_HOLD,1);
+        break;
     }
     /* Now we write the character. Copied and optimised from write_char() above */
     topx = xtext*M7XPPC;
@@ -3286,47 +3280,48 @@ static void mode7renderline(int32 ypos) {
       if (ch >= 0xA0) ch = ch & 0x7F;
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
-    for (y=0; y < M7YPPC; y++) {
+    /* Skip this chunk for control codes */
+    if (!is_ctrl) for (y=0; y < M7YPPC; y++) {
       if (vduflag(MODE7_CONCEAL) && !vduflag(MODE7_REVEAL)) {
-	line=0;
+        line=0;
       } else {
-	ch7=(ch & 0x7F);
+        ch7=(ch & 0x7F);
         if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
-	if (vduflag(MODE7_VDU141ON)) {
-	  yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
-	  if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
-	    line = teletextgraphic(ch, yy);
-	  } else if ((ch >= 128) && (ch <= 159)) line = 0;
-	  else line = mode7font[ch-' '][yy];
-	} else {
-	  if (vdu141track[ypos] == 2) line = 0;
-	    else {
-	    if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
-	      line = teletextgraphic(ch, y);
-	    } else if ((ch >= 128) && (ch <= 159)) line = 0;
-	    else line = mode7font[ch-' '][y];
-	  }
-	}
-	if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
-	  mode7prevchar=ch;
+        if (vduflag(MODE7_VDU141ON)) {
+          yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
+          if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
+            line = teletextgraphic(ch, yy);
+          } else if ((ch >= 128) && (ch <= 159)) line = 0;
+          else line = mode7font[ch-' '][yy];
+        } else {
+          if (vdu141track[ypos] == 2) line = 0;
+            else {
+            if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
+              line = teletextgraphic(ch, y);
+            } else if ((ch >= 128) && (ch <= 159)) line = 0;
+            else line = mode7font[ch-' '][y];
+          }
+        }
+        if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
+          mode7prevchar=ch;
       }
       if (line!=0) {
-	if (line & 0x8000) *((Uint32*)sdl_m7fontbuf->pixels +  0 + y*M7XPPC) = tf_colour;
-	if (line & 0x4000) *((Uint32*)sdl_m7fontbuf->pixels +  1 + y*M7XPPC) = tf_colour;
-	if (line & 0x2000) *((Uint32*)sdl_m7fontbuf->pixels +  2 + y*M7XPPC) = tf_colour;
-	if (line & 0x1000) *((Uint32*)sdl_m7fontbuf->pixels +  3 + y*M7XPPC) = tf_colour;
-	if (line & 0x0800) *((Uint32*)sdl_m7fontbuf->pixels +  4 + y*M7XPPC) = tf_colour;
-	if (line & 0x0400) *((Uint32*)sdl_m7fontbuf->pixels +  5 + y*M7XPPC) = tf_colour;
-	if (line & 0x0200) *((Uint32*)sdl_m7fontbuf->pixels +  6 + y*M7XPPC) = tf_colour;
-	if (line & 0x0100) *((Uint32*)sdl_m7fontbuf->pixels +  7 + y*M7XPPC) = tf_colour;
-	if (line & 0x0080) *((Uint32*)sdl_m7fontbuf->pixels +  8 + y*M7XPPC) = tf_colour;
-	if (line & 0x0040) *((Uint32*)sdl_m7fontbuf->pixels +  9 + y*M7XPPC) = tf_colour;
-	if (line & 0x0020) *((Uint32*)sdl_m7fontbuf->pixels + 10 + y*M7XPPC) = tf_colour;
-	if (line & 0x0010) *((Uint32*)sdl_m7fontbuf->pixels + 11 + y*M7XPPC) = tf_colour;
-	if (line & 0x0008) *((Uint32*)sdl_m7fontbuf->pixels + 12 + y*M7XPPC) = tf_colour;
-	if (line & 0x0004) *((Uint32*)sdl_m7fontbuf->pixels + 13 + y*M7XPPC) = tf_colour;
-	if (line & 0x0002) *((Uint32*)sdl_m7fontbuf->pixels + 14 + y*M7XPPC) = tf_colour;
-	if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
+        if (line & 0x8000) *((Uint32*)sdl_m7fontbuf->pixels +  0 + y*M7XPPC) = tf_colour;
+        if (line & 0x4000) *((Uint32*)sdl_m7fontbuf->pixels +  1 + y*M7XPPC) = tf_colour;
+        if (line & 0x2000) *((Uint32*)sdl_m7fontbuf->pixels +  2 + y*M7XPPC) = tf_colour;
+        if (line & 0x1000) *((Uint32*)sdl_m7fontbuf->pixels +  3 + y*M7XPPC) = tf_colour;
+        if (line & 0x0800) *((Uint32*)sdl_m7fontbuf->pixels +  4 + y*M7XPPC) = tf_colour;
+        if (line & 0x0400) *((Uint32*)sdl_m7fontbuf->pixels +  5 + y*M7XPPC) = tf_colour;
+        if (line & 0x0200) *((Uint32*)sdl_m7fontbuf->pixels +  6 + y*M7XPPC) = tf_colour;
+        if (line & 0x0100) *((Uint32*)sdl_m7fontbuf->pixels +  7 + y*M7XPPC) = tf_colour;
+        if (line & 0x0080) *((Uint32*)sdl_m7fontbuf->pixels +  8 + y*M7XPPC) = tf_colour;
+        if (line & 0x0040) *((Uint32*)sdl_m7fontbuf->pixels +  9 + y*M7XPPC) = tf_colour;
+        if (line & 0x0020) *((Uint32*)sdl_m7fontbuf->pixels + 10 + y*M7XPPC) = tf_colour;
+        if (line & 0x0010) *((Uint32*)sdl_m7fontbuf->pixels + 11 + y*M7XPPC) = tf_colour;
+        if (line & 0x0008) *((Uint32*)sdl_m7fontbuf->pixels + 12 + y*M7XPPC) = tf_colour;
+        if (line & 0x0004) *((Uint32*)sdl_m7fontbuf->pixels + 13 + y*M7XPPC) = tf_colour;
+        if (line & 0x0002) *((Uint32*)sdl_m7fontbuf->pixels + 14 + y*M7XPPC) = tf_colour;
+        if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
       }
     }
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
@@ -3334,16 +3329,16 @@ static void mode7renderline(int32 ypos) {
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     ch=xch; /* restore value */
     /* And now handle the Set After codes */
-    switch (ch) {
+    if (is_ctrl) switch (ch) {
       case TELETEXT_ALPHA_BLACK:
         if (vduflag(MODE7_BLACK)) {
-	  write_vduflag(MODE7_GRAPHICS,0);
-	  write_vduflag(MODE7_CONCEAL,0);
-	  mode7prevchar=32;
-	  text_physforecol = text_forecol = 0;
-	  set_rgb();
-	}
-	break;
+          write_vduflag(MODE7_GRAPHICS,0);
+          write_vduflag(MODE7_CONCEAL,0);
+          mode7prevchar=32;
+          text_physforecol = text_forecol = 0;
+          set_rgb();
+        }
+        break;
       case TELETEXT_ALPHA_RED:
       case TELETEXT_ALPHA_GREEN:
       case TELETEXT_ALPHA_YELLOW:
@@ -3351,35 +3346,35 @@ static void mode7renderline(int32 ypos) {
       case TELETEXT_ALPHA_MAGENTA:
       case TELETEXT_ALPHA_CYAN:
       case TELETEXT_ALPHA_WHITE:
-	write_vduflag(MODE7_GRAPHICS,0);
-	write_vduflag(MODE7_CONCEAL,0);
-	mode7prevchar=32;
-	text_physforecol = text_forecol = (ch - 128);
-	set_rgb();
-	break;
+        write_vduflag(MODE7_GRAPHICS,0);
+        write_vduflag(MODE7_CONCEAL,0);
+        mode7prevchar=32;
+        text_physforecol = text_forecol = (ch - 128);
+        set_rgb();
+        break;
       case TELETEXT_FLASH_ON:
-	write_vduflag(MODE7_FLASH,1);
-	break;
+        write_vduflag(MODE7_FLASH,1);
+        break;
       case TELETEXT_SIZE_DOUBLEHEIGHT:
-	if (!vduflag(MODE7_VDU141ON)) mode7prevchar=32;
-	write_vduflag(MODE7_VDU141ON,1);
-	vdu141used=1;
-	if (vdu141track[ypos] < 2) {
-	  vdu141track[ypos] = 1;
-	  vdu141track[ypos+1]=2;
-	  write_vduflag(MODE7_VDU141MODE,0);
-	} else {
-	  write_vduflag(MODE7_VDU141MODE,1);
-	}
-	break;
+        if (!vduflag(MODE7_VDU141ON)) mode7prevchar=32;
+        write_vduflag(MODE7_VDU141ON,1);
+        vdu141used=1;
+        if (vdu141track[ypos] < 2) {
+          vdu141track[ypos] = 1;
+          vdu141track[ypos+1]=2;
+          write_vduflag(MODE7_VDU141MODE,0);
+        } else {
+          write_vduflag(MODE7_VDU141MODE,1);
+        }
+        break;
       case TELETEXT_GRAPHICS_BLACK:
-	if (vduflag(MODE7_BLACK)) {
-	  write_vduflag(MODE7_GRAPHICS,1);
-	  write_vduflag(MODE7_CONCEAL,0);
-	  text_physforecol = text_forecol = 0;
-	  set_rgb();
-	}
-	break;
+        if (vduflag(MODE7_BLACK)) {
+          write_vduflag(MODE7_GRAPHICS,1);
+          write_vduflag(MODE7_CONCEAL,0);
+          text_physforecol = text_forecol = 0;
+          set_rgb();
+        }
+        break;
       case TELETEXT_GRAPHICS_RED:
       case TELETEXT_GRAPHICS_GREEN:
       case TELETEXT_GRAPHICS_YELLOW:
@@ -3387,28 +3382,23 @@ static void mode7renderline(int32 ypos) {
       case TELETEXT_GRAPHICS_MAGENTA:
       case TELETEXT_GRAPHICS_CYAN:
       case TELETEXT_GRAPHICS_WHITE:
-	write_vduflag(MODE7_GRAPHICS,1);
-	write_vduflag(MODE7_CONCEAL,0);
-	text_physforecol = text_forecol = (ch - 144);
-	set_rgb();
-	 break;
+        write_vduflag(MODE7_GRAPHICS,1);
+        write_vduflag(MODE7_CONCEAL,0);
+        text_physforecol = text_forecol = (ch - 144);
+        set_rgb();
+         break;
       /* These two break the teletext spec, but matches the behaviour in the SAA5050 and RISC OS */
       case TELETEXT_BACKGROUND_BLACK:
       case TELETEXT_BACKGROUND_SET:
-	if (!vduflag(MODE7_BLACK)) { /* If we allow Black, don't emulate the SAA5050 bug */
-	  mode7prevchar=32;
-	}
-	break;
+        if (!vduflag(MODE7_BLACK)) { /* If we allow Black, don't emulate the SAA5050 bug */
+          mode7prevchar=32;
+        }
+        break;
       case TELETEXT_GRAPHICS_RELEASE:
-	write_vduflag(MODE7_HOLD,0);
-	break;
+        write_vduflag(MODE7_HOLD,0);
+        break;
       case TELETEXT_ESCAPE:
-	write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
-//	if (vduflag(MODE7_ALTCHARS)) {
-//	  write_vduflag(MODE7_ALTCHARS,0);
-//	} else {
-//	  write_vduflag(MODE7_ALTCHARS,1);
-//	}
+        write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
     }
   }
   SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
@@ -3598,9 +3588,9 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       if (skip) {
         skip=0;
       } else {
-	if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-	  plot_pixel(sr, x + y*vscrwidth, col, action);
-	if (style & 0x10) skip=1;
+        if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
+          plot_pixel(sr, x + y*vscrwidth, col, action);
+        if (style & 0x10) skip=1;
       }
       if (d >= 0) {
         y += sy;
@@ -3615,9 +3605,9 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       if (skip) {
         skip=0;
       } else {
-	if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-	  plot_pixel(sr, x + y*vscrwidth, col, action);
-	if (style & 0x10) skip=1;
+        if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
+          plot_pixel(sr, x + y*vscrwidth, col, action);
+        if (style & 0x10) skip=1;
       }
       if (d >= 0) {
         x += sx;
@@ -3640,14 +3630,8 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
                      int32 x3, int32 y3, Uint32 col, Uint32 action) {
   int x[3], y[3];
 
-  x[0]=x1;
-  x[1]=x2;
-  x[2]=x3;
-
-  y[0]=y1;
-  y[1]=y2;
-  y[2]=y3;
-
+  x[0]=x1; x[1]=x2; x[2]=x3;
+  y[0]=y1; y[1]=y2; y[2]=y3;
   buff_convex_poly(sr, 3, x, y, col, action);
 }
 
@@ -3860,15 +3844,15 @@ void star_refresh(int flag) {
     } else {
       SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
       if ((screenmode == 3) || (screenmode == 6)) {
-	int p;
-	hide_cursor();
-	scroll_rect.x=0;
-	scroll_rect.w=screenwidth*xscale;
-	scroll_rect.h=4;
-	for (p=0; p<25; p++) {
-	  scroll_rect.y=16+(p*20);
-	  SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
-	}
+        int p;
+        hide_cursor();
+        scroll_rect.x=0;
+        scroll_rect.w=screenwidth*xscale;
+        scroll_rect.h=4;
+        for (p=0; p<25; p++) {
+          scroll_rect.y=16+(p*20);
+          SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
+        }
       }
       SDL_Flip(matrixflags.surface);
     }
