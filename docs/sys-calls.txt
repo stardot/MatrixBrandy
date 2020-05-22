@@ -186,7 +186,7 @@ Brandy_xxx  (SWI numbers start &140000)
 &140011 Brandy_Platform		Similar to Brandy_Version, but more focused on
 				the platform Brandy is running on.
 				R0: Pointer to host OS name string
-				R1: CPU family
+				R1: Pointer to CPU family string
 				R2: 64-bit? (1 or 0)
 				R3: SDL build? (1 or 0)
 				R4: Machine type (as returned by OSBYTE 0)

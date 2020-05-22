@@ -2,8 +2,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 *:V1.22.6 - 
-* Adjust new OSWORD calls to match specification in BeebWiki.
-* Block attempts to free workspace memory that shouldn't be randomly freed.
+* System: Block attempts to free workspace memory that shouldn't be randomly
+  freed.
+* System: INKEY(-256) now returns &4D (M) for all builds. System specifics
+  can be obtained from SYS "Brandy_Platform".
 * Teletext: Don't mimic SAA5050 "hold bug" if Alpha and Graphics Black
   enabled (VDU23,18,3,1|)
 * Teletext: Hold characer wasn't being cleared when switching between
@@ -16,8 +18,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   These two are specific to Matrix Brandy and Richard Russell's BBCSDL
   (and were developed in parallel).
   Details on these calls are in docs/Mode7.txt
-* Added example library SAA505Xlib, which uses the new OSWORD calls to
-  allow language changes as per the SAA505x family (0-7 supported).
+* Teletext: Added example library SAA505Xlib, which uses the new OSWORD calls
+  to allow language changes as per the SAA505x family (0-7 supported).
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
 * Keyboard: Try to fix some glitches around softkeys and the cursor keys.
