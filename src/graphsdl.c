@@ -3398,7 +3398,7 @@ static void mode7renderline(int32 ypos) {
         write_vduflag(MODE7_HOLD,0);
         break;
       case TELETEXT_ESCAPE:
-        write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
+        if (vduflag(MODE7_BLACK)) write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
     }
   }
   SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);

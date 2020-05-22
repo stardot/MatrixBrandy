@@ -11,41 +11,62 @@
   110SYS "OS_Byte",42,1
   120PROCsaa505xreset(alt%,0)
   130CASE code% OF
-  140WHEN 0,5050: REM Default
-  150WHEN 1,5051: PROCsaa505xr(&23,j%+&23,1):PROCsaa505xr(&A7,j%+&40,1):PROCsaa505xr(&C4,j%+&5B,1):PROCsaa505xr(&D6,j%+&5C,1):PROCsaa505xr(&DC,j%+&5D,1):PROCsaa505xr(&5E,j%+&5E,1):PROCsaa505xr(&5F,j%+&5F,1):PROCsaa505xr(&B0,j%+&60,1):PROCsaa505xr(&E4,j%+&7B,1):PROCsaa505xr(&F6,j%+&7C,1):PROCsaa505xr(&FC,j%+&7D,1):PROCsaa505xr(&DF,j%+&7E,1): REM German
-  160WHEN 2,5052: PROCsaa505xr(&23,j%+&23,1):PROCsaa505xr(&A4,j%+&24,1):PROCsaa505xr(&C9,j%+&40,1):PROCsaa505xr(&C4,j%+&5B,1):PROCsaa505xr(&D6,j%+&5C,1):PROCsaa505xr(&C5,j%+&5D,1):PROCsaa505xr(&DC,j%+&5E,1):PROCsaa505xr(&5F,j%+&5F,1):PROCsaa505xr(&E9,j%+&60,1):PROCsaa505xr(&E4,j%+&7B,1):PROCsaa505xr(&F6,j%+&7C,1):PROCsaa505xr(&E5,j%+&7D,1):PROCsaa505xr(&FC,j%+&7E,1): REM Swedish
-  170WHEN 3,5053: PROCsaa505xr(&E9,j%+&40,1):PROCsaa505xr(&B0,j%+&5B,1):PROCsaa505xr(&E7,j%+&5C,1):PROCsaa505xr(&D9,j%+&60,1):PROCsaa505xr(&E0,j%+&7B,1):PROCsaa505xr(&D2,j%+&7C,1):PROCsaa505xr(&E8,j%+&7D,1):PROCsaa505xr(&EC,j%+&7E,1): REM Italian
-  180WHEN 4,5054: PROCsaa505xr(&E9,j%+&23,1):PROCsaa505xr(&EF,j%+&24,1):PROCsaa505xr(&E0,j%+&40,1):PROCsaa505xr(&EB,j%+&5B,1):PROCsaa505xr(&EA,j%+&5C,1):PROCsaa505xr(&D9,j%+&5D,1):PROCsaa505xr(&EE,j%+&5E,1):PROCsaa505xr(&E8,j%+&60,1):PROCsaa505xr(&E2,j%+&7B,1):PROCsaa505xr(&F4,j%+&7C,1):PROCsaa505xr(&FB,j%+&7D,1):PROCsaa505xr(&E7,j%+&7E,1): REM Belgian
-  190WHEN 5,5055: PROCsaa505xr(&23,j%+&23,1):FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+j%,1):NEXT:PROCsaa505xr(&7B,j%+&7B,1):PROCsaa505xr(&7C,j%+&7C,1):PROCsaa505xr(&7D,j%+&7D,1):PROCsaa505xr(&7E,j%+&7E,1): REM US-ASCII
-  200WHEN 6,5056: FOR loop%=0 TO 27:PROCsaa505xr(loop%,j%+loop%+&60,1):NEXT: REM Hebrew
-  210WHEN 7,5057: PROCsaa505xr(&23,j%+&23,1):PROCsaa505xr(&3F,j%+&26,2):FOR loop%=0 TO &3E:PROCsaa505xr(loop%,j%+loop%+&40,2):NEXT:REM Cyrillic
-  220ENDCASE
-  230SYS "OS_Byte",42,2
-  240ENDPROC
-  250DEFPROCsaa505xmapeuro(alt%)
-  260PROCsaa505xr(&80,&7F+(&80*alt%),1)
-  270ENDPROC
-  280DEFPROCsaa505xreset(alt%, f%): REM Reset a font table to SAA5050 layout
-  290LOCAL loop%, j%
-  300j%=0:IF alt% THEN j%=128
-  310IF f% THEN SYS"OS_Byte",42,1
-  320FOR loop%=32TO126:PROCsaa505xr(loop%,loop%+j%,1):NEXT
-  330PROCsaa505xr(&A3,j%+&23,1):PROCsaa505xr(&8F,j%+&5B,1):PROCsaa505xr(&BD,j%+&5C,1):PROCsaa505xr(&90,j%+&5D,1):PROCsaa505xr(&8D,j%+&5E,1):PROCsaa505xr(&23,j%+&5F,1):PROCsaa505xr(&96,j%+&60,1)
-  340PROCsaa505xr(&BC,j%+&7B,1):PROCsaa505xr(&9D,j%+&7C,1):PROCsaa505xr(&BE,j%+&7D,1):PROCsaa505xr(&F7,j%+&7E,1):PROCsaa505xr(&81,j%+&7F,1)
-  350IF f% THEN SYS"OS_Byte",42,2
-  360ENDPROC
-  370DEFPROCsaa505xr(chi%, cho%, bank%)
-  380LOCAL blk%%
-  390SYS"Brandy_MAlloc",64 TO blk%%
-  400blk%%?0 = 4
-  410blk%%?1 = 44
-  420blk%%?2 = chi%
-  430blk%%?3 = bank%
-  440SYS "OS_Word",&8B,blk%%
-  450blk%%?0 = 44
-  460blk%%?1 = 0
-  470blk%%?2 = cho%
-  480blk%%?3 = 0
-  490SYS "OS_Word",&8C,blk%%
-  500SYS"Brandy_Free",blk%%
-  510ENDPROC
+  140WHEN 0,5050: REM English, default
+  150WHEN 1,5051: REM German
+  160   PROCsaa505xr(&23,j%+&23,1): PROCsaa505xr(&A7,j%+&40,1): PROCsaa505xr(&C4,j%+&5B,1): PROCsaa505xr(&D6,j%+&5C,1)
+  170   PROCsaa505xr(&DC,j%+&5D,1): PROCsaa505xr(&5E,j%+&5E,1): PROCsaa505xr(&5F,j%+&5F,1): PROCsaa505xr(&B0,j%+&60,1)
+  180   PROCsaa505xr(&E4,j%+&7B,1): PROCsaa505xr(&F6,j%+&7C,1): PROCsaa505xr(&FC,j%+&7D,1): PROCsaa505xr(&DF,j%+&7E,1)
+  190WHEN 2,5052: REM Swedish
+  200   PROCsaa505xr(&23,j%+&23,1): PROCsaa505xr(&A4,j%+&24,1): PROCsaa505xr(&C9,j%+&40,1): PROCsaa505xr(&C4,j%+&5B,1)
+  210   PROCsaa505xr(&D6,j%+&5C,1): PROCsaa505xr(&C5,j%+&5D,1): PROCsaa505xr(&DC,j%+&5E,1): PROCsaa505xr(&5F,j%+&5F,1)
+  220   PROCsaa505xr(&E9,j%+&60,1): PROCsaa505xr(&E4,j%+&7B,1): PROCsaa505xr(&F6,j%+&7C,1): PROCsaa505xr(&E5,j%+&7D,1)
+  230   PROCsaa505xr(&FC,j%+&7E,1)
+  240WHEN 3,5053: REM Italian
+  250   PROCsaa505xr(&E9,j%+&40,1): PROCsaa505xr(&B0,j%+&5B,1): PROCsaa505xr(&E7,j%+&5C,1): PROCsaa505xr(&D9,j%+&60,1)
+  260   PROCsaa505xr(&E0,j%+&7B,1): PROCsaa505xr(&D2,j%+&7C,1): PROCsaa505xr(&E8,j%+&7D,1): PROCsaa505xr(&EC,j%+&7E,1)
+  270WHEN 4,5054: REM Belgian/French
+  280   PROCsaa505xr(&E9,j%+&23,1): PROCsaa505xr(&EF,j%+&24,1): PROCsaa505xr(&E0,j%+&40,1): PROCsaa505xr(&EB,j%+&5B,1)
+  290   PROCsaa505xr(&EA,j%+&5C,1): PROCsaa505xr(&D9,j%+&5D,1): PROCsaa505xr(&EE,j%+&5E,1): PROCsaa505xr(&E8,j%+&60,1)
+  300   PROCsaa505xr(&E2,j%+&7B,1): PROCsaa505xr(&F4,j%+&7C,1): PROCsaa505xr(&FB,j%+&7D,1): PROCsaa505xr(&E7,j%+&7E,1)
+  310WHEN 5,5055: REM US-ASCII
+  320   FOR loop%=&5B TO &60:PROCsaa505xr(loop%, loop%+j%,1):NEXT
+  330   PROCsaa505xr(&23,j%+&23,1): PROCsaa505xr(&7B,j%+&7B,1): PROCsaa505xr(&7C,j%+&7C,1): PROCsaa505xr(&7D,j%+&7D,1): PROCsaa505xr(&7E,j%+&7E,1)
+  340WHEN 6,5056: REM Hebrew
+  350   FOR loop%=0 TO 27:PROCsaa505xr(loop%,j%+loop%+&60,1):NEXT
+  360WHEN 7,5057: REM Cyrillic
+  370    FOR loop%=0 TO &3E:PROCsaa505xr(loop%,j%+loop%+&40,2):NEXT
+  380    PROCsaa505xr(&23,j%+&23,1): PROCsaa505xr(&3F,j%+&26,2)
+  390ENDCASE
+  400SYS "OS_Byte",42,2
+  410ENDPROC
+  420:
+  430DEFPROCsaa505xmapeuro(alt%)
+  440PROCsaa505xr(&80,&7F+(&80*alt%),1)
+  450ENDPROC
+  460:
+  470DEFPROCsaa505xreset(alt%, f%): REM Reset a font table to SAA5050 layout
+  480LOCAL loop%, j%
+  490j%=0:IF alt% THEN j%=128
+  500IF f% THEN SYS"OS_Byte",42,1
+  510FOR loop%=32TO126:PROCsaa505xr(loop%,loop%+j%,1):NEXT
+  520PROCsaa505xr(&A3,j%+&23,1): PROCsaa505xr(&8F,j%+&5B,1): PROCsaa505xr(&BD,j%+&5C,1): PROCsaa505xr(&90,j%+&5D,1)
+  530PROCsaa505xr(&8D,j%+&5E,1): PROCsaa505xr(&23,j%+&5F,1) :PROCsaa505xr(&96,j%+&60,1): PROCsaa505xr(&BC,j%+&7B,1)
+  530PROCsaa505xr(&9D,j%+&7C,1): PROCsaa505xr(&BE,j%+&7D,1): PROCsaa505xr(&F7,j%+&7E,1): PROCsaa505xr(&81,j%+&7F,1)
+  540IF f% THEN SYS"OS_Byte",42,2
+  550ENDPROC
+  560:
+  570DEFPROCsaa505xr(chi%, cho%, bank%)
+  580LOCAL blk%%
+  590SYS"Brandy_MAlloc",64 TO blk%%
+  600blk%%?0 = 4
+  610blk%%?1 = 44
+  620blk%%?2 = chi%
+  630blk%%?3 = bank%
+  640SYS "OS_Word",&8B,blk%%
+  650blk%%?0 = 44
+  660blk%%?1 = 0
+  670blk%%?2 = cho%
+  680blk%%?3 = 0
+  690SYS "OS_Word",&8C,blk%%
+  700SYS"Brandy_Free",blk%%
+  710ENDPROC
