@@ -143,7 +143,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				R0=1 to enable, 0 to disable. Default: disabled.
 
 &140008 Brandy_DELisBS		Toggles whether the DEL key functions as
-				backsppace (DELETE in old BBC terminology).
+				backspace (DELETE in old BBC terminology).
 				R0=1 to enable, 0 to disable.
 				Default: Enabled on UNIX text-mode builds,
 					 Disabled otherwise.
@@ -182,6 +182,14 @@ Brandy_xxx  (SWI numbers start &140000)
 				shifts in 64-bit space. 32-bit space is used
 				when disabled as per ARM BBC BASIC VI.
 				R0=1 to enable, 0 to disable. Default: disabled.
+
+&140011 Brandy_Platform		Similar to Brandy_Version, but more focused on
+				the platform Brandy is running on.
+				R0: Pointer to host OS name string
+				R1: CPU family
+				R2: 64-bit? (1 or 0)
+				R3: SDL build? (1 or 0)
+				R4: Machine type (as returned by OSBYTE 0)
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt

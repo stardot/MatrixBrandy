@@ -17,7 +17,7 @@
   170MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
   180IFv$="fbcon"THENMOUSEOFF
   190reveal%=0:scan%=0:width%=1
-  200dh%=0:dhline%=0:borked%=0:telnet%=1
+  200dh%=0:dhline%=0:borked%=0:telnet%=1:extended%=0
   210allowfs%=1:DIM scr% 1000
   220REM Variables for downloading
   230screen%=0

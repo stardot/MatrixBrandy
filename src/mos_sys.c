@@ -110,6 +110,17 @@ static gpio2rpistruct rpiboards[]={
 
 char outstring[65536];
 
+static char*ostype=BRANDY_OS;
+#if defined(__i386__)
+static char*cputype="x86";
+#elif defined(__x86_64__)
+static char*cputype="x86-64";
+#elif defined(__ARM_EABI__)
+static char*cputype="ARM";
+#else
+static char*cputype="Unknown";
+#endif
+
 static uint32 mossys_getboardfrommodel(uint32 model) {
   int32 ptr;
   for (ptr=0; boards[ptr].model!=0xFFFFFFFF; ptr++) {
@@ -195,11 +206,8 @@ static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32
 */
 void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
   int32 a;
-  int64 out64;
   FILE *file_handle;
-  char *vptr;
 
-  out64=(int64)(size_t)outstring; /* Ugh. Multiple casting to shut the compiler up */
   memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
     inregs[0]=swino-256;
@@ -250,20 +258,18 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 // R3=highest acceptable character
 // R4=b31-b24=flags, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
 //
-      vptr=outstring;
-      *vptr='\0';
+      *outstring='\0';
 //                       addr   length        lochar           hichar                     flags  echo
-      a=kbd_readline(vptr, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
+      a=kbd_readline(outstring, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
       outregs[1]=a;				/* Returned length			*/
 						/* Should also set Carry if Escape	*/
-      outregs[0]=out64;
+      outregs[0]=(int64)(size_t)outstring;
       break;
 #else
     case SWI_OS_ReadLine:
-      vptr=outstring;
-      *vptr='\0';
-      (void)emulate_readline(vptr, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
-      a=strlen(vptr);
+      *outstring='\0';
+      (void)emulate_readline(outstring, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
+      a=strlen(outstring);
       outregs[1]=a;
       outregs[0]=out64;
       break;
@@ -271,8 +277,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       vptr=outstring;
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
-      a=outregs[1]=strlen(vptr);
-      outregs[0]=out64;
+      a=outregs[1]=strlen(outstring);
+      outregs[0]=(int64)(size_t)outstring;
       break;
 #endif
     case SWI_OS_GetEnv:
@@ -359,7 +365,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_Version:
       strncpy(outstring,BRANDY_OS,64);
-      outregs[4]=out64;
+      outregs[4]=(int64)(size_t)outstring;
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
       outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
@@ -384,22 +390,21 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
       break;
     case SWI_Brandy_GetVideoDriver:
-      vptr=outstring;
 #ifdef USE_SDL
-      SDL_VideoDriverName(vptr, 64);
+      SDL_VideoDriverName(outstring, 64);
       outregs[2]=(matrixflags.modescreen_ptr - basicvars.offbase);
       outregs[3]=matrixflags.modescreen_sz;
       outregs[4]=matrixflags.mode7fb;
       outregs[5]=(size_t)matrixflags.surface;
 #else
-      strncpy(vptr,"no_sdl",64);
+      strncpy(outstring,"no_sdl",64);
       outregs[2] = 0;
       outregs[3] = 0;
       outregs[4] = 0;
       outregs[5] = 0;
 #endif
-      outregs[1]=strlen(vptr);
-      outregs[0]=out64;
+      outregs[1]=strlen(outstring);
+      outregs[0]=(int64)(size_t)outstring;
       break;
     case SWI_Brandy_SetFailoverMode:
       matrixflags.failovermode=inregs[0];
@@ -498,13 +503,27 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_Brandy_BitShift64:
         matrixflags.bitshift64 = inregs[0];
         break;
+    case SWI_Brandy_Platform:
+        outregs[0]=(int64)(size_t)ostype;
+        outregs[1]=(int64)(size_t)cputype;
+#if defined(__LP64__) || defined(__WIN64__)
+        outregs[2]=1;
+#else
+        outregs[2]=0;
+#endif
+#ifdef USE_SDL
+        outregs[3]=1;
+#else
+        outregs[3]=0;
+#endif
+        outregs[4]=(MACTYPE >> 8);
+        break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;
     case SWI_GPIO_GetBoard:
       file_handle=fopen("/proc/device-tree/model","r");
       outregs[0]=0;
-      outregs[1]=out64;
       outregs[2]=0;
       outregs[3]=0;
       if (NULL == file_handle) {
@@ -528,6 +547,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 	  fclose(file_handle);
 	}
       }
+      outregs[1]=(int64)(size_t)outstring;
       break;
     /* ALL OTHER GPIO stuff down here */
     case SWI_RaspberryPi_GetGPIOPortMode:
