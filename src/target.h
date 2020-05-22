@@ -97,6 +97,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_RISCOS
 #define BRANDY_OS "RISC OS"
 // OSVERSION returned by OS call
+// This could be changed...
+#define LEGACY_OSVERSION 0xA0
 #define MACTYPE   0x0600
 #define EDITOR_VARIABLE "Brandy$Editor"
 #define DEFAULT_EDITOR  "Filer_Run"
@@ -109,7 +111,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_NETBSD
 #define TARGET_UNIX
 #define BRANDY_OS "NetBSD"
-//#define OSVERSION 0xFE
+#define LEGACY_OSVERSION 0xFE
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
@@ -121,7 +123,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_FREEBSD
 #define TARGET_UNIX
 #define BRANDY_OS "FreeBSD"
-//#define OSVERSION 0xF7
+#define LEGACY_OSVERSION 0xF7
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
@@ -133,7 +135,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_OPENBSD
 #define TARGET_UNIX
 #define BRANDY_OS "OpenBSD"
-//#define OSVERSION 0xF6
+#define LEGACY_OSVERSION 0xF6
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
@@ -145,7 +147,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_LINUX
 #define TARGET_UNIX
 #define BRANDY_OS "Linux"
-//#define OSVERSION 0xF9
+#define LEGACY_OSVERSION 0xF9
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
@@ -159,7 +161,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_GNUKFREEBSD
 #define TARGET_UNIX
 #define BRANDY_OS "GNU/kFreeBSD"
-//#define OSVERSION 0xF4
+#define LEGACY_OSVERSION 0xF4
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
@@ -170,7 +172,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef __GNU__
 #define TARGET_GNU
 #define BRANDY_OS "GNU/Hurd"
-//#define OSVERSION 0xF3
+#define LEGACY_OSVERSION 0xF3
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "vi"
@@ -182,7 +184,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_DJGPP
 #define TARGET_DOSWIN
 #define BRANDY_OS "DJGPP"
-//#define OSVERSION 0xFA
+#define LEGACY_OSVERSION 0xFA
 #define MACTYPE   0x2000
 #define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR  "edit"
@@ -197,7 +199,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_MINGW
 #define TARGET_DOSWIN
 #define BRANDY_OS "MinGW"
-//#define OSVERSION 0xFC
+#define LEGACY_OSVERSION 0xFC
 #define MACTYPE   0x2000
 #define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR  "edit"
@@ -210,7 +212,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_WIN32
 #define TARGET_DOSWIN
 #define BRANDY_OS "LCC-WIN32"
-//#define OSVERSION 0xFC
+#define LEGACY_OSVERSION 0xFC
 #define MACTYPE   0x2000
 #define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR  "edit"
@@ -223,7 +225,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_BCC32
 #define TARGET_DOSWIN
 #define BRANDY_OS "BCC"
-//#define OSVERSION 0xFC
+#define LEGACY_OSVERSION 0xFC
 #define MACTYPE   0x2000
 #define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR  "edit"
@@ -235,7 +237,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #if defined(__GNUC__) && ( defined(__APPLE_CPP__) || defined(__APPLE_CC__) )
 #define TARGET_MACOSX
 #define BRANDY_OS "MacOS X"
-//#define OSVERSION 0xF8
+#define LEGACY_OSVERSION 0xF8
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
@@ -246,7 +248,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #if defined(_AMIGA) || defined(__amigaos__)
 #define TARGET_AMIGA
 #define BRANDY_OS "Amiga"
-//#define OSVERSION 0xF5
+#define LEGACY_OSVERSION 0xF5
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY$EDITOR"
 #define DEFAULT_EDITOR  "ed"
@@ -259,7 +261,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef __BEOS__
 #define TARGET_BEOS
 #define BRANDY_OS "BEOS"
-//#define OSVERSION 0xFB
+#define LEGACY_OSVERSION 0xFB
 // BEOS uses dir/file.ext filesystem, so MACTYPE must be %000x1xxx
 // We use 8 because it is Unix-y
 #define MACTYPE   0x0800

@@ -190,6 +190,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				R2: 64-bit? (1 or 0)
 				R3: SDL build? (1 or 0)
 				R4: Machine type (as returned by OSBYTE 0)
+				R5: "Legacy" INKEY-256 (e.g. &F9 for Linux)
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
