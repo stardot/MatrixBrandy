@@ -3194,9 +3194,13 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   return(val);
 }
 
+static boolean is_teletextctrl(ch) {
+  return ((ch >= 0x80) && (ch <= 0x9F));
+}
+
 static void mode7renderline(int32 ypos) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
-  int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0, is_ctrl;
+  int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
   
   if (!vduflag(MODE7_UPDATE) || (screenmode != 7)) return;
@@ -3231,9 +3235,8 @@ static void mode7renderline(int32 ypos) {
   for (xtext=0; xtext<=39; xtext++) {
     ch=mode7frame[ypos][xtext];
     if (ch < 32) ch = ch | 0x80;
-    is_ctrl = ((ch >= 0x80) && (ch <= 0x9F));
     /* Check the Set At codes here */
-    if (is_ctrl) switch (ch) {
+    if (is_teletextctrl(ch)) switch (ch) {
       case TELETEXT_FLASH_OFF:
         write_vduflag(MODE7_FLASH,0);
         break;
@@ -3281,7 +3284,7 @@ static void mode7renderline(int32 ypos) {
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
     /* Skip this chunk for control codes */
-    if (!is_ctrl) for (y=0; y < M7YPPC; y++) {
+    if (!is_teletextctrl(ch)) for (y=0; y < M7YPPC; y++) {
       if (vduflag(MODE7_CONCEAL) && !vduflag(MODE7_REVEAL)) {
         line=0;
       } else {
@@ -3329,7 +3332,7 @@ static void mode7renderline(int32 ypos) {
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     ch=xch; /* restore value */
     /* And now handle the Set After codes */
-    if (is_ctrl) switch (ch) {
+    if (is_teletextctrl(ch)) switch (ch) {
       case TELETEXT_ALPHA_BLACK:
         if (vduflag(MODE7_BLACK)) {
           write_vduflag(MODE7_GRAPHICS,0);
