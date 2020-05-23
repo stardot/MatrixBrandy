@@ -3194,7 +3194,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   return(val);
 }
 
-static boolean is_teletextctrl(ch) {
+static boolean is_teletextctrl(int32 ch) {
   return ((ch >= 0x80) && (ch <= 0x9F));
 }
 
