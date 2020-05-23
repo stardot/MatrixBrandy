@@ -73,7 +73,15 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 **  0x0600 for directory.file/ext (eg RISC OS)
 **  0x0800 for directory/file.ext (eg UNIX)
 **  0x2000 for directory\file.ext (eg Win/DOS)
-** OSVERSION indicates the host OS, returned by INKEY-256 and OSBYTE 129,-256.
+**
+** OSVERSION indicates Matrix Brandy, returned by INKEY-256 and OSBYTE 129,-256.
+**  This value is a unique identifier for Matrix Brandy, a program that
+**  has obtained this value &4D can request further details from the
+**  SYS "Brandy_Platform" call.
+**
+** LEGACY_OSVERSION indicates the host OS, returned by parameter R5 of
+**  the SYS "Brandy_Platform" call, and in other versions of Brandy (and old
+**  versions of Matrix Brandy) is returned by INKEY-256 and OSBYTE 129,-256.
 **  These values are made up, but see beebwiki.mdfs.net/OSBYTE_&81
 **
 ** Name of editor invoked by Basic 'EDIT' command.
@@ -320,7 +328,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef BRANDY_DEFAULT_SIZE
 #define DEFAULTSIZE (BRANDY_DEFAULT_SIZE * 1024)
 #else
-#define DEFAULTSIZE (512*1024)
+#define DEFAULTSIZE (1024*1024)
 #endif
 #define MINSIZE 16384
 
