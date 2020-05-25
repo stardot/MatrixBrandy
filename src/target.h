@@ -246,7 +246,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define TARGET_MACOSX
 #define BRANDY_OS "MacOS X"
 #define LEGACY_OSVERSION 0xF8
-#define MACTYPE   0x0800
+#define MACTYPE   0x0A00
 #define EDITOR_VARIABLE "BRANDY_EDITOR"
 #define DEFAULT_EDITOR  "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #define DIR_SEPS "/"

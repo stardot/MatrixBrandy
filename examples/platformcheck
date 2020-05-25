@@ -1,0 +1,34 @@
+10 REM > platformcheck
+20 IF INKEY(-256)<>&4D THEN ERROR 0,"This program only runs on Matrix Brandy"
+30 SYS "Brandy_Platform" TO os$,cpu$,b64%,sdl%,mactype%,legacy%
+40 PRINT "Matrix Brandy was compiled for ";os$;" on ";
+50 IF b64% THEN PRINT "64-bit "; ELSE PRINT "32-bit ";
+60 PRINT cpu$;" with";
+70 IF sdl% THEN PRINT " "; ELSE PRINT "out ";
+80 PRINT "SDL graphics."
+90 PRINT "The file system naming type is ";FNfilesystem;" (&";~mactype%;")"
+100 PRINT "The 'legacy' host type is ";FNlegacy;" (&";~legacy%;")"
+110 END
+200 DEF FNfilesystem
+210 CASE mactype% OF
+220   WHEN 6: ="RISC OS"
+230   WHEN 8: ="UNIX-like"
+240   WHEN 10: ="MacOS X"
+250   WHEN 32: ="DOS/Windows"
+780 ENDCASE
+790 ="Unknown"
+800 DEF FNlegacy
+810 CASE legacy% OF
+820   WHEN &FE: ="NetBSD"
+830   WHEN &FC: ="Microsoft Windows"
+840   WHEN &FB: ="BeOS"
+850   WHEN &FA: ="DOS+DJGPP"
+860   WHEN &F9: ="Linux"
+870   WHEN &F8: ="MacOS X"
+880   WHEN &F7: ="FreeBSD"
+890   WHEN &F6: ="OpenBSD"
+900   WHEN &F5: ="Amiga"
+910   WHEN &F4: ="GNU FreeBSD"
+920   WHEN &F3: ="GNU Hurd"
+930 ENDCASE
+940 ="Unknown"
