@@ -1,34 +1,99 @@
-10 REM > platformcheck
-20 IF INKEY(-256)<>&4D THEN ERROR 0,"This program only runs on Matrix Brandy"
-30 SYS "Brandy_Platform" TO os$,cpu$,b64%,sdl%,mactype%,legacy%
-40 PRINT "Matrix Brandy was compiled for ";os$;" on ";
-50 IF b64% THEN PRINT "64-bit "; ELSE PRINT "32-bit ";
-60 PRINT cpu$;" with";
-70 IF sdl% THEN PRINT " "; ELSE PRINT "out ";
-80 PRINT "SDL graphics."
-90 PRINT "The file system naming type is ";FNfilesystem;" (&";~mactype%;")"
-100 PRINT "The 'legacy' host type is ";FNlegacy;" (&";~legacy%;")"
-110 END
-200 DEF FNfilesystem
-210 CASE mactype% OF
-220   WHEN 6: ="RISC OS"
-230   WHEN 8: ="UNIX-like"
-240   WHEN 10: ="MacOS X"
-250   WHEN 32: ="DOS/Windows"
-780 ENDCASE
-790 ="Unknown"
-800 DEF FNlegacy
-810 CASE legacy% OF
-820   WHEN &FE: ="NetBSD"
-830   WHEN &FC: ="Microsoft Windows"
-840   WHEN &FB: ="BeOS"
-850   WHEN &FA: ="DOS+DJGPP"
-860   WHEN &F9: ="Linux"
-870   WHEN &F8: ="MacOS X"
-880   WHEN &F7: ="FreeBSD"
-890   WHEN &F6: ="OpenBSD"
-900   WHEN &F5: ="Amiga"
-910   WHEN &F4: ="GNU FreeBSD"
-920   WHEN &F3: ="GNU Hurd"
-930 ENDCASE
-940 ="Unknown"
+   10REM > platformcheck
+   20i%=INKEY(-256) AND &FF
+   30IF i%=&4D THEN PROCmatrix: END
+   40IF i%=&53 OR i%=&73 OR i%=&57 THEN PROCrtrbasic:END
+   50IF (i% AND &F0)=&A0 THEN SYS "OS_Byte",0,1 TO ,mactype% ELSE A%=0:X%=1:Y%=0:mactype%=(USR&FFF4 AND &FF00) DIV 256
+   60PRINT "Running on BBC BASIC on INKEY-type ";FNlegacy(i%);" (&";~i%;"), OSBYTE-0 type ";FNmactype
+   70END
+   80DEFPROCrtrbasic
+   90os%=@platform% AND &FF
+  100b64%=os% AND &40: os% = os% AND &BF
+  110IF i% = &57 THEN PRINT "Running on BBC BASIC for Windows": ENDPROC
+  120IF i% = &73 THEN PRINT "Running on BBC BASIC for SDL on ";FNbbcsdlos;" on ";FNbitness;" ARM hardware":ENDPROC
+  130PRINT "BBC BASIC for SDL on ";FNbbsdlos;" on ";FNbitness;" Intel hardware"
+  140ENDPROC
+  150DEF FNbitness
+  160IF b64% THEN ="64-bit" ELSE ="32-bit"
+  170DEF FNbbcsdlos
+  180CASE os% OF
+  190WHEN 0: ="Microsoft Windows"
+  200WHEN 1: ="Linux"
+  210WHEN 2: ="MacOS"
+  220WHEN 3: ="Android"
+  230WHEN 4: ="iOS"
+  240ENDCASE
+  250="Unknown"
+  260DEFPROCmatrix
+  270SYS "Brandy_Platform" TO os$,cpu$,b64%,sdl%,mactype%,legacy%
+  280PRINT "Running on Matrix Brandy on ";os$;" on ";
+  290IF b64% THEN PRINT "64-bit "; ELSE PRINT "32-bit ";
+  300PRINT cpu$;" with";
+  310IF sdl% THEN PRINT " "; ELSE PRINT "out ";
+  320PRINT "SDL graphics."
+  330PRINT "Additional info: Uses ";FNmactype;" files on host type ";FNlegacy(legacy%);" (&";~legacy%;")"
+  340ENDPROC
+  350DEF FNmactype
+  360REM Can't use CASE...WHEN..ENDCASE as we can't guarantee modern BASIC.
+  370IF mactype% = 0 THEN ="Acorn Electron or Communicator"
+  380IF mactype% = 1 THEN ="BBC A/B"
+  390IF mactype% = 2 THEN ="BBC B+"
+  400IF mactype% = 3 THEN ="BBC Master 128"
+  410IF mactype% = 4 THEN ="BBC Master ET"
+  420IF mactype% = 5 THEN ="BBC Master Compact"
+  430IF mactype% = 6 THEN ="Arthur or RISC OS"
+  440IF mactype% = 7 THEN ="Springboard"
+  450IF mactype% = 8 THEN ="UNIX-like"
+  460IF mactype% = 9 OR mactype% = 17 OR mactype% = 39 THEN ="6809/6309 system"
+  470IF mactype% = 10 THEN ="MacOS X"
+  480IF mactype% = 28 THEN ="Commodore 64/128"
+  490IF mactype% = 29 THEN ="Texas Instruments calculator"
+  500IF mactype% = 30 THEN ="Amstrad CPC"
+  510IF mactype% = 31 THEN ="Sinclair ZX Spectrum"
+  520IF mactype% = 32 THEN ="DOS/Windows"
+  530="Unknown"
+  540DEF FNlegacy(l%)
+  550REM Primarily based on the INKEY-256 value, but uses the OSBYTE&00 value to try to disambiguate
+  560IF l% = &FF THEN ="BBC Micro OS 1.00/1.20/1.23 / Reuters OS R0.3 with *UK"
+  570IF l% = &FE AND mactype%=8 THEN ="NetBSD"
+  580IF l% = &FE THEN ="BBC Micro OS A1.0 / Reuters OS R0.3 with *US"
+  590IF l% = &FD THEN ="BBC Master 128 MOS 3.20/3.50"
+  600IF l% = &FC THEN ="Microsoft Windows"
+  610IF l% = &FB AND mactype%=8 THEN ="BeOS"
+  620IF l% = &FB THEN ="BBC B+ 64/128 OS 2.00"
+  630IF l% = &FA AND mactype%=32 THEN ="DOS+DJGPP"
+  640IF l% = &FA THEN ="Acorn Business Computer / Cambridge Workstation"
+  650IF l% = &F9 AND mactype%=8 THEN ="Linux"
+  660IF l% = &F9 THEN ="Acorn Communicator"
+  670IF l% = &F8 THEN ="MacOS X"
+  680IF l% = &F7 AND mactype%=8 THEN ="FreeBSD"
+  690IF l% = &F7 THEN ="BBC Master ET MOS 4"
+  700IF l% = &F6 THEN ="OpenBSD"
+  710IF l% = &F5 AND mactype%=8 THEN ="Amiga"
+  720IF l% = &F5 THEN ="BBC Master Compact MOS 5"
+  730IF l% = &F4 AND mactype%=8 THEN ="GNU FreeBSD"
+  740IF l% = &F4 THEN ="BBC Master 128 MOS 3.26"
+  750IF l% = &F3 THEN ="GNU Hurd"
+  760IF (l% AND &F0) = &E0 THEN ="Sinclair ZX Spectrum"
+  770IF (l% AND &F0) = &D0 THEN ="Amstrad CPC464/664/6128"
+  780IF l% = &B7 THEN ="PDP11 Unix Version 7"
+  790IF l% = &B6 THEN ="PDP11 Unix version 6"
+  800IF l% = &AF THEN ="Springboard"
+  810IF l% = &AE THEN ="RISC OS Pyromaniac"
+  820IF l% = &AA THEN ="RISC OS 5.xx"
+  830IF l% = &A9 THEN ="RISC OS 4.3x"
+  840IF l% = &A8 THEN ="RISC OS 4.0x"
+  850IF l% = &A7 THEN ="RISC OS 3.7x"
+  860IF l% = &A6 THEN ="RISC OS 3.60"
+  870IF l% = &A5 THEN ="RISC OS 3.50"
+  880IF l% = &A4 THEN ="RISC OS 3.1x"
+  890IF l% = &A3 THEN ="RISC OS 3.0x"
+  900IF l% = &A2 THEN ="RISC OS 2.01"
+  910IF l% = &A1 THEN ="RISC OS 2.00"
+  920IF l% = &A0 THEN ="Arthur 1.20"
+  930IF l% = &84 THEN ="TI-84+(SE)"
+  940IF l% = &83 THEN ="TI-83+(SE)"
+  950IF l% = &68 THEN ="6809 system"
+  960IF l% = &63 THEN ="6309 system"
+  970IF l% = &01 THEN ="Acorn Electron"
+  980IF l% = &00 THEN ="BBC Micro OS 0.10 or RM Nimbus"
+  990="Unknown"
