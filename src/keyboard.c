@@ -1353,7 +1353,9 @@ static boolean waitkey(int wait) {
 **
 */
 static boolean waitkey(int wait) {
+#ifdef USE_SDL
   int64 timerstart;
+#endif
 #if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   fd_set keyset;
   struct timeval waitime;
@@ -1362,8 +1364,8 @@ static boolean waitkey(int wait) {
   int tmp;
 #endif
 
-  timerstart = basicvars.centiseconds;
 #ifdef USE_SDL
+  timerstart = basicvars.centiseconds;
   SDL_Event ev;
   while ( 1 ) {
 /*
@@ -1373,8 +1375,8 @@ static boolean waitkey(int wait) {
     while (SDL_PollEvent(&ev) > 0)
       switch(ev.type)
       {
-	case SDL_KEYUP:
-	  break;
+        case SDL_KEYUP:
+          break;
         case SDL_KEYDOWN:
           switch(ev.key.keysym.sym)
           {
