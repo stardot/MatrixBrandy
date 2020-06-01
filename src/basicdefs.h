@@ -561,7 +561,6 @@ typedef struct {
   uint32 modescreen_sz;			/* Mode screen size */
   uint32 mode7fb;			/* Start of MODE 7 frame buffer space */
   SDL_Surface *surface;			/* SDL Surface handle for screen0 */
-  SDL_Surface *modescreen;		/* SDL Surface handle for modescreen */
   int32 sdl_flags;			/* SDL surface flags */
 #endif
 } matrixbits;

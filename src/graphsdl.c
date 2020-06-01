@@ -3142,7 +3142,6 @@ boolean init_screen(void) {
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   modescreen = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
-  matrixflags.modescreen = modescreen;
   displaybank=0;
   writebank=0;
   screen1 = SDL_DisplayFormat(modescreen);
