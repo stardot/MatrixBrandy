@@ -40,7 +40,9 @@
 #include "miscprocs.h"
 
 #ifdef TARGET_LINUX
+#ifndef __USE_LARGEFILE64
 #define __USE_LARGEFILE64
+#endif
 #include <sys/mman.h>
 #endif
 
