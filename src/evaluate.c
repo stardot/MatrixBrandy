@@ -1638,7 +1638,7 @@ static void eval_fvplus(void) {
     PUSH_FLOAT(floatvalue);		
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(floatvalue);
-  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
     basicarray *lharray;
     float64 *base;
     int32 n, count;
