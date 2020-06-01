@@ -555,7 +555,7 @@ static void toggle_cursor(void) {
   if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
-#ifdef MACOSX
+#ifdef TARGET_MACOSX
 #define SWAPENDIAN(x) ((x>>24)&0xFF|(x<<8)&0xFF0000|(x>>8)&0xFF00|(x<<24)&0xFF000000)
 #else
 #define SWAPENDIAN(x) x
