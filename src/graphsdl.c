@@ -988,8 +988,8 @@ void mode7flipbank() {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line;
-  
+  int32 y, topx, topy, line, bg, fg;
+
   if (cursorstate == ONSCREEN) toggle_cursor();
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
@@ -1029,22 +1029,29 @@ static void write_char(int32 ch) {
       }
     }
   }
+#ifdef TARGET_MACOSX
+  fg=SDL_MapRGBA(sdl_fontbuf->format, (tf_colour & 0xFF0000) >> 16, (tf_colour & 0xFF00) >> 8, tf_colour & 0xFF, (tf_colour & 0xFF000000) >> 24);
+  bg=SDL_MapRGBA(sdl_fontbuf->format, (tb_colour & 0xFF0000) >> 16, (tb_colour & 0xFF00) >> 8, tb_colour & 0xFF, (tb_colour & 0xFF000000) >> 24);
+#else
+  fg = tf_colour;
+  bg = tb_colour;
+#endif
   topx = xtext*XPPC;
   topy = ytext*YPPC;
   place_rect.x = topx;
   place_rect.y = topy;
-  SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
+  SDL_FillRect(sdl_fontbuf, NULL, bg);
   for (y=0; y < 8; y++) {
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
-      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = tf_colour;
-      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = tf_colour;
-      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = tf_colour;
-      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = tf_colour;
-      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = tf_colour;
-      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = tf_colour;
-      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = tf_colour;
+      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = fg;
+      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = fg;
+      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = fg;
+      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = fg;
+      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = fg;
+      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = fg;
+      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = fg;
+      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = fg;
     }
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
