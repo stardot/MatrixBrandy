@@ -150,6 +150,12 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_4_MUL(x) ((x)<<2)
 #define FAST_4_DIV(x) ((x)>>2)
 
+#ifdef TARGET_MACOSX
+#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
+#else
+#define SWAPENDIAN(x) x
+#endif
+
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
 Uint8 mode7changed[26];			/* Marks changed lines */
@@ -1112,14 +1118,14 @@ static void plot_char(int32 ch) {
     if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) plot_pixel(modescreen, (topx + 0 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x40) plot_pixel(modescreen, (topx + 1 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x20) plot_pixel(modescreen, (topx + 2 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x10) plot_pixel(modescreen, (topx + 3 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x08) plot_pixel(modescreen, (topx + 4 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x04) plot_pixel(modescreen, (topx + 5 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x02) plot_pixel(modescreen, (topx + 6 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x01) plot_pixel(modescreen, (topx + 7 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x80) plot_pixel(modescreen, (topx + 0 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x40) plot_pixel(modescreen, (topx + 1 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x20) plot_pixel(modescreen, (topx + 2 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x10) plot_pixel(modescreen, (topx + 3 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x08) plot_pixel(modescreen, (topx + 4 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x04) plot_pixel(modescreen, (topx + 5 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x02) plot_pixel(modescreen, (topx + 6 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
+      if (line & 0x01) plot_pixel(modescreen, (topx + 7 + (topy+y)*vscrwidth), SWAPENDIAN(gf_colour), graph_fore_action);
     }
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
