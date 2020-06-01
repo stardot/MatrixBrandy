@@ -28,9 +28,11 @@
 #include <unistd.h>
 #include "target.h"
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+#ifndef __USE_GNU
 #define __USE_GNU
+#endif /* USE_GNU */
 #include <dlfcn.h>
-#endif
+#endif /* UNIX || MINGW */
 #include "common.h"
 #include "errors.h"
 #include "basicdefs.h"
