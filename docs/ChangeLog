@@ -6,6 +6,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   freed.
 * System: INKEY(-256) now returns &4D (M) for all builds. System specifics
   can be obtained from SYS "Brandy_Platform".
+* System: Now builds on MacOS High Sierra and Catalina. Note, it requires
+  the latest snapshot of SDL 1.2 from SDL's Mercurial repository.
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
 * Keyboard: Try to fix some glitches around softkeys and the cursor keys.
