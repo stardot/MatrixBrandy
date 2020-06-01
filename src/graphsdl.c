@@ -556,7 +556,7 @@ static void toggle_cursor(void) {
 }
 
 #ifdef TARGET_MACOSX
-#define SWAPENDIAN(x) ((x>>24)&0xFF|(x<<8)&0xFF0000|(x>>8)&0xFF00|(x<<24)&0xFF000000)
+#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
 #else
 #define SWAPENDIAN(x) x
 #endif
