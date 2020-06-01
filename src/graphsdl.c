@@ -149,6 +149,14 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_4_MUL(x) ((x)<<2)
 #define FAST_4_DIV(x) ((x)>>2)
 
+#ifdef TARGET_MACOSX
+#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
+#else
+#define SWAPENDIAN(x) x
+#endif
+
+
+
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
 Uint8 mode7changed[26];			/* Marks changed lines */
@@ -555,13 +563,6 @@ static void toggle_cursor(void) {
   if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
-#ifdef TARGET_MACOSX
-#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
-#else
-#define SWAPENDIAN(x) x
-#endif
-
-
 /*
 ** 'blit_scaled' is called when working in one of the 'scaled'
 ** screen modes to copy the scaled rectangle defined by (x1, y1) and
@@ -611,7 +612,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
           for (ii = 1; ii <= xscale; ii++) {
             *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             if ((autorefresh==1) && (displaybank == writebank)) {
-              *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = SWAPENDIAN(*((Uint32*)modescreen->pixels + i + j*vscrwidth));
+              *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             }
             xx++;
           }
@@ -988,8 +989,8 @@ void mode7flipbank() {
 ** 'suspended' (if the cursor is being displayed)
 */
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line, bg, fg;
-
+  int32 y, topx, topy, line;
+  
   if (cursorstate == ONSCREEN) toggle_cursor();
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
@@ -1029,29 +1030,22 @@ static void write_char(int32 ch) {
       }
     }
   }
-#ifdef TARGET_MACOSX
-  fg=SDL_MapRGBA(sdl_fontbuf->format, (tf_colour & 0xFF0000) >> 16, (tf_colour & 0xFF00) >> 8, tf_colour & 0xFF, (tf_colour & 0xFF000000) >> 24);
-  bg=SDL_MapRGBA(sdl_fontbuf->format, (tb_colour & 0xFF0000) >> 16, (tb_colour & 0xFF00) >> 8, tb_colour & 0xFF, (tb_colour & 0xFF000000) >> 24);
-#else
-  fg = tf_colour;
-  bg = tb_colour;
-#endif
   topx = xtext*XPPC;
   topy = ytext*YPPC;
   place_rect.x = topx;
   place_rect.y = topy;
-  SDL_FillRect(sdl_fontbuf, NULL, bg);
+  SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
   for (y=0; y < 8; y++) {
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = fg;
-      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = fg;
-      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = fg;
-      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = fg;
-      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = fg;
-      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = fg;
-      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = fg;
-      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = fg;
+      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
+      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = tf_colour;
+      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = tf_colour;
+      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = tf_colour;
+      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = tf_colour;
+      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = tf_colour;
+      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = tf_colour;
+      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = tf_colour;
     }
   }
   SDL_BlitSurface(sdl_fontbuf, &font_rect, modescreen, &place_rect);
