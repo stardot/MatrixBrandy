@@ -194,7 +194,7 @@ static void init1(void) {
   matrixflags.tekenabled = 0;		/* Tektronix enabled in text mode (default: no) */
   matrixflags.tekspeed = 0;
   matrixflags.osbyte4val = 0;		/* Default OSBYTE 4 value */
-#if defined(TARGET_UNIX) & !defined(USE_SDL)
+#if (defined(TARGET_UNIX) & !defined(USE_SDL)) | defined(TARGET_MACOSX)
   matrixflags.delcandelete = 1;		/* DEL character can delete? */
 #else
   matrixflags.delcandelete = 0;		/* DEL character can delete? */

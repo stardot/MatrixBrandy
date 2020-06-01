@@ -2368,7 +2368,7 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
       altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
     }
   }
-  *((Uint32*)surface->pixels + offset) = altcolour;
+  *((Uint32*)surface->pixels + offset) = SWAPENDIAN(altcolour);
 }
 
 /*
