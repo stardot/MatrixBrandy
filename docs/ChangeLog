@@ -2,6 +2,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 *:V1.22.6 - 
+* System: Some subtle bugs fixed as a result of clang compiler warnings.
 * System: Block attempts to free workspace memory that shouldn't be randomly
   freed.
 * System: INKEY(-256) now returns &4D (M) for all builds. System specifics
