@@ -327,7 +327,7 @@ typedef struct {		/* Function return block */
   fnprocinfo fnprocblock;	/* Function return information */
   size_t *lastopstop;		/* Saved value of Basic operator stack pointer */
   size_t *lastopstlimit;		/* Saved pointer to end of operator stack */
-  jmp_buf *lastrestart;		/* Last function statement restart block for longjmp */
+  sigjmp_buf *lastrestart;		/* Last function statement restart block for longjmp */
 } stack_fn;
 
 typedef struct {		/* GOSUB return block */

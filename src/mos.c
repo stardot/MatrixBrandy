@@ -1984,7 +1984,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
 
       case CMD_VOLUME:		cmd_volume(command+6);return;
       case CMD_CHANNELVOICE:	cmd_channelvoice(command+12);return;
-      case CMD_VOICES:		cmd_voices(command+6);return;
+      case CMD_VOICES:		cmd_voices();return;
       case CMD_POINTER:		cmd_pointer(command+7);return;
     }
   }

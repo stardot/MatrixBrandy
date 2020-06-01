@@ -120,7 +120,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
     if (*cp=='+' || *cp=='-') cp++;
     while (*cp>='0' && *cp<='9') {
       digits = 0;	/* Used to count the number of digits before the '.' */
-      if (isint && value>=INT64CONV) {
+      if (isint && value64>=INT64CONV) {
         isint = FALSE;
         fpvalue = TOFLOAT(value64);
       }
@@ -228,7 +228,7 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
   if (*cp=='+' || *cp=='-') cp++;
   while (*cp>='0' && *cp<='9') {
     digits = 0;	/* Used to count the number of digits before the '.' */
-    if (isint && value>=INT64CONV) {
+    if (isint && value64>=INT64CONV) {
       isint = FALSE;
       fpvalue = TOFLOAT(value64);
     }

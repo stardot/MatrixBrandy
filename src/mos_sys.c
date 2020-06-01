@@ -534,7 +534,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       if (NULL == file_handle) {
 	strncpy(outstring, "No machine type detected",25);
       } else {
-	if(fgets(outstring, 65534, file_handle));
+	if(fgets(outstring, 65534, file_handle))
+	  ;
 	fclose(file_handle);
 	file_handle=fopen("/proc/device-tree/system/linux,revision","r");
 	if (NULL != file_handle) {

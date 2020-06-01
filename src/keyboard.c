@@ -511,7 +511,9 @@ int32 kbd_pending() {
  * not the character code.
  */
 int kbd_escpoll() {
+#ifdef USE_SDL
 int64 tmp;
+#endif
 
   if (backgnd_escape) {				/* Only poll when not doing key input	*/
     if (kbd_esctest()) {			/* Only poll if Escapes are enabled	*/
@@ -532,7 +534,6 @@ int64 tmp;
     }
   }
   return basicvars.escape;			/* Return Escape state			*/
-  tmp=tmp;					/* Keep compiler happy			*/
 }
 
 /* kbd_esctest() - set Escape state if allowed */
@@ -1437,7 +1438,7 @@ int32 read_key(void) {
 #if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   int errcode;
 #endif
-  byte ch = 0;
+  uint32 ch = 0;
 
 #if defined(TARGET_BEOS) || defined(TARGET_AMIGA)
   return getchar();				/* holding code */
