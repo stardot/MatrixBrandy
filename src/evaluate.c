@@ -2434,7 +2434,7 @@ static void eval_iv64mul(void) {
     }
   } else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*TOFLOAT(rhint64));
-  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -2496,7 +2496,7 @@ static void eval_fvmul(void) {
     push_float(TOFLOAT(pop_int64())*floatvalue);
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*floatvalue);
-  else if (lhitem == STACK_INTARRAY || STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<float value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<float value> */
     basicarray *lharray;
     float64 *base;
     int32 n, count;
