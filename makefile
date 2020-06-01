@@ -7,13 +7,13 @@ ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
 
-#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
-#CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
-CFLAGS = -O3 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -DDEBUG -I/usr/include/SDL -I/usr/local/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -I/usr/include/SDL -I/usr/local/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O3 $(shell sdl-config --cflags) -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS +=
 
-LIBS = -lX11 -lm -lSDL -ldl
+LIBS = -lm $(shell sdl-config --libs) -ldl
 
 SRCDIR = src
 

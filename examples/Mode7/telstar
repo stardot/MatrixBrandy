@@ -7,6 +7,7 @@
    70:
    80VER$="Viewdata client version 20200522"
    90:
+   95IF INKEY(-256) <> &4D THEN PRINT"This program only runs on Matrix Brandy":END
   100SYS "Brandy_GetVideoDriver" TO v$,,,,v%
   110IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
   120:

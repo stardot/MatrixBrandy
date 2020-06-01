@@ -23,8 +23,6 @@
 **      This version of the code is used on targets which do not
 **      support graphics
 **
-** Crispian Daniels August 20th 2002:
-**      Included Mac OS X target in conditional compilation.
 ** 06-Dec-2018 JGH: DEL expects 0 command bytes.
 ** 28-Dec-2018 JGH: Corrected physical colour numbers.
 **
@@ -45,7 +43,7 @@
 #include "screen.h"
 #include "keyboard.h"
 
-#if defined(TARGET_DOSWIN) | defined(TARGET_MACOSX)
+#ifdef TARGET_DOSWIN
 #include "conio.h"
 #else
 #define USE_ANSI        /* Have to use ANSI control sequences, not conio */

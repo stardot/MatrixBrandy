@@ -244,6 +244,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #if defined(__GNUC__) && ( defined(__APPLE_CPP__) || defined(__APPLE_CC__) )
 #define TARGET_MACOSX
+#define TARGET_UNIX
 #define BRANDY_OS "MacOS X"
 #define LEGACY_OSVERSION 0xF8
 #define MACTYPE   0x0A00
