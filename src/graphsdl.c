@@ -3100,14 +3100,14 @@ boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
   int p;
 
-  matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE;
+  matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
     fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
     return FALSE;
   }
 
   reset_sysfont(0);
-  if (basicvars.runflags.swsurface) matrixflags.sdl_flags = SDL_SWSURFACE;
+  if (basicvars.runflags.swsurface) matrixflags.sdl_flags = SDL_SWSURFACE | SDL_ASYNCBLIT;
   if (basicvars.runflags.startfullscreen) matrixflags.sdl_flags |= SDL_FULLSCREEN;
   matrixflags.surface = SDL_SetVideoMode(640, 512, 32, matrixflags.sdl_flags); /* MODE 0 */
   if (!matrixflags.surface) {
