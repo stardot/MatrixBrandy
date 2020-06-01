@@ -555,6 +555,13 @@ static void toggle_cursor(void) {
   if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
 }
 
+#ifdef MACOSX
+#define SWAPENDIAN(x) ((x>>24)&0xFF|(x<<8)&0xFF0000|(x>>8)&0xFF00|(x<<24)&0xFF000000)
+#else
+#define SWAPENDIAN(x) x
+#endif
+
+
 /*
 ** 'blit_scaled' is called when working in one of the 'scaled'
 ** screen modes to copy the scaled rectangle defined by (x1, y1) and
@@ -604,7 +611,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
           for (ii = 1; ii <= xscale; ii++) {
             *((Uint32*)screenbank[writebank]->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
             if ((autorefresh==1) && (displaybank == writebank)) {
-              *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)modescreen->pixels + i + j*vscrwidth);
+              *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = SWAPENDIAN(*((Uint32*)modescreen->pixels + i + j*vscrwidth));
             }
             xx++;
           }
