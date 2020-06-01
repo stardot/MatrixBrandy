@@ -19,7 +19,7 @@
   180IFv$="fbcon"THENMOUSEOFF
   190reveal%=0:scan%=0:width%=1
   200dh%=0:dhline%=0:borked%=0:telnet%=1:extended%=0
-  210allowfs%=1:DIM scr% 1000
+  210allowfs%=1:DIM scr%% 1000
   220REM Variables for downloading
   230screen%=0
   240download%=0
@@ -167,7 +167,7 @@
  1660ENDPROC
  1670:
  1680DEFPROChelp
- 1690x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
+ 1690x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%%=p%?v%: NEXT:CLS
  1700PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1710PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1720PRINT
@@ -186,11 +186,11 @@
  1850PRINT CHR$(130);" F2: Send teletext control code"
  1860IFGET
  1870VDU31,x%,y%
- 1880FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
+ 1880FOR p%=0 TO 999: p%?v%=p%?scr%%: NEXT
  1890ENDPROC
  1900:
  1910DEFFNcontrolcode
- 1920x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%=p%?v%: NEXT:CLS
+ 1920x%=POS:y%=VPOS:FOR p%=0 TO 999: p%?scr%%=p%?v%: NEXT:CLS
  1930VDU23,18,3,1|
  1940PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1950PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
@@ -219,5 +219,5 @@
  2180t%=GET
  2190SYS6,25,16
  2200VDU31,x%,y%,23,18,3,0|
- 2210FOR p%=0 TO 999: p%?v%=p%?scr%: NEXT
+ 2210FOR p%=0 TO 999: p%?v%=p%?scr%%: NEXT
  2220=(t% AND 31)+128

@@ -104,6 +104,7 @@ static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
+static SDL_PixelFormat pixfmt;
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
@@ -148,14 +149,6 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 #define FAST_3_MUL(x) (((x)<<1)+x)
 #define FAST_4_MUL(x) ((x)<<2)
 #define FAST_4_DIV(x) ((x)>>2)
-
-#ifdef TARGET_MACOSX
-#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
-#else
-#define SWAPENDIAN(x) x
-#endif
-
-
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
@@ -3106,7 +3099,23 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
+  
   int p;
+
+  /* Populate the pixfmt structure */
+  memset(&pixfmt, 0, sizeof(SDL_PixelFormat));
+  pixfmt.BitsPerPixel = 32;
+  pixfmt.BytesPerPixel = 4;
+  pixfmt.Aloss=8;
+  pixfmt.Rshift = 16;
+  pixfmt.Gshift = 8;
+  pixfmt.Bshift = 0;
+  pixfmt.Rmask=0xFF0000;
+  pixfmt.Gmask=0xFF00;
+  pixfmt.Bmask=0xFF;
+  pixfmt.colorkey=0;
+  pixfmt.alpha=255;
+ 
 
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -3126,18 +3135,18 @@ boolean init_screen(void) {
     SDL_FreeSurface(screenbank[p]);
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
-  modescreen = SDL_DisplayFormat(matrixflags.surface);
+  modescreen = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
   displaybank=0;
   writebank=0;
-  screen1 = SDL_DisplayFormat(matrixflags.surface);
-  screen2 = SDL_DisplayFormat(matrixflags.surface);
-  screen2A = SDL_DisplayFormat(matrixflags.surface);
-  screen3 = SDL_DisplayFormat(matrixflags.surface);
-  screen3A = SDL_DisplayFormat(matrixflags.surface);
+  screen1 = SDL_DisplayFormat(modescreen);
+  screen2 = SDL_DisplayFormat(modescreen);
+  screen2A = SDL_DisplayFormat(modescreen);
+  screen3 = SDL_DisplayFormat(modescreen);
+  screen3A = SDL_DisplayFormat(modescreen);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
-  sdl_fontbuf = SDL_ConvertSurface(fontbuf, matrixflags.surface->format, 0);  /* copy surface to get same format as main windows */
-  sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);  /* copy surface to get same format as main windows */
+  sdl_fontbuf = SDL_ConvertSurface(fontbuf, &pixfmt, 0);  /* copy surface to get same format as main windows */
+  sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, &pixfmt, 0);  /* copy surface to get same format as main windows */
   SDL_FreeSurface(fontbuf);
   SDL_FreeSurface(m7fontbuf);
 
@@ -3152,7 +3161,7 @@ boolean init_screen(void) {
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   setup_mode(0);
 
-  xor_mask = SDL_MapRGB(sdl_fontbuf->format, 0xff, 0xff, 0xff);
+  xor_mask = SDL_MapRGB(&pixfmt, 0xff, 0xff, 0xff);
 
   font_rect.x = font_rect.y = 0;
 
