@@ -1231,7 +1231,7 @@ static void vdu_setpalette(void) {
     c = logcol * 3;
     newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
     for (offset=0; offset < (screenheight*screenwidth*xscale); offset++) {
-      if ((*((Uint32*)modescreen->pixels + offset) >> 24) == logcol) *((Uint32*)modescreen->pixels + offset) = newcol;
+      if (SWAPENDIAN(*((Uint32*)modescreen->pixels + offset) >> 24) == logcol) *((Uint32*)modescreen->pixels + offset) = SWAPENDIAN(newcol);
     }
     blit_scaled(0,0,screenwidth-1,screenheight-1);
   }
