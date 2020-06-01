@@ -32,6 +32,8 @@
   320REM --
   330REM
   340REM Dedicated to Karen.
+  341REM
+  342REM Adjusted for 64-bit Matrix Brandy
   350
   360ON ERROR PROCerror
   370PROCinitialise
@@ -77,17 +79,17 @@
   770rr% = (bb% * 0.1) + RND(bb% * 0.3)
   780
   790REM Screen dimensions
-  800DIM blk% 32
-  810!blk%   = 4
-  820blk%!4  = 5
-  830blk%!8  = 11
-  840blk%!12 = 12
-  850blk%!16 = -1
-  860SYS "OS_ReadVduVariables", blk%, blk%
-  870S_xe% = !blk%
-  880S_ye% = blk%!4
-  890S_x%  = (blk%!8  + 1) << S_xe%
-  900S_y%  = (blk%!12 + 1) << S_ye%
+  800DIM blk%% 32
+  810!blk%%   = 4
+  820blk%%!4  = 5
+  830blk%%!8  = 11
+  840blk%%!12 = 12
+  850blk%%!16 = -1
+  860SYS "OS_ReadVduVariables", blk%%, blk%%
+  870S_xe% = !blk%%
+  880S_ye% = blk%%!4
+  890S_x%  = (blk%%!8  + 1) << S_xe%
+  900S_y%  = (blk%%!12 + 1) << S_ye%
   910
   920REM Colour look-up table
   930DIM col%(MAX_Z%)

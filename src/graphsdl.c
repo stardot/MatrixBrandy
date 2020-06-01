@@ -1491,7 +1491,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
         if ((rox < gwinleft) || (rox > gwinright)) continue;
       }
       pxoffset = xloop + yloop*vscrwidth;
-      prevcolour=*((Uint32*)modescreen->pixels + pxoffset);
+      prevcolour=SWAPENDIAN(*((Uint32*)modescreen->pixels + pxoffset));
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
       if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
       switch (action) {
@@ -1520,7 +1520,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
         altcolour=altcolour*3;
         altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
-      *((Uint32*)modescreen->pixels + pxoffset) = altcolour;
+      *((Uint32*)modescreen->pixels + pxoffset) = SWAPENDIAN(altcolour);
     }
   }
 
@@ -2341,7 +2341,7 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
   if ((action==0) && (plot_inverse == 0)) {
     altcolour = colour;
   } else {
-    prevcolour=*((Uint32*)surface->pixels + offset);
+    prevcolour=SWAPENDIAN(*((Uint32*)surface->pixels + offset));
     prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
     if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
     switch (action) {
@@ -2523,7 +2523,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
     if (action==0 && !clipping) {
-      SDL_FillRect(modescreen, &plot_rect, colour);
+      SDL_FillRect(modescreen, &plot_rect, SWAPENDIAN(colour));
     } else {
       fill_rectangle(left, top, right, bottom, colour, action);
     }
@@ -2745,7 +2745,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
 int32 emulate_pointfn(int32 x, int32 y) {
   int32 colour, colnum;
-  colour = *((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth);
+  colour = SWAPENDIAN(*((Uint32*)modescreen->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth));
   if (colourdepth == COL24BIT) return riscoscolour(colour);
   colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
