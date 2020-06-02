@@ -361,8 +361,10 @@ static void set_rgb(void) {
     gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_backcol << 24);
   }
 #ifdef TARGET_MACOSX
-  tf_colour = SWAPENDIAN(tf_colour);
-  tb_colour = SWAPENDIAN(tb_colour);
+  if(screenmode!=7) {
+    tf_colour = SWAPENDIAN(tf_colour);
+    tb_colour = SWAPENDIAN(tb_colour);
+  }
 #endif
 }
 
