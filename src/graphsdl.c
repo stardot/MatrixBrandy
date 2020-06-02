@@ -360,6 +360,12 @@ static void set_rgb(void) {
     j = graph_physbackcol*3;
     gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_backcol << 24);
   }
+#ifdef TARGET_MACOSX
+  tf_colour = SWAPENDIAN(tf_colour);
+  tb_colour = SWAPENDIAN(tb_colour);
+  gf_colour = SWAPENDIAN(gf_colour);
+  gb_colour = SWAPENDIAN(gb_colour);
+#endif
 }
 
 /*
@@ -1030,23 +1036,17 @@ static void write_char(int32 ch) {
   }
   topx = xtext*XPPC;
   topy = ytext*YPPC;
-  place_rect.x = topx;
-  place_rect.y = topy;
-  SDL_FillRect(sdl_fontbuf, NULL, tb_colour);
   for (y=0; y < 8; y++) {
     line = sysfont[ch-' '][y];
-    if (line!=0) {
-      if (line & 0x80) *((Uint32*)sdl_fontbuf->pixels + 0 + y*XPPC) = tf_colour;
-      if (line & 0x40) *((Uint32*)sdl_fontbuf->pixels + 1 + y*XPPC) = tf_colour;
-      if (line & 0x20) *((Uint32*)sdl_fontbuf->pixels + 2 + y*XPPC) = tf_colour;
-      if (line & 0x10) *((Uint32*)sdl_fontbuf->pixels + 3 + y*XPPC) = tf_colour;
-      if (line & 0x08) *((Uint32*)sdl_fontbuf->pixels + 4 + y*XPPC) = tf_colour;
-      if (line & 0x04) *((Uint32*)sdl_fontbuf->pixels + 5 + y*XPPC) = tf_colour;
-      if (line & 0x02) *((Uint32*)sdl_fontbuf->pixels + 6 + y*XPPC) = tf_colour;
-      if (line & 0x01) *((Uint32*)sdl_fontbuf->pixels + 7 + y*XPPC) = tf_colour;
-    }
+    *((Uint32*)screenbank[writebank]->pixels + topx + 0 + ((topy+y)*vscrwidth)) = (line & 0x80) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 1 + ((topy+y)*vscrwidth)) = (line & 0x40) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 2 + ((topy+y)*vscrwidth)) = (line & 0x20) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 3 + ((topy+y)*vscrwidth)) = (line & 0x10) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 4 + ((topy+y)*vscrwidth)) = (line & 0x08) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 5 + ((topy+y)*vscrwidth)) = (line & 0x04) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 6 + ((topy+y)*vscrwidth)) = (line & 0x02) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[writebank]->pixels + topx + 7 + ((topy+y)*vscrwidth)) = (line & 0x01) ? tf_colour : tb_colour;
   }
-  SDL_BlitSurface(sdl_fontbuf, &font_rect, screenbank[writebank], &place_rect);
   if (vduflag(VDU_FLAG_ECHO) || (vdu2316byte & 0xFE)) {
     blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   }
@@ -1230,7 +1230,7 @@ static void vdu_setpalette(void) {
     c = logcol * 3;
     newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
     for (offset=0; offset < (screenheight*screenwidth*xscale); offset++) {
-      if (SWAPENDIAN(*((Uint32*)screenbank[writebank]->pixels + offset) >> 24) == logcol) *((Uint32*)screenbank[writebank]->pixels + offset) = SWAPENDIAN(newcol);
+      if ((SWAPENDIAN(*((Uint32*)screenbank[writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[writebank]->pixels + offset) = SWAPENDIAN(newcol);
     }
     blit_scaled(0,0,screenwidth-1,screenheight-1);
   }
