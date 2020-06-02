@@ -9,7 +9,7 @@
 # the code has to assume the name "app" - so copy it first!
 
 # Then, you can build your standalone app with:
-# gcc -o yourapp app.o /path/to/brandyapp.a -lX11 -lm -lSDL -ldl
+# gcc -o yourapp app.o /path/to/brandyapp.a -lX11 -lm $(sdl-config --libs) -ldl
 
 CC = gcc
 LD = gcc
@@ -18,13 +18,13 @@ ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include build/git.mk
 
-#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
-#CFLAGS = -g -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
-CFLAGS = -O3 -I/usr/include/SDL -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -DDEBUG $(shell sdl-config --cflags)  -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g $(shell sdl-config --cflags)  -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O3 $(shell sdl-config --cflags)  -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAPP -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS +=
 
-LIBS = -lX11 -lm -lSDL -ldl
+LIBS = -lm $(shell sdl-config --libs) -ldl
 
 SRCDIR = src
 
