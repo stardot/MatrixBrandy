@@ -3867,7 +3867,8 @@ void star_refresh(int flag) {
     if (screenmode == 7) {
       mode7renderscreen();
     } else {
-      SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
+      //SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
+      blit_scaled(0,0,screenwidth-1,screenheight-1);
       if ((screenmode == 3) || (screenmode == 6)) {
         int p;
         hide_cursor();
