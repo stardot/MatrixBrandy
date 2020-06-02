@@ -363,8 +363,6 @@ static void set_rgb(void) {
 #ifdef TARGET_MACOSX
   tf_colour = SWAPENDIAN(tf_colour);
   tb_colour = SWAPENDIAN(tb_colour);
-  gf_colour = SWAPENDIAN(gf_colour);
-  gb_colour = SWAPENDIAN(gb_colour);
 #endif
 }
 
