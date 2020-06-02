@@ -1,9 +1,10 @@
 /*
 ** This file is part of the Matrix Brandy Basic VI Interpreter.
 ** Copyright (C) 2000-2014 David Daniels
-** Copyright (C) 2018-2019 Michael McConnell and contributors
+** Copyright (C) 2018-2020 Michael McConnell and contributors
 **
-** SDL additions by Colin Tuckley
+** SDL additions by Colin Tuckley,
+**     heavily modified by Michael McConnell.
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@
 **
 **
 **	This file contains the VDU driver emulation for the interpreter
-**	used when graphics output is possible. It uses the SDL graphics library.
+**	used when graphics output is possible. It uses the SDL 1.2 graphics library.
 **
 **	MODE 7 implementation by Michael McConnell.
 **
@@ -2168,7 +2169,7 @@ static void setup_mode(int32 mode) {
   }
   SDL_FreeSurface(modescreen);
   modescreen = SDL_DisplayFormat(matrixflags.surface);
-  matrixflags.modescreen_ptr = modescreen->pixels;
+  matrixflags.modescreen_ptr = screenbank[writebank]->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   displaybank=0;
   writebank=0;
@@ -3918,6 +3919,7 @@ void osbyte112(int x) {
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) writebank=(x-1);
+  matrixflags.modescreen_ptr = screenbank[writebank]->pixels;
 }
 
 void osbyte113(int x) {
