@@ -541,15 +541,15 @@ static void toggle_cursor(void) {
   if (cursmode == UNDERLINE) {
     y = ((ytext+1)*yscale*myppc - yscale) * vscrwidth;
     for (x=left; x <= right; x++) {
-      *((Uint32*)matrixflags.surface->pixels + x + y) ^= xor_mask;
-      if (yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + vscrwidth) ^= xor_mask;
+      *((Uint32*)matrixflags.surface->pixels + x + y) ^= SWAPENDIAN(xor_mask);
+      if (yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + vscrwidth) ^= SWAPENDIAN(xor_mask);
       if ((screenmode == 3) || (screenmode==6) || (screenmode == 11) || (screenmode == 14) || (screenmode == 17)) {
-        *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= xor_mask;
-        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*2)) ^= xor_mask;
-        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*3)) ^= xor_mask;
-        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*4)) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= SWAPENDIAN(xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*2)) ^= SWAPENDIAN(xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*3)) ^= SWAPENDIAN(xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*4)) ^= SWAPENDIAN(xor_mask);
       }
-      if (screenmode ==7) *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= xor_mask;
+      if (screenmode ==7) *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= SWAPENDIAN(xor_mask);
     }
   }
   else if (cursmode == BLOCK) {
@@ -557,7 +557,7 @@ static void toggle_cursor(void) {
     bottom = top + myppc*yscale -1;
     for (y = top; y <= bottom; y++) {
       for (x = left; x <= right; x++)
-        *((Uint32*)matrixflags.surface->pixels + x + y*vscrwidth) ^= xor_mask;
+        *((Uint32*)matrixflags.surface->pixels + x + y*vscrwidth) ^= SWAPENDIAN(xor_mask);
     }
   }
   if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
@@ -3867,7 +3867,6 @@ void star_refresh(int flag) {
     if (screenmode == 7) {
       mode7renderscreen();
     } else {
-      //SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
       blit_scaled(0,0,screenwidth-1,screenheight-1);
       if ((screenmode == 3) || (screenmode == 6)) {
         int p;
