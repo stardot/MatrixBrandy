@@ -631,10 +631,6 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
         yy++;
       } 
     }
-    //scale_rect.x = dleft;
-    //scale_rect.y = dtop;
-    //scale_rect.w = (right+1 - left) * xscale;
-    //scale_rect.h = (bottom+1 - top) * yscale;
   }
   if ((screenmode == 3) || (screenmode == 6)) {
     int p;
@@ -647,7 +643,6 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
       SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
     }
   }
-  //if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
