@@ -619,24 +619,22 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     dleft = left*xscale;			/* Calculate pixel coordinates in the */
     dtop  = top*yscale;			/* screen buffer of the rectangle */
     yy = dtop;
-    for (j = top; j <= bottom; j++) {
+    if ((autorefresh==1) && (displaybank == writebank)) for (j = top; j <= bottom; j++) {
       for (jj = 1; jj <= yscale; jj++) {
         xx = dleft;
         for (i = left; i <= right; i++) {
           for (ii = 1; ii <= xscale; ii++) {
-            if ((autorefresh==1) && (displaybank == writebank)) {
-              *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)screenbank[writebank]->pixels + i + j*vscrwidth);
-            }
+            *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)screenbank[writebank]->pixels + i + j*vscrwidth);
             xx++;
           }
         }
         yy++;
       } 
     }
-    scale_rect.x = dleft;
-    scale_rect.y = dtop;
-    scale_rect.w = (right+1 - left) * xscale;
-    scale_rect.h = (bottom+1 - top) * yscale;
+    //scale_rect.x = dleft;
+    //scale_rect.y = dtop;
+    //scale_rect.w = (right+1 - left) * xscale;
+    //scale_rect.h = (bottom+1 - top) * yscale;
   }
   if ((screenmode == 3) || (screenmode == 6)) {
     int p;
@@ -847,22 +845,49 @@ static void scroll(updown direction) {
   if (screenmode != 7) {
     topwin = twintop*YPPC;		/* Y coordinate of top of text window */
     if (direction == SCROLL_UP) {	/* Shifting screen up */
-      dest = twintop*YPPC;		/* Move screen up to this point */
-      left = twinleft*XPPC;
-      right = twinright*XPPC+XPPC-1;
-      top = dest+YPPC;				/* Top of block to move starts here */
-      scroll_rect.x = twinleft*XPPC;
-      scroll_rect.y = YPPC * (twintop + 1);
-      scroll_rect.w = XPPC * (twinright - twinleft +1);
-      scroll_rect.h = YPPC * (twinbottom - twintop);
-      SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, NULL);
-      line_rect.x = 0;
-      line_rect.y = YPPC * (twinbottom - twintop);
-      line_rect.w = XPPC * (twinright - twinleft +1);
-      line_rect.h = YPPC;
-      SDL_FillRect(screen1, &line_rect, tb_colour);
-    }
-    else {	/* Shifting screen down */
+      if (vduflag(VDU_FLAG_TEXTWIN)) {
+        dest = twintop*YPPC;		/* Move screen up to this point */
+        left = twinleft*XPPC;
+        right = twinright*XPPC+XPPC-1;
+        top = dest+YPPC;				/* Top of block to move starts here */
+        scroll_rect.x = twinleft*XPPC;
+        scroll_rect.y = YPPC * (twintop + 1);
+        scroll_rect.w = XPPC * (twinright - twinleft +1);
+        scroll_rect.h = YPPC * (twinbottom - twintop);
+        SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, NULL);
+        line_rect.x = 0;
+        line_rect.y = YPPC * (twinbottom - twintop);
+        line_rect.w = XPPC * (twinright - twinleft +1);
+        line_rect.h = YPPC;
+        SDL_FillRect(screen1, &line_rect, tb_colour);
+        line_rect.x = 0;
+        line_rect.y = 0;
+        line_rect.w = XPPC * (twinright - twinleft +1);
+        line_rect.h = YPPC * (twinbottom - twintop +1);
+        scroll_rect.x = left;
+        scroll_rect.y = dest;
+        SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
+        blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+      } else {
+        int loop;
+        /* Use memmove() rather than two lots of blitting as it's the whole screen scrolling.
+        ** and it's insanely much faster than running blit_scaled.
+        */
+        // First, get size of one line.
+        top=4*screenwidth*YPPC;
+        // Screen size minus size of 1st line (calculated above)
+        dest=(screenwidth * screenheight * 4) - top;
+        memmove((void *)screenbank[writebank]->pixels, (const void *)(screenbank[writebank]->pixels)+top, dest);
+        memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*xscale*yscale), dest*xscale*yscale);
+        /* Need to do it this way, as memset() works on bytes only */
+        for (loop=0;loop<top;loop+=4) {
+          *(uint32 *)(screenbank[writebank]->pixels+dest+loop) = SWAPENDIAN(tb_colour);
+        }
+        for (loop=0;loop<(top*xscale*yscale);loop+=4) {
+          *(uint32 *)(matrixflags.surface->pixels+(dest*xscale*yscale)+loop) = SWAPENDIAN(tb_colour);
+        }
+      }
+    } else {	/* Shifting screen down */
       dest = (twintop+1)*YPPC;
       left = twinleft*XPPC;
       right = (twinright+1)*XPPC-1;
@@ -879,15 +904,15 @@ static void scroll(updown direction) {
       line_rect.w = XPPC * (twinright - twinleft +1);
       line_rect.h = YPPC;
       SDL_FillRect(screen1, &line_rect, tb_colour);
+      line_rect.x = 0;
+      line_rect.y = 0;
+      line_rect.w = XPPC * (twinright - twinleft +1);
+      line_rect.h = YPPC * (twinbottom - twintop +1);
+      scroll_rect.x = left;
+      scroll_rect.y = dest;
+      SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
+      blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
     }
-    line_rect.x = 0;
-    line_rect.y = 0;
-    line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC * (twinbottom - twintop +1);
-    scroll_rect.x = left;
-    scroll_rect.y = dest;
-    SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
-    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
     do_sdl_flip(matrixflags.surface);
   } else { /* MODE 7 version */
     topwin = twintop*M7YPPC;		/* Y coordinate of top of text window */
@@ -924,8 +949,7 @@ static void scroll(updown direction) {
       }
       /* Blank the bottom line */
       for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
-    }
-    else {	/* Shifting screen down */
+    } else {	/* Shifting screen down */
       dest = (twintop+1)*M7YPPC;
       left = twinleft*M7XPPC;
       right = (twinright+1)*M7XPPC-1;
@@ -972,7 +996,7 @@ static void scroll(updown direction) {
       SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
     }
     do_sdl_flip(matrixflags.surface);
-  }
+  } /* MODE 7 version */
 }
 
 /*
