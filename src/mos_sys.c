@@ -523,6 +523,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         outregs[4]=(MACTYPE >> 8);
         outregs[5]=LEGACY_OSVERSION;
         break;
+    case SWI_Brandy_RefreshInterval:
+        set_refresh_interval(inregs[0]-1);
+        break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
       break;

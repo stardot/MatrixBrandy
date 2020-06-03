@@ -142,8 +142,8 @@ static unsigned int vdu14lines = 0;	/* Line counter for VDU14 page mode */
 
 static int autorefresh=1;		/* Refresh screen on updates? */
 
-static int videorescan=0;
-static int videofreq=1;
+static int64 videorescan=0;
+static int32 videofreq=1;
 
 /* From geom.c */
 #define MAX_YRES 16384
@@ -4164,4 +4164,8 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 161: /* MaxMode */	return HIGHMODE;
     default:	return 0;
   }
+}
+
+void set_refresh_interval(int32 v) {
+  videofreq=v;
 }

@@ -194,6 +194,11 @@ Brandy_xxx  (SWI numbers start &140000)
 				R4: Machine type (as returned by OSBYTE 0)
 				R5: "Legacy" INKEY-256 (e.g. &F9 for Linux)
 
+&140012 Brandy_RefreshInterval	Sets the SDL display refresh interval in
+				centiseconds in R0. 0 means no refresh delays.
+				Nothing is returned.
+
+
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
 

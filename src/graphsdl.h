@@ -55,5 +55,6 @@ extern int32 readmodevariable(int32 scrmode, int32 var);
 extern void screencopy(int32 src, int32 dst);
 extern int32 get_maxbanks(void);
 extern void refresh_location(uint32 offset);
+extern void set_refresh_interval(int32 v);
 
 #endif

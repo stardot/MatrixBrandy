@@ -118,6 +118,7 @@ typedef struct {
 #define SWI_Brandy_Free					0x14000F
 #define SWI_Brandy_BitShift64				0x140010
 #define SWI_Brandy_Platform				0x140011
+#define SWI_Brandy_RefreshInterval			0x140012
 
 #define SWI_RaspberryPi_GPIOInfo			0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode			0x140101
@@ -206,6 +207,7 @@ static switable swilist[] = {
 	{SWI_Brandy_Free,				"Brandy_Free"},
 	{SWI_Brandy_BitShift64,				"Brandy_BitShift64"},
 	{SWI_Brandy_Platform,				"Brandy_Platform"},
+	{SWI_Brandy_RefreshInterval,			"Brandy_RefreshInterval"},
 
 	{SWI_RaspberryPi_GPIOInfo,			"RaspberryPi_GPIOInfo"},
 	{SWI_RaspberryPi_GetGPIOPortMode,		"RaspberryPi_GetGPIOPortMode"},
