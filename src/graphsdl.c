@@ -840,7 +840,9 @@ static void scroll(updown direction) {
   if (screenmode != 7) {
     topwin = twintop*YPPC;		/* Y coordinate of top of text window */
     if (direction == SCROLL_UP) {	/* Shifting screen up */
+#ifndef TARGET_MACOSX
       if (vduflag(VDU_FLAG_TEXTWIN)) {
+#endif
         dest = twintop*YPPC;		/* Move screen up to this point */
         left = twinleft*XPPC;
         right = twinright*XPPC+XPPC-1;
@@ -863,6 +865,7 @@ static void scroll(updown direction) {
         scroll_rect.y = dest;
         SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
         blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+#ifndef TARGET_MACOSX
       } else {
         int loop;
         /* Use memmove() rather than two lots of blitting as it's the whole screen scrolling.
@@ -882,6 +885,7 @@ static void scroll(updown direction) {
           *(uint32 *)(matrixflags.surface->pixels+(dest*xscale*yscale)+loop) = SWAPENDIAN(tb_colour);
         }
       }
+#endif
     } else {	/* Shifting screen down */
       dest = (twintop+1)*YPPC;
       left = twinleft*XPPC;
