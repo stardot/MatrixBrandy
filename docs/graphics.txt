@@ -41,3 +41,11 @@ SYS "OS_Byte" (SYS 6).
 		  BB4W/BBCSDL.
 This can also be set - and read - by OSBYTE &2A (42). See osbyte.txt for
 more details on this.
+
+Additionally to this, the "tbrandy" text-mode build, when built on a UNIX-like
+system (excluding Cygwin) also supports Tektronix graphics when enabled with
+SYS "Brandy_TekEnabled",1 and thus can output graphics when run in an xterm
+window or through an emulator such as Rene Richarz's Tek4010 emulator
+https://github.com/rricharz/Tek4010 - and, while untested, it should even
+run when output to real hardware.  In the SDL builds, MODEs 72-75 are
+dimensioned to give a graphical area the same as a Tektronix system.
