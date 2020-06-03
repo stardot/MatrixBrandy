@@ -843,38 +843,70 @@ static void set_graphics_colour(boolean background, int colnum) {
 ** The screen is redrawn by this call
 */
 static void scroll(updown direction) {
-  int left, right, top, dest, topwin, m, n, mxppc, myppc;
-  if (screenmode == 7) {
-    mxppc = M7XPPC;
-    myppc = M7YPPC;
-  } else {
-    mxppc=XPPC;
-    myppc=YPPC;
-  }
-  topwin = twintop*myppc;		/* Y coordinate of top of text window */
-  if (direction == SCROLL_UP) {	/* Shifting screen up */
-    dest = twintop*myppc;		/* Move screen up to this point */
-    left = twinleft*mxppc;
-    right = twinright*mxppc+mxppc-1;
-    top = dest+myppc;				/* Top of block to move starts here */
-    scroll_rect.x = twinleft*mxppc;
-    scroll_rect.y = myppc * (twintop + 1);
-    scroll_rect.w = mxppc * (twinright - twinleft +1);
-    scroll_rect.h = myppc * (twinbottom - twintop);
-    if (screenmode != 7) {
+  int left, right, top, dest, topwin, m, n;
+  if (screenmode != 7) {
+    topwin = twintop*YPPC;		/* Y coordinate of top of text window */
+    if (direction == SCROLL_UP) {	/* Shifting screen up */
+      dest = twintop*YPPC;		/* Move screen up to this point */
+      left = twinleft*XPPC;
+      right = twinright*XPPC+XPPC-1;
+      top = dest+YPPC;				/* Top of block to move starts here */
+      scroll_rect.x = twinleft*XPPC;
+      scroll_rect.y = YPPC * (twintop + 1);
+      scroll_rect.w = XPPC * (twinright - twinleft +1);
+      scroll_rect.h = YPPC * (twinbottom - twintop);
       SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, NULL);
-    } else if (vduflag(MODE7_UPDATE)) {
+      line_rect.x = 0;
+      line_rect.y = YPPC * (twinbottom - twintop);
+      line_rect.w = XPPC * (twinright - twinleft +1);
+      line_rect.h = YPPC;
+      SDL_FillRect(screen1, &line_rect, tb_colour);
+    }
+    else {	/* Shifting screen down */
+      dest = (twintop+1)*YPPC;
+      left = twinleft*XPPC;
+      right = (twinright+1)*XPPC-1;
+      top = twintop*YPPC;
+      scroll_rect.x = left;
+      scroll_rect.y = top;
+      scroll_rect.w = XPPC * (twinright - twinleft +1);
+      scroll_rect.h = YPPC * (twinbottom - twintop);
+      line_rect.x = 0;
+      line_rect.y = YPPC;
+      SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, &line_rect);
+      line_rect.x = 0;
+      line_rect.y = 0;
+      line_rect.w = XPPC * (twinright - twinleft +1);
+      line_rect.h = YPPC;
+      SDL_FillRect(screen1, &line_rect, tb_colour);
+    }
+    line_rect.x = 0;
+    line_rect.y = 0;
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC * (twinbottom - twintop +1);
+    scroll_rect.x = left;
+    scroll_rect.y = dest;
+    SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
+    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+    do_sdl_flip(matrixflags.surface);
+  } else { /* MODE 7 version */
+    topwin = twintop*M7YPPC;		/* Y coordinate of top of text window */
+    if (direction == SCROLL_UP) {	/* Shifting screen up */
+      dest = twintop*M7YPPC;		/* Move screen up to this point */
+      left = twinleft*M7XPPC;
+      right = twinright*M7XPPC+M7XPPC-1;
+      top = dest+M7YPPC;			/* Top of block to move starts here */
+      scroll_rect.x = twinleft*M7XPPC;
+      scroll_rect.y = M7YPPC * (twintop + 1);
+      scroll_rect.w = M7XPPC * (twinright - twinleft +1);
+      scroll_rect.h = M7YPPC * (twinbottom - twintop);
       SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, NULL);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
-    }
-    line_rect.x = 0;
-    line_rect.y = myppc * (twinbottom - twintop);
-    line_rect.w = mxppc * (twinright - twinleft +1);
-    line_rect.h = myppc;
-    if (screenmode != 7) {
-      SDL_FillRect(screen1, &line_rect, tb_colour);
-    } else { /* MODE 7 */
+      line_rect.x = 0;
+      line_rect.y = M7YPPC * (twinbottom - twintop);
+      line_rect.w = M7XPPC * (twinright - twinleft +1);
+      line_rect.h = M7YPPC;
       if (vduflag(MODE7_UPDATE)) {
         SDL_FillRect(screen1, &line_rect, tb_colour);
         SDL_FillRect(screen2A, &line_rect, tb_colour);
@@ -893,32 +925,24 @@ static void scroll(updown direction) {
       /* Blank the bottom line */
       for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
     }
-  }
-  else {	/* Shifting screen down */
-    dest = (twintop+1)*myppc;
-    left = twinleft*mxppc;
-    right = (twinright+1)*mxppc-1;
-    top = twintop*myppc;
-    scroll_rect.x = left;
-    scroll_rect.y = top;
-    scroll_rect.w = mxppc * (twinright - twinleft +1);
-    scroll_rect.h = myppc * (twinbottom - twintop);
-    line_rect.x = 0;
-    line_rect.y = myppc;
-    if (screenmode != 7) {
-      SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, &line_rect);
-    } else if (vduflag(MODE7_UPDATE)) {
+    else {	/* Shifting screen down */
+      dest = (twintop+1)*M7YPPC;
+      left = twinleft*M7XPPC;
+      right = (twinright+1)*M7XPPC-1;
+      top = twintop*M7YPPC;
+      scroll_rect.x = left;
+      scroll_rect.y = top;
+      scroll_rect.w = M7XPPC * (twinright - twinleft +1);
+      scroll_rect.h = M7YPPC * (twinbottom - twintop);
+      line_rect.x = 0;
+      line_rect.y = M7YPPC;
       SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, &line_rect);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
-    }
-    line_rect.x = 0;
-    line_rect.y = 0;
-    line_rect.w = mxppc * (twinright - twinleft +1);
-    line_rect.h = myppc;
-    if (screenmode != 7) {
-      SDL_FillRect(screen1, &line_rect, tb_colour);
-    } else { /* MODE 7 */
+      line_rect.x = 0;
+      line_rect.y = 0;
+      line_rect.w = M7XPPC * (twinright - twinleft +1);
+      line_rect.h = M7YPPC;
       if (vduflag(MODE7_UPDATE)) {
         SDL_FillRect(screen1, &line_rect, tb_colour);
         SDL_FillRect(screen2A, &line_rect, tb_colour);
@@ -936,22 +960,19 @@ static void scroll(updown direction) {
       /* Blank the bottom line */
       for (n=twinleft; n<=twinright; n++) mode7frame[twintop][n] = 32;
     }
+    line_rect.x = 0;
+    line_rect.y = 0;
+    line_rect.w = M7XPPC * (twinright - twinleft +1);
+    line_rect.h = M7YPPC * (twinbottom - twintop +1);
+    scroll_rect.x = left;
+    scroll_rect.y = dest;
+    if (vduflag(MODE7_UPDATE)) {
+      SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
+      SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
+      SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
+    }
+    do_sdl_flip(matrixflags.surface);
   }
-  line_rect.x = 0;
-  line_rect.y = 0;
-  line_rect.w = mxppc * (twinright - twinleft +1);
-  line_rect.h = myppc * (twinbottom - twintop +1);
-  scroll_rect.x = left;
-  scroll_rect.y = dest;
-  if (screenmode != 7) {
-    SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
-    blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
-  } else if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
-    SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
-    SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
-    SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
-  }
-  do_sdl_flip(matrixflags.surface);
 }
 
 /*
