@@ -142,6 +142,9 @@ static unsigned int vdu14lines = 0;	/* Line counter for VDU14 page mode */
 
 static int autorefresh=1;		/* Refresh screen on updates? */
 
+static int videorescan=0;
+static int videofreq=1;
+
 /* From geom.c */
 #define MAX_YRES 16384
 #define MAX_XRES 16384
@@ -272,11 +275,17 @@ void reset_sysfont(int x) {
 }
 
 static void do_sdl_flip(SDL_Surface *layer) {
-  if (autorefresh==1) SDL_Flip(layer);
+  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1))) {
+    SDL_Flip(layer);
+    videorescan = basicvars.centiseconds;
+  }
 }
 
 static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
-  if (autorefresh==1) SDL_UpdateRect(layer, x, y, w, h);
+  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1))) {
+    SDL_UpdateRect(layer, x, y, w, h);
+    videorescan = basicvars.centiseconds;
+  }
 }
 
 static int istextonly(void) {
@@ -640,7 +649,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
       SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
     }
   }
-  if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
+  //if ((autorefresh==1) && (displaybank == writebank)) SDL_UpdateRect(matrixflags.surface, scale_rect.x, scale_rect.y, scale_rect.w, scale_rect.h);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -960,7 +969,12 @@ void mode7flipbank() {
   int64 mytime;
   int32 ypos;
   
-  if (screenmode == 7) {
+  if (screenmode != 7) {
+    if ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1) && (displaybank == writebank)) {
+      SDL_UpdateRect(matrixflags.surface, 0, 0, 0, 0);
+      videorescan = basicvars.centiseconds;
+    }
+  } else {
     mytime=basicvars.centiseconds;
     if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
