@@ -556,7 +556,7 @@ int32 TOINT(float64 fltmp) {
 }
 
 int64 TOINT64(float64 fltmp) {
-  if ((fltmp > ((int64)1<<62)-1) || (fltmp < -((int64)1<<63))) error(ERR_RANGE);
+  if ((fltmp > ((int64)1<<62)-1) || (fltmp < 0x8000000000000000ll )) error(ERR_RANGE);
   return (int64)fltmp;
 }
 
