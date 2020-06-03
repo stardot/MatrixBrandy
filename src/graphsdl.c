@@ -861,8 +861,9 @@ static void scroll(updown direction) {
     scroll_rect.y = myppc * (twintop + 1);
     scroll_rect.w = mxppc * (twinright - twinleft +1);
     scroll_rect.h = myppc * (twinbottom - twintop);
-    if (screenmode != 7) SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, NULL);
-    if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
+    if (screenmode != 7) {
+      SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, NULL);
+    } else if (vduflag(MODE7_UPDATE)) {
       SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, NULL);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
@@ -871,9 +872,11 @@ static void scroll(updown direction) {
     line_rect.y = myppc * (twinbottom - twintop);
     line_rect.w = mxppc * (twinright - twinleft +1);
     line_rect.h = myppc;
-    if (screenmode != 7 || vduflag(MODE7_UPDATE)) SDL_FillRect(screen1, &line_rect, tb_colour);
-    if (screenmode == 7) {
+    if (screenmode != 7) {
+      SDL_FillRect(screen1, &line_rect, tb_colour);
+    } else { /* MODE 7 */
       if (vduflag(MODE7_UPDATE)) {
+        SDL_FillRect(screen1, &line_rect, tb_colour);
         SDL_FillRect(screen2A, &line_rect, tb_colour);
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
@@ -902,8 +905,9 @@ static void scroll(updown direction) {
     scroll_rect.h = myppc * (twinbottom - twintop);
     line_rect.x = 0;
     line_rect.y = myppc;
-    if (screenmode != 7) SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, &line_rect);
-    if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
+    if (screenmode != 7) {
+      SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, &line_rect);
+    } else if (vduflag(MODE7_UPDATE)) {
       SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, &line_rect);
       SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
       SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
@@ -912,9 +916,11 @@ static void scroll(updown direction) {
     line_rect.y = 0;
     line_rect.w = mxppc * (twinright - twinleft +1);
     line_rect.h = myppc;
-    if (screenmode != 7 || vduflag(MODE7_UPDATE)) SDL_FillRect(screen1, &line_rect, tb_colour);
-    if (screenmode == 7) {
+    if (screenmode != 7) {
+      SDL_FillRect(screen1, &line_rect, tb_colour);
+    } else { /* MODE 7 */
       if (vduflag(MODE7_UPDATE)) {
+        SDL_FillRect(screen1, &line_rect, tb_colour);
         SDL_FillRect(screen2A, &line_rect, tb_colour);
         SDL_FillRect(screen3A, &line_rect, tb_colour);
       }
@@ -937,15 +943,13 @@ static void scroll(updown direction) {
   line_rect.h = myppc * (twinbottom - twintop +1);
   scroll_rect.x = left;
   scroll_rect.y = dest;
-  if (screenmode != 7) SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
-  if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
+  if (screenmode != 7) {
+    SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
+    blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
+  } else if (screenmode == 7 && vduflag(MODE7_UPDATE)) {
     SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
     SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
-  }
-  if (screenmode == 7) {
-    if (vduflag(MODE7_UPDATE)) SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
-  } else {
-    blit_scaled(left, topwin, right, twinbottom*myppc+myppc-1);
+    SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
   }
   do_sdl_flip(matrixflags.surface);
 }
