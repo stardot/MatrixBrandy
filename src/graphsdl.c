@@ -543,6 +543,7 @@ static void toggle_cursor(void) {
     cursorstate = SUSPENDED;
   else
     if (!vduflag(VDU_FLAG_GRAPHICURS)) cursorstate = ONSCREEN;
+  if (autorefresh != 1) return;
   left = xtemp*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
@@ -550,7 +551,7 @@ static void toggle_cursor(void) {
     for (x=left; x <= right; x++) {
       *((Uint32*)matrixflags.surface->pixels + x + y) ^= SWAPENDIAN(xor_mask);
       if (yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + vscrwidth) ^= SWAPENDIAN(xor_mask);
-      if ((screenmode == 3) || (screenmode==6) || (screenmode == 11) || (screenmode == 14) || (screenmode == 17)) {
+      if (myppc==10) { /* gapped modes */
         *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= SWAPENDIAN(xor_mask);
         *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*2)) ^= SWAPENDIAN(xor_mask);
         *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*3)) ^= SWAPENDIAN(xor_mask);
@@ -595,20 +596,21 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
+  if (autorefresh != 1) return;
   if (right < 0 || bottom < 0 || left >= screenwidth || top >= screenheight) return;	/* Is off screen completely */
   if (left < 0) left = 0;				/* Clip the rectangle as necessary */
   if (right >= screenwidth) right = screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= screenheight) bottom = screenheight-1;
   if(!scaled) {
-    if ((autorefresh==1) && (displaybank == writebank)) {
+    if (displaybank == writebank) {
       scale_rect.x = left;
       scale_rect.y = top;
       scale_rect.w = (right+1 - left);
       scale_rect.h = (bottom+1 - top);
       SDL_BlitSurface(screenbank[writebank], &scale_rect, matrixflags.surface, &scale_rect);
     }
-  } else if ((autorefresh==1) && (displaybank == writebank)) {
+  } else if (displaybank == writebank) {
     int32 dleft = left*xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*yscale;				/* screen buffer of the rectangle */
     int32 yy = dtop;
@@ -1018,14 +1020,14 @@ void mode7flipbank() {
     }
   } else {
     mytime=basicvars.centiseconds;
-    if (vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
+    if ((autorefresh==1) && vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
       do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
       m7updatetimer=mytime;
     }
     if ((mode7timer - mytime) <= 0) {
       hide_cursor();
-      if (!vduflag(MODE7_UPDATE)) mode7renderscreen();
+      if (!vduflag(MODE7_UPDATE) && (autorefresh==1)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
         SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
         write_vduflag(MODE7_BANK,0);
@@ -1944,7 +1946,10 @@ void emulate_vdu(int32 charvalue) {
         }
         mode7changed[ytext]=1;
         if (vduflag(MODE7_UPDATE_HIGHACC)) {
-          if ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1)) mode7renderline(ytext);
+          if ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1)) {
+            mode7renderline(ytext);
+            videorescan = basicvars.centiseconds;
+          }
         }
         xtext+=textxinc();
         if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
