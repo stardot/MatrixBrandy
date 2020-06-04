@@ -82,9 +82,41 @@
 **  copying areas of the virtual screen that have changed.
 */
 
+#define MAXBANKS 4
+#define MAX_YRES 16384
+#define MAX_XRES 16384
+#define FAST_2_MUL(x) ((x)<<1)
+#define FAST_3_MUL(x) (((x)<<1)+x)
+#define FAST_4_MUL(x) ((x)<<2)
+#define FAST_4_DIV(x) ((x)>>2)
+
+#define is_teletextctrl(x) ((x >= 0x80) && (x <= 0x9F))
+#define vduflag(flags) ((vduflags & flags) ? 1 : 0)
+
+#ifdef TARGET_MACOSX
+#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
+#else
+#define SWAPENDIAN(x) x
+#endif
+
+/*
+** These two macros are used to convert from RISC OS graphics coordinates to
+** pixel coordinates
+*/
+#define GXTOPX(x) ((x) / xgupp)
+#define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp)
+
+/* Size of character in pixels in X direction */
+#define XPPC 8
+/* Size of character in pixels in Y direction - this can change in a few modes e.g. 3 and 6 */
+unsigned int YPPC=8;
+/* Size of Mode 7 characters in X direction */
+#define M7XPPC 16
+/* Size of Mode 7 characters in Y direction */
+#define M7YPPC 20
+
 static int displaybank=0;
 static int writebank=0;
-#define MAXBANKS 4
 
 /*
 ** SDL related defines, Variables and params
@@ -104,49 +136,17 @@ Uint32 tf_colour,       /* text foreground SDL rgb triple */
 
 Uint32 xor_mask;
 
-/*
-** function definitions
-*/
-
-static void reveal_cursor(void);
-static void plot_pixel(SDL_Surface *, int64, Uint32, Uint32);
-static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
-static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void toggle_cursor(void);
-static void vdu_cleartext(void);
-static void set_text_colour(boolean background, int colnum);
-static void set_graphics_colour(boolean background, int colnum);
-
-static void mode7renderline(int32 ypos);
-
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
-
-static unsigned int vdu14lines = 0;	/* Line counter for VDU14 page mode */
 
 static int autorefresh=1;		/* Refresh screen on updates? */
 
 static int64 videorescan=0;
 static int32 videofreq=1;
 
-/* From geom.c */
-#define MAX_YRES 16384
-#define MAX_XRES 16384
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
-#define FAST_2_MUL(x) ((x)<<1)
-#define FAST_3_MUL(x) (((x)<<1)+x)
-#define FAST_4_MUL(x) ((x)<<2)
-#define FAST_4_DIV(x) ((x)>>2)
-
-#ifdef TARGET_MACOSX
-#define SWAPENDIAN(x) (((x>>24)&0xFF)|((x<<8)&0xFF0000)|((x>>8)&0xFF00)|((x<<24)&0xFF000000))
-#else
-#define SWAPENDIAN(x) x
-#endif
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
@@ -192,25 +192,20 @@ static boolean
   clipping;			/* TRUE if clipping region is not full screen of a RISC OS mode */
 
 /*
-** These two macros are used to convert from RISC OS graphics coordinates to
-** pixel coordinates
+** function definitions
 */
-#define GXTOPX(x) ((x) / xgupp)
-#define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp)
 
-/* Size of character in pixels in X direction */
-#define XPPC 8
-/* Size of character in pixels in Y direction - this can change in a few modes e.g. 3 and 6 */
-unsigned int YPPC=8;
-/* Size of Mode 7 characters in X direction */
-#define M7XPPC 16
-/* Size of Mode 7 characters in Y direction */
-#define M7YPPC 20
-
-//static unsigned int vduflag(unsigned int flags) {
-//  return (vduflags & flags) ? 1 : 0;
-//}
-#define vduflag(flags) ((vduflags & flags) ? 1 : 0)
+static void reveal_cursor(void);
+static void plot_pixel(SDL_Surface *, int64, Uint32, Uint32);
+static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
+static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
+static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
+static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
+static void toggle_cursor(void);
+static void vdu_cleartext(void);
+static void set_text_colour(boolean background, int colnum);
+static void set_graphics_colour(boolean background, int colnum);
+static void mode7renderline(int32 ypos);
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
@@ -236,10 +231,6 @@ static void reset_mode7() {
   for (p=0; p<25; p++) {
     for (q=0; q<40; q++) mode7frame[p][q]=32;
   }
-}
-
-void reset_vdu14lines(void) {
-  vdu14lines=0;
 }
 
 void reset_sysfont(int x) {
@@ -1060,9 +1051,11 @@ static void write_char(int32 ch) {
     ytext+=textyinc();
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
-      vdu14lines++;
-      if (vdu14lines > (twinbottom-twintop)) {
+      matrixflags.vdu14lines++;
+      if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
+        videorescan=0;
+        do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
         }
@@ -1072,7 +1065,7 @@ static void write_char(int32 ch) {
           usleep(5000);
         }
 #endif
-        vdu14lines=0;
+        matrixflags.vdu14lines=0;
       }
     }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
@@ -1115,9 +1108,11 @@ static void write_char(int32 ch) {
     ytext+=textyinc();
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
-      vdu14lines++;
-      if (vdu14lines > (twinbottom-twintop)) {
+      matrixflags.vdu14lines++;
+      if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
+        videorescan=0;
+        do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
         }
@@ -1127,7 +1122,7 @@ static void write_char(int32 ch) {
           usleep(5000);
         }
 #endif
-        vdu14lines=0;
+        matrixflags.vdu14lines=0;
       }
     }
     if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
@@ -1400,9 +1395,11 @@ static void move_curdown(void) {
   } else {
     /* VDU14 check here - all these should be optimisable */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
-      vdu14lines++;
-      if (vdu14lines > (twinbottom-twintop)) {
+      matrixflags.vdu14lines++;
+      if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
+        videorescan=0;
+        do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
         }
@@ -1412,7 +1409,7 @@ static void move_curdown(void) {
           usleep(5000);
         }
 #endif
-        vdu14lines=0;
+        matrixflags.vdu14lines=0;
       }
     }
     hide_cursor();	/* Remove cursor */
@@ -1431,9 +1428,9 @@ static void move_curup(void) {
   } else {
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
-      vdu14lines++;
+      matrixflags.vdu14lines++;
 // BUG: paged mode should not stop scrolling upwards
-      if (vdu14lines > (twinbottom-twintop)) {
+      if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1444,7 +1441,7 @@ static void move_curup(void) {
           usleep(5000);
         }
 #endif
-        vdu14lines=0;
+        matrixflags.vdu14lines=0;
       }
     }
     hide_cursor();	/* Remove cursor */
@@ -1904,8 +1901,8 @@ void emulate_vdu(int32 charvalue) {
           ytext+=textyinc();
           /* VDU14 check here */
           if (vduflag(VDU_FLAG_ENAPAGE)) {
-            vdu14lines++;
-            if (vdu14lines > (twinbottom-twintop)) {
+            matrixflags.vdu14lines++;
+            if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1915,7 +1912,7 @@ void emulate_vdu(int32 charvalue) {
           usleep(5000);
         }
 #endif
-              vdu14lines=0;
+              matrixflags.vdu14lines=0;
             }
           }
           if (ytext > twinbottom) {
@@ -1957,8 +1954,8 @@ void emulate_vdu(int32 charvalue) {
           ytext+=textyinc();
           /* VDU14 check here */
           if (vduflag(VDU_FLAG_ENAPAGE)) {
-            vdu14lines++;
-            if (vdu14lines > (twinbottom-twintop)) {
+            matrixflags.vdu14lines++;
+            if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
               while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
 #else
@@ -1967,7 +1964,7 @@ void emulate_vdu(int32 charvalue) {
                 usleep(5000);
               }
 #endif
-              vdu14lines=0;
+              matrixflags.vdu14lines=0;
             }
           }
           if (ytext > twinbottom) {
@@ -3277,10 +3274,9 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   return(val);
 }
 
-//#define is_teletextctrl(x) ((x >= 0x80) && (x <= 0x9F))
-static boolean is_teletextctrl(int32 ch) {
-  return ((ch >= 0x80) && (ch <= 0x9F));
-}
+//static boolean is_teletextctrl(int32 ch) {
+//  return ((ch >= 0x80) && (ch <= 0x9F));
+//}
 
 static void mode7renderline(int32 ypos) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;

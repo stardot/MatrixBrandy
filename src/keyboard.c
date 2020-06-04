@@ -157,7 +157,6 @@ static struct termios origtty;  /* Copy of original keyboard parameters */
 #include "graphsdl.h"
 // Move these later
 extern void mode7flipbank();
-extern void reset_vdu14lines();
 Uint8 mousestate, *keystate=NULL;
 int64 esclast=0;
 #endif
@@ -1771,7 +1770,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   }
 
 #ifdef USE_SDL
-  reset_vdu14lines();
+  matrixflags.vdu14lines=0;
 #endif
   oldopt=sysvar[sv_KeyOptions];
   sysvar[sv_KeyOptions]=oldopt | 192;

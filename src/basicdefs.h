@@ -562,6 +562,7 @@ typedef struct {
   uint32 mode7fb;			/* Start of MODE 7 frame buffer space */
   SDL_Surface *surface;			/* SDL Surface handle for screen0 */
   int32 sdl_flags;			/* SDL surface flags */
+  uint32 vdu14lines;			/* Line counter for VDU14 page mode */
 #endif
 } matrixbits;
 extern matrixbits matrixflags;

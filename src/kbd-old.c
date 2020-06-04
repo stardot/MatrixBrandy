@@ -237,7 +237,6 @@ static int fx44x=1;
 #include "SDL.h"
 #include "SDL_events.h"
 extern void mode7flipbank();
-extern void reset_vdu14lines();
 Uint8 mousestate, *keystate=NULL;
 #endif
 
@@ -894,7 +893,6 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
 //#include "keyboard-inkey.h"
 
 //extern void mode7flipbank();
-//extern void reset_vdu14lines();
 
 static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
@@ -2254,7 +2252,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   }
 
 #ifdef USE_SDL
-  reset_vdu14lines();
+  matrixflags.vdu14lines=0;
 #endif
   highplace = strlen(buffer);
   if (highplace > 0) emulate_vdustr(buffer, highplace);

@@ -49,7 +49,6 @@ extern void osword8B(int64 x);
 extern void osword8C(int64 x);
 extern void sdl_screensave(char *fname);
 extern void sdl_screenload(char *fname);
-extern void reset_vdu14lines(void);
 extern void swi_swap16palette(void);
 extern int32 readmodevariable(int32 scrmode, int32 var);
 extern void screencopy(int32 src, int32 dst);

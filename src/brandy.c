@@ -260,6 +260,7 @@ static void init2(void) {
   } else {
     matrixflags.mode7fb = 0xFFFF7C00;
   }
+  matrixflags.vdu14lines=0;
 #endif
   init_commands();
   init_fileio();
