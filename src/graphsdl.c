@@ -3482,14 +3482,7 @@ static void mode7renderline(int32 ypos) {
   SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
   do_sdl_updaterect(matrixflags.surface, 0, topy, 40*M7XPPC, M7YPPC);
 
-  write_vduflag(MODE7_VDU141ON,0);
-  write_vduflag(MODE7_GRAPHICS,0);
-  write_vduflag(MODE7_SEPGRP,0);
-  write_vduflag(MODE7_SEPREAL,0);
-  write_vduflag(MODE7_CONCEAL,0);
-  write_vduflag(MODE7_HOLD,0);
-  write_vduflag(MODE7_FLASH,0);
-  write_vduflag(MODE7_ALTCHARS,0);
+  vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
   text_physbackcol=l_text_physbackcol;
   text_backcol=l_text_backcol;
   text_physforecol=l_text_physforecol;
