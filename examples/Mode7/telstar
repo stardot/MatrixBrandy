@@ -11,7 +11,7 @@
   100SYS "Brandy_GetVideoDriver" TO v$,,,,v%
   110IFv$="no_sdl" THEN PRINT"This program requires a graphics display":END
   120:
-  130SYS"OS_Byte",229,1: SYS "OS_Byte",4,1
+  130SYS"OS_Byte",229,1: SYS "OS_Byte",4,1: SYS "Brandy_RefreshInterval",0
   140OSCLI"Key1"+CHR$(31)
   150*WinTitle Matrix Network Viewdata/Teletext Client
   160ON ERROR GOTO 510

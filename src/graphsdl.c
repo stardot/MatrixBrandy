@@ -1943,7 +1943,9 @@ void emulate_vdu(int32 charvalue) {
           mode7frame[ytext][xtext]=charvalue;
         }
         mode7changed[ytext]=1;
-        if (vduflag(MODE7_UPDATE_HIGHACC)) mode7renderline(ytext);
+        if (vduflag(MODE7_UPDATE_HIGHACC)) {
+          if ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1)) mode7renderline(ytext);
+        }
         xtext+=textxinc();
         if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
           xtext = textxhome();
@@ -1953,14 +1955,12 @@ void emulate_vdu(int32 charvalue) {
             vdu14lines++;
             if (vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-          usleep(5000);
-        }
+              while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
 #else
-        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-          if (basicvars.escape_enabled) checkforescape();
-          usleep(5000);
-        }
+              while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
+                if (basicvars.escape_enabled) checkforescape();
+                usleep(5000);
+              }
 #endif
               vdu14lines=0;
             }
@@ -3272,6 +3272,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   return(val);
 }
 
+//#define is_teletextctrl(x) ((x >= 0x80) && (x <= 0x9F))
 static boolean is_teletextctrl(int32 ch) {
   return ((ch >= 0x80) && (ch <= 0x9F));
 }
@@ -3294,14 +3295,8 @@ static void mode7renderline(int32 ypos) {
   text_physforecol=text_forecol=7;
   set_rgb();
 
+  vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
   write_vduflag(MODE7_VDU141MODE,1);
-  write_vduflag(MODE7_VDU141ON,0);
-  write_vduflag(MODE7_GRAPHICS,0);
-  write_vduflag(MODE7_SEPGRP,0);
-  write_vduflag(MODE7_CONCEAL,0);
-  write_vduflag(MODE7_HOLD,0);
-  write_vduflag(MODE7_FLASH,0);
-  write_vduflag(MODE7_ALTCHARS,0);
   mode7prevchar=32;
 
   m7_rect.x=0;
@@ -3312,7 +3307,7 @@ static void mode7renderline(int32 ypos) {
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   for (xtext=0; xtext<=39; xtext++) {
     ch=mode7frame[ypos][xtext];
-    if (ch < 32) ch = ch | 0x80;
+    if (ch < 32) ch |= 0x80;
     /* Check the Set At codes here */
     if (is_teletextctrl(ch)) switch (ch) {
       case TELETEXT_FLASH_OFF:
@@ -3349,6 +3344,7 @@ static void mode7renderline(int32 ypos) {
     place_rect.x = topx;
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
+    if (vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     xch=ch;
     if (vduflag(MODE7_HOLD) && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && vduflag(MODE7_REVEAL)) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
@@ -3362,30 +3358,26 @@ static void mode7renderline(int32 ypos) {
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
     /* Skip this chunk for control codes */
-    if (!is_teletextctrl(ch)) for (y=0; y < M7YPPC; y++) {
-      if (vduflag(MODE7_CONCEAL) && !vduflag(MODE7_REVEAL)) {
-        line=0;
-      } else {
-        ch7=(ch & 0x7F);
-        if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
-        if (vduflag(MODE7_VDU141ON)) {
-          yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
-          if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
-            line = teletextgraphic(ch, yy);
-          } else if ((ch >= 128) && (ch <= 159)) line = 0;
-          else line = mode7font[ch-' '][yy];
-        } else {
-          if (vdu141track[ypos] == 2) line = 0;
-            else {
-            if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) {
-              line = teletextgraphic(ch, y);
-            } else if ((ch >= 128) && (ch <= 159)) line = 0;
-            else line = mode7font[ch-' '][y];
-          }
-        }
+    if (!is_teletextctrl(ch) && (!vduflag(MODE7_CONCEAL) || vduflag(MODE7_REVEAL))) for (y=0; y < M7YPPC; y++) {
+      line = 0;
+      ch7=(ch & 0x7F);
+      if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
+      if (vduflag(MODE7_VDU141ON)) {
+        yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
         if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
-          mode7prevchar=ch;
+          line = teletextgraphic(ch, yy);
+        else
+          line = mode7font[ch-' '][yy];
+      } else {
+        if (vdu141track[ypos] != 2) {
+          if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
+            line = teletextgraphic(ch, y);
+          else
+            line = mode7font[ch-' '][y];
+        }
       }
+      if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
+        mode7prevchar=ch;
       if (line!=0) {
         if (line & 0x8000) *((Uint32*)sdl_m7fontbuf->pixels +  0 + y*M7XPPC) = tf_colour;
         if (line & 0x4000) *((Uint32*)sdl_m7fontbuf->pixels +  1 + y*M7XPPC) = tf_colour;
@@ -3406,8 +3398,7 @@ static void mode7renderline(int32 ypos) {
       }
     }
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
-    if (vduflag(MODE7_FLASH)) SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
-    SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
+    if (!vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     ch=xch; /* restore value */
     /* And now handle the Set After codes */
     if (is_teletextctrl(ch)) switch (ch) {
