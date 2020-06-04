@@ -68,26 +68,14 @@
 **  SWI OS_WriteC and emulate_plot to OS_Plot.
 **
 **  The program emulates RISC OS graphics in screen modes 0 to
-**  46 (the RISC OS 3.1 modes). Both colour and grey scale graphics
-**  are possible. Effectively this code supports RISC OS 3.1
-**  (Archimedes) graphics with some small extensions.
+**  53 (the RISC OS 3.7 modes). Both colour and grey scale graphics
+**  are possible. Effectively this code supports RISC OS 3.7
+**  (Risc PC) graphics with some small extensions.
 **
 **  The graphics library that was originally used, jlib, limited
 **  the range of RISC OS graphics facilities supported quite considerably.
 **  The new graphics library SDL overcomes some of those restrictions
-**  although some new geometric routines have had to be added. The graphics
-**  are written to a virtual screen with a resolution of 800 by 600.
-**  RISC OS screen modes that are smaller than this, for example,
-**  mode 1 (320 by 256), are scaled to make better use of this. What
-**  actually happens in these screen modes is that the output is
-**  written to a second virtual screen of a size more appropriate
-**  for the screen mode, for example, in mode 1, text and graphics
-**  go to a screen with a resolution of 320 by 256. When displaying
-**  the output the second virtual screen is copied to the first
-**  one, scaling it to fit to first one. In the case of mode 1,
-**  everything is scaled by a factor of two in both the X and Y
-**  directions (so that the displayed screen is 640 pixels by 512
-**  in size).
+**  although some new geometric routines have had to be added.
 **
 **  To display the graphics the virtual screen has to be copied to
 **  the real screen. The code attempts to optimise this by only
@@ -210,10 +198,14 @@ static boolean
 #define GXTOPX(x) ((x) / xgupp)
 #define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp)
 
-unsigned int XPPC=8;		/* Size of character in pixels in X direction */
-unsigned int YPPC=8;		/* Size of character in pixels in Y direction */
-unsigned int M7XPPC=16;		/* Size of Mode 7 characters in X direction */
-unsigned int M7YPPC=20;		/* Size of Mode 7 characters in Y direction */
+/* Size of character in pixels in X direction */
+#define XPPC 8
+/* Size of character in pixels in Y direction - this can change in a few modes e.g. 3 and 6 */
+unsigned int YPPC=8;
+/* Size of Mode 7 characters in X direction */
+#define M7XPPC 16
+/* Size of Mode 7 characters in Y direction */
+#define M7YPPC 20
 
 //static unsigned int vduflag(unsigned int flags) {
 //  return (vduflags & flags) ? 1 : 0;
@@ -597,29 +589,31 @@ static void toggle_cursor(void) {
 ** and 'yscale'.
 */
 static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
-  int32 dleft, dtop, xx, yy, i, j, ii, jj;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
-  if (left >= screenwidth || right < 0 || top >= screenheight || bottom < 0) return;	/* Is off screen completely */
-  if (left < 0) left = 0;		/* Clip the rectangle as necessary */
+  if (right < 0 || bottom < 0 || left >= screenwidth || top >= screenheight) return;	/* Is off screen completely */
+  if (left < 0) left = 0;				/* Clip the rectangle as necessary */
   if (right >= screenwidth) right = screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= screenheight) bottom = screenheight-1;
   if(!scaled) {
-    scale_rect.x = left;
-    scale_rect.y = top;
-    scale_rect.w = (right+1 - left);
-    scale_rect.h = (bottom+1 - top);
-    if ((autorefresh==1) && (displaybank == writebank)) SDL_BlitSurface(screenbank[writebank], &scale_rect, matrixflags.surface, &scale_rect);
-  } else {
-    dleft = left*xscale;			/* Calculate pixel coordinates in the */
-    dtop  = top*yscale;			/* screen buffer of the rectangle */
-    yy = dtop;
-    if ((autorefresh==1) && (displaybank == writebank)) for (j = top; j <= bottom; j++) {
+    if ((autorefresh==1) && (displaybank == writebank)) {
+      scale_rect.x = left;
+      scale_rect.y = top;
+      scale_rect.w = (right+1 - left);
+      scale_rect.h = (bottom+1 - top);
+      SDL_BlitSurface(screenbank[writebank], &scale_rect, matrixflags.surface, &scale_rect);
+    }
+  } else if ((autorefresh==1) && (displaybank == writebank)) {
+    int32 dleft = left*xscale;				/* Calculate pixel coordinates in the */
+    int32 dtop  = top*yscale;				/* screen buffer of the rectangle */
+    int32 yy = dtop;
+    int32 xx, i, j, ii, jj;
+    for (j = top; j <= bottom; j++) {
       for (jj = 1; jj <= yscale; jj++) {
         xx = dleft;
         for (i = left; i <= right; i++) {
@@ -631,16 +625,16 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
         yy++;
       } 
     }
-  }
-  if ((screenmode == 3) || (screenmode == 6)) {
-    int p;
-    hide_cursor();
-    scroll_rect.x=0;
-    scroll_rect.w=screenwidth*xscale;
-    scroll_rect.h=4;
-    for (p=0; p<25; p++) {
-      scroll_rect.y=16+(p*20);
-      SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
+    if ((screenmode == 3) || (screenmode == 6)) {	/* Paint on the black bars over the background */
+      int p;
+      hide_cursor();
+      scroll_rect.x=0;
+      scroll_rect.w=screenwidth*xscale;
+      scroll_rect.h=4;
+      for (p=0; p<25; p++) {
+        scroll_rect.y=16+(p*20);
+        SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
+      }
     }
   }
 }
