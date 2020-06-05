@@ -4080,8 +4080,7 @@ void sdl_screensave(char *fname) {
       error(ERR_CANTWRITE);
     }
   } else {
-    SDL_BlitSurface(screenbank[ds.displaybank], NULL, screen1, NULL);
-    if (SDL_SaveBMP(screen1, fname)) {
+    if (SDL_SaveBMP(matrixflags.surface, fname)) {
       error(ERR_CANTWRITE);
     }
   }
