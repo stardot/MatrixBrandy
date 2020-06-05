@@ -1012,7 +1012,6 @@ void mode7flipbank() {
     }
     if ((mode7timer - mytime) <= 0) {
       hide_cursor();
-//      if ((!vduflag(MODE7_UPDATE) || (ds.videofreq>0)) && (ds.autorefresh==1)) mode7renderscreen();
       if (!vduflag(MODE7_UPDATE) && (ds.autorefresh==1)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
         SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
@@ -3922,8 +3921,8 @@ void star_refresh(int flag) {
           SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
         }
       }
-      SDL_Flip(matrixflags.surface);
     }
+    SDL_Flip(matrixflags.surface);
   }
 }
 
