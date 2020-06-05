@@ -855,18 +855,20 @@ static void scroll_up(int32 windowed) {
   } else {
     int loop;
     /* First, get size of one line. */
-    top=4*ds.screenwidth*YPPC;
+    top=4*ds.screenwidth*YPPC*ds.xscale;
     /* Screen size minus size of one line (calculated above) */
-    dest=(ds.screenwidth * ds.screenheight * 4) - top;
+    dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
     memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
-    memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*ds.xscale*ds.yscale), dest*ds.xscale*ds.yscale);
+
+    memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*ds.yscale), dest*ds.yscale);
     /* Need to do it this way, as memset() works on bytes only */
     for (loop=0;loop<top;loop+=4) {
       *(uint32 *)(screenbank[ds.writebank]->pixels+dest+loop) = SWAPENDIAN(ds.tb_colour);
     }
-    for (loop=0;loop<(top*ds.xscale*ds.yscale);loop+=4) {
-      *(uint32 *)(matrixflags.surface->pixels+(dest*ds.xscale*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
+    for (loop=0;loop<(top*ds.yscale);loop+=4) {
+      *(uint32 *)(matrixflags.surface->pixels+(dest*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
     }
+    //blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   }
 #endif
   do_sdl_flip(matrixflags.surface);
@@ -922,16 +924,16 @@ static void scroll_down(int32 windowed) {
   } else {
     int loop;
     /* First, get size of one line. */
-    top=4*ds.screenwidth*YPPC;
+    top=4*ds.screenwidth*YPPC*ds.xscale;
     /* Screen size minus size of one line (calculated above) */
-    dest=(ds.screenwidth * ds.screenheight * 4) - top;
+    dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
     memmove((void *)screenbank[ds.writebank]->pixels+top, (const void *)screenbank[ds.writebank]->pixels, dest);
-    memmove((void *)(matrixflags.surface->pixels)+(top*ds.xscale*ds.yscale), (const void *)matrixflags.surface->pixels, dest*ds.xscale*ds.yscale);
+    memmove((void *)(matrixflags.surface->pixels)+(top*ds.yscale), (const void *)matrixflags.surface->pixels, dest*ds.yscale);
     /* Need to do it this way, as memset() works on bytes only */
     for (loop=0;loop<top;loop+=4) {
       *(uint32 *)(screenbank[ds.writebank]->pixels+loop) = SWAPENDIAN(ds.tb_colour);
     }
-    for (loop=0;loop<(top*ds.xscale*ds.yscale);loop+=4) {
+    for (loop=0;loop<(top*ds.yscale);loop+=4) {
       *(uint32 *)(matrixflags.surface->pixels+loop) = SWAPENDIAN(ds.tb_colour);
     }
   }
