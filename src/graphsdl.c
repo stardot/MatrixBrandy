@@ -826,9 +826,7 @@ static void set_graphics_colour(boolean background, int colnum) {
 */
 static void scroll_up(int32 windowed) {
   int left, right, top, dest, topwin;
-#ifndef TARGET_MACOSX
   if (windowed) {
-#endif
     topwin = twintop*YPPC;				/* Y coordinate of top of text window */
     dest = twintop*YPPC;				/* Move screen up to this point */
     left = twinleft*XPPC;
@@ -851,7 +849,6 @@ static void scroll_up(int32 windowed) {
     scroll_rect.y = dest;
     SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
-#ifndef TARGET_MACOSX
   } else {
     int loop;
     /* First, get size of one line. */
@@ -868,9 +865,7 @@ static void scroll_up(int32 windowed) {
     for (loop=0;loop<(top*ds.yscale);loop+=4) {
       *(uint32 *)(matrixflags.surface->pixels+(dest*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
     }
-    //blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   }
-#endif
   do_sdl_flip(matrixflags.surface);
 }
 
@@ -894,9 +889,7 @@ static void scroll_up_mode7(int32 windowed) {
 
 static void scroll_down(int32 windowed) {
   int left, right, top, dest, topwin;
-#ifndef TARGET_MACOSX
   if (windowed) {
-#endif
     topwin = twintop*YPPC;		/* Y coordinate of top of text window */
     dest = (twintop+1)*YPPC;
     left = twinleft*XPPC;
@@ -920,7 +913,6 @@ static void scroll_down(int32 windowed) {
     scroll_rect.y = dest;
     SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
-#ifndef TARGET_MACOSX
   } else {
     int loop;
     /* First, get size of one line. */
@@ -937,7 +929,6 @@ static void scroll_down(int32 windowed) {
       *(uint32 *)(matrixflags.surface->pixels+loop) = SWAPENDIAN(ds.tb_colour);
     }
   }
-#endif
   do_sdl_flip(matrixflags.surface);
 }
 
