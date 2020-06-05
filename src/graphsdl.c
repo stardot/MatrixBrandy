@@ -103,20 +103,17 @@
 ** These two macros are used to convert from RISC OS graphics coordinates to
 ** pixel coordinates
 */
-#define GXTOPX(x) ((x) / xgupp)
-#define GYTOPY(y) ((ygraphunits - 1 -(y)) / ygupp)
+#define GXTOPX(x) ((x) / ds.xgupp)
+#define GYTOPY(y) ((ds.ygraphunits - 1 -(y)) / ds.ygupp)
 
 /* Size of character in pixels in X direction */
 #define XPPC 8
 /* Size of character in pixels in Y direction - this can change in a few modes e.g. 3 and 6 */
-unsigned int YPPC=8;
+static unsigned int YPPC=8;
 /* Size of Mode 7 characters in X direction */
 #define M7XPPC 16
 /* Size of Mode 7 characters in Y direction */
 #define M7YPPC 20
-
-static int displaybank=0;
-static int writebank=0;
 
 /*
 ** SDL related defines, Variables and params
@@ -129,22 +126,10 @@ static SDL_PixelFormat pixfmt;
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
-Uint32 tf_colour,       /* text foreground SDL rgb triple */
-       tb_colour,       /* text background SDL rgb triple */
-       gf_colour,       /* graphics foreground SDL rgb triple */
-       gb_colour;       /* graphics background SDL rgb triple */
-
-Uint32 xor_mask;
-
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
-
-static int autorefresh=1;		/* Refresh screen on updates? */
-
-static int64 videorescan=0;
-static int32 videofreq=1;
 
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
@@ -156,40 +141,50 @@ static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 
-static int32
-  vscrwidth,			/* Width of virtual screen in pixels */
-  vscrheight,			/* Height of virtual screen in pixels */
-  screenwidth,			/* RISC OS width of current screen mode in pixels */
-  screenheight,			/* RISC OS height of current screen mode in pixels */
-  xgraphunits,			/* Screen width in RISC OS graphics units */
-  ygraphunits,			/* Screen height in RISC OS graphics units */
-  gwinleft,			/* Left coordinate of graphics window in RISC OS graphics units */
-  gwinright,			/* Right coordinate of graphics window in RISC OS graphics units */
-  gwintop,			/* Top coordinate of graphics window in RISC OS graphics units */
-  gwinbottom,			/* Bottom coordinate of graphics window in RISC OS graphics units */
-  xgupp,			/* RISC OS graphic units per pixel in X direction */
-  ygupp,			/* RISC OS graphic units per pixel in Y direction */
-  graph_fore_action,		/* Foreground graphics PLOT action */
-  graph_back_action,		/* Background graphics PLOT action (ignored) */
-  graph_forecol,		/* Current graphics foreground logical colour number */
-  graph_backcol,		/* Current graphics background logical colour number */
-  graph_physforecol,		/* Current graphics foreground physical colour number */
-  graph_physbackcol,		/* Current graphics background physical colour number */
-  graph_foretint,		/* Tint value added to foreground graphics colour in 256 colour modes */
-  graph_backtint,		/* Tint value added to background graphics colour in 256 colour modes */
-  plot_inverse,			/* PLOT in inverse colour? */
-  xlast,			/* Graphics X coordinate of last point visited */
-  ylast,			/* Graphics Y coordinate of last point visited */
-  xlast2,			/* Graphics X coordinate of last-but-one point visited */
-  ylast2,			/* Graphics Y coordinate of last-but-one point visited */
-  xorigin,			/* X coordinate of graphics origin */
-  yorigin,			/* Y coordinate of graphics origin */
-  xscale,			/* X direction scale factor */
-  yscale;			/* Y direction scale factor */
-
-static boolean
-  scaled,			/* TRUE if screen mode is scaled to fit real screen */
-  clipping;			/* TRUE if clipping region is not full screen of a RISC OS mode */
+static struct {
+  int32 vscrwidth;			/* Width of virtual screen in pixels */
+  int32 vscrheight;			/* Height of virtual ds.vscrheight in pixels */
+  int32 screenwidth;			/* RISC OS width of current screen mode in pixels */
+  int32 screenheight;			/* RISC OS height of current screen mode in pixels */
+  int32 xgraphunits;			/* Screen width in RISC OS graphics units */
+  int32 ygraphunits;			/* Screen height in RISC OS graphics units */
+  int32 gwinleft;			/* Left coordinate of graphics window in RISC OS graphics units */
+  int32 gwinright;			/* Right coordinate of graphics window in RISC OS graphics units */
+  int32 gwintop;			/* Top coordinate of graphics window in RISC OS graphics units */
+  int32 gwinbottom;			/* Bottom coordinate of graphics window in RISC OS graphics units */
+  int32 xgupp;				/* RISC OS graphic units per pixel in X direction */
+  int32 ygupp;				/* RISC OS graphic units per pixel in Y direction */
+  int32 graph_fore_action;		/* Foreground graphics PLOT action */
+  int32 graph_back_action;		/* Background graphics PLOT action (ignored) */
+  int32 graph_forecol;			/* Current graphics foreground logical colour number */
+  int32 graph_backcol;			/* Current graphics background logical colour number */
+  int32 graph_physforecol;		/* Current graphics foreground physical colour number */
+  int32 graph_physbackcol;		/* Current graphics background physical colour number */
+  int32 graph_foretint;			/* Tint value added to foreground graphics colour in 256 colour modes */
+  int32 graph_backtint;			/* Tint value added to background graphics colour in 256 colour modes */
+  int32 plot_inverse;			/* PLOT in inverse colour? */
+  int32 xlast;				/* Graphics X coordinate of last point visited */
+  int32 ylast;				/* Graphics Y coordinate of last point visited */
+  int32 xlast2;				/* Graphics X coordinate of last-but-one point visited */
+  int32 ylast2;				/* Graphics Y coordinate of last-but-one point visited */
+  int32 xorigin;			/* X coordinate of graphics origin */
+  int32 yorigin;			/* Y coordinate of graphics origin */
+  int32 xscale;				/* X direction scale factor */
+  int32 yscale;				/* Y direction scale factor */
+  int32 autorefresh;			/* Refresh screen on updates? */
+  uint32 tf_colour;			/* text foreground SDL rgb triple */
+  uint32 tb_colour;			/* text background SDL rgb triple */
+  uint32 gf_colour;			/* graphics foreground SDL rgb triple */
+  uint32 gb_colour;			/* graphics background SDL rgb triple */
+  uint32 displaybank;			/* Video bank to be displayed */
+  uint32 writebank;			/* Video bank to be written to */
+  uint32 xor_mask;			
+  int64 videorescan;			/* Centisecond reference of when screen was last updated */
+  int32 videofreq;			/* How many centiseconds between screen updates? */
+  boolean scaled;			/* TRUE if screen mode is scaled to fit real screen */
+  boolean clipping;			/* TRUE if clipping region is not full screen of a RISC OS mode */
+  
+} ds;
 
 /*
 ** function definitions
@@ -239,7 +234,7 @@ void reset_sysfont(int x) {
   if (!x) {
     memcpy(sysfont, sysfontbase, sizeof(sysfont));
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-    if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
+    if ((screenmode == 7) && (ds.autorefresh==1)) mode7renderscreen();
     return;
   }
   if ((x>=1) && (x<= 7)) {
@@ -253,21 +248,21 @@ void reset_sysfont(int x) {
   }
   if (x == 16) {
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-    if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
+    if ((screenmode == 7) && (ds.autorefresh==1)) mode7renderscreen();
   }
 }
 
 static void do_sdl_flip(SDL_Surface *layer) {
-  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1))) {
+  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
     SDL_Flip(layer);
-    videorescan = basicvars.centiseconds;
+    ds.videorescan = basicvars.centiseconds;
   }
 }
 
 static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
-  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1))) {
+  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
     SDL_UpdateRect(layer, x, y, w, h);
-    videorescan = basicvars.centiseconds;
+    ds.videorescan = basicvars.centiseconds;
   }
 }
 
@@ -337,25 +332,25 @@ void find_cursor(void) {
 static void set_rgb(void) {
   int j;
   if (colourdepth == COL24BIT) {
-    tf_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physforecol & 0xFF), ((text_physforecol & 0xFF00) >> 8), ((text_physforecol & 0xFF0000) >> 16));
-    tb_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physbackcol & 0xFF), ((text_physbackcol & 0xFF00) >> 8), ((text_physbackcol & 0xFF0000) >> 16));
-    gf_colour = SDL_MapRGB(sdl_fontbuf->format, (graph_physforecol & 0xFF), ((graph_physforecol & 0xFF00) >> 8), ((graph_physforecol & 0xFF0000) >> 16));
-    gb_colour = SDL_MapRGB(sdl_fontbuf->format, (graph_physbackcol & 0xFF), ((graph_physbackcol & 0xFF00) >> 8), ((graph_physbackcol & 0xFF0000) >> 16));
+    ds.tf_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physforecol & 0xFF), ((text_physforecol & 0xFF00) >> 8), ((text_physforecol & 0xFF0000) >> 16));
+    ds.tb_colour = SDL_MapRGB(sdl_fontbuf->format, (text_physbackcol & 0xFF), ((text_physbackcol & 0xFF00) >> 8), ((text_physbackcol & 0xFF0000) >> 16));
+    ds.gf_colour = SDL_MapRGB(sdl_fontbuf->format, (ds.graph_physforecol & 0xFF), ((ds.graph_physforecol & 0xFF00) >> 8), ((ds.graph_physforecol & 0xFF0000) >> 16));
+    ds.gb_colour = SDL_MapRGB(sdl_fontbuf->format, (ds.graph_physbackcol & 0xFF), ((ds.graph_physbackcol & 0xFF00) >> 8), ((ds.graph_physbackcol & 0xFF0000) >> 16));
   } else {
     j = text_physforecol*3;
-    tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_forecol << 24);
+    ds.tf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_forecol << 24);
     j = text_physbackcol*3;
-    tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_backcol << 24);
+    ds.tb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (text_backcol << 24);
 
-    j = graph_physforecol*3;
-    gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_forecol << 24);
-    j = graph_physbackcol*3;
-    gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (graph_backcol << 24);
+    j = ds.graph_physforecol*3;
+    ds.gf_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (ds.graph_forecol << 24);
+    j = ds.graph_physbackcol*3;
+    ds.gb_colour = SDL_MapRGB(sdl_fontbuf->format, palette[j], palette[j+1], palette[j+2]) + (ds.graph_backcol << 24);
   }
 #ifdef TARGET_MACOSX
   if(screenmode!=7) {
-    tf_colour = SWAPENDIAN(tf_colour);
-    tb_colour = SWAPENDIAN(tb_colour);
+    ds.tf_colour = SWAPENDIAN(ds.tf_colour);
+    ds.tb_colour = SWAPENDIAN(ds.tb_colour);
   }
 #endif
 }
@@ -386,14 +381,14 @@ static void vdu_2317(void) {
     if (colourdepth==COL24BIT) text_physbackcol=tint24bit(text_backcol, text_backtint);
     break;
   case TINT_FOREGRAPH:
-    graph_foretint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
-    if (colourdepth==256) graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
-    if (colourdepth==COL24BIT) graph_physforecol=tint24bit(graph_forecol, graph_foretint);
+    ds.graph_foretint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
+    if (colourdepth==256) ds.graph_physforecol = (ds.graph_forecol<<COL256SHIFT)+ds.graph_foretint;
+    if (colourdepth==COL24BIT) ds.graph_physforecol=tint24bit(ds.graph_forecol, ds.graph_foretint);
     break;
   case TINT_BACKGRAPH:
-    graph_backtint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
-    if (colourdepth==256) graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
-    if (colourdepth==COL24BIT) graph_physbackcol=tint24bit(graph_backcol, graph_backtint);
+    ds.graph_backtint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;
+    if (colourdepth==256) ds.graph_physbackcol = (ds.graph_backcol<<COL256SHIFT)+ds.graph_backtint;
+    if (colourdepth==COL24BIT) ds.graph_physbackcol=tint24bit(ds.graph_backcol, ds.graph_backtint);
     break;
   case EXCH_TEXTCOLS:	/* Exchange text foreground and background colours */
     temp = text_forecol; text_forecol = text_backcol; text_backcol = temp;
@@ -527,39 +522,39 @@ static void toggle_cursor(void) {
   }
   xtemp = xtext;
   if (xtemp > twinright) xtemp=twinright;
-  if (displaybank != writebank) return;
+  if (ds.displaybank != ds.writebank) return;
   curstate instate=cursorstate;
   if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
   if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
     cursorstate = SUSPENDED;
   else
     if (!vduflag(VDU_FLAG_GRAPHICURS)) cursorstate = ONSCREEN;
-  if (autorefresh != 1) return;
-  left = xtemp*xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
-  right = left + xscale*mxppc -1;
+  if (ds.autorefresh != 1) return;
+  left = xtemp*ds.xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
+  right = left + ds.xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
-    y = ((ytext+1)*yscale*myppc - yscale) * vscrwidth;
+    y = ((ytext+1)*ds.yscale*myppc - ds.yscale) * ds.vscrwidth;
     for (x=left; x <= right; x++) {
-      *((Uint32*)matrixflags.surface->pixels + x + y) ^= SWAPENDIAN(xor_mask);
-      if (yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + vscrwidth) ^= SWAPENDIAN(xor_mask);
+      *((Uint32*)matrixflags.surface->pixels + x + y) ^= SWAPENDIAN(ds.xor_mask);
+      if (ds.yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
       if (myppc==10) { /* gapped modes */
-        *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= SWAPENDIAN(xor_mask);
-        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*2)) ^= SWAPENDIAN(xor_mask);
-        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*3)) ^= SWAPENDIAN(xor_mask);
-        *((Uint32*)matrixflags.surface->pixels + x + y - (vscrwidth*4)) ^= SWAPENDIAN(xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - (ds.vscrwidth*2)) ^= SWAPENDIAN(ds.xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - (ds.vscrwidth*3)) ^= SWAPENDIAN(ds.xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y - (ds.vscrwidth*4)) ^= SWAPENDIAN(ds.xor_mask);
       }
-      if (screenmode ==7) *((Uint32*)matrixflags.surface->pixels + x + y - vscrwidth) ^= SWAPENDIAN(xor_mask);
+      if (screenmode ==7) *((Uint32*)matrixflags.surface->pixels + x + y - ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
     }
   }
   else if (cursmode == BLOCK) {
-    top = ytext*yscale*myppc;
-    bottom = top + myppc*yscale -1;
+    top = ytext*ds.yscale*myppc;
+    bottom = top + myppc*ds.yscale -1;
     for (y = top; y <= bottom; y++) {
       for (x = left; x <= right; x++)
-        *((Uint32*)matrixflags.surface->pixels + x + y*vscrwidth) ^= SWAPENDIAN(xor_mask);
+        *((Uint32*)matrixflags.surface->pixels + x + y*ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
     }
   }
-  if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*xscale*mxppc, ytext*yscale*myppc, xscale*mxppc, yscale*myppc);
+  if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*ds.xscale*mxppc, ytext*ds.yscale*myppc, ds.xscale*mxppc, ds.yscale*myppc);
 }
 
 /*
@@ -587,31 +582,31 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
-  if (autorefresh != 1) return;
-  if (right < 0 || bottom < 0 || left >= screenwidth || top >= screenheight) return;	/* Is off screen completely */
+  if (ds.autorefresh != 1) return;
+  if (right < 0 || bottom < 0 || left >= ds.screenwidth || top >= ds.screenheight) return;	/* Is off screen completely */
   if (left < 0) left = 0;				/* Clip the rectangle as necessary */
-  if (right >= screenwidth) right = screenwidth-1;
+  if (right >= ds.screenwidth) right = ds.screenwidth-1;
   if (top < 0) top = 0;
-  if (bottom >= screenheight) bottom = screenheight-1;
-  if(!scaled) {
-    if (displaybank == writebank) {
+  if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
+  if(!ds.scaled) {
+    if (ds.displaybank == ds.writebank) {
       scale_rect.x = left;
       scale_rect.y = top;
       scale_rect.w = (right+1 - left);
       scale_rect.h = (bottom+1 - top);
-      SDL_BlitSurface(screenbank[writebank], &scale_rect, matrixflags.surface, &scale_rect);
+      SDL_BlitSurface(screenbank[ds.writebank], &scale_rect, matrixflags.surface, &scale_rect);
     }
-  } else if (displaybank == writebank) {
-    int32 dleft = left*xscale;				/* Calculate pixel coordinates in the */
-    int32 dtop  = top*yscale;				/* screen buffer of the rectangle */
+  } else if (ds.displaybank == ds.writebank) {
+    int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
+    int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
     int32 yy = dtop;
     int32 xx, i, j, ii, jj;
     for (j = top; j <= bottom; j++) {
-      for (jj = 1; jj <= yscale; jj++) {
+      for (jj = 1; jj <= ds.yscale; jj++) {
         xx = dleft;
         for (i = left; i <= right; i++) {
-          for (ii = 1; ii <= xscale; ii++) {
-            *((Uint32*)matrixflags.surface->pixels + xx + yy*vscrwidth) = *((Uint32*)screenbank[writebank]->pixels + i + j*vscrwidth);
+          for (ii = 1; ii <= ds.xscale; ii++) {
+            *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = *((Uint32*)screenbank[ds.writebank]->pixels + i + j*ds.vscrwidth);
             xx++;
           }
         }
@@ -622,7 +617,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
       int p;
       hide_cursor();
       scroll_rect.x=0;
-      scroll_rect.w=screenwidth*xscale;
+      scroll_rect.w=ds.screenwidth*ds.xscale;
       scroll_rect.h=4;
       for (p=0; p<25; p++) {
         scroll_rect.y=16+(p*20);
@@ -736,14 +731,14 @@ static void init_palette(void) {
   if (colourdepth >= 256) {
     text_physforecol = (text_forecol<<COL256SHIFT)+text_foretint;
     text_physbackcol = (text_backcol<<COL256SHIFT)+text_backtint;
-    graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
-    graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
+    ds.graph_physforecol = (ds.graph_forecol<<COL256SHIFT)+ds.graph_foretint;
+    ds.graph_physbackcol = (ds.graph_backcol<<COL256SHIFT)+ds.graph_backtint;
   }
   else {
     text_physforecol = text_forecol;
     text_physbackcol = text_backcol;
-    graph_physforecol = graph_forecol;
-    graph_physbackcol = graph_backcol;
+    ds.graph_physforecol = ds.graph_forecol;
+    ds.graph_physbackcol = ds.graph_backcol;
   }
   set_rgb();
 }
@@ -807,11 +802,11 @@ static void set_text_colour(boolean background, int colnum) {
  */
 static void set_graphics_colour(boolean background, int colnum) {
   if (background)
-    graph_physbackcol = graph_backcol = (colnum & (colourdepth - 1));
+    ds.graph_physbackcol = ds.graph_backcol = (colnum & (colourdepth - 1));
   else {
-    graph_physforecol = graph_forecol = (colnum & (colourdepth - 1));
+    ds.graph_physforecol = ds.graph_forecol = (colnum & (colourdepth - 1));
   }
-  graph_fore_action = graph_back_action = 0;
+  ds.graph_fore_action = ds.graph_back_action = 0;
   set_rgb();
 }
 
@@ -838,19 +833,19 @@ static void scroll(updown direction) {
         scroll_rect.y = YPPC * (twintop + 1);
         scroll_rect.w = XPPC * (twinright - twinleft +1);
         scroll_rect.h = YPPC * (twinbottom - twintop);
-        SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, NULL);
+        SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, NULL);
         line_rect.x = 0;
         line_rect.y = YPPC * (twinbottom - twintop);
         line_rect.w = XPPC * (twinright - twinleft +1);
         line_rect.h = YPPC;
-        SDL_FillRect(screen1, &line_rect, tb_colour);
+        SDL_FillRect(screen1, &line_rect, ds.tb_colour);
         line_rect.x = 0;
         line_rect.y = 0;
         line_rect.w = XPPC * (twinright - twinleft +1);
         line_rect.h = YPPC * (twinbottom - twintop +1);
         scroll_rect.x = left;
         scroll_rect.y = dest;
-        SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
+        SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
         blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
 #ifndef TARGET_MACOSX
       } else {
@@ -859,17 +854,17 @@ static void scroll(updown direction) {
         ** and it's insanely much faster than running blit_scaled.
         */
         // First, get size of one line.
-        top=4*screenwidth*YPPC;
+        top=4*ds.screenwidth*YPPC;
         // Screen size minus size of 1st line (calculated above)
-        dest=(screenwidth * screenheight * 4) - top;
-        memmove((void *)screenbank[writebank]->pixels, (const void *)(screenbank[writebank]->pixels)+top, dest);
-        memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*xscale*yscale), dest*xscale*yscale);
+        dest=(ds.screenwidth * ds.screenheight * 4) - top;
+        memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
+        memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*ds.xscale*ds.yscale), dest*ds.xscale*ds.yscale);
         /* Need to do it this way, as memset() works on bytes only */
         for (loop=0;loop<top;loop+=4) {
-          *(uint32 *)(screenbank[writebank]->pixels+dest+loop) = SWAPENDIAN(tb_colour);
+          *(uint32 *)(screenbank[ds.writebank]->pixels+dest+loop) = SWAPENDIAN(ds.tb_colour);
         }
-        for (loop=0;loop<(top*xscale*yscale);loop+=4) {
-          *(uint32 *)(matrixflags.surface->pixels+(dest*xscale*yscale)+loop) = SWAPENDIAN(tb_colour);
+        for (loop=0;loop<(top*ds.xscale*ds.yscale);loop+=4) {
+          *(uint32 *)(matrixflags.surface->pixels+(dest*ds.xscale*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
         }
       }
 #endif
@@ -884,19 +879,19 @@ static void scroll(updown direction) {
       scroll_rect.h = YPPC * (twinbottom - twintop);
       line_rect.x = 0;
       line_rect.y = YPPC;
-      SDL_BlitSurface(screenbank[writebank], &scroll_rect, screen1, &line_rect);
+      SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, &line_rect);
       line_rect.x = 0;
       line_rect.y = 0;
       line_rect.w = XPPC * (twinright - twinleft +1);
       line_rect.h = YPPC;
-      SDL_FillRect(screen1, &line_rect, tb_colour);
+      SDL_FillRect(screen1, &line_rect, ds.tb_colour);
       line_rect.x = 0;
       line_rect.y = 0;
       line_rect.w = XPPC * (twinright - twinleft +1);
       line_rect.h = YPPC * (twinbottom - twintop +1);
       scroll_rect.x = left;
       scroll_rect.y = dest;
-      SDL_BlitSurface(screen1, &line_rect, screenbank[writebank], &scroll_rect);
+      SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
       blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
     }
     do_sdl_flip(matrixflags.surface);
@@ -919,9 +914,9 @@ static void scroll(updown direction) {
       line_rect.w = M7XPPC * (twinright - twinleft +1);
       line_rect.h = M7YPPC;
       if (vduflag(MODE7_UPDATE)) {
-        SDL_FillRect(screen1, &line_rect, tb_colour);
-        SDL_FillRect(screen2A, &line_rect, tb_colour);
-        SDL_FillRect(screen3A, &line_rect, tb_colour);
+        SDL_FillRect(screen1, &line_rect, ds.tb_colour);
+        SDL_FillRect(screen2A, &line_rect, ds.tb_colour);
+        SDL_FillRect(screen3A, &line_rect, ds.tb_colour);
       }
       for(n=2; n<=25; n++) { 
         vdu141track[n-1]=vdu141track[n];
@@ -954,9 +949,9 @@ static void scroll(updown direction) {
       line_rect.w = M7XPPC * (twinright - twinleft +1);
       line_rect.h = M7YPPC;
       if (vduflag(MODE7_UPDATE)) {
-        SDL_FillRect(screen1, &line_rect, tb_colour);
-        SDL_FillRect(screen2A, &line_rect, tb_colour);
-        SDL_FillRect(screen3A, &line_rect, tb_colour);
+        SDL_FillRect(screen1, &line_rect, ds.tb_colour);
+        SDL_FillRect(screen2A, &line_rect, ds.tb_colour);
+        SDL_FillRect(screen3A, &line_rect, ds.tb_colour);
       }
       for(n=0; n<=24; n++) {
         vdu141track[n+1]=vdu141track[n];
@@ -1005,20 +1000,20 @@ void mode7flipbank() {
   int32 ypos;
   
   if (screenmode != 7) {
-    if ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1) && (displaybank == writebank)) {
+    if ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1) && (ds.displaybank == ds.writebank)) {
       SDL_UpdateRect(matrixflags.surface, 0, 0, 0, 0);
-      videorescan = basicvars.centiseconds;
+      ds.videorescan = basicvars.centiseconds;
     }
   } else {
     mytime=basicvars.centiseconds;
-    if ((autorefresh==1) && vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
+    if ((ds.autorefresh==1) && vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
       for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
       do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
       m7updatetimer=mytime;
     }
     if ((mode7timer - mytime) <= 0) {
       hide_cursor();
-      if (!vduflag(MODE7_UPDATE) && (autorefresh==1)) mode7renderscreen();
+      if (!vduflag(MODE7_UPDATE) && (ds.autorefresh==1)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
         SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
         write_vduflag(MODE7_BANK,0);
@@ -1054,7 +1049,7 @@ static void write_char(int32 ch) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        videorescan=0;
+        ds.videorescan=0;
         do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1089,14 +1084,14 @@ static void write_char(int32 ch) {
   topy = ytext*YPPC;
   for (y=0; y < 8; y++) {
     line = sysfont[ch-' '][y];
-    *((Uint32*)screenbank[writebank]->pixels + topx + 0 + ((topy+y)*vscrwidth)) = (line & 0x80) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 1 + ((topy+y)*vscrwidth)) = (line & 0x40) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 2 + ((topy+y)*vscrwidth)) = (line & 0x20) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 3 + ((topy+y)*vscrwidth)) = (line & 0x10) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 4 + ((topy+y)*vscrwidth)) = (line & 0x08) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 5 + ((topy+y)*vscrwidth)) = (line & 0x04) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 6 + ((topy+y)*vscrwidth)) = (line & 0x02) ? tf_colour : tb_colour;
-    *((Uint32*)screenbank[writebank]->pixels + topx + 7 + ((topy+y)*vscrwidth)) = (line & 0x01) ? tf_colour : tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 0 + ((topy+y)*ds.vscrwidth)) = (line & 0x80) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 1 + ((topy+y)*ds.vscrwidth)) = (line & 0x40) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 2 + ((topy+y)*ds.vscrwidth)) = (line & 0x20) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 3 + ((topy+y)*ds.vscrwidth)) = (line & 0x10) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 4 + ((topy+y)*ds.vscrwidth)) = (line & 0x08) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 5 + ((topy+y)*ds.vscrwidth)) = (line & 0x04) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 6 + ((topy+y)*ds.vscrwidth)) = (line & 0x02) ? ds.tf_colour : ds.tb_colour;
+    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 7 + ((topy+y)*ds.vscrwidth)) = (line & 0x01) ? ds.tf_colour : ds.tb_colour;
   }
   if (vduflag(VDU_FLAG_ECHO) || (vdu2316byte & 0xFE)) {
     blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
@@ -1111,7 +1106,7 @@ static void write_char(int32 ch) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        videorescan=0;
+        ds.videorescan=0;
         do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1155,61 +1150,61 @@ static void write_char(int32 ch) {
 static void plot_char(int32 ch) {
   int32 y, topx, topy, line;
   SDL_Rect clip_rect;
-  if (clipping) {
-    clip_rect.x = GXTOPX(gwinleft);
-    clip_rect.y = GYTOPY(gwintop);
-    clip_rect.w = gwinright - gwinleft +1;
-    clip_rect.h = gwinbottom - gwintop +1;
-    SDL_SetClipRect(screenbank[writebank], &clip_rect);
+  if (ds.clipping) {
+    clip_rect.x = GXTOPX(ds.gwinleft);
+    clip_rect.y = GYTOPY(ds.gwintop);
+    clip_rect.w = ds.gwinright - ds.gwinleft +1;
+    clip_rect.h = ds.gwinbottom - ds.gwintop +1;
+    SDL_SetClipRect(screenbank[ds.writebank], &clip_rect);
   }
-  topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
-  topy = GYTOPY(ylast);	/* top left-hand corner of the character */
+  topx = GXTOPX(ds.xlast);		/* X and Y coordinates are those of the */
+  topy = GYTOPY(ds.ylast);	/* top left-hand corner of the character */
   place_rect.x = topx;
   place_rect.y = topy;
   for (y=0; y<YPPC; y++) {
     if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) plot_pixel(screenbank[writebank], (topx + 0 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x40) plot_pixel(screenbank[writebank], (topx + 1 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x20) plot_pixel(screenbank[writebank], (topx + 2 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x10) plot_pixel(screenbank[writebank], (topx + 3 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x08) plot_pixel(screenbank[writebank], (topx + 4 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x04) plot_pixel(screenbank[writebank], (topx + 5 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x02) plot_pixel(screenbank[writebank], (topx + 6 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
-      if (line & 0x01) plot_pixel(screenbank[writebank], (topx + 7 + (topy+y)*vscrwidth), gf_colour, graph_fore_action);
+      if (line & 0x80) plot_pixel(screenbank[ds.writebank], (topx + 0 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x40) plot_pixel(screenbank[ds.writebank], (topx + 1 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x20) plot_pixel(screenbank[ds.writebank], (topx + 2 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x10) plot_pixel(screenbank[ds.writebank], (topx + 3 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x08) plot_pixel(screenbank[ds.writebank], (topx + 4 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x04) plot_pixel(screenbank[ds.writebank], (topx + 5 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x02) plot_pixel(screenbank[ds.writebank], (topx + 6 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x01) plot_pixel(screenbank[ds.writebank], (topx + 7 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
     }
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
-  xlast += XPPC*xgupp;	/* Move to next character position in X direction */
-  if ((xlast > gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
-    xlast = gwinleft;
-    ylast -= YPPC*ygupp;
-    if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
+  ds.xlast += XPPC*ds.xgupp;	/* Move to next character position in X direction */
+  if ((ds.xlast > ds.gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
+    ds.xlast = ds.gwinleft;
+    ds.ylast -= YPPC*ds.ygupp;
+    if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Below bottom of graphics window - Wrap around to top */
   }
-  if (clipping) {
-    SDL_SetClipRect(screenbank[writebank], NULL);
+  if (ds.clipping) {
+    SDL_SetClipRect(screenbank[ds.writebank], NULL);
   }
 }
 
 static void plot_space_opaque(void) {
   int32 topx, topy;
-  topx = GXTOPX(xlast);		/* X and Y coordinates are those of the */
-  topy = GYTOPY(ylast);	/* top left-hand corner of the character */
+  topx = GXTOPX(ds.xlast);		/* X and Y coordinates are those of the */
+  topy = GYTOPY(ds.ylast);	/* top left-hand corner of the character */
   place_rect.x = topx;
   place_rect.y = topy;
-  SDL_FillRect(sdl_fontbuf, NULL, gb_colour);
-  SDL_BlitSurface(sdl_fontbuf, &font_rect, screenbank[writebank], &place_rect);
+  SDL_FillRect(sdl_fontbuf, NULL, ds.gb_colour);
+  SDL_BlitSurface(sdl_fontbuf, &font_rect, screenbank[ds.writebank], &place_rect);
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
-  xlast += XPPC*xgupp;	/* Move to next character position in X direction */
-  if ((xlast > gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
-    xlast = gwinleft;
-    ylast -= YPPC*ygupp;
-    if (ylast < gwinbottom) ylast = gwintop;	/* Below bottom of graphics window - Wrap around to top */
+  ds.xlast += XPPC*ds.xgupp;	/* Move to next character position in X direction */
+  if ((ds.xlast > ds.gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
+    ds.xlast = ds.gwinleft;
+    ds.ylast -= YPPC*ds.ygupp;
+    if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Below bottom of graphics window - Wrap around to top */
   }
 }
 
@@ -1282,10 +1277,10 @@ static void vdu_setpalette(void) {
   if (colourdepth <= 256) {
     c = logcol * 3;
     newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
-    for (offset=0; offset < (screenheight*screenwidth*xscale); offset++) {
-      if ((SWAPENDIAN(*((Uint32*)screenbank[writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[writebank]->pixels + offset) = SWAPENDIAN(newcol);
+    for (offset=0; offset < (ds.screenheight*ds.screenwidth*ds.xscale); offset++) {
+      if ((SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[ds.writebank]->pixels + offset) = SWAPENDIAN(newcol);
     }
-    blit_scaled(0,0,screenwidth-1,screenheight-1);
+    blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   }
 }
 
@@ -1344,12 +1339,12 @@ static void move_up(void) {
 */
 static void move_curback(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
-    xlast -= XPPC*xgupp;
-    if (xlast < gwinleft) {		/* Cursor is outside the graphics window */
-      xlast = gwinright-XPPC*xgupp+1;	/* Move back to right edge of previous line */
-      ylast += YPPC*ygupp;
-      if (ylast > gwintop) {		/* Move above top of window */
-        ylast = gwinbottom+YPPC*ygupp-1;	/* Wrap around to bottom of window */
+    ds.xlast -= XPPC*ds.xgupp;
+    if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
+      ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
+      ds.ylast += YPPC*ds.ygupp;
+      if (ds.ylast > ds.gwintop) {		/* Move above top of window */
+        ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Wrap around to bottom of window */
       }
     }
   } else {
@@ -1368,11 +1363,11 @@ static void move_curback(void) {
 */
 static void move_curforward(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
-    xlast += XPPC*xgupp;
-    if (xlast > gwinright) {	/* Cursor is outside the graphics window */
-      xlast = gwinleft;		/* Move to left side of window on next line */
-      ylast -= YPPC*ygupp;
-      if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
+    ds.xlast += XPPC*ds.xgupp;
+    if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
+      ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
+      ds.ylast -= YPPC*ds.ygupp;
+      if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
     }
   }
   hide_cursor();	/* Remove cursor */
@@ -1390,15 +1385,15 @@ static void move_curforward(void) {
 */
 static void move_curdown(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ylast -= YPPC*ygupp;
-    if (ylast < gwinbottom) ylast = gwintop;	/* Moved below bottom of window - Wrap around to top */
+    ds.ylast -= YPPC*ds.ygupp;
+    if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
   } else {
     /* VDU14 check here - all these should be optimisable */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        videorescan=0;
+        ds.videorescan=0;
         do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1423,8 +1418,8 @@ static void move_curdown(void) {
 */
 static void move_curup(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ylast += YPPC*ygupp;
-    if (ylast > gwintop) ylast = gwinbottom+YPPC*ygupp-1;	/* Move above top of window - Wrap around to bottow */
+    ds.ylast += YPPC*ds.ygupp;
+    if (ds.ylast > ds.gwintop) ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Move above top of window - Wrap around to bottow */
   } else {
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
@@ -1480,10 +1475,10 @@ static void vdu_cleartext(void) {
     line_rect.y = top;
     line_rect.w = right - left +1;
     line_rect.h = bottom - top +1;
-    SDL_FillRect(screenbank[writebank], &line_rect, tb_colour);
-    SDL_FillRect(screen2, &line_rect, tb_colour);
-    SDL_FillRect(screen3, &line_rect, tb_colour);
-    blit_scaled(0,0,screenwidth-1,screenheight-1);
+    SDL_FillRect(screenbank[ds.writebank], &line_rect, ds.tb_colour);
+    SDL_FillRect(screen2, &line_rect, ds.tb_colour);
+    SDL_FillRect(screen3, &line_rect, ds.tb_colour);
+    blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
     mode7renderscreen();
   }
   else {	/* Text window is not being used */
@@ -1492,11 +1487,11 @@ static void vdu_cleartext(void) {
     right = twinright*mxppc+mxppc-1;
     top = twintop*myppc;
     bottom = twinbottom*myppc+myppc-1;
-    SDL_FillRect(screenbank[writebank], NULL, tb_colour);
+    SDL_FillRect(screenbank[ds.writebank], NULL, ds.tb_colour);
     // blit_scaled(left, top, right, bottom);
-    blit_scaled(0, 0, screenwidth-1, screenheight-1);
-    SDL_FillRect(screen2, NULL, tb_colour);
-    SDL_FillRect(screen3, NULL, tb_colour);
+    blit_scaled(0, 0, ds.screenwidth-1, ds.screenheight-1);
+    SDL_FillRect(screen2, NULL, ds.tb_colour);
+    SDL_FillRect(screen3, NULL, ds.tb_colour);
     xtext = textxhome();
     ytext = textyhome();
     reveal_cursor();	/* Redraw cursor */
@@ -1509,7 +1504,7 @@ static void vdu_cleartext(void) {
 */
 static void vdu_return(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    xlast = gwinleft;
+    ds.xlast = ds.gwinleft;
   } else {
     hide_cursor();	/* Remove cursor */
     xtext = textxhome();
@@ -1535,17 +1530,17 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   for (yloop=top;yloop<=bottom; yloop++) {
-    if (clipping) {
+    if (ds.clipping) {
       roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
-      if ((roy < gwinbottom) || (roy > gwintop)) continue;
+      if ((roy < ds.gwinbottom) || (roy > ds.gwintop)) continue;
     }
     for (xloop=left; xloop<=right; xloop++) {
-      if (clipping) {
+      if (ds.clipping) {
         rox=xloop * modetable[screenmode].xscale * 2;
-        if ((rox < gwinleft) || (rox > gwinright)) continue;
+        if ((rox < ds.gwinleft) || (rox > ds.gwinright)) continue;
       }
-      pxoffset = xloop + yloop*vscrwidth;
-      prevcolour=SWAPENDIAN(*((Uint32*)screenbank[writebank]->pixels + pxoffset));
+      pxoffset = xloop + yloop*ds.vscrwidth;
+      prevcolour=SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + pxoffset));
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
       if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
       switch (action) {
@@ -1574,7 +1569,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
         altcolour=altcolour*3;
         altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
-      *((Uint32*)screenbank[writebank]->pixels + pxoffset) = SWAPENDIAN(altcolour);
+      *((Uint32*)screenbank[ds.writebank]->pixels + pxoffset) = SWAPENDIAN(altcolour);
     }
   }
 
@@ -1587,12 +1582,12 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
 static void vdu_cleargraph(void) {
   if (istextonly()) return;
   hide_cursor();	/* Remove cursor */
-  if (graph_back_action == 0 && !clipping) {
-    SDL_FillRect(screenbank[writebank], NULL, gb_colour);
+  if (ds.graph_back_action == 0 && !ds.clipping) {
+    SDL_FillRect(screenbank[ds.writebank], NULL, ds.gb_colour);
   } else {
-    fill_rectangle(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom), gb_colour, graph_back_action);
+    fill_rectangle(GXTOPX(ds.gwinleft), GYTOPY(ds.gwintop), GXTOPX(ds.gwinright), GYTOPY(ds.gwinbottom), ds.gb_colour, ds.graph_back_action);
   }
-  blit_scaled(GXTOPX(gwinleft), GYTOPY(gwintop), GXTOPX(gwinright), GYTOPY(gwinbottom));
+  blit_scaled(GXTOPX(ds.gwinleft), GYTOPY(ds.gwintop), GXTOPX(ds.gwinright), GYTOPY(ds.gwinbottom));
   if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();	/* Redraw cursor */
   do_sdl_flip(matrixflags.surface);
 }
@@ -1641,14 +1636,14 @@ static void reset_colours(void) {
   case 2:
     logtophys[0] = VDU_BLACK;
     logtophys[1] = VDU_WHITE;
-    text_forecol = graph_forecol = 1;
+    text_forecol = ds.graph_forecol = 1;
     break;
   case 4:
     logtophys[0] = VDU_BLACK;
     logtophys[1] = VDU_RED;
     logtophys[2] = VDU_YELLOW;
     logtophys[3] = VDU_WHITE;
-    text_forecol = graph_forecol = 3;
+    text_forecol = ds.graph_forecol = 3;
     break;
   case 16:
     logtophys[0] = VDU_BLACK;
@@ -1667,17 +1662,17 @@ static void reset_colours(void) {
     logtophys[13] = FLASH_MAGREEN;
     logtophys[14] = FLASH_CYANRED;
     logtophys[15] = FLASH_WHITEBLA;
-    text_forecol = graph_forecol = 7;
+    text_forecol = ds.graph_forecol = 7;
     break;
   case 256:
-    text_forecol = graph_forecol = 63;
-    graph_foretint = text_foretint = MAXTINT;
-    graph_backtint = text_backtint = 0;
+    text_forecol = ds.graph_forecol = 63;
+    ds.graph_foretint = text_foretint = MAXTINT;
+    ds.graph_backtint = text_backtint = 0;
     break;
   case COL24BIT:
-    text_forecol = graph_forecol = 0xFFFFFF;
-    graph_foretint = text_foretint = MAXTINT;
-    graph_backtint = text_backtint = 0;
+    text_forecol = ds.graph_forecol = 0xFFFFFF;
+    ds.graph_foretint = text_foretint = MAXTINT;
+    ds.graph_backtint = text_backtint = 0;
     break;
   default:
     error(ERR_UNSUPPORTED); /* 32K colour modes not supported */
@@ -1687,7 +1682,7 @@ static void reset_colours(void) {
   else {
     colourmask = colourdepth-1;
   }
-  text_backcol = graph_backcol = 0;
+  text_backcol = ds.graph_backcol = 0;
   init_palette();
 }
 
@@ -1699,25 +1694,25 @@ static void vdu_graphcol(void) {
   int32 colnumber;
   colnumber = vduqueue[1];
   if (colnumber < 128) {	/* Setting foreground graphics colour */
-      graph_fore_action = vduqueue[0];
+      ds.graph_fore_action = vduqueue[0];
       if (colourdepth == 256) {
-        graph_forecol = colnumber & COL256MASK;
-        graph_physforecol = (graph_forecol<<COL256SHIFT)+graph_foretint;
+        ds.graph_forecol = colnumber & COL256MASK;
+        ds.graph_physforecol = (ds.graph_forecol<<COL256SHIFT)+ds.graph_foretint;
       } else if (colourdepth == COL24BIT) {
-        graph_physforecol = graph_forecol = colour24bit(colnumber, graph_foretint);
+        ds.graph_physforecol = ds.graph_forecol = colour24bit(colnumber, ds.graph_foretint);
       } else {
-        graph_physforecol = graph_forecol = colnumber & colourmask;
+        ds.graph_physforecol = ds.graph_forecol = colnumber & colourmask;
       }
   }
   else {	/* Setting background graphics colour */
-    graph_back_action = vduqueue[0];
+    ds.graph_back_action = vduqueue[0];
     if (colourdepth == 256) {
-      graph_backcol = colnumber & COL256MASK;
-      graph_physbackcol = (graph_backcol<<COL256SHIFT)+graph_backtint;
+      ds.graph_backcol = colnumber & COL256MASK;
+      ds.graph_physbackcol = (ds.graph_backcol<<COL256SHIFT)+ds.graph_backtint;
     } else if (colourdepth == COL24BIT) {
-      graph_physbackcol = graph_backcol = colour24bit(colnumber, graph_backtint);
+      ds.graph_physbackcol = ds.graph_backcol = colour24bit(colnumber, ds.graph_backtint);
     } else {	/* Operating in text mode */
-      graph_physbackcol = graph_backcol = colnumber & colourmask;
+      ds.graph_physbackcol = ds.graph_backcol = colnumber & colourmask;
     }
   }
   set_rgb();
@@ -1736,10 +1731,10 @@ static void vdu_graphwind(void) {
   if (right > 0x7FFF) right = -(0x10000-right);
   top = vduqueue[6]+vduqueue[7]*256;		/* Top coordinate */
   if (top > 0x7FFF) top = -(0x10000-top);
-  left += xorigin;
-  right += xorigin;
-  top += yorigin;
-  bottom += yorigin;
+  left += ds.xorigin;
+  right += ds.xorigin;
+  top += ds.yorigin;
+  bottom += ds.yorigin;
   if (left > right) {	/* Ensure left < right */
     int32 temp = left;
     left = right;
@@ -1751,12 +1746,12 @@ static void vdu_graphwind(void) {
     top = temp;
   }
 /* Ensure clipping region is entirely within the screen area */
-  if (right < 0 || top < 0 || left >= xgraphunits || bottom >= ygraphunits) return;
-  gwinleft = left;
-  gwinright = right;
-  gwintop = top;
-  gwinbottom = bottom;
-  clipping = TRUE;
+  if (right < 0 || top < 0 || left >= ds.xgraphunits || bottom >= ds.ygraphunits) return;
+  ds.gwinleft = left;
+  ds.gwinright = right;
+  ds.gwintop = top;
+  ds.gwinbottom = bottom;
+  ds.clipping = TRUE;
 }
 
 /*
@@ -1776,14 +1771,14 @@ static void vdu_plot(void) {
 ** graphics windows (VDU 26)
 */
 static void vdu_restwind(void) {
-  clipping = FALSE;
+  ds.clipping = FALSE;
   write_vduflag(MODE7_GRAPHICS,0);
-  xorigin = yorigin = 0;
-  xlast = ylast = xlast2 = ylast2 = 0;
-  gwinleft = 0;
-  gwinright = xgraphunits-1;
-  gwintop = ygraphunits-1;
-  gwinbottom = 0;
+  ds.xorigin = ds.yorigin = 0;
+  ds.xlast = ds.ylast = ds.xlast2 = ds.ylast2 = 0;
+  ds.gwinleft = 0;
+  ds.gwinright = ds.xgraphunits-1;
+  ds.gwintop = ds.ygraphunits-1;
+  ds.gwinbottom = 0;
   hide_cursor();	/* Remove cursor */
   xtext = ytext = 0;
   reveal_cursor();	/* Redraw cursor */
@@ -1831,8 +1826,8 @@ static void vdu_origin(void) {
   int32 x, y;
   x = vduqueue[0]+vduqueue[1]*256;
   y = vduqueue[2]+vduqueue[3]*256;
-  xorigin = x<=32767 ? x : -(0x10000-x);
-  yorigin = y<=32767 ? y : -(0x10000-y);
+  ds.xorigin = x<=32767 ? x : -(0x10000-x);
+  ds.yorigin = y<=32767 ? y : -(0x10000-y);
 }
 
 /*
@@ -1841,8 +1836,8 @@ static void vdu_origin(void) {
 */
 static void vdu_hometext(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Send graphics cursor to top left-hand corner of graphics window */
-    xlast = gwinleft;
-    ylast = gwintop;
+    ds.xlast = ds.gwinleft;
+    ds.ylast = ds.gwintop;
   }
   else {	/* Send text cursor to the top left-hand corner of the text window */
     move_cursor(textxhome(), textyhome());
@@ -1856,8 +1851,8 @@ static void vdu_hometext(void) {
 static void vdu_movetext(void) {
   int32 column, row;
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Text is going to the graphics cursor */
-    xlast = gwinleft+vduqueue[0]*XPPC*xgupp;
-    ylast = gwintop-vduqueue[1]*YPPC*ygupp+1;
+    ds.xlast = ds.gwinleft+vduqueue[0]*XPPC*ds.xgupp;
+    ds.ylast = ds.gwintop-vduqueue[1]*YPPC*ds.ygupp+1;
   }
   else {	/* Text is going to the graphics cursor */
     column = vduqueue[0] + twinleft;
@@ -1943,9 +1938,9 @@ void emulate_vdu(int32 charvalue) {
         }
         mode7changed[ytext]=1;
         if (vduflag(MODE7_UPDATE_HIGHACC)) {
-          if ((videorescan < (basicvars.centiseconds-videofreq)) && (autorefresh==1)) {
+          if ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1)) {
             mode7renderline(ytext);
-            videorescan = basicvars.centiseconds;
+            ds.videorescan = basicvars.centiseconds;
           }
         }
         xtext+=textxinc();
@@ -2194,8 +2189,8 @@ static void setup_mode(int32 mode) {
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
   if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
-  ox=vscrwidth;
-  oy=vscrheight;
+  ox=ds.vscrwidth;
+  oy=ds.vscrheight;
   /* Try to catch an undefined mode */
   hide_cursor();
   if (modetable[mode].xres == 0) {
@@ -2218,19 +2213,19 @@ static void setup_mode(int32 mode) {
     do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
     if (matrixflags.failovermode == 255) error(ERR_BADMODE);
   }
-  autorefresh=1;
-  vscrwidth = sx;
-  vscrheight = sy;
+  ds.autorefresh=1;
+  ds.vscrwidth = sx;
+  ds.vscrheight = sy;
   for (p=0; p<4; p++) {
     SDL_FreeSurface(screenbank[p]);
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   SDL_FreeSurface(modescreen);
   modescreen = SDL_DisplayFormat(matrixflags.surface);
-  matrixflags.modescreen_ptr = screenbank[writebank]->pixels;
+  matrixflags.modescreen_ptr = screenbank[ds.writebank]->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
-  displaybank=0;
-  writebank=0;
+  ds.displaybank=0;
+  ds.writebank=0;
   SDL_FreeSurface(screen1);
   screen1 = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen2);
@@ -2246,29 +2241,29 @@ static void setup_mode(int32 mode) {
   YPPC=8; if ((mode == 3) || (mode == 6) || (mode == 11) || (mode == 14) || (mode == 17)) YPPC=10;
   place_rect.h = font_rect.h = YPPC;
   reset_mode7();
-  screenwidth = modetable[mode].xres;
-  screenheight = modetable[mode].yres;
-  xgraphunits = modetable[mode].xgraphunits;
-  ygraphunits = modetable[mode].ygraphunits;
+  ds.screenwidth = modetable[mode].xres;
+  ds.screenheight = modetable[mode].yres;
+  ds.xgraphunits = modetable[mode].xgraphunits;
+  ds.ygraphunits = modetable[mode].ygraphunits;
   colourdepth = modetable[mode].coldepth;
   textwidth = modetable[mode].xtext;
   textheight = modetable[mode].ytext;
-  xscale = modetable[mode].xscale;
-  yscale = modetable[mode].yscale;
-  scaled = yscale != 1 || xscale != 1;	/* TRUE if graphics screen is scaled to fit real screen */
+  ds.xscale = modetable[mode].xscale;
+  ds.yscale = modetable[mode].yscale;
+  ds.scaled = ds.yscale != 1 || ds.xscale != 1;	/* TRUE if graphics screen is scaled to fit real screen */
   write_vduflag(VDU_FLAG_ECHO,1);
   write_vduflag(VDU_FLAG_GRAPHICURS,0);
   cursmode = UNDERLINE;
   cursorstate = ONSCREEN;	/* Graphics mode text cursor is not being displayed */
-  clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
-  xgupp = xgraphunits/screenwidth;	/* Graphics units per pixel in X direction */
-  ygupp = ygraphunits/screenheight;	/* Graphics units per pixel in Y direction */
-  xorigin = yorigin = 0;
-  xlast = ylast = xlast2 = ylast2 = 0;
-  gwinleft = 0;
-  gwinright = xgraphunits-1;
-  gwintop = ygraphunits-1;
-  gwinbottom = 0;
+  ds.clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
+  ds.xgupp = ds.xgraphunits/ds.screenwidth;	/* Graphics units per pixel in X direction */
+  ds.ygupp = ds.ygraphunits/ds.screenheight;	/* Graphics units per pixel in Y direction */
+  ds.xorigin = ds.yorigin = 0;
+  ds.xlast = ds.ylast = ds.xlast2 = ds.ylast2 = 0;
+  ds.gwinleft = 0;
+  ds.gwinright = ds.xgraphunits-1;
+  ds.gwintop = ds.ygraphunits-1;
+  ds.gwinbottom = 0;
   write_vduflag(VDU_FLAG_TEXTWIN,0);		/* A text window has not been created yet */
   twinleft = 0;			/* Set up initial text window to whole screen */
   twinright = textwidth-1;
@@ -2276,15 +2271,15 @@ static void setup_mode(int32 mode) {
   twinbottom = textheight-1;
   xtext = textxhome();
   ytext = textyhome();
-  graph_fore_action = graph_back_action = 0;
+  ds.graph_fore_action = ds.graph_back_action = 0;
   reset_colours();
   init_palette();
   write_vduflag(VDU_FLAG_ENAPAGE,0);
   if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
-  SDL_FillRect(matrixflags.surface, NULL, tb_colour);
-  SDL_FillRect(modescreen, NULL, tb_colour);
-  SDL_FillRect(screen2, NULL, tb_colour);
-  SDL_FillRect(screen3, NULL, tb_colour);
+  SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
+  SDL_FillRect(modescreen, NULL, ds.tb_colour);
+  SDL_FillRect(screen2, NULL, ds.tb_colour);
+  SDL_FillRect(screen3, NULL, ds.tb_colour);
   SDL_SetClipRect(matrixflags.surface, NULL);
   sdl_mouse_onoff((matrixflags.surface->flags & SDL_FULLSCREEN) ? 0 : 1);
   if (screenmode == 7) {
@@ -2305,8 +2300,8 @@ static void setup_mode(int32 mode) {
 void emulate_mode(int32 mode) {
   setup_mode(mode);
 /* Reset colours, clear screen and home cursor */
-  SDL_FillRect(matrixflags.surface, NULL, tb_colour);
-  SDL_FillRect(modescreen, NULL, tb_colour);
+  SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
+  SDL_FillRect(modescreen, NULL, ds.tb_colour);
   xtext = textxhome();
   ytext = textyhome();
   do_sdl_flip(matrixflags.surface);
@@ -2383,19 +2378,19 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
   Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
   int32 rox = 0, roy = 0;
 
-  if (clipping) {
-    rox = (offset % screenwidth)*xgupp;
-    roy = ygraphunits - ygupp - (offset / vscrwidth)*ygupp;
-    if ((rox < gwinleft) || (rox > gwinright) || (roy < gwinbottom) || (roy > gwintop)) return;
+  if (ds.clipping) {
+    rox = (offset % ds.screenwidth)*ds.xgupp;
+    roy = ds.ygraphunits - ds.ygupp - (offset / ds.vscrwidth)*ds.ygupp;
+    if ((rox < ds.gwinleft) || (rox > ds.gwinright) || (roy < ds.gwinbottom) || (roy > ds.gwintop)) return;
   }
-  if (plot_inverse ==1) {
+  if (ds.plot_inverse ==1) {
     action=3;
     drawcolour=(colourdepth-1);
   } else {
-    drawcolour=graph_physforecol;
+    drawcolour=ds.graph_physforecol;
   }
 
-  if ((action==0) && (plot_inverse == 0)) {
+  if ((action==0) && (ds.plot_inverse == 0)) {
     altcolour = colour;
   } else {
     prevcolour=SWAPENDIAN(*((Uint32*)surface->pixels + offset));
@@ -2440,34 +2435,34 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
 */
 
 static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
-  if (*((Uint32*)screenbank[writebank]->pixels + x + y*vscrwidth) != gb_colour) return;
-  plot_pixel(screenbank[writebank], x + y*vscrwidth, colour, action); /* Plot this pixel */
+  if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) != ds.gb_colour) return;
+  plot_pixel(screenbank[ds.writebank], x + y*ds.vscrwidth, colour, action); /* Plot this pixel */
   if (x >= 1) /* Left */
-    if (*((Uint32*)screenbank[writebank]->pixels + (x-1) + y*vscrwidth) == gb_colour)
+    if (*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x-1, y, colour, action);
-  if (x < (vscrwidth-1)) /* Right */
-    if (*((Uint32*)screenbank[writebank]->pixels + (x+1) + y*vscrwidth) == gb_colour)
+  if (x < (ds.vscrwidth-1)) /* Right */
+    if (*((Uint32*)screenbank[ds.writebank]->pixels + (x+1) + y*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x+1, y, colour, action);
   if (y >= 1) /* Up */
-    if (*((Uint32*)screenbank[writebank]->pixels + x + (y-1)*vscrwidth) == gb_colour)
+    if (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y-1)*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x, y-1, colour, action);
-  if (y < (vscrheight-1)) /* Down */
-    if (*((Uint32*)screenbank[writebank]->pixels + x + (y+1)*vscrwidth) == gb_colour)
+  if (y < (ds.vscrheight-1)) /* Down */
+    if (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y+1)*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x, y+1, colour, action);
 }
 
 static void flood_fill(int32 x, int y, int colour, Uint32 action) {
   int32 pwinleft, pwinright, pwintop, pwinbottom;
-  if (colour == gb_colour) return;
-  pwinleft = GXTOPX(gwinleft);		/* Calculate extent of graphics window in pixels */
-  pwinright = GXTOPX(gwinright);
-  pwintop = GYTOPY(gwintop);
-  pwinbottom = GYTOPY(gwinbottom);
+  if (colour == ds.gb_colour) return;
+  pwinleft = GXTOPX(ds.gwinleft);		/* Calculate extent of graphics window in pixels */
+  pwinright = GXTOPX(ds.gwinright);
+  pwintop = GYTOPY(ds.gwintop);
+  pwinbottom = GYTOPY(ds.gwinbottom);
   if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom) return;
-  if (*((Uint32*)screenbank[writebank]->pixels + x + y*vscrwidth) == gb_colour)
+  if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) == ds.gb_colour)
     flood_fill_inner(x, y, colour, action);
   hide_cursor();
-  blit_scaled(0,0,screenwidth-1,screenheight-1);
+  blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   reveal_cursor();
 }
 
@@ -2486,36 +2481,36 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   SDL_Rect plot_rect, temp_rect;
   if (istextonly()) return;
 /* Decode the command */
-  plot_inverse = 0;
-  action = graph_fore_action;
-  xlast3 = xlast2;
-  ylast3 = ylast2;
-  xlast2 = xlast;
-  ylast2 = ylast;
+  ds.plot_inverse = 0;
+  action = ds.graph_fore_action;
+  xlast3 = ds.xlast2;
+  ylast3 = ds.ylast2;
+  ds.xlast2 = ds.xlast;
+  ds.ylast2 = ds.ylast;
   if ((code & ABSCOORD_MASK) != 0 ) {		/* Coordinate (x,y) is absolute */
-    xlast = x+xorigin;	/* These probably have to be treated as 16-bit values */
-    ylast = y+yorigin;
+    ds.xlast = x+ds.xorigin;	/* These probably have to be treated as 16-bit values */
+    ds.ylast = y+ds.yorigin;
   }
   else {	/* Coordinate (x,y) is relative */
-    xlast+=x;	/* These probably have to be treated as 16-bit values */
-    ylast+=y;
+    ds.xlast+=x;	/* These probably have to be treated as 16-bit values */
+    ds.ylast+=y;
   }
   if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) return;	/* Just moving graphics cursor, so finish here */
-  sx = GXTOPX(xlast2);
-  sy = GYTOPY(ylast2);
-  ex = GXTOPX(xlast);
-  ey = GYTOPY(ylast);
+  sx = GXTOPX(ds.xlast2);
+  sy = GYTOPY(ds.ylast2);
+  ex = GXTOPX(ds.xlast);
+  ey = GYTOPY(ds.ylast);
   if ((code & GRAPHOP_MASK) != SHIFT_RECTANGLE) {		/* Move and copy rectangle are a special case */
     switch (code & PLOT_COLMASK) {
     case PLOT_FOREGROUND:	/* Use graphics foreground colour */
-      colour = gf_colour;
+      colour = ds.gf_colour;
       break;
     case PLOT_INVERSE:		/* Use logical inverse of colour at each point */
-      plot_inverse=1;
+      ds.plot_inverse=1;
       break;
     case PLOT_BACKGROUND:	/* Use graphics background colour */
-      colour = gb_colour;
-      action = graph_back_action;
+      colour = ds.gb_colour;
+      action = ds.graph_back_action;
     }
   }
 /* Now carry out the operation */
@@ -2533,7 +2528,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
-    draw_line(screenbank[writebank], sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK), action);
+    draw_line(screenbank[ds.writebank], sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK), action);
     hide_cursor();
     blit_scaled(left, top, sx+ex-left, sy+ey-top);
     reveal_cursor();
@@ -2541,25 +2536,25 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
   case PLOT_POINT:	/* Plot a single point */
     hide_cursor();
-    if ((ex < 0) || (ex >= screenwidth) || (ey < 0) || (ey >= screenheight)) break;
-    plot_pixel(screenbank[writebank], ex + ey*vscrwidth, colour, action);
+    if ((ex < 0) || (ex >= ds.screenwidth) || (ey < 0) || (ey >= ds.screenheight)) break;
+    plot_pixel(screenbank[ds.writebank], ex + ey*ds.vscrwidth, colour, action);
     blit_scaled(ex, ey, ex, ey);
     reveal_cursor();
     break;
   case FILL_TRIANGLE: {		/* Plot a filled triangle */
     int32 left, right, top, bottom;
-    filled_triangle(screenbank[writebank], GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
+    filled_triangle(screenbank[ds.writebank], GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
     left = right = xlast3;
     top = bottom = ylast3;
-    if (xlast2 < left) left = xlast2;
-    if (xlast < left) left = xlast;
-    if (xlast2 > right) right = xlast2;
-    if (xlast > right) right = xlast;
-    if (ylast2 > top) top = ylast2;
-    if (ylast > top) top = ylast;
-    if (ylast2 < bottom) bottom = ylast2;
-    if (ylast < bottom) bottom = ylast;
+    if (ds.xlast2 < left) left = ds.xlast2;
+    if (ds.xlast < left) left = ds.xlast;
+    if (ds.xlast2 > right) right = ds.xlast2;
+    if (ds.xlast > right) right = ds.xlast;
+    if (ds.ylast2 > top) top = ds.ylast2;
+    if (ds.ylast > top) top = ds.ylast;
+    if (ds.ylast2 < bottom) bottom = ds.ylast2;
+    if (ds.ylast < bottom) bottom = ds.ylast;
     hide_cursor();
     blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
     reveal_cursor();
@@ -2579,8 +2574,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_rect.y = top;
     plot_rect.w = right - left +1;
     plot_rect.h = bottom - top +1;
-    if (action==0 && !clipping) {
-      SDL_FillRect(screenbank[writebank], &plot_rect, SWAPENDIAN(colour));
+    if (action==0 && !ds.clipping) {
+      SDL_FillRect(screenbank[ds.writebank], &plot_rect, SWAPENDIAN(colour));
     } else {
       fill_rectangle(left, top, right, bottom, colour, action);
     }
@@ -2591,24 +2586,24 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
   case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
     int32 vx, vy, left, right, top, bottom;
-    filled_triangle(screenbank[writebank], GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
-    vx = xlast3-xlast2+xlast;
-    vy = ylast3-ylast2+ylast;
-    filled_triangle(screenbank[writebank], ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(xlast3), GYTOPY(ylast3), colour, action);
+    filled_triangle(screenbank[ds.writebank], GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
+    vx = xlast3-ds.xlast2+ds.xlast;
+    vy = ylast3-ds.ylast2+ds.ylast;
+    filled_triangle(screenbank[ds.writebank], ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(xlast3), GYTOPY(ylast3), colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the parallelogram */
     left = right = xlast3;
     top = bottom = ylast3;
-    if (xlast2 < left) left = xlast2;
-    if (xlast < left) left = xlast;
+    if (ds.xlast2 < left) left = ds.xlast2;
+    if (ds.xlast < left) left = ds.xlast;
     if (vx < left) left = vx;
-    if (xlast2 > right) right = xlast2;
-    if (xlast > right) right = xlast;
+    if (ds.xlast2 > right) right = ds.xlast2;
+    if (ds.xlast > right) right = ds.xlast;
     if (vx > right) right = vx;
-    if (ylast2 > top) top = ylast2;
-    if (ylast > top) top = ylast;
+    if (ds.ylast2 > top) top = ds.ylast2;
+    if (ds.ylast > top) top = ds.ylast;
     if (vy > top) top = vy;
-    if (ylast2 < bottom) bottom = ylast2;
-    if (ylast < bottom) bottom = ylast;
+    if (ds.ylast2 < bottom) bottom = ds.ylast2;
+    if (ds.ylast < bottom) bottom = ds.ylast;
     if (vy < bottom) bottom = vy;
     hide_cursor();
     blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
@@ -2626,16 +2621,16 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 ** point on the circumference, specifically the left-most point of the
 ** circle.
 */
-    xradius = abs(xlast2-xlast)/xgupp;
-    yradius = abs(xlast2-xlast)/ygupp;
-    xr=xlast2-xlast;
+    xradius = abs(ds.xlast2-ds.xlast)/ds.xgupp;
+    yradius = abs(ds.xlast2-ds.xlast)/ds.ygupp;
+    xr=ds.xlast2-ds.xlast;
     if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-      draw_ellipse(screenbank[writebank], sx, sy, xradius, yradius, 0, colour, action);
+      draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
     else {
-      filled_ellipse(screenbank[writebank], sx, sy, xradius, yradius, 0, colour, action);
+      filled_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
     }
     /* To match RISC OS, xlast needs to be the right-most point not left-most. */
-    xlast+=(xr*2);
+    ds.xlast+=(xr*2);
     ex = sx-xradius;
     ey = sy-yradius;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
@@ -2646,32 +2641,32 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
   case SHIFT_RECTANGLE: {	/* Move or copy a rectangle */
     int32 destleft, destop, left, right, top, bottom;
-    if (xlast3 < xlast2) {	/* Figure out left and right hand extents of rectangle */
+    if (xlast3 < ds.xlast2) {	/* Figure out left and right hand extents of rectangle */
       left = GXTOPX(xlast3);
-      right = GXTOPX(xlast2);
+      right = GXTOPX(ds.xlast2);
     }
     else {
-      left = GXTOPX(xlast2);
+      left = GXTOPX(ds.xlast2);
       right = GXTOPX(xlast3);
     }
-    if (ylast3 > ylast2) {	/* Figure out upper and lower extents of rectangle */
+    if (ylast3 > ds.ylast2) {	/* Figure out upper and lower extents of rectangle */
       top = GYTOPY(ylast3);
-      bottom = GYTOPY(ylast2);
+      bottom = GYTOPY(ds.ylast2);
     }
     else {
-      top = GYTOPY(ylast2);
+      top = GYTOPY(ds.ylast2);
       bottom = GYTOPY(ylast3);
     }
-    destleft = GXTOPX(xlast);		/* X coordinate of top left-hand corner of destination */
-    destop = GYTOPY(ylast)-(bottom-top);	/* Y coordinate of top left-hand corner of destination */
+    destleft = GXTOPX(ds.xlast);		/* X coordinate of top left-hand corner of destination */
+    destop = GYTOPY(ds.ylast)-(bottom-top);	/* Y coordinate of top left-hand corner of destination */
     plot_rect.x = destleft;
     plot_rect.y = destop;
     temp_rect.x = left;
     temp_rect.y = top;
     temp_rect.w = plot_rect.w = right - left +1;
     temp_rect.h = plot_rect.h = bottom - top +1;
-    SDL_BlitSurface(screenbank[writebank], &temp_rect, screen1, &plot_rect); /* copy to temp buffer */
-    SDL_BlitSurface(screen1, &plot_rect, screenbank[writebank], &plot_rect);
+    SDL_BlitSurface(screenbank[ds.writebank], &temp_rect, screen1, &plot_rect); /* copy to temp buffer */
+    SDL_BlitSurface(screen1, &plot_rect, screenbank[ds.writebank], &plot_rect);
     hide_cursor();
     blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
     reveal_cursor();
@@ -2697,20 +2692,20 @@ void emulate_plot(int32 code, int32 x, int32 y) {
             plot_rect.y = top;
             plot_rect.w = right - (destright+1) +1;
             plot_rect.h = destbot - top +1;
-            SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
           else if (xdiff < 0) {
             plot_rect.x = left;
             plot_rect.y = top;
             plot_rect.w = (destleft-1) - left +1;
             plot_rect.h = destbot - top +1;
-            SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
           plot_rect.x = left;
           plot_rect.y = destbot+1;
           plot_rect.w = right - left +1;
           plot_rect.h = bottom - (destbot+1) +1;
-          SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+          SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
         }
         else if (ydiff == 0) {	/* Destination area is on same level as original area */
           if (xdiff > 0) {	/* Destination area lies to left of original area */
@@ -2718,14 +2713,14 @@ void emulate_plot(int32 code, int32 x, int32 y) {
             plot_rect.y = top;
             plot_rect.w = right - (destright+1) +1;
             plot_rect.h = bottom - top +1;
-            SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
           else if (xdiff < 0) {
             plot_rect.x = left;
             plot_rect.y = top;
             plot_rect.w = (destleft-1) - left +1;
             plot_rect.h = bottom - top +1;
-            SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
         }
         else {	/* Destination area is lower than original area on screen */
@@ -2734,20 +2729,20 @@ void emulate_plot(int32 code, int32 x, int32 y) {
             plot_rect.y = destop;
             plot_rect.w = right - (destright+1) +1;
             plot_rect.h = bottom - destop +1;
-            SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
           else if (xdiff < 0) {
             plot_rect.x = left;
             plot_rect.y = destop;
             plot_rect.w = (destleft-1) - left +1;
             plot_rect.h = bottom - destop +1;
-            SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
           plot_rect.x = left;
           plot_rect.y = top;
           plot_rect.w = right - left +1;
           plot_rect.h = (destop-1) - top +1;
-          SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+          SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
         }
       }
       else {	/* No overlap - Simple case */
@@ -2755,7 +2750,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
         plot_rect.y = top;
         plot_rect.w = right - left +1;
         plot_rect.h = bottom - top +1;
-        SDL_FillRect(screenbank[writebank], &plot_rect, gb_colour);
+        SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
       }
       hide_cursor();
       blit_scaled(left, top, right, bottom);
@@ -2771,22 +2766,22 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 ** point on the circumference in the +ve X direction and (xlast, ylast)
 ** is a point on the circumference in the +ve Y direction
 */
-    semimajor = abs(xlast2-xlast3)/xgupp;
-    semiminor = abs(ylast-ylast3)/ygupp;
+    semimajor = abs(ds.xlast2-xlast3)/ds.xgupp;
+    semiminor = abs(ds.ylast-ylast3)/ds.ygupp;
     sx = GXTOPX(xlast3);
     sy = GYTOPY(ylast3);
-    shearx=GXTOPX(xlast)-sx;
+    shearx=GXTOPX(ds.xlast)-sx;
 
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-      draw_ellipse(screenbank[writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
+      draw_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
     else {
-      filled_ellipse(screenbank[writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
+      filled_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
     }
     ex = sx-semimajor;
     ey = sy-semiminor;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     hide_cursor();
-    blit_scaled(0,0,vscrwidth,vscrheight);
+    blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
     //blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
     reveal_cursor();
     break;
@@ -2802,7 +2797,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
 int32 emulate_pointfn(int32 x, int32 y) {
   int32 colour, colnum;
-  colour = SWAPENDIAN(*((Uint32*)screenbank[writebank]->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth));
+  colour = SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + GXTOPX(x+ds.xorigin) + GYTOPY(y+ds.yorigin)*ds.vscrwidth));
   if (colourdepth == COL24BIT) return riscoscolour(colour);
   colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
@@ -2816,7 +2811,7 @@ int32 emulate_pointfn(int32 x, int32 y) {
 */
 int32 emulate_tintfn(int32 x, int32 y) {
   if (colourdepth < 256) return 0;
-  return *((Uint32*)screenbank[writebank]->pixels + GXTOPX(x+xorigin) + GYTOPY(y+yorigin)*vscrwidth)<<TINTSHIFT;
+  return *((Uint32*)screenbank[ds.writebank]->pixels + GXTOPX(x+ds.xorigin) + GYTOPY(y+ds.yorigin)*ds.vscrwidth)<<TINTSHIFT;
 }
 
 /*
@@ -2927,9 +2922,9 @@ int emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int3
 */
 void emulate_gcolnum(int32 action, int32 background, int32 colnum) {
   if (background)
-    graph_back_action = action;
+    ds.graph_back_action = action;
   else {
-    graph_fore_action = action;
+    ds.graph_fore_action = action;
   }
   set_graphics_colour(background, colnum);
 }
@@ -3178,7 +3173,12 @@ boolean init_screen(void) {
   pixfmt.Bmask=0xFF;
   pixfmt.colorkey=0;
   pixfmt.alpha=255;
- 
+
+  ds.autorefresh=1;
+  ds.displaybank=0;
+  ds.writebank=0;
+  ds.videorescan=0;
+  ds.videofreq=1;
 
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -3199,8 +3199,8 @@ boolean init_screen(void) {
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
   modescreen = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
-  displaybank=0;
-  writebank=0;
+  ds.displaybank=0;
+  ds.writebank=0;
   screen1 = SDL_DisplayFormat(modescreen);
   screen2 = SDL_DisplayFormat(modescreen);
   screen2A = SDL_DisplayFormat(modescreen);
@@ -3218,13 +3218,13 @@ boolean init_screen(void) {
   write_vduflag(VDU_FLAG_ENAPRINT,0);
   write_vduflag(MODE7_UPDATE,1);
   write_vduflag(MODE7_UPDATE_HIGHACC,1);
-  xgupp = ygupp = 1;
+  ds.xgupp = ds.ygupp = 1;
   SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   setup_mode(0);
 
-  xor_mask = SDL_MapRGB(&pixfmt, 0xff, 0xff, 0xff);
+  ds.xor_mask = SDL_MapRGB(&pixfmt, 0xff, 0xff, 0xff);
 
   font_rect.x = font_rect.y = 0;
 
@@ -3344,7 +3344,7 @@ static void mode7renderline(int32 ypos) {
     topy = ypos*M7YPPC;
     place_rect.x = topx;
     place_rect.y = topy;
-    SDL_FillRect(sdl_m7fontbuf, NULL, tb_colour);
+    SDL_FillRect(sdl_m7fontbuf, NULL, ds.tb_colour);
     if (vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     xch=ch;
     if (vduflag(MODE7_HOLD) && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && vduflag(MODE7_REVEAL)) || (ch >= 153 && ch <= 159))) {
@@ -3380,22 +3380,22 @@ static void mode7renderline(int32 ypos) {
           }
         }
         if (line!=0) {
-          if (line & 0x8000) *((Uint32*)sdl_m7fontbuf->pixels +  0 + y*M7XPPC) = tf_colour;
-          if (line & 0x4000) *((Uint32*)sdl_m7fontbuf->pixels +  1 + y*M7XPPC) = tf_colour;
-          if (line & 0x2000) *((Uint32*)sdl_m7fontbuf->pixels +  2 + y*M7XPPC) = tf_colour;
-          if (line & 0x1000) *((Uint32*)sdl_m7fontbuf->pixels +  3 + y*M7XPPC) = tf_colour;
-          if (line & 0x0800) *((Uint32*)sdl_m7fontbuf->pixels +  4 + y*M7XPPC) = tf_colour;
-          if (line & 0x0400) *((Uint32*)sdl_m7fontbuf->pixels +  5 + y*M7XPPC) = tf_colour;
-          if (line & 0x0200) *((Uint32*)sdl_m7fontbuf->pixels +  6 + y*M7XPPC) = tf_colour;
-          if (line & 0x0100) *((Uint32*)sdl_m7fontbuf->pixels +  7 + y*M7XPPC) = tf_colour;
-          if (line & 0x0080) *((Uint32*)sdl_m7fontbuf->pixels +  8 + y*M7XPPC) = tf_colour;
-          if (line & 0x0040) *((Uint32*)sdl_m7fontbuf->pixels +  9 + y*M7XPPC) = tf_colour;
-          if (line & 0x0020) *((Uint32*)sdl_m7fontbuf->pixels + 10 + y*M7XPPC) = tf_colour;
-          if (line & 0x0010) *((Uint32*)sdl_m7fontbuf->pixels + 11 + y*M7XPPC) = tf_colour;
-          if (line & 0x0008) *((Uint32*)sdl_m7fontbuf->pixels + 12 + y*M7XPPC) = tf_colour;
-          if (line & 0x0004) *((Uint32*)sdl_m7fontbuf->pixels + 13 + y*M7XPPC) = tf_colour;
-          if (line & 0x0002) *((Uint32*)sdl_m7fontbuf->pixels + 14 + y*M7XPPC) = tf_colour;
-          if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = tf_colour;
+          if (line & 0x8000) *((Uint32*)sdl_m7fontbuf->pixels +  0 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x4000) *((Uint32*)sdl_m7fontbuf->pixels +  1 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x2000) *((Uint32*)sdl_m7fontbuf->pixels +  2 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x1000) *((Uint32*)sdl_m7fontbuf->pixels +  3 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0800) *((Uint32*)sdl_m7fontbuf->pixels +  4 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0400) *((Uint32*)sdl_m7fontbuf->pixels +  5 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0200) *((Uint32*)sdl_m7fontbuf->pixels +  6 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0100) *((Uint32*)sdl_m7fontbuf->pixels +  7 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0080) *((Uint32*)sdl_m7fontbuf->pixels +  8 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0040) *((Uint32*)sdl_m7fontbuf->pixels +  9 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0020) *((Uint32*)sdl_m7fontbuf->pixels + 10 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0010) *((Uint32*)sdl_m7fontbuf->pixels + 11 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0008) *((Uint32*)sdl_m7fontbuf->pixels + 12 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0004) *((Uint32*)sdl_m7fontbuf->pixels + 13 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0002) *((Uint32*)sdl_m7fontbuf->pixels + 14 + y*M7XPPC) = ds.tf_colour;
+          if (line & 0x0001) *((Uint32*)sdl_m7fontbuf->pixels + 15 + y*M7XPPC) = ds.tf_colour;
         }
       }
     }
@@ -3570,17 +3570,17 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
   int32 tt, i;
-  if ((x1 < 0 && x2 < 0) || (x1 >= vscrwidth && x2 >= vscrwidth )) return;
+  if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth )) return;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
   }
-  if ( y >= 0 && y < vscrheight ) {
+  if ( y >= 0 && y < ds.vscrheight ) {
     if (x1 < 0) x1 = 0;
-    if (x1 >= vscrwidth) x1 = vscrwidth-1;
+    if (x1 >= ds.vscrwidth) x1 = ds.vscrwidth-1;
     if (x2 < 0) x2 = 0;
-    if (x2 >= vscrwidth) x2 = vscrwidth-1;
+    if (x2 >= ds.vscrwidth) x2 = ds.vscrwidth-1;
     for (i = x1; i <= x2; i++)
-      plot_pixel(sr, i + y*vscrwidth, col, action);
+      plot_pixel(sr, i + y*ds.vscrwidth, col, action);
   }
 }
 
@@ -3655,8 +3655,8 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       if (skip) {
         skip=0;
       } else {
-        if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-          plot_pixel(sr, x + y*vscrwidth, col, action);
+        if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
+          plot_pixel(sr, x + y*ds.vscrwidth, col, action);
         if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3672,8 +3672,8 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       if (skip) {
         skip=0;
       } else {
-        if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-          plot_pixel(sr, x + y*vscrwidth, col, action);
+        if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
+          plot_pixel(sr, x + y*ds.vscrwidth, col, action);
         if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3685,8 +3685,8 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
     }
   }
   if ( ! (style & 0x08)) {
-    if ((x >= 0) && (x < screenwidth) && (y >= 0) && (y < screenheight))
-      plot_pixel(sr, x + y*vscrwidth, col, action);
+    if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
+      plot_pixel(sr, x + y*ds.vscrwidth, col, action);
   }
 }
 
@@ -3720,13 +3720,13 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
   while (g < 0) {
     s=shearx*(1.0*y/ym);
     si=s;
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x + si, c, action);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x + si, c, action);
+    if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth - x + si, c, action);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth + x + si, c, action);
     }
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x - si, c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x - si, c, action);
+    if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth - x - si, c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth + x - si, c, action);
     }
 
     if (h < 0) {
@@ -3751,13 +3751,13 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
   while (y <= y1) {
     s=shearx*(1.0*y/ym);
     si=s;
-    if (((y0 - y) >= 0) && ((y0 - y) < vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth - x + si, c, action);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*vscrwidth + x + si, c, action);
+    if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth - x + si, c, action);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth + x + si, c, action);
     } 
-    if (((y0 + y) >= 0) && ((y0 + y) < vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth - x - si, c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*vscrwidth + x - si, c, action);
+    if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth - x - si, c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth + x - si, c, action);
     }
 
     if (h < 0)
@@ -3820,11 +3820,11 @@ void get_sdl_mouse(int64 values[]) {
   b=SDL_GetMouseState(&x, &y);
   x=(x*2);
   if (x < 0) x = 0;
-  if (x >= xgraphunits) x = (xgraphunits - 1);
+  if (x >= ds.xgraphunits) x = (ds.xgraphunits - 1);
 
-  y=(2*(vscrheight-y));
+  y=(2*(ds.vscrheight-y));
   if (y < 0) y = 0;
-  if (y >= ygraphunits) y = (ygraphunits - 1);
+  if (y >= ds.ygraphunits) y = (ds.ygraphunits - 1);
 
   /* Swap button bits around */
   xb = FAST_4_DIV(b & 4) + (b & 2) + FAST_4_MUL(b & 1);
@@ -3839,7 +3839,7 @@ void get_sdl_mouse(int64 values[]) {
 }
 
 void warp_sdlmouse(int32 x, int32 y) {
-  SDL_WarpMouse(x/2,vscrheight-(y/2));
+  SDL_WarpMouse(x/2,ds.vscrheight-(y/2));
 }
 
 void sdl_mouse_onoff(int state) {
@@ -3896,25 +3896,25 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
 void refresh_location(uint32 offset) {
   uint32 ox,oy;
 
-  ox=offset % screenwidth;
-  oy=offset / screenwidth;
+  ox=offset % ds.screenwidth;
+  oy=offset / ds.screenwidth;
   blit_scaled(ox,oy,ox,oy);
 }
 
 void star_refresh(int flag) {
   if ((flag == 0) || (flag == 1) || (flag==2)) {
-    autorefresh=flag;
+    ds.autorefresh=flag;
   }
   if (flag & 1) {
     if (screenmode == 7) {
       mode7renderscreen();
     } else {
-      blit_scaled(0,0,screenwidth-1,screenheight-1);
+      blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
       if ((screenmode == 3) || (screenmode == 6)) {
         int p;
         hide_cursor();
         scroll_rect.x=0;
-        scroll_rect.w=screenwidth*xscale;
+        scroll_rect.w=ds.screenwidth*ds.xscale;
         scroll_rect.h=4;
         for (p=0; p<25; p++) {
           scroll_rect.y=16+(p*20);
@@ -3927,7 +3927,7 @@ void star_refresh(int flag) {
 }
 
 int get_refreshmode(void) {
-  return autorefresh;
+  return ds.autorefresh;
 }
 
 int32 osbyte42(int x) {
@@ -3936,7 +3936,7 @@ int32 osbyte42(int x) {
   
   if (matrixflags.surface->flags & SDL_FULLSCREEN) fullscreen=8;
   if (x == 0) {
-    outx = fullscreen + (autorefresh+1);
+    outx = fullscreen + (ds.autorefresh+1);
     return ((outx << 8) + 42);
   }
   if (x == 255) {
@@ -3960,8 +3960,8 @@ void osbyte112(int x) {
   sysvar[250]=x;
   if (screenmode == 7) return;
   if (x==0) x=1;
-  if (x <= MAXBANKS) writebank=(x-1);
-  matrixflags.modescreen_ptr = screenbank[writebank]->pixels;
+  if (x <= MAXBANKS) ds.writebank=(x-1);
+  matrixflags.modescreen_ptr = screenbank[ds.writebank]->pixels;
 }
 
 void osbyte113(int x) {
@@ -3969,15 +3969,15 @@ void osbyte113(int x) {
   sysvar[251]=x;
   if (screenmode == 7) return;
   if (x==0) x=1;
-  if (x <= MAXBANKS) displaybank=(x-1);
-  SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
+  if (x <= MAXBANKS) ds.displaybank=(x-1);
+  SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
   SDL_Flip(matrixflags.surface);
 }
 
 void screencopy(int32 src, int32 dst) {
   SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
-  if (dst==(displaybank+1)) {
-    SDL_BlitSurface(screenbank[displaybank], NULL, matrixflags.surface, NULL);
+  if (dst==(ds.displaybank+1)) {
+    SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
     SDL_Flip(matrixflags.surface);
   }
 }
@@ -3999,11 +3999,11 @@ int32 osbyte135() {
 }
 
 int32 osbyte250() {
-  return (((displaybank+1) << 16) + ((writebank+1) << 8) + 250);
+  return (((ds.displaybank+1) << 16) + ((ds.writebank+1) << 8) + 250);
 }
 
 int32 osbyte251() {
-  return (((displaybank+1) << 8) + 251);
+  return (((ds.displaybank+1) << 8) + 251);
 }
 
 void osword09(int64 x) {
@@ -4065,7 +4065,7 @@ void osword8C(int64 x) {
   for (i=0; i<= 19; i++) {
     mode7font[offset][i] = block[(2*i)+5] + (256*block[(2*i)+4]);
   }
-  if ((screenmode == 7) && (autorefresh==1)) mode7renderscreen();
+  if ((screenmode == 7) && (ds.autorefresh==1)) mode7renderscreen();
 }
 
 void sdl_screensave(char *fname) {
@@ -4080,7 +4080,7 @@ void sdl_screensave(char *fname) {
       error(ERR_CANTWRITE);
     }
   } else {
-    SDL_BlitSurface(screenbank[displaybank], NULL, screen1, NULL);
+    SDL_BlitSurface(screenbank[ds.displaybank], NULL, screen1, NULL);
     if (SDL_SaveBMP(screen1, fname)) {
       error(ERR_CANTWRITE);
     }
@@ -4100,8 +4100,8 @@ void sdl_screenload(char *fname) {
   if(!placeholder) {
     error(ERR_CANTREAD);
   } else {
-    SDL_BlitSurface(placeholder, NULL, screenbank[writebank], NULL);
-    if (displaybank == writebank) {
+    SDL_BlitSurface(placeholder, NULL, screenbank[ds.writebank], NULL);
+    if (ds.displaybank == ds.writebank) {
       SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
       SDL_Flip(matrixflags.surface);
     }
@@ -4171,22 +4171,22 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 10:	return (log2bpp(scrmode));
     case 11:	return (modetable[scrmode].xres-1);
     case 12:	return (modetable[scrmode].yres-1);
-    case 128: /* GWLCol */	return gwinleft / xgupp;
-    case 129: /* GWBRow */	return gwinbottom / ygupp;
-    case 130: /* GWRCol */	return gwinright / xgupp;
-    case 131: /* GWTRow */	return gwintop / ygupp;
+    case 128: /* GWLCol */	return ds.gwinleft / ds.xgupp;
+    case 129: /* GWBRow */	return ds.gwinbottom / ds.ygupp;
+    case 130: /* GWRCol */	return ds.gwinright / ds.xgupp;
+    case 131: /* GWTRow */	return ds.gwintop / ds.ygupp;
     case 132: /* TWLCol */	return twinleft;
     case 133: /* TWBRow */	return twinbottom;
     case 134: /* TWRCol */	return twinright;
     case 135: /* TWTRow */	return twintop;
-    case 136: /* OrgX */	return xorigin;
-    case 137: /* OrgY */	return yorigin;
-    case 153: /* GFCOL */	return graph_forecol;
-    case 154: /* GBCOL */	return graph_backcol;
+    case 136: /* OrgX */	return ds.xorigin;
+    case 137: /* OrgY */	return ds.yorigin;
+    case 153: /* GFCOL */	return ds.graph_forecol;
+    case 154: /* GBCOL */	return ds.graph_backcol;
     case 155: /* TForeCol */	return text_forecol;
     case 156: /* TBackCol */	return text_backcol;
-    case 157: /* GFTint */	return graph_foretint;
-    case 158: /* GBTint */	return graph_backtint;
+    case 157: /* GFTint */	return ds.graph_foretint;
+    case 158: /* GBTint */	return ds.graph_backtint;
     case 159: /* TFTint */	return text_foretint;
     case 160: /* TBTint */	return text_backtint;
     case 161: /* MaxMode */	return HIGHMODE;
@@ -4195,5 +4195,5 @@ int32 readmodevariable(int32 scrmode, int32 var) {
 }
 
 void set_refresh_interval(int32 v) {
-  videofreq=v;
+  ds.videofreq=v;
 }
