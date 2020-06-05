@@ -179,7 +179,7 @@ static struct {
   uint32 displaybank;			/* Video bank to be displayed */
   uint32 writebank;			/* Video bank to be written to */
   uint32 xor_mask;			
-  int64 videorescan;			/* Centisecond reference of when screen was last updated */
+  int64 videorefresh;			/* Centisecond reference of when screen was last updated */
   int32 videofreq;			/* How many centiseconds between screen updates? */
   boolean scaled;			/* TRUE if screen mode is scaled to fit real screen */
   boolean clipping;			/* TRUE if clipping region is not full screen of a RISC OS mode */
@@ -200,7 +200,7 @@ static void toggle_cursor(void);
 static void vdu_cleartext(void);
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
-static void mode7renderline(int32 ypos);
+static void mode7renderline(int32 ypos, int32 fast);
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
@@ -253,16 +253,18 @@ void reset_sysfont(int x) {
 }
 
 static void do_sdl_flip(SDL_Surface *layer) {
-  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
+//  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
+  if (((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
     SDL_Flip(layer);
-    ds.videorescan = basicvars.centiseconds;
+    ds.videorefresh = basicvars.centiseconds;
   }
 }
 
 static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
-  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
+//  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
+  if (((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
     SDL_UpdateRect(layer, x, y, w, h);
-    ds.videorescan = basicvars.centiseconds;
+    ds.videorefresh = basicvars.centiseconds;
   }
 }
 
@@ -817,167 +819,164 @@ static void set_graphics_colour(boolean background, int colnum) {
 ** rows. 'direction' says whether the screen is moved up or down.
 ** The screen is redrawn by this call
 */
-static void scroll(updown direction) {
-  int left, right, top, dest, topwin, m, n;
-  if (screenmode != 7) {
-    topwin = twintop*YPPC;		/* Y coordinate of top of text window */
-    if (direction == SCROLL_UP) {	/* Shifting screen up */
+
+/* Let's try to pick apart this scroll monolith into its constituent parts.
+** It does make for a bit of duplicated code, but should make it easier
+** to follow what's going on in each direction.
+*/
+static void scroll_up(int32 windowed) {
+  int left, right, top, dest, topwin;
 #ifndef TARGET_MACOSX
-      if (vduflag(VDU_FLAG_TEXTWIN)) {
+  if (windowed) {
 #endif
-        dest = twintop*YPPC;		/* Move screen up to this point */
-        left = twinleft*XPPC;
-        right = twinright*XPPC+XPPC-1;
-        top = dest+YPPC;				/* Top of block to move starts here */
-        scroll_rect.x = twinleft*XPPC;
-        scroll_rect.y = YPPC * (twintop + 1);
-        scroll_rect.w = XPPC * (twinright - twinleft +1);
-        scroll_rect.h = YPPC * (twinbottom - twintop);
-        SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, NULL);
-        line_rect.x = 0;
-        line_rect.y = YPPC * (twinbottom - twintop);
-        line_rect.w = XPPC * (twinright - twinleft +1);
-        line_rect.h = YPPC;
-        SDL_FillRect(screen1, &line_rect, ds.tb_colour);
-        line_rect.x = 0;
-        line_rect.y = 0;
-        line_rect.w = XPPC * (twinright - twinleft +1);
-        line_rect.h = YPPC * (twinbottom - twintop +1);
-        scroll_rect.x = left;
-        scroll_rect.y = dest;
-        SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
-        blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
-#ifndef TARGET_MACOSX
-      } else {
-        int loop;
-        /* Use memmove() rather than two lots of blitting as it's the whole screen scrolling.
-        ** and it's insanely much faster than running blit_scaled.
-        */
-        // First, get size of one line.
-        top=4*ds.screenwidth*YPPC;
-        // Screen size minus size of 1st line (calculated above)
-        dest=(ds.screenwidth * ds.screenheight * 4) - top;
-        memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
-        memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*ds.xscale*ds.yscale), dest*ds.xscale*ds.yscale);
-        /* Need to do it this way, as memset() works on bytes only */
-        for (loop=0;loop<top;loop+=4) {
-          *(uint32 *)(screenbank[ds.writebank]->pixels+dest+loop) = SWAPENDIAN(ds.tb_colour);
-        }
-        for (loop=0;loop<(top*ds.xscale*ds.yscale);loop+=4) {
-          *(uint32 *)(matrixflags.surface->pixels+(dest*ds.xscale*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
-        }
-      }
-#endif
-    } else {	/* Shifting screen down */
-      dest = (twintop+1)*YPPC;
-      left = twinleft*XPPC;
-      right = (twinright+1)*XPPC-1;
-      top = twintop*YPPC;
-      scroll_rect.x = left;
-      scroll_rect.y = top;
-      scroll_rect.w = XPPC * (twinright - twinleft +1);
-      scroll_rect.h = YPPC * (twinbottom - twintop);
-      line_rect.x = 0;
-      line_rect.y = YPPC;
-      SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, &line_rect);
-      line_rect.x = 0;
-      line_rect.y = 0;
-      line_rect.w = XPPC * (twinright - twinleft +1);
-      line_rect.h = YPPC;
-      SDL_FillRect(screen1, &line_rect, ds.tb_colour);
-      line_rect.x = 0;
-      line_rect.y = 0;
-      line_rect.w = XPPC * (twinright - twinleft +1);
-      line_rect.h = YPPC * (twinbottom - twintop +1);
-      scroll_rect.x = left;
-      scroll_rect.y = dest;
-      SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
-      blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
-    }
-    do_sdl_flip(matrixflags.surface);
-  } else { /* MODE 7 version */
-    topwin = twintop*M7YPPC;		/* Y coordinate of top of text window */
-    if (direction == SCROLL_UP) {	/* Shifting screen up */
-      dest = twintop*M7YPPC;		/* Move screen up to this point */
-      left = twinleft*M7XPPC;
-      right = twinright*M7XPPC+M7XPPC-1;
-      top = dest+M7YPPC;			/* Top of block to move starts here */
-      scroll_rect.x = twinleft*M7XPPC;
-      scroll_rect.y = M7YPPC * (twintop + 1);
-      scroll_rect.w = M7XPPC * (twinright - twinleft +1);
-      scroll_rect.h = M7YPPC * (twinbottom - twintop);
-      SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, NULL);
-      SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
-      SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
-      line_rect.x = 0;
-      line_rect.y = M7YPPC * (twinbottom - twintop);
-      line_rect.w = M7XPPC * (twinright - twinleft +1);
-      line_rect.h = M7YPPC;
-      if (vduflag(MODE7_UPDATE)) {
-        SDL_FillRect(screen1, &line_rect, ds.tb_colour);
-        SDL_FillRect(screen2A, &line_rect, ds.tb_colour);
-        SDL_FillRect(screen3A, &line_rect, ds.tb_colour);
-      }
-      for(n=2; n<=25; n++) { 
-        vdu141track[n-1]=vdu141track[n];
-        mode7changed[n-1]=mode7changed[n];
-      }
-      vdu141track[25]=0;
-      vdu141track[0]=0;
-      /* Scroll the Mode 7 text buffer */
-      for (m=twintop+1; m<=twinbottom; m++) {
-        for (n=twinleft; n<=twinright; n++) mode7frame[m-1][n] = mode7frame[m][n];
-      }
-      /* Blank the bottom line */
-      for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
-    } else {	/* Shifting screen down */
-      dest = (twintop+1)*M7YPPC;
-      left = twinleft*M7XPPC;
-      right = (twinright+1)*M7XPPC-1;
-      top = twintop*M7YPPC;
-      scroll_rect.x = left;
-      scroll_rect.y = top;
-      scroll_rect.w = M7XPPC * (twinright - twinleft +1);
-      scroll_rect.h = M7YPPC * (twinbottom - twintop);
-      line_rect.x = 0;
-      line_rect.y = M7YPPC;
-      SDL_BlitSurface(matrixflags.surface, &scroll_rect, screen1, &line_rect);
-      SDL_BlitSurface(screen3, &scroll_rect, screen3A, NULL);
-      SDL_BlitSurface(screen2, &scroll_rect, screen2A, NULL);
-      line_rect.x = 0;
-      line_rect.y = 0;
-      line_rect.w = M7XPPC * (twinright - twinleft +1);
-      line_rect.h = M7YPPC;
-      if (vduflag(MODE7_UPDATE)) {
-        SDL_FillRect(screen1, &line_rect, ds.tb_colour);
-        SDL_FillRect(screen2A, &line_rect, ds.tb_colour);
-        SDL_FillRect(screen3A, &line_rect, ds.tb_colour);
-      }
-      for(n=0; n<=24; n++) {
-        vdu141track[n+1]=vdu141track[n];
-        mode7changed[n+1]=mode7changed[n];
-      }
-      vdu141track[0]=0; vdu141track[1]=0;
-      /* Scroll the Mode 7 text buffer */
-      for (m=twintop; m<=twinbottom-1; m++) {
-        for (n=twinleft; n<=twinright; n++) mode7frame[m+1][n] = mode7frame[m][n];
-      }
-      /* Blank the bottom line */
-      for (n=twinleft; n<=twinright; n++) mode7frame[twintop][n] = 32;
-    }
+    topwin = twintop*YPPC;				/* Y coordinate of top of text window */
+    dest = twintop*YPPC;				/* Move screen up to this point */
+    left = twinleft*XPPC;
+    right = twinright*XPPC+XPPC-1;
+    top = dest+YPPC;					/* Top of block to move starts here */
+    scroll_rect.x = twinleft*XPPC;
+    scroll_rect.y = YPPC * (twintop + 1);
+    scroll_rect.w = XPPC * (twinright - twinleft +1);
+    scroll_rect.h = YPPC * (twinbottom - twintop);
+    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, NULL);
     line_rect.x = 0;
-    line_rect.y = 0;
-    line_rect.w = M7XPPC * (twinright - twinleft +1);
-    line_rect.h = M7YPPC * (twinbottom - twintop +1);
+    line_rect.y = YPPC * (twinbottom - twintop);
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC;
+    SDL_FillRect(screen1, &line_rect, ds.tb_colour);
+    line_rect.x = line_rect.y = 0;
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC * (twinbottom - twintop +1);
     scroll_rect.x = left;
     scroll_rect.y = dest;
-    if (vduflag(MODE7_UPDATE)) {
-      SDL_BlitSurface(screen2A, &line_rect, screen2, &scroll_rect);
-      SDL_BlitSurface(screen3A, &line_rect, screen3, &scroll_rect);
-      SDL_BlitSurface(screen1, &line_rect, matrixflags.surface, &scroll_rect);
+    SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
+    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+#ifndef TARGET_MACOSX
+  } else {
+    int loop;
+    /* First, get size of one line. */
+    top=4*ds.screenwidth*YPPC;
+    /* Screen size minus size of one line (calculated above) */
+    dest=(ds.screenwidth * ds.screenheight * 4) - top;
+    memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
+    memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*ds.xscale*ds.yscale), dest*ds.xscale*ds.yscale);
+    /* Need to do it this way, as memset() works on bytes only */
+    for (loop=0;loop<top;loop+=4) {
+      *(uint32 *)(screenbank[ds.writebank]->pixels+dest+loop) = SWAPENDIAN(ds.tb_colour);
     }
-    do_sdl_flip(matrixflags.surface);
-  } /* MODE 7 version */
+    for (loop=0;loop<(top*ds.xscale*ds.yscale);loop+=4) {
+      *(uint32 *)(matrixflags.surface->pixels+(dest*ds.xscale*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
+    }
+  }
+#endif
+  do_sdl_flip(matrixflags.surface);
+}
+
+static void scroll_up_mode7(int32 windowed) {
+  int m, n;
+  for(n=2; n<=25; n++) {
+    vdu141track[n-1]=vdu141track[n];
+    mode7changed[n-1]=mode7changed[n];
+  }
+  vdu141track[25]=0;
+  vdu141track[0]=0;
+  /* Scroll the Mode 7 text buffer */
+  for (m=twintop+1; m<=twinbottom; m++) {
+    for (n=twinleft; n<=twinright; n++) mode7frame[m-1][n] = mode7frame[m][n];
+  }
+  /* Blank the bottom line */
+  for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
+  mode7renderscreen();
+}
+
+
+static void scroll_down(int32 windowed) {
+  int left, right, top, dest, topwin;
+#ifndef TARGET_MACOSX
+  if (windowed) {
+#endif
+    topwin = twintop*YPPC;		/* Y coordinate of top of text window */
+    dest = (twintop+1)*YPPC;
+    left = twinleft*XPPC;
+    right = (twinright+1)*XPPC-1;
+    top = twintop*YPPC;
+    scroll_rect.x = left;
+    scroll_rect.y = top;
+    scroll_rect.w = XPPC * (twinright - twinleft +1);
+    scroll_rect.h = YPPC * (twinbottom - twintop);
+    line_rect.x = 0;
+    line_rect.y = YPPC;
+    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, &line_rect);
+    line_rect.x = line_rect.y = 0;
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC;
+    SDL_FillRect(screen1, &line_rect, ds.tb_colour);
+    line_rect.x = line_rect.y = 0;
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC * (twinbottom - twintop +1);
+    scroll_rect.x = left;
+    scroll_rect.y = dest;
+    SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
+    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+#ifndef TARGET_MACOSX
+  } else {
+    int loop;
+    /* First, get size of one line. */
+    top=4*ds.screenwidth*YPPC;
+    /* Screen size minus size of one line (calculated above) */
+    dest=(ds.screenwidth * ds.screenheight * 4) - top;
+    memmove((void *)screenbank[ds.writebank]->pixels+top, (const void *)screenbank[ds.writebank]->pixels, dest);
+    memmove((void *)(matrixflags.surface->pixels)+(top*ds.xscale*ds.yscale), (const void *)matrixflags.surface->pixels, dest*ds.xscale*ds.yscale);
+    /* Need to do it this way, as memset() works on bytes only */
+    for (loop=0;loop<top;loop+=4) {
+      *(uint32 *)(screenbank[ds.writebank]->pixels+loop) = SWAPENDIAN(ds.tb_colour);
+    }
+    for (loop=0;loop<(top*ds.xscale*ds.yscale);loop+=4) {
+      *(uint32 *)(matrixflags.surface->pixels+loop) = SWAPENDIAN(ds.tb_colour);
+    }
+  }
+#endif
+  do_sdl_flip(matrixflags.surface);
+}
+
+static void scroll_down_mode7(int32 windowed) {
+  int m, n;
+  for(n=0; n<=24; n++) {
+    vdu141track[n+1]=vdu141track[n];
+    mode7changed[n+1]=mode7changed[n];
+  }
+  vdu141track[0]=0; vdu141track[1]=0;
+  /* Scroll the Mode 7 text buffer */
+  for (m=twintop; m<=twinbottom-1; m++) {
+    for (n=twinleft; n<=twinright; n++) mode7frame[m+1][n] = mode7frame[m][n];
+  }
+  /* Blank the bottom line */
+  for (n=twinleft; n<=twinright; n++) mode7frame[twintop][n] = 32;
+  mode7renderscreen();
+}
+
+
+/*
+** 'scroll' scrolls the graphics screen up or down by the number of
+** rows equivalent to one line of text on the screen. Depending on
+** the RISC OS mode being used, this can be either eight or sixteen
+** rows. 'direction' says whether the screen is moved up or down.
+** The screen is redrawn by this call
+*/
+static void scroll(updown direction) {
+  if (screenmode == 7) {
+    if (direction == SCROLL_UP) {	/* Shifting screen up */
+      scroll_up_mode7(vduflag(VDU_FLAG_TEXTWIN));
+    } else {	/* Shifting screen down */
+      scroll_down_mode7(vduflag(VDU_FLAG_TEXTWIN));
+    }
+  } else {
+    if (direction == SCROLL_UP) {	/* Shifting screen up */
+      scroll_up(vduflag(VDU_FLAG_TEXTWIN));
+    } else {	/* Shifting screen down */
+      scroll_down(vduflag(VDU_FLAG_TEXTWIN));
+    }
+  }
 }
 
 /*
@@ -1000,19 +999,20 @@ void mode7flipbank() {
   int32 ypos;
   
   if (screenmode != 7) {
-    if ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1) && (ds.displaybank == ds.writebank)) {
+    if ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1) && (ds.displaybank == ds.writebank)) {
       SDL_UpdateRect(matrixflags.surface, 0, 0, 0, 0);
-      ds.videorescan = basicvars.centiseconds;
+      ds.videorefresh = basicvars.centiseconds;
     }
   } else {
     mytime=basicvars.centiseconds;
     if ((ds.autorefresh==1) && vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
-      for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos);
+      for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos, 0);
       do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
       m7updatetimer=mytime;
     }
     if ((mode7timer - mytime) <= 0) {
       hide_cursor();
+//      if ((!vduflag(MODE7_UPDATE) || (ds.videofreq>0)) && (ds.autorefresh==1)) mode7renderscreen();
       if (!vduflag(MODE7_UPDATE) && (ds.autorefresh==1)) mode7renderscreen();
       if (vduflag(MODE7_BANK)) {
         SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
@@ -1049,7 +1049,7 @@ static void write_char(int32 ch) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        ds.videorescan=0;
+        ds.videorefresh=0;
         do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1106,7 +1106,7 @@ static void write_char(int32 ch) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        ds.videorescan=0;
+        ds.videorefresh=0;
         do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1393,7 +1393,7 @@ static void move_curdown(void) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        ds.videorescan=0;
+        ds.videorefresh=0;
         do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
@@ -1917,7 +1917,7 @@ void emulate_vdu(int32 charvalue) {
               ytext--;
               scroll(SCROLL_UP);
             }
-            mode7renderline(ytext);
+            mode7renderline(ytext, 0);
           }
           if (ytext < twintop) {
             if (vdu2316byte & 16) {
@@ -1926,7 +1926,7 @@ void emulate_vdu(int32 charvalue) {
               ytext++;
               scroll(SCROLL_DOWN);
             }
-            mode7renderline(ytext);
+            mode7renderline(ytext, 0);
           }
         }
         if (charvalue == 127) {
@@ -1938,9 +1938,9 @@ void emulate_vdu(int32 charvalue) {
         }
         mode7changed[ytext]=1;
         if (vduflag(MODE7_UPDATE_HIGHACC)) {
-          if ((ds.videorescan < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1)) {
-            mode7renderline(ytext);
-            ds.videorescan = basicvars.centiseconds;
+          if ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1)) {
+            mode7renderline(ytext, 0);
+            ds.videorefresh = basicvars.centiseconds;
           }
         }
         xtext+=textxinc();
@@ -1965,12 +1965,12 @@ void emulate_vdu(int32 charvalue) {
           if (ytext > twinbottom) {
             ytext--;
             scroll(SCROLL_UP);
-            mode7renderline(ytext);
+            mode7renderline(ytext, 0);
           }
           if (ytext < twintop) {
             ytext++;
             scroll(SCROLL_DOWN);
-            mode7renderline(ytext);
+            mode7renderline(ytext, 0);
           }
         }
         return; /* End of MODE 7 block */
@@ -3177,7 +3177,7 @@ boolean init_screen(void) {
   ds.autorefresh=1;
   ds.displaybank=0;
   ds.writebank=0;
-  ds.videorescan=0;
+  ds.videorefresh=0;
   ds.videofreq=1;
 
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
@@ -3278,7 +3278,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 //  return ((ch >= 0x80) && (ch <= 0x9F));
 //}
 
-static void mode7renderline(int32 ypos) {
+static void mode7renderline(int32 ypos, int32 fast) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
@@ -3476,7 +3476,7 @@ static void mode7renderline(int32 ypos) {
     }
   }
   SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
-  do_sdl_updaterect(matrixflags.surface, 0, topy, 40*M7XPPC, M7YPPC);
+  if (!fast) do_sdl_updaterect(matrixflags.surface, 0, topy, 40*M7XPPC, M7YPPC);
 
   vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
   text_physbackcol=l_text_physbackcol;
@@ -3492,7 +3492,7 @@ static void mode7renderline(int32 ypos) {
   if ((!vdu141used) && vdu141track[ypos]==1) vdu141track[ypos]=0;
   if ((ypos < 24) && vdu141track[ypos+1]) {
     if ((vdu141track[ypos] == 0) || (vdu141track[ypos] == 2)) vdu141track[ypos+1]=1;
-    mode7renderline(ypos+1);
+    mode7renderline(ypos+1, 0);
   }
 }
 
@@ -3504,8 +3504,9 @@ void mode7renderscreen(void) {
   
   write_vduflag(MODE7_UPDATE,1);
   for (ypos=0; ypos < 26;ypos++) vdu141track[ypos]=0;
-  for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos);
+  for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos, 1);
   write_vduflag(MODE7_UPDATE,bmpstate);
+  do_sdl_flip(matrixflags.surface);
 }
 
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
