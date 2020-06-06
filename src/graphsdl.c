@@ -122,7 +122,9 @@ static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
 static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
+#ifdef TARGET_MACOSX
 static SDL_PixelFormat pixfmt;
+#endif
 
 static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
 
@@ -3152,6 +3154,7 @@ boolean init_screen(void) {
   
   int p;
 
+#ifdef TARGET_MACOSX
   /* Populate the pixfmt structure */
   memset(&pixfmt, 0, sizeof(SDL_PixelFormat));
   pixfmt.BitsPerPixel = 32;
@@ -3165,6 +3168,7 @@ boolean init_screen(void) {
   pixfmt.Bmask=0xFF;
   pixfmt.colorkey=0;
   pixfmt.alpha=255;
+#endif
 
   ds.autorefresh=1;
   ds.displaybank=0;
@@ -3190,7 +3194,11 @@ boolean init_screen(void) {
     SDL_FreeSurface(screenbank[p]);
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
+#ifdef TARGET_MACOSX
   modescreen = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
+#else
+  modescreen = SDL_DisplayFormat(matrixflags.surface);
+#endif
   ds.displaybank=0;
   ds.writebank=0;
   screen1 = SDL_DisplayFormat(modescreen);
@@ -3200,8 +3208,13 @@ boolean init_screen(void) {
   screen3A = SDL_DisplayFormat(modescreen);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+#ifdef TARGET_MACOSX
   sdl_fontbuf = SDL_ConvertSurface(fontbuf, &pixfmt, 0);  /* copy surface to get same format as main windows */
   sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, &pixfmt, 0);  /* copy surface to get same format as main windows */
+#else
+  sdl_fontbuf = SDL_ConvertSurface(fontbuf, matrixflags.surface->format, 0);  /* copy surface to get same format as main windows */
+  sdl_m7fontbuf = SDL_ConvertSurface(m7fontbuf, matrixflags.surface->format, 0);  /* copy surface to get same format as main windows */
+#endif
   SDL_FreeSurface(fontbuf);
   SDL_FreeSurface(m7fontbuf);
 
@@ -3216,7 +3229,11 @@ boolean init_screen(void) {
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
   setup_mode(0);
 
+#ifdef TARGET_MACOSX
   ds.xor_mask = SDL_MapRGB(&pixfmt, 0xff, 0xff, 0xff);
+#else
+  ds.xor_mask = SDL_MapRGB(sdl_fontbuf->format, 0xff, 0xff, 0xff);
+#endif
 
   font_rect.x = font_rect.y = 0;
 
