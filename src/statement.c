@@ -46,6 +46,9 @@
 #include "assign.h"
 #include "statement.h"
 #include "keyboard.h"
+#ifdef USE_SDL
+#include "graphsdl.h"
+#endif
 
 /* #define DEBUG */
 
