@@ -402,6 +402,7 @@ static void exec_statements(byte *lp) {
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
       kbd_escpoll();
+      mode7flipbank();
 //    if (basicvars.escape_enabled) checkforescape();
 #endif
 #ifdef DEBUG

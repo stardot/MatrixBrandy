@@ -514,9 +514,6 @@ int kbd_escpoll() {
 int64 tmp;
 #endif
 
-#ifdef USE_SDL
-  mode7flipbank();
-#endif
   if (backgnd_escape) {				/* Only poll when not doing key input	*/
     if (kbd_esctest()) {			/* Only poll if Escapes are enabled	*/
 #ifdef USE_SDL
