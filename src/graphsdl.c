@@ -192,6 +192,10 @@ static struct {
 ** function definitions
 */
 
+static void scroll_up(int32 windowed);
+static void scroll_down(int32 windowed);
+static void scroll_left(int32 windowed);
+static void scroll_right(int32 windowed);
 static void reveal_cursor(void);
 static void plot_pixel(SDL_Surface *, int64, Uint32, Uint32);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
@@ -359,6 +363,42 @@ static void set_rgb(void) {
 #endif
 }
 
+static void vdu_2307(void) {
+  int32 windowed;
+  
+  if (vduqueue[1] == 0) {
+    windowed = 1;
+  } else {
+    windowed = 0;
+  }
+  switch (vduqueue[2]) {
+    case 0: /* Scroll right */
+      scroll_right(windowed);
+      break;
+    case 1: /* Scroll left */
+      scroll_left(windowed);
+      break;
+    case 2: /* Scroll down */
+      scroll_down(windowed);
+      break;
+    case 3: /* Scroll up */
+      scroll_up(windowed);
+      break;
+    case 4: /* Scroll in positive X direction (default right) */
+      if (vdu2316byte & 2) scroll_left(windowed); else scroll_right(windowed);
+      break;
+    case 5: /* Scroll in negative X direction (default left) */
+      if (vdu2316byte & 2) scroll_right(windowed); else scroll_left(windowed);
+      break;
+    case 6: /* Scroll in positive Y direction (default down) */
+      if (vdu2316byte & 4) scroll_up(windowed); else scroll_down(windowed);
+      break;
+    case 7: /* Scroll in negative Y direction (default up) */
+      if (vdu2316byte & 4) scroll_down(windowed); else scroll_up(windowed);
+      break;
+  }
+}
+
 /*
 ** 'vdu_2316' deals with various flavours of the sequence VDU 23,16,...
 ** The spec is awkward: Given VDU 23,16,x,y,0,0,0,0,0,0 the control byte is changed using:
@@ -477,6 +517,8 @@ static void vdu_23command(void) {
     if (vduqueue[1] == 1) cursorstate = ONSCREEN;
     else cursorstate = HIDDEN;
     break;
+  case 7:	/* Scroll the screen or text window */
+    vdu_2307();
   case 8:	/* Clear part of the text window */
     break;
   case 16:	/* Controls the movement of the cursor after printing */
@@ -826,15 +868,41 @@ static void set_graphics_colour(boolean background, int colnum) {
 ** It does make for a bit of duplicated code, but should make it easier
 ** to follow what's going on in each direction.
 */
+static void scroll_up_mode7(int32 windowed) {
+  int m, n, t, b, l, r;
+  if (windowed) {
+    t=twintop;
+    b=twinbottom;
+    l=twinleft;
+    r=twinright;
+  } else {
+    t=l=0;
+    b=24;
+    r=39;
+  }
+  /* Scroll the Mode 7 text buffer */
+  for (m=t+1; m<=b; m++) {
+    for (n=l; n<=r; n++) mode7frame[m-1][n] = mode7frame[m][n];
+  }
+  /* Blank the bottom line */
+  for (n=l; n<=r; n++) mode7frame[b][n] = 32;
+  mode7renderscreen();
+}
+
 static void scroll_up(int32 windowed) {
   int left, right, top, dest, topwin;
+  if (screenmode == 7) { 
+    scroll_up_mode7(windowed);
+    return;
+  }
+  toggle_cursor();
   if (windowed) {
     topwin = twintop*YPPC;				/* Y coordinate of top of text window */
     dest = twintop*YPPC;				/* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
     top = dest+YPPC;					/* Top of block to move starts here */
-    scroll_rect.x = twinleft*XPPC;
+    scroll_rect.x = left;
     scroll_rect.y = YPPC * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
     scroll_rect.h = YPPC * (twinbottom - twintop);
@@ -869,31 +937,40 @@ static void scroll_up(int32 windowed) {
     }
   }
   do_sdl_flip(matrixflags.surface);
+  toggle_cursor();
 }
 
-static void scroll_up_mode7(int32 windowed) {
-  int m, n;
-  for(n=2; n<=25; n++) {
-    vdu141track[n-1]=vdu141track[n];
-    mode7changed[n-1]=mode7changed[n];
+static void scroll_down_mode7(int32 windowed) {
+  int m, n, t, b, l, r;
+  if (windowed) {
+    t=twintop;
+    b=twinbottom;
+    l=twinleft;
+    r=twinright;
+  } else {
+    t=l=0;
+    b=24;
+    r=39;
   }
-  vdu141track[25]=0;
-  vdu141track[0]=0;
   /* Scroll the Mode 7 text buffer */
-  for (m=twintop+1; m<=twinbottom; m++) {
-    for (n=twinleft; n<=twinright; n++) mode7frame[m-1][n] = mode7frame[m][n];
+  for (m=b-1; m>=t; m--) {
+    for (n=l; n<=r; n++) mode7frame[m+1][n] = mode7frame[m][n];
   }
-  /* Blank the bottom line */
-  for (n=twinleft; n<=twinright; n++) mode7frame[twinbottom][n] = 32;
+  /* Blank the top line */
+  for (n=l; n<=r; n++) mode7frame[t][n] = 32;
   mode7renderscreen();
 }
 
-
 static void scroll_down(int32 windowed) {
   int left, right, top, dest, topwin;
+  if (screenmode == 7) { 
+    scroll_down_mode7(windowed);
+    return;
+  }
+  toggle_cursor();
   if (windowed) {
     topwin = twintop*YPPC;		/* Y coordinate of top of text window */
-    dest = (twintop+1)*YPPC;
+    dest = (twintop)*YPPC;
     left = twinleft*XPPC;
     right = (twinright+1)*XPPC-1;
     top = twintop*YPPC;
@@ -932,24 +1009,147 @@ static void scroll_down(int32 windowed) {
     }
   }
   do_sdl_flip(matrixflags.surface);
+  toggle_cursor();
 }
 
-static void scroll_down_mode7(int32 windowed) {
-  int m, n;
-  for(n=0; n<=24; n++) {
-    vdu141track[n+1]=vdu141track[n];
-    mode7changed[n+1]=mode7changed[n];
+static void scroll_left_mode7(int32 windowed) {
+  int m, n, t, b, l, r;
+  if (windowed) {
+    t=twintop;
+    b=twinbottom;
+    l=twinleft;
+    r=twinright;
+  } else {
+    t=l=0;
+    b=24;
+    r=39;
   }
-  vdu141track[0]=0; vdu141track[1]=0;
   /* Scroll the Mode 7 text buffer */
-  for (m=twintop; m<=twinbottom-1; m++) {
-    for (n=twinleft; n<=twinright; n++) mode7frame[m+1][n] = mode7frame[m][n];
+  for (m=l+1; m<=r; m++) {
+    for (n=t; n<=b; n++) mode7frame[n][m-1] = mode7frame[n][m];
   }
-  /* Blank the bottom line */
-  for (n=twinleft; n<=twinright; n++) mode7frame[twintop][n] = 32;
+  /* Blank the right line */
+  for (n=t; n<=b; n++) mode7frame[n][r] = 32;
   mode7renderscreen();
 }
 
+static void scroll_left(int32 windowed) {
+  int left, right, top, dest, topwin;
+  if (screenmode == 7) { 
+    scroll_left_mode7(windowed);
+    return;
+  }
+  toggle_cursor();
+  if (windowed) {
+    topwin = twintop*YPPC;				/* Y coordinate of top of text window */
+    dest = twintop*YPPC;				/* Move screen up to this point */
+    left = twinleft*XPPC;
+    right = twinright*XPPC+XPPC-1;
+    top = dest+YPPC;					/* Top of block to move starts here */
+    scroll_rect.x = (twinleft+1)*XPPC;
+    scroll_rect.y = YPPC * (twintop);
+    scroll_rect.w = XPPC * (twinright - twinleft);
+    scroll_rect.h = YPPC * (twinbottom - twintop +1);
+    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, NULL);
+    line_rect.x = line_rect.y = 0;
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC * (twinbottom - twintop +1);
+    scroll_rect.x = left;
+    scroll_rect.y = dest;
+    SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
+    line_rect.x = XPPC * (twinright-twinleft);
+    line_rect.y = YPPC * twintop;
+    line_rect.w = XPPC;
+    line_rect.h = YPPC * (twinbottom - twintop +1);
+    SDL_FillRect(screenbank[ds.writebank], &line_rect, ds.tb_colour);
+    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+  } else {
+    int lx, ly;
+    top=4*XPPC;
+    /* Screen size minus size of one line (calculated above) */
+    dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
+    memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
+  
+    for (ly=1; ly<=(ds.screenheight*ds.xscale); ly++) {
+      for (lx=0; lx < (4*XPPC); lx+=4) {
+        *(uint32 *)(screenbank[ds.writebank]->pixels+((ds.screenwidth)*4*ly)+lx-(4*XPPC)) = SWAPENDIAN(ds.tb_colour);
+      }
+    }
+    blit_scaled(0, 0, ds.screenwidth, ds.screenheight);
+  }
+  do_sdl_flip(matrixflags.surface);
+  toggle_cursor();
+}
+
+static void scroll_right_mode7(int32 windowed) {
+  int m, n, t, b, l, r;
+  if (windowed) {
+    t=twintop;
+    b=twinbottom;
+    l=twinleft;
+    r=twinright;
+  } else {
+    t=l=0;
+    b=24;
+    r=39;
+  }
+  /* Scroll the Mode 7 text buffer */
+  for (m=r-1; m>=l; m--) {
+    for (n=t; n<=b; n++) mode7frame[n][m+1] = mode7frame[n][m];
+  }
+  /* Blank the right line */
+  for (n=t; n<=b; n++) mode7frame[n][l] = 32;
+  mode7renderscreen();
+}
+
+static void scroll_right(int32 windowed) {
+  int left, right, top, dest, topwin;
+  if (screenmode == 7) { 
+    scroll_right_mode7(windowed);
+    return;
+  }
+  toggle_cursor();
+  if (windowed) {
+    topwin = twintop*YPPC;				/* Y coordinate of top of text window */
+    dest = twintop*YPPC;				/* Move screen up to this point */
+    left = twinleft*XPPC;
+    right = twinright*XPPC+XPPC-1;
+    top = dest+YPPC;					/* Top of block to move starts here */
+    scroll_rect.x = (twinleft)*XPPC;
+    scroll_rect.y = YPPC * (twintop);
+    scroll_rect.w = XPPC * (twinright - twinleft);
+    scroll_rect.h = YPPC * (twinbottom - twintop +1);
+    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, NULL);
+    line_rect.x = 0;
+    line_rect.y = 0;
+    line_rect.w = XPPC * (twinright - twinleft +1);
+    line_rect.h = YPPC * (twinbottom - twintop +1);
+    scroll_rect.x = left+XPPC;
+    scroll_rect.y = dest;
+    SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
+    line_rect.x = left;
+    line_rect.y = YPPC * twintop;
+    line_rect.w = XPPC;
+    line_rect.h = YPPC * (twinbottom - twintop +1);
+    SDL_FillRect(screenbank[ds.writebank], &line_rect, ds.tb_colour);
+    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+  } else {
+    int lx, ly;
+    top=4*XPPC;
+    /* Screen size minus size of one line (calculated above) */
+    dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
+    memmove((void *)screenbank[ds.writebank]->pixels+top, (const void *)screenbank[ds.writebank]->pixels, dest);
+  
+    for (ly=0; ly<=(ds.screenheight*ds.xscale)-1; ly++) {
+      for (lx=0; lx < (4*XPPC); lx+=4) {
+        *(uint32 *)(screenbank[ds.writebank]->pixels+((ds.screenwidth)*4*ly)+lx) = SWAPENDIAN(ds.tb_colour);
+      }
+    }
+    blit_scaled(0, 0, ds.screenwidth, ds.screenheight);
+  }
+  do_sdl_flip(matrixflags.surface);
+  toggle_cursor();
+}
 
 /*
 ** 'scroll' scrolls the graphics screen up or down by the number of
@@ -959,18 +1159,10 @@ static void scroll_down_mode7(int32 windowed) {
 ** The screen is redrawn by this call
 */
 static void scroll(updown direction) {
-  if (screenmode == 7) {
-    if (direction == SCROLL_UP) {	/* Shifting screen up */
-      scroll_up_mode7(vduflag(VDU_FLAG_TEXTWIN));
-    } else {	/* Shifting screen down */
-      scroll_down_mode7(vduflag(VDU_FLAG_TEXTWIN));
-    }
-  } else {
-    if (direction == SCROLL_UP) {	/* Shifting screen up */
-      scroll_up(vduflag(VDU_FLAG_TEXTWIN));
-    } else {	/* Shifting screen down */
-      scroll_down(vduflag(VDU_FLAG_TEXTWIN));
-    }
+  if (direction == SCROLL_UP) {	/* Shifting screen up */
+    scroll_up(vduflag(VDU_FLAG_TEXTWIN));
+  } else {	/* Shifting screen down */
+    scroll_down(vduflag(VDU_FLAG_TEXTWIN));
   }
 }
 
