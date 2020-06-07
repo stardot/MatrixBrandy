@@ -8,8 +8,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * System: INKEY(-256) now returns &4D (M) for all builds. System specifics
   can be obtained from SYS "Brandy_Platform".
 * System: Some optimisations in the scaled blitting code.
-* System: Added a hugely optimised code path for scrolling up, when no VDU28
+* System: Added a hugely optimised code path for scrolling, when no VDU28
   window is in place, and not MODE 7.
+* VDU23,7 implemented apart from movement option.
 * System: Now builds on MacOS High Sierra and Catalina. Note, it requires
   the latest snapshot of SDL 1.2 from SDL's Mercurial repository.
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with

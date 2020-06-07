@@ -4601,11 +4601,14 @@ that character. If the command byte is in the range 0 to 31 then
 it is a command for the VDU driver. Eight bytes of data must be
 supplied but the command might ignore them.
 
-Only three of the VDU 23 commands are supported:
+Some of the VDU 23 commands are supported:
 
 	23,1	Hide or show the text cursor.
+	23,7	Scroll rectangle on screen
+	23,16	Define cursor movement
 	23,17	Set the 'tint' value in 256 colour screen modes.
 	23,18	Control soft Teletext implementation.
+	23,22	BB4W/BBCSDL custom screen mode
 
 23,1
 ----
@@ -4614,11 +4617,71 @@ The two values defined are:
 	23,1,0	This removes the text cursor
 	23,1,1	This displays the text cursor
 
+23,7
+----
+The format of this command is:
+VDU 23,7,<extent>,<direction>,<movement>,0,0,0,0,0
+
+where:
+<extent> says what to scroll:
+	0:	Scroll the current text window
+	1:	Scroll the entire screen
+
+<direction>:
+	0:	Scroll right
+	1:	Scroll left
+	2:	Scroll down
+	3:	Scroll up
+	4:	Scroll in positive X direction
+	5:	Scroll in negative X direction
+	6:	Scroll in positive Y direction
+	7:	Scroll in negative Y direction
+
+<movement>:
+	0:	Scroll by one character cell
+	1:	Scroll by one character cell vertically, or one byte
+		horizontally (NOT SUPPORTED), option ignored.
+
+23,16
+-----
+The format of this command is:
+VDU 23,16,x,y,0,0,0,0,0,0
+
+This allows the direction of the cursor movement after a character is printed
+to be specified. The new direction is specified with (old value AND y) EOR x,
+and the new status is interpreted as:
+b7	0 Normal value, 1 undefined.
+b6	VDU5 mode, 0 has the text wrap at the edge of the screen, 1 has no wrap.
+b5	0 Cursor moved in positive X direction after a character is printed.
+	1 Cursor does not move after a character is printed.
+b4	0 Cursor movement in the postive Y direction past the bottom of the text
+	  window causes the window to scroll in VDU 4 mode.
+	1 Cursor movement in the postive Y direction past the bottom of the text
+	  window always causes the text cursor to be moved to the opposite edge
+	  of the window.
+b3,2,1  define the cursor direction as follows:
+0 0 0	X direction is right, Y direction is down
+0 0 1	X direction is left, Y direction is down
+0 1 0	X direction is right, Y direction is up
+0 1 1	X direction is left, Y direction is up
+Options with b3 = 1 are not supported, but are listed below what is intended:
+1 0 0	X direction is down, Y direction is right
+1 0 1	X direction is down, Y direction is left
+1 1 0	X direction is up, Y direction is right
+1 1 1	X direction is up, Y direction is left
+
+b0	0 Disables scroll protection, the text cursor moving off the positive
+	  edge of the window will always move directly to the next line,
+	  scrolling the window if necessary. (BBC Master/Arc *configure scroll)
+	1 Enables scroll protection, the text cursor moving off the positive
+	  edge of the window waits at the dge of the window until the movement
+	  is needed. (BBC Master/Arc *configure noscroll)
+
 23,17
 -----
 The format of this command is:
 
-	23,17,<option>,<tint>
+VDU 23,17,<option>,<tint>
 
 where:
 
@@ -4634,8 +4697,19 @@ giving values of 0, 64, 128 and 192.
 
 23,18
 -----
-Documentation to be added.
+See docs/Mode7.txt
 
+23,22
+-----
+This defines a custom mode. Inspired by BB4W/BBCSDL but not an
+exact replica.
+The format of this command is:
+VDU 23,22,<xpixels>;<ypixels>;<xchars>,<ychars>,<colours>,<flags>
+
+As Matrix Brandy uses an 8x8 character set for all screen modes (other than 7),
+the implementation is approximate.
+<colours> - valid values are 0 (for 256), 2, 4 and 16.
+<flags> - only bit 7 is implemented, sets black on white text.
 
 VDU 24
 Define the graphics window.
