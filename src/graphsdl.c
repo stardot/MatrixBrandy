@@ -120,7 +120,6 @@ static unsigned int YPPC=8;
 */
 static SDL_Surface *screenbank[MAXBANKS];
 static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
-static SDL_Surface *modescreen;	/* Buffer used when screen mode is scaled to fit real screen */
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
 #ifdef TARGET_MACOSX
 static SDL_PixelFormat pixfmt;
@@ -2406,8 +2405,6 @@ static void setup_mode(int32 mode) {
     SDL_FreeSurface(screenbank[p]);
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
-  SDL_FreeSurface(modescreen);
-  modescreen = SDL_DisplayFormat(matrixflags.surface);
   matrixflags.modescreen_ptr = screenbank[ds.writebank]->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   ds.displaybank=0;
@@ -2463,7 +2460,9 @@ static void setup_mode(int32 mode) {
   write_vduflag(VDU_FLAG_ENAPAGE,0);
   if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
-  SDL_FillRect(modescreen, NULL, ds.tb_colour);
+  for (p=0; p<4; p++) {
+    SDL_FillRect(screenbank[p], NULL, ds.tb_colour);
+  }
   SDL_FillRect(screen2, NULL, ds.tb_colour);
   SDL_FillRect(screen3, NULL, ds.tb_colour);
   SDL_SetClipRect(matrixflags.surface, NULL);
@@ -2484,10 +2483,14 @@ static void setup_mode(int32 mode) {
 ** the interpreter supports graphics.
 */
 void emulate_mode(int32 mode) {
+  int p;
+
   setup_mode(mode);
 /* Reset colours, clear screen and home cursor */
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
-  SDL_FillRect(modescreen, NULL, ds.tb_colour);
+  for (p=0; p<4; p++) {
+    SDL_FillRect(screenbank[p], NULL, ds.tb_colour);
+  }
   xtext = textxhome();
   ytext = textyhome();
   do_sdl_flip(matrixflags.surface);
@@ -3384,20 +3387,19 @@ boolean init_screen(void) {
   }
   for (p=0; p<4; p++) {
     SDL_FreeSurface(screenbank[p]);
-    screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
-  }
 #ifdef TARGET_MACOSX
-  modescreen = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
+    screenbank[p] = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
 #else
-  modescreen = SDL_DisplayFormat(matrixflags.surface);
+    screenbank[p] = SDL_DisplayFormat(matrixflags.surface);
 #endif
+  }
   ds.displaybank=0;
   ds.writebank=0;
-  screen1 = SDL_DisplayFormat(modescreen);
-  screen2 = SDL_DisplayFormat(modescreen);
-  screen2A = SDL_DisplayFormat(modescreen);
-  screen3 = SDL_DisplayFormat(modescreen);
-  screen3A = SDL_DisplayFormat(modescreen);
+  screen1 = SDL_DisplayFormat(screenbank[0]);
+  screen2 = SDL_DisplayFormat(screenbank[0]);
+  screen2A = SDL_DisplayFormat(screenbank[0]);
+  screen3 = SDL_DisplayFormat(screenbank[0]);
+  screen3A = SDL_DisplayFormat(screenbank[0]);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
 #ifdef TARGET_MACOSX
