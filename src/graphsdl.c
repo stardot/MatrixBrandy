@@ -4198,7 +4198,45 @@ int32 osbyte135() {
   if (screenmode == 7) {
     return ((screenmode << 16) + (mode7frame[ytext][xtext] << 8) + 135);
   } else {
-    return ((screenmode << 16) + 135);
+    int32 topx, topy, bgc, y, match;
+    unsigned char cell[8];
+    /* Get address of character cell */
+    topx = xtext*XPPC;
+    topy = ytext*YPPC;
+    /* Let's assume the top left pixel is in background colour */
+    bgc=*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 0 + ((topy)*ds.vscrwidth));
+    for (y=0; y < 8; y++) {
+      cell[y]=0;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 0 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x80;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 1 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x40;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 2 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x20;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 3 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x10;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 4 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x08;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 5 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x04;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 6 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x02;
+      if (*((Uint32*)screenbank[ds.displaybank]->pixels + topx + 7 + ((topy+y)*ds.vscrwidth)) != bgc) cell[y] |= 0x01;
+    }
+    /* Got the character shape of the cell. Now find it in the sysfont structure */
+    match=0;
+    for (y=32; y <= 255; y++) {
+      if (cell[0] == sysfont[y-32][0] && cell[1] == sysfont[y-32][1] && cell[2] == sysfont[y-32][2] && cell[3] == sysfont[y-32][3] && cell[4] == sysfont[y-32][4] && cell[5] == sysfont[y-32][5] && cell[6] == sysfont[y-32][6] && cell[7] == sysfont[y-32][7]) {
+        /* Match */
+        match=y;
+        break; 
+      }
+    }
+    if (!match) {
+      /* No match, let's try inverse video */
+      for (y=0; y<8;y++) cell[y] ^= 0xFF;
+      for (y=32; y <= 255; y++) {
+        if (cell[0] == sysfont[y-32][0] && cell[1] == sysfont[y-32][1] && cell[2] == sysfont[y-32][2] && cell[3] == sysfont[y-32][3] && cell[4] == sysfont[y-32][4] && cell[5] == sysfont[y-32][5] && cell[6] == sysfont[y-32][6] && cell[7] == sysfont[y-32][7]) {
+          /* Match */
+          match=y;
+          break; 
+        }
+      }
+    }
+    return ((screenmode << 16) + (match << 8) + 135);
   }
 }
 

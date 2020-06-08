@@ -10,7 +10,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * System: Some optimisations in the scaled blitting code.
 * System: Added a hugely optimised code path for scrolling, when no VDU28
   window is in place, and not MODE 7.
-* VDU23,7 implemented apart from movement option.
+* System: VDU23,7 implemented apart from movement option.
+* System: OSBYTE &87 implemented for non-MODE7 screen modes. (MODE 7
+  was previously implemented)
 * System: Now builds on MacOS High Sierra and Catalina. Note, it requires
   the latest snapshot of SDL 1.2 from SDL's Mercurial repository.
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
