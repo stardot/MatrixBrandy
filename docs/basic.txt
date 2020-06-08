@@ -700,6 +700,7 @@ GET
 	a) Returns the next character pressed on the keyboard as a
 	   number, waiting if there is not one available.
 	b) Returns the character at position (x,y) on the screen.
+	   This only works on the SDL build; on text builds this returns 0.
 
 GET$
 	Use: a) GET$
@@ -711,6 +712,7 @@ GET$
 	b) Returns the next line from the open file with handle
 	   <factor> as a character string.
 	c) Returns the character at position (x,y) on the screen.
+	   This only works on the SDL build; on text builds this returns 0.
 
 INKEY
 	Use: INKEY <factor>
