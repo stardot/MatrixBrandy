@@ -743,14 +743,26 @@ void fn_false(void) {
 */
 static void fn_get(void) {
   int ch;
-  do {
+  if (*basicvars.current == '(') {	/* Have encountered the 'GET$#' version */
+    int32 x, y;
+    basicvars.current++;
+    x = eval_integer();
+    if (*basicvars.current != ',') error(ERR_COMISS);
+    basicvars.current++;
+    y = eval_integer();
+    if (*basicvars.current != ')') error(ERR_RPMISS);
+    basicvars.current++;
+    push_int(get_character_at_pos(x, y));
+  } else {
+    do {
 #ifdef NEWKBD
       ch=kbd_get() & 0xFF;
 #else
       ch=emulate_get() & 0xFF;
 #endif
-  } while (ch==0);
-  push_int(ch);
+    } while (ch==0);
+    push_int(ch);
+  }
 }
 
 /*
@@ -761,7 +773,19 @@ static void fn_getdol(void) {
   char *cp;
   int ch;
   int32 handle, count;
-  if (*basicvars.current == '#') {	/* Have encountered the 'GET$#' version */
+  if (*basicvars.current == '(') {	/* Have encountered the 'GET$#' version */
+    int32 x, y;
+    basicvars.current++;
+    x = eval_integer();
+    if (*basicvars.current != ',') error(ERR_COMISS);
+    basicvars.current++;
+    y = eval_integer();
+    if (*basicvars.current != ')') error(ERR_RPMISS);
+    basicvars.current++;
+    cp = alloc_string(1);
+    *cp = get_character_at_pos(x, y);
+    push_strtemp(1, cp);
+  } else if (*basicvars.current == '#') {	/* Have encountered the 'GET$#' version */
     basicvars.current++;
     handle = eval_intfactor();
     count = fileio_getdol(handle, basicvars.stringwork);

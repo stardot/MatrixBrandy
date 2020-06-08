@@ -4134,7 +4134,7 @@ int get_refreshmode(void) {
   return ds.autorefresh;
 }
 
-static int32 get_character_at_pos(cx, cy) {
+int32 get_character_at_pos(int32 cx, int32 cy) {
   if (screenmode == 7) {
     return (mode7frame[cy][cx]);
   } else {

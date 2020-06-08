@@ -2435,6 +2435,10 @@ void end_screen(void) {
   if (vduflag(VDU_FLAG_TEXTWIN)) reset_screen();
 }
 
+int32 get_character_at_pos(int32 cx, int32 cy) {
+  return 0;
+}
+
 void set_wintitle(char *title) {
 #if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x500
   SetConsoleTitleA(title);

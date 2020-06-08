@@ -213,5 +213,6 @@ extern void find_cursor(void);
 extern boolean init_screen(void);
 extern void end_screen(void);
 extern void set_wintitle(char *title);
+extern int32 get_character_at_pos(int32 cx, int32 cy);
 
 #endif
