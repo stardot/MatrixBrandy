@@ -627,21 +627,19 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
-  if (ds.autorefresh != 1) return;
+  if ((ds.autorefresh != 1) || (ds.displaybank != ds.writebank)) return;
   if (right < 0 || bottom < 0 || left >= ds.screenwidth || top >= ds.screenheight) return;	/* Is off screen completely */
   if (left < 0) left = 0;				/* Clip the rectangle as necessary */
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
   if(!ds.scaled) {
-    if (ds.displaybank == ds.writebank) {
-      scale_rect.x = left;
-      scale_rect.y = top;
-      scale_rect.w = (right+1 - left);
-      scale_rect.h = (bottom+1 - top);
-      SDL_BlitSurface(screenbank[ds.writebank], &scale_rect, matrixflags.surface, &scale_rect);
-    }
-  } else if (ds.displaybank == ds.writebank) {
+    scale_rect.x = left;
+    scale_rect.y = top;
+    scale_rect.w = (right+1 - left);
+    scale_rect.h = (bottom+1 - top);
+    SDL_BlitSurface(screenbank[ds.writebank], &scale_rect, matrixflags.surface, &scale_rect);
+  } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
     int32 yy = dtop;
