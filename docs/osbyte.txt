@@ -54,7 +54,6 @@ A=131:	Bottom of user memory.
 A=132:	Top of user memory
 A=134:	Return text cursor position in X and Y. Identical to 165.
 A=135:	Return screen mode and character under cursor or 0 if unreadable.
-	In Brandy, the character under the cursor is only returned in MODE 7.
 A=160:	Read VDU variable (equivalent to VDU(X%))
 A=163:	Application Support - all these are local to Brandy
 	X=1: Get or set refresh state (as per *REFRESH)
