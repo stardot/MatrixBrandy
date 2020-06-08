@@ -695,19 +695,22 @@ FALSE
 	the interpreter (zero).
 
 GET
-	Use: GET
-	Returns the next character pressed on the keyboard as a
-	number, waiting if there is not one available.
+	Use: a) GET
+	     b) GET(x,y)
+	a) Returns the next character pressed on the keyboard as a
+	   number, waiting if there is not one available.
+	b) Returns the character at position (x,y) on the screen.
 
 GET$
 	Use: a) GET$
 	     b) GET$# <factor>
+	     c) GET$(x,y)
 	a) Returns the next character pressed on the keyboard as a
 	   one character string, waiting if there is not one
 	   available.
 	b) Returns the next line from the open file with handle
 	   <factor> as a character string.
-
+	c) Returns the character at position (x,y) on the screen.
 
 INKEY
 	Use: INKEY <factor>
