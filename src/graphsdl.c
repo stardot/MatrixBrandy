@@ -4106,6 +4106,7 @@ void refresh_location(uint32 offset) {
 }
 
 void star_refresh(int flag) {
+  int32 arprev;
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;
   }
@@ -4113,7 +4114,12 @@ void star_refresh(int flag) {
     if (screenmode == 7) {
       mode7renderscreen();
     } else {
+      /* Temporarily set autorefresh=1 else blit_scaled does nothing */
+      arprev=ds.autorefresh;
+      ds.autorefresh=1;
       blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
+      /* ... and put it back where it was. */
+      ds.autorefresh=arprev;
       if ((screenmode == 3) || (screenmode == 6)) {
         int p;
         hide_cursor();
