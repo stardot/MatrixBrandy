@@ -148,8 +148,7 @@ static void assign_stringdol(pointers address) {
 static void assign_intbyteptr(pointers address) {
   stackitem exprtype;
 #ifdef USE_SDL
-  uint32 msx, msy, addr;
-  Uint8 value=0;
+  uint32 addr;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:assign_intbyteptr: address=%p\n", (void *)address.offset);
@@ -157,25 +156,8 @@ static void assign_intbyteptr(pointers address) {
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    if (addr >= 1000) {
-      return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
-    } else {
-      msy = addr / 40;
-      msx = addr % 40;
-      exprtype = GET_TOPITEM;
-      if (exprtype==STACK_INT)
-	value = pop_int();
-      else if (exprtype==STACK_INT64)
-	value = INT64TO32(pop_int64());
-      else if (exprtype==STACK_FLOAT)
-	value = TOINT(pop_float());
-      else {
-	error(ERR_TYPENUM);
-      }
-      mode7frame[msy][msx] = value;
-      mode7changed[msy]=1;
-    }
-    return;
+    address.offset = (uint32)mode7frame + addr;
+    mode7changed[addr/40]=1;
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -202,35 +184,14 @@ static void assign_intbyteptr(pointers address) {
 static void assign_intwordptr(pointers address) {
   stackitem exprtype;
 #ifdef USE_SDL
-  uint32 loop, msx, msy, addr;
-  uint32 value=0;
+  uint32 addr;
 
-  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1020)) {
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    if (addr >= 1000) {
-      return; /* no-op - discard the last 24 bytes of the Mode 7 screen memory */
-    } else {
-      exprtype = GET_TOPITEM;
-      if (exprtype==STACK_INT)
-	value = pop_int();
-      else if (exprtype==STACK_INT64)
-	value = (uint32)pop_int64();
-      else if (exprtype==STACK_FLOAT)
-	value = TOINT(pop_float());
-      else {
-	error(ERR_TYPENUM);
-      }
-      for (loop=0; loop<4; loop++) {
-	msy = addr / 40;
-	msx = addr % 40;
-	if(msy<25) mode7frame[msy][msx] = (value & 0xFF);
-	addr++;
-	value = value >> 8;
-      }
-      mode7changed[msy]=1;
-    }
-    return;
+    address.offset = (uint32)mode7frame + addr;
+    mode7changed[addr/40]=1;
+    mode7changed[(addr+3)/40]=1;
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -255,6 +216,15 @@ static void assign_intwordptr(pointers address) {
 */
 static void assign_floatptr(pointers address) {
   stackitem exprtype;
+  uint32 addr;
+
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    addr = address.offset - matrixflags.mode7fb;
+    address.offset = (uint32)mode7frame + addr;
+    mode7changed[addr/40]=1;
+  }
+
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
@@ -271,7 +241,7 @@ static void assign_floatptr(pointers address) {
 
 static void assign_dolstrptr(pointers address) {
 #ifdef USE_SDL
-  uint32 ptr, msx, msy, addr;
+  uint32 loop, addr;
 #endif
   stackitem exprtype;
   basicstring result;
@@ -282,23 +252,14 @@ static void assign_dolstrptr(pointers address) {
   check_write(address.offset, result.stringlen);
 #ifdef USE_SDL
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    for(ptr=0; ptr<result.stringlen; ptr++) {
-      msy = addr / 40;
-      msx = addr % 40;
-      if (msy < 25) {
-	mode7frame[msy][msx]=result.stringaddr[ptr];
-	mode7changed[msy]=1;
-      }
-      addr++;
-    }
-  } else {
-#endif
-    memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
-    basicvars.offbase[address.offset+result.stringlen] = asc_CR;
-#ifdef USE_SDL
+    address.offset = (uint32)mode7frame + addr;
+    for (loop=(addr/40); loop<=((addr+result.stringlen)/40); loop++) mode7changed[loop]=1;
   }
 #endif
+  memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
+  basicvars.offbase[address.offset+result.stringlen] = asc_CR;
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 

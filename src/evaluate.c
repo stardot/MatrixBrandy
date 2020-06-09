@@ -923,9 +923,6 @@ static void do_arrayref(void) {
 static void do_indrefvar(void) {
   byte operator;
   size_t offset;
-#ifdef USE_SDL
-  int32 msx, msy, loop, val = 0;
-#endif
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_indrefvar\n");
 #endif
@@ -954,43 +951,19 @@ static void do_indrefvar(void) {
 #ifdef USE_SDL
     if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
-      offset -= matrixflags.mode7fb;
-      if (offset >= 1000) {
-	push_int(0);
-      } else {
-	msy = offset / 40;
-	msx = offset % 40;
-	push_int(mode7frame[msy][msx]);
-      }
-    } else {
-      push_int(basicvars.offbase[offset]);
+      offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
     }
-#else
-    push_int(basicvars.offbase[offset]);
 #endif /* USE_SDL */
+    push_int(basicvars.offbase[offset]);
   }
   else {		/* Word-sized integer */
 #ifdef USE_SDL
     if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
-      offset -= matrixflags.mode7fb;
-      if (offset >= 1000) {
-	push_int(0);
-      } else {
-	for (loop=3; loop>=0; loop--) {
-	  val = val << 8;
-	  msy = (offset+loop) / 40;
-	  msx = (offset+loop) % 40;
-	  if (msy < 25) val += mode7frame[msy][msx];
-	}
-	push_int(val);
-      }
-    } else {
-      push_int(get_integer(offset));
+      offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
     }
-#else
-    push_int(get_integer(offset));
 #endif
+    push_int(get_integer(offset));
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_indrefvar\n");
@@ -1171,9 +1144,6 @@ static void do_unaryminus(void) {
 */
 static void do_getbyte(void) {
   size_t offset = 0;
-#ifdef USE_SDL
-  uint32 msx, msy;
-#endif
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
@@ -1189,20 +1159,10 @@ static void do_getbyte(void) {
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset -= matrixflags.mode7fb;
-    if (offset >= 1000) {
-      push_int(0);
-    } else {
-      msy = offset / 40;
-      msx = offset % 40;
-      push_int(mode7frame[msy][msx]);
-    }
-  } else {
-    push_int(basicvars.offbase[offset]);
+    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
   }
-#else
-  push_int(basicvars.offbase[offset]);
 #endif /* USE_SDL */
+  push_int(basicvars.offbase[offset]);
 }
 
 /*
@@ -1212,9 +1172,6 @@ static void do_getbyte(void) {
 */
 static void do_getword(void) {
   size_t offset = 0;
-#ifdef USE_SDL
-  int32 msx, msy, loop, val = 0;
-#endif
   basicvars.current++;		/* Skip '!' */
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT)
@@ -1227,26 +1184,12 @@ static void do_getword(void) {
     error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
-  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1020)) {
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset -= matrixflags.mode7fb;
-    if (offset >= 1000) {
-      push_int(0);
-    } else {
-      for (loop=3; loop>=0; loop--) {
-	val = val << 8;
-	msy = (offset+loop) / 40;
-	msx = (offset+loop) % 40;
-	if (msy < 25) val += mode7frame[msy][msx];
-      }
-      push_int(val);
-    }
-  } else {
-    push_int(get_integer(offset));
+    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
   }
-#else
-  push_int(get_integer(offset));
 #endif
+  push_int(get_integer(offset));
 }
 
 /*
@@ -1270,6 +1213,12 @@ static void do_getstring(void) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+  }
+#endif /* USE_SDL */
   len = get_stringlen(offset);
   check_read(offset, len);
   push_dolstring(len, CAST(&basicvars.offbase[offset], char *));
@@ -1293,6 +1242,12 @@ static void do_getfloat(void) {
   else {
     error(ERR_TYPENUM);
   }
+#ifdef USE_SDL
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+  }
+#endif /* USE_SDL */
   push_float(get_float(offset));
 }
 
