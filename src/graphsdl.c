@@ -3427,15 +3427,16 @@ boolean init_screen(void) {
 #endif
 
   font_rect.x = font_rect.y = 0;
-
   font_rect.w = place_rect.w = XPPC;
   font_rect.h = place_rect.h = YPPC;
+
   place_rect.x = place_rect.y = 0;
   scale_rect.x = scale_rect.y = 0;
-  scale_rect.w = 1;
-  scale_rect.h = 1;
+  scale_rect.w = scale_rect.h = 1;
+
   setup_mode(BRANDY_STARTUP_MODE);
   star_refresh(3);
+
   return TRUE;
 }
 

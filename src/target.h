@@ -330,7 +330,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define SFX3 ""
 #endif
 
-#ifdef NODISPLAYOS
+#ifdef BRANDY_NODISPLAYOS
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SFX1 SFX2 SFX3 ") " BRANDY_DATE

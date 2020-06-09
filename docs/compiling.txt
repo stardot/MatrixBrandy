@@ -6,8 +6,8 @@ whole build.
 
 General
 -------
-The program is written strictly in ANSI C. It has been successfully
-compiled under the following operation systems:
+The program is written strictly in ANSI C. The upstream Brandy BASIC
+has been successfully compiled under the following operation systems:
 
 RISC OS		Norcroft C
 NetBSD, FreeBSD	gcc
@@ -21,6 +21,16 @@ Windows		gcc (mingw under Cygwin)
 
 It has also been compiled under Beos using gcc but this was just
 a test to make sure it worked.
+
+The Matrix Brandy fork is developed under Linux, and has been
+successfully compiled on:
+Linux 32-bit	gcc
+Linux 64-bit	gcc
+Windows 32-bit	gcc (mingw under Cygwin)
+Windows 64-bit	gcc (mingw under Cygwin)
+Mac OS X	clang (using its gcc alias, with SDL 1.2 built from source of latest snapshot)
+Other users have successfully compiled it on RISC OS and OpenBSD.
+
 
 Hopefully the program will compile under other operating systems
 without any changes but it has only been tried on the above.
@@ -36,23 +46,26 @@ subdirectory.
  		
 As a general rule, the commands to compile the interpreter are:
 
-	cd brandy	Change to the directory containing the
-			interpreter.
+	cd MatrixBrandy		Change to the directory containing the
+				interpreter.
 
-	make		recompiles modules including debug code
-- or -
-	make recompile	recompiles everything including debug code
-- or -
-	make nodebug	recompiles the program with no debug code
-			and optimisation turned on.
+	make			recompiles modules
 
-Only one of the 'make' command should be used, depending on the
-version of the program that is desired, for example, to compile
-all of the source with debug code, change to the directory that
-contains the source and type:
+Some defaults in Matrix Brandy can be overridden using the BRANDY_BUILD_FLAGS
+shell environment variable. Notable ones include:
+-DDEBUG				Enable debugging options (and extended LISTO)
+-DBRANDY_STARTUP_MODE=<mode>	Choose initial screen mode, default is 0
+-DBRANDY_DEFAULT_SIZE=<size>	Default amount of memory to allocate to
+				BASIC workspace in kilobytes, default 1024.
+-DBRANDY_NODISPLAYOS		Banner and *HELP don't show the running OS.
+-DBRANDY_BANNER_MINIMAL		Show a minimal banner on startup:
+					Matrix Brandy <size>K
 
-	make recompile
+					BASIC
 
+					>_
+
+				(This works best with -DBRANDY_STARTUP_MODE=7 :) )
 
 Compiling Under Different Operating Systems
 -------------------------------------------
