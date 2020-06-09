@@ -148,7 +148,7 @@ static void assign_stringdol(pointers address) {
 static void assign_intbyteptr(pointers address) {
   stackitem exprtype;
 #ifdef USE_SDL
-  uint32 addr;
+  size_t addr;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:assign_intbyteptr: address=%p\n", (void *)address.offset);
@@ -156,7 +156,7 @@ static void assign_intbyteptr(pointers address) {
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    address.offset = (uint32)mode7frame + addr;
+    address.offset = (size_t)mode7frame + addr;
     mode7changed[addr/40]=1;
   }
 #endif
@@ -184,12 +184,12 @@ static void assign_intbyteptr(pointers address) {
 static void assign_intwordptr(pointers address) {
   stackitem exprtype;
 #ifdef USE_SDL
-  uint32 addr;
+  size_t addr;
 
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    address.offset = (uint32)mode7frame + addr;
+    address.offset = (size_t)mode7frame + addr;
     mode7changed[addr/40]=1;
     mode7changed[(addr+3)/40]=1;
   }
@@ -216,14 +216,16 @@ static void assign_intwordptr(pointers address) {
 */
 static void assign_floatptr(pointers address) {
   stackitem exprtype;
-  uint32 addr;
+#ifdef USE_SDL
+  size_t addr;
 
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    address.offset = (uint32)mode7frame + addr;
+    address.offset = (size_t)mode7frame + addr;
     mode7changed[addr/40]=1;
   }
+#endif
 
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   exprtype = GET_TOPITEM;
@@ -241,7 +243,8 @@ static void assign_floatptr(pointers address) {
 
 static void assign_dolstrptr(pointers address) {
 #ifdef USE_SDL
-  uint32 loop, addr;
+  uint32 loop;
+  size_t addr;
 #endif
   stackitem exprtype;
   basicstring result;
@@ -254,7 +257,7 @@ static void assign_dolstrptr(pointers address) {
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
-    address.offset = (uint32)mode7frame + addr;
+    address.offset = (size_t)mode7frame + addr;
     for (loop=(addr/40); loop<=((addr+result.stringlen)/40); loop++) mode7changed[loop]=1;
   }
 #endif

@@ -951,7 +951,7 @@ static void do_indrefvar(void) {
 #ifdef USE_SDL
     if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
-      offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+      offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
     }
 #endif /* USE_SDL */
     push_int(basicvars.offbase[offset]);
@@ -960,7 +960,7 @@ static void do_indrefvar(void) {
 #ifdef USE_SDL
     if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
-      offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+      offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
     }
 #endif
     push_int(get_integer(offset));
@@ -1159,7 +1159,7 @@ static void do_getbyte(void) {
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
   }
 #endif /* USE_SDL */
   push_int(basicvars.offbase[offset]);
@@ -1186,7 +1186,7 @@ static void do_getword(void) {
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
   }
 #endif
   push_int(get_integer(offset));
@@ -1216,7 +1216,7 @@ static void do_getstring(void) {
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
   }
 #endif /* USE_SDL */
   len = get_stringlen(offset);
@@ -1245,7 +1245,7 @@ static void do_getfloat(void) {
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (uint32)mode7frame;
+    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
   }
 #endif /* USE_SDL */
   push_float(get_float(offset));
