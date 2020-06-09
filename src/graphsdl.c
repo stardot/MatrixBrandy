@@ -49,7 +49,7 @@
 
 #ifdef TARGET_MACOSX
 #if SDL_PATCHLEVEL < 16
-#error Latest snapshot from SDL 1.2 mercurial required for MacOS X, suitable tarball available at http://brandy.matrixnetwork.co.uk/testing/SDL-1.2.16pre-20200601.tar.bz2
+#error "Latest snapshot from SDL 1.2 mercurial required for MacOS X, suitable tarball available at http://brandy.matrixnetwork.co.uk/testing/SDL-1.2.16pre-20200601.tar.bz2"
 #endif
 #endif /* MACOSX */
 /*
