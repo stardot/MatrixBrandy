@@ -28,6 +28,10 @@
 **
 */
 
+
+#ifndef __target_h
+#define __target_h
+
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
@@ -35,9 +39,32 @@
 #define BRANDY_DATE       "08 May 2020"
 // #define BRANDY_PATCHDATE  "JGH191007"
 
+/*
+** DEFAULTSIZE and MINSIZE give the default and minimum Basic
+** workspace sizes in bytes. DEFAULTSIZE is the amount of memory
+** acquired when the interpreter first starts up and MINSIZE
+** is the minimum it can be changed to.
+** Default size is 1 megabyte. Override this by adding
+** -DBRANDY_DEFAULT_SIZE to your BRANDY_BUILD_FLAGS environment
+** variable, as a value in kilobytes. Don't go below 16.
+*/
 
-#ifndef __target_h
-#define __target_h
+#ifndef BRANDY_DEFAULT_SIZE
+#define BRANDY_DEFAULT_SIZE 1024
+#endif
+#define DEFAULTSIZE (BRANDY_DEFAULT_SIZE * 1024)
+#define MINSIZE 16384
+
+/* Make the startup mode a compile-time option.
+** Default mode is 0 - the hardwired value up to now.
+** add -DBRANDY_STARTUP_MODE=<mode> to your
+** BRANDY_BUILD_FLAGS environment variable to override
+*/
+#ifdef USE_SDL
+#ifndef BRANDY_STARTUP_MODE
+#define BRANDY_STARTUP_MODE 0
+#endif
+#endif
 
 /* Make NEWKBD the default */
 #ifndef OLDKBD
@@ -317,22 +344,6 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 */
 
 #define MAXSTRING 65536
-
-
-/*
-** DEFAULTSIZE and MINSIZE give the default and minimum Basic
-** workspace sizes in bytes. DEFAULTSIZE is the amount of memory
-** acquired when the interpreter first starts up and MINSIZE
-** is the minimum it can be changed to.
-*/
-
-#ifdef BRANDY_DEFAULT_SIZE
-#define DEFAULTSIZE (BRANDY_DEFAULT_SIZE * 1024)
-#else
-#define DEFAULTSIZE (1024*1024)
-#endif
-#define MINSIZE 16384
-
 
 /*
 ** The ALIGN macro is used to control the sizes of blocks of

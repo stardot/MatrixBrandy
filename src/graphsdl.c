@@ -135,7 +135,7 @@ static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
-Uint8 mode7frame[25][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00 */
+Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
 Uint8 mode7changed[26];			/* Marks changed lines */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
@@ -3419,7 +3419,6 @@ boolean init_screen(void) {
   SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter", "Matrix Brandy");
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-  setup_mode(0);
 
 #ifdef TARGET_MACOSX
   ds.xor_mask = SDL_MapRGB(&pixfmt, 0xff, 0xff, 0xff);
@@ -3435,7 +3434,8 @@ boolean init_screen(void) {
   scale_rect.x = scale_rect.y = 0;
   scale_rect.w = 1;
   scale_rect.h = 1;
-
+  setup_mode(BRANDY_STARTUP_MODE);
+  star_refresh(3);
   return TRUE;
 }
 

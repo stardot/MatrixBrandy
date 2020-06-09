@@ -275,8 +275,11 @@ void restore_handlers(void) {
 ** 'announce' prints out the start messages for the interpreter
 */
 void announce(void) {
-//cmd_ver(); emulate_prinf("\n");
+#ifdef BRANDY_BANNER_MINIMAL
+  emulate_printf("\nMatrix Brandy %dK\r\n\nBASIC\r\n\n", BRANDY_DEFAULT_SIZE);
+#else
   emulate_printf("\n%s\r\n\nStarting with " FMT_SZD " bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
+#endif
 #ifdef DEBUG
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
