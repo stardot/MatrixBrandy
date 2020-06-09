@@ -371,13 +371,13 @@ static void define_byte_array(variable *vp) {
     if (basicvars.procstack == NIL) error(ERR_LOCAL);	/* LOCAL found outside a PROC or FN */
     basicvars.current++;
     highindex = eval_integer();
-    if (highindex < 0) error(ERR_NEGDIM, vp->varname);	/* Dimension is out of range */
+    if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
     ep = alloc_stackmem(highindex + 1);			/* Allocate memory on the stack */
     if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
   }
   else {	/* Allocating block from heap */
     highindex = eval_integer();
-    if (highindex < -1) error(ERR_NEGDIM, vp->varname);	/* Dimension is out of range */
+    if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
 
     if (highindex == -1) {	/* Treat size of -1 as special case, although it does not have to be */
       ep = basicvars.vartop;

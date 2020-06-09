@@ -423,6 +423,7 @@ static detail errortable [] = {
 /* ERR_BADDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create array '%s)'"},
 /* ERR_BADBYTEDIM */	{NONFATAL, STRING,  11, "There is not enough memory to create a byte array"},
 /* ERR_NEGDIM */	{NONFATAL, STRING,  10, "Dimension of array '%s)' is negative"},
+/* ERR_NEGBYTEDIM */	{NONFATAL, STRING,  10, "Dimension of byte array '%s' is negative"},
 /* ERR_DIMCOUNT */	{NONFATAL, STRING,  10, "Array '%s)' has too many dimensions"},
 /* ERR_DUPLDIM */	{NONFATAL, STRING,  10, "Array '%s)' has already been created"},
 /* ERR_BADINDEX */	{NONFATAL, INTSTR,  15, "Array index value of %d is out of range in reference to '%s)'"},

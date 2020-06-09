@@ -53,6 +53,7 @@ typedef enum {
     ERR_BADDIM,         /* Not enough room to create an array */
     ERR_BADBYTEDIM,     /* Not enough room to create a byte array */
     ERR_NEGDIM,         /* Array dimension is negative */
+    ERR_NEGBYTEDIM,         /* Array dimension is negative */
     ERR_DIMCOUNT,       /* Array has too many dimensions */
     ERR_DUPLDIM,        /* Array already defined */
     ERR_BADINDEX,       /* Array index is out of range */
