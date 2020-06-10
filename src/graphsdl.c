@@ -580,6 +580,7 @@ static void toggle_cursor(void) {
   else
     if (!vduflag(VDU_FLAG_GRAPHICURS)) cursorstate = ONSCREEN;
   if (ds.autorefresh != 1) return;
+  if (ytext >= textheight) return;
   left = xtemp*ds.xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + ds.xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
