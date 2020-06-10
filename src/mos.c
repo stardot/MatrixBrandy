@@ -81,6 +81,7 @@
 #include "mos_sys.h"
 #include "screen.h"
 #include "keyboard.h"
+#include "miscprocs.h"
 
 #ifdef TARGET_RISCOS
 #include "kernel.h"
@@ -107,6 +108,7 @@
 #include "SDL.h"
 #include "graphsdl.h"
 #include "soundsdl.h"
+extern Uint8 mode7changed[26];
 #endif
 
 static int check_command(char *text);
@@ -1550,7 +1552,7 @@ static void cmd_help(char *command)
 	emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
 	emulate_printf("  HELP    (<text>)\r\n");
 	emulate_printf("  KEY     <num> <string>\r\n");
-	emulate_printf("  LOAD    <filename> (<load addr>)\r\n");
+	emulate_printf("  LOAD    <filename> <load addr>\r\n");
 	emulate_printf("  POINTER (<0|1>)\r\n");
 	emulate_printf("  QUIT\r\n");
 	emulate_printf("  SAVE    <filename> <start addr> <end addr>|+<length>\r\n");
@@ -1775,97 +1777,120 @@ static int ishex(char ch){
 }
 
 static void cmd_load(char *command){
- int i,len,ch,n;
- long int num;
- char chbuff[256], *ptr;
- FILE *filep;
+  int i,len,ch,n;
+  size_t num;
+  char chbuff[256], *ptr;
+  FILE *filep;
 
- while( (ch= *command)>0 && ch <=32)command++;
- len=255;
- for(i=0;i<256;i++){
-  ch=chbuff[i]=command[i];
-  if(ch<=32){
-   len=i;
-   break;
+  while( (ch= *command)>0 && ch <=32)command++;
+  len=255;
+  for(i=0;i<256;i++){
+    ch=chbuff[i]=command[i];
+    if(ch<=32){
+      len=i;
+    break;
+    }
   }
- }
- chbuff[len] ='\0';
- // fprintf(stderr,"load filename is \"%s\"\n",chbuff);
+  chbuff[len] ='\0';
+  // fprintf(stderr,"load filename is \"%s\"\n",chbuff);
 
- ptr=&command[len];
- while( (ch= *ptr)>0 && ch <=32)ptr++;
+  ptr=&command[len];
+  while( (ch= *ptr)>0 && ch <=32)ptr++;
 
- num = 0;
- while((n=ishex(ch=*ptr))>=0) {num=(num<<4)+n; ptr++;}
+  num = 0;
+  while((n=ishex(ch=*ptr))>=0) {num=(num<<4)+n; ptr++;}
 
- // fprintf(stderr,"load addr is %ld (0x%08lx)\n",num,num);
+  //fprintf(stderr,"load addr is %ld (0x%08lx)\n",num,num);
 
- if ( (filep = fopen(chbuff,"r")) == (FILE*)0){
-   fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
-   return;
- }
- ptr=(char*)(basicvars.offbase+num);
+  if (num == 0) {
+    emulate_printf("Syntax: LOAD <filename> <load address>\r\n");
+    return;
+  }
 
- while((ch=getc(filep)) != EOF) *ptr++ = ch;
+  if ( (filep = fopen(chbuff,"r")) == (FILE*)0){
+    fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
+    return;
+  }
+  ptr=(char*)(basicvars.offbase+num);
+#ifdef USE_SDL
+  if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    ptr = (ptr - matrixflags.mode7fb) + (size_t)mode7frame;
+  }
+  for (i=0; i<=24; i++) mode7changed[i]=1;
+#endif
 
- fclose(filep);
+  while((ch=getc(filep)) != EOF) *ptr++ = ch;
+
+  fclose(filep);
 }
 
 static void cmd_save(char *command){
- int i,len,ch,n;
- long int addr,size;
- int f;
- char chbuff[256], *ptr;
- FILE *filep;
+  int i,len,ch,n;
+  size_t addr,size;
+  int f;
+  char chbuff[256], *ptr;
+  FILE *filep;
 
- ptr=command;
- // fprintf(stderr,"SAVE: command is :- \"");
- // while( (ch=*ptr++) >= 32)putc(ch,stderr);
- // fprintf(stderr,"\"\n");
+  ptr=command;
+  // fprintf(stderr,"SAVE: command is :- \"");
+  // while( (ch=*ptr++) >= 32)putc(ch,stderr);
+  // fprintf(stderr,"\"\n");
 
- while((ch=*command)==32 || ch ==9)command++;
+  while((ch=*command)==32 || ch ==9)command++;
 
- len=255;
- for(i=0;i<256;i++){
-  ch=chbuff[i]=command[i];
-  if(ch<=32){
-   len=i;
-   break;
+  len=255;
+  for(i=0;i<256;i++){
+    ch=chbuff[i]=command[i];
+    if(ch<=32){
+      len=i;
+      break;
+    }
   }
- }
- chbuff[len] ='\0';
- // fprintf(stderr,"save filename is \"%s\"\n",chbuff);
+  chbuff[len] ='\0';
+  // fprintf(stderr,"save filename is \"%s\"\n",chbuff);
 
- ptr=&command[len];
- while( (ch= *ptr)>0 && ch <=32)ptr++;
+  ptr=&command[len];
+  while( (ch= *ptr)>0 && ch <=32)ptr++;
 
- addr = 0;
- while((n=ishex(ch=*ptr))>=0) {addr=(addr<<4)+n; ptr++;}
+  addr = 0;
+  while((n=ishex(ch=*ptr))>=0) {addr=(addr<<4)+n; ptr++;}
 
- // fprintf(stderr,"save addr is %ld (0x%08lx)\n",addr,addr);
+  // fprintf(stderr,"save addr is %ld (0x%08lx)\n",addr,addr);
 
- while( (ch= *ptr)>0 && ch <=32)ptr++;
+  while( (ch= *ptr)>0 && ch <=32)ptr++;
 
- size=0;
- f=0;
- if(ch == '+'){
-   ptr++;
-   f=1;
- }
+  size=0;
+  f=0;
+  if(ch == '+'){
+    ptr++;
+    f=1;
+  }
    while((n=ishex(ch=*ptr))>=0) {size=(size<<4)+n; ptr++;}
- if(!f) size -= addr-1;
- // fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
+  if(!f) size -= addr-1;
+  // fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
 
- if ( (filep = fopen(chbuff,"w")) == (FILE*)0){
-   emulate_printf("SAVE: Could not open file \"%s\"\r\n",chbuff);
-   return;
- } 
- ptr=(char*)(basicvars.offbase+addr);
- for(i=0; i<size; i++){
-  fputc(*ptr++,filep);
- }
+  if ((addr == 0) || (size < 0)) {
+    emulate_printf("Syntax: SAVE <fname> <start addr> <end addr>|+<length>\r\n");
+    return;
+  }
 
- fclose(filep);
+  if ( (filep = fopen(chbuff,"w")) == (FILE*)0){
+    emulate_printf("SAVE: Could not open file \"%s\"\r\n",chbuff);
+    return;
+  } 
+  ptr=(char*)(basicvars.offbase+addr);
+#ifdef USE_SDL
+  if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    ptr = (ptr - matrixflags.mode7fb) + (size_t)mode7frame;
+  }
+#endif
+  for(i=0; i<size; i++){
+   fputc(*ptr++,filep);
+  }
+
+  fclose(filep);
 }
 
 static void cmd_volume(char *command){
