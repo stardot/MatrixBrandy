@@ -15,6 +15,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   was previously implemented)
 * System: Now builds on MacOS High Sierra and Catalina. Note, it requires
   the latest snapshot of SDL 1.2 from SDL's Mercurial repository.
+* System: Bug fixes for *SAVE and *LOAD. Additionally, MODE 7 screens
+  can now be *SAVEd and *LOADed.
 * BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
