@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include "target.h"
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
@@ -522,6 +523,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
         outregs[4]=(MACTYPE >> 8);
         outregs[5]=LEGACY_OSVERSION;
+        outregs[6]=getpid() + ((uint64)getppid() << 32);
         break;
     case SWI_Brandy_RefreshInterval:
 #ifdef USE_SDL
