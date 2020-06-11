@@ -195,7 +195,7 @@ Brandy_xxx  (SWI numbers start &140000)
 				R5: "Legacy" INKEY-256 (e.g. &F9 for Linux)
 				R6: The PID and PPID of the current process.
 				    (formatted as PID + (PPID << 32))
-				    (hint: use Brandy_BitShift64 or use >> 16 twice)
+				    Note: PPID not returned on Windows.
 
 &140012 Brandy_RefreshInterval	Sets the SDL display refresh interval in
 				centiseconds in R0. 0 means no refresh delays.

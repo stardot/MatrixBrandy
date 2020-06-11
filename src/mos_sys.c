@@ -523,7 +523,11 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
         outregs[4]=(MACTYPE >> 8);
         outregs[5]=LEGACY_OSVERSION;
+#ifdef TARGET_MINGW
+        outregs[6]=getpid();
+#else
         outregs[6]=getpid() + ((uint64)getppid() << 32);
+#endif
         break;
     case SWI_Brandy_RefreshInterval:
 #ifdef USE_SDL
