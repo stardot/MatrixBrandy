@@ -40,7 +40,9 @@
 #include "evaluate.h"
 #include "miscprocs.h"
 #include "keyboard.h"
+#ifdef USE_SDL
 #include "graphsdl.h"
+#endif
 
 #if defined(TARGET_MINGW)
 #include <windows.h>

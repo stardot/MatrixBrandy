@@ -4052,7 +4052,7 @@ Uint8 mousebuttonstate = 0;
 
 void get_sdl_mouse(int64 values[]) {
   int x, y;
-  Uint8 d;
+  Uint8 d = 0;
   int breakout = 0;
   SDL_Event ev;
 
