@@ -4052,7 +4052,6 @@ Uint8 mousebuttonstate = 0;
 
 void get_sdl_mouse(int64 values[]) {
   int x, y;
-  Uint8 d = 0;
   int breakout = 0;
   SDL_Event ev;
 
@@ -4081,7 +4080,7 @@ void get_sdl_mouse(int64 values[]) {
   */
 
   SDL_PumpEvents();
-  d=SDL_GetMouseState(&x, &y);
+  SDL_GetMouseState(&x, &y);
   while(!breakout && SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP)))) {
     switch (ev.type) {
       case SDL_QUIT:
