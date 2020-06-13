@@ -1334,6 +1334,7 @@ void osbyte21(int32 xreg) {
       break;
     case 9:
       while(SDL_PeepEvents(&ev,1,SDL_GETEVENT, SDL_EVENTMASK(SDL_MOUSEBUTTONDOWN) | SDL_EVENTMASK(SDL_MOUSEBUTTONUP) | SDL_EVENTMASK(SDL_MOUSEMOTION))) ;
+      drain_mousebuffer();
       break;
   }
 #endif

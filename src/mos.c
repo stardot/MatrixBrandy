@@ -2686,6 +2686,7 @@ switch (areg) {
 #ifdef USE_SDL
 	case 15:
 		purge_keys();
+		drain_mousebuffer();
 		break;
 	case 20:			// OSBYTE 20, reset font
 		reset_sysfont(8);

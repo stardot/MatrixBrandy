@@ -56,6 +56,7 @@ extern int32 get_maxbanks(void);
 extern void refresh_location(uint32 offset);
 extern void set_refresh_interval(int32 v);
 extern void add_mouseitem(int x, int y, int b, int64 c);
+extern void drain_mousebuffer();
 
 extern Uint8 mousebuttonstate;
 extern mousequeue *mousebuffer;

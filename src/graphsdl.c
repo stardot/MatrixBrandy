@@ -266,6 +266,15 @@ void add_mouseitem(int x, int y, int b, int64 c) {
   p->next=m;
 }
 
+void drain_mousebuffer() {
+  mousequeue *p;
+  while (mousebuffer != NULL) {
+    p=mousebuffer->next;
+    free(mousebuffer);
+    mousebuffer=p;
+  }
+}
+
 void reset_sysfont(int x) {
   int p, c, i;
 
