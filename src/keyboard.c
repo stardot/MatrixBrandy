@@ -1403,10 +1403,9 @@ static boolean waitkey(int wait) {
  * First check for SDL events
 */
     mode7flipbank();
-    while (SDL_PollEvent(&ev) > 0)
+    while (SDL_PollEvent(&ev) > 0) {
       SDL_GetMouseState(&mx, &my);
-      switch(ev.type)
-      {
+      switch(ev.type) {
         case SDL_KEYUP:
           break;
         case SDL_KEYDOWN:
@@ -1441,6 +1440,7 @@ static boolean waitkey(int wait) {
           exit_interpreter(EXIT_SUCCESS);
           break;
       }
+    }
     if (basicvars.centiseconds - timerstart >= wait) return 0;
 
 #ifndef TARGET_MINGW
