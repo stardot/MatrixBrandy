@@ -56,4 +56,6 @@ extern int32 get_maxbanks(void);
 extern void refresh_location(uint32 offset);
 extern void set_refresh_interval(int32 v);
 
+extern Uint8 mousebuttonstate;
+
 #endif

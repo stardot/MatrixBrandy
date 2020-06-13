@@ -800,7 +800,8 @@ int32 kbd_inkey(int32 arg) {
     SDL_PumpEvents();
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(NULL, NULL);
-    while(SDL_PollEvent(&ev)) {
+    while(SDL_PeepEvents(&ev, 1, SDL_PEEKEVENT, SDL_EVENTMASK(SDL_QUIT))) {
+//    while(SDL_PollEvent(&ev)) {
       if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
     }
 
@@ -1307,7 +1308,20 @@ void purge_keys(void) {
   while (kbd_inkey(0)>-1);		/* Suck everything out of keyboard	*/
 }
 
+void osbyte21(int32 xreg) {
+#ifdef USE_SDL
+  SDL_Event ev;
 
+  switch(xreg) {
+    case 0:
+      while(SDL_PeepEvents(&ev,1,SDL_GETEVENT, SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP))) ;
+      break;
+    case 9:
+      while(SDL_PeepEvents(&ev,1,SDL_GETEVENT, SDL_EVENTMASK(SDL_MOUSEBUTTONDOWN) | SDL_EVENTMASK(SDL_MOUSEBUTTONUP) | SDL_EVENTMASK(SDL_MOUSEMOTION))) ;
+      break;
+  }
+#endif
+}
 
 // int64 esclast=0;
 
@@ -1393,6 +1407,10 @@ static boolean waitkey(int wait) {
               break;
           }
           break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+          SDL_PushEvent(&ev);  /* we got a char - push the event back and say we found one */
+          break;
         case SDL_QUIT:
           exit_interpreter(EXIT_SUCCESS);
           break;
@@ -1465,7 +1483,8 @@ if (holdcount > 0) return pop_key();	// moved to here
 ** First check the SDL event Queue
 */
     mode7flipbank();
-    if (SDL_PollEvent(&ev)) {
+    SDL_PumpEvents();
+    if (SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_MOUSEBUTTONDOWN) | SDL_EVENTMASK(SDL_MOUSEBUTTONUP)))) {
       switch(ev.type) {
         case SDL_QUIT:
           exit_interpreter(EXIT_SUCCESS);

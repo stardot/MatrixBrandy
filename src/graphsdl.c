@@ -4020,13 +4020,41 @@ static void filled_ellipse(SDL_Surface *sr,
 
 }
 
+Uint8 mousebuttonstate = 0;
+uint64 lastbuttonpress;
+
 void get_sdl_mouse(int64 values[]) {
   int x, y;
-  Uint8 b, xb;
+  Uint8 d;
+  int breakout = 0;
   SDL_Event ev;
 
   SDL_PumpEvents();
-  b=SDL_GetMouseState(&x, &y);
+  d=SDL_GetMouseState(&x, &y);
+  if ((lastbuttonpress + 1000) < basicvars.centiseconds) mousebuttonstate=0;
+  while(!breakout && SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP)))) {
+    switch (ev.type) {
+      case SDL_QUIT:
+        exit_interpreter(EXIT_SUCCESS);
+        breakout=1;
+        break;
+      case SDL_MOUSEBUTTONDOWN:
+        if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate |= 4;
+        if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate |= 2;
+        if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate |= 1;
+        lastbuttonpress = basicvars.centiseconds;
+        breakout=1;
+        break;
+      case SDL_MOUSEBUTTONUP:
+        if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate &= 3;
+        if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate &= 5;
+        if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate &= 6;
+        lastbuttonpress = basicvars.centiseconds;
+        breakout=1;
+        break;
+    }
+    SDL_PumpEvents();
+  }
   x=(x*2);
   if (x < 0) x = 0;
   if (x >= ds.xgraphunits) x = (ds.xgraphunits - 1);
@@ -4035,16 +4063,10 @@ void get_sdl_mouse(int64 values[]) {
   if (y < 0) y = 0;
   if (y >= ds.ygraphunits) y = (ds.ygraphunits - 1);
 
-  /* Swap button bits around */
-  xb = FAST_4_DIV(b & 4) + (b & 2) + FAST_4_MUL(b & 1);
-
   values[0]=x;
   values[1]=y;
-  values[2]=xb;
+  values[2]=mousebuttonstate;
   values[3]=basicvars.centiseconds - basicvars.monotonictimebase;
-  while(SDL_PollEvent(&ev)) {
-    if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
-  }
 }
 
 void warp_sdlmouse(int32 x, int32 y) {

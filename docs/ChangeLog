@@ -23,6 +23,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * Keyboard: Try to fix some glitches around softkeys and the cursor keys.
 * Keyboard: Rework INKEY delay as on Windows messages were sometimes just
   getting lost in the post.
+* Keyboard/Mouse: *FX15 and *FX21 (x=0,9 only) implemented to flush buffers.
+* Mouse: Mouse click queue implemented.
 * Teletext: Don't mimic SAA5050 "hold bug" if Alpha and Graphics Black
   enabled (VDU23,18,3,1|)
 * Teletext: Hold characer wasn't being cleared when switching between

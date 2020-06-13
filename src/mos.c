@@ -2684,9 +2684,15 @@ switch (areg) {
 		break;
 
 #ifdef USE_SDL
+	case 15:
+		purge_keys();
+		break;
 	case 20:			// OSBYTE 20, reset font
 		reset_sysfont(8);
 		return 0x030114;
+	case 21:			// OSBYTE 21, flush buffers (0 and 9 only)
+		osbyte21(xreg);
+		break;
 	case 25:			// OSBYTE 25, reset font
 		if (((xreg >= 0) && (xreg <= 7)) || (xreg == 16)) {
 		  reset_sysfont(xreg);
@@ -2776,29 +2782,9 @@ switch (areg) {
 
 // This is now in keyboard.c
 //	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
-//		if (xreg & 1) {
-//		  basicvars.escape_enabled = TRUE;
-//		} else {
-//		  basicvars.escape_enabled = FALSE;
-//		}
-//		break;
-// This is now in keyboard.c
 //	case 229:		// OSBYTE 229 - Enable or disable escape
-//		if (xreg) {
-//		  basicvars.escape_enabled = FALSE;
-//		} else {
-//		  basicvars.escape_enabled = TRUE;
-//		}
-//		break;
 //	case 250:
-//#ifdef USE_SDL
-//		if ((xreg == 0) && (yreg == 255)) return osbyte250();
-//#endif
-//		break;
 //	case 251:
-//#ifdef USE_SDL
-//		if ((xreg == 0) && (yreg == 255)) return osbyte251();
-//#endif
 //		break;
 	}
 if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)

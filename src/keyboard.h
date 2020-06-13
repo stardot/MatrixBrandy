@@ -54,6 +54,7 @@ extern void  kbd_escchar(char, char);
 extern int   kbd_escpoll(void);
 extern int   kbd_esctest(void);
 extern int   kbd_escack(void);
+extern void  osbyte21(int32 xreg);
 #else
 extern int32 emulate_get(void);
 extern int32 emulate_inkey(int32);
