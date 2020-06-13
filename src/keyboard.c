@@ -798,11 +798,27 @@ int32 kbd_inkey(int32 arg) {
 #ifdef USE_SDL
     SDL_Event ev;
     SDL_PumpEvents();
+    int mx, my;
     keystate = SDL_GetKeyState(NULL);
-    mousestate = SDL_GetMouseState(NULL, NULL);
-    while(SDL_PeepEvents(&ev, 1, SDL_PEEKEVENT, SDL_EVENTMASK(SDL_QUIT))) {
-//    while(SDL_PollEvent(&ev)) {
-      if (ev.type == SDL_QUIT) exit_interpreter(EXIT_SUCCESS);
+    mousestate = SDL_GetMouseState(&mx, &my);
+    while(SDL_PollEvent(&ev)) {
+      switch(ev.type) {
+        case SDL_QUIT:
+          exit_interpreter(EXIT_SUCCESS);
+          break;
+        case SDL_MOUSEBUTTONDOWN:
+          if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate |= 4;
+          if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate |= 2;
+          if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate |= 1;
+          add_mouseitem(mx, my, mousebuttonstate, basicvars.centiseconds);
+          break;
+        case SDL_MOUSEBUTTONUP:
+          if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate &= 3;
+          if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate &= 5;
+          if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate &= 6;
+          add_mouseitem(mx, my, mousebuttonstate, basicvars.centiseconds);
+          break;
+      }
     }
 
     if (arg <= 2) {				/* Test either modifier key		*/
@@ -1369,6 +1385,7 @@ static boolean waitkey(int wait) {
 static boolean waitkey(int wait) {
 #ifdef USE_SDL
   int64 timerstart;
+  int mx, my;
 #endif
 #if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
   fd_set keyset;
@@ -1387,6 +1404,7 @@ static boolean waitkey(int wait) {
 */
     mode7flipbank();
     while (SDL_PollEvent(&ev) > 0)
+      SDL_GetMouseState(&mx, &my);
       switch(ev.type)
       {
         case SDL_KEYUP:
@@ -1408,8 +1426,16 @@ static boolean waitkey(int wait) {
           }
           break;
         case SDL_MOUSEBUTTONDOWN:
+          if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate |= 4;
+          if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate |= 2;
+          if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate |= 1;
+          add_mouseitem(mx, my, mousebuttonstate, basicvars.centiseconds);
+          break;
         case SDL_MOUSEBUTTONUP:
-          SDL_PushEvent(&ev);  /* we got a char - push the event back and say we found one */
+          if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate &= 3;
+          if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate &= 5;
+          if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate &= 6;
+          add_mouseitem(mx, my, mousebuttonstate, basicvars.centiseconds);
           break;
         case SDL_QUIT:
           exit_interpreter(EXIT_SUCCESS);
@@ -1467,6 +1493,7 @@ int32 read_key(void) {
   struct timeval waitime;
 #endif
   SDL_Event ev;
+  int mx, my;
 
 #ifndef USE_SDL // but this is within USE_SDL
   if ((read(keyboard, &ch, 1)) < 0) {		/* Read from keyboard stream		*/
@@ -1476,7 +1503,7 @@ int32 read_key(void) {
   return ch;
 #endif
 
-if (holdcount > 0) return pop_key();	// moved to here
+  if (holdcount > 0) return pop_key();	// moved to here
 
   while (ch == 0) {
 /*
@@ -1484,13 +1511,26 @@ if (holdcount > 0) return pop_key();	// moved to here
 */
     mode7flipbank();
     SDL_PumpEvents();
-    if (SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_MOUSEBUTTONDOWN) | SDL_EVENTMASK(SDL_MOUSEBUTTONUP)))) {
+    if (SDL_PollEvent(&ev)) {
+      SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
         case SDL_QUIT:
           exit_interpreter(EXIT_SUCCESS);
           break;
-	case SDL_KEYUP:
-	  break;
+        case SDL_MOUSEBUTTONDOWN:
+          if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate |= 4;
+          if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate |= 2;
+          if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate |= 1;
+          add_mouseitem(mx, my, mousebuttonstate, basicvars.centiseconds);
+          break;
+        case SDL_MOUSEBUTTONUP:
+          if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate &= 3;
+          if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate &= 5;
+          if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate &= 6;
+          add_mouseitem(mx, my, mousebuttonstate, basicvars.centiseconds);
+          break;
+        case SDL_KEYUP:
+          break;
         case SDL_KEYDOWN:
 // emulate_printf("$%0X",ev.key.keysym.sym);
           switch(ev.key.keysym.sym) {

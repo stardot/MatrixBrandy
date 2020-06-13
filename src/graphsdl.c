@@ -137,6 +137,8 @@ static Uint8 hardpalette[24];		/* palette for screen */
 
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
 
+mousequeue *mousebuffer = NULL;
+
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
@@ -236,6 +238,32 @@ static void reset_mode7() {
   for (p=0; p<25; p++) {
     for (q=0; q<40; q++) mode7frame[p][q]=32;
   }
+}
+
+void add_mouseitem(int x, int y, int b, int64 c) {
+  mousequeue *m, *p;
+  
+  m=malloc(sizeof(mousequeue));
+  if (m == NULL) {
+    fprintf(stderr,"Unable to allocate memory for mouse queue item\n");
+    return;
+  }
+  m->x = x;
+  m->y = y;
+  m->buttons = b;
+  m->timestamp = basicvars.centiseconds;
+  m->next=NULL;
+  
+  if (mousebuffer == NULL) {
+    mousebuffer=m;
+    return;
+  }
+  /* If we got here, then we already have entries in the queue.
+  ** We need to step through and find the last one.
+  */
+  p = mousebuffer;
+  while (p->next != NULL) p = p->next;
+  p->next=m;
 }
 
 void reset_sysfont(int x) {
@@ -4021,7 +4049,6 @@ static void filled_ellipse(SDL_Surface *sr,
 }
 
 Uint8 mousebuttonstate = 0;
-uint64 lastbuttonpress;
 
 void get_sdl_mouse(int64 values[]) {
   int x, y;
@@ -4029,9 +4056,32 @@ void get_sdl_mouse(int64 values[]) {
   int breakout = 0;
   SDL_Event ev;
 
+  /* Check the mouse queue first */
+  if (mousebuffer != NULL) {
+    int mx, my;
+    mx=(mousebuffer->x *2);
+    if (mx < 0) mx = 0;
+    if (mx >= ds.xgraphunits) mx = (ds.xgraphunits - 1);
+    my=(2*(ds.vscrheight - mousebuffer->y));
+    if (my < 0) my = 0;
+    if (my >= ds.ygraphunits) my = (ds.ygraphunits - 1);
+
+    mousequeue *m;
+    values[0]=mx;
+    values[1]=my;
+    values[2]=mousebuffer->buttons;
+    values[3]=mousebuffer->timestamp - basicvars.monotonictimebase;
+    m=mousebuffer->next;
+    free(mousebuffer);
+    mousebuffer=m;
+    return;
+  }
+  /* If we got here, there's nothing in the mouse queue, so let's
+  ** pick up a fresh item from SDL.
+  */
+
   SDL_PumpEvents();
   d=SDL_GetMouseState(&x, &y);
-  if ((lastbuttonpress + 1000) < basicvars.centiseconds) mousebuttonstate=0;
   while(!breakout && SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP)))) {
     switch (ev.type) {
       case SDL_QUIT:
@@ -4042,14 +4092,12 @@ void get_sdl_mouse(int64 values[]) {
         if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate |= 4;
         if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate |= 2;
         if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate |= 1;
-        lastbuttonpress = basicvars.centiseconds;
         breakout=1;
         break;
       case SDL_MOUSEBUTTONUP:
         if (ev.button.button == SDL_BUTTON_LEFT) mousebuttonstate &= 3;
         if (ev.button.button == SDL_BUTTON_MIDDLE) mousebuttonstate &= 5;
         if (ev.button.button == SDL_BUTTON_RIGHT) mousebuttonstate &= 6;
-        lastbuttonpress = basicvars.centiseconds;
         breakout=1;
         break;
     }

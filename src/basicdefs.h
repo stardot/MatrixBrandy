@@ -567,6 +567,16 @@ typedef struct {
 } matrixbits;
 extern matrixbits matrixflags;
 
+#ifdef USE_SDL
+typedef struct {
+  int x;
+  int y;
+  int buttons;
+  int64 timestamp;
+  void *next;
+} mousequeue;
+#endif
+
 extern void exit_interpreter(int);
 
 #endif
