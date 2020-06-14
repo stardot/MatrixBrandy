@@ -201,6 +201,12 @@ Brandy_xxx  (SWI numbers start &140000)
 				centiseconds in R0. 0 means no refresh delays.
 				Nothing is returned.
 
+&140013 Brandy_MouseEventExpire	Sets the mouse event expiry time in
+				centiseonds, 0 disables.
+				With a zero event expiry time, a maximum
+				event queue length is used (7 events) which
+				mirrors RISC OS behaviour.
+
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt

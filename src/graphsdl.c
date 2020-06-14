@@ -138,7 +138,8 @@ static Uint8 hardpalette[24];		/* palette for screen */
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
 
 mousequeue *mousebuffer = NULL;
-int mousequeuelength = 0;
+uint32 mousequeuelength = 0;
+uint32 mouseqexpire = 0;
 #define MOUSEQUEUEMAX 7
 
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
@@ -246,7 +247,7 @@ void add_mouseitem(int x, int y, int b, int64 c) {
   mousequeue *m, *p;
   
   /* Drop any item that would make the queue length too long */
-  if (mousequeuelength >= MOUSEQUEUEMAX) return;
+  if ((mouseqexpire == 0) && (mousequeuelength >= MOUSEQUEUEMAX)) return;
   
   m=malloc(sizeof(mousequeue));
   if (m == NULL) {
@@ -281,6 +282,23 @@ void drain_mousebuffer() {
     mousequeuelength--;
   }
 }
+
+void set_mouseevent_expiry(uint32 expire) {
+  mouseqexpire=expire;
+}
+
+static void drain_mouse_expired() {
+  mousequeue *p;
+  if (mouseqexpire == 0) return;
+  while (mousebuffer != NULL) {
+    if ((mousebuffer->timestamp + mouseqexpire) > basicvars.centiseconds) break;
+    p=mousebuffer->next;
+    free(mousebuffer);
+    mousebuffer=p;
+    mousequeuelength--;
+  }
+}
+
 
 void reset_sysfont(int x) {
   int p, c, i;
@@ -4072,6 +4090,7 @@ void get_sdl_mouse(int64 values[]) {
   SDL_Event ev;
 
   /* Check the mouse queue first */
+  drain_mouse_expired();
   if (mousebuffer != NULL) {
     int mx, my;
     mx=(mousebuffer->x *2);
