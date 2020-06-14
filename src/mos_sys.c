@@ -535,7 +535,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
         break;
     case SWI_Brandy_MouseEventExpire:
+#ifdef USE_SDL
         set_mouseevent_expiry((uint32)inregs[0]);
+#endif
         break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
