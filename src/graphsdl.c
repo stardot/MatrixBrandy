@@ -278,6 +278,7 @@ void drain_mousebuffer() {
     p=mousebuffer->next;
     free(mousebuffer);
     mousebuffer=p;
+    mousequeuelength--;
   }
 }
 
