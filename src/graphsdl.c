@@ -138,6 +138,8 @@ static Uint8 hardpalette[24];		/* palette for screen */
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
 
 mousequeue *mousebuffer = NULL;
+int mousequeuelength = 0;
+#define MOUSEQUEUEMAX 7
 
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
@@ -243,6 +245,9 @@ static void reset_mode7() {
 void add_mouseitem(int x, int y, int b, int64 c) {
   mousequeue *m, *p;
   
+  /* Drop any item that would make the queue length too long */
+  if (mousequeuelength >= MOUSEQUEUEMAX) return;
+  
   m=malloc(sizeof(mousequeue));
   if (m == NULL) {
     fprintf(stderr,"Unable to allocate memory for mouse queue item\n");
@@ -253,17 +258,18 @@ void add_mouseitem(int x, int y, int b, int64 c) {
   m->buttons = b;
   m->timestamp = basicvars.centiseconds;
   m->next=NULL;
-  
+
   if (mousebuffer == NULL) {
     mousebuffer=m;
-    return;
-  }
+  } else {
   /* If we got here, then we already have entries in the queue.
   ** We need to step through and find the last one.
   */
-  p = mousebuffer;
-  while (p->next != NULL) p = p->next;
-  p->next=m;
+    p = mousebuffer;
+    while (p->next != NULL) p = p->next;
+    p->next=m;
+  }
+  mousequeuelength++;
 }
 
 void drain_mousebuffer() {
@@ -4082,12 +4088,16 @@ void get_sdl_mouse(int64 values[]) {
     m=mousebuffer->next;
     free(mousebuffer);
     mousebuffer=m;
+    mousequeuelength--;
     return;
   }
+
   /* If we got here, there's nothing in the mouse queue, so let's
   ** pick up a fresh item from SDL.
   */
 
+  if (mousequeuelength != 0) fprintf(stderr,"Warning: mousequeuelength out of sync (%d), correcting\n", mousequeuelength);
+  mousequeuelength=0; /* Not strictly necessary, but keeps things in sync, just in case */
   SDL_PumpEvents();
   SDL_GetMouseState(&x, &y);
   while(!breakout && SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP)))) {
