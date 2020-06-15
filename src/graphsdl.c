@@ -688,14 +688,13 @@ static void toggle_cursor(void) {
 ** converted to real pixel coordinates by multiplying them by 'xscale'
 ** and 'yscale'.
 */
-static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
+static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
-  if ((ds.autorefresh != 1) || (ds.displaybank != ds.writebank)) return;
   if (right < 0 || bottom < 0 || left >= ds.screenwidth || top >= ds.screenheight) return;	/* Is off screen completely */
   if (left < 0) left = 0;				/* Clip the rectangle as necessary */
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
@@ -706,7 +705,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
     scale_rect.y = top;
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
-    SDL_BlitSurface(screenbank[ds.writebank], &scale_rect, matrixflags.surface, &scale_rect);
+    SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
   } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
@@ -717,7 +716,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
         xx = dleft;
         for (i = left; i <= right; i++) {
           for (ii = 1; ii <= ds.xscale; ii++) {
-            *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = *((Uint32*)screenbank[ds.writebank]->pixels + i + j*ds.vscrwidth);
+            *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = *((Uint32*)screenbank[ds.displaybank]->pixels + i + j*ds.vscrwidth);
             xx++;
           }
         }
@@ -736,6 +735,11 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
       }
     }
   }
+}
+
+static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
+  if ((ds.autorefresh != 1) || (ds.displaybank != ds.writebank)) return;
+  blit_scaled_actual(left, top, right, bottom);
 }
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
@@ -4219,7 +4223,6 @@ void refresh_location(uint32 offset) {
 }
 
 void star_refresh(int flag) {
-  int32 arprev;
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;
   }
@@ -4227,12 +4230,8 @@ void star_refresh(int flag) {
     if (screenmode == 7) {
       mode7renderscreen();
     } else {
-      /* Temporarily set autorefresh=1 else blit_scaled does nothing */
-      arprev=ds.autorefresh;
-      ds.autorefresh=1;
-      blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
+      blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
       /* ... and put it back where it was. */
-      ds.autorefresh=arprev;
       if ((screenmode == 3) || (screenmode == 6)) {
         int p;
         hide_cursor();
@@ -4339,7 +4338,7 @@ void osbyte113(int x) {
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) ds.displaybank=(x-1);
-  SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
+  blit_scaled_actual(0, 0, ds.screenwidth, ds.screenheight);
   SDL_Flip(matrixflags.surface);
 }
 
