@@ -3330,8 +3330,13 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
   cosv = cos(angle);
   sinv = sin(angle);
   maxy = sqrt(((minorlen*cosv)*(minorlen*cosv))+((majorlen*sinv)*(majorlen*sinv)));
-  slicew = (minorlen*majorlen)/maxy;
-  shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
+  if (maxy == 0) {
+    slicew = 0;
+    shearx = 0;
+  } else {
+    slicew = (minorlen*majorlen)/maxy;
+    shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
+  }
 
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
