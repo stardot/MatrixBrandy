@@ -87,7 +87,9 @@
 **  copying areas of the virtual screen that have changed.
 */
 
+#ifndef MAXBANKS
 #define MAXBANKS 4
+#endif
 #define MAX_YRES 16384
 #define MAX_XRES 16384
 #define FAST_2_MUL(x) ((x)<<1)
@@ -2471,7 +2473,7 @@ static void setup_mode(int32 mode) {
   ds.autorefresh=1;
   ds.vscrwidth = sx;
   ds.vscrheight = sy;
-  for (p=0; p<4; p++) {
+  for (p=0; p<MAXBANKS; p++) {
     SDL_FreeSurface(screenbank[p]);
     screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
   }
@@ -3458,7 +3460,7 @@ boolean init_screen(void) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;
   }
-  for (p=0; p<4; p++) {
+  for (p=0; p<MAXBANKS; p++) {
     SDL_FreeSurface(screenbank[p]);
 #ifdef TARGET_MACOSX
     screenbank[p] = SDL_ConvertSurface(matrixflags.surface, &pixfmt,0);
