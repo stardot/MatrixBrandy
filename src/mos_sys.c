@@ -200,7 +200,7 @@ static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32
       else                matrixflags.gpiomemint[7 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
       break;
     default: /* Defined but unimplemented GPIO SWIs */
-      error(ERR_SWINUMNOTKNOWN, swino);
+      error(ERR_SWINUMNOTKNOWN, (int32)swino);
   }
 }
 
