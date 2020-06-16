@@ -3056,7 +3056,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
 int32 emulate_pointfn(int32 x, int32 y) {
   int32 colour, colnum;
-  colour = SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + GXTOPX(x+ds.xorigin) + GYTOPY(y+ds.yorigin)*ds.vscrwidth));
+  x += ds.xorigin;
+  y += ds.yorigin;
+  if ((x < 0) || (x >= ds.screenwidth*ds.xgupp) || (y < 0) || (y >= ds.screenheight*ds.ygupp)) return 0;
+  colour = SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + (GXTOPX(x) + GYTOPY(y)*ds.vscrwidth)));
   if (colourdepth == COL24BIT) return riscoscolour(colour);
   colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
@@ -4231,7 +4234,6 @@ void star_refresh(int flag) {
       mode7renderscreen();
     } else {
       blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
-      /* ... and put it back where it was. */
       if ((screenmode == 3) || (screenmode == 6)) {
         int p;
         hide_cursor();
