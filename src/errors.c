@@ -545,7 +545,7 @@ static detail errortable [] = {
 /* ERR_OSCLIFAIL */	{NONFATAL, STRING, 254, "OSCLI failed (%s)"},
 /* ERR_NOGZIP */	{FATAL,    NOPARM,   0, "This build of the interpreter does not support gzipped programs"},
 /* WARN_FUNNYFLOAT */	{WARNING,  NOPARM,   0, "Warning: floating point number format is not known"},
-/* ERR_SWINAMENOTKNOWN*/{NONFATAL, NOPARM, 486, "SWI name not known"},
+/* ERR_SWINAMENOTKNOWN*/{NONFATAL, NOPARM, 486, "SWI name '%s' not known"},
 /* ERR_SWINUMNOTKNOWN */{NONFATAL, INTEGER,486, "SWI &%llX not known"},
 /* ERR_DIRNOTFOUND */	{NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
 /* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
