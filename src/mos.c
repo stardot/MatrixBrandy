@@ -2266,7 +2266,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 int32 mos_getswinum(char *name, int32 length) {
   int32 ptr;
   int32 xflag=0;
-  char ctmp;
+  char namebuffer[128];
 
   if (name[0] == 'X') {
     name++;
@@ -2276,11 +2276,9 @@ int32 mos_getswinum(char *name, int32 length) {
   for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
     if ((!strncmp(name, swilist[ptr].swiname, length)) && length==strlen(swilist[ptr].swiname)) break;
   }
-  /* Temporarily truncate the string */
-  ctmp=*(name+length);
-  *(name+length)='\0';
-  if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN, name);
-  *(name+length)=ctmp; /* Restore */
+  strncpy(namebuffer,name, length);
+  namebuffer[length]='\0';
+  if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN, namebuffer);
   return ((swilist[ptr].swinum)+xflag);
 }
 
