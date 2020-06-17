@@ -3855,7 +3855,7 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
   int32 tt, i;
-  if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth )) return;
+  if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth ) || (x1 > x2)) return;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
   }
@@ -3892,7 +3892,7 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
       low = y[i];
 #endif
   }
-  /* reset the minumum amount of the edge tables */
+  /* reset the minimum amount of the edge tables */
   for (iy = (low < 0) ? 0: low; iy <= high; iy++) {
     geom_left[iy] = MAX_XRES + 1;
     geom_right[iy] = - 1;
