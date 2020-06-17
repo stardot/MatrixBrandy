@@ -2308,6 +2308,7 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
     case SWI_OS_Word:
       mos_osword(inregs[0], inregs[1]);
       outregs[0]=inregs[0];
+      outregs[1]=inregs[1];
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
