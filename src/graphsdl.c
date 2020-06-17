@@ -4201,10 +4201,11 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
     emulate_printf("Warning: Can only define modes in the range 64 to %d.\r\n", HIGHMODE);
     return;
   }
-  if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256) && (cols != COL24BIT)) {
+  if ((cols != 2) && (cols != 4) && (cols != 16) && (cols != 256) && (cols != 32768) && (cols != COL24BIT)) {
     emulate_printf("Warning: Can only define modes with 2, 4, 16, 256 or 16777216 colours.\r\n");
     return;
   }
+  if (cols == 32768) cols=COL24BIT;
   if ((mxscale==0) || (myscale==0)) {
     emulate_printf("Warning: pixel scaling can't be zero.\r\n");
     return;
