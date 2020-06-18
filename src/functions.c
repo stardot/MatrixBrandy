@@ -1575,6 +1575,7 @@ static void fn_tempofn(void) {
 */
 void fn_tint(void) {
   int32 x, y;
+  basicvars.current++;
   if (*basicvars.current != '(') error(ERR_LPMISS);
   basicvars.current++;
   x = eval_integer();
@@ -1582,6 +1583,7 @@ void fn_tint(void) {
   basicvars.current++;
   y = eval_integer();
   if (*basicvars.current != ')') error(ERR_RPMISS);
+  basicvars.current++;
   push_int(emulate_tintfn(x, y));
 }
 
