@@ -2423,7 +2423,13 @@ boolean init_screen(void) {
   find_cursor();
 
   /* When running interactively change the console title bar too */
-  if (!basicvars.runflags.loadngo) set_wintitle("Matrix Brandy Basic VI Interpreter");
+  if (!basicvars.runflags.loadngo) {
+#if defined(BRANDY_GITCOMMIT) && !defined(BRANDY_RELEASE)
+    set_wintitle("Matrix Brandy Basic VI Interpreter - git " BRANDY_GITCOMMIT);
+#else
+    set_wintitle("Matrix Brandy Basic VI Interpreter");
+#endif
+  }
   return TRUE;
 }
 

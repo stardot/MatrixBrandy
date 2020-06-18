@@ -7,17 +7,20 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   freed.
 * System: INKEY(-256) now returns &4D (M) for all builds. System specifics
   can be obtained from SYS "Brandy_Platform".
-* System: Some optimisations in the scaled blitting code.
-* System: Added a hugely optimised code path for scrolling, when no VDU28
-  window is in place, and not MODE 7.
-* System: VDU23,7 implemented apart from movement option.
 * System: OSBYTE &87 implemented for non-MODE7 screen modes. (MODE 7
   was previously implemented)
 * System: Now builds on MacOS High Sierra and Catalina. Note, it requires
   the latest snapshot of SDL 1.2 from SDL's Mercurial repository.
 * System: Bug fixes for *SAVE and *LOAD. Additionally, MODE 7 screens
   can now be *SAVEd and *LOADed.
-* System: Several bugs fixed, highlighted by Jan Vibe's graphical demos.
+* System/Display: Several bugs fixed, highlighted by Jan Vibe's graphical demos.
+* Display: Some optimisations in the scaled blitting code.
+* Display: Added a hugely optimised code path for scrolling, when no VDU28
+  window is in place, and not MODE 7.
+* Display: VDU23,7 implemented apart from movement option.
+* Display: While 32K colour modes aren't directly implemented, instead of
+  reporting an error when such a mode is requested, a 24bit colour mode is
+  selected instead.
 * BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)
 * Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.

@@ -3498,7 +3498,11 @@ boolean init_screen(void) {
   write_vduflag(MODE7_UPDATE,1);
   write_vduflag(MODE7_UPDATE_HIGHACC,1);
   ds.xgupp = ds.ygupp = 1;
+#if defined(BRANDY_GITCOMMIT) && !defined(BRANDY_RELEASE)
+  SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter - git " BRANDY_GITCOMMIT, "Matrix Brandy");
+#else
   SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter", "Matrix Brandy");
+#endif
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 
