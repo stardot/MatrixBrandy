@@ -278,7 +278,11 @@ void restore_handlers(void) {
 */
 void announce(void) {
 #ifdef BRANDY_BANNER_MINIMAL
+#ifdef USE_SDL
+  emulate_printf("\nMatrix Brandy %uK \x99\r\n\nBASIC\r\n\n", (uint32)(basicvars.himem-basicvars.page)>>10);
+#else
   emulate_printf("\nMatrix Brandy %uK\r\n\nBASIC\r\n\n", (uint32)(basicvars.himem-basicvars.page)>>10);
+#endif /* USE_SDL */
 #else
   emulate_printf("\n%s\r\n\nStarting with " FMT_SZD " bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #endif
