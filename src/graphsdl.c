@@ -477,7 +477,8 @@ static void vdu_2316(void) {
 }
 
 /*
-** 'vdu_2317' deals with various flavours of the sequence VDU 23,17,...
+** '
+' deals with various flavours of the sequence VDU 23,17,...
 */
 static void vdu_2317(void) {
   int32 temp;
@@ -3074,8 +3075,14 @@ int32 emulate_pointfn(int32 x, int32 y) {
 ** screen. This is one of 0, 0x40, 0x80 or 0xC0
 */
 int32 emulate_tintfn(int32 x, int32 y) {
+  int32 colour;
+
   if (colourdepth < 256) return 0;
-  return *((Uint32*)screenbank[ds.writebank]->pixels + GXTOPX(x+ds.xorigin) + GYTOPY(y+ds.yorigin)*ds.vscrwidth)<<TINTSHIFT;
+  x += ds.xorigin;
+  y += ds.yorigin;
+  if ((x < 0) || (x >= ds.screenwidth*ds.xgupp) || (y < 0) || (y >= ds.screenheight*ds.ygupp)) return 0;
+  colour = SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + (GXTOPX(x) + GYTOPY(y)*ds.vscrwidth))) & 0xFFFFFF;
+  return(colour & 3)<<TINTSHIFT;
 }
 
 /*
@@ -3150,7 +3157,7 @@ void emulate_tint(int32 action, int32 tint) {
   emulate_vdu(VDU_COMMAND);		/* Use VDU 23,17 */
   emulate_vdu(17);
   emulate_vdu(action);	/* Says which colour to modify */
-  if (tint<=MAXTINT) tint = tint<<TINTSHIFT;	/* Assume value is in the wrong place */
+  //if (tint<=MAXTINT) tint = tint<<TINTSHIFT;	/* Assume value is in the wrong place */
   emulate_vdu(tint);
   for (n=1; n<=7; n++) emulate_vdu(0);
 }

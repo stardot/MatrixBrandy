@@ -2,58 +2,58 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 *:V1.22.6 - 
-* System: Some subtle bugs fixed as a result of clang compiler warnings.
-* System: Block attempts to free workspace memory that shouldn't be randomly
+- BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)
+- BASIC: Fixed TINT, both function and command as they were rather broken.
+- System: Some subtle bugs fixed as a result of clang compiler warnings.
+- System: Block attempts to free workspace memory that shouldn't be randomly
   freed.
-* System: INKEY(-256) now returns &4D (M) for all builds. System specifics
+- System: INKEY(-256) now returns &4D (M) for all builds. System specifics
   can be obtained from SYS "Brandy_Platform".
-* System: OSBYTE &87 implemented for non-MODE7 screen modes. (MODE 7
+- System: OSBYTE &87 implemented for non-MODE7 screen modes. (MODE 7
   was previously implemented)
-* System: Now builds on MacOS High Sierra and Catalina. Note, it requires
+- System: Now builds on MacOS High Sierra and Catalina. Note, it requires
   the latest snapshot of SDL 1.2 from SDL's Mercurial repository.
-* System: Bug fixes for *SAVE and *LOAD. Additionally, MODE 7 screens
+- System: Bug fixes for *SAVE and *LOAD. Additionally, MODE 7 screens
   can now be *SAVEd and *LOADed.
-* System/Display: Several bugs fixed, highlighted by Jan Vibe's graphical demos.
-* Display: Some optimisations in the scaled blitting code.
-* Display: Added a hugely optimised code path for scrolling, when no VDU28
+- System/Display: Several bugs fixed, highlighted by Jan Vibe's graphical demos.
+- Display: Some optimisations in the scaled blitting code.
+- Display: Added a hugely optimised code path for scrolling, when no VDU28
   window is in place, and not MODE 7.
-* Display: VDU23,7 implemented apart from movement option.
-* Display: While 32K colour modes aren't directly implemented, instead of
+- Display: VDU23,7 implemented apart from movement option.
+- Display: While 32K colour modes aren't directly implemented, instead of
   reporting an error when such a mode is requested, a 24bit colour mode is
   selected instead.
-* BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)
-* Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
+- Keyboard: Implemented OSBYTE 4, including function keys on cursor keys with
   *FX4,2. *FX4,1 makes cursor keys generate BBC Micro values.
-* Keyboard: Try to fix some glitches around softkeys and the cursor keys.
-* Keyboard: Rework INKEY delay as on Windows messages were sometimes just
+- Keyboard: Try to fix some glitches around softkeys and the cursor keys.
+- Keyboard: Rework INKEY delay as on Windows messages were sometimes just
   getting lost in the post.
-* Keyboard/Mouse: *FX15 and *FX21 (x=0,9 only) implemented to flush buffers.
-* Mouse: Mouse event queue implemented.
-* Teletext: Don't mimic SAA5050 "hold bug" if Alpha and Graphics Black
+- Keyboard/Mouse: *FX15 and *FX21 (x=0,9 only) implemented to flush buffers.
+- Mouse: Mouse event queue implemented.
+- Teletext: Don't mimic SAA5050 "hold bug" if Alpha and Graphics Black
   enabled (VDU23,18,3,1|)
-* Teletext: Hold characer wasn't being cleared when switching between
+- Teletext: Hold characer wasn't being cleared when switching between
   double height and normal size.
-* Teletext: Fixed a bug where flash wasn't flashing while INKEY(delay).
-* Teletext: Implemented the Alternative character set, toggled with &9B.
-* Implemented an equivalent to OSWORD 10 for the Teletext font. Using
+- Teletext: Fixed a bug where flash wasn't flashing while INKEY(delay).
+- Teletext: Implemented the Alternative character set, toggled with &9B.
+- Implemented an equivalent to OSWORD 10 for the Teletext font. Using
   OSWORD &8B as it appears to be undefined. Requires a 44 byte block.
-* Implemented OSWORD &8C to change a Teletext character definition.
-  These two are specific to Matrix Brandy and Richard Russell's BBCSDL
-  (and were developed in parallel).
+- Teletext: Implemented OSWORD &8C to change a Teletext character definition.
+  These two are specific to Matrix Brandy and Richard Russell's BBCSDL.
   Details on these calls are in docs/Mode7.txt
-* Teletext: Added example library SAA505Xlib, which uses the new OSWORD calls
+- Teletext: Added example library SAA505Xlib, which uses the new OSWORD calls
   to allow language changes as per the SAA505x family (0-7 supported).
 
 * V1.22.5 - 08 May 2020
-* Fixed a bug in CLS where it missed the bottom of the screen if the
+- Fixed a bug in CLS where it missed the bottom of the screen if the
   vertical resolution wasn't a multiple of the text height.
-* Fixed various bug in 64-bit variable handling.
-* Fixed an omission - indirection offsets on 64-bit variables are now
+- Fixed various bug in 64-bit variable handling.
+- Fixed an omission - indirection offsets on 64-bit variables are now
   supported.
-* Changed the appearance of the * character in MODE 7, as I never really
+- Changed the appearance of the * character in MODE 7, as I never really
   liked the RISC OS 5 shape, it's now much closer to the SAA5050 shape
   while retaining the RISC OS 5 dimensions.
-* Removed Teletext 12x20 and 14x20 displays, thus VDU23,18,255,x is no more.
+- Removed Teletext 12x20 and 14x20 displays, thus VDU23,18,255,x is no more.
 
 * V1.22.4 - 10 March 2020
 - Enable building on Cygwin 64-bit
