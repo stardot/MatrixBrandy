@@ -1052,6 +1052,9 @@ void exec_blockif(void) {
   if (GET_TOPITEM == STACK_INT) {
     if (pop_int() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
   }
+  else if (GET_TOPITEM == STACK_INT64) {
+    if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
+  }
   else if (GET_TOPITEM == STACK_FLOAT) {
     if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
   }
