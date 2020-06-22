@@ -491,6 +491,7 @@ int32 kbd_buffered() {
 
 /* kbd_pending() - will the next GET/INKEY fetch something - EOF#0 */
 /* --------------------------------------------------------------- */
+#ifndef TARGET_RISCOS
 int32 kbd_pending() {
   if (matrixflags.doexec) {
     if (!feof(matrixflags.doexec)) return TRUE;	/* Still bytes from exec file		*/
@@ -499,6 +500,7 @@ int32 kbd_pending() {
   if (fn_string_count) return TRUE;		/* Soft key being expanded		*/
   return kbd_buffered()!=0;			/* Test keyboard buffer			*/
 }
+#endif
 
 /* kbd_escpoll() - is there a pending Escape state */
 /* ----------------------------------------------- */
@@ -510,6 +512,7 @@ int32 kbd_pending() {
  * not the character code.
  */
 int kbd_escpoll() {
+#ifndef TARGET_RISCOS
 #ifdef USE_SDL
 int64 tmp;
 #endif
@@ -533,16 +536,21 @@ int64 tmp;
     }
   }
   return basicvars.escape;			/* Return Escape state			*/
+#else
+  return 0;
+#endif /* TARGET_RISCOS */
 }
 
 /* kbd_esctest() - set Escape state if allowed */
 /* ------------------------------------------- */
 int kbd_esctest() {
+#ifndef TARGET_RISCOS
   if (sysvar[sv_EscapeAction]==0) {		/* Does Escape key generate Escapes?	*/
     if ((sysvar[sv_EscapeBreak] & 1)==0) {	/* Do Escapes set Escape state?		*/
       return TRUE;
     }
   }
+#endif
   return FALSE;
 }
 
@@ -553,6 +561,7 @@ void kbd_escclr()   { basicvars.escape=FALSE; }		// clear Escape state
 /* kbd_escack() - acknowledge and clear Escape state */
 /* ------------------------------------------------- */
 int kbd_escack() {
+#ifndef TARGET_RISCOS
   byte tmp;
 
   tmp=sysvar[sv_EscapeEffect] ^ 0x0f;
@@ -579,8 +588,10 @@ int kbd_escack() {
   tmp=basicvars.escape;
   basicvars.escape=FALSE;				/* Clear pending Escape		*/
   return tmp ? -1 : 0;					/* Return previous Escape state	*/
+#else
+  return 0;
+#endif
 }
-
 
 #ifndef TARGET_RISCOS
 /* kbd_modkeys() - do a fast read of state of modifier keys */
@@ -766,7 +777,7 @@ int32 kbd_inkey(int32 arg) {
   if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
 
   if (regs.r[2])	return -1;		/* Timed out or Escape			*/
-  else			return regs.r[1]	/* Character was read successfully	*/
+  else			return regs.r[1];	/* Character was read successfully	*/
 
 #else /* !RISCOS */
   // Non-RISC OS, perform the action manually
@@ -1106,6 +1117,15 @@ basicvars.escape=FALSE;
 #endif /* !RISCOS */
 }
 
+#ifdef TARGET_RISCOS
+void purge_keys(void) {
+  _kernel_swi_regs regs;
+  regs.r[0] = 21;
+  regs.r[1] = 0;
+  regs.r[2] = 0;
+  _kernel_swi(OS_Byte, &regs, &regs);
+}
+#endif
 
 /*
 ** From here onwards are internal routines used by the above keyboard routines on

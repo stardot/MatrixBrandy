@@ -97,7 +97,7 @@ void emulate_vdustr(char *string, int32 length) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   if (length == 0) length = strlen(string);
-  regs.r[0] = TOINT(string);
+  regs.r[0] = (int)(string);
   regs.r[1] = length;
   oserror = _kernel_swi(OS_WriteN, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
@@ -127,7 +127,7 @@ int32 emulate_vdufn(int variable) {
   _kernel_swi_regs regs;
   int vdublock[2];
   vdublock[0] = variable;
-  vdublock[1] = -1; 
+  vdublock[1] = -1;
   regs.r[0] = regs.r[1] = (int) vdublock;
   oserror = _kernel_swi(OS_ReadVduVariables, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
@@ -275,7 +275,7 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
 
 /*
 ** 'emulate_modestr' deals with the Basic 'MODE' command when the
-** parameter is a string. The function is passed the various 
+** parameter is a string. The function is passed the various
 ** parameters required for a RISC OS mode selector.
 ** Colour or grey scale: colours == 0 if grey scale wanted
 */
@@ -320,7 +320,7 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
   mode.vars[2].index = -1;
 
 /* Need to have full access to 256 colour palette for 256 level grey scale */
-  
+
   if (colours == 256 && greyscale) {
     mode.vars[2].index = 0;		/* ModeFlags value */
     mode.vars[2].value = 128;
@@ -762,9 +762,9 @@ void emulate_origin(int32 x, int32 y) {
 }
 
 /*
-** 'init_screen' carries out any initialisation needed for the 
+** 'init_screen' carries out any initialisation needed for the
 ** screen output functions.
-** The flag 'riscos31' is set if we are running under 
+** The flag 'riscos31' is set if we are running under
 ** RISC OS 3.1 and so cannot use SWIs such as OS_ScreenMode.
 */
 boolean init_screen(void) {
@@ -783,3 +783,11 @@ void end_screen(void) {
 void set_wintitle(char *title) {
 }
 
+int32 get_character_at_pos(int32 cx, int32 cy) {
+  _kernel_swi_regs regs;
+  regs.r[0] = 135;
+  regs.r[1] = 0;
+  regs.r[2] = 255;
+  _kernel_swi(OS_Byte, &regs, &regs);
+  return (regs.r[1] & 0xFF00) >> 8;
+}

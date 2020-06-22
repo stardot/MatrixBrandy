@@ -492,7 +492,7 @@ void mos_voice(int32 channel, char *name) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   regs.r[0] = channel;
-  regs.r[1] = TOINT(name);
+  regs.r[1] = (int)(name);
   oserror = _kernel_swi(Sound_AttachNamedVoice, &regs, &regs);
   if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
 }
@@ -608,7 +608,7 @@ int32 mos_getswinum(char *name, int32 length) {
   if (length==0) length = strlen(name);
   memmove(swiname, name, length);
   swiname[length] = NUL;		/* Ensure name is null-terminated */
-  regs.r[1] = TOINT(&swiname[0]);
+  regs.r[1] = (int)(&swiname[0]);
   oserror = _kernel_swi(OS_SWINumberFromString, &regs, &regs);
   if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
   return regs.r[0];
@@ -1270,7 +1270,6 @@ int get_cmdvalue(char *name){
 }
 
 void make_cmdtab(){
- 
   if(cmdtab != (cmdtabent*)0) free(cmdtab);
 
   cmdtab=calloc(CMDTABSIZE,sizeof(cmdtabent));
@@ -1878,7 +1877,7 @@ static void cmd_save(char *command){
   if ( (filep = fopen(chbuff,"w")) == (FILE*)0){
     emulate_printf("SAVE: Could not open file \"%s\"\r\n",chbuff);
     return;
-  } 
+  }
   ptr=(char*)(basicvars.offbase+addr);
 #ifdef USE_SDL
   if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {

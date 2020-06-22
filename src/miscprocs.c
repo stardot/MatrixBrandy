@@ -46,6 +46,12 @@
 # include <sys/stat.h>
 #endif
 
+#ifdef TARGET_RISCOS
+int64 llabs(int64 i) {
+  return (i >= 0) ? i : i * (int64)-1;
+}
+#endif
+
 /* #define DEBUG */
 
 /*

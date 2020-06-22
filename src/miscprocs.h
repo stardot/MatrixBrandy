@@ -33,6 +33,9 @@
 #include "common.h"
 #include "basicdefs.h"
 
+#ifdef TARGET_RISCOS
+extern int64 llabs(int64);
+#endif
 extern boolean read_line(char [], int32);
 extern boolean amend_line(char [], int32);
 extern boolean isidstart(char);
