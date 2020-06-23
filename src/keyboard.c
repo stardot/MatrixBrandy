@@ -120,10 +120,214 @@
 #include "inkey.h"
 #include "mos.h"
 
+#ifdef TARGET_RISCOS
+/* New keyboard routines */
+/* --------------------- */
+
+#include "kernel.h"
+#include "swis.h"
+
+static boolean waitkey(int wait);		/* To prevent a forward reference	*/
+static int32 pop_key(void);			/* To prevent a forward reference	*/
+
+/* Veneers, fill in later */
+boolean kbd_init() { return init_keyboard(); }
+void    kbd_end()  { end_keyboard(); }
+int     kbd_setfkey(int key, char *string, int length) {
+		return set_fn_string(key, string, length); }
+char   *kbd_getfkey(int key, int *len) {
+		return get_fn_string(key, len); }
+readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
+		return emulate_readline(&buffer[0], length, echochar); }
+
+
+/* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
+/* -------------------------------------------------------------- */
+int32 kbd_inkey(int32 arg) {
+
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
+  regs.r[1] = arg & BYTEMASK;
+  regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
+  oserror = _kernel_swi(OS_Byte, &regs, &regs);
+  if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
+  if (regs.r[2] == 0)	return regs.r[1];	/* Character was read successfully	*/
+  else			return -1;		/* Timed out				*/
+}
+
+
+/* kbd_get called to implement Basic GET and GET$ functions */
+/* -------------------------------------------------------- */
+int32 kbd_get() {
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  oserror = _kernel_swi(OS_ReadC, &regs, &regs);
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  return regs.r[0];
+}
+
+
+/* Legacy code from here onwards */
+/* ----------------------------- */
+static int nokeyboard=0;
+static int escint=128;
+static int escmul=1;
+static int fx44x=1;
+
+/* ================================================================= */
+/* ================= RISC OS versions of functions ================= */
+/* ================================================================= */
+
+#include "kernel.h"
+#include "swis.h"
+
+/*
+** 'emulate_get' emulates the Basic function 'get'
+*/
+int32 emulate_get(void) {
+  return _kernel_osrdch();
+}
+
+/*
+** 'emulate_inkey' does the hard work for the Basic 'inkey' function
+*/
+int32 emulate_inkey(int32 arg) {
+  _kernel_oserror *oserror;     /* Use OS_Byte 129 to obtain the info */
+  _kernel_swi_regs regs;
+  regs.r[0] = 129;      	/* Use OS_Byte 129 for this */
+  regs.r[1] = arg & BYTEMASK;
+  regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
+  oserror = _kernel_swi(OS_Byte, &regs, &regs);
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (arg >= 0) {               /* +ve argument = read keyboard with time limit */
+    if (regs.r[2] == 0) 	/* Character was read successfully */
+      return (regs.r[1]);
+    else if (regs.r[2] == 0xFF) /* Timed out */
+      return -1;
+    else {
+      error(ERR_CMDFAIL, "C library has missed an escape event");
+    }
+  }
+  else {        /* -ve argument */
+    if (regs.r[1] == 0xFF)
+      return -1;
+    else {
+      return regs.r[1];
+    }
+  }
+  return 0;     /* Not needed, but it keeps the Acorn C compiler happy */
+}
+
+/*
+** 'emulate_readline' reads a line from the keyboard. It returns 'true'
+** if the call worked successfully or 'false' if 'escape' was pressed.
+** The data input is stored at 'buffer'. Up to 'length' characters can
+** be read. A 'null' is added after the last character. The reason for
+** using this function in preference to 'fgets' under RISC OS is that
+** 'fgets' does not use 'OS_ReadLine' and therefore bypasses the command
+** line history and other features that might be available via this SWI
+** call.
+*/
+readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  int32 carry;
+  regs.r[0] = TOINT(&buffer[0]);
+  regs.r[1] = length-1;         /* -1 to allow for a NULL to be added at the end in all cases */
+  regs.r[2] = 0;                /* Allow any character to be input */
+  regs.r[3] = 255;
+  oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (carry != 0)               /* Carry is set - 'escape' was pressed */
+    buffer[0] = NUL;
+  else {
+    buffer[regs.r[1]] = NUL;    /* Number of characters read is returned in R1 */
+  }
+  return carry == 0 ? READ_OK : READ_ESC;
+}
+
+/*
+ * set_fn_string - Define a function key string
+ */
+int set_fn_string(int key, char *string, int length) {
+  printf("Key = %d  String = '%s'\n", key, string);
+  return 0;
+}
+
+char *get_fn_string(int key, int *len) {
+}
+
+boolean init_keyboard(void) {
+  return TRUE;
+}
+
+void end_keyboard(void) {
+}
+
+void kbd_quit() {
+}
+
+int kbd_escack() {
+  return 0;
+}
+
+int kbd_esctest() {
+  return FALSE;
+}
+
+int kbd_escpoll() {
+  return 0;
+}
+
+int32 kbd_readline(char *buffer, int32 length, int32 chars) {
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  int32 carry;
+
+// RISC OS compiler doesn't like code before variable declaration, so have to duplicate
+  if (length<1) return 0;			/* Filter out impossible or daft calls	*/
+  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+
+  regs.r[0] = (int)(&buffer[0]);
+  regs.r[1] = length - 1;			/* Subtract one to allow for terminator	*/
+  regs.r[2] = (chars >> 8) & 0xFF;		/* Lowest acceptable character		*/
+  regs.r[3] = (chars >> 16) & 0xFF;		/* Highest acceptable character		*/
+
+  if (regs.r[0] & 0xFF000000) {			/* High memory				*/
+    regs.r[4] = chars & 0xFF0000FF;		/* R4=Echo character and flags		*/
+    oserror = _kernel_swi_c(0x00007D, &regs, &regs, &carry);	/* OS_ReadLine32	*/
+    /* If OS_ReadLine32 doesn't exist, we don't have high memory anyway, so safe	*/
+
+  } else {					/* Low memory				*/
+    regs.r[0]=regs.r[0] | (chars & 0xFF000000);	/* R0=Flags and address			*/
+    regs.r[4]=chars & 0x000000FF;		/* R4=Echo character			*/
+    oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
+  }
+
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (carry) buffer[0] = NUL;			/* Carry is set - 'Escape' was pressed	*/
+  else       buffer[regs.r[1]] = NUL;		/* Number of characters returned in R1	*/
+
+  return carry == 0 ? regs.r[1] : -1;		/* To do: -1=READ_ESC			*/
+}
+
+
+#else /* Matching endif is at end of file */
+/* **********************************
+ * NON RISC OS VERSIONS OF THE CODE * 
+ ************************************/
+
 // Temporary split while finalising NEWKBD code.
 #ifndef NEWKBD
 #include "kbd-old.c"
-#else
+#else /* Matching endif is at the end of the file */
 
 #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
  #include <windows.h>
@@ -161,17 +365,12 @@ Uint8 mousestate, *keystate=NULL;
 int64 esclast=0;
 #endif
 
-#ifdef TARGET_RISCOS
- #include "kernel.h"
- #include "swis.h"
-#else
- #include <stdlib.h>
- #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
-  #include <sys/time.h>
-  #include <sys/types.h>
-  #ifndef CYGWINBUILD
-    #include <keysym.h>
-  #endif
+#include <stdlib.h>
+#if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #ifndef CYGWINBUILD
+   #include <keysym.h>
  #endif
 #endif
 
@@ -264,7 +463,6 @@ int64 esclast=0;
 #define CTRL_F12        0xEC
 
 
-#ifndef TARGET_RISCOS
 /* holdcount and holdstack are used when decoding ANSI key sequences. If a
 ** sequence is read that does not correspond to an ANSI sequence the
 ** characters are stored here so that they can be returned by future calls
@@ -308,8 +506,6 @@ static int32 histlength[MAXHIST];   /* Table of sizes of entries in history buff
 
 static int nokeyboard=0;
 static int fx44x=1;
-#endif
-
 
 static boolean waitkey(int wait);		/* Forward reference	*/
 static int32 pop_key(void);			/* Forward reference	*/
@@ -347,14 +543,6 @@ static void reinitWinConsole() {
  * input from a file, similar to *EXEC.
  */
 boolean kbd_init() {
-#ifdef TARGET_RISCOS
-  // RISC OS, nothing to do
-  // ----------------------
-  return TRUE;
-#else /* !RISCOS */
-
-  // Non-RISC OS, perform the action manually
-  // ----------------------------------------
   int n;
 
   /* We do function key processing outselves */
@@ -444,18 +632,12 @@ boolean kbd_init() {
   rawcon(1);
   return TRUE;
 #endif /* AMIGA */
-#endif
 }
 
 
 /* kbd_quit() called to terminate keyboard control on termination */
 /* -------------------------------------------------------------- */
 void kbd_quit() {
-#ifdef TARGET_RISCOS
-  // RISC OS, nothing to do
-  // ----------------------
-#else /* !RISCOS */
-
 #ifdef TARGET_DOSWIN
   // DOS/Windows target, nothing to do
   // ---------------------------------
@@ -472,7 +654,6 @@ void kbd_quit() {
   // -------------------------------
   rawcon(0);
 #endif /* AMIGA */
-#endif
 }
 
 
@@ -491,7 +672,6 @@ int32 kbd_buffered() {
 
 /* kbd_pending() - will the next GET/INKEY fetch something - EOF#0 */
 /* --------------------------------------------------------------- */
-#ifndef TARGET_RISCOS
 int32 kbd_pending() {
   if (matrixflags.doexec) {
     if (!feof(matrixflags.doexec)) return TRUE;	/* Still bytes from exec file		*/
@@ -500,7 +680,6 @@ int32 kbd_pending() {
   if (fn_string_count) return TRUE;		/* Soft key being expanded		*/
   return kbd_buffered()!=0;			/* Test keyboard buffer			*/
 }
-#endif
 
 /* kbd_escpoll() - is there a pending Escape state */
 /* ----------------------------------------------- */
@@ -512,7 +691,6 @@ int32 kbd_pending() {
  * not the character code.
  */
 int kbd_escpoll() {
-#ifndef TARGET_RISCOS
 #ifdef USE_SDL
 int64 tmp;
 #endif
@@ -536,21 +714,16 @@ int64 tmp;
     }
   }
   return basicvars.escape;			/* Return Escape state			*/
-#else
-  return 0;
-#endif /* TARGET_RISCOS */
 }
 
 /* kbd_esctest() - set Escape state if allowed */
 /* ------------------------------------------- */
 int kbd_esctest() {
-#ifndef TARGET_RISCOS
   if (sysvar[sv_EscapeAction]==0) {		/* Does Escape key generate Escapes?	*/
     if ((sysvar[sv_EscapeBreak] & 1)==0) {	/* Do Escapes set Escape state?		*/
       return TRUE;
     }
   }
-#endif
   return FALSE;
 }
 
@@ -561,7 +734,6 @@ void kbd_escclr()   { basicvars.escape=FALSE; }		// clear Escape state
 /* kbd_escack() - acknowledge and clear Escape state */
 /* ------------------------------------------------- */
 int kbd_escack() {
-#ifndef TARGET_RISCOS
   byte tmp;
 
   tmp=sysvar[sv_EscapeEffect] ^ 0x0f;
@@ -588,12 +760,8 @@ int kbd_escack() {
   tmp=basicvars.escape;
   basicvars.escape=FALSE;				/* Clear pending Escape		*/
   return tmp ? -1 : 0;					/* Return previous Escape state	*/
-#else
-  return 0;
-#endif
 }
 
-#ifndef TARGET_RISCOS
 /* kbd_modkeys() - do a fast read of state of modifier keys */
 /* -------------------------------------------------------- */
 /* Equivalent to the BBC MOS OSBYTE 118/KEYV call
@@ -737,8 +905,6 @@ static int32 read_fn_string(void) {
   return ch;
 }
 
-#endif /* !RISCOS */
-
 
 /* Main key input functions */
 /* ======================== */
@@ -764,24 +930,6 @@ static int32 read_fn_string(void) {
  * If unsupported: return 0 (except &FF00+n returns -1 if unsupported)
  */
 int32 kbd_inkey(int32 arg) {
-
-#ifdef TARGET_RISCOS
-  // RISC OS, pass directly to MOS
-  // -----------------------------
-  _kernel_oserror *oserror;
-  _kernel_swi_regs regs;
-  regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
-  regs.r[1] = arg & BYTEMASK;
-  regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
-  oserror = _kernel_swi(OS_Byte, &regs, &regs);
-  if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
-
-  if (regs.r[2])	return -1;		/* Timed out or Escape			*/
-  else			return regs.r[1];	/* Character was read successfully	*/
-
-#else /* !RISCOS */
-  // Non-RISC OS, perform the action manually
-  // ----------------------------------------
   arg = arg & 0xFFFF;				/* Argument is a 16-bit number		*/
 
   // Return host operating system
@@ -943,8 +1091,6 @@ int32 kbd_inkey(int32 arg) {
 #endif
   }
   return 0;					/* Everything else, return NOT PRESSED	*/
-
-#endif /* !RISCOS */
 }
 
 
@@ -958,18 +1104,6 @@ int32 kbd_inkey(int32 arg) {
  *               Keyboard buffer, translated to RISCOS-style values
  */
 int32 kbd_get(void) {
-
-#ifdef TARGET_RISCOS
-  // RISC OS, pass directly to MOS
-  // -----------------------------
-  _kernel_oserror *oserror;
-  _kernel_swi_regs regs;
-  oserror = _kernel_swi(OS_ReadC, &regs, &regs);
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
-  return regs.r[0];
-
-#else /* !RISCOS */
-
   int ch, fnkey;
 //  int cooked;
 //  int raw=0;
@@ -1023,8 +1157,6 @@ int32 kbd_get(void) {
   if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key			*/
   if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined		*/
   return switch_fn_string(fnkey);		/* Switch and return first char		*/
-
-#endif /* !RISCOS */
 }
 
 
@@ -1067,41 +1199,6 @@ int32 kbd_get(void) {
 ** library.
 ** -------------------------------------------------------------------- */
 int32 kbd_readline(char *buffer, int32 length, int32 chars) {
-
-#ifdef TARGET_RISCOS
-  // RISC OS, pass directly to MOS
-  // -----------------------------
-  _kernel_oserror *oserror;
-  _kernel_swi_regs regs;
-  int32 carry;
-
-// RISC OS compiler doesn't like code before variable declaration, so have to duplicate
-  if (length<1) return 0;			/* Filter out impossible or daft calls	*/
-  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
-
-  regs.r[0] = TOINT(&buffer[0]);
-  regs.r[1] = length - 1;			/* Subtract one to allow for terminator	*/
-  regs.r[2] = (chars >> 8) & 0xFF;		/* Lowest acceptable character		*/
-  regs.r[3] = (chars >> 16) & 0xFF;		/* Highest acceptable character		*/
-
-  if (regs.r[0] & 0xFF000000) {			/* High memory				*/
-    regs.r[4] = chars & 0xFF0000FF;		/* R4=Echo character and flags		*/
-    oserror = _kernel_swi_c(0x00007D, &regs, &regs, &carry);	/* OS_ReadLine32	*/
-    /* If OS_ReadLine32 doesn't exist, we don't have high memory anyway, so safe	*/
-
-  } else {					/* Low memory				*/
-    regs.r[0]=regs.r[0] | (chars & 0xFF000000);	/* R0=Flags and address			*/
-    regs.r[4]=chars & 0x000000FF;		/* R4=Echo character			*/
-    oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
-  }
-
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
-  if (carry) buffer[0] = NUL;			/* Carry is set - 'Escape' was pressed	*/
-  else       buffer[regs.r[1]] = NUL;		/* Number of characters returned in R1	*/
-
-  return carry == 0 ? regs.r[1] : -1;		/* To do: -1=READ_ESC			*/
-#else /* !RISCOS */
-
   if (length<1) return 0;			/* Filter out impossible or daft calls	*/
   chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
 
@@ -1113,27 +1210,13 @@ basicvars.escape=FALSE;
   if (length==READ_OK)  return strlen(buffer);
   if (length==READ_ESC) return -1;
   return -2;
-
-#endif /* !RISCOS */
 }
-
-#ifdef TARGET_RISCOS
-void purge_keys(void) {
-  _kernel_swi_regs regs;
-  regs.r[0] = 21;
-  regs.r[1] = 0;
-  regs.r[2] = 0;
-  _kernel_swi(OS_Byte, &regs, &regs);
-}
-#endif
 
 /*
 ** From here onwards are internal routines used by the above keyboard routines on
 ** non-RISC OS builds.
 ** ==============================================================================
  */
-#ifndef TARGET_RISCOS
-
 #if defined(TARGET_DOSWIN) && !defined(USE_SDL)
 /*
 ** This table gives the mapping from DOS extended key codes to modified RISC OS equivalents.
@@ -2032,9 +2115,6 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   return READ_OK;
 }
 
-
-
-#endif
-
-
 #endif // NEWKBD
+
+#endif // TARGET_RISCOS
