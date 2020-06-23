@@ -218,11 +218,7 @@ int brandynet_close(int handle) {
 static int net_get_something(int handle) {
   int retval = 0;
 
-  bufendptr[handle] = recv(netsockets[handle], netbuffer[handle], MAXNETRCVLEN, 0);
-  if (bufendptr[handle] == -1) { /* try again */
-    usleep(10000);
-    bufendptr[handle] = recv(netsockets[handle], netbuffer[handle], MAXNETRCVLEN, 0);
-  }
+  bufendptr[handle] = recv(netsockets[handle], netbuffer[handle], MAXNETRCVLEN, MSG_DONTWAIT);
   if (bufendptr[handle] == 0) {
     retval=1; /* EOF - connection closed */
     neteof[handle] = 1;
