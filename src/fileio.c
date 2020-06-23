@@ -44,6 +44,27 @@
 /* Floating point number format */
 enum {XMIXED_ENDIAN, XLITTLE_ENDIAN, XBIG_ENDIAN, XBIG_MIXED_ENDIAN} double_type;
 
+typedef enum {CLOSED, OPENIN, OPENUP, OPENOUT, NETWORK} filestate;
+
+typedef enum {OKAY, PENDING, ATEOF} eofstate;
+
+typedef struct {
+  FILE *stream;			/* 'C' file handle for the file */
+  filestate filetype;		/* Way in which file has been opened */
+  eofstate eofstatus;		/* Current end-of-file status */
+  boolean lastwaswrite;		/* TRUE if the last operation on a file was a write */
+  int nethandle;		/* network handle */
+} fileblock;
+
+#define MAXFILES 25		/* Maximum number of files that can be open simultaneously */
+#ifdef TARGET_RISCOS
+#define FIRSTHANDLE 16		/* Number of first handle */
+#else
+#define FIRSTHANDLE 254		/* Number of first handle */
+#endif
+
+static fileblock fileinfo [MAXFILES];
+
 #ifdef TARGET_RISCOS
 
 /* ================================================================= */
@@ -128,14 +149,21 @@ int32 fileio_openout(char *name, int32 namelen) {
 ** 'fileio_openup' opens a file for both input and output
 */
 int32 fileio_openup(char *name, int32 namelen) {
-  int32 handle;
+  int32 handle, n;
   char filename [FNAMESIZE];
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (strncmp(filename, "ip0:", 4)==0 || strncmp(filename, "ip4:", 4)==0 || strncmp(filename, "ip6:", 4)==0) {
-    error(ERR_NET_NOTSUPP);
-    return(0);
+  for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);	/* Find an unused handle */
+    handle=brandynet_connect(filename+4, filename[2]);
+    if (handle == -1) return 0;
+    fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
+    fileinfo[n].filetype = NETWORK;
+    fileinfo[n].eofstatus = OKAY;
+    fileinfo[n].lastwaswrite = FALSE;
+    fileinfo[n].nethandle = handle;
+    return n;
   } else {
     handle = _kernel_osfind(OPEN_UPDATE, filename);
     if (handle==_kernel_ERROR) report();
@@ -147,13 +175,37 @@ int32 fileio_openup(char *name, int32 namelen) {
 ** 'fileio_close' closes the fie given by 'handle' or all open files
 ** if 'handle' is zero
 */
+static void close_file(int32 handle) {
+#ifndef NONET
+  if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype == NETWORK)) {
+    brandynet_close(fileinfo[handle].nethandle);
+    fileinfo[handle].stream = NIL;
+    fileinfo[handle].filetype = CLOSED;
+    fileinfo[handle].lastwaswrite = FALSE;
+    fileinfo[handle].nethandle = -1;
+  } else {
+#endif
+    _kernel_oserror *oserror;
+    _kernel_swi_regs regs;
+    regs.r[0] = 0;
+    regs.r[1] = handle;
+    oserror = _kernel_swi(OS_Find, &regs, &regs);
+    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+#ifndef NONET
+  }
+#endif
+}
+
 void fileio_close(int32 handle) {
-  _kernel_oserror *oserror;
-  _kernel_swi_regs regs;
-  regs.r[0] = 0;
-  regs.r[1] = handle;
-  oserror = _kernel_swi(OS_Find, &regs, &regs);
-  if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+  int32 n;
+  if (handle==0) {	/* Close all open files */
+    for (n=0; n<MAXFILES; n++) {
+      if (fileinfo[n].filetype!=CLOSED) close_file(n);
+    }
+  }
+  else {	/* close one file */
+    if (fileinfo[handle].filetype!=CLOSED) close_file(handle);
+  }
 }
 
 /*
@@ -161,9 +213,28 @@ void fileio_close(int32 handle) {
 */
 int32 fileio_bget(int32 handle) {
   int32 ch;
-  ch = _kernel_osbget(handle);
-  if (ch==_kernel_ERROR) report();
-  return ch;
+  if (handle==0) error(ERR_BADHANDLE);
+
+#ifndef NONET
+  if (fileinfo[handle].filetype == NETWORK) {
+    ch=net_bget(fileinfo[handle].nethandle);
+    if (ch == -2) {
+      if (fileinfo[handle].eofstatus == PENDING) {
+	fileinfo[handle].eofstatus = ATEOF;
+	error(ERR_HITEOF);
+      } else {
+	fileinfo[handle].eofstatus = PENDING;
+      }
+    }
+  } else {
+#endif
+    ch = _kernel_osbget(handle);
+    if (ch==_kernel_ERROR) report();
+    return ch;
+#ifndef NONET
+  }
+#endif
+
 }
 
 /*
@@ -176,7 +247,7 @@ int32 fileio_getdol(int32 handle, char *buffer) {
   int32 ch, length;
   length = 0;
   do {
-    ch = _kernel_osbget(handle);
+    ch = fileio_bget(handle);
     if (ch==_kernel_ERROR) report();	/* Function returned -2 = SWI call failed */
     if (ch==-1 || ch==LF) break;	/* At end of file or reached end of line */
     buffer[length] = ch;
@@ -285,23 +356,41 @@ int32 fileio_getstring(int32 handle, char *p) {
 */
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
-  result = _kernel_osbput(value, handle);
-  if (result<0) error(ERR_CANTWRITE);
+  if (handle==0) error(ERR_BADHANDLE);
+#ifndef NONET
+  if (fileinfo[handle].filetype==NETWORK) {
+    if(net_bput(fileinfo[handle].nethandle, value)) error(ERR_CANTWRITE);
+  } else {
+#endif
+    result = _kernel_osbput(value, handle);
+    if (result<0) error(ERR_CANTWRITE);
+#ifndef NONET
+  }
+#endif
 }
 
 /*
 ** 'fileio_bputstr' writes a string to a file
 */
 void fileio_bputstr(int32 handle, char *string, int32 length) {
-  _kernel_oserror *oserror;
-  _kernel_swi_regs regs;
-  regs.r[0] = 2;	/* OS_GBPB 2 = write to file at current file pointer position */
-  regs.r[1] = handle;
-  regs.r[2] = TOINT((int)string);
-  regs.r[3] = length;
-  oserror = _kernel_swi(OS_GBPB, &regs, &regs);
-  if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
-  if (regs.r[3]!=0) error(ERR_CANTWRITE);	/* Not all the data was written to the file */
+  if (handle==0) error(ERR_BADHANDLE);
+#ifndef NONET
+  if (fileinfo[handle].filetype==NETWORK) {
+    if(net_bputstr(fileinfo[handle].nethandle, string, length)) error(ERR_CANTWRITE);
+  } else {
+#endif
+    _kernel_oserror *oserror;
+    _kernel_swi_regs regs;
+    regs.r[0] = 2;	/* OS_GBPB 2 = write to file at current file pointer position */
+    regs.r[1] = handle;
+    regs.r[2] = TOINT((int)string);
+    regs.r[3] = length;
+    oserror = _kernel_swi(OS_GBPB, &regs, &regs);
+    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+    if (regs.r[3]!=0) error(ERR_CANTWRITE);	/* Not all the data was written to the file */
+#ifndef NONET
+  }
+#endif
 }
 
 /*
@@ -434,9 +523,6 @@ void init_fileio(void) {
 /* ============= NetBSD/Linux/DOS versions of functions ============= */
 /* ================================================================== */
 
-#define MAXFILES 25		/* Maximum number of files that can be open simultaneously */
-#define FIRSTHANDLE 254		/* Number of first handle */
-
 /*
 ** Files are opened in character mode under RISC OS, Linux and NetBSD
 ** as there is basically no difference between binary and character
@@ -456,20 +542,6 @@ void init_fileio(void) {
 #define OUTMODE "w+"
 #define UPMODE "r+"
 #endif
-
-typedef enum {CLOSED, OPENIN, OPENUP, OPENOUT, NETWORK} filestate;
-
-typedef enum {OKAY, PENDING, ATEOF} eofstate;
-
-typedef struct {
-  FILE *stream;			/* 'C' file handle for the file */
-  filestate filetype;		/* Way in which file has been opened */
-  eofstate eofstatus;		/* Current end-of-file status */
-  boolean lastwaswrite;		/* TRUE if the last operation on a file was a write */
-  int nethandle;		/* network handle */
-} fileblock;
-
-static fileblock fileinfo [MAXFILES];
 
 /*
 ** 'isapath' returns TRUE if the file name passed to it is a pathname, that

@@ -1,0 +1,236 @@
+# Makefile for brandy under RISC OS using GCC
+
+CC = gcc
+LD = ld
+
+CFLAGS1 = -w -c -DNEWKBD -O2 -DBRANDY_DEFAULT_SIZE=512
+CFLAGS2 = -w -c -DNONET -DNEWKBD -DBRANDY_DEFAULT_SIZE=512
+
+LDFLAGS1 =
+LDFLAGS2 =
+
+LIBS = gcclib:unixlib gcclib:libscl gcclib:libgcc
+
+OBJ = o.variables o.tokens o.riscos o.strings o.statement\
+	o.stack o.miscprocs o.mainstate o.lvalue o.keyboard o.iostate\
+	o.heap o.functions o.fileio o.evaluate o.errors o.mos o.editor\
+	o.convert o.commands o.assign o.brandy o.net
+
+SRC = c.variables c.tokens c.riscos c.strings c.statement\
+	c.stack c.miscprocs c.mainstate c.lvalue c.keyboard c.iostate\
+	c.heap c.functions c.fileio c.evaluate c.errors c.mos c.editor\
+	c.convert c.commands c.assign c.brandy c.net
+
+brandy:	$(OBJ)
+	$(LD) $(LDFLAGS1) $(OBJ) $(LIBS) -o brandy
+
+# Build VARIABLES.C
+VARIABLES_C = h.common h.target h.basicdefs\
+	h.variables h.evaluate h.tokens\
+	h.stack h.heap h.errors\
+	h.miscprocs h.screen h.lvalue
+
+o.variables: $(VARIABLES_C) c.variables
+	$(CC) $(CFLAGS1) c.variables
+
+# Build TOKENS.C
+TOKENS_C = h.common h.target h.basicdefs\
+	h.tokens h.miscprocs h.convert\
+	h.errors
+
+o.tokens: $(TOKENS_C) c.tokens
+	$(CC) $(CFLAGS1) c.tokens
+
+# Build RISCOS.C
+RISCOS_C = h.common h.target h.basicdefs\
+	h.errors h.scrcommon h.screen\
+	h.keyboard
+
+o.riscos: $(RISCOS_C) c.riscos
+	$(CC) $(CFLAGS1) c.riscos
+
+# Build STRINGS.C
+STRINGS_C = h.common h.target h.basicdefs\
+	h.strings h.heap h.errors
+
+o.strings: $(STRINGS_C) c.strings
+	$(CC) $(CFLAGS1) c.strings
+
+# Build STATEMENT.C
+STATEMENT_C = h.common h.target h.basicdefs\
+	h.tokens h.commands h.stack\
+	h.heap h.errors h.editor\
+	h.miscprocs h.variables h.evaluate\
+	h.screen h.fileio h.strings\
+	h.iostate h.mainstate h.assign\
+	h.statement
+
+o.statement: $(STATEMENT_C) c.statement
+	$(CC) $(CFLAGS1) c.statement
+
+# Build STACK.C
+STACK_C = h.common h.target h.basicdefs\
+	h.stack h.miscprocs h.strings\
+	h.tokens h.errors
+
+o.stack: $(STACK_C) c.stack
+	$(CC) $(CFLAGS1) c.stack
+
+# Build MISCPROCS.C
+MISCPROCS_C = h.common h.target h.basicdefs\
+	h.tokens h.errors h.keyboard\
+	h.screen h.miscprocs
+
+o.miscprocs: $(MISCPROCS_C) c.miscprocs
+	$(CC) $(CFLAGS1) c.miscprocs
+
+# Build MAINSTATE.C
+MAINSTATE_C = h.common h.target h.basicdefs\
+	h.tokens h.variables h.stack\
+	h.heap h.strings h.errors\
+	h.statement h.evaluate h.convert\
+	h.miscprocs h.editor h.mos\
+	h.screen h.lvalue h.fileio\
+	h.mainstate
+
+o.mainstate: $(MAINSTATE_C) c.mainstate
+	$(CC) $(CFLAGS1) c.mainstate
+
+# Build LVALUE.C
+LVALUE_C = h.common h.target h.basicdefs\
+	h.tokens h.evaluate h.stack\
+	h.errors h.variables h.miscprocs\
+	h.lvalue
+
+o.lvalue: $(LVALUE_C) c.lvalue
+	$(CC) $(CFLAGS1) c.lvalue
+
+# Build KEYBOARD.C
+KEYBOARD_C = h.common h.target h.basicdefs\
+	h.errors h.keyboard h.screen
+
+o.keyboard: $(KEYBOARD_C) c.keyboard
+	$(CC) $(CFLAGS1) c.keyboard
+
+# Build IOSTATE.C
+IOSTATE_C = h.common h.target h.basicdefs\
+	h.tokens h.stack h.strings\
+	h.errors h.miscprocs h.evaluate\
+	h.convert h.mos h.fileio\
+	h.screen h.lvalue h.statement\
+	h.iostate
+
+o.iostate: $(IOSTATE_C) c.iostate
+	$(CC) $(CFLAGS1) c.iostate
+
+# Build HEAP.C
+HEAP_C = h.common h.target h.basicdefs\
+	h.heap h.target h.errors\
+	h.miscprocs
+
+o.heap: $(HEAP_C) c.heap
+	$(CC) $(CFLAGS1) c.heap
+
+# Build FUNCTIONS.C
+FUNCTIONS_C = h.common h.target h.basicdefs\
+	h.tokens h.variables h.strings\
+	h.convert h.stack h.errors\
+	h.evaluate h.keyboard h.screen\
+	h.mos h.miscprocs h.fileio\
+	h.functions
+
+o.functions: $(FUNCTIONS_C) c.functions
+	$(CC) $(CFLAGS1) c.functions
+
+# Build FILEIO.C
+FILEIO_C = h.common h.target h.basicdefs\
+	h.errors h.fileio h.strings
+
+o.fileio: $(FILEIO_C) c.fileio
+	$(CC) $(CFLAGS1) c.fileio
+
+# Build EVALUATE.C
+EVALUATE_C = h.common h.target h.basicdefs\
+	h.tokens h.variables h.lvalue\
+	h.strings h.stack h.errors\
+	h.evaluate h.statement h.miscprocs\
+	h.functions
+
+o.evaluate: $(EVALUATE_C) c.evaluate
+	$(CC) $(CFLAGS1) c.evaluate
+
+# Build ERRORS.C
+ERRORS_C = h.common h.target h.basicdefs\
+	h.errors h.stack h.fileio h.keyboard\
+	h.tokens h.screen h.miscprocs
+
+o.errors: $(ERRORS_C) c.errors
+	$(CC) $(CFLAGS1) c.errors
+
+# Build MOS.C
+MOS_C = h.common h.target h.errors\
+	h.basicdefs h.target h.mos\
+	h.screen
+
+o.mos: $(MOS_C) c.mos
+	$(CC) $(CFLAGS1) c.mos
+
+# Build EDITOR.C
+EDITOR_C = h.common h.target h.basicdefs\
+	h.errors h.variables h.heap\
+	h.tokens h.strings h.miscprocs\
+	h.stack h.fileio
+
+o.editor: $(EDITOR_C) c.editor
+	$(CC) $(CFLAGS1) c.editor
+
+# Build CONVERT.C
+CONVERT_C = h.common h.target h.basicdefs\
+	h.convert h.errors h.miscprocs
+
+o.convert: $(CONVERT_C) c.convert
+	$(CC) $(CFLAGS1) c.convert
+
+# Build COMMANDS.C
+COMMANDS_C = h.common h.target h.basicdefs\
+	h.miscprocs h.tokens h.statement\
+	h.variables h.editor h.errors\
+	h.heap h.stack h.strings\
+	h.evaluate h.screen h.keyboard
+
+o.commands: $(COMMANDS_C) c.commands
+	$(CC) $(CFLAGS1) c.commands
+
+# Build ASSIGN.C
+ASSIGN_C = h.common h.target h.basicdefs\
+	h.target h.tokens h.heap\
+	h.stack h.strings h.variables\
+	h.errors h.miscprocs h.editor\
+	h.evaluate h.lvalue h.statement\
+	h.assign h.fileio h.mos
+
+o.assign: $(ASSIGN_C) c.assign
+	$(CC) $(CFLAGS1) c.assign
+
+# Build BRANDY.C
+BRANDY_C = h.common h.target h.basicdefs\
+	h.tokens h.errors h.heap\
+	h.editor h.commands h.statement\
+	h.fileio h.mos h.keyboard\
+	h.screen h.miscprocs
+
+o.brandy: $(BRANDY_C) c.brandy
+	$(CC) $(CFLAGS1) c.brandy
+
+# Build NET.C
+NET_C = h.target h.errors h.net
+
+o.net: $(NET_C) c.net
+	$(CC) $(CFLAGS1) c.net
+
+recompile:
+	$(CC) $(CFLAGS1) $(SRC)
+	$(LD) $(LDFLAGS1) $(OBJ) $(LIBS) -o brandy
+
+clean:
+	wi

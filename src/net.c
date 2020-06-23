@@ -83,6 +83,62 @@ int brandynet_connect(char *dest, char type) {
   error(ERR_NET_NOTSUPP);
   return(-1);
 #else
+
+#ifdef TARGET_RISCOS
+  char *host, *port;
+  int n,ptr, len, mysocket, portnum, ipaddr;
+  struct sockaddr_in netdest;
+  struct hostent *he;
+  struct in_addr *inaddr;
+
+  if(networking==0) {
+    error(ERR_NET_NOTSUPP);
+    return(-1);
+  }
+
+  for (n=0; n<MAXNETSOCKETS; n++) {
+    if (!netsockets[n]) break;
+  }
+  if (MAXNETSOCKETS == n) {
+    error(ERR_NET_MAXSOCKETS);
+    return(-1);
+  }
+
+  host=strdup(dest);
+  port=strchr(host,':');
+  port[0]='\0';
+  port++;
+  portnum=atoi(port);
+
+  mysocket = socket(AF_INET, SOCK_STREAM, 0);
+
+  memset(&netdest, 0, sizeof(netdest));            /* zero the struct */
+  netdest.sin_family = AF_INET;
+
+
+  /* This is a dirty hack because RISC OS can't build a hostent struct from an IP address in gethostbyname() */
+  ipaddr = inet_addr(host);
+  inaddr=&ipaddr;
+  if (ipaddr == INADDR_NONE) {
+    if ((he = gethostbyname(host)) == NULL) {
+      error(ERR_NET_NOTFOUND);
+      return(-1);
+    }
+    inaddr=(struct in_addr *)he->h_addr;
+  }
+  netdest.sin_addr = *inaddr;                /* set destination IP address */
+  netdest.sin_port = htons(portnum);            /* set destination port number */
+  free(host);                        /* Don't need this any more*/
+
+  if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
+    error(ERR_NET_CONNREFUSED);
+    return(-1);
+  }
+  fcntl(mysocket, F_SETFL, O_NONBLOCK);
+  netsockets[n] = mysocket;
+  return(n);
+
+#else /* not TARGET_RISCOS */
   char *host, *port;
   int n, mysocket, ret;
   struct addrinfo hints, *addrdata, *rp;
@@ -102,7 +158,6 @@ int brandynet_connect(char *dest, char type) {
     error(ERR_NET_MAXSOCKETS);
     return(-1);
   }
-
 
   memset(&hints, 0, sizeof(hints));
   if (type == '0') hints.ai_family=AF_UNSPEC;
@@ -149,6 +204,7 @@ int brandynet_connect(char *dest, char type) {
 #endif
   netsockets[n] = mysocket;
   return(n);
+#endif /* RISCOS */
 #endif /* NONET */
 }
 
