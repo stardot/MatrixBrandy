@@ -784,10 +784,19 @@ void set_wintitle(char *title) {
 }
 
 int32 get_character_at_pos(int32 cx, int32 cy) {
+  int32 x, y;
   _kernel_swi_regs regs;
+  x=emulate_pos();
+  y=emulate_vpos();
+  emulate_vdu(31);
+  emulate_vdu(cx);
+  emulate_vdu(cy);
   regs.r[0] = 135;
   regs.r[1] = 0;
-  regs.r[2] = 255;
+  regs.r[2] = 0;
   _kernel_swi(OS_Byte, &regs, &regs);
-  return (regs.r[1] & 0xFF00) >> 8;
+  emulate_vdu(31);
+  emulate_vdu(x);
+  emulate_vdu(y);
+  return (regs.r[1] & 0xFF);
 }
