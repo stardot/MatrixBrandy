@@ -127,7 +127,7 @@
 #define Y_PERCENT 25
 
 /* Debug hack */
-char *collapse;
+extern char *collapse;
 
 /* 'basicstring' defines the layout of a string descriptor */
 

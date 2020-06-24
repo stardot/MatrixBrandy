@@ -53,6 +53,10 @@ OS_Plot			Executes a PLOT function. Note that this bypasses the
 
 OS_ScreenMode		Only R0=0,1,7,8,9,10 are supported.
 
+OS_SWINumberFromString	Returns SWI number from name.
+			On RISC OS this call is intercepted so we can also
+			recognise Brandy-specific calls.
+
 OS_WriteI block		(SWIs 256-511). Call by number.
 			Matrix Brandy extension:
 			   If R1 and R2 are both set to 42, the character is

@@ -154,6 +154,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh);
 #define PI_ALT4   3
 #define PI_ALT5   2
 
+#define XBIT 0x20000		/* Mask for 'X' bit in SWI numbers */
 
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
@@ -238,8 +239,6 @@ int32 mos_usr(int32 address) {
 #define WRITE_PALETTE 12	/* OS_Word call number to set palette entry */
 #define CONTROL_MOUSE 21	/* OS_Word call number to control the mouse pointer */
 #define SELECT_MOUSE 106	/* OS_Byte call number to select a mouse pointer */
-
-#define XBIT 0x20000		/* Mask for 'X' bit in SWI numbers */
 
 /* Processor flag bits used in mos_sys() */
 
@@ -597,20 +596,44 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   }
 }
 
+/* This gets the virtual SWI num of Brandy-specific calls that are only valid within Matrix Brandy */
+static int32 mos_getswinum2(char *name, int32 length) {
+  int32 ptr;
+  int32 xflag=0;
+  char namebuffer[128];
+
+  if (name[0] == 'X') {
+    name++;
+    length--;
+    xflag=0x20000;
+  }
+  for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
+    if ((!strncmp(name, swilist[ptr].swiname, length)) && length==strlen(swilist[ptr].swiname)) break;
+  }
+  strncpy(namebuffer,name, length);
+  namebuffer[length]='\0';
+  if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN, namebuffer);
+  return ((swilist[ptr].swinum)+xflag);
+}
+
+
 /*
 ** 'mos_getswinum' returns the SWI number corresponding to
 ** SWI 'name'
 */
 int32 mos_getswinum(char *name, int32 length) {
+  int32 ilength = length;
+  char *iname = name;
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   char swiname[100];
+
   if (length==0) length = strlen(name);
   memmove(swiname, name, length);
   swiname[length] = NUL;		/* Ensure name is null-terminated */
   regs.r[1] = (int)(&swiname[0]);
   oserror = _kernel_swi(OS_SWINumberFromString, &regs, &regs);
-  if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror!=NIL) return mos_getswinum2(iname, ilength);
   return regs.r[0];
 }
 
@@ -628,12 +651,22 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int n;
-  for (n=0; n<10; n++) regs.r[n] = inregs[n];
-  oserror = _kernel_swi_c(swino, &regs, &regs, flags);
-  if (oserror!=NIL && (swino & XBIT)==0) error(ERR_CMDFAIL, oserror->errmess);
-  *flags = *flags!=0 ? CARRY_FLAG : 0;
-  if (oserror!=NIL) *flags+=OVERFLOW_FLAG;
-  for (n=0; n<10; n++) outregs[n] = regs.r[n];
+  if ((swino & ~XBIT) == 57) { /* OS_SWINumberFromString - call our local version */
+    outregs[1]=inregs[1];
+    for(n=0;*(basicvars.offbase+inregs[1]+n) >=32; n++) ;
+    *(char *)(inregs[1]+n)='\0';
+    outregs[0]=mos_getswinum((char *)inregs[1], strlen((char *)inregs[1]));
+  } else if (swino >= 0x140000) {
+    /* Brandy-specific virtual SYS calls */
+    mos_sys_ext(swino & ~XBIT, inregs, outregs, swino & XBIT, flags);
+  } else {
+    for (n=0; n<10; n++) regs.r[n] = inregs[n];
+    oserror = _kernel_swi_c(swino, &regs, &regs, flags);
+    if (oserror!=NIL && (swino & XBIT)==0) error(ERR_CMDFAIL, oserror->errmess);
+    *flags = *flags!=0 ? CARRY_FLAG : 0;
+    if (oserror!=NIL) *flags+=OVERFLOW_FLAG;
+    for (n=0; n<10; n++) outregs[n] = regs.r[n];
+  }
 }
 
 /*
@@ -2291,8 +2324,8 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
   int32 ptr, rtn;
   int32 xflag;
 
-  xflag = swino & 0x20000;	/* Is the X flag set? */
-  swino = swino & ~0x20000;		/* Strip off the X flag if set */
+  xflag = swino & XBIT;	/* Is the X flag set? */
+  swino = swino & ~XBIT;		/* Strip off the X flag if set */
   switch (swino) {
     case SWI_OS_CLI:
       outregs[0]=inregs[0];

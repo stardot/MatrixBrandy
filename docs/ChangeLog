@@ -1,6 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.7 -
+- Platforms: Native display builds for RISC OS are now working again,
+  for the first time since 1.21.17 (now my toolchain is working).
+
 * V1.22.6 - 19 June 2020
 - BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)
 - BASIC: Fixed TINT, both function and command as they were rather broken.

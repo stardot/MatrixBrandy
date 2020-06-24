@@ -2422,7 +2422,11 @@ void exec_swap(void) {
 */
 void exec_sys(void) {
   int32 n, parmcount, swino = 0;
+#ifdef TARGET_RISCOS
+  int32 flags, inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+#else
   int64 flags, inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+#endif
   stackitem parmtype;
   basicstring descriptor, tempdesc[MAXSYSPARMS];
   lvalue destination;

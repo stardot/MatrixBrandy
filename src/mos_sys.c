@@ -166,7 +166,11 @@ static uint32 rpi2gpio(uint32 newtype) {
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
 ** This implementation is local to Brandy.
 */
+#ifdef TARGET_RISCOS
+static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32 xflag) {
+#else
 static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32 xflag) {
+#endif
   if (!matrixflags.gpio) {
     if (!xflag) error(ERR_NO_RPI_GPIO);
     return;
@@ -207,7 +211,11 @@ static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32
 /* This is the handler for almost all SYS calls on non-RISC OS platforms.
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
+#ifdef TARGET_RISCOS
+void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
+#else
 void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
+#endif
   int32 a;
   FILE *file_handle;
 
@@ -217,6 +225,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     swino=SWI_OS_WriteC;
   }
   switch (swino) {
+#ifndef TARGET_RISCOS
     case SWI_OS_WriteC:
       outregs[0]=inregs[0];
       if ((inregs[1]==42) && (inregs[2]==42)) {
@@ -366,9 +375,14 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_ColourTrans_SetTextColour:
       outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
       break;
+#endif /* not TARGET_RISCOS */
     case SWI_Brandy_Version:
       strncpy(outstring,BRANDY_OS,64);
+#ifdef TARGET_RISCOS
+      outregs[4]=(size_t)outstring;
+#else
       outregs[4]=(int64)(size_t)outstring;
+#endif
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
       outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
@@ -380,7 +394,11 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #else
       outregs[5]=0;
 #endif
+#ifdef TARGET_RISCOS
+      outregs[6]=0x9ABCDEF0;
+#else
       outregs[6]=0x123456789ABCDEF0ll;
+#endif
 #if defined(__LP64__) || defined(__WIN64__)
       outregs[7]=1;
 #else
@@ -407,6 +425,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[4] = 0;
       outregs[5] = 0;
       outregs[6] = 0;
+#endif
+#ifdef TARGET_RISCOS
+      strncpy(outstring,"riscos",64);
 #endif
       outregs[1]=strlen(outstring);
       outregs[0]=(int64)(size_t)outstring;

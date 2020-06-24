@@ -63,6 +63,8 @@ matrixbits matrixflags;		/* This contains flags used by Matrix Brandy extensions
 
 /* Forward references */
 
+char *collapse; /* debug hack */
+
 static void init1(void);
 static void init2(void);
 static void gpio_init(void);
