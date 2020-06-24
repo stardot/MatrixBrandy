@@ -56,14 +56,15 @@ typedef struct {
   int nethandle;		/* network handle */
 } fileblock;
 
-#define MAXFILES 25		/* Maximum number of files that can be open simultaneously */
 #ifdef TARGET_RISCOS
-#define FIRSTHANDLE 16		/* Number of first handle */
+#define MAXFILES 4		/* Maximum number of files that can be open simultaneously - only tracks networking on RISC OS */
+#define FIRSTHANDLE 4		/* Number of first handle */
 #else
+#define MAXFILES 25		/* Maximum number of files that can be open simultaneously */
 #define FIRSTHANDLE 254		/* Number of first handle */
 #endif
 
-static fileblock fileinfo [MAXFILES];
+static fileblock fileinfo [MAXFILES+1];
 
 #ifdef TARGET_RISCOS
 
@@ -177,7 +178,7 @@ int32 fileio_openup(char *name, int32 namelen) {
 */
 static void close_file(int32 handle) {
 #ifndef NONET
-  if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype == NETWORK)) {
+  if ((handle != 0) && (handle <= FIRSTHANDLE) && (fileinfo[handle].filetype == NETWORK)) {
     brandynet_close(fileinfo[handle].nethandle);
     fileinfo[handle].stream = NIL;
     fileinfo[handle].filetype = CLOSED;
@@ -199,12 +200,13 @@ static void close_file(int32 handle) {
 void fileio_close(int32 handle) {
   int32 n;
   if (handle==0) {	/* Close all open files */
-    for (n=0; n<MAXFILES; n++) {
+    for (n=FIRSTHANDLE; n>0; n--) {
       if (fileinfo[n].filetype!=CLOSED) close_file(n);
     }
+    close_file(handle);
   }
   else {	/* close one file */
-    if (fileinfo[handle].filetype!=CLOSED) close_file(handle);
+    close_file(handle);
   }
 }
 

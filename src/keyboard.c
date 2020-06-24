@@ -237,7 +237,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int32 carry;
-  regs.r[0] = TOINT(&buffer[0]);
+  regs.r[0] = (int32)(&buffer[0]);
   regs.r[1] = length-1;         /* -1 to allow for a NULL to be added at the end in all cases */
   regs.r[2] = 0;                /* Allow any character to be input */
   regs.r[3] = 255;

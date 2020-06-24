@@ -847,7 +847,7 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
   if (length<1) return 0;			/* Filter out impossible or daft calls	*/
   chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
 
-  regs.r[0] = TOINT(&buffer[0]);
+  regs.r[0] = (int32)(&buffer[0]);
   regs.r[1] = length - 1;			/* Subtract one to allow for terminator	*/
   regs.r[2] = (chars >> 8) & 0xFF;		/* Lowest acceptable character		*/
   regs.r[3] = (chars >> 16) & 0xFF;		/* Highest acceptable character		*/
@@ -971,7 +971,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int32 carry;
-  regs.r[0] = TOINT(&buffer[0]);
+  regs.r[0] = (int32)(&buffer[0]);
   regs.r[1] = length-1;         /* -1 to allow for a NULL to be added at the end in all cases */
   regs.r[2] = 32;               /* Allow any character to be input */
   regs.r[3] = 255;
