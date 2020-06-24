@@ -1,6 +1,10 @@
 SYS calls in Matrix Brandy
 ==========================
 
+On RISC OS builds, all host SWIs are available. Additionally, the
+Brandy-specific calls which are implemented by Matrix Brandy are also
+recognised and are available for use.
+
 A number of SYS calls are supported in Matrix Brandy, some of which are
 emulations of the equivalent RISC OS SWIs.  Where a RISC OS SWI is emulated,
 the SWI number used is the same as that used by RISC OS, in order to allow

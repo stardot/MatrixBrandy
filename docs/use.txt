@@ -47,7 +47,7 @@ program and a list of the known bugs.
 Copyright
 ~~~~~~~~~
 Brandy is copyright (C) 2000-2014 David Daniels.
-Matrix Brandy modifications are copyright (C) 2018-2019 Michael McConnell and
+Matrix Brandy modifications are copyright (C) 2018-2020 Michael McConnell and
 contributors.
 
 The program is distributed under the terms of the GNU GPL.
@@ -68,8 +68,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 Disclaimer
 ~~~~~~~~~~
-The Brandy Basic interpreter is provided 'as is' and people using it do so
-entirely at their own risk. No liability whatsoever will be accepted for any
+The Matrix Brandy Basic interpreter is provided 'as is' and people using it do
+so entirely at their own risk. No liability whatsoever will be accepted for any
 loss or damage arising from the use of this software.
 
 
@@ -271,8 +271,8 @@ that library. This is an extension to BASIC V/VI. These are covered in more
 detail below.
 
 
-Differences Between Brandy and Acorn's Interpreter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Differences Between Matrix Brandy and Acorn's Interpreter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Matrix Brandy is compatible with the Acorn interpreter and should produce the
 same results as the Acorn one. However perfect compatibility cannot be achieved
 for a number of reasons, for example, the lack of graphic commands in some
@@ -287,22 +287,24 @@ interpreter's limit of 255. The list of differences are as follows:
     the 'CALL' statement nor the 'USR' function
     (except for a limited number of calls to BBC-style OS interfaces, notably
     OSBYTE). The built-in assembler has not been implemented.
-3)  Support of the 'SYS' statement is minimal.
-4)  The follow Basic commands have not been implemented: APPEND.
-5)  The 'OVERLAY' statement has not been implemented.
-6)  INKEY(-128) to INKEY(-255) are not implemented (and were only implemented
+3)  The 'APPEND' command has not been implemented.
+4)  The 'OVERLAY' statement has not been implemented.
+5)  INKEY(-128) to INKEY(-255) are not implemented (and were only implemented
     on the original 6502 MOS). While INKEY(-1) to INKEY(-127) aim to match
     the Acorn keynumbers as closely as possible, there are inevitably a small
     handful of differences due to physical keyboard hardware differences.
-7)  Not all of the VDU commands have been implemented.
-8)  Cursor editing is not available.
-9)  'WIDTH' has not been implemented. 'PRINT' leaves something to be desired
+6)  Not all of the VDU commands have been implemented.
+7)  'WIDTH' has not been implemented. 'PRINT' leaves something to be desired
     too.
-10) The TRACE option 'TRACE STEP' has not been implemented yet.
-11) Some 'LISTO' options have not been implemented yet.
-12) The 'END=' version of the END statement is not supported.
-13) Brandy behaves differently to the Acorn interpreter after an error when the
+8)  The TRACE option 'TRACE STEP' has not been implemented yet.
+9)  Some 'LISTO' options have not been implemented yet.
+10) The 'END=' version of the END statement is not supported.
+11) Brandy behaves differently to the Acorn interpreter after an error when the
     program contains ON ERROR or ON ERROR LOCAL statements to trap errors.
+
+The following differences only apply on non-RISC OS builds:
+12) Support of the 'SYS' statement is minimal.
+13) Cursor editing is not available. A line editor is available in its place.
 
 The major omissions in the versions of the interpreter are some graphics and
 sound.  The built-in assembler and support for machine code programs are
@@ -654,6 +656,19 @@ The advantage of the new forms of GCOL and COLOUR are that they are mode
 independent. They are more flexible than the old versions of the statements and
 do away with the need for TINT.
 
+In addition, other extensions from BB4W, BBCSDL, Basalt have been implemented:
+
+GET(x,y) and GET$(x,y)
+These return the character at a particular point on the screen.
+Implemented for SDL builds and RISC OS.
+
+Following on from += and -= operators, Matrix Brandy also supports:
+DIV=, AND=, OR=, EOR=
+
+A Matrix Brandy-specific extension:
+OPENUP can be used to open a TCP network connection as a client.
+See docs/networking.txt for full details on this extension.
+
 Command Line Parameters
 -----------------------
 The interpreter assumes that any unrecognised parameter on the command line is
@@ -859,6 +874,8 @@ closer to exception handling than what the Acorn interpreter has.
 
 EDIT
 ----
+This is not available on RISC OS.
+
 The EDIT command loads the Basic program into a text editor. The program is
 reloaded by the interpreter when leaving the editor. The editor used by default
 varies from operating system to operating system as follows:
@@ -951,7 +968,9 @@ is it running under:
 	&A9	RISC OS 4.32 to 4.37
 	&AA	RISC OS 5
 
-    Brandy adds the following:
+    When not running on RISC OS, Matrix Brandy returns &4D (ASC"M").
+
+    Older versions of Brandy (and Matrix Brandy older than 1.22.6) added the following:
 
 	&F5	Amiga
 	&F6	OpenBSD
@@ -963,11 +982,41 @@ is it running under:
 	&FC	Windows 32
 	&FE	NetBSD
 
+    Matrix Brandy can ascertain this via the SYS "Brandy_Platform" call,
+    with the above values in the R5 response.
+
     Other values might be added to this list for other operating systems.
-    Note that this tells you the *platform* the program is running on, not
-    the interpreter. For example, Brandy could be running on RISC OS so
-    INKEY-256 would return &A0-&AF; ARM BASIC could be running on a BBC
-    second processor, so INKEY-256 could return &FE.
+    Note that this tells you the *platform* the program is running on, not the
+    interpreter. For example, Brandy could be running on RISC OS so INKEY-256
+    would return &A0-&AF; ARM BASIC could be running on a BBC second processor,
+    so INKEY-256 could return &FE.
+
+    This is open to interpretation, thus Matrix Brandy, along with Richard
+    Russell's BBC BASIC for Windows and BBC BASIC for SDL 2.0, have chosen
+    to interpret this platform specifier to be a MOS version (or emulation)
+    identifier. Thus, all non-RISC OS builds of Matrix Brandy from version
+    1.22.6 return &4D (ASC"M"). RISC OS builds return the "native" value as
+    the real MOS is being used. For reference, BB4W returns &57 (ASC"W"),
+    BBSDL from assembly source returns &53 (ASC"S") and from C source returns
+    &73 (ASC"s").
+
+    To reliably identify Matrix Brandy with suitable capabilities for a program
+    that requires a graphical output, you can use the following:
+
+	graphics%=0
+	IF INKEY(-256)=&4D OR (INKEY(-256) AND &F0)=&A0 THEN
+	  CASE (INKEY(-256) AND &F0) OF
+	    WHEN &40: SYS "Brandy_Platform" TO ,,,graphics%
+	    WHEN &A0: SYS "XOS_SWINumberFromString",,"Brandy_Version" TO ver%: IF ver% = &140000 THEN graphics%=1
+	  ENDCASE
+	ENDIF
+	IF graphics% = 0 THEN ERROR 0,"This program requires Matrix Brandy BASIC with graphics capability".
+	REM We got here, so we're good to go.
+
+    Note that Matrix Brandy on RISC OS intercepts the OS_SWINumberFromString
+    call to be able to recognise its own internal Brandy_* calls, which use
+    SWI numbers which aren't officially legal on RISC OS to ensure they don't
+    trample on "real" SWI calls.
 
 3)  The hardware type and general environment type can be found by checking
     what is returned by OS_Byte 0. The USR function is not supported except in
@@ -993,7 +1042,7 @@ is it running under:
 	SYS "OS_Byte",0,1 TO ,version%
 
 Determining the *interpreter* that is running, as opposed to the platform the
-interpreter is running on, is more complicated and fiddly. (TBA)
+interpreter is running on, is often more complicated and fiddly. (TBA)
 
 
 I/O Redirection
@@ -1068,7 +1117,7 @@ the name of the interpreter and the file containing the Basic program is made
 executable, the interpreter will automatically be used to run the program, for
 example, conside the following program:
 
-	#!/usr/local/bin/brandy
+	#!/usr/local/bin/sbrandy
 	PROCprint
 	QUIT
 	:
@@ -1085,34 +1134,40 @@ then typing:
 
 	hello.bbc
 
-will invoke brandy and pass the name of the program (hello.bbc) to it. Brandy
+will invoke sbrandy and pass the name of the program (hello.bbc) to it. Brandy
 ignores the first line as it starts with '#!' but reads the rest of the program
 and runs it. Note the use of the QUIT command to exit from the interpreter once
 the Basic program has finished.
 
 One important point to note here is that the example assumes that there is a
-copy of Brandy in the directory /usr/local/bin.
+copy of the Brandy 'sbrandy' text-mode build in the directory /usr/local/bin.
 
 Using Brandy in this way is different to I/O redirection. Here, the interpreter
 is being invoked with a program. Using input redirection, Brandy is passed a
 string of commands that it executes at the command line.
 
+When used in this way, especially when processing files in a typical UNIX
+fashion, usually the 'sbrandy' simple text mode interpreter would be the best
+choice, especially if run from remote non-interactive SSH sessions or
+cron jobs.
+
 The SYS Statement
 ~~~~~~~~~~~~~~~~~
 The SYS statement is used to make calls to the operating system on machines
-that run RISC OS. It is envisaged that the same mechanism will be used under
-other operating systems. Currently a small handful of RISC OS SWI calls are
-emulated by Matrix Brandy.
+that run RISC OS. Currently a small handful of RISC OS SWI calls are emulated
+by Matrix Brandy. It is also used by Matrix Brandy to obtain information about
+the environment and provide tunable settings for the interpreter.
+See docs/sys-calls.txt for more details.
 
 
-The 'KEY' Command
-~~~~~~~~~~~~~~~~~
-A new feature in Brandy 1.16 is that it implements the RISC OS 'KEY' command to
-allow strings to be assigned to function keys. This is an operating system
+The '*KEY' Command
+~~~~~~~~~~~~~~~~~~
+A new feature in Brandy 1.16 is that it implements the RISC OS '*KEY' command
+to allow strings to be assigned to function keys. This is an operating system
 command under RISC OS that is implemented by the interpreter's MOS interface
 layer. The command is issued using OSCLI in the normal way. The format is:
 
-	KEY <key number> <string>
+	*KEY <key number> <string>
 
 where <key> is the function key number in the range 0 to 15 and <string> is the
 string assigned to that key. Pressing that function key will insert the string
@@ -1196,20 +1251,13 @@ as follows:
 1)	'PRINT' could be better implemented. 'WIDTH' is not handled correctly
 	and the way in which floating point numbers are output could be better.
 
-2)	Assigning too large a floating point number to an integer variable does
-	not produce an error. On X86, 'A%=123E45' sets A% to 0x80000000. It
-	does not say that the value is out of range. NetBSD does much the same
-	thing, setting the variable to either 0x7fffffff or 0x80000000
-	depending on the sign of the floating point number. Under RISC OS an
-	exception is raised (SIGFPE), which is what is wanted.
-
-3)	If an error occurs when renumbering the lines of a program when the
+2)	If an error occurs when renumbering the lines of a program when the
 	program is being loaded, the line number of the line in error is not
 	listed. The reason is that 'top' has not been updated at this point and
 	so searching for the line fails. (Effectively there is no program in
 	memory yet as far as the interpreter is concerned.)
 
-4)	Under Linux and NetBSD in the text mode builds, pressing Ctrl-C when a
+3)	Under Linux and NetBSD in the text mode builds, pressing Ctrl-C when a
 	program is waiting for input should abort the Basic program immediately
 	but at the moment another character has to be typed after pressing
 	Ctrl-C.
@@ -1288,9 +1336,11 @@ it. In my opinion Acorn's dialect, BASIC V and BASIC VI, is an excellent one
 and worth looking at. It has its faults and lacks any support for current
 practices such as object oriented programming. On the other hand the language
 is simple and the interpreter requires no special packages or additional
-libraries on the machine on which it runs. BASIC V/VI is easy to use and
-substantial programs can be written using it. It is good for small, one-off
-programs or for experimenting. It can also make programming enjoyable again.
+libraries on the machine on which it runs. (That said, for BBC / RISC OS style
+graphics on non-RISC OS systems, SDL 1.2 is required.) BASIC V/VI is easy to
+use and substantial programs can be written using it. It is good for small,
+one-off programs or for experimenting. It can also make programming enjoyable
+again.
 
 This program is a work in progress. It seems to be quite stable but plenty of
 bugs still lurk. They are many rough edges and a number of minor features have
@@ -1300,9 +1350,13 @@ improvement.
 Contact (Matrix Brandy fork)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If anybody has any suggestions or improvements for the program
-or finds any bugs, I can be email'ed at:
+or finds any bugs, I can be emailed at:
 
 	mike@matrixnetwork.co.uk
 
-Alternatively post a message on the Matrix Brandy thread on Stardot.
+Alternatively post a message on the Matrix Brandy thread on Stardot:
+	https://stardot.org.uk/forums/viewtopic.php?f=63&t=15396
+
+In addition, the Matrix Brandy GitHub page is at:
+	https://github.com/stardot/MatrixBrandy
 

@@ -15,6 +15,8 @@ BGET# returns the next byte in the buffer, or -1 if no data waiting.
 not send data when it doesn't need to.) If the remote host has closed the
 connection, it will return -2 once the receive buffer is exhausted.
 
+GET$# returns a line of text up to the next newline.
+
 BPUT# allows bytes or strings to be sent. 
 
 CLOSE# closes the network channel. This should be done even if the remote
