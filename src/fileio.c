@@ -216,20 +216,25 @@ int32 fileio_bget(int32 handle) {
   if (handle==0) error(ERR_BADHANDLE);
 
 #ifndef NONET
-  if (fileinfo[handle].filetype == NETWORK) {
+  if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype == NETWORK)) {
     ch=net_bget(fileinfo[handle].nethandle);
     if (ch == -2) {
       if (fileinfo[handle].eofstatus == PENDING) {
-	fileinfo[handle].eofstatus = ATEOF;
-	error(ERR_HITEOF);
+        fileinfo[handle].eofstatus = ATEOF;
+        error(ERR_HITEOF);
       } else {
-	fileinfo[handle].eofstatus = PENDING;
+        fileinfo[handle].eofstatus = PENDING;
       }
     }
   } else {
 #endif
-    ch = _kernel_osbget(handle);
-    if (ch==_kernel_ERROR) report();
+    _kernel_oserror *oserror;
+    _kernel_swi_regs regs;
+    regs.r[0] = 0;
+    regs.r[1] = handle;
+    oserror = _kernel_swi(OS_BGet, &regs, &regs);
+    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+    ch=regs.r[0];
     return ch;
 #ifndef NONET
   }
@@ -358,12 +363,16 @@ void fileio_bput(int32 handle, int32 value) {
   int32 result;
   if (handle==0) error(ERR_BADHANDLE);
 #ifndef NONET
-  if (fileinfo[handle].filetype==NETWORK) {
+  if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {
     if(net_bput(fileinfo[handle].nethandle, value)) error(ERR_CANTWRITE);
   } else {
 #endif
-    result = _kernel_osbput(value, handle);
-    if (result<0) error(ERR_CANTWRITE);
+    _kernel_oserror *oserror;
+    _kernel_swi_regs regs;
+    regs.r[0] = value;
+    regs.r[1] = handle;
+    oserror = _kernel_swi(OS_BPut, &regs, &regs);
+    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
 #ifndef NONET
   }
 #endif
@@ -375,7 +384,7 @@ void fileio_bput(int32 handle, int32 value) {
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   if (handle==0) error(ERR_BADHANDLE);
 #ifndef NONET
-  if (fileinfo[handle].filetype==NETWORK) {
+  if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {
     if(net_bputstr(fileinfo[handle].nethandle, string, length)) error(ERR_CANTWRITE);
   } else {
 #endif
@@ -653,7 +662,7 @@ int32 fileio_openup(char *name, int32 namelen) {
 */
 static void close_file(int32 handle) {
 #ifndef NONET
-  if (fileinfo[handle].filetype == NETWORK) {
+  if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype == NETWORK)) {
     brandynet_close(fileinfo[handle].nethandle);
     fileinfo[handle].stream = NIL;
     fileinfo[handle].filetype = CLOSED;
