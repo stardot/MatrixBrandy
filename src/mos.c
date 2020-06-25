@@ -1763,7 +1763,8 @@ static void cmd_show(char *command) {
 static void cmd_exec(char *command) {
   while (*command == ' ') command++;		// Skip spaces
   if (*command == 0) {
-    emulate_printf("Syntax: *EXEC <filename>\r\n");
+    if (matrixflags.doexec) fclose(matrixflags.doexec);
+    matrixflags.doexec = NULL;
   } else {
     if ((command[0] == '"') && (command[strlen(command)-1] == '"')) {
       command[strlen(command)-1] = '\0';
@@ -1777,7 +1778,7 @@ static void cmd_exec(char *command) {
 static void cmd_spool(char *command, int append) {
   while (*command == ' ') command++;		// Skip spaces
   if (*command == 0) {
-    fclose(matrixflags.dospool);
+    if (matrixflags.dospool) fclose(matrixflags.dospool);
     matrixflags.dospool=NULL;
   } else {
     if ((command[0] == '"') && (command[strlen(command)-1] == '"')) {

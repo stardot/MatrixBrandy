@@ -58,11 +58,9 @@ static boolean needsnumbers;	/* TRUE if a program need to be renumbered */
 #ifdef TARGET_MINGW
 #define _binary_app_start binary_app_start
 #define _binary_app_end binary_app_end
-#define _binary_app_size binary_app_size
 #endif
 extern const char _binary_app_start;
 extern const char _binary_app_end;
-extern const char _binary_app_size;
 static unsigned long int blockptr;
 #endif
 
@@ -657,7 +655,6 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 static void blockread(void *ptr, size_t size, size_t nmemb) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
 //  unsigned char *blobend = (unsigned char *)&_binary_app_end;
-//  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
   if (matrixflags.scrunge) do_scrunge(size*nmemb, ptr);
@@ -667,7 +664,6 @@ static void blockread(void *ptr, size_t size, size_t nmemb) {
 static char *blockgets(char *s, int size) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
   unsigned char *blobend = (unsigned char *)&_binary_app_end;
-//  unsigned long int blobsize = (intptr_t)&_binary_app_size;
 
   unsigned int p = 0;
   int l = 1;
