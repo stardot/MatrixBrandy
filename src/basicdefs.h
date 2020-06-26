@@ -262,14 +262,15 @@ typedef struct library {
 /* Following are the types describing items found on the Basic stack */
 typedef enum {
   STACK_UNKNOWN,
-  STACK_LVALUE,     STACK_INT,      STACK_INT64,      STACK_FLOAT,		/* 04 */
-  STACK_STRING,     STACK_STRTEMP,  STACK_INTARRAY,   STACK_IATEMP,		/* 08 */
-  STACK_INT64ARRAY, STACK_I64ATEMP, STACK_FLOATARRAY, STACK_FATEMP,		/* 0C */
-  STACK_STRARRAY,   STACK_SATEMP,   STACK_LOCARRAY,   STACK_LOCSTRING,		/* 10 */
-  STACK_GOSUB,      STACK_PROC,     STACK_FN,         STACK_LOCAL,		/* 14 */
-  STACK_RETPARM,    STACK_WHILE,    STACK_REPEAT,     STACK_INTFOR,		/* 18 */
-  STACK_INT64FOR,   STACK_FLOATFOR, STACK_ERROR,      STACK_DATA,		/* 1C */
-  STACK_OPSTACK,    STACK_RESTART,  STACK_HIGHEST				/* 1F */
+  STACK_LVALUE,     STACK_UINT8,       STACK_INT,        STACK_INT64,		/* 04 */
+  STACK_FLOAT,      STACK_STRING,      STACK_STRTEMP,    STACK_INTARRAY,	/* 08 */
+  STACK_IATEMP,     STACK_UINT8ARRAY,  STACK_INT64ARRAY, STACK_I64ATEMP,	/* 0C */
+  STACK_FLOATARRAY, STACK_FATEMP,      STACK_STRARRAY,   STACK_SATEMP,		/* 10 */
+  STACK_LOCARRAY,   STACK_LOCSTRING,   STACK_GOSUB,      STACK_PROC,		/* 14 */
+  STACK_FN,         STACK_LOCAL,       STACK_RETPARM,    STACK_WHILE,		/* 18 */
+  STACK_REPEAT,     STACK_INTFOR,      STACK_INT64FOR,   STACK_FLOATFOR,	/* 1C */
+  STACK_ERROR,      STACK_DATA,        STACK_OPSTACK,    STACK_RESTART,		/* 20 */
+  STACK_HIGHEST									/* 21 */
 } stackitem;
 
 typedef struct {		/* Operator stack */
@@ -281,6 +282,11 @@ typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
   stackitem itemtype;		/* Type of item */
   sigjmp_buf restart;		/* Environment block */
 } stack_restart;
+
+typedef struct {		/* 32-bit integer value */
+  stackitem itemtype;		/* Type of item pushed on to stack */
+  unsigned char intvalue;	/* Value of integer */
+} stack_uint8;
 
 typedef struct {		/* 32-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
@@ -339,6 +345,7 @@ typedef struct {		/* Saved local variable */
   stackitem itemtype;
   lvalue savedetails;		/* Details of item saved */
   union {
+    unsigned char savedchar;	/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -352,6 +359,7 @@ typedef struct {		/* Saved RETURN-type local variable */
   lvalue savedetails;		/* Details of item saved */
   lvalue retdetails;		/* Details of where to save returned value */
   union {
+    unsigned char savedchar;	/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -393,6 +401,7 @@ typedef struct {		/* 'LOCAL ERROR' control block */
 } stack_error;
 
 typedef union {		/* This type represents everything that goes on the stack */
+  stack_uint8 *uint8sp;
   stack_int *intsp;
   stack_int64 *int64sp;
   stack_float *floatsp;
