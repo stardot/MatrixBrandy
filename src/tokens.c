@@ -742,6 +742,10 @@ static void copy_variable(void) {
       lp++;
     }
   }
+  if (*lp == '&') {	/* Unsigned 8-bit int variable */
+    store(*lp);
+    lp++;
+  }
   if (*lp == '$') {	/* String variable */
     store(*lp);
     lp++;
@@ -1137,7 +1141,7 @@ static void do_dynamvar(void) {
   store(BASIC_TOKEN_XVAR);
   store_longoffset(next-1-source);      /* Store offset back to name from here */
   while (isident(tokenbase[source])) source++;  /* Skip name */
-  if (tokenbase[source] == '%' || tokenbase[source] == '$') source++;   /* Skip integer or string variable marker */
+  if (tokenbase[source] == '&' || tokenbase[source] == '%' || tokenbase[source] == '$') source++;   /* Skip integer or string variable marker */
   if (tokenbase[source] == '%') source++;   /* Skip 64-bit integer second variable marker */
   if (tokenbase[source] == '(' || tokenbase[source] == '[') source++;   /* Skip '(' (is part of name if an array) */
   firstitem = FALSE;
@@ -1506,7 +1510,7 @@ byte *skip_name(byte *p) {
   do
     p++;
   while (ISIDCHAR(*p));
-  if (*p == '%' || *p == '$') p++;      /* If integer or string, skip the suffix character */
+  if (*p == '&' || *p == '%' || *p == '$') p++;      /* If integer or string, skip the suffix character */
   if (*p == '%') p++;      /* If 64-bit integer skip the second suffix character */
   if (*p == '(' || *p == '[') p++;      /* If an array, the first '(' or '[' is part of the name so skip it */
 #ifdef DEBUG

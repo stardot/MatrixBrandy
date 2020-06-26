@@ -84,6 +84,7 @@
 #define VAR_STRINGDOL 4				/* String ('string$' type) */
 #define VAR_DOLSTRING 5				/* String ('$string' type) */
 #define VAR_INTLONG 6				/* 64-bit integer */
+#define VAR_U8INT 7				/* Unsigned 8-bit integer */
 #define VAR_ARRAY 0x08				/* Array */
 #define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)	/* Integer array */
 #define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)	/* Integer array */
