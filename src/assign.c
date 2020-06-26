@@ -81,6 +81,26 @@ static void assign_intword(pointers address) {
 }
 
 /*
+** 'assign_intbyte' deals with assignments to unsigned 8-bit integer variables
+*/
+static void assign_intbyte(pointers address) {
+  stackitem exprtype;
+  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr = pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr = pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr = INT64TO32(pop_int64());
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr = TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+}
+
+/*
 ** 'assign_int64' deals with assignments to 64-bit integer variables
 */
 static void assign_int64(pointers address) {
@@ -2093,7 +2113,7 @@ static void assidiv_floatarray(pointers address) {
 
 static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intword, assign_float,
-  assign_stringdol, assignment_invalid, assign_int64, assignment_invalid,
+  assign_stringdol, assignment_invalid, assign_int64, assign_intbyte,
   assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
   assign_strarray, assignment_invalid, assign_int64array, assignment_invalid,
   assignment_invalid, assign_intbyteptr, assign_intwordptr, assign_floatptr,
@@ -2427,6 +2447,63 @@ void assign_intvar(void) {
   exprtype = GET_TOPITEM;
   if (exprtype==STACK_INT)
     value = pop_int();
+  else if (exprtype==STACK_INT64) {
+    value64 = pop_int64();
+    if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) error(ERR_RANGE);
+    value = (int32)value64;
+  } else if (exprtype==STACK_FLOAT)
+    value = TOINT(pop_float());
+  else {
+    error(ERR_TYPENUM);
+  }
+  if (assignop=='=')
+    *ip = value;
+  else if (assignop==BASIC_TOKEN_PLUSAB)
+    *ip+=value;
+  else if (assignop==BASIC_TOKEN_AND)
+    *ip &= value;
+  else if (assignop==BASIC_TOKEN_OR)
+    *ip |= value;
+  else if (assignop==BASIC_TOKEN_EOR)
+    *ip ^= value;
+  else if (assignop==BASIC_TOKEN_MOD)
+    *ip %= value;
+  else if (assignop==BASIC_TOKEN_DIV)
+    *ip /= value;
+  else {
+    *ip-=value;
+  }
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Integer assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
+#endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_intvar\n");
+#endif
+}
+
+void assign_uint8var(void) {
+  byte assignop;
+  int32 value = 0;
+  int64 value64 = 0;
+  unsigned char *ip;
+  stackitem exprtype;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_uint8var\n");
+#endif
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Unsigned 8-bit integer assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
+#endif
+  ip = GET_ADDRESS(basicvars.current, unsigned char *);
+  basicvars.current+=1+LOFFSIZE;	/* Skip the pointer to the variable */
+  assignop = *basicvars.current;
+  basicvars.current++;
+  if (assignop==BASIC_TOKEN_AND || assignop==BASIC_TOKEN_OR || assignop==BASIC_TOKEN_EOR || assignop==BASIC_TOKEN_MOD || assignop==BASIC_TOKEN_DIV) basicvars.current++;
+  expression();
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    value = pop_int();
+  else if (exprtype==STACK_UINT8)
+    value = pop_uint8();
   else if (exprtype==STACK_INT64) {
     value64 = pop_int64();
     if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) error(ERR_RANGE);

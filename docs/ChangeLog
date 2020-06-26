@@ -4,6 +4,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.7 -
 - Platforms: Native display builds for RISC OS are now working again,
   for the first time since 1.21.17 (now my toolchain is working).
+- Platforms: SYS calls on RISC OS can call the Brandy_* calls from within
+  the interpreter. OS_SWINumerFromString is intercepted to also recognise
+  the Brandy_* calls.
+- BASIC: Recognition of BB4W/BBCSDL's <varname>& unsigned 8-bit data type.
 
 * V1.22.6 - 19 June 2020
 - BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)

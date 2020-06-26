@@ -312,11 +312,11 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
 ** of the functions that handle the various Basic statement types
 */
 static void (*statements[256])(void) = {
-  next_line, exec_assignment, assign_staticvar,	assign_intvar,		/* 00.03 */
-  assign_int64var, assign_floatvar, assign_stringvar, exec_assignment,	/* 04..07 */
+  next_line, exec_assignment, assign_staticvar, assign_uint8var,	/* 00.03 */
+  assign_intvar, assign_int64var, assign_floatvar, assign_stringvar,	/* 04..07 */
   exec_assignment, exec_assignment, exec_assignment, exec_assignment,	/* 08..0B */
-  exec_assignment, exec_assignment, exec_xproc, exec_proc,		/* 0C..0F */
-  bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 10..13 */
+  exec_assignment, exec_assignment, exec_assignment, exec_xproc,	/* 0C..0F */
+  exec_proc, bad_syntax, bad_syntax, bad_syntax,			/* 10..13 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 14..17 */
   bad_syntax, bad_syntax, bad_token, bad_token,				/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,				/* 1C..1F */

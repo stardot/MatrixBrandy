@@ -229,7 +229,22 @@ void push_int(int32 x) {
 }
 
 /*
-** 'push_int64' pushes an integer value on to the Basic stack
+** 'push_uint8' pushes an unsigned 8-bit integer value on to the Basic stack
+*/
+void push_uint8(unsigned char x) {
+#ifdef DEBUG
+  byte *oldsp = basicvars.stacktop.bytesp;
+#endif
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_uint8);
+  basicvars.stacktop.uint8sp->itemtype = STACK_UINT8;
+  basicvars.stacktop.uint8sp->uint8value = x;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Push unsigned 8-bit integer value on to stack at %p (moved from %p), value %d\n", basicvars.stacktop.uint8sp, oldsp, x);
+#endif
+}
+
+/*
+** 'push_int64' pushes a 64-bit integer value on to the Basic stack
 */
 void push_int64(int64 x) {
 #ifdef DEBUG
@@ -927,6 +942,20 @@ int32 pop_int(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int: new SP at %p\n", basicvars.stacktop.bytesp);
 #endif
   return p->intvalue;
+}
+
+unsigned char pop_uint8(void) {
+  stack_uint8 *p = basicvars.stacktop.uint8sp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop uint8 integer from stack at %p, value %d\n",
+   p, p->uint8value);
+#endif
+  if (GET_TOPITEM != STACK_UINT8) error(ERR_BROKEN, __LINE__, "stack");
+  basicvars.stacktop.bytesp+=ALIGNSIZE(stack_uint8);
+#ifdef DEBUG
+  if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_uint8: new SP at %p\n", basicvars.stacktop.bytesp);
+#endif
+  return p->uint8value;
 }
 
 /*

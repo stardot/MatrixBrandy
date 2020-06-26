@@ -53,7 +53,7 @@ typedef enum {
     ERR_BADDIM,         /* Not enough room to create an array */
     ERR_BADBYTEDIM,     /* Not enough room to create a byte array */
     ERR_NEGDIM,         /* Array dimension is negative */
-    ERR_NEGBYTEDIM,         /* Array dimension is negative */
+    ERR_NEGBYTEDIM,     /* Array dimension is negative */
     ERR_DIMCOUNT,       /* Array has too many dimensions */
     ERR_DUPLDIM,        /* Array already defined */
     ERR_BADINDEX,       /* Array index is out of range */
@@ -105,6 +105,7 @@ typedef enum {
     ERR_TYPEARRAY,      /* Type mismatch: arrays must be the same size */
     ERR_MATARRAY,       /* Type mismatch: cannot perform matrix multiplication on these arrays */
     ERR_NOSWAP,         /* Type mismatch: cannot swap variables of different types */
+    ERR_UNSUITABLEVAR,  /* Type mismatch: unsuitable variable type for operation */
     ERR_BADARITH,       /* Cannot perform arithmetic operations on these types of operand */
     ERR_BADEXPR,        /* Syntax error in expression */
     ERR_RETURN,         /* RETURN encountered outside a subroutine */

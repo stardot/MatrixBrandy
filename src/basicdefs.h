@@ -143,6 +143,7 @@ typedef struct {
   int32 dimcount;			/* Number of array dimensions */
   int32 arrsize;			/* Total number of elements in array */
   union {
+    unsigned char *uint8base;		/* Pointer to start of uint8 elements */
     int32 *intbase;			/* Pointer to start of integer elements */
     int64 *int64base;			/* Pointer to start of 64-bit integer elements */
     float64 *floatbase;			/* Pointer to start of floating point elements */
@@ -154,6 +155,7 @@ typedef struct {
 
 typedef union {
   char *charaddr;			/* Pointer to a character */
+  unsigned char *uint8addr;		/* Pointer to an unsigned 8-bit integer */
   int32 *intaddr;			/* Pointer to Basic integer value */
   int64 *int64addr;			/* Pointer to 64-bit integer value */
   float64 *floataddr;			/* Pointer to Basic floating point value */
@@ -205,6 +207,7 @@ typedef struct variable {
   int32 varhash;			/* Hash value for symbol's name */
   struct library *varowner;		/* Library in which var was defined or NIL */
   union {
+    unsigned char varu8int;		/* Value if an unsigned 8-bit integer */
     int32 varinteger;			/* Value if a 32-bit integer */
     int64 var64int;			/* Value if a 64-bit integer */
     float64 varfloat;			/* Value if floating point */
@@ -286,7 +289,7 @@ typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
 
 typedef struct {		/* 32-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
-  unsigned char intvalue;	/* Value of integer */
+  unsigned char uint8value;	/* Value of integer */
 } stack_uint8;
 
 typedef struct {		/* 32-bit integer value */

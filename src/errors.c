@@ -481,6 +481,7 @@ static detail errortable [] = {
 /* ERR_TYPEARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: arrays must have the same dimensions"},
 /* ERR_MATARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: cannot perform matrix multiplication on these arrays"},
 /* ERR_NOSWAP */	{NONFATAL, NOPARM,   6, "Type mismatch: cannot swap variables or arrays of different types"},
+/* ERR_UNSUITABLEVAR */ {NONFATAL, NOPARM,   6, "Type mismatch: unsuitable variable type for operation"},
 /* ERR_BADARITH */	{NONFATAL, NOPARM,   6, "Arithmetic operations cannot be performed on these operands"},
 /* ERR_BADEXPR */	{NONFATAL, NOPARM,  16, "Syntax error in expression"},
 /* ERR_RETURN */	{NONFATAL, NOPARM,  38, "RETURN encountered outside a subroutine"},

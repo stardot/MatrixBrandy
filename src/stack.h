@@ -35,6 +35,7 @@ extern void free_stackmem(void);
 extern void push_lvalue(int32, pointers);
 extern void push_int(int32);
 extern void push_int64(int64);
+extern void push_uint8(unsigned char);
 extern void push_float(float64);
 extern void push_string(basicstring);
 extern void push_strtemp(int32, char *);
@@ -58,6 +59,7 @@ extern byte *get_stacktop(void);
 extern byte *get_safestack(void);
 extern boolean safestack(void);
 extern lvalue pop_lvalue(void);
+extern unsigned char pop_uint8(void);
 extern int32 pop_int(void);
 extern int64 pop_int64(void);
 extern float64 pop_float(void);
@@ -76,6 +78,7 @@ extern void pop_for(void);
 extern byte *pop_data(void);
 extern errorblock pop_error(void);
 extern void save_int(lvalue, int32);
+extern void save_uint8(lvalue, unsigned char);
 extern void save_int64(lvalue, int64);
 extern void save_float(lvalue, float64);
 extern void save_string(lvalue, basicstring);
@@ -104,6 +107,9 @@ extern void *alloc_local(int32);
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
 		basicvars.stacktop.intsp->itemtype = STACK_INT; \
 		basicvars.stacktop.intsp->intvalue = (x);
+#define PUSH_UINT8(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_uint8)); \
+		basicvars.stacktop.uint8sp->itemtype = STACK_UINT8; \
+		basicvars.stacktop.uint8sp->uint8value = (x);
 #define PUSH_INT64(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int64)); \
 		basicvars.stacktop.int64sp->itemtype = STACK_INT64; \
 		basicvars.stacktop.int64sp->int64value = (x);
@@ -169,10 +175,12 @@ extern void *alloc_local(int32);
 #ifdef DEBUG
 #undef PUSH_INT
 #undef PUSH_INT64
+#undef PUSH_UINT8
 #undef PUSH_FLOAT
 #undef PUSH_STRING
 #define PUSH_INT(x) push_int(x)
 #define PUSH_INT64(x) push_int64(x)
+#define PUSH_UINT8(x) push_uint8(x)
 #define PUSH_FLOAT(x) push_float(x)
 #define PUSH_STRING(x) push_string(x)
 #endif

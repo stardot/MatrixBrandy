@@ -353,6 +353,7 @@ static void define_byte_array(variable *vp) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:define_byte_array\n");
 #endif
+  if (vp->varflags == VAR_U8INT) error(ERR_UNSUITABLEVAR);
   if (vp->varflags  !=  VAR_INTWORD && vp->varflags  !=  VAR_INTLONG && vp->varflags  !=  VAR_FLOAT) error(ERR_VARNUM);
   isindref = *basicvars.current == '!';
   if (isindref) {

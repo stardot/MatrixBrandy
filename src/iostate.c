@@ -1469,6 +1469,30 @@ static void print_screen(void) {
       emulate_vdustr(basicvars.stringwork, size);
       basicvars.printcount+=size;
       break;
+    case STACK_UINT8:
+      if (rightjust) {
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, (int64)pop_uint8());
+          else
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_uint8());
+        } else {
+          size = sprintf(basicvars.stringwork, "%*d", fieldwidth, pop_uint8());
+        }
+      }
+      else {	/* Left justify the value */
+        if (hex) {
+          if (matrixflags.hex64)
+            size = sprintf(basicvars.stringwork, "%llX", (int64)pop_uint8());
+          else
+            size = sprintf(basicvars.stringwork, "%X", pop_uint8());
+        } else {
+          size = sprintf(basicvars.stringwork, "%d", pop_uint8());
+        }
+      }
+      emulate_vdustr(basicvars.stringwork, size);
+      basicvars.printcount+=size;
+      break;
     case STACK_INT64:
       if (rightjust) {
         if (hex) {

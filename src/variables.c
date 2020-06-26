@@ -114,6 +114,13 @@ static void list_varlist(char which, library *lp) {
             len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varinteger);
           }
           break;
+        case VAR_U8INT:
+          if (basicvars.debug_flags.variables)
+            len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varu8int);
+          else {
+            len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varu8int);
+          }
+          break;
         case VAR_INTLONG:
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %lld", vp, vp->varname, vp->varentry.var64int);
@@ -195,7 +202,7 @@ static void list_varlist(char which, library *lp) {
             do {
               if ((fp->parameter.typeinfo & VAR_RETURN)!=0) strcat(temp, "RETURN ");
               switch(fp->parameter.typeinfo & PARMTYPEMASK) {
-              case VAR_INTWORD: case VAR_INTBYTEPTR: case VAR_INTWORDPTR:
+              case VAR_INTWORD: case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_U8INT:
                 strcat(temp, "integer");
                 break;
               case VAR_FLOAT: case VAR_FLOATPTR:
@@ -506,7 +513,7 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
     }
     break;
   case '&':
-    vp->varflags = VAR_INTWORD; /* PLACEHOLDER */
+    vp->varflags = VAR_U8INT;
     vp->varentry.varinteger = 0;
     break;
   case '$':

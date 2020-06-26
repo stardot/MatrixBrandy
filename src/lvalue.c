@@ -141,6 +141,10 @@ static void fix_address(lvalue *destination) {
       *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
     break;
+    case VAR_U8INT:		/* Simple reference to integer variable */
+      *basicvars.current = BASIC_TOKEN_UINT8VAR;
+      set_address(basicvars.current, &vp->varentry.varu8int);
+    break;
     case VAR_INTLONG:		/* Simple reference to integer variable */
       *basicvars.current = BASIC_TOKEN_INT64VAR;
       set_address(basicvars.current, &vp->varentry.var64int);
@@ -187,6 +191,16 @@ static void do_staticvar(lvalue *destination) {
 static void do_intvar(lvalue *destination) {
   destination->typeinfo = VAR_INTWORD;
   destination->address.intaddr = GET_ADDRESS(basicvars.current, int32 *);
+  basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
+}
+
+/*
+** 'do_uint8var' fills in the lvalue structure for a simple reference to
+** a 64-bit integer variable
+*/
+static void do_uint8var(lvalue *destination) {
+  destination->typeinfo = VAR_U8INT;
+  destination->address.uint8addr = GET_ADDRESS(basicvars.current, unsigned char *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }
 
@@ -479,10 +493,10 @@ static void do_unaryind(lvalue *destination) {
 ** is indexed by the token type that gives the type of the variable
 */
 static void (*lvalue_table[256])(lvalue *) = {
-  bad_syntax, fix_address, do_staticvar, do_intvar,		/* 00..03 */
-  do_int64var, do_floatvar, do_stringvar, do_arrayvar,		/* 04..07 */
-  do_elementvar, do_elementvar, do_intindvar, do_int64indvar,	/* 08..0B */
-   do_floatindvar,do_statindvar, bad_token, bad_token,		/* 0C..0F */
+  bad_syntax, fix_address, do_staticvar, do_uint8var,		/* 00..03 */
+  do_intvar, do_int64var, do_floatvar, do_stringvar,		/* 04..07 */
+  do_arrayvar, do_elementvar, do_elementvar, do_intindvar,	/* 08..0B */
+  do_int64indvar, do_floatindvar,do_statindvar, bad_token,	/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
   bad_token, bad_token, bad_token, bad_token,			/* 18..1B */

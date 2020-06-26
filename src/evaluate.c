@@ -769,6 +769,17 @@ static void do_intvar(void) {
 ** 'do_int64var' deals with simple references to a known 64-bit
 ** integer variable.
 */
+static void do_uint8var(void) {
+  unsigned char *ip;
+  ip = GET_ADDRESS(basicvars.current, unsigned char *);
+  basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
+  PUSH_UINT8(*ip);
+}
+
+/*
+** 'do_int64var' deals with simple references to a known 64-bit
+** integer variable.
+*/
 static void do_int64var(void) {
   int64 *ip;
   ip = GET_ADDRESS(basicvars.current, int64 *);
@@ -1023,6 +1034,11 @@ static void do_xvar(void) {
       *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       do_intvar();
+    }
+    else if (vartype == VAR_U8INT) {
+      *basicvars.current = BASIC_TOKEN_UINT8VAR;
+      set_address(basicvars.current, &vp->varentry.varu8int);
+      do_uint8var();
     }
     else if (vartype == VAR_INTLONG) {
       *basicvars.current = BASIC_TOKEN_INT64VAR;
@@ -4680,13 +4696,13 @@ static void eval_fveor(void) {
 ** as the keywords can be used as both statement types and functions
 */
 void (*factor_table[256])(void) = {
-  bad_syntax, do_xvar, do_staticvar, do_intvar,			/* 00..03 */
-  do_int64var, do_floatvar, do_stringvar, do_arrayvar,		/* 04..07 */
-  do_arrayref, do_arrayref, do_indrefvar, do_indrefvar,		/* 08..0B */
-  do_indrefvar, do_statindvar, do_xfunction, do_function,	/* 0C..0F */
-  do_intzero, do_intone, do_smallconst, do_intconst,		/* 10..13 */
-  do_floatzero, do_floatone, do_floatconst, do_stringcon,	/* 14..17 */
-  do_qstringcon, do_int64const, bad_token, bad_token,		/* 18..1B */
+  bad_syntax, do_xvar, do_staticvar, do_uint8var,		/* 00..03 */
+  do_intvar, do_int64var, do_floatvar, do_stringvar,		/* 04..07 */
+  do_arrayvar, do_arrayref, do_arrayref, do_indrefvar,		/* 08..0B */
+  do_indrefvar, do_indrefvar, do_statindvar, do_xfunction,	/* 0C..0F */
+  do_function, do_intzero, do_intone, do_smallconst,		/* 10..13 */
+  do_intconst, do_floatzero, do_floatone, do_floatconst,	/* 14..17 */
+  do_stringcon, do_qstringcon, do_int64const, bad_token,	/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, do_getword, bad_syntax, bad_syntax,		/* 20..23 */
   do_getstring, bad_syntax, bad_syntax, bad_syntax,		/* 24..27 */
