@@ -505,6 +505,10 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
       vp->varentry.varinteger = 0;
     }
     break;
+  case '&':
+    vp->varflags = VAR_INTWORD; /* PLACEHOLDER */
+    vp->varentry.varinteger = 0;
+    break;
   case '$':
     vp->varflags = VAR_STRINGDOL;
     vp->varentry.varstring.stringlen = 0;
