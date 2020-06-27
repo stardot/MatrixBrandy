@@ -270,10 +270,10 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
  {ERR_BROKEN,  ERR_BROKEN,  ERR_NONE,    ERR_NONE,
   ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
-/* Undefined variable type (7) */
- {ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
-  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
-  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN},
+/* Unsigned 8-bit integer (7) */
+ {ERR_BROKEN,  ERR_BROKEN,  ERR_NONE,    ERR_NONE,
+  ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
+  ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
 /* Undefined array type (8) */
  {ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
   ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
@@ -1399,7 +1399,7 @@ static void want_number(void) {
 static void want_string(void) {
   stackitem baditem;
   baditem = GET_TOPITEM;
-  if (baditem == STACK_INT || baditem == STACK_INT64 || baditem == STACK_FLOAT)		/* String operand required */
+  if (baditem == STACK_INT || baditem == STACK_UINT8 || baditem == STACK_INT64 || baditem == STACK_FLOAT)		/* String operand required */
     error(ERR_TYPESTR);
   else if (baditem > STACK_UNKNOWN && baditem <= STACK_SATEMP)	/* Operator is not defined for this operand type */
     error(ERR_BADARITH);
@@ -1442,6 +1442,10 @@ static void *make_array(int32 arraytype, basicarray* original) {
   case VAR_INTWORD:
     base = alloc_stackmem(original->arrsize*sizeof(int32));
     result.arraystart.intbase = base;
+    break;
+  case VAR_U8INT:
+    base = alloc_stackmem(original->arrsize*sizeof(unsigned char));
+    result.arraystart.uint8base = base;
     break;
   case VAR_INTLONG:
     base = alloc_stackmem(original->arrsize*sizeof(int64));
@@ -1488,6 +1492,15 @@ static void eval_ivplus(void) {
       else
         push_int64(lhint64);
     }
+  } else if (lhitem == STACK_UINT8) {
+    int64 lhint64;
+    int32 lhint32=pop_uint8();
+    lhint64 = (int64)lhint32 + (int64)rhint32;
+    lhint32 += rhint32;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
   } else if (lhitem == STACK_INT64) {
     int32 lhint32;
     int64 lhint64=pop_int64();
@@ -1549,6 +1562,15 @@ static void eval_iv64plus(void) {
       push_int(lhint32);
     else
       push_int64(lhint64);
+  } else if (lhitem == STACK_UINT8) {
+    int64 lhint64;
+    int32 lhint32=pop_uint8();
+    lhint64 = (int64)lhint32 + rhint64;
+    lhint32 += (int32)rhint64;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
   } else if (lhitem == STACK_INT64) {
     int32 lhint32;
     int64 lhint64=pop_int64();
@@ -1603,6 +1625,9 @@ static void eval_fvplus(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
     floatvalue+=TOFLOAT(pop_int());	/* This has to be split otherwise the macro */
+    PUSH_FLOAT(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
+  } else if (lhitem == STACK_UINT8) {	/* Branch according to type of left-hand operand */
+    floatvalue+=TOFLOAT(pop_uint8());	/* This has to be split otherwise the macro */
     PUSH_FLOAT(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
   } else if (lhitem == STACK_INT64) {	
     floatvalue+=TOFLOAT(pop_int64());	
@@ -1706,6 +1731,10 @@ static void eval_iaplus(void) {
     int32 lhint32 = pop_int();
     int32 *base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
+  } else if (lhitem == STACK_UINT8) {
+    int32 lhint32 = pop_uint8();
+    int32 *base = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
   } else if (lhitem == STACK_INT64) {
     int64 lhint64 = pop_int64();
     int64 *base = make_array(VAR_INTLONG, rharray);
@@ -1762,6 +1791,10 @@ static void eval_i64aplus(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {
     int32 lhint32 = pop_int();
+    int64 *base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
+  } else if (lhitem == STACK_UINT8) {
+    int32 lhint32 = pop_uint8();
     int64 *base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
   } else if (lhitem == STACK_INT64) {
@@ -1824,6 +1857,10 @@ static void eval_faplus(void) {
     for (n = 0; n < count; n++) base[n] = floatvalue+rhsrce[n];
   } else if (lhitem == STACK_INT64) {	/* <int64>+<float array> */
     floatvalue = TOFLOAT(pop_int64());
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) base[n] = floatvalue+rhsrce[n];
+  } else if (lhitem == STACK_UINT8) {	/* <int64>+<float array> */
+    floatvalue = TOFLOAT(pop_uint8());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue+rhsrce[n];
   } else if (lhitem == STACK_INTARRAY) {	/* <int array>+<float array> */
