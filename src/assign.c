@@ -66,17 +66,13 @@ static void assignment_invalid(pointers address) {
 ** 'assign_intword' deals with assignments to normal integer variables
 */
 static void assign_intword(pointers address) {
-  stackitem exprtype;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr = pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr = INT64TO32(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr = TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr = pop_int(); break;
+    case STACK_UINT8: *address.intaddr = pop_uint8(); break;
+    case STACK_INT64: *address.intaddr = INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *address.intaddr = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -84,19 +80,13 @@ static void assign_intword(pointers address) {
 ** 'assign_intbyte' deals with assignments to unsigned 8-bit integer variables
 */
 static void assign_intbyte(pointers address) {
-  stackitem exprtype;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr = pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr = pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr = INT64TO32(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr = TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr = pop_int(); break;
+    case STACK_UINT8: *address.uint8addr = pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr = INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *address.uint8addr = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -104,17 +94,13 @@ static void assign_intbyte(pointers address) {
 ** 'assign_int64' deals with assignments to 64-bit integer variables
 */
 static void assign_int64(pointers address) {
-  stackitem exprtype;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT64)
-    *address.int64addr = pop_int64();
-  else if (exprtype==STACK_INT)
-    *address.int64addr = (int64)pop_int();
-  else if (exprtype==STACK_FLOAT)
-    *address.int64addr = TOINT64(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr = (int64)pop_int(); break;
+    case STACK_UINT8: *address.int64addr = (int64)pop_uint8(); break;
+    case STACK_INT64: *address.int64addr = pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -122,17 +108,13 @@ static void assign_int64(pointers address) {
 ** 'assign_float' deals with assignments to normal floating point variables
 */
 static void assign_float(pointers address) {
-  stackitem exprtype;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr = TOFLOAT(pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr = TOFLOAT(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr = pop_float();
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr = TOFLOAT(pop_int()); break;
+    case STACK_UINT8: *address.floataddr = TOFLOAT(pop_uint8()); break;
+    case STACK_INT64: *address.floataddr = TOFLOAT(pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr = pop_float(); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -166,7 +148,6 @@ static void assign_stringdol(pointers address) {
 ** integer variables
 */
 static void assign_intbyteptr(pointers address) {
-  stackitem exprtype;
 #ifdef USE_SDL
   size_t addr;
 
@@ -182,15 +163,12 @@ static void assign_intbyteptr(pointers address) {
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset] = pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset] = pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset] = TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset] = pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset] = pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset] = pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset] = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
   if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
@@ -202,7 +180,6 @@ static void assign_intbyteptr(pointers address) {
 ** integer variables
 */
 static void assign_intwordptr(pointers address) {
-  stackitem exprtype;
 #ifdef USE_SDL
   size_t addr;
 
@@ -215,15 +192,12 @@ static void assign_intwordptr(pointers address) {
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, (uint32)pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, TOINT(pop_float()));
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, (uint32)pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
   if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
@@ -235,7 +209,6 @@ static void assign_intwordptr(pointers address) {
 ** variable
 */
 static void assign_floatptr(pointers address) {
-  stackitem exprtype;
 #ifdef USE_SDL
   size_t addr;
 
@@ -246,18 +219,13 @@ static void assign_floatptr(pointers address) {
     mode7changed[addr/40]=1;
   }
 #endif
-
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, TOFLOAT(pop_int64()));
-  else if (exprtype==STACK_FLOAT) {
-    store_float(address.offset, pop_float());
-  }
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, TOFLOAT(pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, TOFLOAT(pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, TOFLOAT(pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -299,7 +267,7 @@ static void assign_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> [,<value>] */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> [,<value>] */
     if (*basicvars.current==',') {	/* array()=<value>,<value>,... */
       p = ap->arraystart.intbase;
       n = 0;
@@ -307,6 +275,7 @@ static void assign_intarray(pointers address) {
         if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
         switch(exprtype) {
           case STACK_INT:	p[n]=pop_int(); break;
+          case STACK_UINT8:	p[n]=pop_uint8(); break;
           case STACK_INT64:	p[n]=INT64TO32(pop_int64()); break;
           case STACK_FLOAT:	p[n]=TOINT(pop_float()); break;
           default:		error(ERR_TYPENUM);
@@ -316,7 +285,7 @@ static void assign_intarray(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
+        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
       } while (TRUE);
       if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     } else if (!ateol[*basicvars.current])
@@ -324,6 +293,7 @@ static void assign_intarray(pointers address) {
     else {	/* array()=<value> */
       switch(exprtype) {
         case STACK_INT:		value = pop_int(); break;
+        case STACK_UINT8:	value = pop_uint8(); break;
         case STACK_INT64:	value = INT64TO32(pop_int64()); break;
         case STACK_FLOAT:	value = TOINT(pop_float()); break;
         default:		error(ERR_TYPENUM);
@@ -337,6 +307,15 @@ static void assign_intarray(pointers address) {
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
     if (ap!=ap2) memmove(ap->arraystart.intbase, ap2->arraystart.intbase, ap->arrsize*sizeof(int32));
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
+    unsigned char *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    fp = ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
   } else if (exprtype==STACK_INT64ARRAY) {	/* array1()=array2() */
     int64 *fp;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -351,6 +330,15 @@ static void assign_intarray(pointers address) {
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
     memmove(ap->arraystart.intbase, temp.arraystart.intbase, ap->arrsize*sizeof(int32));
+    free_stackmem();
+  } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
+    basicarray temp = pop_arraytemp();
+    unsigned char *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.intbase;
+    fp = temp.arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
     free_stackmem();
   } else if (exprtype==STACK_I64ATEMP) {	/* array1()=array2()<op><value> */
     basicarray temp = pop_arraytemp();
@@ -383,6 +371,122 @@ static void assign_intarray(pointers address) {
 }
 
 /*
+** 'assign_intarray' handles assignments to 32-bit integer arrays.
+** There is a minor issue here in that there is no pointer to the start
+** of the array name available so it cannot be included in error messages
+*/
+static void assign_uint8array(pointers address) {
+  basicarray *ap, *ap2;
+  stackitem exprtype;
+  int32 n, value;
+  unsigned char *p;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> [,<value>] */
+    if (*basicvars.current==',') {	/* array()=<value>,<value>,... */
+      p = ap->arraystart.uint8base;
+      n = 0;
+      do {
+        if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
+        switch(exprtype) {
+          case STACK_INT:	p[n]=pop_int(); break;
+          case STACK_UINT8:	p[n]=pop_uint8(); break;
+          case STACK_INT64:	p[n]=INT64TO32(pop_int64()); break;
+          case STACK_FLOAT:	p[n]=TOINT(pop_float()); break;
+          default:		error(ERR_TYPENUM);
+        }
+        n++;
+        if (*basicvars.current!=',') break;
+        basicvars.current++;
+        expression();
+        exprtype = GET_TOPITEM;
+        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
+      } while (TRUE);
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    } else if (!ateol[*basicvars.current])
+      error(ERR_SYNTAX);
+    else {	/* array()=<value> */
+      switch(exprtype) {
+        case STACK_INT:		value = pop_int(); break;
+        case STACK_UINT8:	value = pop_uint8(); break;
+        case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+        case STACK_FLOAT:	value = TOINT(pop_float()); break;
+        default:		error(ERR_TYPENUM);
+      }
+      p = ap->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = value;
+    }
+  } else if (exprtype==STACK_INTARRAY) {	/* array1()=array2() */
+    int32 *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    fp = ap2->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    if (ap!=ap2) memmove(ap->arraystart.uint8base, ap2->arraystart.uint8base, ap->arrsize*sizeof(unsigned char));
+  } else if (exprtype==STACK_INT64ARRAY) {	/* array1()=array2() */
+    int64 *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    fp = ap2->arraystart.int64base;
+    for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
+  } else if (exprtype==STACK_IATEMP) {	/* array1()=array2()<op><value> */
+    basicarray temp = pop_arraytemp();
+    int32 *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    fp = temp.arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    free_stackmem();
+  } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
+    basicarray temp = pop_arraytemp();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    memmove(ap->arraystart.uint8base, temp.arraystart.uint8base, ap->arrsize*sizeof(unsigned char));
+    free_stackmem();
+  } else if (exprtype==STACK_I64ATEMP) {	/* array1()=array2()<op><value> */
+    basicarray temp = pop_arraytemp();
+    int64 *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    fp = temp.arraystart.int64base;
+    for (n=0; n<ap->arrsize; n++) p[n] = (unsigned char)(fp[n]);
+    free_stackmem();
+  } else if (exprtype==STACK_FLOATARRAY) {	/* array1()=array2() */
+    float64 *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    fp = ap2->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
+  } else if (exprtype==STACK_FATEMP) {	/* array1()=array2()<op><value> */
+    basicarray temp = pop_arraytemp();
+    float64 *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    fp = temp.arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
+    free_stackmem();
+  } else error(ERR_INTARRAY);
+}
+
+/*
 ** 'assign_int64array' handles assignments to 64-bit integer arrays.
 */
 static void assign_int64array(pointers address) {
@@ -393,7 +497,7 @@ static void assign_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> [,<value>] */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> [,<value>] */
     if (*basicvars.current==',') {	/* array()=<value>,<value>,... */
       p = ap->arraystart.int64base;
       n = 0;
@@ -401,6 +505,7 @@ static void assign_int64array(pointers address) {
         if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
         switch(exprtype) {
           case STACK_INT:	p[n]=pop_int(); break;
+          case STACK_UINT8:	p[n]=pop_uint8(); break;
           case STACK_INT64:	p[n]=pop_int64(); break;
           case STACK_FLOAT:	p[n]=TOINT64(pop_float()); break;
           default:		error(ERR_TYPENUM);
@@ -410,7 +515,7 @@ static void assign_int64array(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
+        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
       } while (TRUE);
       if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     } else if (!ateol[*basicvars.current])
@@ -418,6 +523,7 @@ static void assign_int64array(pointers address) {
     else {	/* array()=<value> */
       switch(exprtype) {
         case STACK_INT:		value = pop_int(); break;
+        case STACK_UINT8:	value = pop_uint8(); break;
         case STACK_INT64:	value = pop_int64(); break;
         case STACK_FLOAT:	value = TOINT64(pop_float()); break;
         default:		error(ERR_TYPENUM);
@@ -434,6 +540,15 @@ static void assign_int64array(pointers address) {
     p = ap->arraystart.int64base;
     fp = ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n] = (fp[n]);
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
+    unsigned char *fp;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.int64base;
+    fp = ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
   } else if (exprtype==STACK_INT64ARRAY) {	/* array1()=array2() */
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     ap2 = pop_array();
@@ -447,6 +562,15 @@ static void assign_int64array(pointers address) {
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
     p = ap->arraystart.int64base;
     fp = temp.arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    free_stackmem();
+  } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
+    unsigned char *fp;
+    basicarray temp = pop_arraytemp();
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.int64base;
+    fp = temp.arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
     free_stackmem();
   } else if (exprtype==STACK_I64ATEMP) {	/* array1()=array2()<op><value> */
@@ -488,7 +612,7 @@ static void assign_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()=<value> */
     if (*basicvars.current==',') {
       p = ap->arraystart.floatbase;
       n = 0;
@@ -496,6 +620,7 @@ static void assign_floatarray(pointers address) {
         if (n>=ap->arrsize) error(ERR_BADINDEX, n, "(");	/* Trying to assign too many elements */
         switch(exprtype) {
           case STACK_INT:	p[n]=TOFLOAT(pop_int()); break;
+          case STACK_UINT8:	p[n]=TOFLOAT(pop_uint8()); break;
           case STACK_INT64:	p[n]=TOFLOAT(pop_int64()); break;
           case STACK_FLOAT:	p[n]=pop_float(); break;
           default:		error(ERR_TYPENUM);
@@ -505,7 +630,7 @@ static void assign_floatarray(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
+        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) error(ERR_TYPENUM);
       } while (TRUE);
       if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     } else if (!ateol[*basicvars.current])
@@ -513,6 +638,7 @@ static void assign_floatarray(pointers address) {
     else {
       switch(exprtype) {
         case STACK_INT:		fpvalue = TOFLOAT(pop_int()); break;
+        case STACK_UINT8:	fpvalue = TOFLOAT(pop_uint8()); break;
         case STACK_INT64:	fpvalue = TOFLOAT(pop_int64()); break;
         case STACK_FLOAT:	fpvalue = pop_float(); break;
         default:		error(ERR_TYPENUM);
@@ -541,6 +667,15 @@ static void assign_floatarray(pointers address) {
     p = ap->arraystart.floatbase;
     ip = ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
+    unsigned char *ip;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    ip = ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
   } else if (exprtype==STACK_INT64ARRAY) {	/* array1()=array2() */
     int64 *ip;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -557,6 +692,15 @@ static void assign_floatarray(pointers address) {
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
     p = ap->arraystart.floatbase;
     ip = temp.arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    free_stackmem();
+  } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
+    basicarray temp = pop_arraytemp();
+    unsigned char *ip;
+    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+    if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.floatbase;
+    ip = temp.arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
     free_stackmem();
   } else if (exprtype==STACK_I64ATEMP) {	/* array1()=array2()<op><value> */
@@ -687,15 +831,13 @@ static void assign_strarray(pointers address) {
 ** variables
 */
 static void assiplus_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr+=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr+=INT64TO32(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr+=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr+=pop_int(); break;
+    case STACK_UINT8: *address.intaddr+=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr+=INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *address.intaddr+=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -703,17 +845,13 @@ static void assiplus_intword(pointers address) {
 ** 8-bit-bit integer variables
 */
 static void assiplus_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr+=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr+=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr+=INT64TO32(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr+=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr+=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr+=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr+=INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *address.uint8addr+=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -721,15 +859,13 @@ static void assiplus_intbyte(pointers address) {
 ** variables
 */
 static void assiplus_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.int64addr+=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.int64addr+=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.int64addr+=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr+=pop_int(); break;
+    case STACK_UINT8: *address.int64addr+=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr+=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr+=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -737,15 +873,13 @@ static void assiplus_int64word(pointers address) {
 ** variables
 */
 static void assiplus_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr+=TOFLOAT(pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr+=TOFLOAT(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr+=pop_float();
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr+=TOFLOAT(pop_int()); break;
+    case STACK_UINT8: *address.floataddr+=TOFLOAT(pop_uint8()); break;
+    case STACK_INT64: *address.floataddr+=TOFLOAT(pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr+=pop_float(); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -778,16 +912,14 @@ static void assiplus_stringdol(pointers address) {
 ** byte integer indirect variables
 */
 static void assiplus_intbyteptr(pointers address) {
-  stackitem exprtype;
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]+=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]+=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]+=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]+=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]+=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]+=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]+=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -795,14 +927,13 @@ static void assiplus_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assiplus_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset)+pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset)+pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset)+TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset)+pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset)+pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset)+(int32)pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset)+TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -810,14 +941,13 @@ static void assiplus_intwordptr(pointers address) {
 ** floating point variables
 */
 static void assiplus_floatptr(pointers address) {
-  stackitem exprtype= GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, get_float(address.offset)+TOFLOAT(pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, get_float(address.offset)+TOFLOAT(pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, get_float(address.offset)+pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, get_float(address.offset)+TOFLOAT(pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, get_float(address.offset)+TOFLOAT(pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, get_float(address.offset)+TOFLOAT(pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, get_float(address.offset)+pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -856,9 +986,10 @@ static void assiplus_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -876,6 +1007,38 @@ static void assiplus_intarray(pointers address) {
 }
 
 /*
+** 'assiplus_uint8array' handles the '+=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assiplus_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]+=value;
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()+=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 = ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]+=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assiplus_int64array' handles the '+=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -887,9 +1050,10 @@ static void assiplus_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -919,9 +1083,10 @@ static void assiplus_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()+=<value> */
     switch(exprtype) {
       case STACK_INT:	fpvalue = TOFLOAT(pop_int()); break;
+      case STACK_UINT8:	fpvalue = TOFLOAT(pop_uint8()); break;
       case STACK_INT64:	fpvalue = TOFLOAT(pop_int64()); break;
       case STACK_FLOAT:	fpvalue = pop_float(); break;
       default:		error(ERR_TYPENUM);
@@ -1000,15 +1165,13 @@ static void assiplus_strarray(pointers address) {
 ** variables
 */
 static void assiminus_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr-=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr-=INT64TO32(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr-=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr-=pop_int(); break;
+    case STACK_UINT8: *address.intaddr-=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr-=INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *address.intaddr-=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1016,17 +1179,13 @@ static void assiminus_intword(pointers address) {
 ** 8-bit integer variables
 */
 static void assiminus_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr-=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr-=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr-=INT64TO32(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr-=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr-=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr-=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr-=INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *address.uint8addr-=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1034,15 +1193,13 @@ static void assiminus_intbyte(pointers address) {
 ** variables
 */
 static void assiminus_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.int64addr-=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.int64addr-=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.int64addr-=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr-=pop_int(); break;
+    case STACK_UINT8: *address.int64addr-=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr-=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr-=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1050,15 +1207,13 @@ static void assiminus_int64word(pointers address) {
 ** variables
 */
 static void assiminus_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr-=TOFLOAT(pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr-=TOFLOAT(pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr-=pop_float();
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr-=TOFLOAT(pop_int()); break;
+    case STACK_UINT8: *address.floataddr-=TOFLOAT(pop_uint8()); break;
+    case STACK_INT64: *address.floataddr-=TOFLOAT(pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr-=pop_float(); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1066,16 +1221,14 @@ static void assiminus_float(pointers address) {
 ** byte integer indirect variables
 */
 static void assiminus_intbyteptr(pointers address) {
-  stackitem exprtype;
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]-=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]-=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]-=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]-=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]-=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]-=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]-=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1083,14 +1236,13 @@ static void assiminus_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assiminus_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset)-pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset)-pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset)-TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset)-pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset)-pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset)-pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset)-TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1098,14 +1250,13 @@ static void assiminus_intwordptr(pointers address) {
 ** floating point variables
 */
 static void assiminus_floatptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, get_float(address.offset)-TOFLOAT(pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, get_float(address.offset)-TOFLOAT(pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, get_float(address.offset)-pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, get_float(address.offset)-TOFLOAT(pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, get_float(address.offset)-TOFLOAT(pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, get_float(address.offset)-TOFLOAT(pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, get_float(address.offset)-pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1119,9 +1270,10 @@ static void assiminus_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1139,6 +1291,38 @@ static void assiminus_intarray(pointers address) {
 }
 
 /*
+** 'assiminus_uint8array' handles the '-=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assiminus_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]-=value;
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()-=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 =ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]-=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assiminus_int64array' handles the '-=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -1149,9 +1333,10 @@ static void assiminus_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1181,9 +1366,10 @@ static void assiminus_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()-=<value> */
     switch(exprtype) {
       case STACK_INT:	fpvalue = TOFLOAT(pop_int()); break;
+      case STACK_UINT8:	fpvalue = TOFLOAT(pop_uint8()); break;
       case STACK_INT64:	fpvalue = TOFLOAT(pop_int64()); break;
       case STACK_FLOAT:	fpvalue = pop_float(); break;
       default:		error(ERR_TYPENUM);
@@ -1213,15 +1399,13 @@ static void assibit_badtype(pointers address) {
 ** variables
 */
 static void assiand_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr&=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr&=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr&=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr&=pop_int(); break;
+    case STACK_UINT8: *address.intaddr&=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr&=pop_int64(); break;
+    case STACK_FLOAT: *address.intaddr&=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1229,17 +1413,13 @@ static void assiand_intword(pointers address) {
 ** 8-bit integer variables
 */
 static void assiand_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr&=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr&=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr&=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr&=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr&=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr&=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr&=pop_int64(); break;
+    case STACK_FLOAT: *address.uint8addr&=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1247,15 +1427,13 @@ static void assiand_intbyte(pointers address) {
 ** variables
 */
 static void assiand_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr&=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr&=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr&=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr&=pop_int(); break;
+    case STACK_UINT8: *address.int64addr&=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr&=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr&=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1263,15 +1441,13 @@ static void assiand_int64word(pointers address) {
 ** variables
 */
 static void assiand_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) & pop_int());
-  else if (exprtype==STACK_INT)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) & pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) & TOINT64(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr=TOFLOAT(TOINT(*address.floataddr) & pop_int()); break;
+    case STACK_UINT8: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) & pop_uint8()); break;
+    case STACK_INT64: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) & pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) & TOINT64(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1279,16 +1455,13 @@ static void assiand_float(pointers address) {
 ** byte integer indirect variables
 */
 static void assiand_intbyteptr(pointers address) {
-  stackitem exprtype;
-  check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]&=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]&=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]&=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]&=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]&=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]&=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]&=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1296,14 +1469,13 @@ static void assiand_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assiand_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset) & pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset) & pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset) & TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset) & pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset) & pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset) & pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset) & TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1311,14 +1483,13 @@ static void assiand_intwordptr(pointers address) {
 ** floating point variables
 */
 static void assiand_floatptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) & TOINT64(pop_float())));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) & pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) & TOINT64(pop_float()))); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1332,9 +1503,10 @@ static void assiand_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1352,6 +1524,38 @@ static void assiand_intarray(pointers address) {
 }
 
 /*
+** 'assiand_uint8array' handles the 'AND=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assiand_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]&=value;
+  } else if (exprtype==STACK_INTARRAY) {	/* array1()&=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 =ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]&=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assiand_int64array' handles the 'AND=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -1362,9 +1566,10 @@ static void assiand_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1394,9 +1599,10 @@ static void assiand_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()&=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1418,15 +1624,13 @@ static void assiand_floatarray(pointers address) {
 ** variables
 */
 static void assior_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr|=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr|=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr|=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr|=pop_int(); break;
+    case STACK_UINT8: *address.intaddr|=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr|=pop_int64(); break;
+    case STACK_FLOAT: *address.intaddr|=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1434,17 +1638,13 @@ static void assior_intword(pointers address) {
 ** 8-bit integer variables
 */
 static void assior_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr|=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr|=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr|=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr|=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr|=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr|=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr|=pop_int64(); break;
+    case STACK_FLOAT: *address.uint8addr|=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1452,15 +1652,13 @@ static void assior_intbyte(pointers address) {
 ** variables
 */
 static void assior_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr|=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr|=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr|=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr|=pop_int(); break;
+    case STACK_UINT8: *address.int64addr|=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr|=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr|=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1468,16 +1666,14 @@ static void assior_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assior_intbyteptr(pointers address) {
-  stackitem exprtype;
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]|=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]|=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]|=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]|=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]|=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]|=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]|=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1485,14 +1681,13 @@ static void assior_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assior_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset) | pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset) | pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset) | TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset) | pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset) | pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset) | pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset) | TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1500,15 +1695,13 @@ static void assior_intwordptr(pointers address) {
 ** variables
 */
 static void assior_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) | pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) | pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) | TOINT64(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr=TOFLOAT(TOINT(*address.floataddr) | pop_int()); break;
+    case STACK_UINT8: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) | pop_uint8()); break;
+    case STACK_INT64: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) | pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) | TOINT64(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1516,14 +1709,13 @@ static void assior_float(pointers address) {
 ** floating point variables
 */
 static void assior_floatptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) | pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) | pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) | TOINT64(pop_float())));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) | pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) | pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) | pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) | TOINT64(pop_float()))); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1537,9 +1729,10 @@ static void assior_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1557,6 +1750,38 @@ static void assior_intarray(pointers address) {
 }
 
 /*
+** 'assior_uint8array' handles the 'OR=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assior_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]|=value;
+  } else if (exprtype==STACK_INTARRAY) {	/* array1()|=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 =ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]|=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assior_int64array' handles the 'OR=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -1567,9 +1792,10 @@ static void assior_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1599,9 +1825,10 @@ static void assior_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()|=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1623,15 +1850,13 @@ static void assior_floatarray(pointers address) {
 ** variables
 */
 static void assieor_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr^=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr^=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr^=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr^=pop_int(); break;
+    case STACK_UINT8: *address.intaddr^=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr^=pop_int64(); break;
+    case STACK_FLOAT: *address.intaddr^=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1639,17 +1864,13 @@ static void assieor_intword(pointers address) {
 ** 8-bit integer variables
 */
 static void assieor_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr^=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr^=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr^=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr^=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr^=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr^=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr^=pop_int64(); break;
+    case STACK_FLOAT: *address.uint8addr^=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1657,15 +1878,13 @@ static void assieor_intbyte(pointers address) {
 ** variables
 */
 static void assieor_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr^=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr^=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr^=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr^=pop_int(); break;
+    case STACK_UINT8: *address.int64addr^=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr^=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr^=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1673,16 +1892,14 @@ static void assieor_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assieor_intbyteptr(pointers address) {
-  stackitem exprtype;
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]^=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]^=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]^=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]^=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]^=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]^=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]^=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1690,14 +1907,13 @@ static void assieor_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assieor_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset) ^ pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset) ^ pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset) ^ TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset) ^ pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset) ^ pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset) ^ pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset) ^ TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1705,15 +1921,13 @@ static void assieor_intwordptr(pointers address) {
 ** variables
 */
 static void assieor_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) ^ pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) ^ pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) ^ TOINT64(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr=TOFLOAT(TOINT(*address.floataddr) ^ pop_int()); break;
+    case STACK_UINT8: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) ^ pop_uint8()); break;
+    case STACK_INT64: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) ^ pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) ^ TOINT64(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1721,14 +1935,13 @@ static void assieor_float(pointers address) {
 ** floating point variables
 */
 static void assieor_floatptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) ^ pop_int()));
-  else if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) ^ pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) ^ TOINT64(pop_float())));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) ^ pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) ^ pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) ^ pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) ^ TOINT64(pop_float()))); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1742,9 +1955,10 @@ static void assieor_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1762,6 +1976,38 @@ static void assieor_intarray(pointers address) {
 }
 
 /*
+** 'assieor_uint8array' handles the 'EOR=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assieor_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]^=value;
+  } else if (exprtype==STACK_INTARRAY) {	/* array1()^=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 =ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]^=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assieor_int64array' handles the 'EOR=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -1772,9 +2018,10 @@ static void assieor_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1804,9 +2051,10 @@ static void assieor_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()^=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1828,15 +2076,13 @@ static void assieor_floatarray(pointers address) {
 ** variables
 */
 static void assimod_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr%=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr%=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr%=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr%=pop_int(); break;
+    case STACK_UINT8: *address.intaddr%=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr%=pop_int64(); break;
+    case STACK_FLOAT: *address.intaddr%=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1844,17 +2090,13 @@ static void assimod_intword(pointers address) {
 ** 8-bit integer variables
 */
 static void assimod_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr%=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr%=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr%=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr%=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr%=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr%=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr%=pop_int64(); break;
+    case STACK_FLOAT: *address.uint8addr%=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1862,15 +2104,13 @@ static void assimod_intbyte(pointers address) {
 ** variables
 */
 static void assimod_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr%=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr%=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr%=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr%=pop_int(); break;
+    case STACK_UINT8: *address.int64addr%=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr%=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr%=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1878,16 +2118,14 @@ static void assimod_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assimod_intbyteptr(pointers address) {
-  stackitem exprtype;
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]%=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]%=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]%=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]%=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]%=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]%=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]%=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1895,14 +2133,13 @@ static void assimod_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assimod_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset) % pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset) % pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset) % TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset) % pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset) % pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset) % pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset) % TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1910,15 +2147,13 @@ static void assimod_intwordptr(pointers address) {
 ** variables
 */
 static void assimod_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) % TOINT64(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % pop_int()); break;
+    case STACK_UINT8: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % pop_uint8()); break;
+    case STACK_INT64: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) % pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) % TOINT64(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1926,14 +2161,13 @@ static void assimod_float(pointers address) {
 ** floating point variables
 */
 static void assimod_floatptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) % TOINT64(pop_float())));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) % pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) % TOINT64(pop_float()))); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -1947,9 +2181,10 @@ static void assimod_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -1967,6 +2202,38 @@ static void assimod_intarray(pointers address) {
 }
 
 /*
+** 'assimod_uint8array' handles the 'MOD=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assimod_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]%=value;
+  } else if (exprtype==STACK_INTARRAY) {	/* array1()%=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 =ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]%=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assimod_int64array' handles the 'MOD=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -1977,9 +2244,10 @@ static void assimod_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -2009,9 +2277,10 @@ static void assimod_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()%=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -2033,15 +2302,13 @@ static void assimod_floatarray(pointers address) {
 ** variables
 */
 static void assidiv_intword(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr/=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr/=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr/=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.intaddr/=pop_int(); break;
+    case STACK_UINT8: *address.intaddr/=pop_uint8(); break;
+    case STACK_INT64: *address.intaddr/=pop_int64(); break;
+    case STACK_FLOAT: *address.intaddr/=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2049,17 +2316,13 @@ static void assidiv_intword(pointers address) {
 ** 8-bit integer variables
 */
 static void assidiv_intbyte(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.uint8addr/=pop_int();
-  else if (exprtype==STACK_UINT8)
-    *address.uint8addr/=pop_uint8();
-  else if (exprtype==STACK_INT64)
-    *address.uint8addr/=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.uint8addr/=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.uint8addr/=pop_int(); break;
+    case STACK_UINT8: *address.uint8addr/=pop_uint8(); break;
+    case STACK_INT64: *address.uint8addr/=pop_int64(); break;
+    case STACK_FLOAT: *address.uint8addr/=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2067,15 +2330,13 @@ static void assidiv_intbyte(pointers address) {
 ** variables
 */
 static void assidiv_int64word(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.intaddr/=pop_int();
-  else if (exprtype==STACK_INT64)
-    *address.intaddr/=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    *address.intaddr/=TOINT64(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.int64addr/=pop_int(); break;
+    case STACK_UINT8: *address.int64addr/=pop_uint8(); break;
+    case STACK_INT64: *address.int64addr/=pop_int64(); break;
+    case STACK_FLOAT: *address.int64addr/=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2083,16 +2344,14 @@ static void assidiv_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assidiv_intbyteptr(pointers address) {
-  stackitem exprtype;
   check_write(address.offset, sizeof(byte));
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    basicvars.offbase[address.offset]/=pop_int();
-  else if (exprtype==STACK_INT64)
-    basicvars.offbase[address.offset]/=pop_int64();
-  else if (exprtype==STACK_FLOAT)
-    basicvars.offbase[address.offset]/=TOINT(pop_float());
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   basicvars.offbase[address.offset]/=pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[address.offset]/=pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[address.offset]/=pop_int64(); break;
+    case STACK_FLOAT: basicvars.offbase[address.offset]/=TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2100,14 +2359,13 @@ static void assidiv_intbyteptr(pointers address) {
 ** indirect integer variables
 */
 static void assidiv_intwordptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_integer(address.offset, get_integer(address.offset) / pop_int());
-  else if (exprtype==STACK_INT64)
-    store_integer(address.offset, get_integer(address.offset) / pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    store_integer(address.offset, get_integer(address.offset) / TOINT(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_integer(address.offset, get_integer(address.offset) / pop_int()); break;
+    case STACK_UINT8: store_integer(address.offset, get_integer(address.offset) / pop_uint8()); break;
+    case STACK_INT64: store_integer(address.offset, get_integer(address.offset) / pop_int64()); break;
+    case STACK_FLOAT: store_integer(address.offset, get_integer(address.offset) / TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2115,15 +2373,13 @@ static void assidiv_intwordptr(pointers address) {
 ** variables
 */
 static void assidiv_float(pointers address) {
-  stackitem exprtype;
-  exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / pop_int());
-  else if (exprtype==STACK_INT64)
-    *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / pop_int64());
-  else if (exprtype==STACK_FLOAT)
-    *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) / TOINT64(pop_float()));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / pop_int()); break;
+    case STACK_UINT8: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / pop_uint8()); break;
+    case STACK_INT64: *address.floataddr=TOFLOAT(TOINT(*address.floataddr) / pop_int64()); break;
+    case STACK_FLOAT: *address.floataddr=TOFLOAT(TOINT64(*address.floataddr) / TOINT64(pop_float())); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2131,14 +2387,13 @@ static void assidiv_float(pointers address) {
 ** floating point variables
 */
 static void assidiv_floatptr(pointers address) {
-  stackitem exprtype = GET_TOPITEM;
-  if (exprtype==STACK_INT)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / pop_int()));
-  else if (exprtype==STACK_INT64)
-    store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / pop_int64()));
-  else if (exprtype==STACK_FLOAT)
-    store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) / TOINT64(pop_float())));
-  else error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / pop_int())); break;
+    case STACK_UINT8: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / pop_uint8())); break;
+    case STACK_INT64: store_float(address.offset, TOFLOAT(TOINT(get_float(address.offset)) / pop_int64())); break;
+    case STACK_FLOAT: store_float(address.offset, TOFLOAT(TOINT64(get_float(address.offset)) / TOINT64(pop_float()))); break;
+    default: error(ERR_TYPENUM);
+  }
 }
 
 /*
@@ -2152,9 +2407,10 @@ static void assidiv_intarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()/=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()/=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = INT64TO32(pop_int64()); break;
       case STACK_FLOAT:	value = TOINT(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -2172,6 +2428,38 @@ static void assidiv_intarray(pointers address) {
 }
 
 /*
+** 'assidiv_uint8array' handles the 'DIV=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assidiv_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n, value;
+  unsigned char *p, *p2;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()/=<value> */
+    switch(exprtype) {
+      case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
+      case STACK_INT64:	value = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT:	value = TOINT(pop_float()); break;
+      default:		error(ERR_TYPENUM);
+    }
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]/=value;
+  } else if (exprtype==STACK_INTARRAY) {	/* array1()/=array2() */
+    ap2 = pop_array();
+    if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
+    if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
+    p = ap->arraystart.uint8base;
+    p2 =ap2->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+  } else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assidiv_int64array' handles the 'DIV=' assignment operator for 64-bit integer
 ** arrays
 */
@@ -2182,9 +2470,10 @@ static void assidiv_int64array(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()/=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()/=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -2214,9 +2503,10 @@ static void assidiv_floatarray(pointers address) {
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
-  if (exprtype==STACK_INT || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()DIV=<value> */
+  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {	/* array()DIV=<value> */
     switch(exprtype) {
       case STACK_INT:	value = pop_int(); break;
+      case STACK_UINT8:	value = pop_uint8(); break;
       case STACK_INT64:	value = pop_int64(); break;
       case STACK_FLOAT:	value = TOINT64(pop_float()); break;
       default:		error(ERR_TYPENUM);
@@ -2241,7 +2531,7 @@ static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intword, assign_float,
   assign_stringdol, assignment_invalid, assign_int64, assign_intbyte,
   assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
-  assign_strarray, assignment_invalid, assign_int64array, assignment_invalid,
+  assign_strarray, assignment_invalid, assign_int64array, assign_uint8array,
   assignment_invalid, assign_intbyteptr, assign_intwordptr, assign_floatptr,
   assignment_invalid, assign_dolstrptr, assignment_invalid, assignment_invalid
 };
@@ -2250,7 +2540,7 @@ static void (*assiplus_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiplus_intword, assiplus_float,
   assiplus_stringdol, assignment_invalid, assiplus_int64word, assiplus_intbyte,
   assignment_invalid, assignment_invalid, assiplus_intarray, assiplus_floatarray,
-  assiplus_strarray, assignment_invalid, assiplus_int64array, assignment_invalid,
+  assiplus_strarray, assignment_invalid, assiplus_int64array, assiplus_uint8array,
   assignment_invalid, assiplus_intbyteptr, assiplus_intwordptr, assiplus_floatptr,
   assignment_invalid, assiplus_dolstrptr, assignment_invalid, assignment_invalid
 };
@@ -2259,7 +2549,7 @@ static void (*assiminus_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiminus_intword, assiminus_float,
   assiminus_badtype, assignment_invalid, assiminus_int64word, assiminus_intbyte,
   assignment_invalid, assignment_invalid, assiminus_intarray, assiminus_floatarray,
-  assiminus_badtype, assignment_invalid, assiminus_int64array, assignment_invalid,
+  assiminus_badtype, assignment_invalid, assiminus_int64array, assiminus_uint8array,
   assignment_invalid, assiminus_intbyteptr, assiminus_intwordptr, assiminus_floatptr,
   assignment_invalid, assiminus_badtype, assignment_invalid, assignment_invalid
 };
@@ -2268,7 +2558,7 @@ static void (*assiand_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiand_intword, assiand_float,
   assibit_badtype, assignment_invalid, assiand_int64word, assiand_intbyte,
   assignment_invalid, assignment_invalid, assiand_intarray, assiand_floatarray,
-  assibit_badtype, assignment_invalid, assiand_int64array, assignment_invalid,
+  assibit_badtype, assignment_invalid, assiand_int64array, assiand_uint8array,
   assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assiand_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
@@ -2277,7 +2567,7 @@ static void (*assior_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assior_intword, assior_float,
   assibit_badtype, assignment_invalid, assior_int64word, assior_intbyte,
   assignment_invalid, assignment_invalid, assior_intarray, assior_floatarray,
-  assibit_badtype, assignment_invalid, assior_int64array, assignment_invalid,
+  assibit_badtype, assignment_invalid, assior_int64array, assior_uint8array,
   assignment_invalid, assior_intbyteptr, assior_intwordptr, assior_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
@@ -2286,7 +2576,7 @@ static void (*assieor_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assieor_intword, assieor_float,
   assibit_badtype, assignment_invalid, assieor_int64word, assieor_intbyte,
   assignment_invalid, assignment_invalid, assieor_intarray, assieor_floatarray,
-  assibit_badtype, assignment_invalid, assieor_int64array, assignment_invalid,
+  assibit_badtype, assignment_invalid, assieor_int64array, assieor_uint8array,
   assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assieor_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
@@ -2295,7 +2585,7 @@ static void (*assimod_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assimod_intword, assimod_float,
   assibit_badtype, assignment_invalid, assimod_int64word, assimod_intbyte,
   assignment_invalid, assignment_invalid, assimod_intarray, assimod_floatarray,
-  assibit_badtype, assignment_invalid, assimod_int64array, assignment_invalid,
+  assibit_badtype, assignment_invalid, assimod_int64array, assimod_uint8array,
   assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assimod_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
@@ -2304,7 +2594,7 @@ static void (*assidiv_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assidiv_intword, assidiv_float,
   assibit_badtype, assignment_invalid, assidiv_int64word, assidiv_intbyte,
   assignment_invalid, assignment_invalid, assidiv_intarray, assidiv_floatarray,
-  assibit_badtype, assignment_invalid, assidiv_int64array, assignment_invalid,
+  assibit_badtype, assignment_invalid, assidiv_int64array, assidiv_uint8array,
   assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assidiv_floatptr,
   assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
 };
@@ -3149,4 +3439,3 @@ void exec_let(void) {
     error(ERR_EQMISS);
   }
 }
-

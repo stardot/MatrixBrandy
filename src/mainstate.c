@@ -1050,17 +1050,16 @@ void exec_blockif(void) {
   dest = basicvars.current+1;		/* Point at the 'THEN' offset */
   basicvars.current+=1+2*OFFSIZE;	/* Skip IF token and THEN and ELSE offsets */
   expression();
-  if (GET_TOPITEM == STACK_INT) {
-    if (pop_int() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
-  }
-  else if (GET_TOPITEM == STACK_INT64) {
-    if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
-    if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
-  }
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   if (pop_int() == BASFALSE) dest+=OFFSIZE;
+        break;
+    case STACK_UINT8: if (pop_uint8() == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
+        break;
+    case STACK_INT64: if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
+        break;
+    case STACK_FLOAT: if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
+        break;
+    default: error(ERR_TYPENUM);
   }
   if (basicvars.traces.enabled) {	/* Branch after dealing with debug info */
     if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(GET_DEST(dest))));
@@ -1077,17 +1076,16 @@ void exec_singlif(void) {
   here = dest = basicvars.current+1;	/* Point at the 'THEN' offset */
   basicvars.current+=1+2*OFFSIZE;	/* Skip IF token and THEN and ELSE offsets */
   expression();
-  if (GET_TOPITEM == STACK_INT) {
-    if (pop_int() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
-  }
-  else if (GET_TOPITEM == STACK_INT64) {
-    if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
-    if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
-  }
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   if (pop_int() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
+        break;
+    case STACK_UINT8: if (pop_uint8() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
+        break;
+    case STACK_INT64: if (pop_int64() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
+        break;
+    case STACK_FLOAT: if (TOINT(pop_float()) == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
+        break;
+    default: error(ERR_TYPENUM);
   }
   dest = GET_DEST(dest);	/* Find code after the 'THEN' or 'ELSE' */
   if (*dest == BASIC_TOKEN_LINENUM)	/* There is a line number there */
@@ -1119,14 +1117,12 @@ void exec_xif(void) {
   elseplace = ifplace+1+OFFSIZE;
   basicvars.current+=1+2*OFFSIZE;
   expression();
-  if (GET_TOPITEM == STACK_INT)
-    result = pop_int();
-  else if (GET_TOPITEM == STACK_INT64)
-    result = pop_int64();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    result = TOINT64(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   result = pop_int(); break;
+    case STACK_UINT8: result = pop_uint8(); break;
+    case STACK_INT64: result = pop_int64(); break;
+    case STACK_FLOAT: result = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
   single = *basicvars.current != BASIC_TOKEN_THEN;	/* No 'THEN' = single line if */
   if (*basicvars.current == BASIC_TOKEN_THEN) {
