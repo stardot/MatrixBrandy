@@ -699,6 +699,24 @@ static void assiplus_intword(pointers address) {
 }
 
 /*
+** 'assiplus_intbyte' handles the '+=' assignment operator for unsigned
+** 8-bit-bit integer variables
+*/
+static void assiplus_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr+=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr+=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr+=INT64TO32(pop_int64());
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr+=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assiplus_int64word' handles the '+=' assignment operator for 64-bit integer
 ** variables
 */
@@ -994,6 +1012,24 @@ static void assiminus_intword(pointers address) {
 }
 
 /*
+** 'assiminus_intbyte' handles the '-=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assiminus_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr-=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr-=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr-=INT64TO32(pop_int64());
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr-=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assiminus_int64word' handles the '-=' assignment operator for 64-bit integer
 ** variables
 */
@@ -1189,6 +1225,24 @@ static void assiand_intword(pointers address) {
 }
 
 /*
+** 'assiand_intbyte' handles the 'AND=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assiand_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr&=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr&=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr&=pop_int64();
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr&=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assiand_int64word' handles the 'AND=' assignment operator for 64-bit integer
 ** variables
 */
@@ -1372,6 +1426,24 @@ static void assior_intword(pointers address) {
     *address.intaddr|=pop_int64();
   else if (exprtype==STACK_FLOAT)
     *address.intaddr|=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
+** 'assior_intbyte' handles the 'OR=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assior_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr|=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr|=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr|=pop_int64();
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr|=TOINT(pop_float());
   else error(ERR_TYPENUM);
 }
 
@@ -1563,6 +1635,24 @@ static void assieor_intword(pointers address) {
 }
 
 /*
+** 'assieor_intbyte' handles the 'EOR=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assieor_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr^=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr^=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr^=pop_int64();
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr^=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assieor_int64word' handles the 'EOR=' assignment operator for 64-bit integer
 ** variables
 */
@@ -1746,6 +1836,24 @@ static void assimod_intword(pointers address) {
     *address.intaddr%=pop_int64();
   else if (exprtype==STACK_FLOAT)
     *address.intaddr%=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
+** 'assimod_intbyte' handles the 'MOD=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assimod_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr%=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr%=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr%=pop_int64();
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr%=TOINT(pop_float());
   else error(ERR_TYPENUM);
 }
 
@@ -1937,6 +2045,24 @@ static void assidiv_intword(pointers address) {
 }
 
 /*
+** 'assidiv_intbyte' handles the 'DIV=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assidiv_intbyte(pointers address) {
+  stackitem exprtype;
+  exprtype = GET_TOPITEM;
+  if (exprtype==STACK_INT)
+    *address.uint8addr/=pop_int();
+  else if (exprtype==STACK_UINT8)
+    *address.uint8addr/=pop_uint8();
+  else if (exprtype==STACK_INT64)
+    *address.uint8addr/=pop_int64();
+  else if (exprtype==STACK_FLOAT)
+    *address.uint8addr/=TOINT(pop_float());
+  else error(ERR_TYPENUM);
+}
+
+/*
 ** 'assidiv_int64word' handles the 'DIV=' assignment operator for 64-bit integer
 ** variables
 */
@@ -2122,7 +2248,7 @@ static void (*assign_table[])(pointers) = {
 
 static void (*assiplus_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiplus_intword, assiplus_float,
-  assiplus_stringdol, assignment_invalid, assiplus_int64word, assignment_invalid,
+  assiplus_stringdol, assignment_invalid, assiplus_int64word, assiplus_intbyte,
   assignment_invalid, assignment_invalid, assiplus_intarray, assiplus_floatarray,
   assiplus_strarray, assignment_invalid, assiplus_int64array, assignment_invalid,
   assignment_invalid, assiplus_intbyteptr, assiplus_intwordptr, assiplus_floatptr,
@@ -2131,7 +2257,7 @@ static void (*assiplus_table[])(pointers) = {
 
 static void (*assiminus_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiminus_intword, assiminus_float,
-  assiminus_badtype, assignment_invalid, assiminus_int64word, assignment_invalid,
+  assiminus_badtype, assignment_invalid, assiminus_int64word, assiminus_intbyte,
   assignment_invalid, assignment_invalid, assiminus_intarray, assiminus_floatarray,
   assiminus_badtype, assignment_invalid, assiminus_int64array, assignment_invalid,
   assignment_invalid, assiminus_intbyteptr, assiminus_intwordptr, assiminus_floatptr,
@@ -2140,7 +2266,7 @@ static void (*assiminus_table[])(pointers) = {
 
 static void (*assiand_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiand_intword, assiand_float,
-  assibit_badtype, assignment_invalid, assiand_int64word, assignment_invalid,
+  assibit_badtype, assignment_invalid, assiand_int64word, assiand_intbyte,
   assignment_invalid, assignment_invalid, assiand_intarray, assiand_floatarray,
   assibit_badtype, assignment_invalid, assiand_int64array, assignment_invalid,
   assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assiand_floatptr,
@@ -2149,7 +2275,7 @@ static void (*assiand_table[])(pointers) = {
 
 static void (*assior_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assior_intword, assior_float,
-  assibit_badtype, assignment_invalid, assior_int64word, assignment_invalid,
+  assibit_badtype, assignment_invalid, assior_int64word, assior_intbyte,
   assignment_invalid, assignment_invalid, assior_intarray, assior_floatarray,
   assibit_badtype, assignment_invalid, assior_int64array, assignment_invalid,
   assignment_invalid, assior_intbyteptr, assior_intwordptr, assior_floatptr,
@@ -2158,7 +2284,7 @@ static void (*assior_table[])(pointers) = {
 
 static void (*assieor_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assieor_intword, assieor_float,
-  assibit_badtype, assignment_invalid, assieor_int64word, assignment_invalid,
+  assibit_badtype, assignment_invalid, assieor_int64word, assieor_intbyte,
   assignment_invalid, assignment_invalid, assieor_intarray, assieor_floatarray,
   assibit_badtype, assignment_invalid, assieor_int64array, assignment_invalid,
   assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assieor_floatptr,
@@ -2167,7 +2293,7 @@ static void (*assieor_table[])(pointers) = {
 
 static void (*assimod_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assimod_intword, assimod_float,
-  assibit_badtype, assignment_invalid, assimod_int64word, assignment_invalid,
+  assibit_badtype, assignment_invalid, assimod_int64word, assimod_intbyte,
   assignment_invalid, assignment_invalid, assimod_intarray, assimod_floatarray,
   assibit_badtype, assignment_invalid, assimod_int64array, assignment_invalid,
   assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assimod_floatptr,
@@ -2176,7 +2302,7 @@ static void (*assimod_table[])(pointers) = {
 
 static void (*assidiv_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assidiv_intword, assidiv_float,
-  assibit_badtype, assignment_invalid, assidiv_int64word, assignment_invalid,
+  assibit_badtype, assignment_invalid, assidiv_int64word, assidiv_intbyte,
   assignment_invalid, assignment_invalid, assidiv_intarray, assidiv_floatarray,
   assibit_badtype, assignment_invalid, assidiv_int64array, assignment_invalid,
   assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assidiv_floatptr,
