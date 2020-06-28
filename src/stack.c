@@ -61,14 +61,15 @@ static void restore(int32 parmcount);
 ** basic stack
 */
 static int32 entrysize [] = {
-  0,			0,    ALIGNSIZE(stack_uint8),     ALIGNSIZE(stack_int),      ALIGNSIZE(stack_int64),		/* 04 */
-  ALIGNSIZE(stack_float),     ALIGNSIZE(stack_string),    ALIGNSIZE(stack_string),   ALIGNSIZE(stack_array),		/* 08 */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_array),    ALIGNSIZE(stack_arraytemp),	/* 0C */ 
-  ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),    ALIGNSIZE(stack_arraytemp),	/* 10 */
-  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_gosub),    ALIGNSIZE(stack_proc),		/* 14 */
-  ALIGNSIZE(stack_fn),        ALIGNSIZE(stack_local),     ALIGNSIZE(stack_retparm),  ALIGNSIZE(stack_while),		/* 18 */
-  ALIGNSIZE(stack_repeat),    ALIGNSIZE(stack_for),       ALIGNSIZE(stack_for),      ALIGNSIZE(stack_for),		/* 1C */
-  ALIGNSIZE(stack_error),     ALIGNSIZE(stack_data),      ALIGNSIZE(stack_opstack),  ALIGNSIZE(stack_restart)		/* 20 */
+  0,			0,    ALIGNSIZE(stack_uint8),     ALIGNSIZE(stack_int),       ALIGNSIZE(stack_int64),		/* 04 */
+  ALIGNSIZE(stack_float),     ALIGNSIZE(stack_string),    ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),		/* 08 */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),		/* 0C */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),		/* 10 */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_gosub),		/* 14 */
+  ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),        ALIGNSIZE(stack_local),     ALIGNSIZE(stack_retparm),		/* 18 */
+  ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),    ALIGNSIZE(stack_for),       ALIGNSIZE(stack_for),		/* 1C */
+  ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),     ALIGNSIZE(stack_data),      ALIGNSIZE(stack_opstack),		/* 20 */
+  ALIGNSIZE(stack_restart)												/* 21 */
 };
 
 /*
@@ -79,7 +80,7 @@ static boolean disposible [] = {
   FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
   TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
   TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
-  FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  TRUE,  TRUE,
+  TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,  TRUE,
   TRUE,  TRUE,  TRUE
 };
 
@@ -100,6 +101,7 @@ static char *entryname(stackitem what) {
     case STACK_INTARRAY:	return "ineger array";
     case STACK_IATEMP:		return "temp integer array";
     case STACK_UINT8ARRAY:	return "uint8 array";
+    case STACK_U8ATEMP:		return "temp uint8 array";
     case STACK_INT64ARRAY:	return "int64 array";
     case STACK_I64ATEMP:	return "temp int64 array";
     case STACK_FLOATARRAY:	return "floating point array";

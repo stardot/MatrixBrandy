@@ -264,7 +264,10 @@ typedef struct library {
   variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions in library */
 } library;
 
-/* Following are the types describing items found on the Basic stack */
+/* Following are the types describing items found on the Basic stack.
+** If adjusting remember the tables at the top of stack.c as well,
+**need to be kept in alignment, and type_table in evaluate.c
+*/
 typedef enum {
   STACK_UNKNOWN,
   STACK_LVALUE,     STACK_UINT8,       STACK_INT,        STACK_INT64,		/* 04 */
@@ -288,7 +291,7 @@ typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
   sigjmp_buf restart;		/* Environment block */
 } stack_restart;
 
-typedef struct {		/* 32-bit integer value */
+typedef struct {		/* Unsigned 8-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
   unsigned char uint8value;	/* Value of integer */
 } stack_uint8;
