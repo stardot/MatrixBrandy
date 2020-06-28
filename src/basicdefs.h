@@ -144,7 +144,7 @@ typedef struct {
   int32 dimcount;			/* Number of array dimensions */
   int32 arrsize;			/* Total number of elements in array */
   union {
-    unsigned char *uint8base;		/* Pointer to start of uint8 elements */
+    uint8 *uint8base;		/* Pointer to start of uint8 elements */
     int32 *intbase;			/* Pointer to start of integer elements */
     int64 *int64base;			/* Pointer to start of 64-bit integer elements */
     float64 *floatbase;			/* Pointer to start of floating point elements */
@@ -156,7 +156,7 @@ typedef struct {
 
 typedef union {
   char *charaddr;			/* Pointer to a character */
-  unsigned char *uint8addr;		/* Pointer to an unsigned 8-bit integer */
+  uint8 *uint8addr;		/* Pointer to an unsigned 8-bit integer */
   int32 *intaddr;			/* Pointer to Basic integer value */
   int64 *int64addr;			/* Pointer to 64-bit integer value */
   float64 *floataddr;			/* Pointer to Basic floating point value */
@@ -208,7 +208,7 @@ typedef struct variable {
   int32 varhash;			/* Hash value for symbol's name */
   struct library *varowner;		/* Library in which var was defined or NIL */
   union {
-    unsigned char varu8int;		/* Value if an unsigned 8-bit integer */
+    uint8 varu8int;		/* Value if an unsigned 8-bit integer */
     int32 varinteger;			/* Value if a 32-bit integer */
     int64 var64int;			/* Value if a 64-bit integer */
     float64 varfloat;			/* Value if floating point */
@@ -293,7 +293,7 @@ typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
 
 typedef struct {		/* Unsigned 8-bit integer value */
   stackitem itemtype;		/* Type of item pushed on to stack */
-  unsigned char uint8value;	/* Value of integer */
+  uint8 uint8value;	/* Value of integer */
 } stack_uint8;
 
 typedef struct {		/* 32-bit integer value */
@@ -353,7 +353,7 @@ typedef struct {		/* Saved local variable */
   stackitem itemtype;
   lvalue savedetails;		/* Details of item saved */
   union {
-    unsigned char saveduint8;	/* Saved 8-bit unsigned integer value */
+    uint8 saveduint8;	/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -367,7 +367,7 @@ typedef struct {		/* Saved RETURN-type local variable */
   lvalue savedetails;		/* Details of item saved */
   lvalue retdetails;		/* Details of where to save returned value */
   union {
-    unsigned char saveduint8;	/* Saved 8-bit unsigned integer value */
+    uint8 saveduint8;	/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -394,7 +394,7 @@ typedef struct {		/* FOR loop control block */
   byte *foraddr;		/* Pointer to first statement in 'FOR' loop */
   union {
     struct {int32 intlimit, intstep;} intfor;
-    struct {unsigned char uint8limit, uint8step;} uint8for;
+    struct {uint8 uint8limit, uint8step;} uint8for;
     struct {int64 int64limit, int64step;} int64for;
     struct {float64 floatlimit, floatstep;} floatfor;
   } fortype;
