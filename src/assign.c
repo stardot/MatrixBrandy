@@ -2785,6 +2785,8 @@ void assign_staticvar(void) {
   if (varindex==ATPERCENT && assignop=='=') {	/* @%= is a special case */
     if (exprtype==STACK_INT)
       basicvars.staticvars[ATPERCENT].varentry.varinteger = pop_int();
+    else if (exprtype==STACK_UINT8)
+      basicvars.staticvars[ATPERCENT].varentry.varinteger = pop_uint8();
     else if (exprtype==STACK_INT64) {
       value64 = pop_int64();
       if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) error(ERR_RANGE);
@@ -2800,6 +2802,8 @@ void assign_staticvar(void) {
   } else {	/* Other static variables */
     if (exprtype==STACK_INT)
       value = pop_int();
+    else if (exprtype==STACK_UINT8)
+      value = pop_uint8();
     else if (exprtype==STACK_INT64) {
       value64 = pop_int64();
       if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) error(ERR_RANGE);

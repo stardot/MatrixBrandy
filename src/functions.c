@@ -504,24 +504,19 @@ static void fn_bget(void) {
 ** character string
 */
 static void fn_chr(void) {
-  char *cp;
+  char *cp, value;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT) {
-    cp = alloc_string(1);
-    *cp = pop_int();
-    push_strtemp(1, cp);
+
+  switch(GET_TOPITEM) {
+    case STACK_INT:   value = pop_int(); break;
+    case STACK_UINT8: value = pop_uint8(); break;
+    case STACK_INT64: value = pop_int64(); break;
+    case STACK_FLOAT: value = TOINT(pop_float()); break;	/* Cast rounds towards zero */
+    default: error(ERR_TYPENUM);
   }
-  else if (GET_TOPITEM == STACK_INT64) {
-    cp = alloc_string(1);
-    *cp = pop_int64();
-    push_strtemp(1, cp);
-  }
-  else if (GET_TOPITEM == STACK_FLOAT) {
-    cp = alloc_string(1);	/* obtain memory for a single character string */
-    *cp = TOINT(pop_float());	/* Cast rounds towards zero */
-    push_strtemp(1, cp);
-  }
-  else error(ERR_TYPENUM);
+  cp = alloc_string(1);
+  *cp=value;
+  push_strtemp(1, cp);
 }
 
 /*
