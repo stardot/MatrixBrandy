@@ -186,6 +186,7 @@ int32 eval_integer(void) {
   expression();
   numtype = GET_TOPITEM;
   if (numtype == STACK_INT) return pop_int();
+  if (numtype == STACK_UINT8) return pop_uint8();
   if (numtype == STACK_INT64) return INT64TO32(pop_int64());
   if (numtype == STACK_FLOAT) return TOINT(pop_float());
   error(ERR_TYPENUM);
@@ -197,6 +198,7 @@ int64 eval_int64(void) {
   expression();
   numtype = GET_TOPITEM;
   if (numtype == STACK_INT) return pop_int();
+  if (numtype == STACK_UINT8) return pop_uint8();
   if (numtype == STACK_INT64) return pop_int64();
   if (numtype == STACK_FLOAT) return TOINT64(pop_float());
   error(ERR_TYPENUM);
@@ -212,6 +214,7 @@ int32 eval_intfactor(void) {
   (*factor_table[*basicvars.current])();
   numtype = GET_TOPITEM;
   if (numtype == STACK_INT) return pop_int();
+  if (numtype == STACK_UINT8) return pop_uint8();
   if (numtype == STACK_INT64) return INT64TO32(pop_int64());
   if (numtype == STACK_FLOAT) return TOINT(pop_float());
   error(ERR_TYPENUM);
@@ -280,13 +283,13 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
   ERR_PARMSTR, ERR_PARMSTR, ERR_PARMSTR},
 /* 64-bit integer (6) */
  {ERR_BROKEN,  ERR_BROKEN,  ERR_NONE,    ERR_NONE,
-  ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
+  ERR_NONE,    ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
 /* Unsigned 8-bit integer (7) */
  {ERR_BROKEN,  ERR_BROKEN,  ERR_NONE,    ERR_NONE,
-  ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
+  ERR_NONE,    ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
@@ -347,6 +350,7 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
 */
 static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   int32 intparm = 0, typerr;
+  uint8 uint8parm = 0;
   int64 int64parm = 0;
   float64 floatparm = 0;
   basicstring stringparm = {0, NULL};
@@ -362,12 +366,9 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   if (!isreturn) {	/* Normal parameter */
     expression();
     parmtype = GET_TOPITEM;
-    if (parmtype == STACK_INT)
-      intparm = pop_int();
-    else if (parmtype == STACK_INT64)
-      int64parm = pop_int64();
-    else if (parmtype == STACK_FLOAT)
-      floatparm = pop_float();
+    if (parmtype == STACK_INT)        intparm = pop_int();
+    else if (parmtype == STACK_INT64) int64parm = pop_int64();
+    else if (parmtype == STACK_FLOAT) floatparm = pop_float();
     else if (parmtype == STACK_STRING || parmtype == STACK_STRTEMP)
       stringparm = pop_string();
     else if (parmtype >= STACK_INTARRAY && parmtype <= STACK_SATEMP)
@@ -382,8 +383,8 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       intparm = *retparm.address.intaddr;
       parmtype = STACK_INT;
       break;
-    case VAR_U8INT:		/* Integer parameter */
-      intparm = *retparm.address.uint8addr;
+    case VAR_UINT8:		/* Integer parameter */
+      uint8parm = *retparm.address.uint8addr;
       parmtype = STACK_UINT8;
       break;
     case VAR_INTLONG:		/* Integer parameter */
@@ -485,20 +486,16 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       save_int(fp->parameter, *p);
     }
     switch(parmtype) {
-      case STACK_INT:
-        *p = intparm;
-        break;
+      case STACK_INT:   *p = intparm; break;
+      case STACK_UINT8: *p = uint8parm; break;
       case STACK_INT64:
         if (int64parm <= 0x7FFFFFFFll && int64parm >= 0xFFFFFFFF80000000ll)
           *p = (int32)int64parm;
         else
           error(ERR_RANGE);
         break;
-      case STACK_FLOAT:
-        *p = TOINT(floatparm);
-        break;
-      default:
-        error(ERR_BROKEN, __LINE__, "evaluate");
+      case STACK_FLOAT: *p = TOINT(floatparm); break;
+      default: error(ERR_BROKEN, __LINE__, "evaluate");
     }
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_oneparm via VAR_INTWORD\n");
@@ -507,6 +504,22 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   }
 /* Now deal with other parameter types */
   switch (fp->parameter.typeinfo & PARMTYPEMASK) {	/* Go by formal parameter type */
+  case VAR_UINT8: {
+    uint8 *p = fp->parameter.address.uint8addr;
+    if (isreturn)
+      save_retuint8(retparm, fp->parameter, *p);
+    else {
+      save_uint8(fp->parameter, *p);
+    }
+    switch(parmtype) {
+      case STACK_INT:   *p = intparm; break;
+      case STACK_UINT8: *p = uint8parm; break;
+      case STACK_INT64: *p = int64parm; break;
+      case STACK_FLOAT: *p = TOINT(floatparm); break;
+      default: error(ERR_BROKEN, __LINE__, "evaluate");
+    }
+    break;
+  }
   case VAR_INTLONG: {
     int64 *p = fp->parameter.address.int64addr;
     if (isreturn)
@@ -515,17 +528,11 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       save_int64(fp->parameter, *p);
     }
     switch(parmtype) {
-      case STACK_INT:
-        *p = intparm;
-        break;
-      case STACK_INT64:
-        *p = int64parm;
-        break;
-      case STACK_FLOAT:
-        *p = TOINT64(floatparm);
-        break;
-      default:
-        error(ERR_BROKEN, __LINE__, "evaluate");
+      case STACK_INT:   *p = intparm; break;
+      case STACK_UINT8: *p = uint8parm; break;
+      case STACK_INT64: *p = int64parm; break;
+      case STACK_FLOAT: *p = TOINT64(floatparm); break;
+      default: error(ERR_BROKEN, __LINE__, "evaluate");
     }
     break;
   }
@@ -537,17 +544,11 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       save_float(fp->parameter, *p);
     }
     switch(parmtype) {
-      case STACK_INT:
-        *p = TOFLOAT(intparm);
-        break;
-      case STACK_INT64:
-        *p = TOFLOAT(int64parm);
-        break;
-      case STACK_FLOAT:
-        *p = floatparm;
-        break;
-      default:
-        error(ERR_BROKEN, __LINE__, "evaluate");
+      case STACK_INT:   *p = TOFLOAT(intparm); break;
+      case STACK_UINT8: *p = TOFLOAT(uint8parm); break;
+      case STACK_INT64: *p = TOFLOAT(int64parm); break;
+      case STACK_FLOAT: *p = floatparm; break;
+      default: error(ERR_BROKEN, __LINE__, "evaluate");
     }
     break;
   }
@@ -613,7 +614,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     if (parmtype == STACK_STRTEMP) free_string(stringparm);
     break;
   }
-  case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
+  case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
     save_array(fp->parameter);
     *fp->parameter.address.arrayaddr = arrayparm;
     break;
@@ -806,12 +807,12 @@ static void do_intvar(void) {
 }
 
 /*
-** 'do_int64var' deals with simple references to a known 64-bit
-** integer variable.
+** 'do_uint8var' deals with simple references to a known unsigned
+** 8-bit integer variable.
 */
 static void do_uint8var(void) {
-  unsigned char *ip;
-  ip = GET_ADDRESS(basicvars.current, unsigned char *);
+  uint8 *ip;
+  ip = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   PUSH_UINT8(*ip);
 }
@@ -880,12 +881,10 @@ static void do_arrayref(void) {
   vartype = vp->varflags;
   if (descriptor->dimcount == 1) {	/* Array has only one dimension - Use faster code */
     expression();	      /* Evaluate an array index */
-    if (GET_TOPITEM == STACK_INT)
-      element = pop_int();
-    else if (GET_TOPITEM == STACK_INT64)
-      element = INT64TO32(pop_int64());
-    else if (GET_TOPITEM == STACK_FLOAT)
-      element = TOINT(pop_float());
+    if (GET_TOPITEM == STACK_INT)         element = pop_int();
+    else if (GET_TOPITEM == STACK_UINT8)  element = pop_uint8();
+    else if (GET_TOPITEM == STACK_INT64)  element = INT64TO32(pop_int64());
+    else if (GET_TOPITEM == STACK_FLOAT)  element = TOINT(pop_float());
     else {
       error(ERR_TYPENUM);
     }
@@ -897,10 +896,10 @@ static void do_arrayref(void) {
     element = 0;
     do {	/* Gather the array indexes */
       expression();	      /* Evaluate an array index */
-      if (GET_TOPITEM == STACK_INT)
-        index = pop_int();
-      else if (GET_TOPITEM == STACK_FLOAT)
-        index = TOINT(pop_float());
+      if (GET_TOPITEM == STACK_INT)         index = pop_int();
+      else if (GET_TOPITEM == STACK_UINT8)  index = pop_uint8();
+      else if (GET_TOPITEM == STACK_INT64)  index = INT64TO32(pop_int64());
+      else if (GET_TOPITEM == STACK_FLOAT)  index = TOINT(pop_float());
       else {
         error(ERR_TYPENUM);
       }
@@ -921,6 +920,10 @@ static void do_arrayref(void) {
       PUSH_INT(vp->varentry.vararray->arraystart.intbase[element]);
       return;
     }
+    if (vartype == VAR_UINT8ARRAY) {	/* Can push the array element on to the stack then go home */
+      PUSH_UINT8(vp->varentry.vararray->arraystart.uint8base[element]);
+      return;
+    }
     if (vartype == VAR_INT64ARRAY) {	/* Can push the array element on to the stack then go home */
       PUSH_INT64(vp->varentry.vararray->arraystart.int64base[element]);
       return;
@@ -936,26 +939,22 @@ static void do_arrayref(void) {
     error(ERR_BROKEN, __LINE__, "evaluate");	/* Sanity check */
   }
   else {	/* Array reference is followed by an indirection operator */
-    if (vartype == VAR_INTARRAY) 	/* Fetch the element value */
-      offset = vp->varentry.vararray->arraystart.intbase[element];
-    else if (vartype == VAR_INT64ARRAY) 	/* Fetch the element value */
-      offset = vp->varentry.vararray->arraystart.int64base[element];
-    else if (vartype == VAR_FLOATARRAY)
-      offset = TOINT64(vp->varentry.vararray->arraystart.floatbase[element]);
-    else {
-      error(ERR_TYPENUM);
+    switch(vartype) {
+      case VAR_INTARRAY:   offset = vp->varentry.vararray->arraystart.intbase[element]; break;
+      case VAR_UINT8ARRAY: offset = vp->varentry.vararray->arraystart.uint8base[element]; break;
+      case VAR_INT64ARRAY: offset = vp->varentry.vararray->arraystart.int64base[element]; break;
+      case VAR_FLOATARRAY: offset = TOINT64(vp->varentry.vararray->arraystart.floatbase[element]); break;
+      default: error(ERR_TYPENUM);
     }
     operator = *basicvars.current;
     basicvars.current++;
     (*factor_table[*basicvars.current])();
-    if (GET_TOPITEM == STACK_INT)	/* Calculate the offset to be referenced */
-      offset+=pop_int();
-    else if (GET_TOPITEM == STACK_INT64)	/* Calculate the offset to be referenced */
-      offset+=pop_int64();
-    else if (GET_TOPITEM == STACK_FLOAT)
-      offset+=TOINT64(pop_float());
-    else {
-      error(ERR_TYPENUM);
+    switch(GET_TOPITEM) {			/* Calculate the offset to be referenced */
+      case STACK_INT:   offset+=pop_int(); break;
+      case STACK_UINT8: offset+=pop_uint8(); break;
+      case STACK_INT64: offset+=pop_int64(); break;
+      case STACK_FLOAT: offset+=TOINT64(pop_float()); break;
+      default: error(ERR_TYPENUM);
     }
     if (operator == '?') {	/* Byte-sized integer */
       check_read(offset, sizeof(byte));
@@ -988,14 +987,12 @@ static void do_indrefvar(void) {
   operator = *basicvars.current;
   basicvars.current++;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)	/* Calculate the offset to be referenced */
-    offset+=pop_int();
-  else if (GET_TOPITEM == STACK_INT64)	/* Calculate the offset to be referenced */
-    offset+=pop_int64();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    offset+=TOINT64(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {			/* Calculate the offset to be referenced */
+    case STACK_INT:   offset+=pop_int(); break;
+    case STACK_UINT8: offset+=pop_uint8(); break;
+    case STACK_INT64: offset+=pop_int64(); break;
+    case STACK_FLOAT: offset+=TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
   if (operator == '?') {	/* Byte-sized integer */
     check_read(offset, sizeof(byte));
@@ -1064,8 +1061,8 @@ static void do_xvar(void) {
       *basicvars.current = BASIC_TOKEN_FLOATINDVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
-    default:
-      error(ERR_VARNUM);
+    case VAR_UINT8: error(ERR_UNSUITABLEVAR);
+    default: error(ERR_VARNUM);
     }
     do_indrefvar();
   }
@@ -1075,7 +1072,7 @@ static void do_xvar(void) {
       set_address(basicvars.current, &vp->varentry.varinteger);
       do_intvar();
     }
-    else if (vartype == VAR_U8INT) {
+    else if (vartype == VAR_UINT8) {
       *basicvars.current = BASIC_TOKEN_UINT8VAR;
       set_address(basicvars.current, &vp->varentry.varu8int);
       do_uint8var();
@@ -1167,7 +1164,7 @@ static void do_brackets(void) {
 static void do_unaryplus(void) {
   basicvars.current++;		/* Skip '+' */
   (*factor_table[*basicvars.current])();
-  if ((GET_TOPITEM != STACK_INT) && (GET_TOPITEM != STACK_INT64) && (GET_TOPITEM != STACK_FLOAT)) error(ERR_TYPENUM);
+  if ((GET_TOPITEM != STACK_INT) && (GET_TOPITEM != STACK_UINT8) && (GET_TOPITEM != STACK_INT64) && (GET_TOPITEM != STACK_FLOAT)) error(ERR_TYPENUM);
 }
 
 /*
@@ -1179,14 +1176,12 @@ static void do_unaryminus(void) {
 #endif
   basicvars.current++;		/* Skip '-' */
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    NEGATE_INT;
-  else if (GET_TOPITEM == STACK_INT64)
-    NEGATE_INT64;
-  else if (GET_TOPITEM == STACK_FLOAT)
-    NEGATE_FLOAT;
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   NEGATE_INT; break;
+    case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
+    case STACK_INT64: NEGATE_INT64; break;
+    case STACK_FLOAT: NEGATE_FLOAT; break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_unaryminus\n");
@@ -1202,14 +1197,12 @@ static void do_getbyte(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    offset = pop_int();
-  else if (GET_TOPITEM == STACK_INT64)
-    offset = pop_int64();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   offset = pop_int(); break;
+    case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
+    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_FLOAT: offset = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
   check_read(offset, sizeof(byte));
 #ifdef USE_SDL
@@ -1230,14 +1223,12 @@ static void do_getword(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip '!' */
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    offset = pop_int();
-  else if (GET_TOPITEM == STACK_INT64)
-    offset = pop_int64();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT64(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   offset = pop_int(); break;
+    case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
+    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_FLOAT: offset = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
@@ -1260,14 +1251,12 @@ static void do_getstring(void) {
   int32 len;
   basicvars.current++;		/* Skip '$' */
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    offset = pop_int();
-  else if (GET_TOPITEM == STACK_INT64)
-    offset = pop_int64();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT64(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   offset = pop_int(); break;
+    case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
+    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_FLOAT: offset = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
@@ -1289,14 +1278,12 @@ static void do_getfloat(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip '|' */
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    offset = pop_int();
-  else if (GET_TOPITEM == STACK_INT64)
-    offset = pop_int64();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    offset = TOINT64(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   offset = pop_int(); break;
+    case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
+    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_FLOAT: offset = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
@@ -1483,8 +1470,8 @@ static void *make_array(int32 arraytype, basicarray* original) {
     base = alloc_stackmem(original->arrsize*sizeof(int32));
     result.arraystart.intbase = base;
     break;
-  case VAR_U8INT:
-    base = alloc_stackmem(original->arrsize*sizeof(unsigned char));
+  case VAR_UINT8:
+    base = alloc_stackmem(original->arrsize*sizeof(uint8));
     result.arraystart.uint8base = base;
     break;
   case VAR_INTLONG:
@@ -1517,14 +1504,15 @@ static void *make_array(int32 arraytype, basicarray* original) {
 */
 static void eval_ivplus(void) {
   stackitem lhitem;
+  int64 lhint64=0;
+  int32 lhint32=0;
   int32 rhint32 = pop_int();	/* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {
     if (matrixflags.legacyintmaths) {
       INCR_INT(rhint32);		/* int+int - Update value on stack in place */
     } else {
-      int64 lhint64;
-      int32 lhint32=pop_int();
+      lhint32=pop_int();
       lhint64 = (int64)lhint32 + (int64)rhint32;
       lhint32 += rhint32;
       if (lhint64 == lhint32)
@@ -1533,8 +1521,7 @@ static void eval_ivplus(void) {
         push_int64(lhint64);
     }
   } else if (lhitem == STACK_UINT8) {
-    int64 lhint64;
-    int32 lhint32=pop_uint8();
+    lhint32=pop_uint8();
     lhint64 = (int64)lhint32 + (int64)rhint32;
     lhint32 += rhint32;
     if (lhint64 == lhint32)
@@ -1542,8 +1529,7 @@ static void eval_ivplus(void) {
     else
       push_int64(lhint64);
   } else if (lhitem == STACK_INT64) {
-    int32 lhint32;
-    int64 lhint64=pop_int64();
+    lhint64=pop_int64();
     lhint32=((int32)lhint64 + rhint32);
     lhint64 += (int64)rhint32;
     if (lhint64 == lhint32)
@@ -1552,7 +1538,7 @@ static void eval_ivplus(void) {
       push_int64(lhint64);
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint32));	/* float+int - Update value on stack in place */
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -1561,6 +1547,10 @@ static void eval_ivplus(void) {
       int32 *srce, *base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.intbase;
       for (n = 0; n < count; n++) base[n] = (int32)(srce[n]+rhint32);
+    } else if (lhitem == STACK_UINT8ARRAY) {
+      uint8 *srce, *base = make_array(VAR_UINT8, lharray);
+      srce = lharray->arraystart.uint8base;
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhint32;
     } else if (lhitem == STACK_INT64ARRAY) {
       int64 *srce, *base = make_array(VAR_INTLONG, lharray);
       srce = lharray->arraystart.int64base;
@@ -1585,17 +1575,91 @@ static void eval_ivplus(void) {
 }
 
 /*
+** 'eval_ivu8plus' deals with addition when the right-hand operand is
+** an unsigned 8-bit  integer value. All versions of the operator are
+** dealt with by this function
+*/
+static void eval_ivu8plus(void) {
+  stackitem lhitem;
+  int64 lhint64 = 0;
+  int32 lhint32 = 0;
+  uint8 rhuint8 = pop_uint8();	/* Top item on Basic stack is right-hand operand */
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {
+    lhint32=pop_int();
+    lhint64 = (int64)lhint32 + rhuint8;
+    lhint32 += rhuint8;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
+  } else if (lhitem == STACK_UINT8) {
+    lhint32=pop_uint8();
+    lhint64 = (int64)lhint32 + rhuint8;
+    lhint32 += rhuint8;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
+  } else if (lhitem == STACK_INT64) {
+    lhint64=pop_int64();
+    lhint64 += rhuint8;
+    lhint32 = (int32)lhint64;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
+  } else if (lhitem == STACK_FLOAT)
+    INCR_FLOAT(TOFLOAT(rhuint8));	/* float+int - Update value on stack in place */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
+    basicarray *lharray;
+    int32 n, count;
+    lharray = pop_array();
+    count = lharray->arrsize;
+    if (lhitem == STACK_INTARRAY) {
+      int32 *srce, *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhuint8;
+    } else if (lhitem == STACK_UINT8ARRAY) {
+      uint8 *srce, *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.uint8base;
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhuint8;
+    } else if (lhitem == STACK_INT64ARRAY) {
+      int64 *srce, *base = make_array(VAR_INTLONG, lharray);
+      srce = lharray->arraystart.int64base;
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhuint8;
+    } else {
+      float64 *srce, *base = make_array(VAR_FLOAT, lharray);
+      floatvalue = TOFLOAT(rhuint8);
+      srce = lharray->arraystart.floatbase;
+      for (n = 0; n < count; n++) base[n] = srce[n]+floatvalue;
+    }
+  } else if (lhitem == STACK_FATEMP) {	/* <float array>+<integer value> */
+    basicarray lharray;
+    float64 *base;
+    int32 n, count;
+    lharray = pop_arraytemp();
+    base = lharray.arraystart.floatbase;
+    count = lharray.arrsize;
+    floatvalue = TOFLOAT(rhuint8);
+    for (n = 0; n < count; n++) base[n]+=floatvalue;
+    push_arraytemp(&lharray, VAR_FLOAT);
+  } else want_number();
+}
+
+/*
 ** 'eval_iv64plus' deals with addition when the right-hand operand is
 ** a 64-bit  integer value. All versions of the operator are dealt with
 ** by this function
 */
 static void eval_iv64plus(void) {
   stackitem lhitem;
+  int64 lhint64 = 0;
+  int32 lhint32 = 0;
   int64 rhint64 = pop_int64();	/* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {
-    int64 lhint64;
-    int32 lhint32=pop_int();
+    lhint32=pop_int();
     lhint64 = (int64)lhint32 + rhint64;
     lhint32 += (int32)rhint64;
     if (lhint64 == lhint32)
@@ -1603,8 +1667,7 @@ static void eval_iv64plus(void) {
     else
       push_int64(lhint64);
   } else if (lhitem == STACK_UINT8) {
-    int64 lhint64;
-    int32 lhint32=pop_uint8();
+    lhint32=pop_uint8();
     lhint64 = (int64)lhint32 + rhint64;
     lhint32 += (int32)rhint64;
     if (lhint64 == lhint32)
@@ -1612,8 +1675,7 @@ static void eval_iv64plus(void) {
     else
       push_int64(lhint64);
   } else if (lhitem == STACK_INT64) {
-    int32 lhint32;
-    int64 lhint64=pop_int64();
+    lhint64=pop_int64();
     lhint64 += rhint64;
     lhint32 = (int32)lhint64;
     if (lhint64 == lhint32)
@@ -1622,7 +1684,7 @@ static void eval_iv64plus(void) {
       push_int64(lhint64);
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint64));	/* float+int - Update value on stack in place */
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -1630,7 +1692,11 @@ static void eval_iv64plus(void) {
     if (lhitem == STACK_INTARRAY) {
       int32 *srce, *base = make_array(VAR_INTWORD, lharray);
       srce = lharray->arraystart.intbase;
-      for (n = 0; n < count; n++) base[n] = (int32)(srce[n]+rhint64);
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhint64;
+    } else if (lhitem == STACK_UINT8ARRAY) {
+      uint8 *srce, *base = make_array(VAR_INTWORD, lharray);
+      srce = lharray->arraystart.uint8base;
+      for (n = 0; n < count; n++) base[n] = srce[n]+rhint64;
     } else if (lhitem == STACK_INT64ARRAY) {
       int64 *srce, *base = make_array(VAR_INTLONG, lharray);
       srce = lharray->arraystart.int64base;
@@ -1674,7 +1740,7 @@ static void eval_fvplus(void) {
     PUSH_FLOAT(floatvalue);		
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(floatvalue);
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
     basicarray *lharray;
     float64 *base;
     int32 n, count;
@@ -1683,6 +1749,9 @@ static void eval_fvplus(void) {
     base = make_array(VAR_FLOAT, lharray);
     if (lhitem == STACK_INTARRAY) {
       int32 *srce = lharray->arraystart.intbase;
+      for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
+    } else if (lhitem == STACK_UINT8ARRAY) {
+      uint8 *srce = lharray->arraystart.uint8base;
       for (n = 0; n < count; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
     } else if (lhitem == STACK_INT64ARRAY) {
       int64 *srce = lharray->arraystart.int64base;
@@ -1774,6 +1843,68 @@ static void eval_iaplus(void) {
   } else if (lhitem == STACK_UINT8) {
     int32 lhint32 = pop_uint8();
     int32 *base = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
+  } else if (lhitem == STACK_INT64) {
+    int64 lhint64 = pop_int64();
+    int64 *base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint64+rhsrce[n];
+  } else if (lhitem == STACK_FLOAT) {	/* <float>+<int array> */
+    float64 *base;
+    floatvalue = pop_float();
+    base = make_array(VAR_FLOAT, rharray);
+    for (n = 0; n < count; n++) base[n] = floatvalue+TOFLOAT(rhsrce[n]);
+  } else if (lhitem == STACK_INTARRAY) {	/* <int array>+<int array> */
+    int32 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.intbase;
+    base = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
+  } else if (lhitem == STACK_INT64ARRAY) {	/* <int array>+<int array> */
+    int64 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray->arraystart.int64base;
+    base = make_array(VAR_INTLONG, rharray);
+    for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
+  } else if (lhitem == STACK_FLOATARRAY) {	/* <float array>+<int array> */
+    float64 *base, *lhsrce;
+    basicarray *lharray = pop_array();
+    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    base = make_array(VAR_FLOAT, rharray);
+    lhsrce = lharray->arraystart.floatbase;
+    for (n = 0; n < count; n++) base[n] = lhsrce[n]+TOFLOAT(rhsrce[n]);
+  } else if (lhitem == STACK_FATEMP) {		/* <float array>+<int array> */
+    float64 *lhsrce;
+    basicarray lharray = pop_arraytemp();
+    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    lhsrce = lharray.arraystart.floatbase;
+    for (n = 0; n < count; n++) lhsrce[n]+=TOFLOAT(rhsrce[n]);
+    push_arraytemp(&lharray, VAR_FLOAT);
+  } else want_number();
+}
+
+/*
+** 'eval_iu8aplus' deals with addition when the right-hand operand is
+** an unsigned 8-bit integer array. All versions of the operator are
+** dealt with by this function
+*/
+static void eval_iu8aplus(void) {
+  stackitem lhitem;
+  basicarray *rharray;
+  int32 n, count;
+  uint8 *rhsrce;
+  rharray = pop_array();
+  count = rharray->arrsize;
+  rhsrce = rharray->arraystart.uint8base;
+  lhitem = GET_TOPITEM;
+  if (lhitem == STACK_INT) {
+    int32 lhint32 = pop_int();
+    int32 *base = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
+  } else if (lhitem == STACK_UINT8) {
+    int32 lhint32 = pop_uint8();
+    uint8 *base = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
   } else if (lhitem == STACK_INT64) {
     int64 lhint64 = pop_int64();
@@ -2015,14 +2146,14 @@ static void eval_saplus(void) {
 */
 static void eval_ivminus(void) {
   stackitem lhitem;
-  int32 rhint32 = pop_int();
+  int32 lhint32=0, rhint32 = pop_int();
+  int64 lhint64=0;
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
     if (matrixflags.legacyintmaths) {
       DECR_INT(rhint32);
     } else {
-      int64 lhint64;
-      int32 lhint32=pop_int();
+      lhint32=pop_int();
       lhint64=(int64)lhint32-(int64)rhint32;
       lhint32 -= rhint32;
       if (lhint64 == lhint32)
@@ -2030,9 +2161,16 @@ static void eval_ivminus(void) {
       else
        push_int64(lhint64);
     }
+  } else if (lhitem == STACK_UINT8) {	/* Branch according to type of left-hand operand */
+    lhint32=pop_uint8();
+    lhint64 = (int64)lhint32 - (int64)rhint32;
+    lhint32 -=rhint32;
+    if (lhint64 == lhint32)
+      push_int(lhint32);
+    else
+      push_int64(lhint64);
   } else if (lhitem == STACK_INT64) {	/* Branch according to type of left-hand operand */
-    int32 lhint32;
-    int64 lhint64=pop_int64();
+    lhint64=pop_int64();
     lhint32 = (int32)lhint64 - rhint32;
     lhint64 -= (int64)rhint32;
     if (lhint64 == lhint32)
@@ -2041,7 +2179,7 @@ static void eval_ivminus(void) {
       push_int64(lhint64);
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint32));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
+  else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -4889,112 +5027,116 @@ static int32 optable [256] = {	/* Character -> priority/operator */
 ** It is indexed by the operator and the type of the right hand operand
 ** on the stack
 */
-static void (*opfunctions [21][17])(void) = {
+static void (*opfunctions [21][18])(void) = {
 /* Dummy */
- {eval_badcall, eval_badcall, eval_badcall, eval_badcall, eval_badcall,
-  eval_badcall, eval_badcall, eval_badcall, eval_badcall,
-  eval_badcall, eval_badcall, eval_badcall, eval_badcall,
-  eval_badcall, eval_badcall, eval_badcall, eval_badcall},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_badcall,  eval_badcall,
+  eval_badcall,  eval_badcall,  eval_badcall,   eval_badcall,
+  eval_badcall,  eval_badcall,  eval_badcall,   eval_badcall,
+  eval_badcall,  eval_badcall,  eval_badcall,   eval_badcall,
+  eval_badcall},
 /* Addition */
- {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivplus,  eval_iv64plus,
+ {eval_badcall,  eval_badcall,  eval_ivu8plus,  eval_ivplus,   eval_iv64plus,
   eval_fvplus,   eval_svplus,   eval_svplus,    eval_iaplus,
-  eval_iaplus,   eval_badcall,  eval_i64aplus,  eval_i64aplus,
-  eval_faplus,   eval_faplus,   eval_saplus,    eval_saplus},
+  eval_iaplus,   eval_iu8aplus, eval_iu8aplus,  eval_i64aplus,
+  eval_i64aplus, eval_faplus,   eval_faplus,    eval_saplus,
+  eval_saplus},
 /* Subtraction */
- {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivminus, eval_iv64minus,
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivminus,  eval_iv64minus,
   eval_fvminus,  want_number,   want_number,    eval_iaminus,
-  eval_iaminus,  eval_badcall,  eval_i64aminus, eval_i64aminus,
-  eval_faminus, eval_faminus,   want_number,    want_number},
+  eval_iaminus,  eval_badcall,  eval_badcall,   eval_i64aminus,
+  eval_i64aminus,eval_faminus,  eval_faminus,   want_number,
+  want_number},
 /* Multiplication */
- {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivmul,   eval_iv64mul,
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivmul,    eval_iv64mul,
   eval_fvmul,    want_number,   want_number,    eval_iamul,
-  eval_iamul,    eval_badcall,  eval_i64amul,   eval_i64amul,
-  eval_famul,    eval_famul,    want_number,    want_number},
+  eval_iamul,    eval_badcall,  eval_badcall,   eval_i64amul,
+  eval_i64amul,  eval_famul,    eval_famul,     want_number,
+  want_number},
 /* Matrix multiplication */
- {want_array,    eval_badcall,  want_array,     want_array,   want_array,
+ {want_array,    eval_badcall,  want_array,     want_array,    want_array,
   want_array,    want_array,    want_array,     eval_immul,
   want_array,    eval_badcall,  want_array,     want_array,
   eval_fmmul,    want_array,    want_array,     want_array},
 /* Division */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivdiv,   eval_iv64div, eval_fvdiv,
-  want_number,  want_number,  eval_iadiv,   eval_iadiv,
-  eval_badcall, eval_i64adiv, eval_i64adiv, eval_fadiv,   eval_fadiv,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivdiv,    eval_iv64div,
+  eval_fvdiv,    want_number,   want_number,    eval_iadiv,
+  eval_iadiv,    eval_badcall,  eval_i64adiv,   eval_i64adiv,
+  eval_fadiv,    eval_fadiv,    want_number,    want_number},
 /* Integer division */
- {eval_badcall,    eval_badcall,    eval_badcall, eval_ivintdiv, eval_iv64intdiv, eval_fvintdiv,
-  want_number,     want_number,     eval_iaintdiv, eval_iaintdiv,
-  eval_badcall, eval_i64aintdiv, eval_i64aintdiv, eval_faintdiv, eval_faintdiv,
-  want_number,     want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivintdiv, eval_iv64intdiv,
+  eval_fvintdiv, want_number,   want_number,    eval_iaintdiv,
+  eval_iaintdiv, eval_badcall,  eval_i64aintdiv,eval_i64aintdiv,
+  eval_faintdiv, eval_faintdiv, want_number,    want_number},
 /* Integer remainder */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivmod,   eval_iv64mod, eval_fvmod,
-  want_number,  want_number,  eval_iamod,   eval_iamod,
-  eval_badcall, eval_i64amod, eval_i64amod, eval_famod,   eval_famod,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivmod,    eval_iv64mod,
+  eval_fvmod,    want_number,   want_number,    eval_iamod,
+  eval_iamod,    eval_badcall,  eval_i64amod,   eval_i64amod,
+  eval_famod,    eval_famod,    want_number,    want_number},
 /* Raise */
- {eval_badcall, eval_badcall, eval_badcall, eval_vpow,    eval_vpow, eval_vpow,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_vpow,     eval_vpow,
+  eval_vpow,     want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Logical left shift */
- {eval_badcall, eval_badcall, eval_badcall, eval_vlsl,    eval_vlsl, eval_vlsl,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_vlsl,     eval_vlsl,
+  eval_vlsl,     want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Logical right shift */
- {eval_badcall, eval_badcall, eval_badcall, eval_vlsr,    eval_vlsr, eval_vlsr,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_vlsr,     eval_vlsr,
+  eval_vlsr,     want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Arithmetic right shift */
- {eval_badcall, eval_badcall, eval_badcall, eval_vasr,    eval_vasr, eval_vasr,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_vasr,     eval_vasr,
+  eval_vasr,     want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Equals */
- {eval_badcall, eval_badcall, eval_badcall, eval_iveq,    eval_iv64eq, eval_fveq,
-  eval_sveq,    eval_sveq,    want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_iveq,     eval_iv64eq,
+  eval_fveq,     eval_sveq,     eval_sveq,      want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Not equals */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivne,    eval_iv64ne, eval_fvne,
-  eval_svne,    eval_svne,    want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivne,     eval_iv64ne,
+  eval_fvne,     eval_svne,     eval_svne,      want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Greater than */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivgt,    eval_iv64gt, eval_fvgt,
-  eval_svgt,    eval_svgt,    want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivgt,     eval_iv64gt,
+  eval_fvgt,     eval_svgt,     eval_svgt,      want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Less than */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivlt,    eval_iv64lt, eval_fvlt,
-  eval_svlt,    eval_svlt,    want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivlt,     eval_iv64lt,
+  eval_fvlt,     eval_svlt,     eval_svlt,      want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Greater than or equal to */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivge,    eval_iv64ge, eval_fvge,
-  eval_svge,    eval_svge,    want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivge,     eval_iv64ge,
+  eval_fvge,     eval_svge,     eval_svge,      want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Less than or equal to */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivle,    eval_iv64le, eval_fvle,
-  eval_svle,    eval_svle,    want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivle,     eval_iv64le,
+  eval_fvle,     eval_svle,     eval_svle,      want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Logical and */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivand,   eval_iv64and, eval_fvand,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivand,    eval_iv64and,
+  eval_fvand,    want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Logical or */
- {eval_badcall, eval_badcall, eval_badcall, eval_ivor,    eval_iv64or, eval_fvor,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_ivor,     eval_iv64or,
+  eval_fvor,     want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 /* Logical exclusive or */
- {eval_badcall, eval_badcall, eval_badcall, eval_iveor,   eval_iv64eor, eval_fveor,
-  want_number,  want_number,  want_number,  want_number,
-  eval_badcall, want_number,  want_number,  want_number,  want_number,
-  want_number,  want_number},
+ {eval_badcall,  eval_badcall,  eval_badcall,   eval_iveor,    eval_iv64eor,
+  eval_fveor,    want_number,   want_number,    want_number,
+  want_number,   eval_badcall,  want_number,    want_number,
+  want_number,   want_number,   want_number,    want_number},
 };
 
 /*

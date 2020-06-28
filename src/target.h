@@ -80,6 +80,7 @@
 **
 ** The following are suitable for ARM and X86
 */
+typedef unsigned char uint8;		/* Type for unsigned 8-bit integer variables in Basic */
 typedef int int32;			/* Type for 32-bit integer variables in Basic */
 typedef unsigned int uint32;		/* 32-bit unsigned integer */
 typedef double float64;			/* Type for 64-bit floating point variables in Basic */

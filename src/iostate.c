@@ -124,7 +124,10 @@ static char *input_number(lvalue destination, char *p) {
   case VAR_INTWORD:	/* Normal integer variable */
     *destination.address.intaddr = isint ? intvalue : TOINT(fpvalue);
     break;
-  case VAR_INTLONG:	/* Normal integer variable */
+  case VAR_UINT8:	/* unsigned 8-bit integer variable */
+    *destination.address.uint8addr = isint ? intvalue : TOINT(fpvalue);
+    break;
+  case VAR_INTLONG:	/* 64-bit integer variable */
     *destination.address.int64addr = isint ? int64value : TOINT64(fpvalue);
     break;
   case VAR_FLOAT:	/* Normal floating point variable */
@@ -289,7 +292,7 @@ static void read_input(boolean inputline) {
         cp = &line[0];
       }
       switch (destination.typeinfo) {
-      case VAR_INTWORD: case VAR_INTLONG: case VAR_FLOAT:	/* Numeric items */
+      case VAR_INTWORD: case VAR_UINT8: case VAR_INTLONG: case VAR_FLOAT:	/* Numeric items */
       case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_FLOATPTR:
         do {
           cp = input_number(destination, cp);	/* Try to read a number */

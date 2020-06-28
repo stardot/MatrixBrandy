@@ -308,7 +308,7 @@ static void assign_intarray(pointers address) {
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
     if (ap!=ap2) memmove(ap->arraystart.intbase, ap2->arraystart.intbase, ap->arrsize*sizeof(int32));
   } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
-    unsigned char *fp;
+    uint8 *fp;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -333,7 +333,7 @@ static void assign_intarray(pointers address) {
     free_stackmem();
   } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
     basicarray temp = pop_arraytemp();
-    unsigned char *fp;
+    uint8 *fp;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
     p = ap->arraystart.intbase;
@@ -379,7 +379,7 @@ static void assign_uint8array(pointers address) {
   basicarray *ap, *ap2;
   stackitem exprtype;
   int32 n, value;
-  unsigned char *p;
+  uint8 *p;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -431,7 +431,7 @@ static void assign_uint8array(pointers address) {
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
-    if (ap!=ap2) memmove(ap->arraystart.uint8base, ap2->arraystart.uint8base, ap->arrsize*sizeof(unsigned char));
+    if (ap!=ap2) memmove(ap->arraystart.uint8base, ap2->arraystart.uint8base, ap->arrsize*sizeof(uint8));
   } else if (exprtype==STACK_INT64ARRAY) {	/* array1()=array2() */
     int64 *fp;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -454,7 +454,7 @@ static void assign_uint8array(pointers address) {
     basicarray temp = pop_arraytemp();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
-    memmove(ap->arraystart.uint8base, temp.arraystart.uint8base, ap->arrsize*sizeof(unsigned char));
+    memmove(ap->arraystart.uint8base, temp.arraystart.uint8base, ap->arrsize*sizeof(uint8));
     free_stackmem();
   } else if (exprtype==STACK_I64ATEMP) {	/* array1()=array2()<op><value> */
     basicarray temp = pop_arraytemp();
@@ -463,7 +463,7 @@ static void assign_uint8array(pointers address) {
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
     p = ap->arraystart.uint8base;
     fp = temp.arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = (unsigned char)(fp[n]);
+    for (n=0; n<ap->arrsize; n++) p[n] = (uint8)(fp[n]);
     free_stackmem();
   } else if (exprtype==STACK_FLOATARRAY) {	/* array1()=array2() */
     float64 *fp;
@@ -541,7 +541,7 @@ static void assign_int64array(pointers address) {
     fp = ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n] = (fp[n]);
   } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
-    unsigned char *fp;
+    uint8 *fp;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -565,7 +565,7 @@ static void assign_int64array(pointers address) {
     for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
     free_stackmem();
   } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
-    unsigned char *fp;
+    uint8 *fp;
     basicarray temp = pop_arraytemp();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
@@ -668,7 +668,7 @@ static void assign_floatarray(pointers address) {
     ip = ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
   } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()=array2() */
-    unsigned char *ip;
+    uint8 *ip;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -696,7 +696,7 @@ static void assign_floatarray(pointers address) {
     free_stackmem();
   } else if (exprtype==STACK_U8ATEMP) {	/* array1()=array2()<op><value> */
     basicarray temp = pop_arraytemp();
-    unsigned char *ip;
+    uint8 *ip;
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
     if (!check_arrays(ap, &temp)) error(ERR_TYPEARRAY);
     p = ap->arraystart.floatbase;
@@ -1014,7 +1014,7 @@ static void assiplus_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -1298,7 +1298,7 @@ static void assiminus_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -1531,7 +1531,7 @@ static void assiand_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -1757,7 +1757,7 @@ static void assior_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -1983,7 +1983,7 @@ static void assieor_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -2209,7 +2209,7 @@ static void assimod_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -2435,7 +2435,7 @@ static void assidiv_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 n, value;
-  unsigned char *p, *p2;
+  uint8 *p, *p2;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
   if (ap==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
@@ -2901,7 +2901,7 @@ void assign_uint8var(void) {
   byte assignop;
   int32 value = 0;
   int64 value64 = 0;
-  unsigned char *ip;
+  uint8 *ip;
   stackitem exprtype;
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_uint8var\n");
@@ -2909,7 +2909,7 @@ void assign_uint8var(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Unsigned 8-bit integer assignment start - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
 #endif
-  ip = GET_ADDRESS(basicvars.current, unsigned char *);
+  ip = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=1+LOFFSIZE;	/* Skip the pointer to the variable */
   assignop = *basicvars.current;
   basicvars.current++;

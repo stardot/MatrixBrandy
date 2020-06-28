@@ -114,7 +114,7 @@ static void list_varlist(char which, library *lp) {
             len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varinteger);
           }
           break;
-        case VAR_U8INT:
+        case VAR_UINT8:
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varu8int);
           else {
@@ -156,7 +156,7 @@ static void list_varlist(char which, library *lp) {
           len = strlen(temp);
           break;
         }
-        case VAR_INTARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
+        case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
           int i;
           char temp2[20];
           basicarray *ap;
@@ -202,7 +202,7 @@ static void list_varlist(char which, library *lp) {
             do {
               if ((fp->parameter.typeinfo & VAR_RETURN)!=0) strcat(temp, "RETURN ");
               switch(fp->parameter.typeinfo & PARMTYPEMASK) {
-              case VAR_INTWORD: case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_U8INT:
+              case VAR_INTWORD: case VAR_INTLONG: case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_UINT8:
                 strcat(temp, "integer");
                 break;
               case VAR_FLOAT: case VAR_FLOATPTR:
@@ -211,17 +211,12 @@ static void list_varlist(char which, library *lp) {
               case VAR_STRINGDOL: case VAR_DOLSTRPTR:
                 strcat(temp, "string");
                 break;
-              case VAR_INTARRAY:
-                strcat(temp, "integer()");
-                break;
-              case VAR_FLOATARRAY:
-                strcat(temp, "real()");
-                break;
-              case VAR_STRARRAY:
-                strcat(temp, "string()");
-                break;
-              default:
-                error(ERR_BROKEN, __LINE__, "variables");
+              case VAR_INTARRAY: strcat(temp, "integer()"); break;
+              case VAR_INT64ARRAY: strcat(temp, "int64()"); break;
+              case VAR_UINT8ARRAY: strcat(temp, "uint8()"); break;
+              case VAR_FLOATARRAY: strcat(temp, "real()"); break;
+              case VAR_STRARRAY: strcat(temp, "string()"); break;
+              default: error(ERR_BROKEN, __LINE__, "variables");
               }
               fp = fp->nextparm;
               if (fp==NIL)
@@ -380,6 +375,9 @@ void define_array(variable *vp, boolean islocal) {
   case VAR_INTARRAY:
     elemsize = sizeof(int32);
     break;
+  case VAR_UINT8ARRAY:
+    elemsize = sizeof(uint8);
+    break;
   case VAR_INT64ARRAY:
     elemsize = sizeof(int64);
     break;
@@ -430,6 +428,8 @@ void define_array(variable *vp, boolean islocal) {
 /* Now zeroise all the array elememts */
   if (vp->varflags==VAR_INTARRAY)
     for (n=0; n<size; n++) ap->arraystart.intbase[n] = 0;
+  else if (vp->varflags==VAR_UINT8ARRAY)
+    for (n=0; n<size; n++) ap->arraystart.uint8base[n] = 0;
   else if (vp->varflags==VAR_INT64ARRAY)
     for (n=0; n<size; n++) ap->arraystart.int64base[n] = 0;
   else if (vp->varflags==VAR_FLOATARRAY)
@@ -492,6 +492,9 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
         vp->varflags = VAR_INTWORD|VAR_ARRAY;
       }
       break;
+    case '&':
+      vp->varflags = VAR_UINT8|VAR_ARRAY;
+      break;
     case '$':
       vp->varflags = VAR_STRINGDOL|VAR_ARRAY;
       break;
@@ -513,7 +516,7 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
     }
     break;
   case '&':
-    vp->varflags = VAR_U8INT;
+    vp->varflags = VAR_UINT8;
     vp->varentry.varinteger = 0;
     break;
   case '$':

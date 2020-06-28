@@ -268,6 +268,9 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
   case VAR_INTWORD:
     *destination.address.intaddr = value;
     break;
+  case VAR_UINT8:
+    *destination.address.uint8addr = value;
+    break;
   case VAR_INTLONG:
     *destination.address.int64addr = valuex;
     break;

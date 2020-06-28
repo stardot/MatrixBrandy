@@ -233,7 +233,7 @@ void push_int(int32 x) {
 /*
 ** 'push_uint8' pushes an unsigned 8-bit integer value on to the Basic stack
 */
-void push_uint8(unsigned char x) {
+void push_uint8(uint8 x) {
 #ifdef DEBUG
   byte *oldsp = basicvars.stacktop.bytesp;
 #endif
@@ -580,6 +580,22 @@ void save_int(lvalue details, int32 value) {
 }
 
 /*
+** 'save_uint8' saves an integer value on the stack. It is used when
+** dealing with local variables
+*/
+void save_uint8(lvalue details, uint8 value) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
+  basicvars.stacktop.localsp->savedetails = details;
+  basicvars.stacktop.localsp->value.saveduint8 = value;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving unsigned 8-bit integer from %p at %p with value &%X\n",
+   details.address.uint8addr, basicvars.stacktop.localsp, value);
+#endif
+}
+
+/*
 ** 'save_int64' saves an integer value on the stack. It is used when
 ** dealing with local variables
 */
@@ -591,7 +607,7 @@ void save_int64(lvalue details, int64 value) {
   basicvars.stacktop.localsp->value.savedint64 = value;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "LOCAL variable - saving 64-bit integer from %p at %p with value &%llX\n",
-   details.address.intaddr, basicvars.stacktop.localsp, value);
+   details.address.int64addr, basicvars.stacktop.localsp, value);
 #endif
 }
 
@@ -664,6 +680,23 @@ void save_retint(lvalue retdetails, lvalue details, int32 value) {
   basicvars.stacktop.retparmsp->value.savedint = value;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Saving 32-bit integer variable from %p at %p\n",
+   details.address.intaddr, basicvars.stacktop.retparmsp);
+#endif
+}
+
+/*
+** 'save_retuint8' sets up the control block on the stack for a floating point
+**'RETURN' type PROC/FN parameter
+*/
+void save_retuint8(lvalue retdetails, lvalue details, uint8 value) {
+  basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
+  basicvars.stacktop.retparmsp->retdetails = retdetails;
+  basicvars.stacktop.retparmsp->savedetails = details;
+  basicvars.stacktop.retparmsp->value.saveduint8 = value;
+#ifdef DEBUG
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Saving 64-bit integer variable from %p at %p\n",
    details.address.intaddr, basicvars.stacktop.retparmsp);
 #endif
 }
@@ -852,6 +885,9 @@ static void restore(int32 parmcount) {
       *p->savedetails.address.intaddr = p->value.savedint;
     else {
       switch (p->savedetails.typeinfo & PARMTYPEMASK) {
+      case VAR_UINT8:
+        *p->savedetails.address.uint8addr = p->value.saveduint8;
+        break;
       case VAR_INTLONG:
         *p->savedetails.address.int64addr = p->value.savedint64;
         break;
@@ -946,7 +982,7 @@ int32 pop_int(void) {
   return p->intvalue;
 }
 
-unsigned char pop_uint8(void) {
+uint8 pop_uint8(void) {
   stack_uint8 *p = basicvars.stacktop.uint8sp;
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop uint8 integer from stack at %p, value %d\n",

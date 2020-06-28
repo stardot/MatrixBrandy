@@ -122,7 +122,9 @@ void exec_call(void) {
 void exec_case(void) {
   stackitem casetype, whentype;
   int32 n, intcase = 0;
-  static float64 floatcase;
+  uint8 uint8case = 0;
+  int64 int64case = 0;
+  static float64 floatcase = 0;
   basicstring casestring = {0, NULL}, whenstring;
   casetable *cp;
   boolean found;
@@ -133,17 +135,12 @@ void exec_case(void) {
   expression();
   casetype = GET_TOPITEM;
   switch (casetype) {	/* Check the type of the 'CASE' expression */
-  case STACK_INT:
-    intcase = pop_int();
-    break;
-  case STACK_FLOAT:
-    floatcase = pop_float();
-    break;
-  case STACK_STRING: case STACK_STRTEMP:
-    casestring = pop_string();
-    break;
-  default:
-    error(ERR_VARNUMSTR);
+  case STACK_INT:    intcase = pop_int(); break;
+  case STACK_UINT8:  uint8case = pop_uint8(); break;
+  case STACK_INT64:  int64case = pop_int64(); break;
+  case STACK_FLOAT:  floatcase = pop_float(); break;
+  case STACK_STRING: case STACK_STRTEMP: casestring = pop_string(); break;
+  default: error(ERR_VARNUMSTR);
   }
 /*
 ** Now go through the case table and try to find a 'WHEN' case that
@@ -157,21 +154,39 @@ void exec_case(void) {
       expression();
       whentype = GET_TOPITEM;
       if (casetype == STACK_INT) {	/* Go by type of 'case' expression */
-        if (whentype == STACK_INT)	/* Then by type of 'WHEN' expression */
-          found = pop_int() == intcase;
-        else if (whentype == STACK_FLOAT)
-          found = pop_float() == TOFLOAT(intcase);
-        else {
-          error(ERR_TYPENUM);
+        switch(whentype) {		/* Then by type of 'WHEN' expression */
+          case STACK_INT:   found = pop_int() == intcase; break;
+          case STACK_UINT8: found = pop_uint8() == intcase; break;
+          case STACK_INT64: found = pop_int64() == intcase; break;
+          case STACK_FLOAT: found = pop_float() == TOFLOAT(intcase); break;
+          default: error(ERR_TYPENUM);
+        }
+      }
+      else if (casetype == STACK_UINT8) {	/* Go by type of 'case' expression */
+        switch(whentype) {		/* Then by type of 'WHEN' expression */
+          case STACK_INT:   found = pop_int() == uint8case; break;
+          case STACK_UINT8: found = pop_uint8() == uint8case; break;
+          case STACK_INT64: found = pop_int64() == uint8case; break;
+          case STACK_FLOAT: found = pop_float() == TOFLOAT(uint8case); break;
+          default: error(ERR_TYPENUM);
+        }
+      }
+      else if (casetype == STACK_INT64) {	/* Go by type of 'case' expression */
+        switch(whentype) {		/* Then by type of 'WHEN' expression */
+          case STACK_INT:   found = pop_int() == int64case; break;
+          case STACK_UINT8: found = pop_uint8() == int64case; break;
+          case STACK_INT64: found = pop_int64() == int64case; break;
+          case STACK_FLOAT: found = pop_float() == TOFLOAT(int64case); break;
+          default: error(ERR_TYPENUM);
         }
       }
       else if (casetype == STACK_FLOAT) {		/* 'case' expression is a floating point value */
-        if (whentype == STACK_INT)
-          found = TOFLOAT(pop_int()) == floatcase;
-        else if (whentype == STACK_FLOAT)
-          found = pop_float() == floatcase;
-        else {
-          error(ERR_TYPENUM);
+        switch(whentype) {
+          case STACK_INT:   found = TOFLOAT(pop_int()) == floatcase; break;
+          case STACK_UINT8: found = TOFLOAT(pop_uint8()) == floatcase; break;
+          case STACK_INT64: found = TOFLOAT(pop_int64()) == floatcase; break;
+          case STACK_FLOAT: found = pop_float() == floatcase; break;
+          default: error(ERR_TYPENUM);
         }
       }
       else {	/* This leaves just strings */
@@ -353,7 +368,7 @@ static void define_byte_array(variable *vp) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:define_byte_array\n");
 #endif
-  if (vp->varflags == VAR_U8INT) error(ERR_UNSUITABLEVAR);
+  if (vp->varflags == VAR_UINT8) error(ERR_UNSUITABLEVAR);
   if (vp->varflags  !=  VAR_INTWORD && vp->varflags  !=  VAR_INTLONG && vp->varflags  !=  VAR_FLOAT) error(ERR_VARNUM);
   isindref = *basicvars.current == '!';
   if (isindref) {
@@ -642,6 +657,7 @@ void exec_fnreturn(void) {
   stackitem resultype, item;
   int32 intresult = 0;
   int64 int64result = 0;
+  uint8 uint8result = 0;
   static float64 fpresult;
   basicstring stresult = {0, NULL};
   char *sp;
@@ -654,6 +670,8 @@ void exec_fnreturn(void) {
   resultype = GET_TOPITEM;
   if (resultype == STACK_INT)	/* Pop result from stack and ensure type is legal */
     intresult = pop_int();
+  else if (resultype == STACK_UINT8)	/* Pop result from stack and ensure type is legal */
+    uint8result = pop_int();
   else if (resultype == STACK_INT64)
     int64result = pop_int64();
   else if (resultype == STACK_FLOAT)
@@ -677,6 +695,9 @@ void exec_fnreturn(void) {
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had arguments - restore old values */
   if (resultype == STACK_INT) {	/* Lastly, put the result back on the stack */
     PUSH_INT(intresult);
+  }
+  else if (resultype == STACK_UINT8) {	/* Lastly, put the result back on the stack */
+    PUSH_UINT8(uint8result);
   }
   else if (resultype == STACK_INT64) {
     PUSH_INT64(int64result);
@@ -716,7 +737,7 @@ void exec_fnreturn(void) {
 void exec_endwhile(void) {
   byte *tp;
   stack_while *wp;
-  int32 result = 0;
+  int64 result = 0;
   tp = basicvars.current+1;
   if (!ateol[*tp]) error(ERR_SYNTAX);
   if (GET_TOPITEM == STACK_WHILE) 	/* WHILE control block is top of stack */
@@ -732,12 +753,12 @@ void exec_endwhile(void) {
 #endif
   basicvars.current = wp->whilexpr;
   expression();
-  if (GET_TOPITEM == STACK_INT)
-    result = pop_int();
-  else if (GET_TOPITEM == STACK_FLOAT)
-    result = TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   result = pop_int(); break;
+    case STACK_UINT8: result = pop_uint8(); break;
+    case STACK_INT64: result = pop_int64(); break;
+    case STACK_FLOAT: result = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
   if (result != BASFALSE) {	/* Condition still true - Continue with loop */
     if (basicvars.traces.branches) trace_branch(tp, wp->whileaddr);
@@ -803,78 +824,66 @@ void exec_for(void) {
   switch (forvar.typeinfo) {	/* Assign control variable's initial value */
   case VAR_INTWORD:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-      *forvar.address.intaddr = pop_int();
-      break;
-    case STACK_INT64:
-      *forvar.address.intaddr = TOINT(pop_int64());
-      break;
-    case STACK_FLOAT:
-      *forvar.address.intaddr = TOINT(pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    case STACK_INT:   *forvar.address.intaddr = pop_int(); break;
+    case STACK_UINT8: *forvar.address.intaddr = pop_uint8(); break;
+    case STACK_INT64: *forvar.address.intaddr = TOINT(pop_int64()); break;
+    case STACK_FLOAT: *forvar.address.intaddr = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    }
+    break;
+  case VAR_UINT8:
+    switch (GET_TOPITEM) {
+    case STACK_INT:   *forvar.address.uint8addr = pop_int(); break;
+    case STACK_UINT8: *forvar.address.uint8addr = pop_uint8(); break;
+    case STACK_INT64: *forvar.address.uint8addr = TOINT(pop_int64()); break;
+    case STACK_FLOAT: *forvar.address.uint8addr = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    }
+    break;
+  case VAR_INTLONG:
+    switch (GET_TOPITEM) {
+    case STACK_INT:   *forvar.address.int64addr = pop_int(); break;
+    case STACK_UINT8: *forvar.address.int64addr = pop_uint8(); break;
+    case STACK_INT64: *forvar.address.int64addr = pop_int64(); break;
+    case STACK_FLOAT: *forvar.address.int64addr = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_FLOAT:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-      *forvar.address.floataddr = TOFLOAT(pop_int());
-      break;
-    case STACK_INT64:
-      *forvar.address.floataddr = TOFLOAT(pop_int64());
-      break;
-    case STACK_FLOAT:
-      *forvar.address.floataddr = pop_float();
-      break;
-    default:
-      error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    case STACK_INT:   *forvar.address.floataddr = TOFLOAT(pop_int()); break;
+    case STACK_UINT8: *forvar.address.floataddr = TOFLOAT(pop_uint8()); break;
+    case STACK_INT64: *forvar.address.floataddr = TOFLOAT(pop_int64()); break;
+    case STACK_FLOAT: *forvar.address.floataddr = pop_float(); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTBYTEPTR:
     check_write(forvar.address.offset, sizeof(byte));
     switch (GET_TOPITEM) {
-    case STACK_INT:
-      basicvars.offbase[forvar.address.offset] = pop_int();
-      break;
-    case STACK_INT64:
-      basicvars.offbase[forvar.address.offset] = TOINT(pop_int64());
-      break;
-    case STACK_FLOAT:
-      basicvars.offbase[forvar.address.offset] = TOINT(pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    case STACK_INT:   basicvars.offbase[forvar.address.offset] = pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[forvar.address.offset] = pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[forvar.address.offset] = TOINT(pop_int64()); break;
+    case STACK_FLOAT: basicvars.offbase[forvar.address.offset] = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTWORDPTR:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-      store_integer(forvar.address.offset, pop_int());
-      break;
-    case STACK_INT64:
-      store_integer(forvar.address.offset, TOINT(pop_int()));
-      break;
-    case STACK_FLOAT:
-      store_integer(forvar.address.offset, TOINT(pop_float()));
-      break;
-    default:
-      error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    case STACK_INT:   store_integer(forvar.address.offset, pop_int()); break;
+    case STACK_UINT8: store_integer(forvar.address.offset, pop_uint8()); break;
+    case STACK_INT64: store_integer(forvar.address.offset, TOINT(pop_int())); break;
+    case STACK_FLOAT: store_integer(forvar.address.offset, TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_FLOATPTR:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-      store_float(forvar.address.offset, TOFLOAT(pop_int()));
-      break;
-    case STACK_INT64:
-      store_float(forvar.address.offset, TOFLOAT(pop_int64()));
-      break;
-    case STACK_FLOAT:
-      store_float(forvar.address.offset, pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
+    case STACK_INT:   store_float(forvar.address.offset, TOFLOAT(pop_int())); break;
+    case STACK_UINT8: store_float(forvar.address.offset, TOFLOAT(pop_uint8())); break;
+    case STACK_INT64: store_float(forvar.address.offset, TOFLOAT(pop_int64())); break;
+    case STACK_FLOAT: store_float(forvar.address.offset, pop_float()); break;
+    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   default:
@@ -885,51 +894,43 @@ void exec_for(void) {
 
   expression();
   if (isinteger) {	/* Loop is an integer loop */
-    if (GET_TOPITEM == STACK_INT)
-      intlimit = pop_int();
-    else if (GET_TOPITEM == STACK_INT64)
-      intlimit = TOINT(pop_int64());
-    else if (GET_TOPITEM == STACK_FLOAT)
-      intlimit = TOINT(pop_float());
-    else {
-      error(ERR_TYPENUM);		/* Numeric value required for final value */
+    switch(GET_TOPITEM) {
+      case STACK_INT:   intlimit = pop_int(); break;
+      case STACK_UINT8: intlimit = pop_uint8(); break;
+      case STACK_INT64: intlimit = TOINT(pop_int64()); break;
+      case STACK_FLOAT: intlimit = TOINT(pop_float()); break;
+      default: error(ERR_TYPENUM);
     }
   }
   else {	/* Loop is a floating point loop */
-    if (GET_TOPITEM == STACK_INT)
-      floatlimit = TOFLOAT(pop_int());
-    else if (GET_TOPITEM == STACK_INT64)
-      floatlimit = TOFLOAT(pop_int64());
-    else if (GET_TOPITEM == STACK_FLOAT)
-      floatlimit = pop_float();
-    else {
-      error(ERR_TYPENUM);		/* Numeric value required for final value */
+    switch(GET_TOPITEM) {
+      case STACK_INT:   floatlimit = TOFLOAT(pop_int()); break;
+      case STACK_UINT8: floatlimit = TOFLOAT(pop_uint8()); break;
+      case STACK_INT64: floatlimit = TOFLOAT(pop_int64()); break;
+      case STACK_FLOAT: floatlimit = pop_float(); break;
+      default: error(ERR_TYPENUM);
     }
   }
   if (*basicvars.current == BASIC_TOKEN_STEP) {
     basicvars.current++;
     expression();
     if (isinteger) {	/* Loop is an integer loop */
-      if (GET_TOPITEM == STACK_INT)
-        intstep = pop_int();
-      else if (GET_TOPITEM == STACK_INT64)
-        intstep = TOINT(pop_int64());
-      else if (GET_TOPITEM == STACK_FLOAT)
-        intstep = TOINT(pop_float());
-      else {
-        error(ERR_TYPENUM);		/* Numeric value required for step value */
+      switch(GET_TOPITEM) {
+        case STACK_INT:   intstep = pop_int(); break;
+        case STACK_UINT8: intstep = pop_uint8(); break;
+        case STACK_INT64: intstep = TOINT(pop_int64()); break;
+        case STACK_FLOAT: intstep = TOINT(pop_float()); break;
+        default: error(ERR_TYPENUM);
       }
       if (intstep == 0) error(ERR_SILLY);
     }
     else {	/* Loop is a floating point loop */
-      if (GET_TOPITEM == STACK_INT)
-        floatstep = TOFLOAT(pop_int());
-      else if (GET_TOPITEM == STACK_INT64)
-        floatstep = TOFLOAT(pop_int64());
-      else if (GET_TOPITEM == STACK_FLOAT)
-        floatstep = pop_float();
-      else {
-        error(ERR_TYPENUM);		/* Numeric value required for step */
+      switch(GET_TOPITEM) {
+        case STACK_INT:   floatstep = TOFLOAT(pop_int()); break;
+        case STACK_UINT8: floatstep = TOFLOAT(pop_uint8()); break;
+        case STACK_INT64: floatstep = TOFLOAT(pop_int64()); break;
+        case STACK_FLOAT: floatstep = pop_float(); break;
+        default: error(ERR_TYPENUM);
       }
       if (floatstep == 0.0) error(ERR_SILLY);
     }
@@ -1280,6 +1281,10 @@ static void def_locvar(void) {
       save_int(locvar, *locvar.address.intaddr);
       *locvar.address.intaddr = 0;
       break;
+    case VAR_UINT8:
+      save_uint8(locvar, *locvar.address.uint8addr);
+      *locvar.address.uint8addr = 0;
+      break;
     case VAR_INTLONG:
       save_int64(locvar, *locvar.address.int64addr);
       *locvar.address.int64addr = 0;
@@ -1314,7 +1319,7 @@ static void def_locvar(void) {
       save_string(locvar, descriptor);
       basicvars.offbase[locvar.address.offset] = asc_CR;
       break;
-    case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
+    case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
       save_array(locvar);
       *locvar.address.arrayaddr = NIL;
       break;
@@ -1373,6 +1378,8 @@ void exec_next(void) {
   lvalue nextvar;
   boolean contloop = FALSE;
   int32 intvalue;
+  int64 int64value;
+  uint8 uint8value;
   static float64 floatvalue;
 #ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
@@ -1408,13 +1415,31 @@ void exec_next(void) {
     }
     else {
       switch (fp->forvar.typeinfo) {	/* Right, let's bump up the 'FOR' variable */
-      case VAR_INTWORD:		/* Word-aligned integer value */
+      case VAR_INTWORD:		/* 32-bit integer value */
         intvalue = *fp->forvar.address.intaddr+fp->fortype.intfor.intstep;
         *fp->forvar.address.intaddr = intvalue;
         if (fp->fortype.intfor.intstep>0)
           contloop = intvalue<=fp->fortype.intfor.intlimit;
         else {
           contloop = intvalue>=fp->fortype.intfor.intlimit;
+        }
+        break;
+      case VAR_INTLONG:		/* 64-bit integer value */
+        int64value = *fp->forvar.address.int64addr+fp->fortype.int64for.int64step;
+        *fp->forvar.address.int64addr = int64value;
+        if (fp->fortype.int64for.int64step>0)
+          contloop = int64value<=fp->fortype.int64for.int64limit;
+        else {
+          contloop = int64value>=fp->fortype.int64for.int64limit;
+        }
+        break;
+      case VAR_UINT8:		/* Unsigned 8-bit integer value */
+        uint8value = *fp->forvar.address.uint8addr+fp->fortype.uint8for.uint8step;
+        *fp->forvar.address.uint8addr = uint8value;
+        if (fp->fortype.uint8for.uint8step>0)
+          contloop = uint8value<=fp->fortype.uint8for.uint8limit;
+        else {
+          contloop = uint8value>=fp->fortype.uint8for.uint8limit;
         }
         break;
       case VAR_FLOAT:		/* Word-aligned floating point value */
@@ -1899,84 +1924,66 @@ static void read_numeric(lvalue destination) {
   switch (destination.typeinfo) {	/* Now save the value just read */
   case VAR_INTWORD:	/* 32-bit integer variable */
     switch (itemtype) {
-    case STACK_INT:
-      *destination.address.intaddr = pop_int();
-      break;
-    case STACK_INT64:
-      *destination.address.intaddr = INT64TO32(pop_int64());
-      break;
-    case STACK_FLOAT:
-      *destination.address.intaddr = TOINT(pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);
+    case STACK_INT:   *destination.address.intaddr = pop_int(); break;
+    case STACK_UINT8: *destination.address.intaddr = pop_uint8(); break;
+    case STACK_INT64: *destination.address.intaddr = INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *destination.address.intaddr = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
+    }
+    break;
+  case VAR_UINT8:	/* Unsigned 8-bit integer variable */
+    switch (itemtype) {
+    case STACK_INT:   *destination.address.uint8addr = pop_int(); break;
+    case STACK_UINT8: *destination.address.uint8addr = pop_uint8(); break;
+    case STACK_INT64: *destination.address.uint8addr = INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: *destination.address.uint8addr = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
     }
     break;
   case VAR_INTLONG:	/* 64-bit integer variable */
     switch (itemtype) {
-    case STACK_INT:
-      *destination.address.int64addr = (int64)pop_int();
-      break;
-    case STACK_INT64:
-      *destination.address.int64addr = pop_int64();
-      break;
-    case STACK_FLOAT:
-      *destination.address.int64addr = TOINT64(pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);
+    case STACK_INT:   *destination.address.int64addr = (int64)pop_int(); break;
+    case STACK_UINT8: *destination.address.int64addr = (int64)pop_uint8(); break;
+    case STACK_INT64: *destination.address.int64addr = pop_int64(); break;
+    case STACK_FLOAT: *destination.address.int64addr = TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
     }
     break;
   case VAR_FLOAT:	/* Floating point variable */
     switch (itemtype) {
-    case STACK_INT:
-      *destination.address.floataddr = TOFLOAT(pop_int());
-      break;
-    case STACK_INT64:
-      *destination.address.floataddr = TOFLOAT(pop_int64());
-      break;
-    case STACK_FLOAT:
-      *destination.address.floataddr = pop_float();
-      break;
-    default:
-      error(ERR_TYPENUM);
+    case STACK_INT:   *destination.address.floataddr = TOFLOAT(pop_int()); break;
+    case STACK_UINT8: *destination.address.floataddr = TOFLOAT(pop_uint8()); break;
+    case STACK_INT64: *destination.address.floataddr = TOFLOAT(pop_int64()); break;
+    case STACK_FLOAT: *destination.address.floataddr = pop_float(); break;
+    default: error(ERR_TYPENUM);
     }
     break;
   case VAR_INTBYTEPTR:	/* Pointer to byte-sized integer */
     check_write(destination.address.offset, sizeof(byte));
     switch (itemtype) {
-    case STACK_INT:
-      basicvars.offbase[destination.address.offset] = pop_int();
-      break;
-    case STACK_FLOAT:
-      basicvars.offbase[destination.address.offset] = TOINT(pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);
+    case STACK_INT:   basicvars.offbase[destination.address.offset] = pop_int(); break;
+    case STACK_UINT8: basicvars.offbase[destination.address.offset] = pop_uint8(); break;
+    case STACK_INT64: basicvars.offbase[destination.address.offset] = INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: basicvars.offbase[destination.address.offset] = TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
     }
     break;
   case VAR_INTWORDPTR:	/* Pointer to word-sized integer */
     switch (itemtype) {
-    case STACK_INT:
-      store_integer(destination.address.offset, pop_int());
-      break;
-    case STACK_FLOAT:
-      store_integer(destination.address.offset, TOINT(pop_float()));
-      break;
-    default:
-      error(ERR_TYPENUM);
+    case STACK_INT:   store_integer(destination.address.offset, pop_int()); break;
+    case STACK_UINT8: store_integer(destination.address.offset, pop_uint8()); break;
+    case STACK_INT64: store_integer(destination.address.offset, INT64TO32(pop_int64())); break;
+    case STACK_FLOAT: store_integer(destination.address.offset, TOINT(pop_float())); break;
+    default: error(ERR_TYPENUM);
     }
     break;
   case VAR_FLOATPTR:	/* Pointer to floating point variable */
     switch (itemtype) {
-    case STACK_INT:
-      store_float(destination.address.offset, TOFLOAT(pop_int()));
-      break;
-    case STACK_FLOAT:
-      store_float(destination.address.offset, pop_float());
-      break;
-    default:
-      error(ERR_TYPENUM);
+    case STACK_INT:   store_float(destination.address.offset, TOFLOAT(pop_int())); break;
+    case STACK_UINT8: store_float(destination.address.offset, TOFLOAT(pop_uint8())); break;
+    case STACK_INT64: store_float(destination.address.offset, TOFLOAT(pop_int64())); break;
+    case STACK_FLOAT: store_float(destination.address.offset, pop_float()); break;
+    default: error(ERR_TYPENUM);
     }
     break;
   default:
@@ -2040,7 +2047,7 @@ void exec_read(void) {
   while (TRUE) {
     get_lvalue(&destination);
     find_data();
-    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_INTLONG)	/* Numeric value */
+    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_UINT8)	/* Numeric value */
       read_numeric(destination);
     else {	/* Character string */
       read_string(destination);
@@ -2226,9 +2233,11 @@ void exec_run(void) {
     expression();
     topitem = GET_TOPITEM;
     switch (topitem) {
-    case STACK_INT: case STACK_FLOAT:
+    case STACK_INT: case STACK_FLOAT: case STACK_INT64:
       if (topitem == STACK_INT)
         line = pop_int();
+      else if (topitem == STACK_INT64)
+        line = pop_int64();
       else {
         line = TOINT(pop_float());
       }
@@ -2278,12 +2287,20 @@ void exec_swap(void) {
   if ((first.typeinfo <= VAR_FLOAT || (first.typeinfo >= VAR_INTBYTEPTR && first.typeinfo <= VAR_FLOATPTR)) &&
      (second.typeinfo <= VAR_FLOAT || (second.typeinfo >= VAR_INTBYTEPTR && second.typeinfo <= VAR_FLOATPTR))) {
 /* Switching numeric values */
-    int32 ival1 = 0, ival2 = 0;
+    int64 ival1 = 0, ival2 = 0;
     static float64 fval1, fval2;
     boolean isint = 0;
     switch (first.typeinfo) {		/* Fetch first operand */
     case VAR_INTWORD:
       ival1 = *first.address.intaddr;
+      isint = TRUE;
+      break;
+    case VAR_UINT8:
+      ival1 = *first.address.uint8addr;
+      isint = TRUE;
+      break;
+    case VAR_INTLONG:
+      ival1 = *first.address.int64addr;
       isint = TRUE;
       break;
     case VAR_FLOAT:
@@ -2313,6 +2330,16 @@ void exec_swap(void) {
     case VAR_INTWORD:
       ival2 = *second.address.intaddr;
       *second.address.intaddr = isint ? ival1 : TOINT(fval1);
+      isint = TRUE;	/* Now change type flag to type of second value */
+      break;
+    case VAR_UINT8:
+      ival2 = *second.address.uint8addr;
+      *second.address.uint8addr = isint ? ival1 : TOINT(fval1);
+      isint = TRUE;	/* Now change type flag to type of second value */
+      break;
+    case VAR_INTLONG:
+      ival2 = *second.address.int64addr;
+      *second.address.int64addr = isint ? ival1 : TOINT64(fval1);
       isint = TRUE;	/* Now change type flag to type of second value */
       break;
     case VAR_FLOAT:
@@ -2345,6 +2372,12 @@ void exec_swap(void) {
     switch (first.typeinfo) {
     case VAR_INTWORD:
       *first.address.intaddr = isint ? ival2 : TOINT(fval2);
+      break;
+    case VAR_UINT8:
+      *first.address.uint8addr = isint ? ival2 : TOINT(fval2);
+      break;
+    case VAR_INTLONG:
+      *first.address.int64addr = isint ? ival2 : TOINT(fval2);
       break;
     case VAR_FLOAT:
       *first.address.floataddr = isint ? TOFLOAT(ival2) : fval2;
@@ -2434,6 +2467,9 @@ void exec_sys(void) {
   case STACK_INT:
     swino = pop_int();
     break;
+  case STACK_UINT8:
+    swino = pop_uint8();
+    break;
   case STACK_INT64:
     swino = INT64TO32(pop_int64());
     break;
@@ -2463,6 +2499,9 @@ void exec_sys(void) {
       switch (parmtype) {
       case STACK_INT:
         inregs[parmcount] = pop_int();
+        break;
+      case STACK_UINT8:
+        inregs[parmcount] = pop_uint8();
         break;
       case STACK_INT64:
         inregs[parmcount] = pop_int64();

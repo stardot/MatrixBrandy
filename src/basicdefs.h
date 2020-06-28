@@ -84,10 +84,10 @@
 #define VAR_STRINGDOL 4				/* String ('string$' type) */
 #define VAR_DOLSTRING 5				/* String ('$string' type) */
 #define VAR_INTLONG 6				/* 64-bit integer */
-#define VAR_U8INT 7				/* Unsigned 8-bit integer */
+#define VAR_UINT8 7				/* Unsigned 8-bit integer */
 #define VAR_ARRAY 0x08				/* Array */
 #define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)	/* Integer array */
-#define VAR_UINT8ARRAY (VAR_U8INT+VAR_ARRAY)	/* Integer array */
+#define VAR_UINT8ARRAY (VAR_UINT8+VAR_ARRAY)	/* Integer array */
 #define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)	/* Integer array */
 #define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)	/* Floating point array */
 #define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)	/* String array */
@@ -353,7 +353,7 @@ typedef struct {		/* Saved local variable */
   stackitem itemtype;
   lvalue savedetails;		/* Details of item saved */
   union {
-    unsigned char savedchar;	/* Saved 8-bit unsigned integer value */
+    unsigned char saveduint8;	/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -367,7 +367,7 @@ typedef struct {		/* Saved RETURN-type local variable */
   lvalue savedetails;		/* Details of item saved */
   lvalue retdetails;		/* Details of where to save returned value */
   union {
-    unsigned char savedchar;	/* Saved 8-bit unsigned integer value */
+    unsigned char saveduint8;	/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -394,6 +394,8 @@ typedef struct {		/* FOR loop control block */
   byte *foraddr;		/* Pointer to first statement in 'FOR' loop */
   union {
     struct {int32 intlimit, intstep;} intfor;
+    struct {unsigned char uint8limit, uint8step;} uint8for;
+    struct {int64 int64limit, int64step;} int64for;
     struct {float64 floatlimit, floatstep;} floatfor;
   } fortype;
 } stack_for;

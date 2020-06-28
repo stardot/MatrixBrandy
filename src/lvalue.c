@@ -123,6 +123,9 @@ static void fix_address(lvalue *destination) {
       *basicvars.current = BASIC_TOKEN_INTINDVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       break;
+    case VAR_UINT8:
+      error(ERR_UNSUITABLEVAR);
+      break;
     case VAR_INTLONG:		/* Op follows a 64-bit integer variable */
       *basicvars.current = BASIC_TOKEN_INT64INDVAR;
       set_address(basicvars.current, &vp->varentry.var64int);
@@ -141,7 +144,7 @@ static void fix_address(lvalue *destination) {
       *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
     break;
-    case VAR_U8INT:		/* Simple reference to integer variable */
+    case VAR_UINT8:		/* Simple reference to integer variable */
       *basicvars.current = BASIC_TOKEN_UINT8VAR;
       set_address(basicvars.current, &vp->varentry.varu8int);
     break;
@@ -199,8 +202,8 @@ static void do_intvar(lvalue *destination) {
 ** a 64-bit integer variable
 */
 static void do_uint8var(lvalue *destination) {
-  destination->typeinfo = VAR_U8INT;
-  destination->address.uint8addr = GET_ADDRESS(basicvars.current, unsigned char *);
+  destination->typeinfo = VAR_UINT8;
+  destination->address.uint8addr = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }
 
@@ -261,14 +264,12 @@ static void do_elementvar(lvalue *destination) {
   descriptor = vp->varentry.vararray;
   if (descriptor->dimcount==1) {	/* Shortcut for single dimension arrays */
     expression();	/* Evaluate the array index */
-    if (GET_TOPITEM==STACK_INT)
-      element = pop_int();
-    else if (GET_TOPITEM==STACK_INT64)
-      element = INT64TO32(pop_int64());
-    else if (GET_TOPITEM==STACK_FLOAT)
-      element = TOINT(pop_float());
-    else {
-      error(ERR_TYPENUM);
+    switch(GET_TOPITEM) {
+      case STACK_INT:   element = pop_int(); break;
+      case STACK_UINT8: element = pop_uint8(); break;
+      case STACK_INT64: element = INT64TO32(pop_int64()); break;
+      case STACK_FLOAT: element = TOINT(pop_float()); break;
+      default: error(ERR_TYPENUM);
     }
     if (element<0 || element>=descriptor->dimsize[0]) error(ERR_BADINDEX, element, vp->varname);
   }
@@ -277,14 +278,12 @@ static void do_elementvar(lvalue *destination) {
     element = 0;
     do {	/* Gather the array indexes */
       expression();	/* Evaluate an array index */
-      if (GET_TOPITEM==STACK_INT)
-        index = pop_int();
-      else if (GET_TOPITEM==STACK_INT64)
-        index = INT64TO32(pop_int64());
-      else if (GET_TOPITEM==STACK_FLOAT)
-        index = TOINT(pop_float());
-      else {
-        error(ERR_TYPENUM);
+      switch(GET_TOPITEM) {
+        case STACK_INT:   index = pop_int(); break;
+        case STACK_UINT8: index = pop_uint8(); break;
+        case STACK_INT64: index = INT64TO32(pop_int64()); break;
+        case STACK_FLOAT: index = TOINT(pop_float()); break;
+        default: error(ERR_TYPENUM);
       }
       if (index<0 || index>=descriptor->dimsize[dimcount]) error(ERR_BADINDEX, index, vp->varname);
       element+=index;
@@ -302,14 +301,12 @@ static void do_elementvar(lvalue *destination) {
   if (*basicvars.current!='?' && *basicvars.current!='!') {
 /* There is nothing after the array ref - Finish off and return home */
 /* Calculate the address of the required element */
-    if (vartype==VAR_INTWORD)	/* Integer array */
-      destination->address.intaddr = descriptor->arraystart.intbase+element;
-    else if (vartype==VAR_INTLONG)	/* Integer array */
-      destination->address.int64addr = descriptor->arraystart.int64base+element;
-    else if (vartype==VAR_FLOAT)	/* Floating point array */
-      destination->address.floataddr = descriptor->arraystart.floatbase+element;
-    else {	/* String array */
-      destination->address.straddr = descriptor->arraystart.stringbase+element;
+    switch(vartype) {
+      case VAR_INTWORD: destination->address.intaddr = descriptor->arraystart.intbase+element; break;
+      case VAR_UINT8:   destination->address.uint8addr = descriptor->arraystart.uint8base+element; break;
+      case VAR_INTLONG: destination->address.int64addr = descriptor->arraystart.int64base+element; break;
+      case VAR_FLOAT:   destination->address.floataddr = descriptor->arraystart.floatbase+element; break;
+      default: destination->address.straddr = descriptor->arraystart.stringbase+element; /* string */
     }
     return;
   }
@@ -318,14 +315,12 @@ static void do_elementvar(lvalue *destination) {
 ** Fetch the value of the array element. This will provide the value
 ** for the left-hand side of the operator
 */
-  if (vartype==VAR_INTWORD)	/* Integer array */
-    offset = descriptor->arraystart.intbase[element];
-  else if (vartype==VAR_INTLONG)	/* Integer array */
-    offset = descriptor->arraystart.int64base[element];
-  else if (vartype==VAR_FLOAT)	/* Floating point array */
-    offset = TOINT(descriptor->arraystart.floatbase[element]);
-  else {	/* Must use a numeric array with an indirection operator */
-    error(ERR_VARNUM);
+  switch(vartype) {
+    case VAR_INTWORD: offset = descriptor->arraystart.intbase[element]; break;
+    case VAR_UINT8:   offset = descriptor->arraystart.uint8base[element]; break;
+    case VAR_INTLONG: offset = descriptor->arraystart.int64base[element]; break;
+    case VAR_FLOAT:   offset = TOINT(descriptor->arraystart.floatbase[element]); break;
+    default: error(ERR_VARNUM);
   }
 /* Now deal with the indirection operator */
   if (*basicvars.current=='?')		/* Result of operator is a single byte integer */
@@ -335,14 +330,12 @@ static void do_elementvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  if (GET_TOPITEM==STACK_INT)
-    destination->address.offset = offset+pop_int();
-  else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = offset+pop_int64();
-  else if (GET_TOPITEM==STACK_FLOAT)
-    destination->address.offset = offset+TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   destination->address.offset = offset+pop_int(); break;
+    case STACK_UINT8: destination->address.offset = offset+pop_uint8(); break;
+    case STACK_INT64: destination->address.offset = offset+pop_int64(); break;
+    case STACK_FLOAT: destination->address.offset = offset+TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -361,14 +354,12 @@ static void do_intindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  if (GET_TOPITEM==STACK_INT)
-    destination->address.offset = *ip+pop_int();
-  else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = *ip+INT64TO32(pop_int64());
-  else if (GET_TOPITEM==STACK_FLOAT)
-    destination->address.offset = *ip+TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   destination->address.offset = *ip+pop_int(); break;
+    case STACK_UINT8: destination->address.offset = *ip+pop_uint8(); break;
+    case STACK_INT64: destination->address.offset = *ip+INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: destination->address.offset = *ip+TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -393,14 +384,12 @@ static void do_int64indvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  if (GET_TOPITEM==STACK_INT) {
-    destination->address.offset = *ip+pop_int();
-  } else if (GET_TOPITEM==STACK_INT64) {
-    destination->address.offset = *ip+pop_int64();
-  } else if (GET_TOPITEM==STACK_FLOAT) {
-    destination->address.offset = *ip+TOINT64(pop_float());
-  } else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   destination->address.offset = *ip+pop_int(); break;
+    case STACK_UINT8: destination->address.offset = *ip+pop_uint8(); break;
+    case STACK_INT64: destination->address.offset = *ip+pop_int64(); break;
+    case STACK_FLOAT: destination->address.offset = *ip+TOINT64(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:do_int64indvar\n");
@@ -422,14 +411,12 @@ static void do_floatindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  if (GET_TOPITEM==STACK_INT)
-    destination->address.offset = TOINT(*fp)+pop_int();
-  else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = TOINT(*fp)+INT64TO32(pop_int64());
-  else if (GET_TOPITEM==STACK_FLOAT)
-    destination->address.offset = TOINT(*fp)+TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   destination->address.offset = TOINT(*fp)+pop_int(); break;
+    case STACK_UINT8: destination->address.offset = TOINT(*fp)+pop_uint8(); break;
+    case STACK_INT64: destination->address.offset = TOINT(*fp)+INT64TO32(pop_int64()); break;
+    case STACK_FLOAT: destination->address.offset = TOINT(*fp)+TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
@@ -448,19 +435,19 @@ static void do_statindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  if (GET_TOPITEM==STACK_INT)
-    destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_int();
-  else if (GET_TOPITEM==STACK_FLOAT)
-    destination->address.offset = basicvars.staticvars[index].varentry.varinteger+TOINT(pop_float());
-  else {
-    error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:   destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_int(); break;
+    case STACK_UINT8: destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_uint8(); break;
+    case STACK_INT64: destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_int64(); break;
+    case STACK_FLOAT: destination->address.offset = basicvars.staticvars[index].varentry.varinteger+TOINT(pop_float()); break;
+    default: error(ERR_TYPENUM);
   }
 }
 
 /*
 ** 'do_unaryind' fills in the lvalue structure for an unary
 ** indirection operator, i.e. for something of the form
-** ?(abc%+10)
+** ?(abc%+10). UINT8 type not supported.
 */
 static void do_unaryind(lvalue *destination) {
   byte operator;
@@ -482,6 +469,8 @@ static void do_unaryind(lvalue *destination) {
     destination->address.offset = pop_int64();
   else if (GET_TOPITEM==STACK_FLOAT)
     destination->address.offset = TOINT64(pop_float());
+  else if (GET_TOPITEM==STACK_UINT8)
+    error(ERR_UNSUITABLEVAR);
   else {
     error(ERR_TYPENUM);
   }
