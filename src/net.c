@@ -214,6 +214,11 @@ int brandynet_close(int handle) {
   return(0);
 }
 
+/* Some systems don't have this, make it a null value in that case. */
+#ifndef MSG_DONTWAIT
+#define MSG_DONTWAIT 0
+#endif
+
 #ifndef NONET
 static int net_get_something(int handle) {
   int retval = 0;
