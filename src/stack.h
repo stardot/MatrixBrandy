@@ -125,15 +125,20 @@ extern void *alloc_local(int32);
 #define DECR_INT(x) basicvars.stacktop.intsp->intvalue-=(x)
 #define DECR_FLOAT(x) basicvars.stacktop.floatsp->floatvalue-=(x)
 #define INTDIV_INT(x) basicvars.stacktop.intsp->intvalue/=(x)
+#define INTDIV_UINT8(x) basicvars.stacktop.uint8sp->uint8value/=(x)
 #define INTDIV_INT64(x) basicvars.stacktop.int64sp->int64value/=(x)
 #define DIV_FLOAT(x) basicvars.stacktop.floatsp->floatvalue/=(x)
 #define INTMOD_INT(x) basicvars.stacktop.intsp->intvalue%=(x)
+#define INTMOD_UINT8(x) basicvars.stacktop.uint8sp->uint8value%=(x)
 #define INTMOD_INT64(x) basicvars.stacktop.int64sp->int64value%=(x)
 #define AND_INT(x) basicvars.stacktop.intsp->intvalue&=(x)
+#define AND_UINT8(x) basicvars.stacktop.uint8sp->uint8value&=(x)
 #define AND_INT64(x) basicvars.stacktop.int64sp->int64value&=(x)
 #define OR_INT(x) basicvars.stacktop.intsp->intvalue|=(x)
+#define OR_UINT8(x) basicvars.stacktop.uint8sp->uint8value|=(x)
 #define OR_INT64(x) basicvars.stacktop.int64sp->int64value|=(x)
 #define EOR_INT(x) basicvars.stacktop.intsp->intvalue^=(x)
+#define EOR_UINT8(x) basicvars.stacktop.uint8sp->uint8value^=(x)
 #define EOR_INT64(x) basicvars.stacktop.int64sp->int64value^=(x)
 #define NEGATE_INT basicvars.stacktop.intsp->intvalue = -basicvars.stacktop.intsp->intvalue
 #define NEGATE_INT64 basicvars.stacktop.int64sp->int64value = -basicvars.stacktop.int64sp->int64value
@@ -144,29 +149,41 @@ extern void *alloc_local(int32);
 #define ABS_INT64 basicvars.stacktop.int64sp->int64value = llabs(basicvars.stacktop.int64sp->int64value)
 #define ABS_FLOAT basicvars.stacktop.floatsp->floatvalue = fabs(basicvars.stacktop.floatsp->floatvalue)
 #define CPEQ_INT(x) basicvars.stacktop.intsp->intvalue = \
-		(basicvars.stacktop.intsp->intvalue==(x) ? BASTRUE : BASFALSE)
+		   (basicvars.stacktop.intsp->intvalue==(x) ? BASTRUE : BASFALSE)
+#define CPEQ_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
+		     (basicvars.stacktop.uint8sp->uint8value==(x) ? BASTRUE : BASFALSE)
 #define CPEQ_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		(basicvars.stacktop.int64sp->int64value==(x) ? BASTRUE : BASFALSE)
+		     (basicvars.stacktop.int64sp->int64value==(x) ? BASTRUE : BASFALSE)
 #define CPNE_INT(x) basicvars.stacktop.intsp->intvalue = \
-		(basicvars.stacktop.intsp->intvalue!=(x) ? BASTRUE : BASFALSE)
+		   (basicvars.stacktop.intsp->intvalue!=(x) ? BASTRUE : BASFALSE)
+#define CPNE_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
+		     (basicvars.stacktop.uint8sp->uint8value!=(x) ? BASTRUE : BASFALSE)
 #define CPNE_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		(basicvars.stacktop.int64sp->int64value!=(x) ? BASTRUE : BASFALSE)
+		     (basicvars.stacktop.int64sp->int64value!=(x) ? BASTRUE : BASFALSE)
 #define CPGT_INT(x) basicvars.stacktop.intsp->intvalue = \
-		(basicvars.stacktop.intsp->intvalue>(x) ? BASTRUE : BASFALSE)
+		   (basicvars.stacktop.intsp->intvalue>(x) ? BASTRUE : BASFALSE)
+#define CPGT_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
+		     (basicvars.stacktop.uint8sp->uint8value>(x) ? BASTRUE : BASFALSE)
 #define CPGT_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		(basicvars.stacktop.int64sp->int64value>(x) ? BASTRUE : BASFALSE)
+		     (basicvars.stacktop.int64sp->int64value>(x) ? BASTRUE : BASFALSE)
 #define CPLT_INT(x) basicvars.stacktop.intsp->intvalue = \
-		(basicvars.stacktop.intsp->intvalue<(x) ? BASTRUE : BASFALSE)
+		   (basicvars.stacktop.intsp->intvalue<(x) ? BASTRUE : BASFALSE)
+#define CPLT_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
+		     (basicvars.stacktop.uint8sp->uint8value<(x) ? BASTRUE : BASFALSE)
 #define CPLT_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		(basicvars.stacktop.int64sp->int64value<(x) ? BASTRUE : BASFALSE)
+		     (basicvars.stacktop.int64sp->int64value<(x) ? BASTRUE : BASFALSE)
 #define CPGE_INT(x) basicvars.stacktop.intsp->intvalue = \
-		(basicvars.stacktop.intsp->intvalue>=(x) ? BASTRUE : BASFALSE)
+		   (basicvars.stacktop.intsp->intvalue>=(x) ? BASTRUE : BASFALSE)
+#define CPGE_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
+		     (basicvars.stacktop.uint8sp->uint8value>=(x) ? BASTRUE : BASFALSE)
 #define CPGE_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		(basicvars.stacktop.int64sp->int64value>=(x) ? BASTRUE : BASFALSE)
+		     (basicvars.stacktop.int64sp->int64value>=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT(x) basicvars.stacktop.intsp->intvalue = \
-		(basicvars.stacktop.intsp->intvalue<=(x) ? BASTRUE : BASFALSE)
+		   (basicvars.stacktop.intsp->intvalue<=(x) ? BASTRUE : BASFALSE)
+#define CPLE_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
+		     (basicvars.stacktop.uint8sp->uint8value<=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		(basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
+		     (basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
 
 /*
 ** If the debug version of the code is being used, replace some

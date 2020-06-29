@@ -504,7 +504,7 @@ static void fn_bget(void) {
 ** character string
 */
 static void fn_chr(void) {
-  char *cp, value;
+  char *cp, value=0;
   (*factor_table[*basicvars.current])();
 
   switch(GET_TOPITEM) {
