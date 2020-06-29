@@ -4018,7 +4018,7 @@ static void eval_iamod(void) {
     baseu8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base[n] = lhsrce[n] % rhsrce[n];
+      baseu8[n] = lhsrce[n] % rhsrce[n];
     }
   } else if (lhitem == STACK_INT64ARRAY) {			/* <int64 array> MOD <integer array> */
     int64 *lhsrce;
