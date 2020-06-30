@@ -65,7 +65,9 @@ shell environment variable. Notable ones include:
 
 					>_
 
-				(This works best with -DBRANDY_STARTUP_MODE=7 :) )
+				This works best with -DBRANDY_STARTUP_MODE=7 :)
+-DBRANDY_ALLOW_LOWERCASE_COMMANDS	Allow immediate-mode commands to be
+					entered in lower case.
 
 Compiling Under Different Operating Systems
 -------------------------------------------

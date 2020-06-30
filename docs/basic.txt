@@ -212,9 +212,12 @@ of the former are 'IF', 'ENDPROC' and 'WHILE'. Examples of
 commands are 'LOAD', 'LIST' and 'NEW'. A complete list of keywords
 is given at the end of these notes.
 
+If Matrix Brandy is compiled with -DBRANDY_ALLOW_LOWERCASE_COMMANDS,
 Basic keywords have to be in upper case. On the other hand,
 commands can be given in either lower or upper case to make it
-more convenient to type them in.
+more convenient to type them in. Otherwise all commands must
+be entered in upper case, as is the case with the BBC Micro and
+RISC OS versions of BBC BASIC.
 
 The interpreter tries to be clever with keywords. In general
 keywords cannot be used as variable names but there are cases

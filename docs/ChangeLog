@@ -12,6 +12,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   instead of silently wrapping. (uint8 variables will wrap.)
 - BASIC: OLD keyword now reports Unsupported. It never worked properly.
 - BASIC: DELETE keyword now requires at least one parameter.
+- BASIC: Lowercase immediate mode commands no longer allowed, unless compiled
+  with -DBRANDY_ALLOW_LOWERCASE_COMMANDS
 
 * V1.22.6 - 19 June 2020
 - BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)

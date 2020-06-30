@@ -321,7 +321,8 @@ The interpreter has the following extensions:
 3)  Libraries can have their own private variables.
 4)  The OSCLI statement has been extended to allow the output from operating
     system commands to captured.
-5)  The case of commands such as 'LIST' and 'RUN' is ignored, so 'LIST' could
+5)  (Only if compiled with -DBRANDY_ALLOW_LOWERCASE_COMMANDS)
+    The case of commands such as 'LIST' and 'RUN' is ignored, so 'LIST' could
     be entered as 'list' or 'List'. The downside is that variable names that
     are the lower case equivalents of commands will now be seen as commands,
     something that seems to happen all too frequently.
