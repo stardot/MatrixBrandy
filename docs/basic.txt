@@ -3826,6 +3826,10 @@ lines from a Basic program. If a single line number is given then
 only that line is removed. If two line numbers are provided then
 all lines in that range are erased. It is not possible to retrieve
 lines that have been deleted in error.
+Leaving the start and end lines out is permissible, in this case
+lines from the start of the program and to the end of the program
+respectively will be deleted. Leaving both out (just specifying
+the ,) will delete the entire program.
 
 Example:
 	DELETE 100
@@ -4052,14 +4056,7 @@ OLD
 Syntax: OLD
 
 The OLD command is used to attempt to recover a program in memory.
-It is of limited use. It only stands a chance of working after
-a plain NEW command (that is, one that does not change the
-workspace size). If it appears that there is a program in memory
-it carries out a number of checks to see if the program is intact.
-If so it sets up the program again so that it can be run. If any
-errors are detected the program is marked as a 'bad program'. It
-cannot be run or edited. The checks carried out are not foolproof
-and it is possible that a corrupted program will pass the tests.
+It is not supported in Matrix Brandy.
 
 Example:
 	OLD
