@@ -163,13 +163,17 @@ static void exec_new(void) {
 
 /*
 ** 'exec_old' checks to see if there is a program still in memory and
-** attempts to recover it
+** attempts to recover it. Unfortunately, it doesn't work.
 */
 static void exec_old(void) {
+#if 1
+  error(ERR_UNSUPPORTED);
+#else
   basicvars.current++;
   check_ateol();
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
   recover_program();
+#endif
 }
 
 
@@ -303,6 +307,7 @@ static void delete(void) {
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
   basicvars.current++;
+  if (isateol(basicvars.current)) error(ERR_SYNTAX);
   get_pair(&low, &high, 0, MAXLINENO);
   check_ateol();
   if (low<0 || low>MAXLINENO || high<0 || high>MAXLINENO) error(ERR_LINENO);
