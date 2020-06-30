@@ -30,9 +30,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/time.h>
-// #include <pthread.h>
 #ifdef USE_SDL
 #include <SDL.h>
+#else
+#include <pthread.h>
 #endif
 #ifndef TARGET_MINGW
 #include <sys/mman.h>
@@ -450,6 +451,9 @@ static void load_libraries(void) {
 
 #ifdef USE_SDL
 static int timer_thread(void *data) {
+#else
+static void *timer_thread(void *data) {
+#endif
   struct timeval tv;
   while(1) {
     gettimeofday (&tv, NULL);
@@ -462,7 +466,6 @@ static int timer_thread(void *data) {
   }
   return 0;
 }
-#endif
 
 /* This function starts a timer thread */
 static void init_timer() {
@@ -471,6 +474,13 @@ static void init_timer() {
   basicvars.csec_thread = SDL_CreateThread(timer_thread,NULL);
   if (basicvars.csec_thread == NULL) {
     fprintf(stderr, "Timer thread failed to start\n");
+    exit(1);
+  }
+#else
+  pthread_t timer_thread_id;
+  int err = pthread_create(&timer_thread_id,NULL,&timer_thread,NULL);
+  if(err) {
+    fprintf(stderr,"Unable to create timer thread\n");
     exit(1);
   }
 #endif
