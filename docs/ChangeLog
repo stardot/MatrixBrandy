@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Platforms: SYS calls on RISC OS can call the Brandy_* calls from within
   the interpreter. OS_SWINumerFromString is intercepted to also recognise
   the Brandy_* calls.
+- System: pthreads used for timer thread on non-SDL (and non-RISC OS) builds.
 - BASIC: Unsigned 8-bit data type (var&) implemented.
 - BASIC: Overflowing a 32-bit integer variable will now raise an error
   instead of silently wrapping. (uint8 variables will wrap.)
