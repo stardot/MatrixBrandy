@@ -33,8 +33,10 @@
 #ifdef USE_SDL
 #include <SDL.h>
 #else
+#ifndef TARGET_RISCOS
 #include <pthread.h>
 #endif
+#endif /* USE_SDL */
 #ifndef TARGET_MINGW
 #include <sys/mman.h>
 #endif
@@ -98,7 +100,9 @@ int main(int argc, char *argv[]) {
   /* DEBUG HACK */
   collapse=NULL;
   init1();
+#ifndef TARGET_RISCOS
   init_timer();	/* Initialise the timer thread */
+#endif
 #ifndef NONET
   brandynet_init();
 #endif
