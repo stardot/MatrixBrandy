@@ -1859,7 +1859,7 @@ static void eval_i64aplus(void) {
       case STACK_INT64: lhint=pop_int64(); break;
       default: error(ERR_BROKEN, __LINE__, "evaluate");
     }
-    *base = make_array(VAR_INTLONG, rharray);
+    base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhint+rhsrce[n];
   } else if (lhitem == STACK_FLOAT) {	/* <float>+<int array> */
     float64 *base;
