@@ -100,9 +100,7 @@ int main(int argc, char *argv[]) {
   /* DEBUG HACK */
   collapse=NULL;
   init1();
-#ifndef TARGET_RISCOS
   init_timer();	/* Initialise the timer thread */
-#endif
 #ifndef NONET
   brandynet_init();
 #endif
@@ -473,6 +471,7 @@ static void *timer_thread(void *data) {
 
 /* This function starts a timer thread */
 static void init_timer() {
+#ifndef TARGET_RISCOS
 #ifdef USE_SDL
   basicvars.csec_thread = NULL;
   basicvars.csec_thread = SDL_CreateThread(timer_thread,NULL);
@@ -487,7 +486,8 @@ static void init_timer() {
     fprintf(stderr,"Unable to create timer thread\n");
     exit(1);
   }
-#endif
+#endif /* USE_SDL */
+#endif /* TARGET_RISCOS */
 }
 
 /*
