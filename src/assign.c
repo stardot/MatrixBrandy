@@ -74,7 +74,7 @@ static void assign_intword(pointers address) {
     case STACK_INT64: 
       value = pop_int64();
       if (value > MAXINTVAL || value < MININTVAL) error(ERR_RANGE);
-      *address.intaddr = INT64TO32(pop_int64());
+      *address.intaddr = INT64TO32(value);
       break;
     case STACK_FLOAT: *address.intaddr = TOINT(pop_float()); break;
     default: error(ERR_TYPENUM);

@@ -1170,7 +1170,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "OFF")) {
     emulate_printf("OFF: turn cursor off.\r\nPart of TRACE OFF, ON ERROR OFF statements.");
   } else if (!strcmp(cmd, "OLD")) {
-    emulate_printf("This command recovers the program just after a NEW.");
+    emulate_printf("This command is not supported.");
   } else if (!strcmp(cmd, "ON")) {
     emulate_printf("ON: cursor on.\r\nON ERROR [LOCAL|OFF]: define error handler.\r\nON <expression> GOTO|GOSUB|PROC.... ELSE: call from specified list item.");
   } else if (!strcmp(cmd, "OPENIN")) {
