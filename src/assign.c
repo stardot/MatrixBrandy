@@ -66,11 +66,16 @@ static void assignment_invalid(pointers address) {
 ** 'assign_intword' deals with assignments to normal integer variables
 */
 static void assign_intword(pointers address) {
+  int64 value;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   switch(GET_TOPITEM) {
     case STACK_INT:   *address.intaddr = pop_int(); break;
     case STACK_UINT8: *address.intaddr = pop_uint8(); break;
-    case STACK_INT64: *address.intaddr = INT64TO32(pop_int64()); break;
+    case STACK_INT64: 
+      value = pop_int64();
+      if (value > MAXINTVAL || value < MININTVAL) error(ERR_RANGE);
+      *address.intaddr = INT64TO32(pop_int64());
+      break;
     case STACK_FLOAT: *address.intaddr = TOINT(pop_float()); break;
     default: error(ERR_TYPENUM);
   }

@@ -1499,12 +1499,22 @@ static void *make_array(int32 arraytype, basicarray* original) {
 }
 
 static void push_varyint(int64 value) {
-  if (value == (uint8)value)
+  if (value == (uint8)value) {
+#ifdef DEBUG
+    if (basicvars.debug_flags.stack) fprintf(stderr, "push_varyint: Pushing %lld (&%llX) as uint8\n", value, value);
+#endif
     push_uint8((uint8)value);
-  else if (value == (int32)value)
+  } else if (value == (int32)value) {
+#ifdef DEBUG
+    if (basicvars.debug_flags.stack) fprintf(stderr, "push_varyint: Pushing %lld (&%llX) as int32\n", value, value);
+#endif
     push_int((int32)value);
-  else
+  } else {
+#ifdef DEBUG
+    if (basicvars.debug_flags.stack) fprintf(stderr, "push_varyint: Pushing %lld (&%llX) as int64\n", value, value);
+#endif
     push_int64(value);
+  }
 }
 
 /*
