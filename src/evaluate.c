@@ -1852,13 +1852,14 @@ static void eval_i64aplus(void) {
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT || lhitem ==  STACK_UINT8 || lhitem == STACK_INT64) {
+    int64 *base;
     switch(lhitem) {
       case STACK_INT:   lhint=pop_int();   break;
       case STACK_UINT8: lhint=pop_uint8(); break;
       case STACK_INT64: lhint=pop_int64(); break;
       default: error(ERR_BROKEN, __LINE__, "evaluate");
     }
-    int64 *base = make_array(VAR_INTLONG, rharray);
+    *base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhint+rhsrce[n];
   } else if (lhitem == STACK_FLOAT) {	/* <float>+<int array> */
     float64 *base;
