@@ -334,7 +334,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
       break;
     case SWI_OS_Plot:
-      emulate_plot(inregs[0], inregs[1], inregs[2]); break;
+      emulate_plot(inregs[0], inregs[1], inregs[2]);
       break;
     case SWI_OS_WriteN:	/* This is extended in Brandy - normally only R0 and R1
 			   are acted upon; in Brandy, if R2 is set to 42, the

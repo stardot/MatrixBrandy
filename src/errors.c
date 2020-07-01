@@ -771,6 +771,10 @@ void error(int32 errnumber, ...) {
   va_list parms;
   byte *badline;
 
+#ifdef BORKONERROR
+*collapse="bork"; /* This causes a segfault on an error, to stop gdb in its tracks. Ugly ugly hack. */
+#endif
+
 #ifdef USE_SDL
   hide_cursor();
 #endif
