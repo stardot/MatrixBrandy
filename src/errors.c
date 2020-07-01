@@ -601,7 +601,10 @@ static char *procfn(char *name) {
 ** error is just a warning, that is, iserror is FALSE
 */
 static void print_details(boolean iserror) {
+  int32 count;
   fnprocinfo *p;
+  byte *lp;
+  char *libname;
   basicvars.printcount = 0;             /* Reset no. of chars Basic has printed on line to zero */
   if (basicvars.error_line==0) {        /* Error occured when dealing with the command line */
     if (basicvars.linecount==0)
@@ -611,7 +614,6 @@ static void print_details(boolean iserror) {
     }
   }
   else {        /* Error occured in running program */
-    char *libname;
     if (basicvars.procstack==NIL)
       emulate_printf("\r\n%s at line %d", errortext, basicvars.error_line);
     else {
@@ -628,11 +630,11 @@ static void print_details(boolean iserror) {
     }
     if (iserror && basicvars.traces.backtrace && basicvars.procstack!=NIL) {
 /* Print a stack backtrace */
-      int32 count = 0;
+      count = 0;
       p = basicvars.procstack;
       emulate_printf("PROC/FN call trace:\r\n");
       while (p!=NIL && count<MAXCALLDEPTH) {
-        byte *lp = find_linestart(p->retaddr);
+        lp = find_linestart(p->retaddr);
         if (lp!=NIL)    /* Line was in the program or a library */
           libname = find_libname(p->retaddr);
         else if (basicvars.curcount>0) {        /* In EVAL or READ */
@@ -767,9 +769,8 @@ static void handle_error(errortype severity) {
 */
 void error(int32 errnumber, ...) {
   va_list parms;
-#ifdef BORKONERROR
-*collapse="bork"; /* This causes a segfault on an error, to stop gdb in its tracks. Ugly ugly hack. */
-#endif
+  byte *badline;
+
 #ifdef USE_SDL
   hide_cursor();
 #endif
@@ -800,7 +801,7 @@ void error(int32 errnumber, ...) {
   if (basicvars.current==NIL)           /* Not running a program */
     basicvars.error_line = 0;
   else {
-    byte *badline = find_linestart(basicvars.current);
+    badline = find_linestart(basicvars.current);
     if (badline==NIL && basicvars.curcount>0) badline = find_linestart(basicvars.savedcur[0]);
     basicvars.curcount = 0; /* otherwise the stack will eventually overflow */
     if (badline==NIL)   /* Error did not occur in program - Assume it was in the command line */

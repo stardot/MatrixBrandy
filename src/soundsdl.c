@@ -4,8 +4,6 @@
 **
 */
 
-#ifdef USE_SDL /* Keep code analysis tool happy, matching #endif at end of file */
-
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -755,4 +753,3 @@ void sdl_volume(int32 vol) {
  if(vol > 127) vol = 127;
  snd_volume = vol;
 }
-#endif /* USE_SDL */

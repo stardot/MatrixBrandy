@@ -377,11 +377,12 @@ void mos_mouse(int32 values[]) {
 ** If x<0 reads buffer status, if x>=0 reads input device.
 */
 int32 mos_adval(int32 x) {
+  _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   regs.r[0] = 128;	/* Use OS_Byte 128 for this */
   regs.r[1] = x;
   regs.r[2] = x >> 8;
-  (void)_kernel_swi(OS_Byte, &regs, &regs);
+  oserror = _kernel_swi(OS_Byte, &regs, &regs);
 // Bug in RISC OS, *mustn't* return an error here
   return regs.r[1]+(regs.r[2]<<BYTESHIFT);
 }
@@ -537,6 +538,8 @@ static int32 read_monotonic(void) {
 */
 void mos_waitdelay(int32 delay) {
   int32 target;
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
   if (delay<=0) return;		/* Nothing to do */
   target = read_monotonic()+delay;
 /*
@@ -544,8 +547,6 @@ void mos_waitdelay(int32 delay) {
 ** here to make the program pause
 */
   do {
-    _kernel_oserror *oserror;
-    _kernel_swi_regs regs;
     if (delay>32767) delay = 32767;	/* Maximum time OS_Byte 129 can wait */
     regs.r[0] = 129;
     regs.r[1] = delay & BYTEMASK;
@@ -647,6 +648,7 @@ int32 mos_getswinum(char *name, int32 length) {
 **  N (sign) Z (zero) C (carry) V (overflow)
 */
 void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
+  _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int n;
   if ((swino & ~XBIT) == 57) { /* OS_SWINumberFromString - call our local version */
@@ -658,7 +660,6 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
     /* Brandy-specific virtual SYS calls */
     mos_sys_ext(swino & ~XBIT, inregs, outregs, swino & XBIT, flags);
   } else {
-    _kernel_oserror *oserror;
     for (n=0; n<10; n++) regs.r[n] = inregs[n];
     oserror = _kernel_swi_c(swino, &regs, &regs, flags);
     if (oserror!=NIL && (swino & XBIT)==0) error(ERR_CMDFAIL, oserror->errmess);
@@ -875,9 +876,10 @@ void mos_mouse(int64 values[]) {
 ** -12- other buffers		etc
 */
 int32 mos_adval(int32 x) {
+  int64 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
+
   x = x & 0xFFFF;				/* arg is a 16-bit value		*/
   if((x>6) & (x<10)) {
-    int64 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
@@ -1103,41 +1105,42 @@ void mos_waitdelay(int32 time) {
  *           recognises |<letter> |" || !? |!
  */
 static char *mos_gstrans(char *instring, unsigned int *len) {
-  int quoted=0, escape=0;
-  char *result, *outstring;
+	int quoted=0, escape=0;
+	char *result, *outstring;
+	char ch;
 
-  result=outstring=instring;
-  while (*instring == ' ') instring++;		// Skip spaces
-  if ((quoted = (*instring == '"'))) instring++;
+	result=outstring=instring;
+	while (*instring == ' ') instring++;		// Skip spaces
+	if ((quoted = (*instring == '"'))) instring++;
 
-  while (*instring) {
-    char ch = *instring++;
-    if (ch == '"' && *instring != '"' && quoted)
-      break;
-    if ((ch == (char)124 || ch == (char)221) && *instring == '!') {
-      instring++;
-      escape=128;
-      ch=*instring++;
-    }
-    if ((ch == (char)124 || ch == (char)221)) {
-      if (*instring == (char)124 || *instring == (char)221) {
-        instring++;
-	ch = (char)124;
-      } else {
-	if (*instring == '"' || *instring == '?' || *instring >= '@') {
-		ch = *instring++ ^ 64;
-		if (ch < 64 ) ch = ch & 31; else if (ch == 98) ch = 34;
+	while (*instring) {
+		ch = *instring++;
+		if (ch == '"' && *instring != '"' && quoted)
+			break;
+		if ((ch == (char)124 || ch == (char)221) && *instring == '!') {
+			instring++;
+			escape=128;
+			ch=*instring++;
+		}
+		if ((ch == (char)124 || ch == (char)221)) {
+			if (*instring == (char)124 || *instring == (char)221) {
+                        	instring++;
+				ch = (char)124;
+			} else {
+				if (*instring == '"' || *instring == '?' || *instring >= '@') {
+					ch = *instring++ ^ 64;
+					if (ch < 64 ) ch = ch & 31; else if (ch == 98) ch = 34;
+				}
+			}
+		}
+		*outstring++=ch | escape;
+		escape=0;
 	}
-      }
-    }
-    *outstring++=ch | escape;
-    escape=0;
-  }
-  *outstring=0;
-  if (quoted && *(instring-1) != '"')
-    error(ERR_BADSTRING);
-  *len=outstring-result;
-  return result;
+	*outstring=0;
+	if (quoted && *(instring-1) != '"')
+		error(ERR_BADSTRING);
+	*len=outstring-result;
+	return result;
 }
 
 /*
@@ -1709,6 +1712,7 @@ static void cmd_key(char *command) {
  */
 static void cmd_show(char *command) {
   int key1, key2, len;
+  char *string;
   char c;
 
   while (*command == ' ') command++;		// Skip spaces
@@ -1723,9 +1727,9 @@ static void cmd_show(char *command) {
 
   for (; key1 <= key2; key1++) {
 #ifdef NEWKBD
-    char *string=kbd_fnkeyget(key1, &len);
+    string=kbd_fnkeyget(key1, &len);
 #else
-    char *string=get_fn_string(key1, &len);
+    string=get_fn_string(key1, &len);
 #endif
     emulate_printf("*Key %d \x22", key1);
     while (len--) {
@@ -1887,11 +1891,11 @@ static void cmd_save(char *command){
     ptr++;
     f=1;
   }
-  while((n=ishex(*ptr))>=0) {size=(size<<4)+n; ptr++;}
+   while((n=ishex(ch=*ptr))>=0) {size=(size<<4)+n; ptr++;}
   if(!f) size -= addr-1;
   // fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
 
-  if (addr == 0) {
+  if ((addr == 0) || (size < 0)) {
     emulate_printf("Syntax: SAVE <fname> <start addr> <end addr>|+<length>\r\n");
     return;
   }
@@ -1993,6 +1997,8 @@ static int check_command(char *text) {
 ** drastically reduced.)
 */
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
+  int cmd;
+
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;					/* Null string */
   if (*command == (char)124 || *command == (char)221) return;	/* Comment     */
@@ -2003,7 +2009,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
  * Check if command is one of the *commands implemented
  * by this code.
  */
-    int cmd = check_command(command);
+    cmd = check_command(command);
     switch(cmd){
       case CMD_KEY:		cmd_key(command+3); return;
       case CMD_CAT:		cmd_cat(command); return;
@@ -2050,7 +2056,7 @@ HANDLE g_hChildStd_OUT_Wr = NULL;
 HANDLE g_hInputFile = NULL;
 
 /* Create a child process that uses the previously created pipes for STDIN and STDOUT. */
-static void CreateChildProcess(char *procname) {
+void CreateChildProcess(char *procname) {
    char cmdLine[256];
    PROCESS_INFORMATION piProcInfo;
    STARTUPINFO siStartInfo;
@@ -2102,7 +2108,7 @@ static void CreateChildProcess(char *procname) {
 
 // Read output from the child process's pipe for STDOUT
 // Stop when there is no more data.
-static int ReadFromPipe(void) {
+int ReadFromPipe(void) {
    DWORD dwRead;
    char buf;
    BOOL bSuccess = FALSE;
@@ -2118,6 +2124,7 @@ static int ReadFromPipe(void) {
 
 static void native_oscli(char *command, char *respfile, FILE *respfh) {
   int clen;
+  FILE *sout;
   char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
 #ifdef USE_SDL
 #ifndef TARGET_MINGW
@@ -2168,7 +2175,6 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 */
   if (respfile == NIL) {		/* Command output goes to normal place */
 #ifdef USE_SDL
-    FILE *sout;
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
@@ -2187,7 +2193,6 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
 #endif
   } else {				/* Want response back from command */
-    FILE *sout;
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");
     if (sout == NULL) {
@@ -2233,6 +2238,18 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       emulate_vdu(getChar);
     }
     echo_on();
+#if 0
+    /* This really needs to be redone using Windows API calls instead of popen() */
+    sout = popen(cmdbuf, "r");
+    if (sout == NULL) error(ERR_CMDFAIL);
+    echo_off();
+    while (fread(&buf, 1, 1, sout) > 0) {
+      if (buf == '\n') emulate_vdu('\r');
+      emulate_vdu(buf);
+    }
+    echo_on();
+    pclose(sout);
+#endif
 #else
     fflush(stdout);			/* Make sure everything has been output */
     fflush(stderr);
@@ -2240,7 +2257,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     find_cursor();			/* Figure out where the cursor has gone to */
     emulate_printf("\r\n");		/* Restore cursor position */
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
-#endif /* USE_SDL */
+#endif
   } else {				/* Want response back from command */
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");
@@ -2660,147 +2677,150 @@ static byte _sysvar[] = { 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &A6 - &AF */
 0 }; /* Overflow for &FF+1 */
 byte *sysvar = _sysvar-166;
 
-static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag) {
-  int tmp = (areg=areg & 0xFF);	// Prevent any silliness
+static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
+{
+int tmp,new;
 
-  if (areg>=166) {
-    int new  = (byte)(sysvar[areg] & yreg) ^ xreg;
-    xreg = sysvar[areg] & 0xFF;
-    yreg = sysvar[areg+1] & 0xFF;
-    sysvar[areg] = new;
-  // Some variables are 'unclean' because we don't control the kernel
-    if (areg==220) kbd_escchar(new, xreg);
-    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
-  }
+tmp=(areg=areg & 0xFF);	// Prevent any sillyness
 
-  switch (areg) {
-    case 0:			// OSBYTE 0 - Return machine type
-	    if (xreg!=0) return MACTYPE;
-	    else if (!xflag) error(ERR_MOSVERSION);
-    // else return pointer to error block
-	    break;
-    case 1: case 3: case 5: case 6:
-	    if (areg==3 || areg==4) tmp=tmp-7;
-	    return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
-    case 4:
-	    matrixflags.osbyte4val = xreg;
-	    break;
-    case 43:
-	    printf("%c", xreg);
-	    fflush(stdout);
-	    break;
-    case 44:
-	    osbyte44(xreg);
-	    break;
+if (areg>=166) {
+  new  = (byte)(sysvar[areg] & yreg) ^ xreg;
+  xreg = sysvar[areg] & 0xFF;
+  yreg = sysvar[areg+1] & 0xFF;
+  sysvar[areg] = new;
+// Some variables are 'unclean' because we don't control the kernel
+  if (areg==220) kbd_escchar(new, xreg);
+  return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
+}
+
+switch (areg) {
+	case 0:			// OSBYTE 0 - Return machine type
+		if (xreg!=0) return MACTYPE;
+		else if (!xflag) error(ERR_MOSVERSION);
+// else return pointer to error block
+		break;
+	case 1: case 3: case 5: case 6:
+		if (areg==3 || areg==4) tmp=tmp-7;
+		return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
+	case 4:
+		matrixflags.osbyte4val = xreg;
+		break;
+	case 43:
+		printf("%c", xreg);
+		fflush(stdout);
+		break;
+	case 44:
+		osbyte44(xreg);
+		break;
 
 #ifdef USE_SDL
-    case 15:
-	    purge_keys();
-	    drain_mousebuffer();
-	    break;
-    case 20:			// OSBYTE 20, reset font
-	    reset_sysfont(8);
-	    return 0x030114;
-    case 21:			// OSBYTE 21, flush buffers (0 and 9 only)
-	    osbyte21(xreg);
-	    break;
-    case 25:			// OSBYTE 25, reset font
-	    if (((xreg >= 0) && (xreg <= 7)) || (xreg == 16)) {
-	      reset_sysfont(xreg);
-	      return(0x19);
-	    } else {
-	      return(0x19 + (xreg << 8));
-	    }
-    case 42:			// OSBYTE 42 - local to Brandy
-	    return osbyte42(xreg);
-	    break;
-    case 106:			// OSBYTE 106 - select pointer
-	    sdl_mouse_onoff(xreg & 0x7);
-	    break;
-    case 112:			// OSBYTE 112 - screen bank written to 
-	    osbyte112(xreg);
-	    break;
-    case 113:			// OSBYTE 113 - screen bank displayed
-	    osbyte113(xreg);
-	    break;
-    case 134:			// OSBYTE 134 - Read POS and VPOS
-    case 165:			// OSBYTE 165 - Read editing cursor position (we don't have seperate cursors)
-	    return osbyte134_165(areg);
-    case 135:			// OSBYTE 135 - Read character and screen MODE
-	    return osbyte135();
+	case 15:
+		purge_keys();
+		drain_mousebuffer();
+		break;
+	case 20:			// OSBYTE 20, reset font
+		reset_sysfont(8);
+		return 0x030114;
+	case 21:			// OSBYTE 21, flush buffers (0 and 9 only)
+		osbyte21(xreg);
+		break;
+	case 25:			// OSBYTE 25, reset font
+		if (((xreg >= 0) && (xreg <= 7)) || (xreg == 16)) {
+		  reset_sysfont(xreg);
+		  return(0x19);
+		} else {
+		  return(0x19 + (xreg << 8));
+		}
+	case 42:			// OSBYTE 42 - local to Brandy
+		return osbyte42(xreg);
+		break;
+	case 106:			// OSBYTE 106 - select pointer
+		sdl_mouse_onoff(xreg & 0x7);
+		break;
+	case 112:			// OSBYTE 112 - screen bank written to 
+		osbyte112(xreg);
+		break;
+	case 113:			// OSBYTE 113 - screen bank displayed
+		osbyte113(xreg);
+		break;
+	case 134:			// OSBYTE 134 - Read POS and VPOS
+	case 165:			// OSBYTE 165 - Read editing cursor position (we don't have seperate cursors)
+		return osbyte134_165(areg);
+	case 135:			// OSBYTE 135 - Read character and screen MODE
+		return osbyte135();
 #endif
 
 
-    case 128:			// OSBYTE 128 - ADVAL
-	    return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
+	case 128:			// OSBYTE 128 - ADVAL
+		return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
 
-    case 129:			// OSBYTE 129 - INKEY
+	case 129:			// OSBYTE 129 - INKEY
 #ifdef NEWKBD
-	    return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
+		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
 // NB: Real OSBYTE 129 returns weird result for Escape/Timeout
 #else
-	    if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
-	    if ((yreg=255) && (xreg >= 128)) {
+		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
+		if ((yreg=255) && (xreg >= 128)) {
 #ifdef USE_SDL
-	      if (emulate_inkey(xreg + 0xFFFFFF00)) return (0xFFFF81);
-		else
+		  if (emulate_inkey(xreg + 0xFFFFFF00)) return (0xFFFF81);
+		    else
 #endif
-		return (0x81);
-	    }
+		    return (0x81);
+		}
 #endif
-	    break;
+		break;
 
-    case 130:			// OSBYTE 130 - High word of user memory
-	    areg = basicvars.workspace - basicvars.offbase;
-	    return ((areg & 0xFFFF0000) >> 8) | 130;
+	case 130:			// OSBYTE 130 - High word of user memory
+		areg = basicvars.workspace - basicvars.offbase;
+		return ((areg & 0xFFFF0000) >> 8) | 130;
 
-    case 131:			// OSBYTE 132 - Bottom of user memory
-	    areg = basicvars.workspace - basicvars.offbase;
-	    if (areg < 0xFFFF)	return (areg << 8) | 131;
-	    else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
+	case 131:			// OSBYTE 132 - Bottom of user memory
+		areg = basicvars.workspace - basicvars.offbase;
+		if (areg < 0xFFFF)	return (areg << 8) | 131;
+		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
-    case 132:			// OSBYTE 132 - Top of user memory
-	    areg = basicvars.slotend - basicvars.offbase;
-	    if (areg < 0xFFFF)	return (areg << 8) | 132;
-	    else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
-//    case 133:			// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
+	case 132:			// OSBYTE 132 - Top of user memory
+		areg = basicvars.slotend - basicvars.offbase;
+		if (areg < 0xFFFF)	return (areg << 8) | 132;
+		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
+//	case 133:			// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 
-    case 160:			// OSBYTE 160 - Read VDU variable
-	    return emulate_vdufn(xreg) << 8 | 160;
+	case 160:			// OSBYTE 160 - Read VDU variable
+		return emulate_vdufn(xreg) << 8 | 160;
 #ifdef USE_SDL
-    case 163:			// OSBYTE 163 - Application Support.
-      if (xreg==1) {		// get/set REFRESH state
-        if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
-        else {
-          if (yreg > 2) return (0xC000FF2A + (yreg << 16));
-          else star_refresh(yreg);
-        }
-      }
-      if (xreg==2) {		// Set Escape Check Interval, 0 resets defaults
-        //set_escint(yreg);
-      }
-      if (xreg==3) {		// Set Escape Check Interval, multiplied by 256.
-        //set_escmul(yreg);
-      }
-      if (xreg==127) {	// Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
-        star_refresh(1);
-        osbyte112(1);
-        osbyte113(1);
-        emulate_vdu(6);
-      }
-      break;
+	case 163:			// OSBYTE 163 - Application Support.
+		if (xreg==1) {		// get/set REFRESH state
+		  if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
+		  else {
+		    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
+		    else star_refresh(yreg);
+		  }
+		}
+		if (xreg==2) {		// Set Escape Check Interval, 0 resets defaults
+		  //set_escint(yreg);
+		}
+		if (xreg==3) {		// Set Escape Check Interval, multiplied by 256.
+		  //set_escmul(yreg);
+		}
+		if (xreg==127) {	// Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
+		  star_refresh(1);
+		  osbyte112(1);
+		  osbyte113(1);
+		  emulate_vdu(6);
+		}
+		break;
 #endif
 
-  // This is now in keyboard.c
-  //	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
-  //	case 229:		// OSBYTE 229 - Enable or disable escape
-  //	case 250:
-  //	case 251:
-  //		break;
-  }
-  if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
-    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
-  else
-    return (3 << 30) | (yreg << 16) | (0xFF00) | areg;	// Default null return
+// This is now in keyboard.c
+//	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
+//	case 229:		// OSBYTE 229 - Enable or disable escape
+//	case 250:
+//	case 251:
+//		break;
+	}
+if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
+	return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;	// Default null return
+else
+	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;	// Default null return
 }
 #endif

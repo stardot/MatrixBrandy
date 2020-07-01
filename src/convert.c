@@ -57,9 +57,9 @@ int todigit(char x) {
 char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value, float64 *floatvalue) {
   int32 value;
   int64 value64;
-  float64 fpvalue;
-  boolean isint, isneg;
-  int digits;
+  static float64 fpvalue, fltdiv;
+  boolean isint, isneg, negexp;
+  int digits, exponent;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function convert.c:tonumber\n");
@@ -139,7 +139,6 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       isint = TRUE;
     }
     if (*cp=='.') {	/* Number contains a decimal point */
-      float64 fltdiv;
       if (isint) {
         isint = FALSE;
         fpvalue = TOFLOAT(value);
@@ -159,8 +158,6 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
 ** that is, there is not really an exponent here
 */
     if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {	/* Number contains an exponent */
-      boolean negexp;
-      int exponent;
       if (isint) {
         isint = FALSE;
         fpvalue = value;
@@ -214,9 +211,9 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
 char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value, float64 *floatvalue) {
   int32 value;
   int64 value64;
-  float64 fpvalue;
-  boolean isint, isneg;
-  int digits;
+  static float64 fpvalue, fltdiv;
+  boolean isint, isneg, negexp;
+  int digits, exponent;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function convert.c:tonumber\n");
@@ -250,7 +247,6 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
     isint = TRUE;
   }
   if (*cp=='.') {	/* Number contains a decimal point */
-    float64 fltdiv;
     if (isint) {
       isint = FALSE;
       fpvalue = TOFLOAT(value);
@@ -270,8 +266,6 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
 ** that is, there is not really an exponent here
 */
   if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {	/* Number contains an exponent */
-    int exponent;
-    boolean negexp;
     if (isint) {
       isint = FALSE;
       fpvalue = value;

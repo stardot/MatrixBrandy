@@ -237,9 +237,10 @@ static void set_esc_key(unsigned int esckey) {
 ** -- ANSI --
 */
 void find_cursor(void) {
+  int ch, column, row;
+  column = row = 0;
   if (!basicvars.runflags.outredir && !basicvars.runflags.inredir) {
     // set_esc_key(_POSIX_VDISABLE); /* Disable INTR */
-    int ch, column = 0, row = 0;
     printf("\033[6n");  /* ANSI/VTxxx sequence to find the position of the cursor */
     fflush(stdout);
     ch = read_key();    /* Sequence expected back is ' ESC[<no>;<no>R' */
@@ -535,6 +536,10 @@ void textbackground(int32 colour) {
 ** -- conio --
 */
 static void scroll_text(updown direction) {
+#ifndef TARGET_MINGW
+  int n;
+#endif
+
   if (!vduflag(VDU_FLAG_TEXTWIN) && direction==SCROLL_UP)         /* Text window is the whole screen and scrolling is upwards */
     putch('\n');        /* Output a linefeed */
   else {        /* Writing to a text window */
@@ -554,7 +559,6 @@ static void scroll_text(updown direction) {
     clear.Attributes = text_physbackcol << BG_TEXT_ATTRIB_SHIFT;
     ScrollConsoleScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE), &scroll, &clip, dest, &clear);
 #else
-    int n;
     if (twintop!=twinbottom) {  /* Text window is more than one line high */
       if (direction==SCROLL_UP) /* Scroll text up a line */
         (void) movetext(twinleft+1, twintop+2, twinright+1, twinbottom+1, twinleft+1, twintop+1);
@@ -1613,9 +1617,9 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 }
 
 static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
-  int x, y, ax, ay, sx, sy, dx, dy;
+  int d, x, y, ax, ay, sx, sy, dx, dy, tt, mx1, my1, mx2, my2, skip=0;
   if (x1 > x2) {
-    int tt = x1; x1 = x2; x2 = tt;
+    tt = x1; x1 = x2; x2 = tt;
     tt = y1; y1 = y2; y2 = tt;
   }
   dx = x2 - x1;
@@ -1628,7 +1632,6 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
   y = y1;
 
   if (style == 0) {
-    int mx1, my1, mx2, my2;
     mx1=x1 / 2;
     mx2=x2 / 2;
     my1=y1 / 2;
@@ -1644,7 +1647,7 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
     tekvdu((mx2 & 31)+64);
     tekvdu(31);
   } else {
-    int d, skip=0;
+
     if (style & 0x20) skip=1;
 
     if (ax > ay) {
@@ -1796,7 +1799,8 @@ static void filled_ellipse(
   int32 shearx /* X shear */
 ) {
 
-  int32 x, y, width, aa, bb, aabb, ym, dx;
+  int32 x, y, width, aa, bb, aabb, ym, dx, si;
+  float64 s;
 
   aa = a * a;
   bb = b * b;
@@ -1810,8 +1814,8 @@ static void filled_ellipse(
   draw_h_line(x0-a, y0, x0 + a);
 
   for (y=1; y <= b; y++) {
-    float64 s=shearx*(1.0*y/ym);
-    int32 si=s;
+    s=shearx*(1.0*y/ym);
+    si=s;
     x=width-(dx-1);
     for (;x>0; x--)
       if (x*x*bb + y*y*aa < aabb) break;
@@ -1879,12 +1883,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_pixel(ex, ey);
     break;
   case FILL_TRIANGLE: {		/* Plot a filled triangle */
-#if 0
     int32 left, right, top, bottom;
-#endif
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
- #if 0
     left = right = xlast3;
     top = bottom = ylast3;
     if (xlast2 < left) left = xlast2;
@@ -1895,7 +1896,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast > top) top = ylast;
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
-#endif
     break;
   }
   case FILL_RECTANGLE: {		/* Plot a filled rectangle */
@@ -1912,16 +1912,12 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     break;
   }
   case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
-    int32 vx, vy;
-#if 0
-    int32 left, right, top, bottom;
-#endif
+    int32 vx, vy, left, right, top, bottom;
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
     vx = xlast3-xlast2+xlast;
     vy = ylast3-ylast2+ylast;
     filled_triangle(ex, ey, vx, vy, xlast3, ylast3);
 /*  Now figure out the coordinates of the rectangle that contains the parallelogram */
-#if 0 /* We're doing nothing with these */
     left = right = xlast3;
     top = bottom = ylast3;
     if (xlast2 < left) left = xlast2;
@@ -1936,7 +1932,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
     if (vy < bottom) bottom = vy;
-#endif
     break;
   }
   case PLOT_CIRCLE:		/* Plot the outline of a circle */
@@ -1957,10 +1952,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     /* To match RISC OS, xlast needs to be the right-most point not left-most. */
     xlast+=(xr*2);
-#if 0
     ex = sx-xradius;
     ey = sy-yradius;
-#endif
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     break;
   }
@@ -1983,11 +1976,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     else {
       filled_ellipse(sx, sy, semimajor, semiminor, shearx);
     }
-#if 0
     ex = sx-semimajor;
     ey = sy-semiminor;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-#endif
     break;
   }
   //default:

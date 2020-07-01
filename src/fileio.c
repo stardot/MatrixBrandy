@@ -150,13 +150,13 @@ int32 fileio_openout(char *name, int32 namelen) {
 ** 'fileio_openup' opens a file for both input and output
 */
 int32 fileio_openup(char *name, int32 namelen) {
-  int32 handle;
+  int32 handle, n;
   char filename [FNAMESIZE];
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (strncmp(filename, "ip0:", 4)==0 || strncmp(filename, "ip4:", 4)==0 || strncmp(filename, "ip6:", 4)==0) {
-  for (int32 n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);	/* Find an unused handle */
+  for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);	/* Find an unused handle */
     handle=brandynet_connect(filename+4, filename[2]);
     if (handle == -1) return 0;
     fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
@@ -198,8 +198,8 @@ static void close_file(int32 handle) {
 }
 
 void fileio_close(int32 handle) {
+  int32 n;
   if (handle==0) {	/* Close all open files */
-    int32 n;
     for (n=FIRSTHANDLE; n>0; n--) {
       if (fileinfo[n].filetype!=CLOSED) close_file(n);
     }
@@ -251,9 +251,10 @@ int32 fileio_bget(int32 handle) {
 ** buffer is large enough to hold MAXSTRING (65536) characters.
 */
 int32 fileio_getdol(int32 handle, char *buffer) {
-  int32 length = 0;
+  int32 ch, length;
+  length = 0;
   do {
-    int32 ch = fileio_bget(handle);
+    ch = fileio_bget(handle);
     if (ch==_kernel_ERROR) report();	/* Function returned -2 = SWI call failed */
     if (ch==-1 || ch==LF) break;	/* At end of file or reached end of line */
     buffer[length] = ch;
@@ -361,6 +362,7 @@ int32 fileio_getstring(int32 handle, char *p) {
 ** 'fileio_bput' writes a character to a file
 */
 void fileio_bput(int32 handle, int32 value) {
+  int32 result;
   if (handle==0) error(ERR_BADHANDLE);
 #ifndef NONET
   if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {
@@ -443,14 +445,13 @@ void fileio_printfloat(int32 handle, float64 value) {
 ** four bytes. The string is written in 'true' order
 */
 void fileio_printstring(int32 handle, char *string, int32 length) {
-  int32 n;
+  int32 n, temp;
   if (length<SHORT_STRING) {	/* Write string in Acorn format */
     fileio_bput(handle, PRINT_SHORTSTR);
     fileio_bput(handle, length);
     if (length>0) for (n=length-1; n>=0; n--) fileio_bput(handle, string[n]);
   }
   else {	/* Long string - Use interpreter's extended format */
-    int32 temp;
     fileio_bput(handle, PRINT_LONGSTR);
     temp = length;
     for (n=0; n<sizeof(int32); n++) {	/* Write four byte length to file */
@@ -1036,7 +1037,7 @@ void fileio_printfloat(int32 handle, float64 value) {
 */
 void fileio_printstring(int32 handle, char *string, int32 length) {
   FILE *stream;
-  int32 n;
+  int32 n, temp, result;
 
   if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
@@ -1049,8 +1050,8 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
     if (length>0) for (n=length-1; n>=0; n--) write(stream, string[n]);
   }
   else {	/* Long string - Use interpreter's extended format */
-    int32 result, temp = length;
     write(stream, PRINT_LONGSTR);
+    temp = length;
     for (n=0; n<sizeof(int32); n++) {	/* Write four byte length to file */
       write(stream, temp & BYTEMASK);
       temp = temp>>BYTESHIFT;
@@ -1110,7 +1111,7 @@ int32 fileio_getext(int32 handle) {
 ** is not supported except under RISC OS
 */
 void fileio_setext(int32 handle, int32 newsize) {
-//  handle = map_handle(handle);
+  handle = map_handle(handle);
 //error(ERR_UNSUPPORTED);
 }
 
@@ -1140,13 +1141,13 @@ int32 fileio_eof(int32 handle) {
     return net_eof(fileinfo[handle].nethandle);
   } else {
 #endif
-    stream = fileinfo[handle].stream;
-    position = ftell(stream);
-    if (position==-1) return feof(stream) ? TRUE : FALSE;
-    fseek(stream, 0, SEEK_END);	/* Find the end of the file */
-    ateof = ftell(stream)==position;
-    fseek(stream, position, SEEK_SET);
-    return ateof;
+  stream = fileinfo[handle].stream;
+  position = ftell(stream);
+  if (position==-1) return feof(stream) ? TRUE : FALSE;
+  fseek(stream, 0, SEEK_END);	/* Find the end of the file */
+  ateof = ftell(stream)==position;
+  fseek(stream, position, SEEK_SET);
+  return ateof;
 #ifndef NONET
   }
 #endif

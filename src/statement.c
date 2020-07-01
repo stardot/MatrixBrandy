@@ -409,6 +409,7 @@ static void exec_statements(byte *lp) {
 #ifdef USE_SDL
       kbd_escpoll();
       mode7flipbank();
+//    if (basicvars.escape_enabled) checkforescape();
 #endif
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token %X\n", *basicvars.current);

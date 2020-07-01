@@ -326,7 +326,7 @@ static void clear_refs(void) {
 ** if new or replaces it if it already exists.
 */
 static void insert_line(byte *line) {
-  int32 newline, newlength;
+  int32 lendiff, newline, newlength;
   byte *bp, *prev;
   newline = get_lineno(line);
   newlength = get_linelen(line);
@@ -341,7 +341,7 @@ static void insert_line(byte *line) {
     bp+=get_linelen(bp);
   }
   if (prev!=NIL && newline==get_lineno(prev)) {	/* Replacing a line */
-    int32 lendiff = newlength-get_linelen(prev);
+    lendiff = newlength-get_linelen(prev);
     if (lendiff!=0) {	/* Old and new lines are not the same length */
       if (basicvars.top+lendiff>=basicvars.himem) error(ERR_NOROOM);	/* No room for line */
       memmove(prev+newlength, bp, basicvars.top-bp+ENDMARKSIZE);
@@ -365,10 +365,11 @@ static void insert_line(byte *line) {
 ** exists
 */
 static void delete_line(int32 line) {
+  int32 length;
   byte *p;
   p = find_line(line);
   if (get_lineno(p)==line) {	/* Need an exact match. Cannot delete just anything... */
-    int32 length = get_linelen(p);
+    length = get_linelen(p);
     memmove(p, p+length, basicvars.top-p-length+ENDMARKSIZE);
     basicvars.top-=length;
     adjust_heaplimits();
@@ -448,35 +449,33 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
 ** could be opened is left in 'basicvars.filename'
 */
 static FILE *open_file(char *name) {
+  char *srce, *dest;
   FILE *handle;
   strcpy(basicvars.filename, name);
   handle = fopen(name, "rb");
-  if (handle!=NIL || basicvars.loadpath==NIL || isapath(name)) {
-    return handle;
-  } else {
+  if (handle!=NIL || basicvars.loadpath==NIL || isapath(name)) return handle;
 /* File not found but there is a list of directories to search */
-    char *srce = basicvars.loadpath;
-    do {
-      char *dest = basicvars.filename;
-      if (*srce!=',') {		/* Not got a null directory name */
-        while (*srce!=asc_NUL && *srce!=',') {
-          *dest = *srce;
-          dest++;
-          srce++;
-        }
-        if (*(srce-1)!=DIR_SEP) {	/* No separator after directory name */
-          *dest = DIR_SEP;
-          dest++;
-        }
+  srce = basicvars.loadpath;
+  do {
+    dest = basicvars.filename;
+    if (*srce!=',') {		/* Not got a null directory name */
+      while (*srce!=asc_NUL && *srce!=',') {
+        *dest = *srce;
+        dest++;
+        srce++;
       }
-      *dest = asc_NUL;
-      strcat(basicvars.filename, name);
-      handle = fopen(basicvars.filename, "rb");
-      if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
-      srce++;
-    } while (TRUE);
-    return handle;	/* Return file handle or NIL if file not found */
-  }
+      if (*(srce-1)!=DIR_SEP) {	/* No separator after directory name */
+        *dest = DIR_SEP;
+        dest++;
+      }
+    }
+    *dest = asc_NUL;
+    strcat(basicvars.filename, name);
+    handle = fopen(basicvars.filename, "rb");
+    if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
+    srce++;
+  } while (TRUE);
+  return handle;	/* Return file handle or NIL if file not found */
 }
 
 /*
@@ -554,6 +553,7 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
 ** the end of the file. It could indicate an I/O error on the file.
 */
 static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean silent) {
+  int length;
   byte *filebase;
   char *result;
   byte tokenline[MAXSTATELEN];
@@ -599,7 +599,6 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     result = fgets(basicvars.stringwork, INPUTLEN, textfile);
   }
   while (result!=NIL) {
-    int length;
     basicvars.linecount++;
     length = strlen(basicvars.stringwork);
     if (matrixflags.scrunge) do_scrunge(length, basicvars.stringwork);
@@ -927,6 +926,7 @@ void read_library(char *name, boolean onheap) {
 void write_text(char *name, FILE *fhandle) {
   FILE *savefile;
   byte *bp;
+  int32 x;
   if (fhandle) {
     savefile = fhandle;
   } else {
@@ -935,7 +935,6 @@ void write_text(char *name, FILE *fhandle) {
   if (savefile==NIL) error(ERR_NOTCREATED, name);
   bp = basicvars.start;
   while (!AT_PROGEND(bp)) {
-    int32 x;
     expand(bp, basicvars.stringwork);
     x = fputs(basicvars.stringwork, savefile);
     if (x!=EOF) x = fputc('\n', savefile);

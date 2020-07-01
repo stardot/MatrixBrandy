@@ -157,6 +157,9 @@ static void list_varlist(char which, library *lp) {
           break;
         }
         case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
+          int i;
+          char temp2[20];
+          basicarray *ap;
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s", vp, vp->varname);
           else {
@@ -165,10 +168,8 @@ static void list_varlist(char which, library *lp) {
           if (vp->varentry.vararray==NIL) {	/* Array bounds are undefined */
             temp[len] = ')';
             temp[len+1] = asc_NUL;
-          } else {
-            int i;
-            basicarray *ap;
-            char temp2[20];
+          }
+          else {
             ap = vp->varentry.vararray;
             for (i=0; i<ap->dimcount; i++) {
               if (i+1==ap->dimcount)	/* Doing last dimension */
@@ -288,20 +289,21 @@ static void list_entries(library *lp) {
 ** lists everything
 */
 void list_variables(char which) {
-  int width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
+  char n;
+  char temp[40];
+  int columns, len, next, width;
+  width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   if (which==' ') {	/* List everything */
-    int columns = 0;
-    char n;
     emulate_printf("Static integer variables:\r\n");
+    columns = 0;
     for (n='A'; n<='Z'; n++) {
-      char temp[40];
-      int next;
-      int len = sprintf(temp, "%c%% = %d", n, basicvars.staticvars[n-'A'+1].varentry.varinteger);
+      len = sprintf(temp, "%c%% = %d", n, basicvars.staticvars[n-'A'+1].varentry.varinteger);
       next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
       if (next>=width) {	/* Not enough room on this line */
         emulate_printf("\r\n%s", temp);
         columns = len;
-      } else {
+      }
+      else {
         while (columns<next) {
           emulate_vdu(' ');
           columns++;
@@ -361,14 +363,14 @@ void list_libraries(char ch) {
 */
 void define_array(variable *vp, boolean islocal) {
   int32 bounds[MAXDIMS];
-  int32 n, dimcount = 0, elemsize = 0, size = 1;
+  int32 n, dimcount, highindex, elemsize = 0, size;
   basicarray *ap;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:define_array\n");
 #endif
-  // dimcount = 0;		/* Number of dimemsions */
-  // size = 1;		/* Number of elements */
+  dimcount = 0;		/* Number of dimemsions */
+  size = 1;		/* Number of elements */
   switch (vp->varflags) {	/* Figure out array element size */
   case VAR_INTARRAY:
     elemsize = sizeof(int32);
@@ -389,7 +391,7 @@ void define_array(variable *vp, boolean islocal) {
     error(ERR_BROKEN, __LINE__, "variables");	/* Bad variable type flags found */
   }
   do {	/* Find size of each dimension */
-    int32 highindex = eval_integer();
+    highindex = eval_integer();
     if (*basicvars.current!=',' && *basicvars.current!=')' && *basicvars.current!=']') error(ERR_CORPNEXT);
     if (highindex<0) error(ERR_NEGDIM, vp->varname);
     highindex++;	/* Add 1 to get size of dimension */
@@ -585,13 +587,17 @@ variable *find_variable(byte *np, int namelen) {
 ** location; this function fills in the rest of the details.
 */
 static void scan_parmlist(variable *vp) {
-  int32 count = 0;
+  int32 count;
   fnprocdef *dp;
-  formparm *formlist = NIL;
-  byte what = *vp->varname;		/* Note whether this is a PROC or FN */
+  formparm *formlist, *formlast, *fp;
+  byte what;
+  boolean isreturn;
+  count = 0;
+  formlist = formlast = NIL;
   save_current();
   basicvars.current = vp->varentry.varmarker;	/* Point at the XFNPROCALL token */
   basicvars.runflags.make_array = TRUE;	/* Can create arrays in PROC/FN parm list */
+  what = *vp->varname;		/* Note whether this is a PROC or FN */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Fill in details for PROC/FN '%s%s' at %p, vp=%p\n",
    (what==BASIC_TOKEN_PROC ? "PROC" : "FN"), vp->varname+1, basicvars.current, vp);
@@ -599,8 +605,6 @@ static void scan_parmlist(variable *vp) {
   basicvars.current+=1+LOFFSIZE;	/* Find parameters (if any) */
   if (*basicvars.current=='(') {	/* Procedure or function has a parameter list */
     do {
-      formparm *fp, *formlast = NIL;
-      boolean isreturn;
       basicvars.current++;	/* Skip '(' or ',' and point at a parameter */
       isreturn = *basicvars.current==BASIC_TOKEN_RETURN;
       if (isreturn) basicvars.current++;
@@ -647,13 +651,13 @@ static void scan_parmlist(variable *vp) {
 ** symbol table.
 */
 static void add_libvars(byte *tp, library *lp) {
+  byte *ep, *base;
+  int namelen;
   variable *vp = NULL;
   save_current();
   basicvars.current = tp;	/* Point current at this line for error messages */
   tp+=2;	/* Skip 'LIBRARY' and 'lOCAL' tokens */
   while (*tp==BASIC_TOKEN_XVAR) {
-    byte *ep, *base;
-    int namelen;
     base = get_srcaddr(tp);
     ep = skip_name(base);	/* Find byte after name */
     namelen = ep-base;
@@ -680,6 +684,8 @@ static void add_libvars(byte *tp, library *lp) {
 ** symbol table
 */
 static void add_libarray(byte *tp, library *lp) {
+  byte *ep, *base;
+  int namelen;
   variable *vp;
 
 #ifdef DEBUG
@@ -688,8 +694,6 @@ static void add_libarray(byte *tp, library *lp) {
   save_current();
   basicvars.current = tp;
   do {
-    byte *ep, *base;
-    int namelen;
     basicvars.current++;		/*Skip DIM token or ',' */
     if (*basicvars.current!=BASIC_TOKEN_XVAR) error(ERR_SYNTAX);	/* Array name wanted */
     base = get_srcaddr(basicvars.current);
@@ -755,11 +759,14 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
 ** this time.
 */
 static void scan_library(library *lp) {
-  byte *bp = lp->libstart;
-  libfnproc *fpp, *fpplast = NIL;
-  boolean foundproc = FALSE;
+  byte *tp, *bp;
+  libfnproc *fpp, *fpplast;
+  boolean foundproc;
+  bp = lp->libstart;
+  fpplast = NIL;
+  foundproc = FALSE;
   while (!AT_PROGEND(bp)) {
-    byte *tp = FIND_EXEC(bp);
+    tp = FIND_EXEC(bp);
     if (*tp==BASIC_TOKEN_DEF && *(tp+1)==BASIC_TOKEN_XFNPROCALL) {	/* Found DEF PROC or DEF FN */
       foundproc = TRUE;
       fpp = add_procfn(bp, tp);
@@ -858,13 +865,15 @@ static variable *mark_procfn(byte *pp) {
 ** of the procedure or function
 */
 static variable *scan_fnproc(char *name) {
+  byte *tp, *bp;
+  int32 namehash;
+  variable *vp;
   library *lp;
-  byte *bp = basicvars.lastsearch;	/* Start new search where last one ended */
-  variable *vp = NIL;
-  int32 namehash = hash(name);
-
+  namehash = hash(name);
+  bp = basicvars.lastsearch;	/* Start new search where last one ended */
+  vp = NIL;
   while (!AT_PROGEND(bp)) {
-    byte *tp = FIND_EXEC(bp);
+    tp = FIND_EXEC(bp);
     bp+=get_linelen(bp);	/* This is updated here so that 'lastsearch' is set correctly below */
     if (*tp==BASIC_TOKEN_DEF && *(tp+1)==BASIC_TOKEN_XFNPROCALL) {	/* Found 'DEF PROC' or 'DEF FN' */
       vp = mark_procfn(tp+1); /* Must be a previously unseen entry */

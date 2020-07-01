@@ -365,10 +365,10 @@ byte *find_linestart(byte *wanted) {
 ** for the line otherwise it searches the program in memory
 */
 byte *find_line(int32 lineno) {
-  byte *p;
+  byte *p, *cp;
   library *lp;
   if (basicvars.runflags.running) {	/* Running program => search program or library */
-    byte *cp = basicvars.current;	/* This is just to reduce the amount of typing */
+    cp = basicvars.current;	/* This is just to reduce the amount of typing */
     if (cp>=basicvars.page && cp<basicvars.top)		/* Check program for line */
       p = basicvars.start;
     else {	/* Check libraries */
@@ -389,7 +389,7 @@ byte *find_line(int32 lineno) {
 **'low' and 'high' as bytes of data
 */
 void show_byte(size_t low, size_t high) {
-  int32 n, ll, count;
+  int32 n, x, ll, count;
   byte ch;
   //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
   if (low>high) return;
@@ -397,8 +397,8 @@ void show_byte(size_t low, size_t high) {
   count = high-low;
   check_read(low,count);
   for (n=0; n<count; n+=16) {
-    int32 x = 0;
     emulate_printf("%06X  ", low);
+    x = 0;
     for (ll=0; ll<16; ll++) {
       if (n+ll>=count)
         emulate_printf("   ");
