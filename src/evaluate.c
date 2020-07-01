@@ -185,9 +185,7 @@ int32 eval_integer(void) {
   stackitem numtype;
   expression();
   numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_UINT8) return pop_uint8();
-  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
+  if (TOPITEMISINT) return pop_anyint();
   if (numtype == STACK_FLOAT) return TOINT(pop_float());
   error(ERR_TYPENUM);
   return 0;	/* Keep Acorn's compiler happy */
@@ -197,9 +195,7 @@ int64 eval_int64(void) {
   stackitem numtype;
   expression();
   numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_UINT8) return pop_uint8();
-  if (numtype == STACK_INT64) return pop_int64();
+  if (TOPITEMISINT) return pop_anyint();
   if (numtype == STACK_FLOAT) return TOINT64(pop_float());
   error(ERR_TYPENUM);
   return 0;	/* Keep Acorn's compiler happy */
@@ -213,9 +209,7 @@ int32 eval_intfactor(void) {
   stackitem numtype;
   (*factor_table[*basicvars.current])();
   numtype = GET_TOPITEM;
-  if (numtype == STACK_INT) return pop_int();
-  if (numtype == STACK_UINT8) return pop_uint8();
-  if (numtype == STACK_INT64) return INT64TO32(pop_int64());
+  if (TOPITEMISINT) return pop_anyint();
   if (numtype == STACK_FLOAT) return TOINT(pop_float());
   error(ERR_TYPENUM);
   return 0;	/* Keep Acorn's compiler happy */
@@ -649,11 +643,8 @@ static void push_singleparm(formparm *fp, char *procname) {
   basicvars.current++;	/* Skip the ')' */
   parmtype = GET_TOPITEM;
   switch(parmtype) {
-    case STACK_INT:
-      intparm=pop_int();
-      break;
-    case STACK_INT64:
-      intparm=INT64TO32(pop_int64());
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      intparm=pop_anyint();
       break;
     case STACK_FLOAT:
       intparm = TOINT(pop_float());
@@ -700,17 +691,14 @@ static void do_staticvar(void) {
 ** value pointed at by the variable on to the Basic stack
 */
 static void do_statindvar(void) {
-  size_t address;
+  size_t address = basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger;
   byte operator;
-  address = basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger;
   basicvars.current+=2;
   operator = *basicvars.current;
   basicvars.current++;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)	/* Calculate the address to be referenced */
-    address+=pop_int();
-  else if (GET_TOPITEM == STACK_INT64)	/* Calculate the address to be referenced */
-    address+=pop_int64();
+  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64)	/* Calculate the address to be referenced */
+    address+=pop_anyint();
   else if (GET_TOPITEM == STACK_FLOAT)
     address+=TOINT64(pop_float());
   else {
@@ -882,9 +870,7 @@ static void do_arrayref(void) {
   vartype = vp->varflags;
   if (descriptor->dimcount == 1) {	/* Array has only one dimension - Use faster code */
     expression();	      /* Evaluate an array index */
-    if (GET_TOPITEM == STACK_INT)         element = pop_int();
-    else if (GET_TOPITEM == STACK_UINT8)  element = pop_uint8();
-    else if (GET_TOPITEM == STACK_INT64)  element = INT64TO32(pop_int64());
+    if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) element = pop_anyint();
     else if (GET_TOPITEM == STACK_FLOAT)  element = TOINT(pop_float());
     else {
       error(ERR_TYPENUM);
@@ -897,9 +883,7 @@ static void do_arrayref(void) {
     element = 0;
     do {	/* Gather the array indexes */
       expression();	      /* Evaluate an array index */
-      if (GET_TOPITEM == STACK_INT)         index = pop_int();
-      else if (GET_TOPITEM == STACK_UINT8)  index = pop_uint8();
-      else if (GET_TOPITEM == STACK_INT64)  index = INT64TO32(pop_int64());
+      if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) index = pop_anyint();
       else if (GET_TOPITEM == STACK_FLOAT)  index = TOINT(pop_float());
       else {
         error(ERR_TYPENUM);
@@ -951,9 +935,7 @@ static void do_arrayref(void) {
     basicvars.current++;
     (*factor_table[*basicvars.current])();
     switch(GET_TOPITEM) {			/* Calculate the offset to be referenced */
-      case STACK_INT:   offset+=pop_int(); break;
-      case STACK_UINT8: offset+=pop_uint8(); break;
-      case STACK_INT64: offset+=pop_int64(); break;
+      case STACK_INT: case STACK_UINT8: case STACK_INT64: offset+=pop_anyint(); break;
       case STACK_FLOAT: offset+=TOINT64(pop_float()); break;
       default: error(ERR_TYPENUM);
     }
@@ -989,9 +971,7 @@ static void do_indrefvar(void) {
   basicvars.current++;
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {			/* Calculate the offset to be referenced */
-    case STACK_INT:   offset+=pop_int(); break;
-    case STACK_UINT8: offset+=pop_uint8(); break;
-    case STACK_INT64: offset+=pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: offset+=pop_anyint(); break;
     case STACK_FLOAT: offset+=TOINT64(pop_float()); break;
     default: error(ERR_TYPENUM);
   }
@@ -1199,9 +1179,8 @@ static void do_getbyte(void) {
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {
-    case STACK_INT:   offset = pop_int(); break;
     case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
-    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_INT: case STACK_INT64: offset = pop_anyint(); break;
     case STACK_FLOAT: offset = TOINT(pop_float()); break;
     default: error(ERR_TYPENUM);
   }
@@ -1225,9 +1204,8 @@ static void do_getword(void) {
   basicvars.current++;		/* Skip '!' */
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {
-    case STACK_INT:   offset = pop_int(); break;
     case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
-    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_INT: case STACK_INT64: offset = pop_anyint(); break;
     case STACK_FLOAT: offset = TOINT64(pop_float()); break;
     default: error(ERR_TYPENUM);
   }
@@ -1253,9 +1231,8 @@ static void do_getstring(void) {
   basicvars.current++;		/* Skip '$' */
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {
-    case STACK_INT:   offset = pop_int(); break;
     case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
-    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_INT: case STACK_INT64: offset = pop_anyint(); break;
     case STACK_FLOAT: offset = TOINT64(pop_float()); break;
     default: error(ERR_TYPENUM);
   }
@@ -1280,9 +1257,8 @@ static void do_getfloat(void) {
   basicvars.current++;		/* Skip '|' */
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {
-    case STACK_INT:   offset = pop_int(); break;
     case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
-    case STACK_INT64: offset = pop_int64(); break;
+    case STACK_INT: case STACK_INT64: offset = pop_anyint(); break;
     case STACK_FLOAT: offset = TOINT64(pop_float()); break;
     default: error(ERR_TYPENUM);
   }
@@ -1527,21 +1503,11 @@ static void eval_ivplus(void) {
   int64 rhint = 0;
   
   rhitem = GET_TOPITEM;
-  switch(rhitem) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
-
+  rhint=pop_anyint();
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {
-    push_varyint(pop_int() + rhint);
-  } else if (lhitem == STACK_UINT8)
-    push_varyint(pop_uint8() + rhint);
-  else if (lhitem == STACK_INT64)
-    push_varyint(pop_int64() + rhint);
-  else if (lhitem == STACK_FLOAT)
+  if (TOPITEMISINT) {
+    push_varyint(pop_anyint() + rhint);
+  } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
     basicarray *lharray;
@@ -1604,15 +1570,9 @@ static void eval_fvplus(void) {
   stackitem lhitem;
   floatvalue = pop_float();	/* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
-    floatvalue+=TOFLOAT(pop_int());	/* This has to be split otherwise the macro */
+  if (TOPITEMISINT) {
+    floatvalue+=TOFLOAT(pop_anyint());	/* This has to be split otherwise the macro */
     PUSH_FLOAT(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
-  } else if (lhitem == STACK_UINT8) {	/* Branch according to type of left-hand operand */
-    floatvalue+=TOFLOAT(pop_uint8());	/* This has to be split otherwise the macro */
-    PUSH_FLOAT(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
-  } else if (lhitem == STACK_INT64) {	
-    floatvalue+=TOFLOAT(pop_int64());	
-    PUSH_FLOAT(floatvalue);		
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
@@ -1711,12 +1671,8 @@ static void eval_iaplus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {
-    int32 lhint32 = pop_int();
-    int32 *base = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
-  } else if (lhitem == STACK_UINT8) {
-    int32 lhint32 = pop_uint8();
+  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {
+    int32 lhint32 = pop_anyint();
     int32 *base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhint32+rhsrce[n];
   } else if (lhitem == STACK_INT64) {
@@ -1853,12 +1809,7 @@ static void eval_i64aplus(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT || lhitem ==  STACK_UINT8 || lhitem == STACK_INT64) {
     int64 *base;
-    switch(lhitem) {
-      case STACK_INT:   lhint=pop_int();   break;
-      case STACK_UINT8: lhint=pop_uint8(); break;
-      case STACK_INT64: lhint=pop_int64(); break;
-      default: error(ERR_BROKEN, __LINE__, "evaluate");
-    }
+    lhitem=pop_anyint();
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhint+rhsrce[n];
   } else if (lhitem == STACK_FLOAT) {	/* <float>+<int array> */
@@ -1920,12 +1871,8 @@ static void eval_faplus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_FLOAT) {	/* <integer>+<float array> or <float>+<float array> */
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : pop_float();
-    base = make_array(VAR_FLOAT, rharray);
-    for (n = 0; n < count; n++) base[n] = floatvalue+rhsrce[n];
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_UINT8) {	/* <int64>+<float array> or <uint8>+<float array> */
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : TOFLOAT(pop_uint8());
+  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <int or float>+<float array> or <uint8>+<float array> */
+    floatvalue = lhitem == STACK_FLOAT ? pop_float() : TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue+rhsrce[n];
   } else if (lhitem == STACK_INTARRAY) {	/* <int array>+<float array> */
@@ -2050,20 +1997,10 @@ static void eval_ivminus(void) {
   int64 rhint = 0;
 
   rhitem = GET_TOPITEM;
-  switch(rhitem) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
-
+  rhint = pop_anyint();
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {	/* Branch according to type of left-hand operand */
-    push_varyint(pop_int() - rhint);
-  } else if (lhitem == STACK_UINT8) {	/* Branch according to type of left-hand operand */
-    push_varyint(pop_uint8() - rhint);
-  } else if (lhitem == STACK_INT64) {	/* Branch according to type of left-hand operand */
-    push_varyint(pop_int64() - rhint);
+  if (TOPITEMISINT) {	/* Branch according to type of left-hand operand */
+    push_varyint(pop_anyint() - rhint);
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
@@ -2126,14 +2063,8 @@ static void eval_fvminus(void) {
   stackitem lhitem;
   floatvalue = pop_float();
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {	/* <int>-<float> */
-    floatvalue = TOFLOAT(pop_int()) - floatvalue;
-    PUSH_FLOAT(floatvalue);
-  } else if (lhitem == STACK_UINT8) {	/* <int>-<float> */
-    floatvalue = TOFLOAT(pop_uint8()) - floatvalue;
-    PUSH_FLOAT(floatvalue);
-  } else if (lhitem == STACK_INT64) {	/* <int>-<float> */
-    floatvalue = TOFLOAT(pop_int64()) - floatvalue;
+  if (TOPITEMISINT) {	/* <int>-<float> */
+    floatvalue = TOFLOAT(pop_anyint()) - floatvalue;
     PUSH_FLOAT(floatvalue);
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(floatvalue);
@@ -2183,12 +2114,8 @@ static void eval_iaminus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {			/* <int>-<int array> */
-    int32 lhint = pop_int();
-    int32 *base = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
-  } else if (lhitem == STACK_UINT8) {		/* <uint8>-<int array> */
-    int32 lhint = pop_uint8();
+  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {			/* <int>-<int array> */
+    int32 lhint = pop_anyint();
     int32 *base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
   } else if (lhitem == STACK_INT64) {		/* <int64>-<int array> */
@@ -2322,16 +2249,8 @@ static void eval_i64aminus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {			/* <int>-<int64 array> */
-    int32 lhint = pop_int();
-    int64 *base = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
-  } else if (lhitem == STACK_UINT8) {		/* <uint8>-<int64 array> */
-    int32 lhint = pop_uint8();
-    int64 *base = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
-  } else if (lhitem == STACK_INT64) {		/* <int64>-<int64 array> */
-    int64 lhint = pop_int64();
+  if (TOPITEMISINT) {			/* <any int>-<int64 array> */
+    int64 lhint = pop_anyint();
     int64 *base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhint - rhsrce[n];
   } else if (lhitem == STACK_FLOAT) {		/* <float>-<int64 array> */
@@ -2393,12 +2312,8 @@ static void eval_faminus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_FLOAT) {		/* <integer>-<float array> or <float>-<float array> */
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : pop_float();
-    base = make_array(VAR_FLOAT, rharray);
-    for (n = 0; n < count; n++) base[n] = floatvalue - rhsrce[n];
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_UINT8) {	/* <int64>-<float array> or <uint8>-<float array> */
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : TOFLOAT(pop_uint8());
+  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <int or float>-<float array> or <uint8>-<float array> */
+    floatvalue = lhitem == STACK_FLOAT ? pop_float() : TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue - rhsrce[n];
   } else if (lhitem == STACK_INTARRAY) {			/* <int array>+<float array> */
@@ -2454,35 +2369,14 @@ static void eval_ivmul(void) {
   int64 rhint = 0, lhint = 0, intres=0;
   float64 floatres = 0;
   rhitem = GET_TOPITEM;
-  switch(rhitem) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  rhint = pop_anyint();
 
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT) {	/* Now look at left-hand operand */
-    lhint = pop_int();
+  if (TOPITEMISINT) {	/* Now look at left-hand operand */
+    lhint = pop_anyint();
     intres=lhint*rhint;
     floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
-    if (fabs(floatres) > MAXINTVAL)
-      push_float(floatres);
-    else
-      push_varyint(intres);
-  } else if (lhitem == STACK_UINT8) {	/* Now look at left-hand operand */
-    lhint = pop_uint8();
-    intres=lhint*rhint;
-    floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
-    if (fabs(floatres) > MAXINTVAL)
-      push_float(floatres);
-    else
-      push_varyint(intres);
-  } else if (lhitem == STACK_INT64) {	/* Now look at left-hand operand */
-    lhint = pop_int64();
-    intres=lhint*rhint;
-    floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
-    if (fabs(floatres) > MAXINTVAL)
+    if (fabs(floatres) > MAXINT64VAL)
       push_float(floatres);
     else
       push_varyint(intres);
@@ -2594,12 +2488,8 @@ static void eval_fvmul(void) {
   stackitem lhitem;
   floatvalue = pop_float();
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)	/* Now branch according to type of left-hand operand */
-    push_float(TOFLOAT(pop_int())*floatvalue);
-  else if (lhitem == STACK_UINT8)	/* Now branch according to type of left-hand operand */
-    push_float(TOFLOAT(pop_uint8())*floatvalue);
-  else if (lhitem == STACK_INT64)	/* Now branch according to type of left-hand operand */
-    push_float(TOFLOAT(pop_int64())*floatvalue);
+  if (TOPITEMISINT)			/* Now branch according to type of left-hand operand */
+    push_float(TOFLOAT(pop_anyint())*floatvalue);
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()*floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<float value> */
@@ -2649,7 +2539,7 @@ static void eval_iamul(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT || lhitem == STACK_UINT8) {	/* <int32/uint8 value>*<integer array> */
     int32 *base;
-    int64 lhint64 = STACK_INT ? pop_int() : pop_uint8();
+    int64 lhint64 = pop_anyint();
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) {
       int64value = lhint64*rhsrce[n];
@@ -2752,7 +2642,7 @@ static void eval_iu8amul(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT || lhitem == STACK_UINT8) {	/* <int32/uint8 value>*<integer array> */
     int32 *base;
-    int64 lhint64 = STACK_INT ? pop_int() : pop_uint8();
+    int64 lhint64 = pop_anyint();
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) {
       int64value = lhint64*rhsrce[n];
@@ -2853,22 +2743,9 @@ static void eval_i64amul(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {	/* <int32/uint8 value>*<int64 array> */
+  if (TOPITEMISINT) {	/* <int32/uint8 value>*<int64 array> */
     int64 *base;
-    int64 lhint64 = STACK_INT ? pop_int() : pop_uint8();
-    base = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      int64value = lhint64*rhsrce[n];
-      if (llabs(int64value) <= MAXINT64VAL)
-        base[n] = int64value;
-      else {		/* Result is out of range for an integer */
-        error(ERR_RANGE);
-      }
-    }
-  } else if (lhitem == STACK_INT64) {	/* <int64 value>*<int64 array> */
-    int64 *base;
-    int64 lhint64;
-    lhint64=pop_int64();
+    int64 lhint64 = pop_anyint();
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) {
       int64value = lhint64*rhsrce[n];
@@ -2956,12 +2833,8 @@ static void eval_famul(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_FLOAT) {	/* <integer>*<float array> or <float>*<float array> */
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : pop_float();
-    base = make_array(VAR_FLOAT, rharray);
-    for (n = 0; n < count; n++) base[n] = floatvalue * rhsrce[n];
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_UINT8) {	/* <int64>*<float array> */
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : TOFLOAT(pop_uint8());
+  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <int or float>*<float array> */
+    floatvalue = lhitem == STACK_FLOAT ? pop_float() : TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue * rhsrce[n];
   } else if (lhitem == STACK_INTARRAY) {	/* <int array>*<float array> */
@@ -3153,21 +3026,11 @@ static void eval_fmmul(void) {
 */
 static void eval_ivdiv(void) {
   stackitem lhitem;
-  int64 rhint = 0;
-  switch(GET_TOPITEM) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
   if (rhint == 0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)
-    push_float(TOFLOAT(pop_int())/TOFLOAT(rhint));
-  else if (lhitem == STACK_UINT8)
-    push_float(TOFLOAT(pop_uint8())/TOFLOAT(rhint));
-  else if (lhitem == STACK_INT64)
-    push_float(TOFLOAT(pop_int64())/TOFLOAT(rhint));
+  if (TOPITEMISINT)
+    push_float(TOFLOAT(pop_anyint())/TOFLOAT(rhint));
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()/TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<integer value> */
@@ -3213,12 +3076,8 @@ static void eval_fvdiv(void) {
   floatvalue = pop_float();
   if (floatvalue == 0.0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)
-    push_float(TOFLOAT(pop_int())/floatvalue);
-  else if (lhitem == STACK_UINT8)
-    push_float(TOFLOAT(pop_uint8())/floatvalue);
-  else if (lhitem == STACK_INT64)
-    push_float(TOFLOAT(pop_int64())/floatvalue);
+  if (TOPITEMISINT)
+    push_float(TOFLOAT(pop_anyint())/floatvalue);
   else if (lhitem == STACK_FLOAT)
     push_float(pop_float()/floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<float value> */
@@ -3267,17 +3126,17 @@ static void eval_iadiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <int32/uint8 value>/<integer array> */
+  if (TOPITEMISINT) {						/* <any int value>/<integer array> */
     float64 *base;
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : TOFLOAT(pop_uint8());
+    floatvalue = TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = floatvalue / TOFLOAT(rhsrce[n]);
     }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <int64/float value>/<integer array> */
+  } else if (lhitem == STACK_FLOAT) {				/* <float value>/<integer array> */
     float64 *base;
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : pop_float();
+    floatvalue = pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
@@ -3350,17 +3209,17 @@ static void eval_iu8adiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <int32/uint8 value>/<integer array> */
+  if (TOPITEMISINT) {						/* <any int value>/<integer array> */
     float64 *base;
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : TOFLOAT(pop_uint8());
+    floatvalue = TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = floatvalue / TOFLOAT(rhsrce[n]);
     }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <int64/float value>/<integer array> */
+  } else if (lhitem == STACK_FLOAT) {				/* <float value>/<integer array> */
     float64 *base;
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : pop_float();
+    floatvalue = pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
@@ -3433,17 +3292,17 @@ static void eval_i64adiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <int32/uint8 value>/<int64 array> */
+  if (TOPITEMISINT) {						/* <any int value>/<int64 array> */
     float64 *base;
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : TOFLOAT(pop_uint8());
+    floatvalue = TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
       base[n] = floatvalue / TOFLOAT(rhsrce[n]);
     }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <int64/float value>/<int64 array> */
+  } else if (lhitem == STACK_FLOAT) {				/* <float value>/<int64 array> */
     float64 *base;
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : pop_float();
+    floatvalue = pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
@@ -3515,15 +3374,15 @@ static void eval_fadiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_FLOAT) {		/* <int32/float value>/<float array> */
-    floatvalue = lhitem == STACK_INT ? TOFLOAT(pop_int()) : pop_float();
+  if (TOPITEMISINT) {						/* <int32/float value>/<float array> */
+    floatvalue = TOFLOAT(pop_anyint());
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
       base[n] = floatvalue / rhsrce[n];
     }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_UINT8) {	/* <int64/uint8 value>/<float array> */
-    floatvalue = lhitem == STACK_INT64 ? TOFLOAT(pop_int64()) : TOFLOAT(pop_uint8());
+  } else if (lhitem == STACK_FLOAT) {				/* <float value>/<float array> */
+    floatvalue = pop_float();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
@@ -3589,10 +3448,9 @@ static void eval_fadiv(void) {
 static void eval_ivintdiv(void) {
   stackitem lhitem;
   int64 rhint = 0;
+  
   switch(GET_TOPITEM) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = pop_anyint(); break;
     case STACK_FLOAT: rhint = TOINT64(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
@@ -3645,17 +3503,9 @@ static void eval_iaintdiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <value> DIV <int32 array> */
-    int32 lhint;
-    lhint = lhitem == STACK_INT ? pop_int() : pop_uint8();
-    base = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base[n] = lhint / rhsrce[n];
-    }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> DIV <int32 array> */
+  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <value> DIV <int32 array> */
     int64 lhint64, *base64;
-    lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+    lhint64 = lhitem == STACK_FLOAT ? TOINT64(pop_float()) : pop_anyint();
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
@@ -3798,17 +3648,9 @@ static void eval_i64aintdiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <value> DIV <int64 array> */
-    int32 lhint;
-    lhint = lhitem == STACK_INT ? pop_int() : pop_uint8();
-    base = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base[n] = lhint / rhsrce[n];
-    }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> DIV <int64 array> */
+  if (TOPITEMISINT || lhitem == STACK_FLOAT) {			/* <value> DIV <int64 array> */
     int64 lhint64;
-    lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+    lhint64 = lhitem == STACK_FLOAT ? TOINT64(pop_float()) : pop_anyint();
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) {
       if (rhsrce[n] == 0) error(ERR_DIVZERO);
@@ -3940,9 +3782,7 @@ static void eval_ivmod(void) {
   stackitem lhitem;
   int64 rhint = 0;
   switch(GET_TOPITEM) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = pop_anyint(); break;
     case STACK_FLOAT: rhint = TOINT64(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
@@ -4292,19 +4132,13 @@ static void eval_vpow(void) {
   stackitem lhitem, rhitem;
   rhitem = GET_TOPITEM;
   switch(rhitem) {
-    case STACK_INT:   floatvalue = TOFLOAT(pop_int()); break;
-    case STACK_UINT8: floatvalue = TOFLOAT(pop_uint8()); break;
-    case STACK_INT64: floatvalue = TOFLOAT(pop_int64()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: floatvalue = TOFLOAT(pop_anyint()); break;
     case STACK_FLOAT: floatvalue = pop_float(); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)
-     push_float(mpow(TOFLOAT(pop_int()), floatvalue));
-  else if (lhitem == STACK_UINT8)
-     push_float(mpow(TOFLOAT(pop_uint8()), floatvalue));
-  else if (lhitem == STACK_INT64)
-     push_float(mpow(TOFLOAT(pop_int64()), floatvalue));
+  if (TOPITEMISINT)
+     push_float(mpow(TOFLOAT(pop_anyint()), floatvalue));
   else if (lhitem == STACK_FLOAT)
     push_float(mpow(pop_float(), floatvalue));
   else want_number();
@@ -4325,9 +4159,7 @@ static void eval_vlsl(void) {
 
   rhitem = GET_TOPITEM;
   switch(rhitem) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = INT64TO32(pop_int64()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = INT64TO32(pop_anyint()); break;
     case STACK_FLOAT: rhint = (TOINT(pop_float())); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
@@ -4381,9 +4213,7 @@ static void eval_vlsr(void) {
 
   rhitem = GET_TOPITEM;
   switch(rhitem) {
-    case STACK_INT:   rhuint = pop_int(); break;
-    case STACK_UINT8: rhuint = pop_uint8(); break;
-    case STACK_INT64: rhuint = INT64TO32(pop_int64()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhuint = INT64TO32(pop_anyint()); break;
     case STACK_FLOAT: rhuint = TOINT(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
@@ -4391,9 +4221,7 @@ static void eval_vlsr(void) {
   lhitem = GET_TOPITEM;
   if (!matrixflags.bitshift64) {
     switch(lhitem) {
-      case STACK_INT:   lhuint = pop_int(); break;
-      case STACK_UINT8: lhuint = pop_uint8(); break;
-      case STACK_INT64: lhuint = INT64TO32(pop_int64()); break;
+      case STACK_INT: case STACK_UINT8: case STACK_INT64: lhuint = INT64TO32(pop_anyint()); break;
       case STACK_FLOAT: lhuint = TOINT(pop_float()); break;
       default: want_number();
     }
@@ -4404,10 +4232,8 @@ static void eval_vlsr(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of 32-bit handler\n");
 #endif
     return; /* end of !bitshift64 */
-  } else if (lhitem == STACK_INT || lhitem == STACK_UINT8) {
-    lhuint64 = lhitem == STACK_INT ? pop_int() : pop_uint8();
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {
-    lhuint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+  } else if (TOPITEMISINT || lhitem == STACK_FLOAT) {
+    lhuint64 = lhitem == STACK_FLOAT ? TOINT64(pop_float()) : pop_anyint();
   } else want_number();
   if ((rhuint >= 64) || ((!matrixflags.bitshift64) && (rhuint >= 32))) {
     push_int(0);
@@ -4437,18 +4263,14 @@ static void eval_vasr(void) {
 #endif
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = INT64TO32(pop_int64()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = INT64TO32(pop_anyint()); break;
     case STACK_FLOAT: rhint = TOINT(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
   rhint %=256;
   while (rhint < 0) rhint += 256;
   switch(GET_TOPITEM) {				/* Branch according to type of left-hand operand */
-    case STACK_INT:   lhint64 = pop_int(); break;
-    case STACK_UINT8: lhint64 = pop_uint8(); break;
-    case STACK_INT64: lhint64 = pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: lhint64 = pop_anyint(); break;
     case STACK_FLOAT: lhint64 = TOINT64(pop_float()); break;
     default: want_number();
   }
@@ -4473,13 +4295,7 @@ static void eval_vasr(void) {
 ** stack depending on whether the two operands are equal or not.
 */
 static void eval_iveq(void) {
-  int64 rhint=0;
-  switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
 
   switch(GET_TOPITEM) {						/* Get the left-hand item */
     case STACK_INT:   CPEQ_INT(rhint); break;
@@ -4499,9 +4315,8 @@ static void eval_fveq(void) {
   floatvalue = pop_float();
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   push_int(TOFLOAT(pop_int()) == floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_UINT8: push_int(TOFLOAT(pop_uint8()) == floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_INT64: push_int(TOFLOAT(pop_int64()) == floatvalue ? BASTRUE : BASFALSE); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      push_int(TOFLOAT(pop_anyint()) == floatvalue ? BASTRUE : BASFALSE); break;
     case STACK_FLOAT: push_int(pop_float() == floatvalue ? BASTRUE : BASFALSE); break;
     default: want_number();
   }
@@ -4536,13 +4351,7 @@ static void eval_sveq(void) {
 ** operand is any integer value
 */
 static void eval_ivne(void) {
-  int64 rhint=0;
-  switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
 
   switch(GET_TOPITEM) {						/* Get the left-hand item */
     case STACK_INT:   CPNE_INT(rhint); break;
@@ -4561,9 +4370,8 @@ static void eval_fvne(void) {
   floatvalue = pop_float();
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   push_int(TOFLOAT(pop_int()) != floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_UINT8: push_int(TOFLOAT(pop_uint8()) != floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_INT64: push_int(TOFLOAT(pop_int64()) != floatvalue ? BASTRUE : BASFALSE); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      push_int(TOFLOAT(pop_anyint()) != floatvalue ? BASTRUE : BASFALSE); break;
     case STACK_FLOAT: push_int(pop_float() != floatvalue ? BASTRUE : BASFALSE); break;
     default: want_number();
   }
@@ -4597,13 +4405,7 @@ static void eval_svne(void) {
 ** operand is any integer value
 */
 static void eval_ivgt(void) {
-  int64 rhint=0;
-  switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
 
   switch(GET_TOPITEM) {						/* Get the left-hand item */
     case STACK_INT:   CPGT_INT(rhint); break;
@@ -4622,9 +4424,8 @@ static void eval_fvgt(void) {
   floatvalue = pop_float();
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   push_int(TOFLOAT(pop_int()) > floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_UINT8: push_int(TOFLOAT(pop_uint8()) > floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_INT64: push_int(TOFLOAT(pop_int64()) > floatvalue ? BASTRUE : BASFALSE); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      push_int(TOFLOAT(pop_anyint()) > floatvalue ? BASTRUE : BASFALSE); break;
     case STACK_FLOAT: push_int(pop_float() > floatvalue ? BASTRUE : BASFALSE); break;
     default: want_number();
   }
@@ -4664,13 +4465,7 @@ static void eval_svgt(void) {
 ** operand is any integer
 */
 static void eval_ivlt(void) {
-  int64 rhint=0;
-  switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
 
   switch(GET_TOPITEM) {						/* Get the left-hand item */
     case STACK_INT:   CPLT_INT(rhint); break;
@@ -4689,9 +4484,8 @@ static void eval_fvlt(void) {
   floatvalue = pop_float();
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   push_int(TOFLOAT(pop_int()) < floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_UINT8: push_int(TOFLOAT(pop_uint8()) < floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_INT64: push_int(TOFLOAT(pop_int64()) < floatvalue ? BASTRUE : BASFALSE); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      push_int(TOFLOAT(pop_anyint()) < floatvalue ? BASTRUE : BASFALSE); break;
     case STACK_FLOAT: push_int(pop_float() < floatvalue ? BASTRUE : BASFALSE); break;
     default: want_number();
   }
@@ -4731,13 +4525,7 @@ static void eval_svlt(void) {
 ** right-hand operand is any integer value
 */
 static void eval_ivge(void) {
-  int64 rhint=0;
-  switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
 
   switch(GET_TOPITEM) {						/* Get the left-hand item */
     case STACK_INT:   CPGE_INT(rhint); break;
@@ -4756,9 +4544,8 @@ static void eval_fvge(void) {
   floatvalue = pop_float();
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   push_int(TOFLOAT(pop_int()) >= floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_UINT8: push_int(TOFLOAT(pop_uint8()) >= floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_INT64: push_int(TOFLOAT(pop_int64()) >= floatvalue ? BASTRUE : BASFALSE); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      push_int(TOFLOAT(pop_anyint()) >= floatvalue ? BASTRUE : BASFALSE); break;
     case STACK_FLOAT: push_int(pop_float() >= floatvalue ? BASTRUE : BASFALSE); break;
     default: want_number();
   }
@@ -4798,13 +4585,7 @@ static void eval_svge(void) {
 ** right-hand operand is a 32-bit integer value
 */
 static void eval_ivle(void) {
-  int64 rhint=0;
-  switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  int64 rhint = pop_anyint();
 
   switch(GET_TOPITEM) {						/* Get the left-hand item */
     case STACK_INT:   CPLE_INT(rhint); break;
@@ -4823,9 +4604,8 @@ static void eval_fvle(void) {
   floatvalue = pop_float();
 
   switch(GET_TOPITEM) {
-    case STACK_INT:   push_int(TOFLOAT(pop_int()) <= floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_UINT8: push_int(TOFLOAT(pop_uint8()) <= floatvalue ? BASTRUE : BASFALSE); break;
-    case STACK_INT64: push_int(TOFLOAT(pop_int64()) <= floatvalue ? BASTRUE : BASFALSE); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64:
+      push_int(TOFLOAT(pop_anyint()) <= floatvalue ? BASTRUE : BASFALSE); break;
     case STACK_FLOAT: push_int(pop_float() <= floatvalue ? BASTRUE : BASFALSE); break;
     default: want_number();
   }
@@ -4867,9 +4647,7 @@ static void eval_svle(void) {
 static void eval_ivand(void) {
   int64 rhint=0;
   switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = pop_anyint(); break;
     case STACK_FLOAT: rhint = TOINT64(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
@@ -4890,9 +4668,7 @@ static void eval_ivand(void) {
 static void eval_ivor(void) {
   int64 rhint=0;
   switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = pop_anyint(); break;
     case STACK_FLOAT: rhint = TOINT64(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }
@@ -4914,9 +4690,7 @@ static void eval_ivor(void) {
 static void eval_iveor(void) {
   int64 rhint=0;
   switch(GET_TOPITEM) {						/* Get the right-hand item */
-    case STACK_INT:   rhint = pop_int(); break;
-    case STACK_UINT8: rhint = pop_uint8(); break;
-    case STACK_INT64: rhint = pop_int64(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = pop_anyint(); break;
     case STACK_FLOAT: rhint = TOINT64(pop_float()); break;
     default: error(ERR_BROKEN, __LINE__, "evaluate");
   }

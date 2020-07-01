@@ -107,6 +107,7 @@ extern void *alloc_local(int32);
 /* The following macros are used to speed up operations on the Basic stack */
 
 #define GET_TOPITEM (basicvars.stacktop.intsp->itemtype)
+#define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))
 
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
 		basicvars.stacktop.intsp->itemtype = STACK_INT; \
