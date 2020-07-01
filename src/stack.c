@@ -483,7 +483,7 @@ void push_repeat(void) {
 
 /*
 ** 'push_intfor' creates a control block on the Basic stack for a 'FOR'
-** loop with an integer control variable
+** loop with a 32-bit integer control variable
 */
 void push_intfor(lvalue forvar, byte *foraddr, int32 limit, int32 step, boolean simple) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
@@ -500,8 +500,8 @@ void push_intfor(lvalue forvar, byte *foraddr, int32 limit, int32 step, boolean 
 }
 
 /*
-** 'push_intfor' creates a control block on the Basic stack for a 'FOR'
-** loop with an integer control variable
+** 'push_int64for' creates a control block on the Basic stack for a 'FOR'
+** loop with a 64-bit integer control variable
 */
 void push_int64for(lvalue forvar, byte *foraddr, int64 limit, int64 step, boolean simple) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
@@ -510,8 +510,8 @@ void push_int64for(lvalue forvar, byte *foraddr, int64 limit, int64 step, boolea
   basicvars.stacktop.forsp->simplefor = simple;
   basicvars.stacktop.forsp->forvar = forvar;
   basicvars.stacktop.forsp->foraddr = foraddr;
-  basicvars.stacktop.forsp->fortype.intfor.intlimit = limit;
-  basicvars.stacktop.forsp->fortype.intfor.intstep = step;
+  basicvars.stacktop.forsp->fortype.int64for.int64limit = limit;
+  basicvars.stacktop.forsp->fortype.int64for.int64step = step;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Create integer 'FOR' block at %p\n", basicvars.stacktop.forsp);
 #endif
@@ -1011,6 +1011,23 @@ int64 pop_int64(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: new SP at %p\n", basicvars.stacktop.bytesp);
 #endif
   return p->int64value;
+}
+
+boolean topitemisint(void) {
+  switch(GET_TOPITEM) {
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: return(1);
+    default: return 0;
+  }
+}
+
+int64 pop_anyint(void) {
+  switch(GET_TOPITEM) {
+    case STACK_INT: return pop_int();
+    case STACK_UINT8: return pop_uint8();
+    case STACK_INT64: return pop_int64();
+    default: error(ERR_BROKEN, __LINE__, "stack");
+  }
+  return 0; /* Control never reaches here */
 }
 
 /*

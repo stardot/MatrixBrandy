@@ -215,8 +215,8 @@ static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32
 void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
 #else
 void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
-#endif
   int32 a;
+#endif
   FILE *file_handle;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
@@ -334,7 +334,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
       break;
     case SWI_OS_Plot:
-      emulate_plot(inregs[0], inregs[1], inregs[2]); break;
+      emulate_plot(inregs[0], inregs[1], inregs[2]);
       break;
     case SWI_OS_WriteN:	/* This is extended in Brandy - normally only R0 and R1
 			   are acted upon; in Brandy, if R2 is set to 42, the
@@ -419,7 +419,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[5]=(size_t)matrixflags.surface;
       outregs[6]=(size_t)matrixflags.surface->format;
 #else
+#ifndef TARGET_RISCOS
       strncpy(outstring,"no_sdl",64);
+#endif
       outregs[2] = 0;
       outregs[3] = 0;
       outregs[4] = 0;

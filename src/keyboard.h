@@ -55,6 +55,7 @@ extern int   kbd_escpoll(void);
 extern int   kbd_esctest(void);
 extern int   kbd_escack(void);
 extern void  osbyte21(int32 xreg);
+extern void checkforescape(void);
 #else
 extern int32 emulate_get(void);
 extern int32 emulate_inkey(int32);
@@ -63,6 +64,5 @@ extern int set_fn_string(int key, char *string, int length);
 extern char *get_fn_string(int key, int *len);
 extern boolean init_keyboard(void);
 extern void end_keyboard(void);
-extern void checkforescape(void);
 #endif
 #endif

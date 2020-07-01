@@ -1611,13 +1611,13 @@ static char *printlist [] = {NIL, "SPC", "TAB("};
 ** form. The function returns the length of the expanded form
 */
 static int expand_token(char *cp, char *namelist[], byte token) {
-  int n, count;
-  char *name;
-  name = namelist[token];
+  int count;
+  char *name = namelist[token];
   if (name == NIL) error(ERR_BROKEN, __LINE__, "tokens");       /* Sanity check for bad token value */
   strcpy(cp, name);
   count = strlen(name);
   if (basicvars.list_flags.lower) {     /* Lower case version of name required */
+    int n;
     for (n=0; n<count; n++) {
       *cp = tolower(*cp);
       cp++;
@@ -1643,7 +1643,6 @@ static byte *skip_source(byte *p) {
 void expand(byte *line, char *text) {
   byte token;
   byte *lp;
-  int n, count, thisindent, nextindent;
   if (!basicvars.list_flags.noline) {   /* Include line number */
     sprintf(text, "%5d", get_lineno(line));
     text+=5;
@@ -1654,6 +1653,7 @@ void expand(byte *line, char *text) {
   }
   lp = line+OFFSOURCE;  /* Point at start of code after source token */
   if (basicvars.list_flags.indent) {    /* Indent line */
+    int n, thisindent, nextindent;
     lp = skip(lp);      /* Start by figuring out if indentation changes */
     thisindent = nextindent = indentation;
     switch (*lp) {      /* First look at special cases where first token on line affects indentation */
@@ -1712,6 +1712,7 @@ void expand(byte *line, char *text) {
 /* Indentation sorted out. Now expand the line */
   while (token != asc_NUL) {
 /* Deal with special cases first */
+    int count;
     if (token == BASIC_TOKEN_XLINENUM) {      /* Line number */
       lp++;
       count = sprintf(text, "%d", get_lineno(lp));
@@ -1949,7 +1950,6 @@ static boolean legalow [] = {   /* Tokens in range 00.1F */
 boolean isvalid(byte *bp) {
   int length, execoff;
   byte *base, *cp;
-  byte token;
   if (get_lineno(bp)>MAXLINENO) return FALSE;   /* Line number is out of range */
   length = get_linelen(bp);
   if (length<MINSTATELEN || length>MAXSTATELEN) return FALSE;
@@ -1957,7 +1957,7 @@ boolean isvalid(byte *bp) {
   if (execoff<OFFSOURCE || execoff>length) return FALSE;
   base = cp = bp+execoff;
   while (cp-base<=length && *cp != asc_NUL) {
-    token = *cp;
+    byte token = *cp;
     if (token<=LOW_HIGHEST) {   /* In lower block of tokens */
       if (!legalow[token]) return FALSE;        /* Bad token value found */
     }

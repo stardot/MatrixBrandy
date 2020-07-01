@@ -134,11 +134,11 @@ static char *get_name(void) {
 ** to store and run programs
 */
 static void exec_new(void) {
-  int32 oldsize, newsize;
-  boolean ok;
   if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
   basicvars.current++;
   if (!isateol(basicvars.current)) {    /* New workspace size supplied */
+    int32 oldsize, newsize;
+    boolean ok;
     newsize = get_number();
     check_ateol();
     oldsize = basicvars.worksize;
@@ -188,7 +188,6 @@ static void exec_old(void) {
 static void list_vars(void) {
   char *p, ch;
   library *lp;
-  boolean found;
   p = CAST(get_srcaddr(basicvars.current), char *);     /* Get the argument of the LVAR command if one is supplied */
   basicvars.current+=1+OFFSIZE;
   check_ateol();
@@ -196,6 +195,7 @@ static void list_vars(void) {
   if (ch == '"') {      /* List variables in library */
     int len;
     char *start;
+    boolean found;
     p++;
     start = p;
     while (*p != '"') p++;
@@ -232,8 +232,8 @@ static void list_vars(void) {
 */
 static void list_if(void) {
   byte *p, *tp;
-  int32 targetlen, statelen;
-  char first, *sp;
+  int32 targetlen;
+  char first;
   boolean more;
   p = tp = get_srcaddr(basicvars.current);      /* Get address of string to search for */
   basicvars.current+=1+OFFSIZE;
@@ -245,6 +245,8 @@ static void list_if(void) {
   more = TRUE;
   first = *tp;
   while (more && !AT_PROGEND(p)) {
+    char *sp;
+    int32 statelen;
     reset_indent();
     expand(p, basicvars.stringwork);
     sp = basicvars.stringwork;
@@ -310,7 +312,7 @@ static void delete(void) {
   if (isateol(basicvars.current)) error(ERR_SYNTAX);
   get_pair(&low, &high, 0, MAXLINENO);
   check_ateol();
-  if (low<0 || low>MAXLINENO || high<0 || high>MAXLINENO) error(ERR_LINENO);
+  if (low>MAXLINENO || high>MAXLINENO) error(ERR_LINENO);
   delete_range(low, high);
 }
 
@@ -324,8 +326,8 @@ static void renumber(void) {
   basicvars.current++;
   get_pair(&start, &step, 10, 10);
   check_ateol();
-  if (start<0 || start>MAXLINENO) error(ERR_LINENO);
-  if (step<=0 || step>=MAXLINENO) error(ERR_SILLY);     /* An increment of zero is silly */
+  if (start>MAXLINENO) error(ERR_LINENO);
+  if (step>=MAXLINENO) error(ERR_SILLY);     /* An increment of zero is silly */
   renumber_program(basicvars.start, start, step);
 }
 
@@ -361,7 +363,7 @@ static void list_program(void) {
   basicvars.current++;
   get_pair(&lowline, &highline, 0, MAXLINENO);
   check_ateol();
-  if (lowline<0 || lowline>MAXLINENO || highline<0 || highline>MAXLINENO) error(ERR_LINENO);
+  if (lowline>MAXLINENO || highline>MAXLINENO) error(ERR_LINENO);
   if (lowline == 0)
     p = basicvars.start;
   else {
@@ -431,7 +433,7 @@ static void list_hexline(void) {
   basicvars.current++;
   get_pair(&theline, &theline, 0, 0);
   check_ateol();
-  if (theline<0 || theline>MAXLINENO) error(ERR_LINENO);
+  if (theline>MAXLINENO) error(ERR_LINENO);
   if (theline == 0)
     where = basicvars.start;
   else {
@@ -557,13 +559,12 @@ static void load_program(void) {
 ** opposed to saving it on the Basic heap)
 */
 static void install_library(void) {
-  char *name;
   basicvars.current++;
   if (isateol(basicvars.current))               /* Filename missing */
     error(ERR_FILENAME);
   else {
     do {
-      name = get_name();
+      char *name = get_name();
       if (strlen(name)>0) read_library(name, INSTALL_LIBRARY);  /* Permanently install the library */
       if (*basicvars.current != ',') break;
       basicvars.current++;
@@ -573,17 +574,13 @@ static void install_library(void) {
 }
 
 static void print_help(void) {
-#ifndef NOINLINEHELP
-  char *parm;
-#endif
   basicvars.current++;
 #ifndef NOINLINEHELP
   if (isateol(basicvars.current)) {
     show_options(1);
     emulate_printf("HELP can show help on a keyword, for example HELP \"MODE\". Note that the\r\nkeyword must be given in quotes. HELP \".\" will list the keywords help is\r\navailable on.\r\n");
   } else {
-    parm=get_name();
-    detailed_help(parm);
+    detailed_help(get_name());
   }
 #else
   show_options(1);
@@ -601,7 +598,7 @@ static void print_help(void) {
 */
 static void invoke_editor(void) {
   char tempname[FNAMESIZE], savedname[FNAMESIZE];
-  int32 retcode, r2byte;
+  int32 retcode;
   char *p;
   FILE *fhandle;
   _kernel_osfile_block now, then;
@@ -662,6 +659,7 @@ static void invoke_editor(void) {
     if (retcode == 0) { /* Invocation of editor worked */
 /* Now sit in a loop waiting for the file to change */
       do {
+        int32 r2byte;
         retcode = _kernel_osbyte(129, 100, 0);          /* Wait for one second */
         r2byte = (retcode>>BYTESHIFT) & BYTEMASK;       /* Only interested in what R2 contains after call */
         if (r2byte == ESC || basicvars.escape) break;   /* Escape was pressed - Escape from loop */
@@ -706,7 +704,7 @@ static void exec_editor(void) {
 ** the results are unpredictable
 */
 static void invoke_editor(void) {
-  char tempname[FNAMESIZE], savedname[FNAMESIZE];
+  char tempname[FNAMESIZE];
   int32 retcode;
   FILE *fhandle;
 #ifdef TARGET_DJGPP
@@ -737,6 +735,7 @@ static void invoke_editor(void) {
   strcat(basicvars.stringwork, tempname);
   retcode = system(basicvars.stringwork);
   if (retcode == 0) {                           /* Editor call worked */
+    char savedname[FNAMESIZE];
     strcpy(savedname, basicvars.program);       /* Otherwise 'clear' erases it */
     clear_program();
     read_basic(tempname);
@@ -850,7 +849,6 @@ static void exec_crunch(void) {
 */
 static void exec_auto(void) {
   int32 lineno = 10, linestep = 10;
-  boolean ok;
   basicvars.current++;
   if (!isateol(basicvars.current)) {
     lineno = get_number();
@@ -865,6 +863,7 @@ static void exec_auto(void) {
   if (linestep<=0) error(ERR_SILLY);
   if (linestep>MAXLINENO) error(ERR_SYNTAX);
   while (lineno <= MAXLINENO) { /* ESCAPE will interrupt */
+    boolean ok;
     emulate_printf("%5d ",lineno);
     sprintf(basicvars.stringwork, "%5d", lineno);
     ok = amend_line(basicvars.stringwork+5, MAXSTATELEN);

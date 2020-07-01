@@ -71,8 +71,7 @@ static void fn_spc(void) {
 ** at the end of the function call
 */
 static void fn_tab(void) {
-  int32 x, y;
-  x = eval_integer();
+  int32 x = eval_integer();
   if (*basicvars.current == ')') {	/* 'TAB(x)' form of function */
     if (x > 0) {	/* Nothing happens is 'tab' count is less than 0 */
       x = x & BYTEMASK;
@@ -91,6 +90,7 @@ static void fn_tab(void) {
     }
   }
   else if (*basicvars.current == ',') {	/* 'TAB(x,y)' form of function */
+    int32 y;
     basicvars.current++;
     y = eval_integer();
     if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -162,7 +162,6 @@ static char *input_number(lvalue destination, char *p) {
 */
 static char *input_string(lvalue destination, char *p, boolean inputall) {
   char *cp, tempstring[INPUTLEN+1];
-  boolean more;
   int32 index;
   index = 0;
   if (inputall) {	/* Want everything up to the end of line */
@@ -176,6 +175,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   else {	/* Only want text as far as next delimiter */
     p = skip_blanks(p);
     if (*p == '\"') {	/* Want string up to next double quote */
+      boolean more;
       p++;
       more = *p != asc_NUL;
       while (more) {
@@ -225,12 +225,12 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
 ** is taken from a new line)
 */
 static void read_input(boolean inputline) {
-  byte token;
   char *cp, line[INPUTLEN];
   lvalue destination;
-  boolean bad, prompted;
   int n, length;
   do {	/* Loop around prompts and items to read */
+    byte token;
+    boolean bad, prompted;
     while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
     token = *basicvars.current;
     line [0] = asc_NUL;
@@ -511,7 +511,7 @@ static void exec_colofon(void) {
 ** exec_colnum - Handle old style COLOUR statement
 */
 static void exec_colnum(void) {
-  int32 colour, tint, parm2, parm3, parm4;
+  int32 colour, tint, parm2;
   colour = eval_integer();
   switch (*basicvars.current) {
   case BASIC_TOKEN_TINT:		/* Got 'COLOUR ... TINT' */
@@ -528,6 +528,7 @@ static void exec_colnum(void) {
       emulate_mapcolour(colour, parm2);
     }
     else {	/* Have got at least three parameters */
+      int32 parm3;
       basicvars.current++;
       parm3 = eval_integer();	/* Assume 'COLOUR <red>,<green>,<blue>' */
       if (*basicvars.current != ',') {
@@ -535,6 +536,7 @@ static void exec_colnum(void) {
         emulate_setcolour(FALSE, colour, parm2, parm3);
       }
       else {
+        int32 parm4;
         basicvars.current++;
         parm4 = eval_integer();	/* Assume 'COLOUR <colour>,<red>,<green>,<blue> */
         check_ateol();
@@ -934,10 +936,10 @@ void exec_line(void) {
  *   MODE <x>,<y>,<bpp> [, <rate>]
  */
 static void exec_modenum(stackitem itemtype) {
-  int xres, yres, bpp, rate;
-  rate = -1;		/* Use best rate */
-  bpp = 6;		/* 6 bpp - Marks old type RISC OS 256 colour mode */
   if (*basicvars.current == ',') {
+    int bpp = 6;		/* 6 bpp - Marks old type RISC OS 256 colour mode */
+    int rate = -1;		/* Use best rate */
+    int xres, yres;
     xres = itemtype == STACK_INT ? pop_int() : TOINT(pop_float());
     basicvars.current++;
     yres = eval_integer();	/* Y resolution */
@@ -989,14 +991,14 @@ static void exec_modestr(stackitem itemtype) {
     emulate_mode(mode);
   }
   else {	/* Extract details from mode string */
-    int32 xres, yres, colours, greys, xeig, yeig, rate, value;
+    int32 xres, yres, colours, greys, xeig, yeig, rate;
     char what;
     xres = yres = 0;		/* Set up default values */
     colours = greys = 0;
     xeig = yeig = 1;
     rate = -1;		/* Use highest frame rate possible */
     do {
-      value = 0;
+      int32 value = 0;
       switch (toupper(*cp)) {
       case 'X': case 'Y': case 'G':	/* X and Y size and number of grey scale levels */
         what = toupper(*cp);
@@ -1362,7 +1364,6 @@ void exec_pointto(void) {
 ** to the screen. This code still needs some improvement
 */
 static void print_screen(void) {
-  stackitem resultype;
   boolean hex, rightjust, newline;
   int32 format, fieldwidth, numdigits, size;
   char *leftfmt, *rightfmt;
@@ -1390,6 +1391,7 @@ static void print_screen(void) {
     break;
   }
   while (!ateol[*basicvars.current]) {
+    stackitem resultype;
     newline = TRUE;
     while (*basicvars.current == '~' || *basicvars.current == ',' || *basicvars.current == ';'
      || *basicvars.current == '\'' || *basicvars.current == TYPE_PRINTFN) {
@@ -1624,7 +1626,7 @@ void exec_print(void) {
 ** statement
 */
 void exec_rectangle(void) {
-  int32 x1, y1, width, height, x2, y2;
+  int32 x1, y1, width, height;
   boolean filled;
   basicvars.current++;		/* Skip RECTANGLE token */
   filled = *basicvars.current == BASIC_TOKEN_FILL;
@@ -1644,6 +1646,7 @@ void exec_rectangle(void) {
     height = width;
   }
   if (*basicvars.current == BASIC_TOKEN_TO) {	/* Got 'RECTANGLE ... TO' form of statement */
+    int32 x2, y2;
     basicvars.current++;
     x2 = eval_integer();		/* Get destination x coordinate */
     if (*basicvars.current != ',') error(ERR_COMISS);
@@ -1740,10 +1743,9 @@ void exec_tint(void) {
 ** 'exec_vdu' handles the Basic 'VDU' statement
 */
 void exec_vdu(void) {
-  int32 n, value;
   basicvars.current++;		/* Skip VDU token */
   do {
-    value = eval_integer();
+    int32 value = eval_integer();
     if (*basicvars.current == ';') {	/* Send value as two bytes */
       emulate_vdu(value);
       emulate_vdu(value>>BYTESHIFT);
@@ -1754,6 +1756,7 @@ void exec_vdu(void) {
       if (*basicvars.current == ',')
         basicvars.current++;
       else if (*basicvars.current == '|') {	/* Got a '|' - Send nine nulls */
+        int32 n;
         for (n=1; n<=9; n++) emulate_vdu(0);
         basicvars.current++;
       }

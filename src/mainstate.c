@@ -429,16 +429,15 @@ void exec_dim(void) {
   byte *base, *ep;
   variable *vp;
   boolean blockdef;		/* TRUE if we are allocating a block of memory and not creating an array */
-  boolean islocal;		/* TRUE if we are defining a local array on the stack */
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_dim\n");
 #endif
   do {
+    boolean islocal = FALSE;	/* TRUE if we are defining a local array on the stack */
     basicvars.current++;	/* Skip 'DIM' token or ',' */
 /* Must always have a variable name next */
     if (*basicvars.current != BASIC_TOKEN_STATICVAR && *basicvars.current != BASIC_TOKEN_XVAR) error(ERR_NAMEMISS);
-    islocal = FALSE;		/* Assume item is not a local array */
     if (*basicvars.current == BASIC_TOKEN_STATICVAR) {	/* Found a static variable */
       vp = &basicvars.staticvars[*(basicvars.current+1)];
       base = basicvars.current;
@@ -578,9 +577,9 @@ void exec_xlhelse(void) {
 ** in effect)
 */
 void exec_end(void) {
-  int32 newend = 0;
   basicvars.current++;		/* Skip END token */
   if (*basicvars.current == '=') {	/* Have got 'END=' version */
+    int32 newend = 0;
     basicvars.current++;
     expression();
     check_ateol();
@@ -806,54 +805,50 @@ void exec_error(void) {
 ** Everything else is done by the 'NEXT' statement code.
 */
 void exec_for(void) {
-  boolean isinteger;
+  boolean isinteger=0;
   lvalue forvar;
-  int32 intlimit = 0, intstep = 0;
-  static float64 floatlimit, floatstep;
+  int64 intlimit = 0, intstep = 1;
+  static float64 floatlimit, floatstep = 1.0;
   basicvars.current++;	/* Skip the 'FOR' token */
   get_lvalue(&forvar);
-  if ((forvar.typeinfo & VAR_ARRAY) != 0 || (forvar.typeinfo & TYPEMASK)>VAR_FLOAT) {
-    error(ERR_VARNUM);	/* Numeric variable required */
+  if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
+  switch(forvar.typeinfo & TYPEMASK) {
+    case VAR_INTWORD:
+    case VAR_INTLONG:
+    case VAR_UINT8: isinteger=1; break;
+    case VAR_FLOAT: isinteger=0; break;
+    default: error(ERR_VARNUM);
   }
-  isinteger = (forvar.typeinfo & TYPEMASK)<VAR_FLOAT;
   if (*basicvars.current != '=') error(ERR_EQMISS);	/* '=' is missing */
   basicvars.current++;
   expression();		/* Get the control variable's initial value */
   if (*basicvars.current != BASIC_TOKEN_TO) error(ERR_TOMISS);
   basicvars.current++;
   switch (forvar.typeinfo) {	/* Assign control variable's initial value */
+  case VAR_UINT8: forvar.typeinfo = VAR_INTWORD;
   case VAR_INTWORD:
     switch (GET_TOPITEM) {
-    case STACK_INT:   *forvar.address.intaddr = pop_int(); break;
-    case STACK_UINT8: *forvar.address.intaddr = pop_uint8(); break;
-    case STACK_INT64: *forvar.address.intaddr = TOINT(pop_int64()); break;
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: *forvar.address.intaddr = TOINT(pop_anyint()); break;
     case STACK_FLOAT: *forvar.address.intaddr = TOINT(pop_float()); break;
-    default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
-    }
-    break;
-  case VAR_UINT8:
-    switch (GET_TOPITEM) {
-    case STACK_INT:   *forvar.address.uint8addr = pop_int(); break;
-    case STACK_UINT8: *forvar.address.uint8addr = pop_uint8(); break;
-    case STACK_INT64: *forvar.address.uint8addr = TOINT(pop_int64()); break;
-    case STACK_FLOAT: *forvar.address.uint8addr = TOINT(pop_float()); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTLONG:
     switch (GET_TOPITEM) {
-    case STACK_INT:   *forvar.address.int64addr = pop_int(); break;
-    case STACK_UINT8: *forvar.address.int64addr = pop_uint8(); break;
-    case STACK_INT64: *forvar.address.int64addr = pop_int64(); break;
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: *forvar.address.int64addr = pop_anyint(); break;
     case STACK_FLOAT: *forvar.address.int64addr = TOINT64(pop_float()); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_FLOAT:
     switch (GET_TOPITEM) {
-    case STACK_INT:   *forvar.address.floataddr = TOFLOAT(pop_int()); break;
-    case STACK_UINT8: *forvar.address.floataddr = TOFLOAT(pop_uint8()); break;
-    case STACK_INT64: *forvar.address.floataddr = TOFLOAT(pop_int64()); break;
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: *forvar.address.floataddr = TOFLOAT(pop_anyint()); break;
     case STACK_FLOAT: *forvar.address.floataddr = pop_float(); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
@@ -861,27 +856,27 @@ void exec_for(void) {
   case VAR_INTBYTEPTR:
     check_write(forvar.address.offset, sizeof(byte));
     switch (GET_TOPITEM) {
-    case STACK_INT:   basicvars.offbase[forvar.address.offset] = pop_int(); break;
-    case STACK_UINT8: basicvars.offbase[forvar.address.offset] = pop_uint8(); break;
-    case STACK_INT64: basicvars.offbase[forvar.address.offset] = TOINT(pop_int64()); break;
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: basicvars.offbase[forvar.address.offset] = TOINT(pop_anyint()); break;
     case STACK_FLOAT: basicvars.offbase[forvar.address.offset] = TOINT(pop_float()); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTWORDPTR:
     switch (GET_TOPITEM) {
-    case STACK_INT:   store_integer(forvar.address.offset, pop_int()); break;
-    case STACK_UINT8: store_integer(forvar.address.offset, pop_uint8()); break;
-    case STACK_INT64: store_integer(forvar.address.offset, TOINT(pop_int())); break;
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: store_integer(forvar.address.offset, TOINT(pop_anyint())); break;
     case STACK_FLOAT: store_integer(forvar.address.offset, TOINT(pop_float())); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_FLOATPTR:
     switch (GET_TOPITEM) {
-    case STACK_INT:   store_float(forvar.address.offset, TOFLOAT(pop_int())); break;
-    case STACK_UINT8: store_float(forvar.address.offset, TOFLOAT(pop_uint8())); break;
-    case STACK_INT64: store_float(forvar.address.offset, TOFLOAT(pop_int64())); break;
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: store_float(forvar.address.offset, TOFLOAT(pop_anyint())); break;
     case STACK_FLOAT: store_float(forvar.address.offset, pop_float()); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
@@ -895,18 +890,17 @@ void exec_for(void) {
   expression();
   if (isinteger) {	/* Loop is an integer loop */
     switch(GET_TOPITEM) {
-      case STACK_INT:   intlimit = pop_int(); break;
-      case STACK_UINT8: intlimit = pop_uint8(); break;
-      case STACK_INT64: intlimit = TOINT(pop_int64()); break;
-      case STACK_FLOAT: intlimit = TOINT(pop_float()); break;
+      case STACK_INT:
+      case STACK_UINT8:
+      case STACK_INT64: intlimit = pop_anyint(); break;
+      case STACK_FLOAT: intlimit = TOINT64(pop_float()); break;
       default: error(ERR_TYPENUM);
     }
-  }
-  else {	/* Loop is a floating point loop */
+  } else {	/* Loop is a floating point loop */
     switch(GET_TOPITEM) {
-      case STACK_INT:   floatlimit = TOFLOAT(pop_int()); break;
-      case STACK_UINT8: floatlimit = TOFLOAT(pop_uint8()); break;
-      case STACK_INT64: floatlimit = TOFLOAT(pop_int64()); break;
+      case STACK_INT:
+      case STACK_UINT8:
+      case STACK_INT64: floatlimit = TOFLOAT(pop_anyint()); break;
       case STACK_FLOAT: floatlimit = pop_float(); break;
       default: error(ERR_TYPENUM);
     }
@@ -915,31 +909,18 @@ void exec_for(void) {
     basicvars.current++;
     expression();
     if (isinteger) {	/* Loop is an integer loop */
-      switch(GET_TOPITEM) {
-        case STACK_INT:   intstep = pop_int(); break;
-        case STACK_UINT8: intstep = pop_uint8(); break;
-        case STACK_INT64: intstep = TOINT(pop_int64()); break;
-        case STACK_FLOAT: intstep = TOINT(pop_float()); break;
-        default: error(ERR_TYPENUM);
-      }
+      if (topitemisint()) intstep=pop_anyint();
+        else error(ERR_TYPENUM);
       if (intstep == 0) error(ERR_SILLY);
-    }
-    else {	/* Loop is a floating point loop */
+    } else {	/* Loop is a floating point loop */
       switch(GET_TOPITEM) {
-        case STACK_INT:   floatstep = TOFLOAT(pop_int()); break;
-        case STACK_UINT8: floatstep = TOFLOAT(pop_uint8()); break;
-        case STACK_INT64: floatstep = TOFLOAT(pop_int64()); break;
+        case STACK_INT:
+        case STACK_UINT8:
+        case STACK_INT64: floatstep = TOFLOAT(pop_anyint()); break;
         case STACK_FLOAT: floatstep = pop_float(); break;
         default: error(ERR_TYPENUM);
       }
       if (floatstep == 0.0) error(ERR_SILLY);
-    }
-  }
-  else {	/* STEP not specified */
-    if (isinteger)
-      intstep = 1;
-    else {
-      floatstep = 1.0;
     }
   }
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);		/* Ensure there is nothing left on the line */
@@ -951,7 +932,11 @@ void exec_for(void) {
   }
   if (isinteger) {	/* Finally, set up the loop control block on the stack and end */
     boolean simple = forvar.typeinfo == VAR_INTWORD && intstep == 1;
-    push_intfor(forvar, basicvars.current, intlimit, intstep, simple);
+    switch(forvar.typeinfo) {
+      case VAR_INTWORD: push_intfor(forvar, basicvars.current, intlimit, intstep, simple); break;
+      case VAR_INTLONG: push_int64for(forvar, basicvars.current, intlimit, intstep, simple); break;
+      default: error(ERR_BROKEN, __LINE__, "mainstate");
+    }
   }
   else {
     push_floatfor(forvar, basicvars.current, floatlimit, floatstep, FALSE);
@@ -981,7 +966,6 @@ static byte *set_linedest(byte *tp) {
 */
 void exec_gosub(void) {
   byte *dest = NULL;
-  int32 line;
 #ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
 #else
@@ -997,7 +981,7 @@ void exec_gosub(void) {
     basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
   }
   else {	/* Destination line number is given by an expression */
-    line = eval_integer();
+    int32 line = eval_integer();
     if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
     dest = find_line(line);	/* Find start of destination line */
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
@@ -1014,7 +998,6 @@ void exec_gosub(void) {
 */
 void exec_goto(void) {
   byte *dest = NULL;
-  int32 line = 0;
 #ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
 #else
@@ -1030,7 +1013,7 @@ void exec_goto(void) {
     basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
   }
   else {	/* Destination line number is given by an expression */
-    line = eval_integer();
+    int32 line = eval_integer();
     if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
     dest = find_line(line);
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
@@ -1242,12 +1225,12 @@ void exec_xif(void) {
 ** after the keyword 'LIBRARY'
 */
 void exec_library(void) {
-  stackitem stringtype;
   basicstring name;
   char *libname;
   basicvars.current++;
   if (*basicvars.current == BASIC_TOKEN_LOCAL) error(ERR_NOLIBLOC);	/* 'LIBRARY LOCAL' not allowed */
   do {
+    stackitem stringtype;
     expression();	/* Get a library name */
     stringtype = GET_TOPITEM;
     if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
@@ -1364,7 +1347,7 @@ static stack_for *find_for(void)
 {
   stack_for *fp;
 
-  if (GET_TOPITEM == STACK_INTFOR || GET_TOPITEM == STACK_FLOATFOR) /* FOR control block is top of stack */
+  if (GET_TOPITEM == STACK_INTFOR || GET_TOPITEM == STACK_INT64FOR || GET_TOPITEM == STACK_FLOATFOR) /* FOR control block is top of stack */
     fp = basicvars.stacktop.forsp;
   else {	/* Discard entries until FOR control block is found */
     fp = get_for();
@@ -1588,14 +1571,12 @@ static byte *find_onentry(byte *tp, int32 wanted) {
 */
 static void exec_onbranch(void) {
   int32 index;
-  byte onwhat;
   index = eval_integer();
   if (index<1)	/* 'ON' index is out of range */
     find_else(basicvars.current, index);
   else {
-    onwhat = *basicvars.current;
+    byte onwhat = *basicvars.current;
     if (onwhat == BASIC_TOKEN_GOTO || onwhat == BASIC_TOKEN_GOSUB) {
-      int32 line;
       byte *dest;
       basicvars.current++;	/* Skip the 'GOTO' or 'GOSUB' token */
       if (index>1) basicvars.current = find_onentry(basicvars.current, index);
@@ -1609,7 +1590,7 @@ static void exec_onbranch(void) {
         else if (*basicvars.current == BASIC_TOKEN_XLINENUM)	/* GOTO/GOSUB destination not filled in yet */
           dest = set_linedest(basicvars.current);
         else {	/* Destination line number is given by an expression */
-	  line = eval_integer();
+          int32 line = eval_integer();
           if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
           dest = find_line(line);
           if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
@@ -1625,8 +1606,7 @@ static void exec_onbranch(void) {
       }
     }
     else if (onwhat == BASIC_TOKEN_XFNPROCALL || onwhat == BASIC_TOKEN_FNPROCALL) {	/* Got 'ON ... PROC' */
-      byte *base;
-      fnprocdef *dp = NULL;
+     fnprocdef *dp = NULL;
       variable *pp = NULL;
       if (index>1) basicvars.current = find_onentry(basicvars.current, index);
       if (*basicvars.current == BASIC_TOKEN_XELSE) {	/* Branch to statement after 'ELSE' */
@@ -1635,8 +1615,7 @@ static void exec_onbranch(void) {
       }
       else {	/* Call one of the procedures */
         if (*basicvars.current == BASIC_TOKEN_XFNPROCALL) {	/* Procedure call not seen before */
-          byte *ep;
-          base = get_srcaddr(basicvars.current);	/* Find the start of the procedure name */
+          byte *ep, *base = get_srcaddr(basicvars.current);	/* Find the start of the procedure name */
           ep = skip_name(base);
           if (*(ep-1) == '(') ep--;	/* Do not include '(' of parameter list in name */
           pp = find_fnproc(base, ep-base);
@@ -1701,9 +1680,8 @@ void exec_oscli(void) {
   lvalue response, linecount;
   boolean tofile;
   char respname[FNAMESIZE];
-  int length, count, n;
+  int count, n;
   FILE *respfile, *respfh;
-  char *p;
   basicarray *ap;
   basicvars.current++;	/* Hop over the OSCLI token */
   expression();
@@ -1753,7 +1731,8 @@ void exec_oscli(void) {
   }
   count = 0;	/* Number of lines read */
   while (!feof(respfile) && count+1<ap->arrsize) {	/* Read the command output */
-    p = fgets(basicvars.stringwork, MAXSTRING, respfile);
+    int length;
+    char *p = fgets(basicvars.stringwork, MAXSTRING, respfile);
     if (p == NIL) {	/* Either an error or EOF reached and no data read */
       if (!ferror(respfile)) break;		/* End of file and no data read */
       fclose(respfile);
@@ -2223,41 +2202,41 @@ void exec_return(void) {
 */
 void exec_run(void) {
   basicstring string;
-  stackitem topitem;
   byte *bp;
-  int32 line;
-  char *filename;
   basicvars.current++;		/* Skip RUN token */
   bp = NIL;
   if (!ateol[*basicvars.current]) {	/* RUN <filename> or RUN <linenumber> found */
+    stackitem topitem;
     expression();
     topitem = GET_TOPITEM;
     switch (topitem) {
-    case STACK_INT: case STACK_FLOAT: case STACK_INT64:
-      if (topitem == STACK_INT)
-        line = pop_int();
-      else if (topitem == STACK_INT64)
-        line = pop_int64();
-      else {
-        line = TOINT(pop_float());
-      }
-      if (line<0 || line>MAXLINENO) error(ERR_LINENO);
-      bp = find_line(line);
-      if (get_lineno(bp) != line) error(ERR_LINEMISS, line);
-      break;
-    case STACK_STRING: case STACK_STRTEMP:
-      string = pop_string();
-      filename = tocstring(string.stringaddr, string.stringlen);
-      if (topitem == STACK_STRTEMP) free_string(string);
-      check_ateol();
-      clear_error();
-      clear_varlists();
-      clear_strings();
-      clear_heap();
-      read_basic(filename);
-      break;
-    default:
-      error(ERR_BADOPER);
+      char *filename;
+      int32 line;
+      case STACK_INT: case STACK_FLOAT: case STACK_INT64:
+        if (topitem == STACK_INT)
+          line = pop_int();
+        else if (topitem == STACK_INT64)
+          line = pop_int64();
+        else {
+          line = TOINT(pop_float());
+        }
+        if (line<0 || line>MAXLINENO) error(ERR_LINENO);
+        bp = find_line(line);
+        if (get_lineno(bp) != line) error(ERR_LINEMISS, line);
+        break;
+      case STACK_STRING: case STACK_STRTEMP:
+        string = pop_string();
+        filename = tocstring(string.stringaddr, string.stringlen);
+        if (topitem == STACK_STRTEMP) free_string(string);
+        check_ateol();
+        clear_error();
+        clear_varlists();
+        clear_strings();
+        clear_heap();
+        read_basic(filename);
+        break;
+      default:
+        error(ERR_BADOPER);
     }
   }
   run_program(bp);
@@ -2569,8 +2548,6 @@ void exec_sys(void) {
 ** 'exec_trace' handles the various flavours of trace command
 */
 void exec_trace(void) {
-  boolean yes;
-  byte option;
   basicvars.current++;			/* Skip TRACE token */
   if (*basicvars.current == BASIC_TOKEN_ON) {		/* Line number trace */
     basicvars.traces.enabled = TRUE;
@@ -2605,7 +2582,8 @@ void exec_trace(void) {
   else if (ateol[*basicvars.current])		/* Got 'TRACE' on its own */
     error(ERR_BADTRACE);
   else {	/* TRACE <something> [ON|OFF] */
-    option = *(basicvars.current+1);
+    boolean yes;
+    byte option = *(basicvars.current+1);
     if (!ateol[option] && option != BASIC_TOKEN_ON && option != BASIC_TOKEN_OFF) error(ERR_BADTRACE);
     yes = option != BASIC_TOKEN_OFF;
     switch (*basicvars.current) {

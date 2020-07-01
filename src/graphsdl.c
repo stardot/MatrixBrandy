@@ -28,6 +28,7 @@
 **	MODE 7 implementation by Michael McConnell.
 **
 */
+#ifdef USE_SDL /* Keep code analysis tool happy, matching #endif at end of file */
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -4581,3 +4582,4 @@ int32 readmodevariable(int32 scrmode, int32 var) {
 void set_refresh_interval(int32 v) {
   ds.videofreq=v;
 }
+#endif /* USE_SDL */

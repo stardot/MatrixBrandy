@@ -140,7 +140,6 @@ char   *kbd_getfkey(int key, int *len) {
 readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
 		return emulate_readline(&buffer[0], length, echochar); }
 
-
 /* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
 /* -------------------------------------------------------------- */
 int32 kbd_inkey(int32 arg) {
@@ -728,8 +727,11 @@ int kbd_esctest() {
 }
 
 void kbd_escchar(char a, char b) { return; }		// set Escape character
+
+#if 0 /* Function never referenced anywhere in the code */
 void kbd_escset()   { basicvars.escape=TRUE; }		// set Escape state
 void kbd_escclr()   { basicvars.escape=FALSE; }		// clear Escape state
+#endif
 
 /* kbd_escack() - acknowledge and clear Escape state */
 /* ------------------------------------------------- */
@@ -1306,7 +1308,6 @@ int32 kbd_get0(void) {
   int ch;
 
 #if defined(TARGET_DOSWIN) && !defined(USE_SDL)
-  int s,c,a;
 
 #ifdef CYGWINBUILD
   ch=getchar();
@@ -1314,6 +1315,7 @@ int32 kbd_get0(void) {
   ch=getch();
 #endif /* CYGWINBUILD */
   if (ch == NUL || ch == 0xE0) {		/* DOS escaped characters		*/
+    int s, c, a;
     // When kbd_modkeys() returns all keys, change this to call it
     s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
     c=(GetAsyncKeyState(VK_CONTROL)<0);
@@ -1447,8 +1449,8 @@ void osbyte21(int32 xreg) {
 
 // Should be called kbd_something, escenabled should be tested here, should be a function
 /* The check for escape_enabled moved to the calling point in statement.c */
-void checkforescape(void) {
 #ifdef USE_SDL
+void checkforescape(void) {
 int64 i;
   i=basicvars.centiseconds;
   if (i > esclast) {
@@ -1456,9 +1458,9 @@ int64 i;
 // Should check key character, not keycode
     if(kbd_inkey(-113)) basicvars.escape=TRUE;
   }
-#endif
   return;
 }
+#endif
 
 // Should be called kbd_something
 void osbyte44(int x) {
@@ -1781,9 +1783,8 @@ static void remove_history(int count) {
 ** at the end
 */
 static void add_history(char command[], int32 cmdlen) {
-  int32 wanted, n, freed;
   if (highbuffer+cmdlen >= HISTSIZE) {  /* There is not enough room at the end of the buffer */
-    wanted = highbuffer+cmdlen-HISTSIZE+1;      /* +1 for the NULL at the end of the command */
+    int32 n, freed = 0, wanted = highbuffer+cmdlen-HISTSIZE+1;      /* +1 for the NULL at the end of the command */
 /*
 ** Figure out how many commands have to be removed from the buffer to make
 ** room for the new one. Scan from the start of the history list adding up
@@ -1791,7 +1792,6 @@ static void add_history(char command[], int32 cmdlen) {
 ** or exceeds the number of characters required. Entries from 0 to n-1 have
 ** to be deleted.
 */
-    freed = 0;
     n = 0;
     do {
       freed += histlength[n];
@@ -1813,7 +1813,7 @@ static void init_recall(void) {
 }
 
 static void recall_histline(char buffer[], int updown) {
-  int n, start, count;
+  int count;
   if (updown < 0) {     /* Move backwards in history list */
     if (recalline == 0) return; /* Already at start of list */
     recalline -= 1;
@@ -1825,7 +1825,7 @@ static void recall_histline(char buffer[], int updown) {
   if (recalline == histindex)   /* Moved to last line */
     buffer[0] = asc_NUL;
   else {
-    start = 0;
+    int n, start = 0;
     for (n = 0; n < recalline; n++) start += histlength[n];
     strcpy(buffer, &histbuffer[start]);
   }

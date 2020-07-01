@@ -86,9 +86,8 @@ int brandynet_connect(char *dest, char type) {
 
 #ifdef TARGET_RISCOS
   char *host, *port;
-  int n,ptr, len, mysocket, portnum, ipaddr;
+  int n, mysocket, portnum, ipaddr;
   struct sockaddr_in netdest;
-  struct hostent *he;
   struct in_addr *inaddr;
 
   if(networking==0) {
@@ -120,11 +119,13 @@ int brandynet_connect(char *dest, char type) {
   ipaddr = inet_addr(host);
   inaddr=&ipaddr;
   if (ipaddr == INADDR_NONE) {
+    struct hostent *he;
     if ((he = gethostbyname(host)) == NULL) {
+      free(host);
       error(ERR_NET_NOTFOUND);
-      return(-1);
+    } else {
+      inaddr=(struct in_addr *)he->h_addr;
     }
-    inaddr=(struct in_addr *)he->h_addr;
   }
   netdest.sin_addr = *inaddr;                /* set destination IP address */
   netdest.sin_port = htons(portnum);            /* set destination port number */
@@ -240,11 +241,10 @@ int32 net_bget(int handle) {
   return(-1);
 #else
   int value;
-  int retval=0;
 
   if (neteof[handle]) return(-2);
   if (bufptr[handle] >= bufendptr[handle]) {
-    retval=net_get_something(handle);
+    int retval=net_get_something(handle);
     if (retval) return(-2);				/* EOF */
   }
   if (bufptr[handle] >= bufendptr[handle]) return(-1);	/* No data available. EOF NOT set */

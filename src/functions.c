@@ -283,12 +283,12 @@ static void fn_ptr(void) {
 static void fn_right(void) {
   stackitem stringtype;
   basicstring descriptor;
-  int32 length;
   char *cp;
   expression();		/* Fetch the string */
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   if (*basicvars.current == ',') {	/* Function call is of the form RIGHT$(<string>,<value>) */
+    int32 length;
     basicvars.current++;
     length = eval_integer();
     if (*basicvars.current != ')') error(ERR_RPMISS);	/* ')' missing */
@@ -737,7 +737,6 @@ void fn_false(void) {
 ** keyboard and saves it on the Basic stack as a number
 */
 static void fn_get(void) {
-  int ch;
   if (*basicvars.current == '(') {	/* Have encountered the 'GET$#' version */
     int32 x, y;
     basicvars.current++;
@@ -749,6 +748,7 @@ static void fn_get(void) {
     basicvars.current++;
     push_int(get_character_at_pos(x, y));
   } else {
+    int ch;
     do {
 #ifdef NEWKBD
       ch=kbd_get() & 0xFF;
@@ -766,8 +766,6 @@ static void fn_get(void) {
 */
 static void fn_getdol(void) {
   char *cp;
-  int ch;
-  int32 handle, count;
   if (*basicvars.current == '(') {	/* Have encountered the 'GET$#' version */
     int32 x, y;
     basicvars.current++;
@@ -781,6 +779,7 @@ static void fn_getdol(void) {
     *cp = get_character_at_pos(x, y);
     push_strtemp(1, cp);
   } else if (*basicvars.current == '#') {	/* Have encountered the 'GET$#' version */
+    int32 handle, count;
     basicvars.current++;
     handle = eval_intfactor();
     count = fileio_getdol(handle, basicvars.stringwork);
@@ -789,6 +788,7 @@ static void fn_getdol(void) {
     push_strtemp(count, cp);
   }
   else {	/* Normal 'GET$' - Return character read as a string */
+    int ch;
     cp = alloc_string(1);
     do {
 #ifdef NEWKBD
@@ -850,9 +850,8 @@ static void fn_inkeydol(void) {
 static void fn_instr(void) {
   basicstring needle, haystack;
   stackitem needtype, haytype;
-  char *hp, *p;
-  int32 start, count;
-  char first;
+  char *p;
+  int32 start;
   expression();
   if (*basicvars.current != ',') error(ERR_COMISS);	/* ',' missing */
   basicvars.current++;
@@ -894,9 +893,9 @@ static void fn_instr(void) {
     }
   }
   else {	/* Will have to search string */
-    hp = haystack.stringaddr+start-1;	/* Start searching from this address */
-    first = *needle.stringaddr;
-    count = haystack.stringaddr+haystack.stringlen-hp;	/* Count of chars in original string to check */
+    char *hp = haystack.stringaddr+start-1;	/* Start searching from this address */
+    char first = *needle.stringaddr;
+    int32 count = haystack.stringaddr+haystack.stringlen-hp;	/* Count of chars in original string to check */
     if (needle.stringlen == 1) {		/* Looking for a single character */
       p = memchr(hp, first, count);
       if (p == NIL)	/* Did not find the character */
@@ -937,15 +936,12 @@ static void fn_instr(void) {
 ** of its argument on to the Basic stack
 */
 static void fn_int(void) {
-  int32 localint = 0;
-  int64 localint64 = 0;
-  float64 localfloat = 0;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
     if (matrixflags.int_uses_float) {
-      localfloat = floor(pop_float());
-      localint = localfloat;
-      localint64 = localfloat;
+      float64 localfloat = floor(pop_float());
+      int32 localint = localfloat;
+      int64 localint64 = localfloat;
       if (localint == localfloat) {
         push_int(localint);
       } else {
@@ -1269,8 +1265,8 @@ static float64 randomfraction(void) {
 ** 'fn_rnd' evaluates the function 'RND'.
 */
 static void fn_rnd(void) {
-  int32 value;
   if (*basicvars.current == '(') {		/* Have got 'RND()' */
+    int32 value;
     basicvars.current++;
     value = eval_integer();
     if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -1514,17 +1510,15 @@ static void fn_sum(void) {
       break;
     }
     case VAR_STRARRAY: {	/* Concatenate all strings in a string array */
-      int32 length, strlen;
+      int32 length = 0;
       char *cp, *cp2;
-      basicstring *p;
-      p = vp->varentry.vararray->arraystart.stringbase;
-      length = 0;
+      basicstring *p = vp->varentry.vararray->arraystart.stringbase;
       for (n=0; n<elements; n++) length+=p[n].stringlen;	/* Find length of result string */
       if (length>MAXSTRING) error(ERR_STRINGLEN);		/* String is too long */
       cp = cp2 = alloc_string(length);	/* Grab enough memory to hold the result string */
       if (length>0) {
         for (n=0; n<elements; n++) {	/* Concatenate strings */
-          strlen = p[n].stringlen;
+          int32 strlen = p[n].stringlen;
           if (strlen>0) {	/* Ignore zero-length strings */
             memmove(cp2, p[n].stringaddr, strlen);
             cp2+=strlen;
@@ -1641,7 +1635,6 @@ static void fn_usr(void) {
 static void fn_val(void) {
   stackitem stringtype;
   basicstring descriptor;
-  char *cp;
   boolean isint;
   int32 intvalue;
   int64 int64value;
@@ -1657,6 +1650,7 @@ static void fn_val(void) {
   if (descriptor.stringlen == 0)
     push_int(0);	/* Nothing to do */
   else {
+    char *cp;
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
     basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
@@ -1771,18 +1765,19 @@ void fn_width(void) {
 ** translated string is pushed back on to the Basic stack
 */
 static void fn_xlatedol(void) {
-  stackitem stringtype, transtype;
+  stackitem stringtype;
   basicstring string, transtring = {0, NULL};
   basicarray *transarray = NULL;
   char *cp;
   int32 n;
-  byte ch;
   expression();
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   string = pop_string();
   if (*basicvars.current == ',') {
 /* Got user-supplied translate table */
+    byte ch;
+    stackitem transtype;
     basicvars.current++;
     expression();
     if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -1825,8 +1820,7 @@ static void fn_xlatedol(void) {
         ch = CAST(cp[n], byte);		/* Must work with unsigned characters */
         if (ch<highcode && arraybase[ch].stringlen>0) cp[n] = arraybase[ch].stringaddr[0];
       }
-    }
-    else {
+    } else {
       for (n=0; n<string.stringlen; n++) {
         ch = CAST(cp[n], byte);		/* Must work with unsigned characters */
         if (ch<transtring.stringlen) cp[n] = transtring.stringaddr[ch];

@@ -66,6 +66,7 @@
 **
 */
 
+#if defined(OLDKBD) & !defined(NEWKBD)
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -1880,3 +1881,5 @@ void end_keyboard(void) {
 #endif
 
 #endif
+
+#endif /* OLDKBD & !NEWKBD */
