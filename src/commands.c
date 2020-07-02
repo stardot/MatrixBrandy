@@ -64,17 +64,7 @@ static void detailed_help(char *);
 */
 static int64 get_number(void) {
   factor();
-  switch (get_topitem()) {
-  case STACK_INT:
-    return pop_int();
-  case STACK_INT64:
-    return pop_int64();
-  case STACK_FLOAT:
-    return TOINT64(pop_float());
-  default:
-    error(ERR_TYPENUM);
-  }
-  return 0;
+  return pop_anynum64();
 }
 
 /*
