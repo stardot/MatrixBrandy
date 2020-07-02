@@ -357,11 +357,8 @@ void exec_bput(void) {
   do {
     expression();		/* Now fetch the value to be written */
     switch (GET_TOPITEM) {
-    case STACK_INT:
-      fileio_bput(handle, pop_int());
-      break;
-    case STACK_FLOAT:
-      fileio_bput(handle, TOINT(pop_float()));
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      fileio_bput(handle, pop_anynum32());
       break;
     case STACK_STRING: case STACK_STRTEMP:
       stringtype = GET_TOPITEM;
@@ -421,22 +418,13 @@ void exec_clg(void) {
 ** 'exec_close' handles the 'CLOSE' statement.
 */
 void exec_close(void) {
-  int32 handle = 0;
+  int32 handle;
   basicvars.current++;		/* Skip CLOSE token */
   if (*basicvars.current != '#') error(ERR_HASHMISS);
   basicvars.current++;
   expression();	/* Get the file handle */
   check_ateol();
-  switch (GET_TOPITEM) {
-  case STACK_INT:
-    handle = pop_int();
-    break;
-  case STACK_FLOAT:
-    handle = TOINT(pop_float());
-    break;
-  default:
-    error(ERR_TYPENUM);
-  }
+  handle = pop_anynum32();
   fileio_close(handle);
 }
 
@@ -612,16 +600,7 @@ void exec_ellipse(void) {
   if (*basicvars.current == ',') {	/* Get angle at which ellipse is inclined */
     basicvars.current++;
     expression();
-    switch (GET_TOPITEM) {
-    case STACK_INT:
-      angle = TOFLOAT(pop_int());
-      break;
-    case STACK_FLOAT:
-      angle = pop_float();
-      break;
-    default:
-      error(ERR_TYPENUM);
-    }
+    angle = pop_anynumfp();
   }
   else {
     angle = 0;
@@ -825,7 +804,8 @@ void exec_gcol(void) {
 ** out in the 'fileio' module. It should be done here.
 */
 static void input_file(void) {
-  int32 handle, length, intvalue;
+  int32 handle, length;
+  int64 intvalue;
   float64 floatvalue;
   char *cp;
   boolean isint;
@@ -841,6 +821,14 @@ static void input_file(void) {
     case VAR_INTWORD:
       fileio_getnumber(handle, &isint, &intvalue, &floatvalue);
       *destination.address.intaddr = isint ? intvalue : TOINT(floatvalue);
+      break;
+    case VAR_UINT8:
+      fileio_getnumber(handle, &isint, &intvalue, &floatvalue);
+      *destination.address.uint8addr = isint ? intvalue : TOINT(floatvalue);
+      break;
+    case VAR_INTLONG:
+      fileio_getnumber(handle, &isint, &intvalue, &floatvalue);
+      *destination.address.int64addr = isint ? intvalue : TOINT64(floatvalue);
       break;
     case VAR_FLOAT:
       fileio_getnumber(handle, &isint, &intvalue, &floatvalue);
@@ -938,7 +926,7 @@ static void exec_modenum(stackitem itemtype) {
   rate = -1;		/* Use best rate */
   bpp = 6;		/* 6 bpp - Marks old type RISC OS 256 colour mode */
   if (*basicvars.current == ',') {
-    xres = itemtype == STACK_INT ? pop_int() : TOINT(pop_float());
+    xres = pop_anynum32();
     basicvars.current++;
     yres = eval_integer();	/* Y resolution */
     if (*basicvars.current == ',') {
@@ -954,11 +942,7 @@ static void exec_modenum(stackitem itemtype) {
   }
   else {	/* MODE statement with mode number */
     check_ateol();
-    if (itemtype == STACK_INT)
-      emulate_mode(pop_int());
-    else {
-      emulate_mode(TOINT(pop_float()));
-    }
+    emulate_mode(pop_anynum32());
   }
 }
 
@@ -1448,97 +1432,25 @@ static void print_screen(void) {
     expression();
     resultype = GET_TOPITEM;
     switch (resultype) {
-    case STACK_INT:
-      if (rightjust) {
-        if (hex) {
-          if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, (int64)pop_int());
-          else
-            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_int());
-        } else {
-          size = sprintf(basicvars.stringwork, "%*d", fieldwidth, pop_int());
-        }
-      }
-      else {	/* Left justify the value */
-        if (hex) {
-          if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", (int64)pop_int());
-          else
-            size = sprintf(basicvars.stringwork, "%X", pop_int());
-        } else {
-          size = sprintf(basicvars.stringwork, "%d", pop_int());
-        }
-      }
-      emulate_vdustr(basicvars.stringwork, size);
-      basicvars.printcount+=size;
-      break;
-    case STACK_UINT8:
-      if (rightjust) {
-        if (hex) {
-          if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, (int64)pop_uint8());
-          else
-            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_uint8());
-        } else {
-          size = sprintf(basicvars.stringwork, "%*d", fieldwidth, pop_uint8());
-        }
-      }
-      else {	/* Left justify the value */
-        if (hex) {
-          if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", (int64)pop_uint8());
-          else
-            size = sprintf(basicvars.stringwork, "%X", pop_uint8());
-        } else {
-          size = sprintf(basicvars.stringwork, "%d", pop_uint8());
-        }
-      }
-      emulate_vdustr(basicvars.stringwork, size);
-      basicvars.printcount+=size;
-      break;
-    case STACK_INT64:
-      if (rightjust) {
-        if (hex) {
-          if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_int64());
-          else
-            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_int64());
-        } else {
-          size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_int64());
-        }
-      }
-      else {	/* Left justify the value */
-        if (hex) {
-          if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", pop_int64());
-          else
-            size = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
-        } else {
-          size = sprintf(basicvars.stringwork, "%lld", pop_int64());
-        }
-      }
-      emulate_vdustr(basicvars.stringwork, size);
-      basicvars.printcount+=size;
-      break;
-    case STACK_FLOAT:
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
       if (rightjust) {	/* Value is printed right justified */
         if (hex) {
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, TOINT64(pop_float()));
+            size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_anynum64());
           else
-            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, TOINT(pop_float()));
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_anynum32());
         } else {
-          size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_float());
+          size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
         }
       }
       else {	/* Left justify the value */
         if (hex)
           if (matrixflags.hex64)
-            size = sprintf(basicvars.stringwork, "%llX", TOINT64(pop_float()));
+            size = sprintf(basicvars.stringwork, "%llX", pop_anynum64());
           else
-            size = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
+            size = sprintf(basicvars.stringwork, "%X", pop_anynum32());
         else {
-          size = sprintf(basicvars.stringwork, leftfmt, numdigits, pop_float());
+          size = sprintf(basicvars.stringwork, leftfmt, numdigits, pop_anynumfp());
         }
       }
       emulate_vdustr(basicvars.stringwork, size);
@@ -1584,6 +1496,9 @@ static void print_file(void) {
     switch (GET_TOPITEM) {
     case STACK_INT:
       fileio_printint(handle, pop_int());
+      break;
+    case STACK_UINT8:
+      fileio_printuint8(handle, pop_uint8());
       break;
     case STACK_INT64:
       fileio_printint64(handle, pop_int64());

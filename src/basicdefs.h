@@ -110,6 +110,7 @@
 /* Values used to mark type of value in file create with 'PRINT#' */
 
 #define PRINT_INT 0x40			/* Marks value in file as binary integer */
+#define PRINT_UINT8 0x50		/* Marks value in file as binary integer */
 #define PRINT_INT64 0x60		/* Marks value in file as binary 64-bit integer */
 #define PRINT_FLOAT5 0x80		/* Marks value in file as five byte binary floating point */
 #define PRINT_FLOAT 0x88		/* Marks value in file as binary floating point */

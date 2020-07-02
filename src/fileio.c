@@ -279,9 +279,10 @@ int32 fileio_getdol(int32 handle, char *buffer) {
 ** floating point values produced by this program or basic64.
 ** It does not handle numbers in Acorn's five byte format.
 */
-void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
+void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
   int32 n, marker;
   char temp[sizeof(float64)];
+  memset(temp,0,sizeof(float64));
   marker = read(handle);
   switch (marker) {
   case PRINT_INT:
@@ -289,10 +290,15 @@ void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
     memmove(ip, temp, sizeof(int32));
     *isint = TRUE;
     break;
+  case PRINT_UINT8:
+    for (n=1; n<=sizeof(uint8); n++) temp[sizeof(uint8)-n] = read(handle);
+    memmove(ip, temp, sizeof(uint8));
+    *isint = TRUE;
+    break;
   case PRINT_INT64:
     for (n=1; n<=sizeof(int64); n++) temp[sizeof(int64)-n] = read(handle);
     memmove(ip, temp, sizeof(int64));
-    *isint = 2;
+    *isint = TRUE;
     break;
   case PRINT_FLOAT:
     for (n=0; n<sizeof(float64); n++) temp[n] = read(handle);
@@ -417,6 +423,12 @@ void fileio_printint(int32 handle, int32 value) {
   memmove(temp, &value, sizeof(int32));
   for (n=1; n<=sizeof(int32); n++) fileio_bput(handle, temp[sizeof(int32)-n]);
 }
+
+void fileio_printuint8(int32 handle, uint8 value) {
+  fileio_bput(handle, PRINT_UINT8);
+  fileio_bput(handle, value);
+}
+
 void fileio_printint64(int32 handle, int64 value) {
   int32 n;
   char temp[sizeof(int64)];
@@ -802,11 +814,12 @@ static int32 read(FILE *handle) {
 ** Darren Salt, along with the support for reading Acorn's five
 ** byte floating point format
 */
-void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
+void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
   FILE *stream;
   int32 n, marker;
   char temp[sizeof(float64)];
 
+  memset(temp,0,sizeof(float64));
   if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
@@ -823,6 +836,15 @@ void fileio_getnumber(int32 handle, boolean *isint, int32 *ip, float64 *fp) {
   case PRINT_INT:
     *ip = 0;
     for (n=24; n>=0; n-=8) *ip |= read(stream) << n;
+    *isint = TRUE;
+    break;
+  case PRINT_UINT8:
+    *ip = read(stream);
+    *isint = TRUE;
+    break;
+  case PRINT_INT64:
+    *ip = 0;
+    for (n=56; n>=0; n-=8) *ip |= read(stream) << n;
     *isint = TRUE;
     break;
   case PRINT_FLOAT:
@@ -976,6 +998,20 @@ void fileio_printint(int32 handle, int32 value) {
   for (n=24; n>=0; n-=8) write(stream, value >> n);
   fileinfo[handle].lastwaswrite = TRUE;
 }
+
+void fileio_printuint8(int32 handle, uint8 value) {
+  FILE *stream;
+
+  if (handle==0) error(ERR_BADHANDLE);
+  handle = map_handle(handle);
+  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  fileinfo[handle].eofstatus = OKAY;
+  stream = fileinfo[handle].stream;
+  write(stream, PRINT_UINT8);
+  write(stream, value);
+  fileinfo[handle].lastwaswrite = TRUE;
+}
+
 void fileio_printint64(int32 handle, int64 value) {
   FILE *stream;
   int32 n;
