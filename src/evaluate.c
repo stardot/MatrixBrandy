@@ -4090,7 +4090,6 @@ static void eval_vlsl(void) {
 ** it so desires.
 */
 static void eval_vlsr(void) {
-  stackitem lhitem;
   uint32 lhuint=0, rhuint=0;
   uint64 lhuint64 = 0, res64 = 0;
 
@@ -4100,7 +4099,6 @@ static void eval_vlsr(void) {
 
   rhuint = pop_anynum32() % 256;
 
-  lhitem = GET_TOPITEM;
   if (!matrixflags.bitshift64) {
     lhuint=pop_anynum32();
     if (rhuint < 32) {
