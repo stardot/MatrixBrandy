@@ -1210,12 +1210,8 @@ void fn_quit(void) {
 */
 static void fn_rad(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(TOFLOAT(pop_int())/RADCONV);
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(TOFLOAT(pop_int64())/RADCONV);
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(pop_float()/RADCONV);
+  if (TOPITEMISINT || GET_TOPITEM == STACK_FLOAT)
+    push_float(pop_anynumfp()/RADCONV);
   else {
     error(ERR_TYPENUM);
   }

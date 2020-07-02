@@ -974,7 +974,10 @@ int32 pop_int(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 32-bit integer from stack at %p, value %d\n",
    p, p->intvalue);
 #endif
-  if (GET_TOPITEM != STACK_INT) error(ERR_BROKEN, __LINE__, "stack");
+  if (GET_TOPITEM != STACK_INT) {
+    fprintf(stderr, "Error in stack.c:pop_int: Expected type %d, got %d instead\n", STACK_INT, GET_TOPITEM);
+    error(ERR_BROKEN, __LINE__, "stack");
+  }
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int: new SP at %p\n", basicvars.stacktop.bytesp);
@@ -1025,7 +1028,40 @@ int64 pop_anyint(void) {
     case STACK_INT: return pop_int();
     case STACK_UINT8: return pop_uint8();
     case STACK_INT64: return pop_int64();
-    default: error(ERR_BROKEN, __LINE__, "stack");
+    default: error(ERR_TYPENUM);
+  }
+  return 0; /* Control never reaches here */
+}
+
+int32 pop_anynum32(void) {
+  switch(GET_TOPITEM) {
+    case STACK_INT: return pop_int();
+    case STACK_UINT8: return pop_uint8();
+    case STACK_INT64: return pop_int64();
+    case STACK_FLOAT: return TOINT(pop_float());
+    default: error(ERR_TYPENUM);
+  }
+  return 0; /* Control never reaches here */
+}
+
+int64 pop_anynum64(void) {
+  switch(GET_TOPITEM) {
+    case STACK_INT: return pop_int();
+    case STACK_UINT8: return pop_uint8();
+    case STACK_INT64: return pop_int64();
+    case STACK_FLOAT: return TOINT64(pop_float());
+    default: error(ERR_TYPENUM);
+  }
+  return 0; /* Control never reaches here */
+}
+
+float64 pop_anynumfp(void) {
+  switch(GET_TOPITEM) {
+    case STACK_INT: return TOFLOAT(pop_int());
+    case STACK_UINT8: return TOFLOAT(pop_uint8());
+    case STACK_INT64: return TOFLOAT(pop_int64());
+    case STACK_FLOAT: return pop_float();
+    default: error(ERR_TYPENUM);
   }
   return 0; /* Control never reaches here */
 }

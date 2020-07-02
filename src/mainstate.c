@@ -670,7 +670,7 @@ void exec_fnreturn(void) {
   if (resultype == STACK_INT)	/* Pop result from stack and ensure type is legal */
     intresult = pop_int();
   else if (resultype == STACK_UINT8)	/* Pop result from stack and ensure type is legal */
-    uint8result = pop_int();
+    uint8result = pop_uint8();
   else if (resultype == STACK_INT64)
     int64result = pop_int64();
   else if (resultype == STACK_FLOAT)
@@ -753,10 +753,7 @@ void exec_endwhile(void) {
   basicvars.current = wp->whilexpr;
   expression();
   switch(GET_TOPITEM) {
-    case STACK_INT:   result = pop_int(); break;
-    case STACK_UINT8: result = pop_uint8(); break;
-    case STACK_INT64: result = pop_int64(); break;
-    case STACK_FLOAT: result = TOINT64(pop_float()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT: result = pop_anynum64(); break;
     default: error(ERR_TYPENUM);
   }
   if (result != BASFALSE) {	/* Condition still true - Continue with loop */
@@ -813,9 +810,7 @@ void exec_for(void) {
   get_lvalue(&forvar);
   if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
   switch(forvar.typeinfo & TYPEMASK) {
-    case VAR_INTWORD:
-    case VAR_INTLONG:
-    case VAR_UINT8: isinteger=1; break;
+    case VAR_INTWORD: case VAR_INTLONG: case VAR_UINT8: isinteger=1; break;
     case VAR_FLOAT: isinteger=0; break;
     default: error(ERR_VARNUM);
   }
@@ -828,56 +823,44 @@ void exec_for(void) {
   case VAR_UINT8: forvar.typeinfo = VAR_INTWORD;
   case VAR_INTWORD:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64: *forvar.address.intaddr = TOINT(pop_anyint()); break;
-    case STACK_FLOAT: *forvar.address.intaddr = TOINT(pop_float()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      *forvar.address.intaddr = pop_anynum32(); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTLONG:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64: *forvar.address.int64addr = pop_anyint(); break;
-    case STACK_FLOAT: *forvar.address.int64addr = TOINT64(pop_float()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      *forvar.address.int64addr = pop_anynum64(); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_FLOAT:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64: *forvar.address.floataddr = TOFLOAT(pop_anyint()); break;
-    case STACK_FLOAT: *forvar.address.floataddr = pop_float(); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      *forvar.address.floataddr = pop_anynumfp(); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTBYTEPTR:
     check_write(forvar.address.offset, sizeof(byte));
     switch (GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64: basicvars.offbase[forvar.address.offset] = TOINT(pop_anyint()); break;
-    case STACK_FLOAT: basicvars.offbase[forvar.address.offset] = TOINT(pop_float()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      basicvars.offbase[forvar.address.offset] = pop_anynum32(); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_INTWORDPTR:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64: store_integer(forvar.address.offset, TOINT(pop_anyint())); break;
-    case STACK_FLOAT: store_integer(forvar.address.offset, TOINT(pop_float())); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      store_integer(forvar.address.offset, pop_anynum32()); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
   case VAR_FLOATPTR:
     switch (GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64: store_float(forvar.address.offset, TOFLOAT(pop_anyint())); break;
-    case STACK_FLOAT: store_float(forvar.address.offset, pop_float()); break;
+    case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+      store_float(forvar.address.offset, pop_anynumfp()); break;
     default: error(ERR_TYPENUM);	/* Numeric value required for control variable initial value */
     }
     break;
@@ -890,18 +873,14 @@ void exec_for(void) {
   expression();
   if (isinteger) {	/* Loop is an integer loop */
     switch(GET_TOPITEM) {
-      case STACK_INT:
-      case STACK_UINT8:
-      case STACK_INT64: intlimit = pop_anyint(); break;
-      case STACK_FLOAT: intlimit = TOINT64(pop_float()); break;
+      case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+        intlimit = pop_anynum64(); break;
       default: error(ERR_TYPENUM);
     }
   } else {	/* Loop is a floating point loop */
     switch(GET_TOPITEM) {
-      case STACK_INT:
-      case STACK_UINT8:
-      case STACK_INT64: floatlimit = TOFLOAT(pop_anyint()); break;
-      case STACK_FLOAT: floatlimit = pop_float(); break;
+      case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+        floatlimit = pop_anynumfp(); break;
       default: error(ERR_TYPENUM);
     }
   }
@@ -914,10 +893,8 @@ void exec_for(void) {
       if (intstep == 0) error(ERR_SILLY);
     } else {	/* Loop is a floating point loop */
       switch(GET_TOPITEM) {
-        case STACK_INT:
-        case STACK_UINT8:
-        case STACK_INT64: floatstep = TOFLOAT(pop_anyint()); break;
-        case STACK_FLOAT: floatstep = pop_float(); break;
+        case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
+          floatstep = pop_anynumfp(); break;
         default: error(ERR_TYPENUM);
       }
       if (floatstep == 0.0) error(ERR_SILLY);
