@@ -1773,7 +1773,6 @@ static void find_data(void) {
 */
 static void read_numeric(lvalue destination) {
   byte *dp;
-  stackitem itemtype;
   int32 n;
   char text[MAXSTATELEN];
   byte readexpr[MAXSTATELEN];
@@ -1793,7 +1792,6 @@ static void read_numeric(lvalue destination) {
   basicvars.current = FIND_EXEC(&readexpr[0]);
   expression();
   restore_current();
-  itemtype = GET_TOPITEM;
   switch (destination.typeinfo) {	/* Now save the value just read */
   case VAR_INTWORD:	/* 32-bit integer variable */
     *destination.address.intaddr = pop_anynum32();
