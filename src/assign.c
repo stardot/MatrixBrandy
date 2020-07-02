@@ -2427,7 +2427,6 @@ void assign_floatvar(void) {
   byte assignop;
   static float64 value;
   float64 *fp;
-  stackitem exprtype;
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:assign_floatvar\n");
 #endif
@@ -2439,7 +2438,6 @@ void assign_floatvar(void) {
   assignop = *basicvars.current;
   basicvars.current++;
   expression();
-  exprtype = GET_TOPITEM;
 
   value = pop_anynumfp();
 
