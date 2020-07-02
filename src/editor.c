@@ -449,33 +449,35 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
 ** could be opened is left in 'basicvars.filename'
 */
 static FILE *open_file(char *name) {
-  char *srce, *dest;
   FILE *handle;
   strcpy(basicvars.filename, name);
   handle = fopen(name, "rb");
-  if (handle!=NIL || basicvars.loadpath==NIL || isapath(name)) return handle;
+  if (handle!=NIL || basicvars.loadpath==NIL || isapath(name)) {
+    return handle;
 /* File not found but there is a list of directories to search */
-  srce = basicvars.loadpath;
-  do {
-    dest = basicvars.filename;
-    if (*srce!=',') {		/* Not got a null directory name */
-      while (*srce!=asc_NUL && *srce!=',') {
-        *dest = *srce;
-        dest++;
-        srce++;
+  } else {
+    char *dest, *srce = basicvars.loadpath;
+    do {
+      dest = basicvars.filename;
+      if (*srce!=',') {		/* Not got a null directory name */
+        while (*srce!=asc_NUL && *srce!=',') {
+          *dest = *srce;
+          dest++;
+          srce++;
+        }
+        if (*(srce-1)!=DIR_SEP) {	/* No separator after directory name */
+          *dest = DIR_SEP;
+          dest++;
+        }
       }
-      if (*(srce-1)!=DIR_SEP) {	/* No separator after directory name */
-        *dest = DIR_SEP;
-        dest++;
-      }
-    }
-    *dest = asc_NUL;
-    strcat(basicvars.filename, name);
-    handle = fopen(basicvars.filename, "rb");
-    if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
-    srce++;
-  } while (TRUE);
-  return handle;	/* Return file handle or NIL if file not found */
+      *dest = asc_NUL;
+      strcat(basicvars.filename, name);
+      handle = fopen(basicvars.filename, "rb");
+      if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
+      srce++;
+    } while (TRUE);
+    return handle;	/* Return file handle or NIL if file not found */
+  }
 }
 
 /*

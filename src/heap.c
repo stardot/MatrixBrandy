@@ -54,7 +54,7 @@
 #ifdef TARGET_LINUX
 static void *mymap (unsigned int size)
 {
-  FILE *fp ;
+  FILE *fp;
   char line[256] ;
   void *start, *finish, *base = (void *) 0x400000 ;
 
@@ -65,14 +65,21 @@ static void *mymap (unsigned int size)
   while (NULL != fgets (line, 256, fp)) {
     sscanf (line, "%p-%p", &start, &finish) ;
     start = (void *)((size_t)start & -0x1000) ; // page align (GCC extension)
-    if (start >= (base + size)) 
+    if (start >= (base + size)) {
+      fclose(fp);
       return base ;
-    if (finish > (void *)0xFFFFF000)
+    }
+    if (finish > (void *)0xFFFFF000) {
+      fclose(fp);
       return NULL ;
+    }
     base = (void *)(((size_t)finish + 0xFFF) & -0x1000) ; // page align
-    if (base > ((void *)0xFFFFFFFF - size))
+    if (base > ((void *)0xFFFFFFFF - size)) {
+      fclose(fp);
       return NULL ;
+    }
   }
+  fclose(fp);
   return base ;
 }
 #endif

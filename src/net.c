@@ -121,14 +121,15 @@ int brandynet_connect(char *dest, char type) {
   inaddr=&ipaddr;
   if (ipaddr == INADDR_NONE) {
     if ((he = gethostbyname(host)) == NULL) {
+      free(host);
       error(ERR_NET_NOTFOUND);
       return(-1);
     }
     inaddr=(struct in_addr *)he->h_addr;
   }
   netdest.sin_addr = *inaddr;                /* set destination IP address */
-  netdest.sin_port = htons(portnum);            /* set destination port number */
-  free(host);                        /* Don't need this any more*/
+  netdest.sin_port = htons(portnum);         /* set destination port number */
+  free(host);                                /* Don't need this any more*/
 
   if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
     error(ERR_NET_CONNREFUSED);
@@ -173,6 +174,7 @@ int brandynet_connect(char *dest, char type) {
   port++;
 
   ret=getaddrinfo(host, port, &hints, &addrdata);
+  free(host);				/* Don't need this any more */
 
   if(ret) {
     printf("getaddrinfo returns: %s\n", gai_strerror(ret));
@@ -188,13 +190,12 @@ int brandynet_connect(char *dest, char type) {
     close(mysocket);
   }
 
+  freeaddrinfo(addrdata);		/* Don't need this any more either */
+
   if (!rp) {
     error(ERR_NET_CONNREFUSED);
     return(-1);
   }
-
-  free(host);				/* Don't need this any more */
-  freeaddrinfo(addrdata);		/* Don't need this any more either */
 
 #ifdef TARGET_MINGW
   opt=1;
