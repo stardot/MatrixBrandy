@@ -264,13 +264,7 @@ static void do_elementvar(lvalue *destination) {
   descriptor = vp->varentry.vararray;
   if (descriptor->dimcount==1) {	/* Shortcut for single dimension arrays */
     expression();	/* Evaluate the array index */
-    switch(GET_TOPITEM) {
-      case STACK_INT:   element = pop_int(); break;
-      case STACK_UINT8: element = pop_uint8(); break;
-      case STACK_INT64: element = INT64TO32(pop_int64()); break;
-      case STACK_FLOAT: element = TOINT(pop_float()); break;
-      default: error(ERR_TYPENUM);
-    }
+    element = pop_anynum32();
     if (element<0 || element>=descriptor->dimsize[0]) error(ERR_BADINDEX, element, vp->varname);
   }
   else {
@@ -278,13 +272,7 @@ static void do_elementvar(lvalue *destination) {
     element = 0;
     do {	/* Gather the array indexes */
       expression();	/* Evaluate an array index */
-      switch(GET_TOPITEM) {
-        case STACK_INT:   index = pop_int(); break;
-        case STACK_UINT8: index = pop_uint8(); break;
-        case STACK_INT64: index = INT64TO32(pop_int64()); break;
-        case STACK_FLOAT: index = TOINT(pop_float()); break;
-        default: error(ERR_TYPENUM);
-      }
+      index = pop_anynum32();
       if (index<0 || index>=descriptor->dimsize[dimcount]) error(ERR_BADINDEX, index, vp->varname);
       element+=index;
       dimcount++;
@@ -330,13 +318,7 @@ static void do_elementvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  switch(GET_TOPITEM) {
-    case STACK_INT:   destination->address.offset = offset+pop_int(); break;
-    case STACK_UINT8: destination->address.offset = offset+pop_uint8(); break;
-    case STACK_INT64: destination->address.offset = offset+pop_int64(); break;
-    case STACK_FLOAT: destination->address.offset = offset+TOINT(pop_float()); break;
-    default: error(ERR_TYPENUM);
-  }
+  destination->address.offset = offset+pop_anynum64();
 }
 
 /*
@@ -354,13 +336,7 @@ static void do_intindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  switch(GET_TOPITEM) {
-    case STACK_INT:   destination->address.offset = *ip+pop_int(); break;
-    case STACK_UINT8: destination->address.offset = *ip+pop_uint8(); break;
-    case STACK_INT64: destination->address.offset = *ip+INT64TO32(pop_int64()); break;
-    case STACK_FLOAT: destination->address.offset = *ip+TOINT(pop_float()); break;
-    default: error(ERR_TYPENUM);
-  }
+  destination->address.offset = *ip+pop_anynum32();
 }
 
 /*
@@ -384,13 +360,7 @@ static void do_int64indvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  switch(GET_TOPITEM) {
-    case STACK_INT:   destination->address.offset = *ip+pop_int(); break;
-    case STACK_UINT8: destination->address.offset = *ip+pop_uint8(); break;
-    case STACK_INT64: destination->address.offset = *ip+pop_int64(); break;
-    case STACK_FLOAT: destination->address.offset = *ip+TOINT64(pop_float()); break;
-    default: error(ERR_TYPENUM);
-  }
+  destination->address.offset = *ip+pop_anynum64();
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:do_int64indvar\n");
 #endif
@@ -411,13 +381,7 @@ static void do_floatindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  switch(GET_TOPITEM) {
-    case STACK_INT:   destination->address.offset = TOINT(*fp)+pop_int(); break;
-    case STACK_UINT8: destination->address.offset = TOINT(*fp)+pop_uint8(); break;
-    case STACK_INT64: destination->address.offset = TOINT(*fp)+INT64TO32(pop_int64()); break;
-    case STACK_FLOAT: destination->address.offset = TOINT(*fp)+TOINT(pop_float()); break;
-    default: error(ERR_TYPENUM);
-  }
+  destination->address.offset = TOINT(*fp)+pop_anynum32();
 }
 
 /*
@@ -435,13 +399,7 @@ static void do_statindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  switch(GET_TOPITEM) {
-    case STACK_INT:   destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_int(); break;
-    case STACK_UINT8: destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_uint8(); break;
-    case STACK_INT64: destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_int64(); break;
-    case STACK_FLOAT: destination->address.offset = basicvars.staticvars[index].varentry.varinteger+TOINT(pop_float()); break;
-    default: error(ERR_TYPENUM);
-  }
+  destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_anynum64();
 }
 
 /*
@@ -463,17 +421,7 @@ static void do_unaryind(lvalue *destination) {
     destination->typeinfo = VAR_DOLSTRPTR;
   }
   factor();
-  if (GET_TOPITEM==STACK_INT)
-    destination->address.offset = pop_int();
-  else if (GET_TOPITEM==STACK_INT64)
-    destination->address.offset = pop_int64();
-  else if (GET_TOPITEM==STACK_FLOAT)
-    destination->address.offset = TOINT64(pop_float());
-  else if (GET_TOPITEM==STACK_UINT8)
-    error(ERR_UNSUITABLEVAR);
-  else {
-    error(ERR_TYPENUM);
-  }
+  destination->address.offset = pop_anynum64();
 }
 
 /*
