@@ -358,7 +358,9 @@ static void fn_abs(void) {
   stackitem numtype;
   (*factor_table[*basicvars.current])();
   numtype = GET_TOPITEM;
-  if (numtype == STACK_INT)
+  if (numtype == STACK_UINT8)
+    return; /* No-op on unsigned 8-bit int */
+  else if (numtype == STACK_INT)
     ABS_INT;
   else if (numtype == STACK_INT64)
     ABS_INT64;
@@ -372,13 +374,7 @@ static void fn_abs(void) {
 */
 static void fn_acs(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(acos(TOFLOAT(pop_int())));
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(acos(TOFLOAT(pop_int64())));
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(acos(pop_float()));
-  else error(ERR_TYPENUM);
+  push_float(acos(pop_anynumfp()));
 }
 
 /*
@@ -449,13 +445,7 @@ static void fn_asc(void) {
 */
 static void fn_asn(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(asin(TOFLOAT(pop_int())));
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(asin(TOFLOAT(pop_int64())));
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(asin(pop_float()));
-  else error(ERR_TYPENUM);
+  push_float(asin(pop_anynumfp()));
 }
 
 /*
@@ -463,13 +453,7 @@ static void fn_asn(void) {
 */
 static void fn_atn(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(atan(TOFLOAT(pop_int())));
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(atan(TOFLOAT(pop_int64())));
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(atan(pop_float()));
-  else error(ERR_TYPENUM);
+  push_float(atan(pop_anynumfp()));
 }
 
 /*
@@ -504,16 +488,10 @@ static void fn_bget(void) {
 ** character string
 */
 static void fn_chr(void) {
-  char *cp, value=0;
-  (*factor_table[*basicvars.current])();
+  char *cp, value;
 
-  switch(GET_TOPITEM) {
-    case STACK_INT:   value = pop_int(); break;
-    case STACK_UINT8: value = pop_uint8(); break;
-    case STACK_INT64: value = pop_int64(); break;
-    case STACK_FLOAT: value = TOINT(pop_float()); break;	/* Cast rounds towards zero */
-    default: error(ERR_TYPENUM);
-  }
+  (*factor_table[*basicvars.current])();
+  value = pop_anynum32();
   cp = alloc_string(1);
   *cp=value;
   push_strtemp(1, cp);
@@ -548,13 +526,7 @@ void fn_colour(void) {
 */
 static void fn_cos(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(cos(TOFLOAT(pop_int())));
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(cos(TOFLOAT(pop_int64())));
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(cos(pop_float()));
-  else error(ERR_TYPENUM);
+  push_float(cos(pop_anynumfp()));
 }
 
 /*
@@ -629,13 +601,7 @@ void fn_dim(void) {
 */
 static void fn_deg(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(TOFLOAT(pop_int())*RADCONV);
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(TOFLOAT(pop_int64())*RADCONV);
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(pop_float()*RADCONV);
-  else error(ERR_TYPENUM);
+  push_float(pop_anynumfp()*RADCONV);
 }
 
 /*
@@ -712,16 +678,8 @@ static void fn_eval(void) {
 ** 'fn_exp' evaluates the exponentinal function of its argument
 */
 static void fn_exp(void) {
-  stackitem topitem;
   (*factor_table[*basicvars.current])();
-  topitem = GET_TOPITEM;
-  if (topitem == STACK_INT)
-    push_float(exp(TOFLOAT(pop_int())));
-  else if (topitem == STACK_INT64)
-    push_float(exp(TOFLOAT(pop_int64())));
-  else if (topitem == STACK_FLOAT)
-    push_float(exp(pop_float()));
-  else error(ERR_TYPENUM);
+  push_float(exp(pop_anynumfp()));
 }
 
 /*
@@ -937,28 +895,22 @@ static void fn_instr(void) {
 ** of its argument on to the Basic stack
 */
 static void fn_int(void) {
-  int32 localint = 0;
   int64 localint64 = 0;
   float64 localfloat = 0;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
     if (matrixflags.int_uses_float) {
       localfloat = floor(pop_float());
-      localint = localfloat;
       localint64 = localfloat;
-      if (localint == localfloat) {
-        push_int(localint);
+      if (localint64 == localfloat) {
+        push_varyint(localint64);
       } else {
-        if (localint64 == localfloat) {
-          push_int64(localint64);
-        } else {
-          push_float(localfloat);
-        }
+        push_float(localfloat);
       }
     } else {
       push_int(TOINT(floor(pop_float())));
     }
-  } else if (GET_TOPITEM != STACK_INT && GET_TOPITEM != STACK_INT64) {
+  } else if (GET_TOPITEM != STACK_INT && GET_TOPITEM != STACK_UINT8 && GET_TOPITEM != STACK_INT64) {
     error(ERR_TYPENUM);
   }
 }
@@ -995,27 +947,9 @@ static void fn_listofn(void) {
 */
 static void fn_ln(void) {
   (*factor_table[*basicvars.current])();
-  switch (GET_TOPITEM) {
-  case STACK_INT: {
-    int32 value = pop_int();
-    if (value<=0) error(ERR_LOGRANGE);
-    push_float(log(TOFLOAT(value)));
-    break;
-  }
-  case STACK_INT64: {
-    int64 value = pop_int64();
-    if (value<=0) error(ERR_LOGRANGE);
-    push_float(log(TOFLOAT(value)));
-    break;
-  }
-  case STACK_FLOAT:
-    floatvalue = pop_float();
-    if (floatvalue<=0.0) error(ERR_LOGRANGE);
-    push_float(log(floatvalue));
-    break;
-  default:
-    error(ERR_TYPENUM);
-  }
+  floatvalue = pop_anynumfp();
+  if (floatvalue<=0.0) error(ERR_LOGRANGE);
+  push_float(log(floatvalue));
 }
 
 /*
@@ -1023,27 +957,9 @@ static void fn_ln(void) {
 */
 static void fn_log(void) {
   (*factor_table[*basicvars.current])();
-  switch (GET_TOPITEM) {
-  case STACK_INT: {
-    int32 value = pop_int();
-    if (value<=0) error(ERR_LOGRANGE);
-    push_float(log10(TOFLOAT(value)));
-    break;
-  }
-  case STACK_INT64: {
-    int64 value = pop_int64();
-    if (value<=0) error(ERR_LOGRANGE);
-    push_float(log10(TOFLOAT(value)));
-    break;
-  }
-  case STACK_FLOAT:
-    floatvalue = pop_float();
-    if (floatvalue<=0.0) error(ERR_LOGRANGE);
-    push_float(log10(floatvalue));
-    break;
-  default:
-    error(ERR_TYPENUM);
-  }
+  floatvalue = pop_anynumfp();
+  if (floatvalue<=0.0) error(ERR_LOGRANGE);
+  push_float(log10(floatvalue));
 }
 
 /*
@@ -1113,14 +1029,7 @@ void fn_mode(void) {
 void fn_not(void) {
   basicvars.current++;		/* Skip NOT token */
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    NOT_INT;
-  else if (GET_TOPITEM == STACK_INT64)
-    NOT_INT64;
-  else if (GET_TOPITEM == STACK_FLOAT) {
-    push_int64(~TOINT64(pop_float()));
-  }
-  else error(ERR_TYPENUM);
+  push_varyint(~pop_anynum64());
 }
 
 /*
@@ -1210,11 +1119,7 @@ void fn_quit(void) {
 */
 static void fn_rad(void) {
   (*factor_table[*basicvars.current])();
-  if (TOPITEMISINT || GET_TOPITEM == STACK_FLOAT)
-    push_float(pop_anynumfp()/RADCONV);
-  else {
-    error(ERR_TYPENUM);
-  }
+  push_float(pop_anynumfp()/RADCONV);
 }
 
 /*
@@ -1296,17 +1201,8 @@ static void fn_rnd(void) {
 */
 static void fn_sgn(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT) {
-    int32 value = pop_int();
-    if (value>0) {
-      PUSH_INT(1);
-    } else if (value == 0) {
-      PUSH_INT(0);
-    } else {
-      PUSH_INT(-1);
-    }
-  } else if (GET_TOPITEM == STACK_INT64) {
-    int64 value = pop_int64();
+  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
+    int64 value = pop_anyint();
     if (value>0) {
       PUSH_INT(1);
     } else if (value == 0) {
@@ -1331,13 +1227,7 @@ static void fn_sgn(void) {
 */
 static void fn_sin(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(sin(TOFLOAT(pop_int())));
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(sin(TOFLOAT(pop_int64())));
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(sin(pop_float()));
-  else error(ERR_TYPENUM);
+  push_float(sin(pop_anynumfp()));
 }
 
 /*
@@ -1345,19 +1235,9 @@ static void fn_sin(void) {
 */
 static void fn_sqr(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT) {
-    int32 value = pop_int();
-    if (value<0) error(ERR_NEGROOT);
-    push_float(sqrt(TOFLOAT(value)));
-  } else if (GET_TOPITEM == STACK_INT64) {
-    int64 value = pop_int64();
-    if (value<0) error(ERR_NEGROOT);
-    push_float(sqrt(TOFLOAT(value)));
-  } else if (GET_TOPITEM == STACK_FLOAT) {
-    floatvalue = pop_float();
-    if (floatvalue<0.0) error(ERR_NEGROOT);
-    push_float(sqrt(floatvalue));
-  } else error(ERR_TYPENUM);
+  floatvalue = pop_anynumfp();
+  if (floatvalue<0.0) error(ERR_NEGROOT);
+  push_float(sqrt(floatvalue));
 }
 
 /*
@@ -1372,24 +1252,21 @@ static void fn_str(void) {
   ishex = *basicvars.current == '~';
   if (ishex) basicvars.current++;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT) {
-    if (ishex)
-      length = sprintf(basicvars.stringwork, "%X", pop_int());
-    else {
-      length = sprintf(basicvars.stringwork, "%d", pop_int());
-    }
-  } else if (GET_TOPITEM == STACK_INT64) {
+  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
     if (ishex) {
       if (matrixflags.hex64)
-        length = sprintf(basicvars.stringwork, "%llX", pop_int64());
+        length = sprintf(basicvars.stringwork, "%llX", pop_anyint());
       else
-        length = sprintf(basicvars.stringwork, "%X", (int32)pop_int64());
+        length = sprintf(basicvars.stringwork, "%X", (int32)pop_anyint());
     } else {
-      length = sprintf(basicvars.stringwork, "%lld", pop_int64());
+      length = sprintf(basicvars.stringwork, "%lld", pop_anyint());
     }
   } else if (GET_TOPITEM == STACK_FLOAT) {
     if (ishex)
-      length = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
+      if (matrixflags.hex64)
+        length = sprintf(basicvars.stringwork, "%llX", TOINT64(pop_float()));
+      else
+        length = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
     else {
       int32 format, numdigits;
       char *fmt;
@@ -1541,15 +1418,7 @@ static void fn_sum(void) {
 */
 static void fn_tan(void) {
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT)
-    push_float(tan(TOFLOAT(pop_int())));
-  else if (GET_TOPITEM == STACK_INT64)
-    push_float(tan(TOFLOAT(pop_int64())));
-  else if (GET_TOPITEM == STACK_FLOAT)
-    push_float(tan(pop_float()));
-  else {
-    error(ERR_TYPENUM);
-  }
+  push_float(tan(pop_anynumfp()));
 }
 
 /*

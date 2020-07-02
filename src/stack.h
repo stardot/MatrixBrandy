@@ -53,6 +53,7 @@ extern void push_int64for(lvalue, byte *, int64, int64, boolean);
 extern void push_floatfor(lvalue, byte *, float64, float64, boolean);
 extern void push_data(byte *);
 extern void push_error(errorblock);
+extern void push_varyint(int64);
 extern size_t *make_opstack(void);
 extern sigjmp_buf *make_restart(void);
 extern stackitem get_topitem(void);
@@ -151,6 +152,7 @@ extern void *alloc_local(int32);
 #define NEGATE_INT64 basicvars.stacktop.int64sp->int64value = -basicvars.stacktop.int64sp->int64value
 #define NEGATE_FLOAT basicvars.stacktop.floatsp->floatvalue = -basicvars.stacktop.floatsp->floatvalue
 #define NOT_INT basicvars.stacktop.intsp->intvalue = ~basicvars.stacktop.intsp->intvalue
+#define NOT_UINT8 basicvars.stacktop.uint8sp->uint8value = ~basicvars.stacktop.uint8sp->uint8value
 #define NOT_INT64 basicvars.stacktop.int64sp->int64value = ~basicvars.stacktop.int64sp->int64value
 #define ABS_INT basicvars.stacktop.intsp->intvalue = abs(basicvars.stacktop.intsp->intvalue)
 #define ABS_INT64 basicvars.stacktop.int64sp->int64value = llabs(basicvars.stacktop.int64sp->int64value)

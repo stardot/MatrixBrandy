@@ -1406,25 +1406,6 @@ static void *make_array(int32 arraytype, basicarray* original) {
   return base;
 }
 
-static void push_varyint(int64 value) {
-  if (value == (uint8)value) {
-#ifdef DEBUG
-    if (basicvars.debug_flags.stack) fprintf(stderr, "push_varyint: Pushing %lld (&%llX) as uint8\n", value, value);
-#endif
-    push_uint8((uint8)value);
-  } else if (value == (int32)value) {
-#ifdef DEBUG
-    if (basicvars.debug_flags.stack) fprintf(stderr, "push_varyint: Pushing %lld (&%llX) as int32\n", value, value);
-#endif
-    push_int((int32)value);
-  } else {
-#ifdef DEBUG
-    if (basicvars.debug_flags.stack) fprintf(stderr, "push_varyint: Pushing %lld (&%llX) as int64\n", value, value);
-#endif
-    push_int64(value);
-  }
-}
-
 /*
 ** 'eval_ivplus' deals with addition when the right-hand operand is
 ** any integer value. All versions of the operator are dealt with
