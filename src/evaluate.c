@@ -4023,7 +4023,7 @@ static void eval_famod(void) {
  */
 static float64 mpow(float64 lh, float64 rh) {
   float64 result=pow(lh,rh);
-  if (!isfinite(result)) error(ERR_ARITHMETIC);
+  if (isnan(result) || isint(result)) error(ERR_ARITHMETIC);
   return result;
 }
 

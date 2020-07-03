@@ -39,6 +39,11 @@ extern void osbyte44(int x);
 extern readstate emulate_readline(char [], int32, int32);
 extern void purge_keys(void);
 #ifdef NEWKBD
+#ifdef TARGET_RISCOS
+extern char *get_fn_string(int key, int *len);
+extern boolean init_keyboard(void);
+extern void end_keyboard(void);
+#endif
 extern boolean kbd_init();
 extern void  kbd_quit(void);
 extern int32 kbd_get(void);
