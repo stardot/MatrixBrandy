@@ -61,7 +61,6 @@ extern byte *get_stacktop(void);
 extern byte *get_safestack(void);
 extern boolean safestack(void);
 extern lvalue pop_lvalue(void);
-extern boolean topitemisint(void);
 extern int64 pop_anyint(void);
 extern uint8 pop_uint8(void);
 extern int32 pop_int(void);
@@ -112,6 +111,8 @@ extern void *alloc_local(int32);
 
 #define GET_TOPITEM (basicvars.stacktop.intsp->itemtype)
 #define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))
+
+#define TOPITEMISNUM ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64) || (basicvars.stacktop.intsp->itemtype == STACK_FLOAT))
 
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
 		basicvars.stacktop.intsp->itemtype = STACK_INT; \

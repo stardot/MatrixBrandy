@@ -1784,7 +1784,7 @@ static void eval_faplus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <int or float>+<float array> or <uint8>+<float array> */
+  if (TOPITEMISNUM) {	/* <int or float>+<float array> or <uint8>+<float array> */
     floatvalue = pop_anynumfp();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue+rhsrce[n];
@@ -2225,7 +2225,7 @@ static void eval_faminus(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <int or float>-<float array> or <uint8>-<float array> */
+  if (TOPITEMISNUM) {	/* <int or float>-<float array> or <uint8>-<float array> */
     floatvalue = pop_anynumfp();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue - rhsrce[n];
@@ -2401,7 +2401,7 @@ static void eval_fvmul(void) {
   stackitem lhitem;
   floatvalue = pop_float();
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT)			/* Now branch according to type of left-hand operand */
+  if (TOPITEMISNUM)			/* Now branch according to type of left-hand operand */
     push_float(pop_anynumfp()*floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>*<float value> */
     basicarray *lharray;
@@ -2744,7 +2744,7 @@ static void eval_famul(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <int or float>*<float array> */
+  if (TOPITEMISNUM) {	/* <int or float>*<float array> */
     floatvalue = pop_anynumfp();
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = floatvalue * rhsrce[n];
@@ -2940,7 +2940,7 @@ static void eval_ivdiv(void) {
   int64 rhint = pop_anyint();
   if (rhint == 0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT)
+  if (TOPITEMISNUM)
     push_float(pop_anynumfp()/TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<integer value> */
     basicarray *lharray;
@@ -2985,7 +2985,7 @@ static void eval_fvdiv(void) {
   floatvalue = pop_float();
   if (floatvalue == 0.0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT)
+  if (TOPITEMISNUM)
     push_float(pop_anynumfp()/floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>/<float value> */
     basicarray *lharray;
@@ -3410,7 +3410,7 @@ static void eval_iaintdiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT) {	/* <value> DIV <int32 array> */
+  if (TOPITEMISNUM) {	/* <value> DIV <int32 array> */
     int64 lhint64, *base64;
     lhint64 = lhitem == STACK_FLOAT ? TOINT64(pop_float()) : pop_anyint();
     base64 = make_array(VAR_INTLONG, rharray);
@@ -3555,7 +3555,7 @@ static void eval_i64aintdiv(void) {
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
-  if (TOPITEMISINT || lhitem == STACK_FLOAT) {			/* <value> DIV <int64 array> */
+  if (TOPITEMISNUM) {			/* <value> DIV <int64 array> */
     int64 lhint64;
     lhint64 = lhitem == STACK_FLOAT ? TOINT64(pop_float()) : pop_anyint();
     base = make_array(VAR_INTLONG, rharray);

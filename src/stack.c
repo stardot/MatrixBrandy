@@ -1037,13 +1037,6 @@ int64 pop_int64(void) {
   return p->int64value;
 }
 
-boolean topitemisint(void) {
-  switch(GET_TOPITEM) {
-    case STACK_INT: case STACK_UINT8: case STACK_INT64: return(1);
-    default: return 0;
-  }
-}
-
 int64 pop_anyint(void) {
   switch(GET_TOPITEM) {
     case STACK_INT: return pop_int();
