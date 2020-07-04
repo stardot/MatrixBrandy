@@ -177,7 +177,9 @@ int brandynet_connect(char *dest, char type) {
   free(host);				/* Don't need this any more */
 
   if(ret) {
-    printf("getaddrinfo returns: %s\n", gai_strerror(ret));
+#ifdef DEBUG
+    if (basicvars.debug_flags.debug) fprintf(stderr, "getaddrinfo returns: %s\n", gai_strerror(ret));
+#endif
     error(ERR_NET_NOTFOUND);
     return(-1);
   }
