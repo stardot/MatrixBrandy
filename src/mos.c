@@ -158,6 +158,33 @@ static void native_oscli(char *command, char *respfile, FILE *respfh);
 
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
+static void cmd_brandyinfo() {
+  emulate_printf("\r\n%s\r\n", IDSTRING);
+#ifdef BRANDY_GITCOMMIT
+  emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+#endif
+  // Try to get attributions correct, as per license.
+  emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
+  emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
+#ifdef BRANDY_PATCHDATE
+  emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
+  emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4]==' ' ? '0' : mos_patchdate[4],
+  mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+  // NB: Adjust spaces in above to align version and date strings correctly
+#endif
+  emulate_printf("\r\nMemory allocation information:\r\n\r\n");
+  emulate_printf("Workspace is at &" FMT_SZX ", size is &" FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
+  basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+  emulate_printf("stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+#ifdef USE_SDL
+  emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+  emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
+#endif /* USE_SDL */
+  if (matrixflags.gpio) emulate_printf("GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
+  emulate_printf("\r\n");
+}
+
+
 /* =================================================================== */
 /* ======= Emulation functions common to all operating systems ======= */
 /* =================================================================== */
@@ -581,8 +608,12 @@ void mos_setend(int32 newend) {
 */
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (respfile==NIL) {	/* Command output goes to normal place */
-    basicvars.retcode = _kernel_oscli(command);
-    if (basicvars.retcode<0) error(ERR_CMDFAIL, _kernel_last_oserror()->errmess);
+    if (!strcasecmp(command, "brandyinfo")) {
+      cmd_brandyinfo();
+    } else {
+      basicvars.retcode = _kernel_oscli(command);
+      if (basicvars.retcode<0) error(ERR_CMDFAIL, _kernel_last_oserror()->errmess);
+    }
   }
   else {	/* Want response back from command */
     strcat(command, "{ > ");
@@ -680,7 +711,7 @@ boolean mos_init(void) {
 void mos_final(void) {
 }
 
-#else
+#else /* not TARGET_RISCOS */
 
 /* ====================================================================== */
 /* ================== Non-RISC OS versions of functions ================== */
@@ -1222,6 +1253,7 @@ static unsigned int cmd_parse_num(char** text)
 #define CMD_CHANNELVOICE	30
 #define CMD_VOICES		31
 #define CMD_POINTER		32
+#define CMD_BRANDYINFO		33
 #define HELP_BASIC		1024
 #define HELP_HOST		1025
 #define HELP_MOS		1026
@@ -1319,6 +1351,7 @@ void make_cmdtab(){
   add_cmd( "spoolon",      CMD_SPOOLON );
   add_cmd( "load",         CMD_LOAD );
   add_cmd( "save",         CMD_SAVE );
+  add_cmd( "brandyinfo",   CMD_BRANDYINFO );
 #ifdef USE_SDL
   add_cmd( "volume",       CMD_VOLUME  );
   add_cmd( "channelvoice", CMD_CHANNELVOICE );
@@ -2028,6 +2061,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
       case CMD_FULLSCREEN:	cmd_fullscreen(command+10); return;
       case CMD_NEWMODE:		cmd_newmode(command+7); return;
       case CMD_REFRESH:		cmd_refresh(command+7); return;
+      case CMD_BRANDYINFO:	cmd_brandyinfo(); return;
 
       case CMD_LOAD:		cmd_load(command+4); return;
       case CMD_SAVE:		cmd_save(command+4); return;
