@@ -73,6 +73,7 @@ static void init2(void);
 static void gpio_init(void);
 static void run_interpreter(void);
 static void init_timer(void);
+static void set_centisecond_value(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
 static size_t worksize;			/* Initial workspace size */
@@ -149,7 +150,7 @@ static void add_arg(char *p) {
 static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
-  basicvars.centiseconds = mos_centiseconds();	/* Init to something sensible */
+  set_centisecond_value();	/* Init basicvars.centiseconds */
   basicvars.monotonictimebase = basicvars.centiseconds;
   basicvars.list_flags.space = FALSE;	/* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
@@ -451,22 +452,25 @@ static void load_libraries(void) {
 }
 #endif
 
+static void set_centisecond_value() {
+#ifdef TARGET_RISCOS 
+  return clock();
+#else
+  struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    /* tv.tv_sec  = Seconds */
+    /* tv.tv_nsec = Nanoseconds */
+    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
+#endif
+}
+
 #ifdef USE_SDL
 static int timer_thread(void *data) {
 #else
 static void *timer_thread(void *data) {
 #endif
-  //struct timeval tv;
-  struct timespec tv;
   while(1) {
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-
-    /* tv.tv_sec  = Seconds */
-    // /* tv.tv_usec = and microseconds */
-    /* tv.tv_nsec = Nanoseconds */
-
-    //basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
-    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
+    set_centisecond_value();
     usleep(5000);
   }
   return 0;
