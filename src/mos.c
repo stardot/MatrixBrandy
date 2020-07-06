@@ -717,7 +717,7 @@ void mos_final(void) {
 /* ================== Non-RISC OS versions of functions ================== */
 /* ====================================================================== */
 
-#if defined(TARGET_WIN32) | defined(TARGET_AMIGA) | defined(TARGET_MINGW)
+#if (defined(TARGET_WIN32) | defined(TARGET_AMIGA)) && !defined(TARGET_MINGW)
 
 int64 mos_centiseconds(void) {
   return (clock() * 100) / CLOCKS_PER_SEC;
