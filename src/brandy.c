@@ -73,7 +73,7 @@ static void init2(void);
 static void gpio_init(void);
 static void run_interpreter(void);
 static void init_timer(void);
-static void set_centisecond_value(void);
+static void init_clock(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
 static size_t worksize;			/* Initial workspace size */
@@ -150,7 +150,7 @@ static void add_arg(char *p) {
 static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
-  set_centisecond_value();	/* Init basicvars.centiseconds */
+  init_clock();	/* Init to something sensible */
   basicvars.monotonictimebase = basicvars.centiseconds;
   basicvars.list_flags.space = FALSE;	/* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
@@ -452,16 +452,31 @@ static void load_libraries(void) {
 }
 #endif
 
-static void set_centisecond_value() {
-#ifdef TARGET_RISCOS 
-  return clock();
+void init_clock() {
+#ifdef TARGET_RISCOS
+  basicvars.clocktype = -1;
+  basicvars.centiseconds = clock();
 #else
   struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-    /* tv.tv_sec  = Seconds */
-    /* tv.tv_nsec = Nanoseconds */
-    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
+  int result=1;
+#ifdef TARGET_LINUX
+  basicvars.clocktype = CLOCK_MONOTONIC_RAW;
+  result=clock_gettime(basicvars.clocktype, &tv);
 #endif
+  if(result) {
+    basicvars.clocktype = CLOCK_MONOTONIC;
+    result=clock_gettime(basicvars.clocktype, &tv);
+    if(result) {
+      basicvars.clocktype = CLOCK_REALTIME;
+      result=clock_gettime(basicvars.clocktype, &tv);
+      if (result) {
+        fprintf(stderr, "init:clock: Unable to get a sensible timer, even realtime failed (which shouldn't happen)\n");
+        exit(1);
+      }
+    }
+  }
+  basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
+#endif /* !TARGET_RISCOS */
 }
 
 #ifdef USE_SDL
@@ -469,8 +484,17 @@ static int timer_thread(void *data) {
 #else
 static void *timer_thread(void *data) {
 #endif
+  //struct timeval tv;
+  struct timespec tv;
   while(1) {
-    set_centisecond_value();
+    clock_gettime(basicvars.clocktype, &tv);
+
+    /* tv.tv_sec  = Seconds */
+    // /* tv.tv_usec = and microseconds */
+    /* tv.tv_nsec = Nanoseconds */
+
+    //basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
+    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
     usleep(5000);
   }
   return 0;
