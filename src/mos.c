@@ -98,7 +98,7 @@
 //#include <strsafe.h>
 #endif
 
-#if defined(TARGET_UNIX) || defined(TARGET_MACOSX)
+#if defined(TARGET_MINGW) || defined(TARGET_UNIX) || defined(TARGET_MACOSX)
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
