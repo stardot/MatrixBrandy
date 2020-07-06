@@ -684,7 +684,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
   int n;
   if ((swino & ~XBIT) == 57) { /* OS_SWINumberFromString - call our local version */
     outregs[1]=inregs[1];
-    for(n=0;*(inregs[1]+n) >=32; n++) ;
+    for(n=0;*(char *)(inregs[1]+n) >=32; n++) ;
     *(char *)(inregs[1]+n)='\0';
     outregs[0]=mos_getswinum((char *)inregs[1], strlen((char *)inregs[1]));
   } else if (swino >= 0x140000) {
@@ -2805,16 +2805,16 @@ switch (areg) {
 		break;
 
 	case 130:			// OSBYTE 130 - High word of user memory
-		areg = (int32)basicvars.workspace;
+		areg = (size_t)basicvars.workspace;
 		return ((areg & 0xFFFF0000) >> 8) | 130;
 
 	case 131:			// OSBYTE 132 - Bottom of user memory
-		areg = (int32)basicvars.workspace;
+		areg = (size_t)basicvars.workspace;
 		if (areg < 0xFFFF)	return (areg << 8) | 131;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
 	case 132:			// OSBYTE 132 - Top of user memory
-		areg = (int32)basicvars.slotend;
+		areg = (size_t)basicvars.slotend;
 		if (areg < 0xFFFF)	return (areg << 8) | 132;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 //	case 133:			// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
