@@ -459,21 +459,23 @@ void init_clock() {
 #else
   struct timespec tv;
   int result=1;
-#ifdef TARGET_LINUX
+#ifdef CLOCK_MONOTONIC_RAW
   basicvars.clocktype = CLOCK_MONOTONIC_RAW;
   result=clock_gettime(basicvars.clocktype, &tv);
 #endif
+#ifdef CLOCK_MONOTONIC
   if(result) {
     basicvars.clocktype = CLOCK_MONOTONIC;
     result=clock_gettime(basicvars.clocktype, &tv);
-    if(result) {
-      basicvars.clocktype = CLOCK_REALTIME;
-      result=clock_gettime(basicvars.clocktype, &tv);
-      if (result) {
-        fprintf(stderr, "init:clock: Unable to get a sensible timer, even realtime failed (which shouldn't happen)\n");
-        exit(1);
-      }
-    }
+  }
+#endif
+  if(result) {
+    basicvars.clocktype = CLOCK_REALTIME;
+    result=clock_gettime(basicvars.clocktype, &tv);
+  }
+  if (result) {
+    fprintf(stderr, "init_clock: Unable to get a sensible timer, even realtime failed (which shouldn't happen)\n");
+    exit(1);
   }
   basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
 #endif /* !TARGET_RISCOS */
