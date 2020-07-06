@@ -327,11 +327,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
       break;
     case SWI_OS_ReadMonotonicTime:
-#ifdef USE_SDL
-      outregs[0]=basicvars.centiseconds - basicvars.monotonictimebase;
-#else
       outregs[0]=mos_centiseconds() - basicvars.monotonictimebase;
-#endif
+      outregs[1]=basicvars.monotonictimebase;
       break;
     case SWI_OS_Plot:
       emulate_plot(inregs[0], inregs[1], inregs[2]);

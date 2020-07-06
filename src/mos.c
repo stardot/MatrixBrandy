@@ -276,7 +276,8 @@ int32 mos_usr(int32 address) {
 
 
 int64 mos_centiseconds(void) {
-  return 0; // (clock() * 100) / CLOCKS_PER_SEC;
+  basicvars.centiseconds = clock();
+  return basicvars.centiseconds; // (clock() * 100) / CLOCKS_PER_SEC;
 }
 
 
@@ -720,7 +721,8 @@ void mos_final(void) {
 #if (defined(TARGET_WIN32) | defined(TARGET_AMIGA)) && !defined(TARGET_MINGW)
 
 int64 mos_centiseconds(void) {
-  return (clock() * 100) / CLOCKS_PER_SEC;
+  basicvars.centiseconds = (clock() * 100) / CLOCKS_PER_SEC
+  return basicvars.centiseconds;
 }
 
 
@@ -750,17 +752,22 @@ void mos_wrtime(int32 time) {
 ** depends on the underlying OS.
 ** This code was supplied by Jeff Doggett, and modified
 ** by Michael McConnell
+** Further modified by moving code into brandy.c and running in a
+** separate thread that updates basicvars.centiseconds.
 */
 
 int64 mos_centiseconds(void) {
+#if 1
+  return basicvars.centiseconds;
+#else
   struct timeval tv;
-
   gettimeofday (&tv, NULL);
 
   /* tv.tv_sec  = Seconds since 1970 */
   /* tv.tv_usec = and microseconds */
 
-  return (((unsigned)tv.tv_sec * 100) + ((unsigned)tv.tv_usec / 10000));
+  return (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
+#endif
 }
 
 int32 mos_rdtime(void) {

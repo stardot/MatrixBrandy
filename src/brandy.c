@@ -463,7 +463,7 @@ static void *timer_thread(void *data) {
     /* tv.tv_sec  = Seconds since 1970 */
     /* tv.tv_usec = and microseconds */
 
-    basicvars.centiseconds = (((unsigned)tv.tv_sec * 100) + ((unsigned)tv.tv_usec / 10000));
+    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
     usleep(5000);
   }
   return 0;
