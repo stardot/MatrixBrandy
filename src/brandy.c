@@ -29,7 +29,7 @@
 #include <setjmp.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/time.h>
+#include <time.h>
 #ifdef USE_SDL
 #include <SDL.h>
 #else
@@ -456,14 +456,17 @@ static int timer_thread(void *data) {
 #else
 static void *timer_thread(void *data) {
 #endif
-  struct timeval tv;
+  //struct timeval tv;
+  struct timespec tv;
   while(1) {
-    gettimeofday (&tv, NULL);
+    clock_gettime(CLOCK_MONOTONIC, &tv);
 
-    /* tv.tv_sec  = Seconds since 1970 */
-    /* tv.tv_usec = and microseconds */
+    /* tv.tv_sec  = Seconds */
+    // /* tv.tv_usec = and microseconds */
+    /* tv.tv_nsec = Nanoseconds */
 
-    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
+    //basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
+    basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
     usleep(5000);
   }
   return 0;

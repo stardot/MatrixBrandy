@@ -13,7 +13,7 @@ CFLAGS = -O3 $(shell sdl-config --cflags) -DUSE_SDL -DDEFAULT_IGNORE -Wall $(GIT
 
 LDFLAGS +=
 
-LIBS = -lm $(shell sdl-config --libs) -ldl
+LIBS = -lm $(shell sdl-config --libs) -ldl -lrt
 
 SRCDIR = src
 
