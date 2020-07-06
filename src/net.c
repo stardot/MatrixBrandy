@@ -141,7 +141,7 @@ int brandynet_connect(char *dest, char type) {
 
 #else /* not TARGET_RISCOS */
   char *host, *port;
-  int n, mysocket, ret;
+  int n, mysocket=0, ret;
   struct addrinfo hints, *addrdata, *rp;
 #ifdef TARGET_MINGW
   unsigned long opt;
