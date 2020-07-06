@@ -400,13 +400,13 @@ static void define_byte_array(variable *vp) {
     }
   }
   if (isindref)
-    store_integer(offset, ep-basicvars.offbase);
+    store_integer(offset, (size_t)ep);
   else if (vp->varflags == VAR_INTWORD)
-    vp->varentry.varinteger = ep-basicvars.offbase;
+    vp->varentry.varinteger = (size_t)ep;
   else if (vp->varflags == VAR_INTLONG)
-    vp->varentry.var64int = ep-basicvars.offbase;
+    vp->varentry.var64int = (size_t)ep;
   else {
-    vp->varentry.varfloat = TOFLOAT(ep-basicvars.offbase);
+    vp->varentry.varfloat = TOFLOAT((size_t)ep);
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:define_byte_array\n");
@@ -811,7 +811,7 @@ void exec_for(void) {
     break;
   case VAR_INTBYTEPTR:
     check_write(forvar.address.offset, sizeof(byte));
-    basicvars.offbase[forvar.address.offset] = pop_anynum32();
+    basicvars.memory[forvar.address.offset] = pop_anynum32();
     break;
   case VAR_INTWORDPTR:
     store_integer(forvar.address.offset, pop_anynum32());
@@ -1177,8 +1177,8 @@ static void def_locvar(void) {
       break;
     case VAR_INTBYTEPTR:
       check_write(locvar.address.offset, sizeof(byte));
-      save_int(locvar, basicvars.offbase[locvar.address.offset]);
-      basicvars.offbase[locvar.address.offset] = 0;
+      save_int(locvar, basicvars.memory[locvar.address.offset]);
+      basicvars.memory[locvar.address.offset] = 0;
       break;
     case VAR_INTWORDPTR:
       save_int(locvar, get_integer(locvar.address.offset));
@@ -1192,9 +1192,9 @@ static void def_locvar(void) {
       check_write(locvar.address.offset, sizeof(byte));
       descriptor.stringlen = get_stringlen(locvar.address.offset)+1;	/* +1 for CR at end */
       descriptor.stringaddr = alloc_string(descriptor.stringlen);
-      memmove(descriptor.stringaddr, &basicvars.offbase[locvar.address.offset], descriptor.stringlen);
+      memmove(descriptor.stringaddr, &basicvars.memory[locvar.address.offset], descriptor.stringlen);
       save_string(locvar, descriptor);
-      basicvars.offbase[locvar.address.offset] = asc_CR;
+      basicvars.memory[locvar.address.offset] = asc_CR;
       break;
     case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
       save_array(locvar);
@@ -1329,8 +1329,8 @@ void exec_next(void) {
         }
         break;
       case VAR_INTBYTEPTR:	/* Pointer to a byte-aligned byte-sized integer */
-        intvalue = basicvars.offbase[fp->forvar.address.offset]+fp->fortype.intfor.intstep;
-        basicvars.offbase[fp->forvar.address.offset] = intvalue;
+        intvalue = basicvars.memory[fp->forvar.address.offset]+fp->fortype.intfor.intstep;
+        basicvars.memory[fp->forvar.address.offset] = intvalue;
         if (fp->fortype.intfor.intstep>0)
           contloop = intvalue<=fp->fortype.intfor.intlimit;
         else {
@@ -1807,7 +1807,7 @@ static void read_numeric(lvalue destination) {
     break;
   case VAR_INTBYTEPTR:	/* Pointer to byte-sized integer */
     check_write(destination.address.offset, sizeof(byte));
-    basicvars.offbase[destination.address.offset] = pop_anynum32();
+    basicvars.memory[destination.address.offset] = pop_anynum32();
     break;
   case VAR_INTWORDPTR:	/* Pointer to word-sized integer */
     store_integer(destination.address.offset, pop_anynum32());
@@ -1857,8 +1857,8 @@ static void read_string(lvalue destination) {
     break;
   case VAR_DOLSTRPTR:	/* Pointer to '$<string>' */
     check_write(destination.address.offset, length+1);   /* +1 for CR at end */
-    if (length != 0) shorten=memcpydedupe((char *)&basicvars.offbase[destination.address.offset], start, length, '"');
-    basicvars.offbase[destination.address.offset+length-shorten] = asc_CR;
+    if (length != 0) shorten=memcpydedupe((char *)&basicvars.memory[destination.address.offset], start, length, '"');
+    basicvars.memory[destination.address.offset+length-shorten] = asc_CR;
     break;
   default:
     error(ERR_VARNUMSTR);
@@ -2132,7 +2132,7 @@ void exec_swap(void) {
       break;
     case VAR_INTBYTEPTR:
       check_write(first.address.offset, sizeof(byte));
-      ival1 = basicvars.offbase[first.address.offset];
+      ival1 = basicvars.memory[first.address.offset];
       isint = TRUE;
       break;
     case VAR_INTWORDPTR:
@@ -2172,8 +2172,8 @@ void exec_swap(void) {
       break;
     case VAR_INTBYTEPTR:
       check_write(second.address.offset, sizeof(byte));
-      ival2 = basicvars.offbase[second.address.offset];
-      basicvars.offbase[second.address.offset] = isint ? ival1 : TOINT(fval1);
+      ival2 = basicvars.memory[second.address.offset];
+      basicvars.memory[second.address.offset] = isint ? ival1 : TOINT(fval1);
       isint = TRUE;
       break;
     case VAR_INTWORDPTR:
@@ -2206,7 +2206,7 @@ void exec_swap(void) {
       *first.address.floataddr = isint ? TOFLOAT(ival2) : fval2;
       break;
     case VAR_INTBYTEPTR:
-      basicvars.offbase[first.address.offset] = isint ? ival2 : TOINT(fval2);
+      basicvars.memory[first.address.offset] = isint ? ival2 : TOINT(fval2);
       break;
     case VAR_INTWORDPTR:
       store_integer(first.address.offset, isint ? ival2 : TOINT(fval2));
@@ -2232,9 +2232,9 @@ void exec_swap(void) {
       len2 = get_stringlen(second.address.offset)+1;
       check_write(first.address.offset, len2);
       check_write(second.address.offset, len1);
-      memmove(basicvars.stringwork, &basicvars.offbase[first.address.offset], len1);
-      memmove(&basicvars.offbase[first.address.offset], &basicvars.offbase[second.address.offset], len2);
-      memmove(&basicvars.offbase[second.address.offset], basicvars.stringwork, len1);
+      memmove(basicvars.stringwork, &basicvars.memory[first.address.offset], len1);
+      memmove(&basicvars.memory[first.address.offset], &basicvars.memory[second.address.offset], len2);
+      memmove(&basicvars.memory[second.address.offset], basicvars.stringwork, len1);
     }
     else {	/* Swap aaa$ and $bbb or $aaa and bbb$ */
       int len;
@@ -2247,11 +2247,11 @@ void exec_swap(void) {
 /* Move '$bbb' string to a  proper string */
       stringtemp.stringlen = len = get_stringlen(second.address.offset);
       stringtemp.stringaddr = alloc_string(len);
-      if (len>0) memmove(stringtemp.stringaddr, &basicvars.offbase[second.address.offset], len);
+      if (len>0) memmove(stringtemp.stringaddr, &basicvars.memory[second.address.offset], len);
 /* Copy 'aaa$' string to address of other string and turn it into a '$xxx' type string */
       len = first.address.straddr->stringlen;	/* Get length of first string */
-      if (len>0) memmove(&basicvars.offbase[second.address.offset], first.address.straddr->stringaddr, len);
-      basicvars.offbase[second.address.offset+len] = asc_CR;
+      if (len>0) memmove(&basicvars.memory[second.address.offset], first.address.straddr->stringaddr, len);
+      basicvars.memory[second.address.offset+len] = asc_CR;
       free_string(*first.address.straddr);
       *first.address.straddr = stringtemp;
     }
@@ -2325,7 +2325,7 @@ void exec_sys(void) {
         if (length>0) memmove(cp, descriptor.stringaddr, length);
         cp[length] = asc_NUL;
         if (parmtype == STACK_STRTEMP) free_string(descriptor);
-        inregs[parmcount] = CAST(cp, byte *)-basicvars.offbase;
+        inregs[parmcount] = (size_t)cp;
         break;
       }
       default:

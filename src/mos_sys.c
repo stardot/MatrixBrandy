@@ -237,11 +237,11 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_OS_Write0: /* This is extended in Brandy - normally all args apart
 			   from R0 are ignored; in Brandy, if R1 and R2 are set
 			   to 42, the text is output to the controlling terminal. */
-      outregs[0]=inregs[0]+1+strlen((char *)basicvars.offbase+inregs[0]);
+      outregs[0]=inregs[0]+1+strlen((char *)(size_t)inregs[0]);
       if ((inregs[1]==42) && (inregs[2]==42)) {
-        fprintf(stderr,"%s\r\n", basicvars.offbase+inregs[0]);
+        fprintf(stderr,"%s\r\n", (char *)(size_t)inregs[0]);
       } else {
-        emulate_printf("%s", basicvars.offbase+inregs[0]);
+        emulate_printf("%s", (char *)(size_t)inregs[0]);
       }
       break;
     case SWI_OS_NewLine:
@@ -316,8 +316,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #ifdef USE_SDL
       {
 	int32 *ptra, *ptrb;
-	ptra = (int32 *)(inregs[0]+basicvars.offbase);
-	ptrb = (int32 *)(inregs[1]+basicvars.offbase);
+	ptra = (int32 *)(size_t)inregs[0];
+	ptrb = (int32 *)(size_t)inregs[1];
 	while (*ptra != -1) {
 	  *ptrb = readmodevariable(-1,*ptra);
 	  ptra++;
@@ -341,9 +341,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 			   characters are output to the controlling terminal. */
       outregs[0]=inregs[0];
       if (inregs[2]==42) {
-        for (a=0; a<inregs[1]; a++) fprintf(stderr,"%c", *(basicvars.offbase+inregs[0]+a));
+        for (a=0; a<inregs[1]; a++) fprintf(stderr,"%c", *((byte *)(size_t)inregs[0]+a));
       } else {
-        for (a=0; a<inregs[1]; a++) emulate_vdu(*(basicvars.offbase+inregs[0]+a));
+        for (a=0; a<inregs[1]; a++) emulate_vdu(*((byte *)(size_t)inregs[0]+a));
       }
       break;
     case SWI_OS_ScreenMode:
@@ -413,7 +413,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_Brandy_GetVideoDriver:
 #ifdef USE_SDL
       SDL_VideoDriverName(outstring, 64);
-      outregs[2]=(matrixflags.modescreen_ptr - basicvars.offbase);
+      outregs[2]=(size_t)matrixflags.modescreen_ptr;
       outregs[3]=matrixflags.modescreen_sz;
       outregs[4]=matrixflags.mode7fb;
       outregs[5]=(size_t)matrixflags.surface;
@@ -561,7 +561,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
         break;
     case SWI_RaspberryPi_GPIOInfo:
-      outregs[0]=matrixflags.gpio; outregs[1]=(matrixflags.gpiomem - basicvars.offbase);
+      outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;
       break;
     case SWI_GPIO_GetBoard:
       file_handle=fopen("/proc/device-tree/model","r");

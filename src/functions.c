@@ -110,9 +110,9 @@ static uint64 resize32(size_t value) {
 */
 static void fn_himem(void) {
   if (matrixflags.pseudovarsunsigned) {
-    push_int64(resize32(basicvars.himem-basicvars.offbase));
+    push_int64(resize32((size_t)basicvars.himem));
   } else {
-    push_int64(basicvars.himem-basicvars.offbase);
+    push_int64((size_t)basicvars.himem);
   }
 }
 
@@ -204,9 +204,9 @@ static void fn_left(void) {
 */
 static void fn_lomem(void) {
   if (matrixflags.pseudovarsunsigned) {
-    push_int64(resize32(basicvars.lomem-basicvars.offbase));
+    push_int64(resize32((size_t)basicvars.lomem));
   } else {
-    push_int64(basicvars.lomem-basicvars.offbase);
+    push_int64((size_t)basicvars.lomem);
   }
 }
 
@@ -261,9 +261,9 @@ static void fn_mid(void) {
 */
 static void fn_page(void) {
   if (matrixflags.pseudovarsunsigned) {
-    push_int64(resize32(basicvars.page-basicvars.offbase));
+    push_int64(resize32((size_t)basicvars.page));
   } else {
-    push_int64(basicvars.page-basicvars.offbase);
+    push_int64((size_t)basicvars.page);
   }
 }
 
@@ -611,9 +611,9 @@ static void fn_deg(void) {
 void fn_end(void) {
   basicvars.current++;
   if (matrixflags.pseudovarsunsigned) {
-    push_int64(resize32(basicvars.vartop-basicvars.offbase));
+    push_int64(resize32((size_t)basicvars.vartop));
   } else {
-    push_int64(basicvars.vartop-basicvars.offbase);
+    push_int64((size_t)basicvars.vartop);
   }
 }
 
@@ -1462,9 +1462,9 @@ void fn_top(void) {
   if (*p != 'P') error(ERR_SYNTAX);		/* But it does not start with the letter 'P' */
   basicvars.current+=LOFFSIZE + 1;
   if (matrixflags.pseudovarsunsigned) {
-    push_int64(resize32(basicvars.top-basicvars.offbase));
+    push_int64(resize32((size_t)basicvars.top));
   } else {
-    push_int64(basicvars.top-basicvars.offbase);
+    push_int64((size_t)basicvars.top);
   }
 }
 

@@ -217,7 +217,7 @@ static void gpio_init() {
   int fd;
 
   matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
-  matrixflags.gpiomem = basicvars.offbase-1;	/* Initialise, will internally return &FFFFFFFF */
+  matrixflags.gpiomem = (byte *)-1;		/* Initialise, will internally return &FFFFFFFF */
 
   fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
   if (fd == -1) return;				/* Couldn't open /dev/gpiomem - exit quietly */
@@ -233,7 +233,7 @@ static void gpio_init() {
   matrixflags.gpiomemint=(uint32 *)matrixflags.gpiomem;
 #else
   matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
-  matrixflags.gpiomem = basicvars.offbase-1;	/* Initialise, will internally return &FFFFFFFF */
+  matrixflags.gpiomem = (byte *)-1;		/* Initialise, will internally return &FFFFFFFF */
 #endif
   return;
 }

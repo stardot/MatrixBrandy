@@ -308,8 +308,8 @@ void show_options(int32 showextra) {
   if (basicvars.program[0] != asc_NUL) emulate_printf("Program name: %s\r\n\n", basicvars.program);
   if (basicvars.loadpath != NIL) emulate_printf("Directory search list for libraries: %s\r\n\n", basicvars.loadpath);
   emulate_printf("The program starts at &%X and is %d bytes long.\r\nVariables start at &%X and occupy %d bytes. %d bytes of memory remain\r\n",
-   basicvars.page - basicvars.offbase, basicvars.top - basicvars.page,
-   basicvars.lomem - basicvars.offbase, basicvars.vartop - basicvars.lomem,
+   basicvars.page, basicvars.top - basicvars.page,
+   basicvars.lomem, basicvars.vartop - basicvars.lomem,
    basicvars.himem - basicvars.vartop);
   if (showextra) {
     emulate_printf("\r\nLISTO options in effect:\r\n");

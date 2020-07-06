@@ -36,7 +36,7 @@ extern void free_string(basicstring);
 extern void discard_strings(byte *, int32);
 extern char *resize_string(char *, int32, int32);
 extern void clear_strings(void);
-extern int32 get_stringlen(int32);
+extern int32 get_stringlen(size_t);
 extern void show_stringstats(void);
 extern void check_alloc(void);
 

@@ -98,11 +98,6 @@ boolean init_heap(void) {
 ** program. 'heapsize' gives the size of block. If zero, the size of the
 ** area used is the implementation-defined default. If returns 'true' if
 ** if the heap space could be allocated or 'false' if it failed
-**
-** The base address for the byte offsets used by indirection operators
-** (basicvars.offbase) is set up here. Normally the offset is from the
-** start of the Basic workspace but under RISC OS it has to be from the
-** start of memory otherwise the SYS statement does not work.
 */
 boolean init_workspace(uint32 heapsize) {
   byte *wp = NULL;
@@ -156,11 +151,11 @@ boolean init_workspace(uint32 heapsize) {
   wp = malloc(heapsize);
 #endif
 
-  if (wp==NIL) heapsize = 0;	/* Could not obtain block of requested size */
+  if (wp==NIL) heapsize = 0;			/* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
   basicvars.workspace = wp;
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
-  basicvars.offbase = 0;
+  basicvars.memory = 0;				/* Use as a byte array to access arbitrary points of memory */
   basicvars.page = wp;
   basicvars.memdump_lastaddr = (size_t)wp;
 

@@ -142,9 +142,11 @@ static void assign_intbyteptr(pointers address) {
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset] = pop_anynum32();
+  basicvars.memory[address.offset] = pop_anynum32();
 #ifdef USE_SDL
-  if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
+  if ((address.offset >= (size_t)matrixflags.modescreen_ptr) &&
+     (address.offset < (size_t)(matrixflags.modescreen_sz + matrixflags.modescreen_ptr)))
+       refresh_location((address.offset-(size_t)matrixflags.modescreen_ptr)/4);
 #endif
 }
 
@@ -167,7 +169,9 @@ static void assign_intwordptr(pointers address) {
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   store_integer(address.offset, pop_anynum32());
 #ifdef USE_SDL
-  if ((address.offset >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (address.offset < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) refresh_location((address.offset-(matrixflags.modescreen_ptr-basicvars.offbase))/4);
+  if ((address.offset >= (size_t)matrixflags.modescreen_ptr) &&
+     (address.offset < (size_t)(matrixflags.modescreen_sz + matrixflags.modescreen_ptr)))
+       refresh_location((address.offset-(size_t)matrixflags.modescreen_ptr)/4);
 #endif
 }
 
@@ -210,8 +214,8 @@ static void assign_dolstrptr(pointers address) {
     for (loop=(addr/40); loop<=((addr+result.stringlen)/40); loop++) mode7changed[loop]=1;
   }
 #endif
-  memmove(&basicvars.offbase[address.offset], result.stringaddr, result.stringlen);
-  basicvars.offbase[address.offset+result.stringlen] = asc_CR;
+  memmove(&basicvars.memory[address.offset], result.stringaddr, result.stringlen);
+  basicvars.memory[address.offset+result.stringlen] = asc_CR;
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 
@@ -802,7 +806,7 @@ static void assiplus_stringdol(pointers address) {
 */
 static void assiplus_intbyteptr(pointers address) {
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset]+=pop_anynum32();
+  basicvars.memory[address.offset]+=pop_anynum32();
 }
 
 /*
@@ -834,14 +838,14 @@ static void assiplus_dolstrptr(pointers address) {
   result = pop_string();
   endoff = address.offset;	/* Figure out where to append the string */
   stringlen = 0;
-  while (stringlen<=MAXSTRING && basicvars.offbase[endoff]!=asc_CR) {	/* Find the CR at the end of the dest string */
+  while (stringlen<=MAXSTRING && basicvars.memory[endoff]!=asc_CR) {	/* Find the CR at the end of the dest string */
     endoff++;
     stringlen++;
   }
   if (stringlen>MAXSTRING) endoff = address.offset;	/* CR at end not found - Assume dest is zero length */
   check_write(endoff, result.stringlen);
-  memmove(&basicvars.offbase[endoff], result.stringaddr, result.stringlen);
-  basicvars.offbase[endoff+result.stringlen] = asc_CR;
+  memmove(&basicvars.memory[endoff], result.stringaddr, result.stringlen);
+  basicvars.memory[endoff+result.stringlen] = asc_CR;
   if (exprtype==STACK_STRTEMP) free_string(result);
 }
 
@@ -1045,7 +1049,7 @@ static void assiminus_float(pointers address) {
 */
 static void assiminus_intbyteptr(pointers address) {
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset]-=pop_anynum32();
+  basicvars.memory[address.offset]-=pop_anynum32();
 }
 
 /*
@@ -1212,7 +1216,7 @@ static void assiand_float(pointers address) {
 ** byte integer indirect variables
 */
 static void assiand_intbyteptr(pointers address) {
-  basicvars.offbase[address.offset]&=pop_anynum32();
+  basicvars.memory[address.offset]&=pop_anynum32();
 }
 
 /*
@@ -1364,7 +1368,7 @@ static void assior_int64word(pointers address) {
 */
 static void assior_intbyteptr(pointers address) {
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset] |= pop_anynum32();
+  basicvars.memory[address.offset] |= pop_anynum32();
 }
 
 /*
@@ -1524,7 +1528,7 @@ static void assieor_int64word(pointers address) {
 */
 static void assieor_intbyteptr(pointers address) {
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset] ^= pop_anynum32();
+  basicvars.memory[address.offset] ^= pop_anynum32();
 }
 
 /*
@@ -1684,7 +1688,7 @@ static void assimod_int64word(pointers address) {
 */
 static void assimod_intbyteptr(pointers address) {
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset] %= pop_anynum32();
+  basicvars.memory[address.offset] %= pop_anynum32();
 }
 
 /*
@@ -1844,7 +1848,7 @@ static void assidiv_int64word(pointers address) {
 */
 static void assidiv_intbyteptr(pointers address) {
   check_write(address.offset, sizeof(byte));
-  basicvars.offbase[address.offset] /= pop_anynum32();
+  basicvars.memory[address.offset] /= pop_anynum32();
 }
 
 /*
@@ -2606,7 +2610,7 @@ static void assign_left(void) {
   if (destination.typeinfo==VAR_STRINGDOL)	/* Left-hand string is a string variable */
     lhstring = *destination.address.straddr;
   else {	/* Left-hand string is a '$<addr>' string, so fake a descriptor for it */
-    lhstring.stringaddr = CAST(&basicvars.offbase[destination.address.offset], char *);
+    lhstring.stringaddr = CAST(&basicvars.memory[destination.address.offset], char *);
     lhstring.stringlen = get_stringlen(destination.address.offset);
   }
   if (count>lhstring.stringlen) count = lhstring.stringlen;
@@ -2682,7 +2686,7 @@ static void assign_mid(void) {
   if (destination.typeinfo==VAR_STRINGDOL)	/* Left-hand string is a string variable */
     lhstring = *destination.address.straddr;
   else {	/* Left-hand string is a '$<addr>' string, so fake a descriptor for it */
-    lhstring.stringaddr = CAST(&basicvars.offbase[destination.address.offset], char *);
+    lhstring.stringaddr = CAST(&basicvars.memory[destination.address.offset], char *);
     lhstring.stringlen = get_stringlen(destination.address.offset);
   }
   if (start<=lhstring.stringlen) {	/* Only do anything if start position lies inside string */
@@ -2765,7 +2769,7 @@ static void assign_right(void) {
     if (destination.typeinfo==VAR_STRINGDOL)	/* Left-hand string is a string variable */
       lhstring = *destination.address.straddr;
     else {	/* Left-hand string is a '$<addr>' string, so fake a descriptor for it */
-      lhstring.stringaddr = CAST(&basicvars.offbase[destination.address.offset], char *);
+      lhstring.stringaddr = CAST(&basicvars.memory[destination.address.offset], char *);
       lhstring.stringlen = get_stringlen(destination.address.offset);
     }
     if (count>rhstring.stringlen) count = rhstring.stringlen;

@@ -812,8 +812,8 @@ static void restore_retparm(int32 parmcount) {
     vartype = VAR_STRINGDOL;
     break;
   case VAR_INTBYTEPTR:	/* Indirect byte integer variable */
-    intvalue = basicvars.offbase[p->savedetails.address.offset];
-    basicvars.offbase[p->savedetails.address.offset] = p->value.savedint;
+    intvalue = basicvars.memory[p->savedetails.address.offset];
+    basicvars.memory[p->savedetails.address.offset] = p->value.savedint;
     vartype = VAR_INTWORD;
     break;
   case VAR_INTWORDPTR:	/* Indirect word integer variable */
@@ -829,8 +829,8 @@ static void restore_retparm(int32 parmcount) {
   case VAR_DOLSTRPTR:		/* Indirect string variable */
     intvalue = stringvalue.stringlen = get_stringlen(p->savedetails.address.offset);
     stringvalue.stringaddr = alloc_string(intvalue);
-    if (intvalue>0) memmove(stringvalue.stringaddr, &basicvars.offbase[p->savedetails.address.offset], intvalue);
-    memmove(&basicvars.offbase[p->savedetails.address.offset], p->value.savedstring.stringaddr, p->value.savedstring.stringlen);
+    if (intvalue>0) memmove(stringvalue.stringaddr, &basicvars.memory[p->savedetails.address.offset], intvalue);
+    memmove(&basicvars.memory[p->savedetails.address.offset], p->value.savedstring.stringaddr, p->value.savedstring.stringlen);
     free_string(p->value.savedstring);		/* Discard saved copy of original '$ string' */
     vartype = VAR_DOLSTRPTR;
     break;
@@ -868,7 +868,7 @@ static void restore_retparm(int32 parmcount) {
     *p->retdetails.address.straddr = stringvalue;
     break;
   case VAR_INTBYTEPTR:
-    basicvars.offbase[p->retdetails.address.offset] = vartype==VAR_INTWORD ? intvalue : TOINT(floatvalue);
+    basicvars.memory[p->retdetails.address.offset] = vartype==VAR_INTWORD ? intvalue : TOINT(floatvalue);
     break;
   case VAR_INTWORDPTR:
     store_integer(p->retdetails.address.offset, vartype==VAR_INTWORD ? intvalue : TOINT(floatvalue));
@@ -877,9 +877,9 @@ static void restore_retparm(int32 parmcount) {
     store_float(p->retdetails.address.offset, vartype==VAR_INTWORD ? TOFLOAT(intvalue) : floatvalue);
     break;
   case VAR_DOLSTRPTR:
-    if (stringvalue.stringlen>0) memmove(&basicvars.offbase[p->retdetails.address.offset], stringvalue.stringaddr, stringvalue.stringlen);
+    if (stringvalue.stringlen>0) memmove(&basicvars.memory[p->retdetails.address.offset], stringvalue.stringaddr, stringvalue.stringlen);
     if (vartype==VAR_STRINGDOL) {	/* Local var was a normal string variable */
-      basicvars.offbase[p->retdetails.address.offset+stringvalue.stringlen] = asc_CR;	/* So add a 'CR' at the end of the string */
+      basicvars.memory[p->retdetails.address.offset+stringvalue.stringlen] = asc_CR;	/* So add a 'CR' at the end of the string */
     }
     free_string(stringvalue);
     break;
@@ -920,7 +920,7 @@ static void restore(int32 parmcount) {
         *p->savedetails.address.straddr = p->value.savedstring;
         break;
       case VAR_INTBYTEPTR:
-        basicvars.offbase[p->savedetails.address.offset] = p->value.savedint;
+        basicvars.memory[p->savedetails.address.offset] = p->value.savedint;
         break;
       case VAR_INTWORDPTR:
         store_integer(p->savedetails.address.offset, p->value.savedint);
@@ -929,7 +929,7 @@ static void restore(int32 parmcount) {
         store_float(p->savedetails.address.offset, p->value.savedfloat);
         break;
       case VAR_DOLSTRPTR:
-        memmove(&basicvars.offbase[p->savedetails.address.offset], p->value.savedstring.stringaddr, p->value.savedstring.stringlen);
+        memmove(&basicvars.memory[p->savedetails.address.offset], p->value.savedstring.stringaddr, p->value.savedstring.stringlen);
         free_string(p->value.savedstring);
         break;
       case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:

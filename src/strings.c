@@ -352,11 +352,11 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
 ** 'CR' character is found before the maximum allowed string length, the
 ** length is returned as zero
 */
-int32 get_stringlen(int32 start) {
-  int32 n;
-  n =start;
-  while (n-start<=MAXSTRING && basicvars.offbase[n]!=asc_CR) n++;
-  if (basicvars.offbase[n]==asc_CR) return n-start;
+int32 get_stringlen(size_t start) {
+  int32 n=0;
+  byte *mem = (byte *)start;
+  while (n<=MAXSTRING && mem[n]!=asc_CR) n++;
+  if (mem[n]==asc_CR) return n;
   return 0;
 }
 

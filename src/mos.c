@@ -177,7 +177,7 @@ static void cmd_brandyinfo() {
   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
   emulate_printf("stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
 #ifdef USE_SDL
-  emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+  emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", matrixflags.modescreen_ptr, matrixflags.modescreen_sz);
   emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
 #endif /* USE_SDL */
   if (matrixflags.gpio) emulate_printf("GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
@@ -684,7 +684,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
   int n;
   if ((swino & ~XBIT) == 57) { /* OS_SWINumberFromString - call our local version */
     outregs[1]=inregs[1];
-    for(n=0;*(basicvars.offbase+inregs[1]+n) >=32; n++) ;
+    for(n=0;*(inregs[1]+n) >=32; n++) ;
     *(char *)(inregs[1]+n)='\0';
     outregs[0]=mos_getswinum((char *)inregs[1], strlen((char *)inregs[1]));
   } else if (swino >= 0x140000) {
@@ -1635,7 +1635,7 @@ static void cmd_help(char *command)
        basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
       emulate_printf("stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
 #ifdef USE_SDL
-      emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", (matrixflags.modescreen_ptr - basicvars.offbase), matrixflags.modescreen_sz);
+      emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", matrixflags.modescreen_ptr, matrixflags.modescreen_sz);
       emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
 #endif /* USE_SDL */
       if (matrixflags.gpio) emulate_printf("GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
@@ -1869,7 +1869,7 @@ static void cmd_load(char *command){
     fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
     return;
   }
-  ptr=(char*)(basicvars.offbase+num);
+  ptr=(char*)num;
 #ifdef USE_SDL
   if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
@@ -1937,7 +1937,7 @@ static void cmd_save(char *command){
     emulate_printf("SAVE: Could not open file \"%s\"\r\n",chbuff);
     return;
   }
-  ptr=(char*)(basicvars.offbase+addr);
+  ptr=(char*)addr;
 #ifdef USE_SDL
   if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
@@ -2356,7 +2356,7 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
   switch (swino) {
     case SWI_OS_CLI:
       outregs[0]=inregs[0];
-      mos_oscli((char *)basicvars.offbase+inregs[0], NIL, NULL);
+      mos_oscli((char *)(size_t)inregs[0], NIL, NULL);
       break;
     case SWI_OS_Byte:
       rtn=mos_osbyte(inregs[0], inregs[1], inregs[2], xflag);
@@ -2371,9 +2371,9 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
-      for(ptr=0;*(basicvars.offbase+inregs[1]+ptr) >=32; ptr++) ;
-      *(basicvars.offbase+inregs[1]+ptr)='\0';
-      outregs[0]=mos_getswinum((char *)basicvars.offbase+inregs[1], strlen((char *)basicvars.offbase+inregs[1]));
+      for(ptr=0;*((char *)(size_t)inregs[1]+ptr) >=32; ptr++) ;
+      *((byte *)(size_t)inregs[1]+ptr)='\0';
+      outregs[0]=mos_getswinum((char *)(size_t)inregs[1], strlen((char *)(size_t)inregs[1]));
       break;
     default:
       mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */
@@ -2805,16 +2805,16 @@ switch (areg) {
 		break;
 
 	case 130:			// OSBYTE 130 - High word of user memory
-		areg = basicvars.workspace - basicvars.offbase;
+		areg = (int32)basicvars.workspace;
 		return ((areg & 0xFFFF0000) >> 8) | 130;
 
 	case 131:			// OSBYTE 132 - Bottom of user memory
-		areg = basicvars.workspace - basicvars.offbase;
+		areg = (int32)basicvars.workspace;
 		if (areg < 0xFFFF)	return (areg << 8) | 131;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
 	case 132:			// OSBYTE 132 - Top of user memory
-		areg = basicvars.slotend - basicvars.offbase;
+		areg = (int32)basicvars.slotend;
 		if (areg < 0xFFFF)	return (areg << 8) | 132;
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 //	case 133:			// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.

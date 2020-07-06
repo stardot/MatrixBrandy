@@ -437,7 +437,7 @@ static void list_hexline(void) {
   else {
     emulate_printf("\r\n");
   }
-  show_byte(where-basicvars.offbase, where-basicvars.offbase+length);
+  show_byte((size_t)where, (size_t)where+length);
 }
 
 /*

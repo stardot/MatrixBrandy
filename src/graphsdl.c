@@ -4395,7 +4395,7 @@ void osword09(int64 x) {
   unsigned char *block;
   int32 px, py;
 
-  block=(unsigned char *)(basicvars.offbase+x);
+  block=(unsigned char *)(size_t)x;
   px=block[0] + (block[1] << 8);
   py=block[2] + (block[3] << 8);
   block[4] = emulate_pointfn(px, py);
@@ -4405,7 +4405,7 @@ void osword0A(int64 x) {
   unsigned char *block;
   int32 offset, i;
   
-  block=(unsigned char *)(basicvars.offbase+x);
+  block=(unsigned char *)(size_t)x;
   offset = block[0]-32;
   if (offset < 0) return;
   for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
@@ -4417,7 +4417,7 @@ void osword8B(int64 x) {
   unsigned char *block;
   int32 offset, i, ch, chbank;
 
-  block=(unsigned char *)(basicvars.offbase+x);
+  block=(unsigned char *)(size_t)x;
   if ( ( block[0] < 4 ) || ( block[1] < 44 ) ) return;
   ch=block[2];
   chbank=block[3];
@@ -4442,7 +4442,7 @@ void osword8C(int64 x) {
   unsigned char *block;
   int32 offset, i, ch;
 
-  block=(unsigned char *)(basicvars.offbase+x);
+  block=(unsigned char *)(size_t)x;
   if (block[0] < 44) return;
   ch=block[2];
   if ((ch < 0x20) || (ch > 0xFF)) return;

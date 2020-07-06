@@ -106,13 +106,13 @@ byte *skip(byte *p) {
 void check_read(size_t low, uint32 size) {
 #if 0 /* Make this function a no-op */
 #ifndef TARGET_RISCOS
-  byte *lowaddr = basicvars.offbase+low;
+  byte *lowaddr = low;
   
   if (matrixflags.gpio) {
     if ((lowaddr >= matrixflags.gpiomem) && (lowaddr+size < (0x1000 + matrixflags.gpiomem))) return;
   }
 #ifdef USE_SDL
-  if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+  if ((low >= matrixflags.modescreen_ptr) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr))) return;
   if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
 #endif
   if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
@@ -135,22 +135,16 @@ void check_read(size_t low, uint32 size) {
 void check_write(size_t low, uint32 size) {
 #if 0 /* Make this function a no-op */
   byte *lowaddr, *highaddr;
-  lowaddr = basicvars.offbase+low;
+  lowaddr = low;
   highaddr = lowaddr+size;
 
   if (matrixflags.gpio) {
-    if ((low >= (matrixflags.gpiomem-basicvars.offbase)) && (low < (0xFFF + matrixflags.gpiomem-basicvars.offbase))) return;
+    if ((low >= matrixflags.gpiomem) && (low < (0xFFF + matrixflags.gpiomem))) return;
   }
 
 #ifdef USE_SDL
-  if ((low >= (matrixflags.modescreen_ptr-basicvars.offbase)) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr-basicvars.offbase))) return;
+  if ((low >= matrixflags.modescreen_ptr) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr))) return;
 #endif
-
-  /* Check below PAGE, anything between 0 and PAGE can be written to */
-  if ((basicvars.page - basicvars.offbase) > 0) {
-    if ((low >= 0) && (low < (basicvars.page - basicvars.offbase)))
-      return;
-  }
 
 #if 1
 /*
@@ -195,8 +189,8 @@ void check_write(size_t low, uint32 size) {
 */
 int32 get_integer(size_t offset) {
   check_read(offset, sizeof(int32));
-  return basicvars.offbase[offset]+(basicvars.offbase[offset+1]<<BYTESHIFT)+
-   (basicvars.offbase[offset+2]<<(2*BYTESHIFT))+(basicvars.offbase[offset+3]<<(3*BYTESHIFT));
+  return basicvars.memory[offset]+(basicvars.memory[offset+1]<<BYTESHIFT)+
+   (basicvars.memory[offset+2]<<(2*BYTESHIFT))+(basicvars.memory[offset+3]<<(3*BYTESHIFT));
 }
 
 /*
@@ -207,7 +201,7 @@ int32 get_integer(size_t offset) {
 float64 get_float(size_t offset) {
   float64 value;
   check_read(offset, sizeof(float64));
-  memmove(&value, &basicvars.offbase[offset], sizeof(float64));
+  memmove(&value, (void *)offset, sizeof(float64));
   return value;
 }
 
@@ -219,10 +213,10 @@ float64 get_float(size_t offset) {
 */
 void store_integer(size_t offset, int32 value) {
   check_write(offset, sizeof(int32));
-  basicvars.offbase[offset] = value;
-  basicvars.offbase[offset+1] = value>>BYTESHIFT;
-  basicvars.offbase[offset+2] = value>>(2*BYTESHIFT);
-  basicvars.offbase[offset+3] = value>>(3*BYTESHIFT);
+  basicvars.memory[offset] = value;
+  basicvars.memory[offset+1] = value>>BYTESHIFT;
+  basicvars.memory[offset+2] = value>>(2*BYTESHIFT);
+  basicvars.memory[offset+3] = value>>(3*BYTESHIFT);
 }
 
 /*
@@ -232,7 +226,7 @@ void store_integer(size_t offset, int32 value) {
 */
 void store_float(size_t offset, float64 value) {
   check_write(offset, sizeof(float64));
-  memmove(&basicvars.offbase[offset], &value, sizeof(float64));
+  memmove((void *)offset, &value, sizeof(float64));
 }
 
 
@@ -403,7 +397,7 @@ void show_byte(size_t low, size_t high) {
       if (n+ll>=count)
         emulate_printf("   ");
       else {
-        emulate_printf("%02X ", basicvars.offbase[low+ll]);
+        emulate_printf("%02X ", basicvars.memory[low+ll]);
       }
       x++;
       if (x==4) {
@@ -415,7 +409,7 @@ void show_byte(size_t low, size_t high) {
       if (n+ll>=count)
         emulate_vdu('.');
       else {
-        ch = basicvars.offbase[low+ll];
+        ch = basicvars.memory[low+ll];
         if (ch>=' ' && ch<='~')
           emulate_vdu(ch);
         else {
@@ -450,7 +444,7 @@ void show_word(size_t low, size_t high) {
       if (n+ll>=count)
         emulate_vdu('.');
       else {
-        ch = basicvars.offbase[low+ll];
+        ch = basicvars.memory[low+ll];
         if (ch>=' ' && ch<='~')
           emulate_vdu(ch);
         else {

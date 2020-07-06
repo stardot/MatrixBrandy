@@ -135,7 +135,7 @@ static char *input_number(lvalue destination, char *p) {
     break;
   case VAR_INTBYTEPTR:	/* Indirect reference to byte-sized integer */
     check_write(destination.address.offset, sizeof(byte));
-    basicvars.offbase[destination.address.offset] = isint ? intvalue : TOINT(fpvalue);
+    basicvars.memory[destination.address.offset] = isint ? intvalue : TOINT(fpvalue);
     break;
   case VAR_INTWORDPTR:	/* Indirect reference to word-sized integer */
     store_integer(destination.address.offset, isint ? intvalue : TOINT(fpvalue));
@@ -213,7 +213,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   else {	/* '$<addr>' variety of string */
     check_write(destination.address.offset, index+1);	/* +1 for CR character added to end */
     tempstring[index] = asc_CR;
-    memmove(&basicvars.offbase[destination.address.offset], tempstring, index+1);
+    memmove(&basicvars.memory[destination.address.offset], tempstring, index+1);
   }
   return p;
 }
@@ -845,7 +845,7 @@ static void input_file(void) {
     case VAR_INTBYTEPTR:
       fileio_getnumber(handle, &isint, &intvalue, &floatvalue);
       check_write(destination.address.offset, sizeof(byte));
-      basicvars.offbase[destination.address.offset] = isint ? intvalue : TOINT(floatvalue);
+      basicvars.memory[destination.address.offset] = isint ? intvalue : TOINT(floatvalue);
       break;
     case VAR_INTWORDPTR:
       fileio_getnumber(handle, &isint, &intvalue, &floatvalue);
@@ -857,8 +857,8 @@ static void input_file(void) {
       break;
     case VAR_DOLSTRPTR:
       check_write(destination.address.offset, MAXSTRING);
-      length = fileio_getstring(handle, CAST(&basicvars.offbase[destination.address.offset], char *));
-      basicvars.offbase[destination.address.offset+length] = asc_CR;
+      length = fileio_getstring(handle, CAST(&basicvars.memory[destination.address.offset], char *));
+      basicvars.memory[destination.address.offset+length] = asc_CR;
       break;
     default:
       error(ERR_VARNUMSTR);

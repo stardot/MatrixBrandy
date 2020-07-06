@@ -269,6 +269,8 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     *destination.address.intaddr = value;
     break;
   case VAR_UINT8:
+  case VAR_INTBYTEPTR:
+    check_write(destination.address.offset, sizeof(byte));
     *destination.address.uint8addr = value;
     break;
   case VAR_INTLONG:
@@ -287,10 +289,6 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     destination.address.straddr->stringlen = length;
     destination.address.straddr->stringaddr = cp;
     break;
-  case VAR_INTBYTEPTR:
-    check_write(destination.address.offset, sizeof(byte));
-    basicvars.offbase[destination.address.offset] = value;
-    break;
   case VAR_INTWORDPTR:
     store_integer(destination.address.offset, value);
     break;
@@ -302,8 +300,8 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     length = strlen(TOSTRING(value));
     if (length>MAXSTRING) error(ERR_STRINGLEN);
     check_write(destination.address.offset, length+1);
-    if (length>0) memmove(&basicvars.offbase[destination.address.offset], TOSTRING(value), length);
-    basicvars.offbase[destination.address.offset+length] = asc_CR;
+    if (length>0) memmove(destination.address.uint8addr, TOSTRING(value), length);
+    *((uint8 *)destination.address.uint8addr+length) = asc_CR;
     break;
   default:
     error(ERR_VARNUM);

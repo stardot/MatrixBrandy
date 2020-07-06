@@ -145,7 +145,7 @@ typedef struct {
   int32 dimcount;			/* Number of array dimensions */
   int32 arrsize;			/* Total number of elements in array */
   union {
-    uint8 *uint8base;		/* Pointer to start of uint8 elements */
+    uint8 *uint8base;			/* Pointer to start of uint8 elements */
     int32 *intbase;			/* Pointer to start of integer elements */
     int64 *int64base;			/* Pointer to start of 64-bit integer elements */
     float64 *floatbase;			/* Pointer to start of floating point elements */
@@ -157,7 +157,7 @@ typedef struct {
 
 typedef union {
   char *charaddr;			/* Pointer to a character */
-  uint8 *uint8addr;		/* Pointer to an unsigned 8-bit integer */
+  uint8 *uint8addr;			/* Pointer to an unsigned 8-bit integer */
   int32 *intaddr;			/* Pointer to Basic integer value */
   int64 *int64addr;			/* Pointer to 64-bit integer value */
   float64 *floataddr;			/* Pointer to Basic floating point value */
@@ -354,7 +354,7 @@ typedef struct {		/* Saved local variable */
   stackitem itemtype;
   lvalue savedetails;		/* Details of item saved */
   union {
-    uint8 saveduint8;	/* Saved 8-bit unsigned integer value */
+    uint8 saveduint8;		/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -368,7 +368,7 @@ typedef struct {		/* Saved RETURN-type local variable */
   lvalue savedetails;		/* Details of item saved */
   lvalue retdetails;		/* Details of where to save returned value */
   union {
-    uint8 saveduint8;	/* Saved 8-bit unsigned integer value */
+    uint8 saveduint8;		/* Saved 8-bit unsigned integer value */
     int32 savedint;		/* Saved 32-bit integer value */
     int64 savedint64;		/* Saved 64-bit integer value */
     float64 savedfloat;		/* Saved floating point value */
@@ -449,7 +449,7 @@ typedef struct cmdarg {		/* Command line argument structure */
 typedef struct {
   byte *workspace;			/* Address of start of Basic's memory */
   size_t worksize;			/* Size of Basic's memory */
-  byte *offbase;			/* Indirection op addresses are offsets from here */
+  byte *memory;				/* Set to 0, effectively a way of accessing arbitrary memory. Used by some indirections */
   size_t *opstop;			/* Basic operator stack pointer */
   size_t *opstlimit;			/* Pointer to end of operator stack */
   byte *page;				/* The program starts here */
