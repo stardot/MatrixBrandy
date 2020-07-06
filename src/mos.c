@@ -2397,11 +2397,7 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
 */
 boolean mos_init(void) {
   (void) clock();	/* This might be needed to start the clock */
-#if defined(TARGET_WIN32) | defined(TARGET_MINGW)
-  startime = 0;
-#else
   mos_wrtime(0);
-#endif
   return TRUE;
 }
 
