@@ -460,10 +460,8 @@ void init_clock() {
   struct timespec tv;
   int result=1;
 #ifdef CLOCK_MONOTONIC
-  if(result) {
-    basicvars.clocktype = CLOCK_MONOTONIC;
-    result=clock_gettime(basicvars.clocktype, &tv);
-  }
+  basicvars.clocktype = CLOCK_MONOTONIC;
+  result=clock_gettime(basicvars.clocktype, &tv);
 #endif
   if(result) {
     basicvars.clocktype = CLOCK_REALTIME;
