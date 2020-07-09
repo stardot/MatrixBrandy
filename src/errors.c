@@ -715,11 +715,11 @@ static void handle_error(errortype severity) {
 /* Error is recoverable and there is an usable error handler in the Basic program */
     reset_stack(basicvars.error_handler.stacktop);
 #ifdef DEBUG
-  if (basicvars.debug_flags.debug) {
-    fprintf(stderr, "Invoking ON ERROR %s handler at %p,  stack = %p,  opstop = %p\n",
-     basicvars.error_handler.islocal ? "LOCAL" : "",
-     basicvars.error_handler.current, basicvars.error_handler.stacktop, basicvars.opstop);
-  }
+    if (basicvars.debug_flags.debug) {
+      fprintf(stderr, "Invoking ON ERROR %s handler at %p,  stack = %p,  opstop = %p\n",
+       basicvars.error_handler.islocal ? "LOCAL" : "",
+       basicvars.error_handler.current, basicvars.error_handler.stacktop, basicvars.opstop);
+    }
 #endif
     if (basicvars.error_handler.islocal) {        /* Trapped via 'ON ERROR LOCAL' */
 #ifdef DEBUG
@@ -745,7 +745,7 @@ static void handle_error(errortype severity) {
     mode7renderscreen();
 #endif
     if (basicvars.runflags.closefiles) fileio_shutdown();
-    if (basicvars.runflags.quitatend) exit_interpreter(EXIT_FAILURE);   /* Leave interpreter is flag is set */
+    if (basicvars.runflags.quitatend) exit_interpreter(EXIT_FAILURE);   /* Leave interpreter if flag is set */
     basicvars.current = NIL;
     basicvars.procstack = NIL;
     basicvars.gosubstack = NIL;
@@ -771,8 +771,11 @@ void error(int32 errnumber, ...) {
   va_list parms;
   byte *badline;
 
+/* This causes a segfault on an error, to stop gdb in its tracks.
+** UGLY UGLY hack. Use with compilation option -g to allow a stack
+** backtrace to see exactly where an error condition was raised. */
 #ifdef BORKONERROR
-*collapse="bork"; /* This causes a segfault on an error, to stop gdb in its tracks. Ugly ugly hack. */
+*collapse="bork";
 #endif
 
 #ifdef USE_SDL
@@ -784,7 +787,7 @@ void error(int32 errnumber, ...) {
   }
 
 #ifdef NEWKBD
-  kbd_escack();				/* Acknowledge and process Escape effects */
+  if (errnumber == ERR_ESCAPE) kbd_escack();				/* Acknowledge and process Escape effects */
 #else // OLDKBD
 
   basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */

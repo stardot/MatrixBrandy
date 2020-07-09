@@ -1109,6 +1109,7 @@ int32 kbd_get(void) {
 //  int raw=0;
 
   if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
+    if (kbd_escpoll()) error(ERR_ESCAPE);
     ch=fgetc(matrixflags.doexec);
     if (!feof(matrixflags.doexec)) return (ch & BYTEMASK);
     fclose(matrixflags.doexec);
