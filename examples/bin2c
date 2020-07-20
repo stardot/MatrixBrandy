@@ -1,0 +1,19 @@
+#!/home/soruk/bin/sbrandy
+IF ARGC < 2 THEN ERROR 0,"Syntax: bin2c <infile> <outfile>"
+
+i%=OPENIN(ARGV$(1))
+o%=OPENOUT(ARGV$(2))
+l%=0
+
+BPUT#o%,"const char _binary_app_start[] = { "
+WHILE EOF#i%=0
+  c%=BGET#i%
+  BPUT#o%,STR$c%;",";
+  l%+=1
+ENDWHILE
+PTR#o%=(PTR#o%-1)
+BPUT#o%,""
+BPUT#o%,"};"
+BPUT#o%,"const int _binary_app_len="+STR$l%+";"
+CLOSE#i%
+CLOSE#o%
