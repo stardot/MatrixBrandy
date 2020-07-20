@@ -47,7 +47,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/graphsdl.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c \
-	$(SRCDIR)/soundsdl.c
+	$(SRCDIR)/soundsdl.c $(SRCDIR)/app.c
 
 brandyapp:	$(OBJ)
 	$(LD) $(LDFLAGS) -o brandyapp $(OBJ) $(LIBS)
