@@ -2,11 +2,14 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 * V1.22.7 -
-- Platforms: Native display builds for RISC OS are now working again,
-  for the first time since 1.21.17 (now my toolchain is working).
+- Platforms: Native display builds for RISC OS available, including
+  networking. 26-bit and 32-bit builds both possible.
 - Platforms: SYS calls on RISC OS can call the Brandy_* calls from within
   the interpreter in addition to the RISC OS native calls.
   OS_SWINumerFromString is intercepted to also recognise the Brandy_* calls.
+- Platforms: BrandyApp build mechanism changed, no longer relies on ld to
+  build a .o file, instead uses a BASIC program to build a .c file with the
+  program data embedded.
 - System: pthreads used for timer thread on non-SDL (and non-RISC OS) builds.
 - System: Timer uses monotomic clock instead of gettimeofday().
 - System: *EXEC now interruptable with ESCAPE, and not aborted on other

@@ -5,27 +5,24 @@ Before you begin, note that the application will exit as soon as the BASIC
 program exits, as if -quit were supplied on the command line for Brandy
 (or *BASIC in RISC OS).
 
-This build process is in two stages. First, we build the library:
+This build process is in two stages. First, we build the .c file containing
+the program to be included:
 
-1: Enaure the build area is clean:
+1: Ensure you have a regular build of brandy (SD or text) built.
+
+2: Build the file (assumes you're in the top of the repo tree):
+   brandy examples/bin2c /path/to/basic/file src/app.c
+
+3: The resulting app.c file is written into the src directory. (The git tree
+   is configured to ignore this file.)
+
+Secondly, we build it:
+
+1: Ensure the build area is clean:
    make -f makefile.app clean
 
-2: Build the static library:
+2: Build the app binary:
    make -f makefile.app
 
-3: Put the brandyapp.a library somewhere, such as /usr/local/lib or $HOME/lib.
-
-Secondly, we make a .o file containing our BASIC application and link to the
-library:
-
-4: The program to be made into an app needs to be called "app" - that's due
-   to the way ld makes the .o file and names the structures inside. I suggest
-   copying the BASIC program to "app" leaving your original file alone.
-
-5: Do: ld -r b binary app -o app.o
-
-6: Link it to the library:
-   gcc -o yourappname app.o /path/to/brandyapp.a -lX11 -lm -lSDL
-
-7: The resulting yourappname binary is the app. It can be placed somewhere in
-   your $PATH.
+3: Put the brandyapp wherever you want (usually somewhere in your $PATH),
+   renaming it to what you want to call your app..
