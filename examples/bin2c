@@ -1,4 +1,4 @@
-#!/home/soruk/bin/sbrandy
+#!sbrandy
 IF ARGC < 2 THEN ERROR 0,"Syntax: bin2c <infile> <outfile>"
 
 i%=OPENIN(ARGV$(1))
