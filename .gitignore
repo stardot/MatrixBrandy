@@ -3,6 +3,7 @@ brandy
 brandyapp
 sbrandy
 tbrandy
+app.c
 *.o
 *.ko
 *.obj

@@ -55,12 +55,8 @@ static byte *last_added;	/* Address of last line added to program */
 static boolean needsnumbers;	/* TRUE if a program need to be renumbered */
 
 #ifdef BRANDYAPP
-#ifdef TARGET_MINGW
-#define _binary_app_start binary_app_start
-#define _binary_app_end binary_app_end
-#endif
 extern const char _binary_app_start;
-extern const char _binary_app_end;
+extern const int _binary_app_len;
 static unsigned long int blockptr;
 #endif
 
@@ -656,7 +652,6 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 
 static void blockread(void *ptr, size_t size, size_t nmemb) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
-//  unsigned char *blobend = (unsigned char *)&_binary_app_end;
 
   memcpy(ptr, (void *)(blob + blockptr), size*nmemb);
   if (matrixflags.scrunge) do_scrunge(size*nmemb, ptr);
@@ -665,19 +660,18 @@ static void blockread(void *ptr, size_t size, size_t nmemb) {
 
 static char *blockgets(char *s, int size) {
   unsigned char *blob = (unsigned char *)&_binary_app_start;
-  unsigned char *blobend = (unsigned char *)&_binary_app_end;
 
   unsigned int p = 0;
   int l = 1;
 
-  while (l && (p < (size-1)) && (blob+blockptr <= blobend)) {
+  while (l && (p < (size-1)) && (blockptr <= _binary_app_len)) {
     *(s+p) = *(blob+blockptr);
     if (*(s+p)=='\n') l=0;
     p++; blockptr++;
   }
   *(s+p)='\0';
   if (matrixflags.scrunge) do_scrunge(p, s);
-  if (blob+blockptr <= blobend) return s;
+  if (blockptr <= _binary_app_len) return s;
   return NULL;
 }
 
