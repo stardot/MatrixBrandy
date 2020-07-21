@@ -1,19 +1,24 @@
-#!sbrandy
-IF ARGC < 2 THEN ERROR 0,"Syntax: bin2c <infile> <outfile>"
-
-i%=OPENIN(ARGV$(1))
-o%=OPENOUT(ARGV$(2))
-l%=0
-
-BPUT#o%,"const char _binary_app_start[] = { "
-WHILE EOF#i%=0
-  c%=BGET#i%
-  BPUT#o%,STR$c%;",";
-  l%+=1
-ENDWHILE
-PTR#o%=(PTR#o%-1)
-BPUT#o%,""
-BPUT#o%,"};"
-BPUT#o%,"const int _binary_app_len="+STR$l%+";"
-CLOSE#i%
-CLOSE#o%
+   10ON ERROR IF ERR=26 THEN GOTO 300 ELSE REPORT: PRINT " at line ";ERL:END
+   20IF ARGC < 2 THEN GOTO 300
+   30infile$=ARGV$(1)
+   40outfile$=ARGV$(2)
+   50i%=OPENIN(infile$)
+   60o%=OPENOUT(outfile$)
+   70l%=0
+   80BPUT#o%,"const char _binary_app_start[] = { "
+   90WHILE EOF#i%=0
+  100  c%=BGET#i%
+  110  BPUT#o%,STR$c%+",";
+  120  l%+=1
+  130ENDWHILE
+  140PTR#o%=(PTR#o%-1)
+  150BPUT#o%,""
+  160BPUT#o%,"};"
+  170BPUT#o%,"const int _binary_app_len="+STR$l%+";"
+  180CLOSE#i%
+  190CLOSE#o%
+  200END
+  300REM ARM BBC BASIC handler, also used if no CLI parameters given in Brandy
+  310INPUT "Input filename >"infile$
+  320INPUT "Output filename >"outfile$
+  330GOTO 50
