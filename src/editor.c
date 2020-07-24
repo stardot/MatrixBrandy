@@ -402,36 +402,40 @@ void delete_range(int32 low, int32 high) {
 */
 void renumber_program(byte *progstart, int32 start, int32 step) {
   byte *bp;
+  int32 lineno = start;
   boolean ok;
   bp = progstart;
   while (!AT_PROGEND(bp) && start<=MAXLINENO) {
     resolve_linenums(bp);
     bp+=get_linelen(bp);
+    lineno+=step;
   }
-  bp = progstart;
-  while (!AT_PROGEND(bp) && start<=MAXLINENO) {
-    save_lineno(bp, start);
-    start+=step;
-    bp+=get_linelen(bp);
-  }
-  ok = AT_PROGEND(bp);
-  if (!ok) {	/* Oops... Did not stop at end of program */
-    if (step!=1) { 	   /* Try to fix line numbers */
-      start = 1;
-      bp = progstart;
-      while (!AT_PROGEND(bp) && start<=MAXLINENO) {
-        save_lineno(bp, start);
-        start++;
-        bp+=get_linelen(bp);
+  if(lineno-step <= MAXLINENO) {
+    bp = progstart;
+    while (!AT_PROGEND(bp) && start<=MAXLINENO) {
+      save_lineno(bp, start);
+      start+=step;
+      bp+=get_linelen(bp);
+    }
+    ok = AT_PROGEND(bp);
+    if (!ok) {	/* Oops... Did not stop at end of program */
+      if (step!=1) { 	   /* Try to fix line numbers */
+        start = 1;
+        bp = progstart;
+        while (!AT_PROGEND(bp) && start<=MAXLINENO) {
+          save_lineno(bp, start);
+          start++;
+          bp+=get_linelen(bp);
+        }
       }
     }
   }
   bp = progstart;
-  while (!AT_PROGEND(bp) && start<=MAXLINENO) {
+  while (!AT_PROGEND(bp)) {
     reset_linenums(bp);
     bp+=get_linelen(bp);
   }
-  if(!ok) error(ERR_RENUMBER);
+  if(lineno-step > MAXLINENO) error(ERR_RENUMBER);
 }
 
 /*
