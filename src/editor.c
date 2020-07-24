@@ -653,6 +653,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   if (base+ENDMARKSIZE>=limit) error(ERR_NOROOM);
   mark_end(base);
   if (needsnumbers) {		/* Line numbers are missing */
+    if (!basicvars.runflags.loadngo) emulate_printf("Line numbers added to program\r\n");
     renumber_program(filebase, 1, 1);
   }
   return ALIGN(base-filebase+ENDMARKSIZE);
