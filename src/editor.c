@@ -41,6 +41,7 @@
 #include "miscprocs.h"
 #include "stack.h"
 #include "fileio.h"
+#include "screen.h"
 
 #ifdef HAVE_ZLIB_H
 # include <zlib.h>
@@ -494,7 +495,7 @@ static FILE *open_file(char *name) {
 **
 */
 static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
-  int length, count;
+  int length, count, zerolines = 0;
   byte line[INPUTLEN], *filebase;
   byte tokenline[MAXSTATELEN];
   basicvars.linecount = 0;	/* Number of line being read from file */
@@ -530,6 +531,7 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
 	error(ERR_NOROOM);
       }
       memmove(base, tokenline, length);
+      if (get_lineno(tokenline) == 0) zerolines++;
       base+=length;
     }
   } while (!feof(bbcfile));
@@ -537,6 +539,10 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
   basicvars.linecount = 0;
   if (base + ENDMARKSIZE >= limit) error(ERR_NOROOM);
   mark_end(base);
+  if(zerolines > 1) {
+    if (!basicvars.runflags.loadngo) emulate_printf("Line numbers added to program\r\n");
+    renumber_program(filebase, 1, 1);
+  }
   return ALIGN(base - filebase + ENDMARKSIZE);
 }
 
