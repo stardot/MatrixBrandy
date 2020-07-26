@@ -47,7 +47,9 @@ ENDPROC
 
 DEFPROCinit
 MODE 7
-title$="   Matrix Teletext Editor V0.02"
+title$="   Matrix Teletext Editor V0.03"
+SYS "Brandy_GetVideoDriver" TO ,,,,scr%%
+IF scr%% = 0 THEN ERROR 0, "This program requires an SDL build"
 DIM t% 1000:FORp%=0TO999:t%?p%=32:NEXTp%
 x%=0: y%=0: REM pointer on screen
 twiddlemode%=0:black%=0:reveal%=0:statusbar%=0
@@ -105,8 +107,8 @@ FOR p%=38 TO x% STEP -1
 ?FNlinear=32
 ENDPROC
 
-DEFPROCwipeline(o%,l%)
-FOR p%=0 TO 39: ?(o%+(l%*40)+p%)=32:NEXT
+DEFPROCwipeline(o%%,l%)
+FOR p%=0 TO 39: ?(o%%+(l%*40)+p%)=32:NEXT
 ENDPROC
 
 DEFPROCshovedown
@@ -130,8 +132,8 @@ ENDPROC
 DEFFNlinear:=t%+x%+(40*y%)
 
 DEFPROCplacecursor
-IF statusbar%=1THENVDU31,0,0:PROCwipeline(&FFFF7C00,0)
-IF statusbar%=2THENVDU31,0,24:PROCwipeline(&FFFF7C00,24)
+IF statusbar%=1THENVDU31,0,0:PROCwipeline(scr%%,0)
+IF statusbar%=2THENVDU31,0,24:PROCwipeline(scr%%,24)
 IF statusbar%<>0THENVDU132,157,135:PRINT"X=";x%;" Y=";y%;" Char=";?FNlinear;" ";FNdecode(?FNlinear);
 VDU31,x%,y%
 ENDPROC
@@ -174,7 +176,7 @@ IF d%=159 THEN ="Graphics Release"
 ="Unrecognised"
 
 DEFPROCbuf2scr
-FOR p%=0 TO 999:?(&FFFF7C00+p%)=t%?p%:NEXT p%
+FOR p%=0 TO 999:?(scr%%+p%)=t%?p%:NEXT p%
 ENDPROC
 
 DEFPROCsavebuf
@@ -229,7 +231,7 @@ PROCbuf2scr
 ENDPROC
 
 DEFPROChelp
-CLS:OFF:OSCLI "Refresh OnError"
+CLS:OFF
 VDU141,134:PRINT title$
 VDU141,134:PRINT title$
 PRINT
@@ -251,8 +253,8 @@ VDU131:PRINT"CTRL-Q: Exit the editor"
 PRINT
 VDU130:PRINT"Press";CHR$(134);"ESC";CHR$(130);"to start playing, or any"
 VDU130:PRINT"other key for more help.";
-OSCLI"Refresh On"
-dummy%=GET::OSCLI "Refresh OnError"
+
+dummy%=GET
 CLS
 VDU141,134:PRINT title$
 VDU141,134:PRINT title$
@@ -277,7 +279,6 @@ VDU130:PRINT"Insert inserts a blank row at the"
 VDU130:PRINT"cursor, shoving the rows below down."
 VDU130:PRINT"CTRL-Insert deletes the current row"
 VDU130:PRINT"and pulls the rows below up."
-OSCLI "Refresh On"
 dummy%=GET: ON
 ENDPROC
 
@@ -318,7 +319,7 @@ IF k%=61 =255
 =0
 
 DEFFNcolourcode
-PROCwipeline(&FFFF7C00,24)
+PROCwipeline(scr%%,24)
 VDU31,0,24,129,157,135:PRINT"Press colour key...";
 k%=GET
 PROCbuf2scr:PROCplacecursor
