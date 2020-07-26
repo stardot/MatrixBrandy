@@ -42,6 +42,9 @@
 //#include "common.h"
 //#include "basicdefs.h"
 
+#ifdef DEBUG
+#include "basicdefs.h"
+#endif
 #include "errors.h"
 #include "net.h"
 
