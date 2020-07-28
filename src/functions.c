@@ -696,7 +696,7 @@ void fn_false(void) {
 */
 static void fn_get(void) {
   int ch;
-  if (*basicvars.current == '(') {	/* Have encountered the 'GET$#' version */
+  if (*basicvars.current == '(') {	/* Have encountered the 'GET(x,y)' version */
     int32 x, y;
     basicvars.current++;
     x = eval_integer();
@@ -726,7 +726,7 @@ static void fn_getdol(void) {
   char *cp;
   int ch;
   int32 handle, count;
-  if (*basicvars.current == '(') {	/* Have encountered the 'GET$#' version */
+  if (*basicvars.current == '(') {	/* Have encountered the 'GET$(x,y)' version */
     int32 x, y;
     basicvars.current++;
     x = eval_integer();
