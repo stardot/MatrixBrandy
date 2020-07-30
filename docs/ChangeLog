@@ -23,6 +23,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: Lowercase immediate mode commands no longer allowed, unless compiled
   with -DBRANDY_ALLOW_LOWERCASE_COMMANDS
 - BASIC: RENUMBER edge cases fixed.
+- BASIC: GET(x,y) and GET$(x,y) are now relative to the current text viewport
+  as set with VDU28.
+- Examples: Teletext screen editor updated with mouse support.
 
 * V1.22.6 - 19 June 2020
 - BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)

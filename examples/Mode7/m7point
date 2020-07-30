@@ -1,0 +1,64 @@
+REM Library for pixel plotting in MODE 7
+
+REM Using a virtual coordinate system that has 0,0 at the bottom left.
+REM 0,0 corresponds to the bottom line, second character cell
+REM (as it's impossible to put graphics in the left-most cell)
+REM X range is 0 to 77. Y range is 0 to 74 (3 vertical per sixel)
+
+DEFFNsxbit(sx%, sy%)
+  IF sx% = 0 AND sy% = 0 THEN =16
+  IF sx% = 0 AND sy% = 1 THEN =4
+  IF sx% = 0 AND sy% = 2 THEN =1
+  IF sx% = 1 AND sy% = 0 THEN =64
+  IF sx% = 1 AND sy% = 1 THEN =8
+  IF sx% = 1 AND sy% = 2 THEN =2
+=0 : REM 
+
+REM Read the point at the specified coordinates (1=set, 0=cleared)
+REM This can be optimised to one line, but it's left expanded
+REM for clarity to show how it works.
+
+DEFFNpoint(x%,y%)
+LOCAL cx%,cy%,chr%,sx%,sy%
+REM Get character cell
+cx% = 1+(x% DIV 2)
+cy% = 24-(y% DIV 3)
+chr%=GET(cx%,cy%) AND &5F
+sx% = x% MOD 2
+sy% = y% MOD 3
+=SGN(chr% AND FNsxbit(sx%,sy%))
+
+REM Plot a Teletext sixel point. The first parameter means:
+REM 0: Clear the point
+REM 1: Set the point
+REM 2: Toggle the point
+DEFPROCpoint(cmd%, x%, y%)
+LOCAL cx%,cy%,chr%,sx%,sy%,tx%,ty%
+REM Get character cell
+cx% = 1+(x% DIV 2)
+cy% = 24-(y% DIV 3)
+chr%=GET(cx%,cy%) AND &5F
+sx% = x% MOD 2
+sy% = y% MOD 3
+CASE cmd% OF
+  WHEN 0:chr% AND=(&5F - FNsxbit(sx%,sy%))
+  WHEN 1:chr% OR=FNsxbit(sx%,sy%)
+  WHEN 2:chr% EOR=FNsxbit(sx%,sy%)
+ENDCASE
+tx%=POS: ty%=VPOS
+PRINT TAB(cx%,cy%)CHR$(chr% OR 160);TAB(tx%,ty%);
+ENDPROC
+
+REM Converts screen coordinates (like those returned by MOUSE) to
+REM MODE 7 sixel coordinates used by these other functions
+
+DEFFNscreen2m7(x%,y%)
+x%=(x%/16)-2
+y%=(y%/13.3333)
+IF x%<0THENx%=0
+=x%+(y%*256)
+
+DEF FNscreen2chr(x%,y%)
+x%=x%/32
+y%=25-(y%/40)
+=x%+(y%*256)

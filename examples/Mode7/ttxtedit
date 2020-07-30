@@ -12,7 +12,8 @@ DEFPROCmain
 PROCbuf2scr:PROCplacecursor
 ON
 REPEAT
-k%=GET
+k%=INKEY(1)
+IF k%=-1 THEN PROChandlemouse
 IF k%>=32 AND k%<=126 THEN PROCprintable
 IF k%=143 THEN PROCcur_up
 IF k%=142 THEN PROCcur_down
@@ -41,19 +42,19 @@ IF k%=19 THEN PROCsavebuf
 IF k%=22 THEN PROCsaveimg
 IF k%=23 THEN PROCtogglewidth
 IF k%=17 THEN MODE 7:END
-PROCbuf2scr:PROCplacecursor
+IF k%<>-1 THEN PROCbuf2scr:PROCplacecursor
 UNTIL FALSE
 ENDPROC
 
 DEFPROCinit
 MODE 7
-title$="   Matrix Teletext Editor V0.03"
+title$="   Matrix Teletext Editor V0.04"
 SYS "Brandy_GetVideoDriver" TO ,,,,scr%%
 IF scr%% = 0 THEN ERROR 0, "This program requires an SDL build"
 DIM t% 1000:FORp%=0TO999:t%?p%=32:NEXTp%
 x%=0: y%=0: REM pointer on screen
 twiddlemode%=0:black%=0:reveal%=0:statusbar%=0
-width%=1
+width%=1: lx%=0: ly%=0
 ENDPROC
 
 DEFPROCcur_right
@@ -250,9 +251,12 @@ VDU131:PRINT"CTRL-L: Load screen buffer"
 VDU131:PRINT"CTRL-S: Save screen buffer"
 VDU131:PRINT"CTRL-V: Save page as BMP image"
 VDU131:PRINT"CTRL-Q: Exit the editor"
+VDU134:PRINT"MOUSE: Left button positions cursor."
+VDU134:PRINT"Middle sets a sixel and right clears"
+VDU134:PRINT"Shift+middle or right draws a line"
+VDU134:PRINT"from the last mouse point"
 PRINT
-VDU130:PRINT"Press";CHR$(134);"ESC";CHR$(130);"to start playing, or any"
-VDU130:PRINT"other key for more help.";
+VDU130:PRINT"           Press any key...";
 
 dummy%=GET
 CLS
@@ -279,7 +283,7 @@ VDU130:PRINT"Insert inserts a blank row at the"
 VDU130:PRINT"cursor, shoving the rows below down."
 VDU130:PRINT"CTRL-Insert deletes the current row"
 VDU130:PRINT"and pulls the rows below up."
-dummy%=GET: ON
+dummy%=GET: ON: SYS"OS_Byte",15
 ENDPROC
 
 DEFFNothercode
@@ -323,12 +327,76 @@ PROCwipeline(scr%%,24)
 VDU31,0,24,129,157,135:PRINT"Press colour key...";
 k%=GET
 PROCbuf2scr:PROCplacecursor
-IF k%=ASC("K") OR k%=ASC("k") =128
-IF k%=ASC("R") OR k%=ASC("r") =129
-IF k%=ASC("G") OR k%=ASC("g") =130
-IF k%=ASC("Y") OR k%=ASC("y") =131
-IF k%=ASC("B") OR k%=ASC("b") =132
-IF k%=ASC("M") OR k%=ASC("m") =133
-IF k%=ASC("C") OR k%=ASC("c") =134
-IF k%=ASC("Y") OR k%=ASC("w") =135
+IF k%=ASC("K") OR k%=ASC("k") OR k%=11 =128
+IF k%=ASC("R") OR k%=ASC("r") OR k%=18 =129
+IF k%=ASC("G") OR k%=ASC("g") OR k%=7  =130
+IF k%=ASC("Y") OR k%=ASC("y") OR k%=25 =131
+IF k%=ASC("B") OR k%=ASC("b") OR k%=2  =132
+IF k%=ASC("M") OR k%=ASC("m") OR k%=13 =133
+IF k%=ASC("C") OR k%=ASC("c") OR k%=3  =134
+IF k%=ASC("Y") OR k%=ASC("w") OR k%=23 =135
 =0
+
+DEFPROCdebug(d$):SYS"OS_Write0",d$+CHR$13,42,42: ENDPROC
+
+DEFPROChandlemouse
+LOCAL mx%,my%,mb%,mc%
+MOUSE mx%,my%,mb%
+IF mb%=4 THEN c%=FNscreen2chr(mx%,my%):x%=c%MOD256: y%=c%DIV256: PROCplacecursor: ENDPROC
+IF mb% THEN c%=FNscreen2m7(mx%,my%):mx%=c%MOD256: my%=c%DIV256: PROCpointorline(mb%-1,mx%,my%):ENDPROC
+ENDPROC
+
+REM Routines from m7point library
+DEFFNsxbit(sx%, sy%)
+  IF sx% = 0 AND sy% = 0 THEN =16
+  IF sx% = 0 AND sy% = 1 THEN =4
+  IF sx% = 0 AND sy% = 2 THEN =1
+  IF sx% = 1 AND sy% = 0 THEN =64
+  IF sx% = 1 AND sy% = 1 THEN =8
+  IF sx% = 1 AND sy% = 2 THEN =2
+=0
+
+DEFPROCpointorline(cmd%,x%,y%)
+IF INKEY(-1) THEN PROCline(cmd%,lx%,ly%,x%,y%) ELSE PROCpoint(cmd%,x%,y%)
+lx%=x%:ly%=y%
+ENDPROC
+
+DEFPROCline(cmd%,x1%,y1%,x2%,y2%)
+LOCAL dx%, dy%, sx%, sy%, e
+dx% = ABS(x2% - x1%) : sx% = SGN(x2% - x1%)
+dy% = ABS(y2% - y1%) : sy% = SGN(y2% - y1%)
+IF dx% > dy% e = dx% / 2 ELSE e = dy% / 2
+REPEAT
+PROCpoint(cmd%,x1%,y1%)
+IF x1% = x2% IF y1% = y2% ENDPROC
+IF dx% > dy% THEN
+x1% += sx% : e -= dy% : IF e < 0 e += dx% : y1% += sy%
+ELSE
+y1% += sy% : e -= dx% : IF e < 0 e += dy% : x1% += sx%
+ENDIF
+UNTIL FALSE
+ENDPROC
+
+DEFFNpoint(x%,y%)=SGN(GET(1+(x% DIV 2),24-(y% DIV 3)) AND FNsxbit(x% MOD 2,y% MOD 3))
+
+DEFPROCpoint(cmd%, x%, y%)
+LOCAL cx%,cy%,chr%,sx%,sy%
+REM Get character cell
+cx% = 1+(x% DIV 2): cy% = 24-(y% DIV 3)
+chr%=GET(cx%,cy%) AND &5F
+sx% = x% MOD 2: sy% = y% MOD 3
+CASE cmd% OF
+  WHEN 0:chr% AND=(&5F - FNsxbit(sx%,sy%))
+  WHEN 1:chr% OR=FNsxbit(sx%,sy%)
+ENDCASE
+?(t%+cx%+(40*cy%))=chr% OR 160
+PROCbuf2scr
+ENDPROC
+
+DEFFNscreen2m7(x%,y%)
+x%=(x%/16)-2
+y%=(y%/13.3333)
+IF x%<0THENx%=0
+=x%+(y%*256)
+
+DEF FNscreen2chr(x%,y%)=INT(x%/32)+(INT(25-(y%/40))*256)
