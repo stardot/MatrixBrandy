@@ -132,11 +132,11 @@ ENDPROC
 
 DEFFNlinear:=t%+x%+(40*y%)
 
-DEFPROCplacecursor
+DEFPROCplacecursor:OFF
 IF statusbar%=1THENVDU31,0,0:PROCwipeline(scr%%,0)
 IF statusbar%=2THENVDU31,0,24:PROCwipeline(scr%%,24)
 IF statusbar%<>0THENVDU132,157,135:PRINT"X=";x%;" Y=";y%;" Char=";?FNlinear;" ";FNdecode(?FNlinear);
-VDU31,x%,y%
+VDU31,x%,y%:ON
 ENDPROC
 
 DEF FNdecode(d%)

@@ -1,6 +1,6 @@
 Summary: A BBC BASIC interpreter for Linux
 Name: MatrixBrandy
-Version: 1.22.6
+Version: 1.22.7
 Release: 1
 License: GPLv2+
 Group: Development/Tools
@@ -21,6 +21,8 @@ The Matrix Brandy fork includes support for much of the grahics modes
 offered by RISC OS including Mode 7 (Teletext), and basic networking
 both of which are used by the bundled "telstar" example. Many bugs are fixed
 and mathematics are brought more in line with Acorn's BBC BASIC VI.
+Some BASIC extensions from Richard Russell's BB4W and BBCSDL are also
+included.
 
 %prep
 %setup -q 
@@ -31,8 +33,6 @@ make clean %{?_smp_mflags}
 make %{?_smp_mflags}
 make -f makefile.text clean %{?_smp_mflags}
 make -f makefile.text %{?_smp_mflags}
-make -f makefile.app clean %{?_smp_mflags}
-make -f makefile.app %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
@@ -42,7 +42,6 @@ mkdir -p %{buildroot}%{_datadir}/%{name}-%{version}/examples
 install -s -m 0755 brandy %{buildroot}%{_bindir}
 install -s -m 0755 sbrandy %{buildroot}%{_bindir}
 install -s -m 0755 tbrandy %{buildroot}%{_bindir}
-install -m 0644 brandyapp.a %{buildroot}%{_libdir}
 cp -r examples/* %{buildroot}%{_datadir}/%{name}-%{version}/examples
 
 %clean
@@ -53,10 +52,11 @@ rm -rf %{buildroot}
 %{_bindir}/brandy
 %{_bindir}/sbrandy
 %{_bindir}/tbrandy
-%{_libdir}/brandyapp.a
 %{_datadir}/%{name}-%{version}
 
 %changelog
+* Sat Aug 01 2020 Michael McConnell <mike@matrixnetwork.co.uk> - 1.22.7
+- Removed BrandyApp from package as build mechanism has changed.
 * Tue Jul 23 2019 Michael McConnell <mike@matrixnetwork.co.uk> - 1.22.0
 - Re-tag as BASIC VI
 * Sun Sep 02 2018 Michael McConnell <mike@matrixnetwork.co.uk> - 1.21.12

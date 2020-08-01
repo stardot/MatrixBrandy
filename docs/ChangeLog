@@ -1,7 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.7 -
+* V1.22.7 - 01 August 2020
 - Platforms: Native display builds for RISC OS available, including
   networking. 26-bit and 32-bit builds both possible.
 - Platforms: SYS calls on RISC OS can call the Brandy_* calls from within
@@ -25,7 +25,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: RENUMBER edge cases fixed.
 - BASIC: GET(x,y) and GET$(x,y) are now relative to the current text viewport
   as set with VDU28.
-- Examples: Teletext screen editor updated with mouse support.
+- Examples: Teletext screen editor updated with mouse support, inspired by
+  code written as examples for Pixelblip@Stardot's editor.
 
 * V1.22.6 - 19 June 2020
 - BASIC: Implemented BB4W/BBCSDL extension GET(x,y) and GET$(x,y)
