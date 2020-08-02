@@ -784,7 +784,7 @@ void exec_for(void) {
   boolean isinteger=0;
   lvalue forvar;
   int64 intlimit = 0, intstep = 1;
-  static float64 floatlimit, floatstep = 1.0;
+  float64 floatlimit = 0.0, floatstep = 1.0;
   basicvars.current++;	/* Skip the 'FOR' token */
   get_lvalue(&forvar);
   if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
