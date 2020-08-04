@@ -98,6 +98,25 @@ static void assign_float(pointers address) {
 }
 
 /*
+** 'assign_variant' deals with assignments to variant variables and fixes their type
+*/
+static void assign_variant(pointers address) {
+  stackitem exprtype;
+  byte *ptr = (byte *)address.int64addr + 8;
+  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+
+  exprtype = GET_TOPITEM;
+  if (TOPITEMISFLOAT) {
+    *address.floataddr = pop_anynumfp();
+    *(int *)ptr = VAR_FLOAT;
+  } else if (TOPITEMISINT) {
+    *address.int64addr = pop_anynum64();
+    *(int *)ptr = VAR_INTLONG;
+  } else {
+    error(ERR_TYPENUM);
+  }
+}
+/*
 ** 'assign_stringdol' deals with assignments to normal string variables
 */
 static void assign_stringdol(pointers address) {
@@ -1983,7 +2002,7 @@ static void assidiv_floatarray(pointers address) {
 }
 
 static void (*assign_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assign_intword, assign_float,
+  assign_variant, assignment_invalid, assign_intword, assign_float,
   assign_stringdol, assignment_invalid, assign_int64, assign_intbyte,
   assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
   assign_strarray, assignment_invalid, assign_int64array, assign_uint8array,

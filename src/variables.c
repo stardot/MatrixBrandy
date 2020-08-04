@@ -525,8 +525,8 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
     vp->varentry.varstring.stringaddr = nullstring;
     break;
   default:
-    vp->varflags = VAR_FLOAT;
-    vp->varentry.varfloat = 0.0;
+    vp->varflags = VAR_VARIANT;
+    vp->varentry.var64int = 0;
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created variable '%s' at %p\n", vp->varname, vp);

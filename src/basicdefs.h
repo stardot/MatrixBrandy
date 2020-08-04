@@ -78,6 +78,7 @@
 
 /* Variable type flags */
 
+#define VAR_VARIANT 0				/* Indeterminate type, can become a 64-bit int or a float */
 #define VAR_INTBYTE 1				/* One-byte integer */
 #define VAR_INTWORD 2				/* Four-byte integer */
 #define VAR_FLOAT 3				/* Eight byte floating point */
@@ -204,7 +205,6 @@ typedef struct {
 
 typedef struct variable {
   struct variable *varflink;		/* Next variable in chain */
-  int32 varflags;			/* Type flags */
   char *varname;			/* Pointer to variable's name */
   int32 varhash;			/* Hash value for symbol's name */
   struct library *varowner;		/* Library in which var was defined or NIL */
@@ -218,6 +218,7 @@ typedef struct variable {
     fnprocdef *varfnproc;		/* Pointer to proc/fn definition */
     byte *varmarker;			/* Pointer to proc/fn def marked earlier */
   } varentry;
+  int32 varflags;			/* Type flags */
 } variable;
 
 /* 'fnprocinfo' is the structure saved on the Basic stack when */

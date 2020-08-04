@@ -51,7 +51,7 @@ MODE 7
 title$="   Matrix Teletext Editor V0.04"
 SYS "Brandy_GetVideoDriver" TO ,,,,scr%%
 IF scr%% = 0 THEN ERROR 0, "This program requires an SDL build"
-DIM t% 1000:FORp%=0TO999:t%?p%=32:NEXTp%
+DIM t%% 1000:FORp%=0TO999:t%%?p%=32:NEXTp%
 x%=0: y%=0: REM pointer on screen
 twiddlemode%=0:black%=0:reveal%=0:statusbar%=0
 width%=1: lx%=0: ly%=0
@@ -104,7 +104,7 @@ ENDPROC
 DEFPROCshoveright
 IF x%=39 THEN ?FNlinear=32:ENDPROC
 FOR p%=38 TO x% STEP -1
-?(t%+(40*y%)+(p%+1))=?(t%+(40*y%)+p%):NEXT
+?(t%%+(40*y%)+(p%+1))=?(t%%+(40*y%)+p%):NEXT
 ?FNlinear=32
 ENDPROC
 
@@ -113,24 +113,24 @@ FOR p%=0 TO 39: ?(o%%+(l%*40)+p%)=32:NEXT
 ENDPROC
 
 DEFPROCshovedown
-IF y%<24 THEN FOR p%=((24*40)-1) TO (y%*40) STEP -1:?(t%+p%+40)=?(t%+p%):NEXT
-PROCwipeline(t%,y%)
+IF y%<24 THEN FOR p%=((24*40)-1) TO (y%*40) STEP -1:?(t%%+p%+40)=?(t%%+p%):NEXT
+PROCwipeline(t%%,y%)
 ENDPROC
 
 DEFPROCdeleterow
-FOR p%=((y%+1)*40) TO ((25*40)-1): ?(t%+p%-40)=?(t%+p%):NEXT
-PROCwipeline(t%,24)
+FOR p%=((y%+1)*40) TO ((25*40)-1): ?(t%%+p%-40)=?(t%%+p%):NEXT
+PROCwipeline(t%%,24)
 ENDPROC
 
 DEFPROCdelete
 IF x%=0 THEN ENDPROC
 FOR p%=x% TO 39
-?(t%+(40*y%)+(p%-1))=?(t%+(40*y%)+p%):NEXT
-?(t%+(40*y%)+39)=32
+?(t%%+(40*y%)+(p%-1))=?(t%%+(40*y%)+p%):NEXT
+?(t%%+(40*y%)+39)=32
 PROCcur_left
 ENDPROC
 
-DEFFNlinear:=t%+x%+(40*y%)
+DEFFNlinear:=t%%+x%+(40*y%)
 
 DEFPROCplacecursor:OFF
 IF statusbar%=1THENVDU31,0,0:PROCwipeline(scr%%,0)
@@ -177,7 +177,7 @@ IF d%=159 THEN ="Graphics Release"
 ="Unrecognised"
 
 DEFPROCbuf2scr
-FOR p%=0 TO 999:?(scr%%+p%)=t%?p%:NEXT p%
+FOR p%=0 TO 999:?(scr%%+p%)=t%%?p%:NEXT p%
 ENDPROC
 
 DEFPROCsavebuf
@@ -186,7 +186,7 @@ VDU141,134:PRINT"  Save screen"
 VDU141,134:PRINT"  Save screen"
 INPUTLINE"Filename >"fn$
 f%=OPENOUT(fn$)
-FOR p%=0TO999:BPUT#f%,t%?p%: NEXTp%
+FOR p%=0TO999:BPUT#f%,t%%?p%: NEXTp%
 CLOSE#f%
 ENDPROC
 
@@ -208,7 +208,7 @@ VDU141,134:PRINT"  Load screen"
 VDU141,134:PRINT"  Load screen"
 INPUTLINE"Filename >"fn$
 f%=OPENIN(fn$)
-FOR p%=0TO999:t%?p%=BGET#f%: NEXTp%
+FOR p%=0TO999:t%%?p%=BGET#f%: NEXTp%
 CLOSE#f%
 ENDPROC
 
@@ -389,7 +389,7 @@ CASE cmd% OF
   WHEN 0:chr% AND=(&5F - FNsxbit(sx%,sy%))
   WHEN 1:chr% OR=FNsxbit(sx%,sy%)
 ENDCASE
-?(t%+cx%+(40*cy%))=chr% OR 160
+?(t%%+cx%+(40*cy%))=chr% OR 160
 PROCbuf2scr
 ENDPROC
 
