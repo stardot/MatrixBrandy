@@ -790,7 +790,7 @@ void exec_for(void) {
   if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
   switch(forvar.typeinfo & TYPEMASK) {
     case VAR_INTWORD: case VAR_INTLONG: case VAR_UINT8: isinteger=1; break;
-    case VAR_FLOAT: isinteger=0; break;
+    case VAR_FLOAT: case VAR_VARIANT: isinteger=0; break;
     default: error(ERR_VARNUM);
   }
   if (*basicvars.current != '=') error(ERR_EQMISS);	/* '=' is missing */
@@ -799,6 +799,16 @@ void exec_for(void) {
   if (*basicvars.current != BASIC_TOKEN_TO) error(ERR_TOMISS);
   basicvars.current++;
   switch (forvar.typeinfo) {	/* Assign control variable's initial value */
+  case VAR_VARIANT:
+    if (TOPITEMISINT) {
+      isinteger = 1;
+      forvar.typeinfo = forvar.address.vardataaddr->type = VAR_INTLONG;
+      *forvar.address.int64addr = pop_anynum64();
+    } else {
+      forvar.typeinfo = forvar.address.vardataaddr->type = VAR_FLOAT;
+      *forvar.address.floataddr = pop_anynumfp();
+    }
+    break;
   case VAR_UINT8: forvar.typeinfo = VAR_INTWORD;
   case VAR_INTWORD:
     *forvar.address.intaddr = pop_anynum32();
