@@ -111,7 +111,6 @@ extern void *alloc_local(int32);
 
 #define GET_TOPITEM (basicvars.stacktop.intsp->itemtype)
 #define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))
-#define TOPITEMISFLOAT (basicvars.stacktop.intsp->itemtype == STACK_FLOAT)
 
 #define TOPITEMISNUM ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64) || (basicvars.stacktop.intsp->itemtype == STACK_FLOAT))
 

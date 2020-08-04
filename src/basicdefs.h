@@ -78,7 +78,6 @@
 
 /* Variable type flags */
 
-#define VAR_VARIANT 0				/* Indeterminate type, can become a 64-bit int or a float */
 #define VAR_INTBYTE 1				/* One-byte integer */
 #define VAR_INTWORD 2				/* Four-byte integer */
 #define VAR_FLOAT 3				/* Eight byte floating point */
@@ -140,11 +139,6 @@ typedef struct {
   char *stringaddr;			/* Pointer to string */
 } basicstring;
 
-typedef struct {
-  int64 dummy;				/* DO NOT USE */
-  int32 type;				/* Variable data type for Variants */
-} variant;
-
 /* 'basicarray' gives the layout of an array descriptor */
 
 typedef struct {
@@ -169,7 +163,6 @@ typedef union {
   float64 *floataddr;			/* Pointer to Basic floating point value */
   basicstring *straddr;			/* Pointer to Basic string descriptor */
   basicarray **arrayaddr;		/* Pointer to pointer to Basic array descriptor */
-  variant *vardataaddr;			/* Pointer to variant type information */
   size_t offset;			/* Byte offset in workspace for indirection operators */
 } pointers;
 
@@ -207,26 +200,24 @@ typedef struct {
   formparm *parmlist;			/* Pointer to first parameter */
 } fnprocdef;
 
-
 /* 'variable' is the main structure used to define a variable */
 
 typedef struct variable {
   struct variable *varflink;		/* Next variable in chain */
+  int32 varflags;			/* Type flags */
   char *varname;			/* Pointer to variable's name */
   int32 varhash;			/* Hash value for symbol's name */
   struct library *varowner;		/* Library in which var was defined or NIL */
   union {
-    uint8 varu8int;			/* Value if an unsigned 8-bit integer */
+    uint8 varu8int;		/* Value if an unsigned 8-bit integer */
     int32 varinteger;			/* Value if a 32-bit integer */
     int64 var64int;			/* Value if a 64-bit integer */
     float64 varfloat;			/* Value if floating point */
     basicstring varstring;		/* Descriptor if a string */
-    variant vardata;			/* Holds the data type for a variant */
     basicarray *vararray;		/* Pointer to array's dope vector */
     fnprocdef *varfnproc;		/* Pointer to proc/fn definition */
     byte *varmarker;			/* Pointer to proc/fn def marked earlier */
   } varentry;
-  int32 varflags;			/* Type flags */
 } variable;
 
 /* 'fnprocinfo' is the structure saved on the Basic stack when */

@@ -319,7 +319,7 @@ static void (*statements[256])(void) = {
   exec_assignment, exec_assignment, exec_assignment, exec_xproc,	/* 0C..0F */
   exec_proc, bad_syntax, bad_syntax, bad_syntax,			/* 10..13 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 14..17 */
-  bad_syntax, bad_syntax, bad_token, assign_variantvar,				/* 18..1B */
+  bad_syntax, bad_syntax, bad_token, bad_token,				/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,				/* 1C..1F */
   bad_token, exec_assignment, bad_syntax, bad_syntax,			/* 20..23 */
   exec_assignment, bad_syntax, bad_syntax, bad_syntax,			/* 24..27 */

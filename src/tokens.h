@@ -93,13 +93,13 @@
 #define BASIC_TOKEN_STRINGCON	0x18u		/* Ordinary string constant */
 #define BASIC_TOKEN_QSTRINGCON	0x19u		/* String constant with a '"' in it */
 #define BASIC_TOKEN_INT64CON	0x1Au		/* 64-bit integer constant */
-#define BASIC_TOKEN_VARIANT	0x1Bu
 
 #define BASIC_TOKEN_XLINENUM	0x1Eu		/* Unresolved line number reference */
 #define BASIC_TOKEN_LINENUM	0x1Fu		/* Resolved line number reference */
 
 /* Unused tokens */
 
+#define UNUSED_1B	0x1Bu
 #define UNUSED_1C	0x1Cu
 #define UNUSED_1D	0x1Du
 

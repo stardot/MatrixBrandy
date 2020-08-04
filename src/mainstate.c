@@ -790,7 +790,7 @@ void exec_for(void) {
   if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
   switch(forvar.typeinfo & TYPEMASK) {
     case VAR_INTWORD: case VAR_INTLONG: case VAR_UINT8: isinteger=1; break;
-    case VAR_FLOAT: case VAR_VARIANT: isinteger=0; break;
+    case VAR_FLOAT: isinteger=0; break;
     default: error(ERR_VARNUM);
   }
   if (*basicvars.current != '=') error(ERR_EQMISS);	/* '=' is missing */
@@ -799,16 +799,6 @@ void exec_for(void) {
   if (*basicvars.current != BASIC_TOKEN_TO) error(ERR_TOMISS);
   basicvars.current++;
   switch (forvar.typeinfo) {	/* Assign control variable's initial value */
-  case VAR_VARIANT:
-    if (TOPITEMISINT) {
-      isinteger = 1;
-      forvar.typeinfo = forvar.address.vardataaddr->type = VAR_INTLONG;
-      *forvar.address.int64addr = pop_anynum64();
-    } else {
-      forvar.typeinfo = forvar.address.vardataaddr->type = VAR_FLOAT;
-      *forvar.address.floataddr = pop_anynumfp();
-    }
-    break;
   case VAR_UINT8: forvar.typeinfo = VAR_INTWORD;
   case VAR_INTWORD:
     *forvar.address.intaddr = pop_anynum32();
@@ -1159,28 +1149,11 @@ void exec_library(void) {
 static void def_locvar(void) {
   basicstring descriptor;
   lvalue locvar;
-  int32 type;
   if (basicvars.procstack == NIL) error(ERR_LOCAL);	/* LOCAL found outside a PROC or FN */
   basicvars.runflags.make_array = TRUE;	/* Create arrays, do not flag errors if missing in 'get_lvalue' */
   do {
     get_lvalue(&locvar);
     switch (locvar.typeinfo) {	/* Now to save the variable and set it to its new initial value */
-    case VAR_VARIANT:
-      type=locvar.address.vardataaddr->type;
-      switch(locvar.address.vardataaddr->type) {
-        case VAR_VARIANT:
-        case VAR_INTLONG:
-          save_int64(locvar, *locvar.address.int64addr);
-          *locvar.address.int64addr = 0;
-          break;
-        case VAR_FLOAT:
-          save_float(locvar, *locvar.address.floataddr);
-          *locvar.address.floataddr = 0.0;
-          break;
-        default:
-          error(ERR_BROKEN, __LINE__, "mainstate");
-      }
-      break;
     case VAR_INTWORD:
       save_int(locvar, *locvar.address.intaddr);
       *locvar.address.intaddr = 0;
