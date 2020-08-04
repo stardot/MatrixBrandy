@@ -107,6 +107,8 @@ static void list_varlist(char which, library *lp) {
        || *CAST(vp->varname, byte *) == BASIC_TOKEN_FN) && *(vp->varname+1) == which)) {	/* Found a match */
         done++;
         switch (vp->varflags) {
+        case VAR_VARIANT:
+          break;
         case VAR_INTWORD:
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varinteger);
