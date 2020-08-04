@@ -101,7 +101,7 @@ static void assign_float(pointers address) {
 ** 'assign_variant' deals with assignments to variant variables and fixes their type
 */
 static void assign_variant(pointers address) {
-  byte *ptr = (byte *)address.int64addr + 8;
+  byte *ptr = (byte *)address.int64addr + sizeof(basicstring);
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
 
   if (TOPITEMISFLOAT) {
