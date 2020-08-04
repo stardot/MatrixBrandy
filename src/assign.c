@@ -101,11 +101,9 @@ static void assign_float(pointers address) {
 ** 'assign_variant' deals with assignments to variant variables and fixes their type
 */
 static void assign_variant(pointers address) {
-  stackitem exprtype;
   byte *ptr = (byte *)address.int64addr + 8;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
 
-  exprtype = GET_TOPITEM;
   if (TOPITEMISFLOAT) {
     *address.floataddr = pop_anynumfp();
     *(int *)ptr = VAR_FLOAT;
