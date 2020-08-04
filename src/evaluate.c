@@ -977,6 +977,7 @@ static void do_xvar(void) {
     }
   }
   vartype = vp->varflags;
+  if (vartype == VAR_VARIANT) vartype = vp->varentry.vardata.type;
   isarray = (vartype & VAR_ARRAY) != 0;
   if (isarray && vp->varentry.vararray == NIL) error(ERR_NODIMS, vp->varname);	/* Array not dimensioned */
   np = basicvars.current+LOFFSIZE+1;

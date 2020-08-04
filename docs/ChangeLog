@@ -1,6 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+& V1.22.8 - 
+- Implemented the variant type, an unsuffixed variable can be either a float64
+  or an int64.
+
 * V1.22.7 - 01 August 2020
 - Platforms: Native display builds for RISC OS available, including
   networking. 26-bit and 32-bit builds both possible.
