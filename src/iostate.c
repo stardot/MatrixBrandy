@@ -285,6 +285,7 @@ static void read_input(boolean inputline) {
      && *basicvars.current != BASIC_TOKEN_STRINGCON && *basicvars.current != BASIC_TOKEN_QSTRINGCON
      && *basicvars.current != '\'' && *basicvars.current != TYPE_PRINTFN) {
       get_lvalue(&destination);
+      destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
       if (*cp == asc_NUL) {	 /* There be nowt left to read on the line */
         if (!prompted) emulate_vdu('?');
         prompted = FALSE;
@@ -817,6 +818,7 @@ static void input_file(void) {
   do {	/* Now read the values from the file */
     basicvars.current++;	/* Skip the ',' token */
     get_lvalue(&destination);
+    destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
     switch (destination.typeinfo & PARMTYPEMASK) {
     case VAR_INTWORD:
       fileio_getnumber(handle, &isint, &intvalue, &floatvalue);

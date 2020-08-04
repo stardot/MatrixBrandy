@@ -787,6 +787,7 @@ void exec_for(void) {
   float64 floatlimit = 0.0, floatstep = 1.0;
   basicvars.current++;	/* Skip the 'FOR' token */
   get_lvalue(&forvar);
+  forvar.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
   switch(forvar.typeinfo & TYPEMASK) {
     case VAR_INTWORD: case VAR_INTLONG: case VAR_UINT8: isinteger=1; break;
@@ -1164,6 +1165,7 @@ static void def_locvar(void) {
   basicvars.runflags.make_array = TRUE;	/* Create arrays, do not flag errors if missing in 'get_lvalue' */
   do {
     get_lvalue(&locvar);
+    locvar.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
     switch (locvar.typeinfo) {	/* Now to save the variable and set it to its new initial value */
     case VAR_VARIANT:
       type=locvar.address.vardataaddr->type;
@@ -1612,6 +1614,7 @@ void exec_oscli(void) {
   if (tofile) {	/* Have got 'OSCLI <command> TO' */
     basicvars.current++;
     get_lvalue(&response);
+    response.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
     if (response.typeinfo != VAR_STRARRAY) error(ERR_STRARRAY);
     if (*basicvars.current == ',') {	/* Variable in which to store count of lines read */
       basicvars.current++;
@@ -1902,6 +1905,7 @@ void exec_read(void) {
   if (basicvars.runflags.outofdata) error(ERR_DATA);	     /* Have run out of data statements */
   while (TRUE) {
     get_lvalue(&destination);
+    destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
     find_data();
     if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_UINT8)	/* Numeric value */
       read_numeric(destination);
@@ -2130,9 +2134,11 @@ void exec_swap(void) {
   lvalue first, second;
   basicvars.current++;		/* Skip SWAP token */
   get_lvalue(&first);
+  first.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;		/* Skip ',' token */
   get_lvalue(&second);
+  second.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   check_ateol();
   if ((first.typeinfo <= VAR_FLOAT || (first.typeinfo >= VAR_INTBYTEPTR && first.typeinfo <= VAR_FLOATPTR)) &&
      (second.typeinfo <= VAR_FLOAT || (second.typeinfo >= VAR_INTBYTEPTR && second.typeinfo <= VAR_FLOATPTR))) {
@@ -2379,6 +2385,7 @@ void exec_sys(void) {
   while (!ateol[*basicvars.current] && *basicvars.current != ';') {
     if (*basicvars.current != ',') {	/* Want this return value */
       get_lvalue(&destination);
+      destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
       store_value(destination, outregs[parmcount], STRINGOK);
     }
     parmcount++;
@@ -2392,6 +2399,7 @@ void exec_sys(void) {
   if (*basicvars.current == ';') {	/* Want flags as well */
     basicvars.current++;	/* Skip ';' token */
     get_lvalue(&destination);
+    destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
     store_value(destination, flags, NOSTRING);
   }
   check_ateol();

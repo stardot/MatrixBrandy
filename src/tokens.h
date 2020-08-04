@@ -70,30 +70,30 @@
 #define BASIC_TOKEN_UINT8VAR	0x03u		/* Simple reference to an unsigned 8-bit int variable */
 #define BASIC_TOKEN_INTVAR	0x04u		/* Simple reference to an integer variable */
 #define BASIC_TOKEN_INT64VAR	0x05u		/* Simple reference to a 64-bit int variable */
-#define BASIC_TOKEN_FLOATVAR	0x06u		/* Simple reference to a floating point variable */
-#define BASIC_TOKEN_STRINGVAR	0x07u		/* Simple reference to a string variable */
-#define BASIC_TOKEN_ARRAYVAR	0x08u		/* Array or array followed by an indirection operator */
-#define BASIC_TOKEN_ARRAYREF	0x09u		/* Reference to whole array */
-#define BASIC_TOKEN_ARRAYINDVAR	0x0Au		/* Array element followed by indirection operator */
-#define BASIC_TOKEN_INTINDVAR	0x0Bu		/* 32-bit integer variable followed by indirection operator */
-#define BASIC_TOKEN_INT64INDVAR	0x0Cu		/* 64-bit integer variable followed by indirection operator */
-#define BASIC_TOKEN_FLOATINDVAR	0x0Du		/* Floating point variable followed by indirection operator */
-#define BASIC_TOKEN_STATINDVAR	0x0Eu		/* Static variable followed by indirection operator */
+#define BASIC_TOKEN_VARIANT	0x06u
+#define BASIC_TOKEN_FLOATVAR	0x07u		/* Simple reference to a floating point variable */
+#define BASIC_TOKEN_STRINGVAR	0x08u		/* Simple reference to a string variable */
+#define BASIC_TOKEN_ARRAYVAR	0x09u		/* Array or array followed by an indirection operator */
+#define BASIC_TOKEN_ARRAYREF	0x0Au		/* Reference to whole array */
+#define BASIC_TOKEN_ARRAYINDVAR	0x0Bu		/* Array element followed by indirection operator */
+#define BASIC_TOKEN_INTINDVAR	0x0Cu		/* 32-bit integer variable followed by indirection operator */
+#define BASIC_TOKEN_INT64INDVAR	0x0Du		/* 64-bit integer variable followed by indirection operator */
+#define BASIC_TOKEN_FLOATINDVAR	0x0Eu		/* Floating point variable followed by indirection operator */
+#define BASIC_TOKEN_STATINDVAR	0x0Fu		/* Static variable followed by indirection operator */
 
-#define BASIC_TOKEN_XFNPROCALL	0x0Fu		/* Reference to unknown PROC or FN */
-#define BASIC_TOKEN_FNPROCALL	0x10u		/* Reference to known PROC or FN */
+#define BASIC_TOKEN_XFNPROCALL	0x10u		/* Reference to unknown PROC or FN */
+#define BASIC_TOKEN_FNPROCALL	0x11u		/* Reference to known PROC or FN */
 
-#define BASIC_TOKEN_INTZERO	0x11u		/* Integer 0 */
-#define BASIC_TOKEN_INTONE	0x12u		/* Integer 1 */
-#define BASIC_TOKEN_SMALLINT	0x13u		/* Small integer constant in range 1..256 */
-#define BASIC_TOKEN_INTCON	0x14u		/* 32-bit integer constant */
-#define BASIC_TOKEN_FLOATZERO	0x15u		/* Floating point 0.0 */
-#define BASIC_TOKEN_FLOATONE	0x16u		/* Floating point 1.0 */
-#define BASIC_TOKEN_FLOATCON	0x17u		/* Floating point constant */
-#define BASIC_TOKEN_STRINGCON	0x18u		/* Ordinary string constant */
-#define BASIC_TOKEN_QSTRINGCON	0x19u		/* String constant with a '"' in it */
-#define BASIC_TOKEN_INT64CON	0x1Au		/* 64-bit integer constant */
-#define BASIC_TOKEN_VARIANT	0x1Bu
+#define BASIC_TOKEN_INTZERO	0x12u		/* Integer 0 */
+#define BASIC_TOKEN_INTONE	0x13u		/* Integer 1 */
+#define BASIC_TOKEN_SMALLINT	0x14u		/* Small integer constant in range 1..256 */
+#define BASIC_TOKEN_INTCON	0x15u		/* 32-bit integer constant */
+#define BASIC_TOKEN_FLOATZERO	0x16u		/* Floating point 0.0 */
+#define BASIC_TOKEN_FLOATONE	0x17u		/* Floating point 1.0 */
+#define BASIC_TOKEN_FLOATCON	0x18u		/* Floating point constant */
+#define BASIC_TOKEN_STRINGCON	0x19u		/* Ordinary string constant */
+#define BASIC_TOKEN_QSTRINGCON	0x1Au		/* String constant with a '"' in it */
+#define BASIC_TOKEN_INT64CON	0x1Bu		/* 64-bit integer constant */
 
 #define BASIC_TOKEN_XLINENUM	0x1Eu		/* Unresolved line number reference */
 #define BASIC_TOKEN_LINENUM	0x1Fu		/* Resolved line number reference */

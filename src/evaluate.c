@@ -358,7 +358,8 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     }
   } else {	/* Return parameter */
     get_lvalue(&retparm);
-    switch (retparm.typeinfo) {	/* Now fetch the parameter's value */
+    retparm.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
+    switch (retparm.typeinfo ) {	/* Now fetch the parameter's value */
     case VAR_INTWORD:		/* Integer parameter */
       intparm = *retparm.address.intaddr;
       parmtype = STACK_INT;
@@ -4570,12 +4571,12 @@ static void eval_iveor(void) {
 */
 void (*factor_table[256])(void) = {
   bad_syntax, do_xvar, do_staticvar, do_uint8var,		/* 00..03 */
-  do_intvar, do_int64var, do_floatvar, do_stringvar,		/* 04..07 */
-  do_arrayvar, do_arrayref, do_arrayref, do_indrefvar,		/* 08..0B */
-  do_indrefvar, do_indrefvar, do_statindvar, do_xfunction,	/* 0C..0F */
-  do_function, do_intzero, do_intone, do_smallconst,		/* 10..13 */
-  do_intconst, do_floatzero, do_floatone, do_floatconst,	/* 14..17 */
-  do_stringcon, do_qstringcon, do_int64const, do_variantvar,	/* 18..1B */
+  do_intvar, do_int64var, do_variantvar, do_floatvar,		/* 04..07 */
+  do_stringvar, do_arrayvar, do_arrayref, do_arrayref,		/* 08..0B */
+  do_indrefvar, do_indrefvar, do_indrefvar, do_statindvar,	/* 0C..0F */
+  do_xfunction, do_function, do_intzero, do_intone,		/* 10..13 */
+  do_smallconst, do_intconst, do_floatzero, do_floatone,	/* 14..17 */
+  do_floatconst, do_stringcon, do_qstringcon, do_int64const,	/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, do_getword, bad_syntax, bad_syntax,		/* 20..23 */
   do_getstring, bad_syntax, bad_syntax, bad_syntax,		/* 24..27 */

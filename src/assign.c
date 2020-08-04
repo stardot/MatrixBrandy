@@ -102,7 +102,6 @@ static void assign_float(pointers address) {
 */
 static void assign_variant(pointers address) {
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-
   if (TOPITEMISFLOAT) {
     *address.floataddr = pop_anynumfp();
     address.vardataaddr->type = VAR_FLOAT;
@@ -2083,6 +2082,7 @@ static void (*assidiv_table[])(pointers) = {
 */
 void exec_assignment(void) {
   byte assignop;
+  int isvariant;
   lvalue destination;
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function assign.c:exec_assignment\n");
@@ -2095,10 +2095,16 @@ void exec_assignment(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:exec_assignment: assignop=&%X, typeinfo=&%X\n", assignop, destination.typeinfo);
 #endif
+  isvariant=(destination.typeinfo & VAR_XVARIANT);
+  destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if (assignop=='=') {
     basicvars.current++;
     expression();
-    (*assign_table[destination.typeinfo])(destination.address);
+    if (isvariant) {
+      (*assign_table[0])(destination.address);
+    } else {
+      (*assign_table[destination.typeinfo])(destination.address);
+    }
   }
   else {
     if (destination.typeinfo == VAR_VARIANT) destination.typeinfo = destination.address.vardataaddr->type;
@@ -2482,11 +2488,23 @@ void assign_floatvar(void) {
 /* Assign a variant variable */
 void assign_variantvar(void) {
   variant *vp = GET_ADDRESS(basicvars.current, variant *);
+  fprintf(stderr,"Called assign_variantvar, with item %d\n", GET_TOPITEM);
+#if 1
+  if (TOPITEMISINT) {
+    vp->type = VAR_INTLONG;
+    assign_int64var();
+  } else if (TOPITEMISFLOAT) {
+    vp->type = VAR_FLOAT;
+    assign_floatvar();
+  } else   basicvars.current+=1+LOFFSIZE;		/* Skip the pointer to the variable */
+
+#else
   if (vp->type == VAR_INTLONG) {
     assign_int64var();
   } else if (vp->type == VAR_FLOAT) {
     assign_floatvar();
-  } else error(ERR_BROKEN, __LINE__, "assign");
+  }
+#endif
 }
 
 /*
@@ -2613,6 +2631,7 @@ static void assign_left(void) {
   basicstring lhstring, rhstring;
   basicvars.current++;		/* Skip LEFT$( token */
   get_lvalue(&destination);	/* Fetch the destination address */
+  destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if (destination.typeinfo!=VAR_STRINGDOL && destination.typeinfo!=VAR_DOLSTRPTR) error(ERR_TYPESTR);
   if (*basicvars.current==',') {	/* Number of characters to be replaced is given */
     basicvars.current++;
@@ -2686,6 +2705,7 @@ static void assign_mid(void) {
   basicstring lhstring, rhstring;
   basicvars.current++;		/* Skip MID$( token */
   get_lvalue(&destination);		/* Fetch the destination address */
+  destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if (destination.typeinfo!=VAR_STRINGDOL && destination.typeinfo!=VAR_DOLSTRPTR) error(ERR_TYPESTR);
   if (*basicvars.current!=',') error(ERR_COMISS);
   basicvars.current++;
@@ -2776,6 +2796,7 @@ static void assign_right(void) {
   basicstring lhstring, rhstring;
   basicvars.current++;	/* Skip 'RIGHT$(' token */
   get_lvalue(&destination);		/* Fetch the destination address */
+  destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if (destination.typeinfo!=VAR_STRINGDOL && destination.typeinfo!=VAR_DOLSTRPTR) error(ERR_TYPESTR);
   if (*basicvars.current==',') {	/* Number of characters to be replaced is given */
     basicvars.current++;
@@ -2868,6 +2889,7 @@ void exec_let(void) {
   lvalue destination;
   basicvars.current++;		/* Skip LET token */
   get_lvalue(&destination);		/* Get left hand side of assignment */
+  destination.typeinfo &= ~VAR_XVARIANT; /* Strip out XVARIANT */
   if (*basicvars.current=='=') {
     basicvars.current++;
     expression();

@@ -314,12 +314,12 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
 */
 static void (*statements[256])(void) = {
   next_line, exec_assignment, assign_staticvar, assign_uint8var,	/* 00.03 */
-  assign_intvar, assign_int64var, assign_floatvar, assign_stringvar,	/* 04..07 */
-  exec_assignment, exec_assignment, exec_assignment, exec_assignment,	/* 08..0B */
-  exec_assignment, exec_assignment, exec_assignment, exec_xproc,	/* 0C..0F */
-  exec_proc, bad_syntax, bad_syntax, bad_syntax,			/* 10..13 */
+  assign_intvar, assign_int64var, assign_variantvar, assign_floatvar,	/* 04..07 */
+  assign_stringvar, exec_assignment, exec_assignment, exec_assignment,	/* 08..0B */
+  exec_assignment, exec_assignment, exec_assignment, exec_assignment,	/* 0C..0F */
+  exec_xproc, exec_proc, bad_syntax, bad_syntax,			/* 10..13 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 14..17 */
-  bad_syntax, bad_syntax, bad_token, assign_variantvar,				/* 18..1B */
+  bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,				/* 1C..1F */
   bad_token, exec_assignment, bad_syntax, bad_syntax,			/* 20..23 */
   exec_assignment, bad_syntax, bad_syntax, bad_syntax,			/* 24..27 */

@@ -1455,9 +1455,9 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
 */
 static int skiptable [] = {
   0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,	/* 00..07 */
-  LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE,	/* 08..0F */
-  LOFFSIZE, 0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE,			/* 10..17 */
-  OFFSIZE+SIZESIZE, OFFSIZE+SIZESIZE, INT64SIZE, INT64SIZE, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
+  LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, 1,	/* 08..0F */
+  LOFFSIZE, LOFFSIZE, 0, 0, SMALLSIZE, INTSIZE, 0, 0,			/* 10..17 */
+  FLOATSIZE, OFFSIZE+SIZESIZE, OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
   -1,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
    0,  0,  0,  0,  0,  0,  0,  0,					/* 28..2F */
   -1, -1, -1, -1, -1, -1, -1, -1,					/* 30..37 */

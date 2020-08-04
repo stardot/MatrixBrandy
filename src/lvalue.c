@@ -237,7 +237,7 @@ static void do_floatvar(lvalue *destination) {
 */
 static void do_variantvar(lvalue *destination) {
   variant *vartype=GET_ADDRESS(basicvars.current, variant *);
-  destination->typeinfo = vartype->type;
+  destination->typeinfo = vartype->type | VAR_XVARIANT;
   destination->address.int64addr = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }
@@ -446,12 +446,12 @@ static void do_unaryind(lvalue *destination) {
 */
 static void (*lvalue_table[256])(lvalue *) = {
   bad_syntax, fix_address, do_staticvar, do_uint8var,		/* 00..03 */
-  do_intvar, do_int64var, do_floatvar, do_stringvar,		/* 04..07 */
-  do_arrayvar, do_elementvar, do_elementvar, do_intindvar,	/* 08..0B */
-  do_int64indvar, do_floatindvar,do_statindvar, bad_token,	/* 0C..0F */
+  do_intvar, do_int64var, do_variantvar, do_floatvar,		/* 04..07 */
+  do_stringvar, do_arrayvar, do_elementvar, do_elementvar,	/* 08..0B */
+  do_intindvar, do_int64indvar, do_floatindvar,do_statindvar,	/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
-  bad_token, bad_token, bad_token, do_variantvar,		/* 18..1B */
+  bad_token, bad_token, bad_token, bad_token,			/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, do_unaryind, bad_token, bad_token,			/* 20..23 */
   do_unaryind, bad_token, bad_token, bad_syntax,		/* 24..27 */

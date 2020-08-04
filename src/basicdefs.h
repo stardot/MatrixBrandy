@@ -103,6 +103,7 @@
 
 #define VAR_FIXED 0x100			/* Marks variable as a constant */
 #define VAR_RETURN 0x200		/* Marks variable as a 'return' variable */
+#define VAR_XVARIANT 0x400		
 
 #define TYPEMASK 0x07			/* Mask to extract type of item */
 #define TYPECHECKMASK 0x0F		/* Mask for type checking PROC/FN parameters */
