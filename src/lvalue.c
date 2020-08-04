@@ -140,6 +140,10 @@ static void fix_address(lvalue *destination) {
   }
   else {	/* Simple variable reference or any type of array reference */
     switch (vp->varflags) {
+    case VAR_VARIANT:
+      *basicvars.current = BASIC_TOKEN_VARIANT;
+      set_address(basicvars.current, &vp->varentry.varfloat);
+    break;
     case VAR_INTWORD:		/* Simple reference to integer variable */
       *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
@@ -224,6 +228,17 @@ static void do_int64var(lvalue *destination) {
 static void do_floatvar(lvalue *destination) {
   destination->typeinfo = VAR_FLOAT;
   destination->address.floataddr = GET_ADDRESS(basicvars.current, float64 *);
+  basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
+}
+
+/*
+** 'do_variantvar' fills in the lvalue structure for a simple reference
+** to a variant (placeholder) variable
+*/
+static void do_variantvar(lvalue *destination) {
+  variant *vartype=GET_ADDRESS(basicvars.current, variant *);
+  destination->typeinfo = vartype->type;
+  destination->address.int64addr = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }
 
@@ -436,7 +451,7 @@ static void (*lvalue_table[256])(lvalue *) = {
   do_int64indvar, do_floatindvar,do_statindvar, bad_token,	/* 0C..0F */
   bad_token, bad_token, bad_token, bad_token,			/* 10..13 */
   bad_token, bad_token, bad_token, bad_token,			/* 14..17 */
-  bad_token, bad_token, bad_token, bad_token,			/* 18..1B */
+  bad_token, bad_token, bad_token, do_variantvar,		/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, do_unaryind, bad_token, bad_token,			/* 20..23 */
   do_unaryind, bad_token, bad_token, bad_syntax,		/* 24..27 */
@@ -507,8 +522,12 @@ static void (*lvalue_table[256])(lvalue *) = {
 */
 void get_lvalue(lvalue *destination) {
 #ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function lvalue.c:get_lvalue\n");
   if (basicvars.debug_flags.debug) fprintf(stderr, "get_lvalue: token=&%X\n", *basicvars.current);
 #endif
   (*lvalue_table[*basicvars.current])(destination);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:get_lvalue\n");
+#endif
 }
 

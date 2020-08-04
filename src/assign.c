@@ -98,6 +98,22 @@ static void assign_float(pointers address) {
 }
 
 /*
+** 'assign_variant' deals with assignments to variant variables and fixes their type
+*/
+static void assign_variant(pointers address) {
+  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+
+  if (TOPITEMISFLOAT) {
+    *address.floataddr = pop_anynumfp();
+    address.vardataaddr->type = VAR_FLOAT;
+  } else if (TOPITEMISINT) {
+    *address.int64addr = pop_anynum64();
+    address.vardataaddr->type = VAR_INTLONG;
+  } else {
+    error(ERR_TYPENUM);
+  }
+}
+/*
 ** 'assign_stringdol' deals with assignments to normal string variables
 */
 static void assign_stringdol(pointers address) {
@@ -1983,7 +1999,7 @@ static void assidiv_floatarray(pointers address) {
 }
 
 static void (*assign_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assign_intword, assign_float,
+  assign_variant, assignment_invalid, assign_intword, assign_float,
   assign_stringdol, assignment_invalid, assign_int64, assign_intbyte,
   assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
   assign_strarray, assignment_invalid, assign_int64array, assign_uint8array,
@@ -2084,60 +2100,63 @@ void exec_assignment(void) {
     expression();
     (*assign_table[destination.typeinfo])(destination.address);
   }
-  else if (assignop==BASIC_TOKEN_PLUSAB) {
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assiplus_table[destination.typeinfo])(destination.address);
-  }
-  else if (assignop==BASIC_TOKEN_MINUSAB) {
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assiminus_table[destination.typeinfo])(destination.address);
-  }
-  else if (assignop==BASIC_TOKEN_AND) {
-    basicvars.current++;
-    if (*basicvars.current != '=') error(ERR_EQMISS);
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assiand_table[destination.typeinfo])(destination.address);
-  }
-  else if (assignop==BASIC_TOKEN_OR) {
-    basicvars.current++;
-    if (*basicvars.current != '=') error(ERR_EQMISS);
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assior_table[destination.typeinfo])(destination.address);
-  }
-  else if (assignop==BASIC_TOKEN_EOR) {
-    basicvars.current++;
-    if (*basicvars.current != '=') error(ERR_EQMISS);
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assieor_table[destination.typeinfo])(destination.address);
-  }
-  else if (assignop==BASIC_TOKEN_MOD) {
-    basicvars.current++;
-    if (*basicvars.current != '=') error(ERR_EQMISS);
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assimod_table[destination.typeinfo])(destination.address);
-  }
-  else if (assignop==BASIC_TOKEN_DIV) {
-    basicvars.current++;
-    if (*basicvars.current != '=') error(ERR_EQMISS);
-    basicvars.current++;
-    expression();
-    if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-    (*assidiv_table[destination.typeinfo])(destination.address);
-  }
   else {
-    error(ERR_EQMISS);
+    if (destination.typeinfo == VAR_VARIANT) destination.typeinfo = destination.address.vardataaddr->type;
+    if (assignop==BASIC_TOKEN_PLUSAB) {
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assiplus_table[destination.typeinfo])(destination.address);
+    }
+    else if (assignop==BASIC_TOKEN_MINUSAB) {
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assiminus_table[destination.typeinfo])(destination.address);
+    }
+    else if (assignop==BASIC_TOKEN_AND) {
+      basicvars.current++;
+      if (*basicvars.current != '=') error(ERR_EQMISS);
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assiand_table[destination.typeinfo])(destination.address);
+    }
+    else if (assignop==BASIC_TOKEN_OR) {
+      basicvars.current++;
+      if (*basicvars.current != '=') error(ERR_EQMISS);
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assior_table[destination.typeinfo])(destination.address);
+    }
+    else if (assignop==BASIC_TOKEN_EOR) {
+      basicvars.current++;
+      if (*basicvars.current != '=') error(ERR_EQMISS);
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assieor_table[destination.typeinfo])(destination.address);
+    }
+    else if (assignop==BASIC_TOKEN_MOD) {
+      basicvars.current++;
+      if (*basicvars.current != '=') error(ERR_EQMISS);
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assimod_table[destination.typeinfo])(destination.address);
+    }
+    else if (assignop==BASIC_TOKEN_DIV) {
+      basicvars.current++;
+      if (*basicvars.current != '=') error(ERR_EQMISS);
+      basicvars.current++;
+      expression();
+      if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+      (*assidiv_table[destination.typeinfo])(destination.address);
+    }
+    else {
+      error(ERR_EQMISS);
+    }
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "End assignment- Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
@@ -2458,6 +2477,16 @@ void assign_floatvar(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function assign.c:assign_floatvar\n");
 #endif
+}
+
+/* Assign a variant variable */
+void assign_variantvar(void) {
+  variant *vp = GET_ADDRESS(basicvars.current, variant *);
+  if (vp->type == VAR_INTLONG) {
+    assign_int64var();
+  } else if (vp->type == VAR_FLOAT) {
+    assign_floatvar();
+  } else error(ERR_BROKEN, __LINE__, "assign");
 }
 
 /*

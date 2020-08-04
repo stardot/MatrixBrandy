@@ -94,7 +94,7 @@ void clear_varlists(void) {
 static void list_varlist(char which, library *lp) {
   variable *vp;
   char temp[200];
-  int done = 0, columns = 0, next, len = 0, n, width;
+  int done = 0, columns = 0, next, len = 0, n, width, varflags;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   for (n=0; n<VARLISTS; n++) {
     if (lp==NIL) 	/* list entries in program's symbol table */
@@ -106,7 +106,11 @@ static void list_varlist(char which, library *lp) {
       if (*vp->varname == which || ((*CAST(vp->varname, byte*) == BASIC_TOKEN_PROC
        || *CAST(vp->varname, byte *) == BASIC_TOKEN_FN) && *(vp->varname+1) == which)) {	/* Found a match */
         done++;
-        switch (vp->varflags) {
+        varflags=vp->varflags;
+        if (varflags == VAR_VARIANT) varflags = vp->varentry.vardata.type;
+        switch (varflags) {
+        case VAR_VARIANT:
+          break;
         case VAR_INTWORD:
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varinteger);
@@ -525,8 +529,8 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
     vp->varentry.varstring.stringaddr = nullstring;
     break;
   default:
-    vp->varflags = VAR_FLOAT;
-    vp->varentry.varfloat = 0.0;
+    vp->varflags = VAR_VARIANT;
+    vp->varentry.var64int = 0;
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created variable '%s' at %p\n", vp->varname, vp);

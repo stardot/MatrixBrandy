@@ -34,5 +34,6 @@ extern void assign_int64var(void);
 extern void assign_floatvar(void);
 extern void assign_stringvar(void);
 extern void assign_pseudovar(void);
+extern void assign_variantvar(void);
 
 #endif
