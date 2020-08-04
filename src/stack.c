@@ -906,6 +906,13 @@ static void restore(int32 parmcount) {
       *p->savedetails.address.intaddr = p->value.savedint;
     else {
       switch (p->savedetails.typeinfo & PARMTYPEMASK) {
+      case VAR_VARIANT:
+        if (p->savedetails.address.vardataaddr->type == VAR_FLOAT) {
+          *p->savedetails.address.floataddr = p->value.savedfloat;
+        } else if (p->savedetails.address.vardataaddr->type == VAR_INTLONG) {
+          *p->savedetails.address.int64addr = p->value.savedint64;
+        }
+        break;
       case VAR_UINT8:
         *p->savedetails.address.uint8addr = p->value.saveduint8;
         break;

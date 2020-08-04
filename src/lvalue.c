@@ -236,7 +236,8 @@ static void do_floatvar(lvalue *destination) {
 ** to a variant (placeholder) variable
 */
 static void do_variantvar(lvalue *destination) {
-  destination->typeinfo = VAR_VARIANT;
+  variant *vartype=GET_ADDRESS(basicvars.current, variant *);
+  destination->typeinfo = vartype->type;
   destination->address.int64addr = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Point at byte after variable */
 }

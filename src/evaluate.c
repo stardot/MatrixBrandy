@@ -224,12 +224,12 @@ boolean check_arrays(basicarray *p1, basicarray *p2) {
 ** there is a type error or that the interpreter has gone wrong
 */
 static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
-/* Undefined variable type (0) */
- {ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
-  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
-  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
-  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN,
-  ERR_BROKEN,  ERR_BROKEN,  ERR_BROKEN},
+/* Variant numeric type (0) */
+ {ERR_BROKEN,  ERR_BROKEN,  ERR_NONE,    ERR_NONE,
+  ERR_NONE,    ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM,
+  ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
+  ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM,
+  ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
 /* Byte-sized integer (1) */
  {ERR_BROKEN,  ERR_BROKEN,  ERR_NONE,    ERR_NONE,
   ERR_NONE,    ERR_NONE,    ERR_PARMNUM, ERR_PARMNUM,
@@ -484,6 +484,37 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   }
 /* Now deal with other parameter types */
   switch (fp->parameter.typeinfo & PARMTYPEMASK) {	/* Go by formal parameter type */
+  case VAR_VARIANT: {
+    int64 *i64p = fp->parameter.address.int64addr;
+    float64 *f64p = fp->parameter.address.floataddr;
+    switch(parmtype) {
+      case STACK_INT:   *i64p = intparm; break;
+      case STACK_UINT8: *i64p = uint8parm; break;
+      case STACK_INT64: *i64p = int64parm; break;
+      case STACK_FLOAT: *f64p = floatparm; break;
+      default: error(ERR_BROKEN, __LINE__, "evaluate");
+    }
+    switch(parmtype) {
+      case STACK_INT: case STACK_UINT8: case STACK_INT64:
+        fp->parameter.typeinfo = VAR_INTLONG;
+        if (isreturn)
+          save_retint64(retparm, fp->parameter, *i64p);
+        else {
+          save_int64(fp->parameter, *i64p);
+        }
+        break;
+      case STACK_FLOAT:
+        fp->parameter.typeinfo = VAR_FLOAT;
+        if (isreturn)
+          save_retfloat(retparm, fp->parameter, *f64p);
+        else {
+          save_float(fp->parameter, *f64p);
+        }
+        break;
+      default: error(ERR_BROKEN, __LINE__, "evaluate");
+    }
+    break;
+  }
   case VAR_UINT8: {
     uint8 *p = fp->parameter.address.uint8addr;
     if (isreturn)
@@ -796,6 +827,14 @@ static void do_floatvar(void) {
   PUSH_FLOAT(*fp);
 }
 
+static void do_variantvar(void) {
+  if (TOPITEMISFLOAT) {
+    do_floatvar();
+  } else {
+    do_int64var();
+  }
+}
+
 /*
 ** 'do_stringvar' handles references to a known string variable
 */
@@ -1001,7 +1040,12 @@ static void do_xvar(void) {
     do_indrefvar();
   }
   else {	/* Simple reference to variable or reference to an array */
-    if (vartype == VAR_INTWORD) {
+    if (vartype == VAR_VARIANT) {
+      *basicvars.current = BASIC_TOKEN_VARIANT;
+      set_address(basicvars.current, &vp->varentry.var64int);
+      do_variantvar();
+    
+    } else if (vartype == VAR_INTWORD) {
       *basicvars.current = BASIC_TOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       do_intvar();
@@ -4531,7 +4575,7 @@ void (*factor_table[256])(void) = {
   do_indrefvar, do_indrefvar, do_statindvar, do_xfunction,	/* 0C..0F */
   do_function, do_intzero, do_intone, do_smallconst,		/* 10..13 */
   do_intconst, do_floatzero, do_floatone, do_floatconst,	/* 14..17 */
-  do_stringcon, do_qstringcon, do_int64const, bad_token,	/* 18..1B */
+  do_stringcon, do_qstringcon, do_int64const, do_variantvar,	/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,			/* 1C..1F */
   bad_token, do_getword, bad_syntax, bad_syntax,		/* 20..23 */
   do_getstring, bad_syntax, bad_syntax, bad_syntax,		/* 24..27 */

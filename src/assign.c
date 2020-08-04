@@ -2479,6 +2479,16 @@ void assign_floatvar(void) {
 #endif
 }
 
+/* Assign a variant variable */
+void assign_variantvar(void) {
+  variant *vp = GET_ADDRESS(basicvars.current, variant *);
+  if (vp->type == VAR_INTLONG) {
+    assign_int64var();
+  } else if (vp->type == VAR_FLOAT) {
+    assign_floatvar();
+  } else error(ERR_BROKEN, __LINE__, "assign");
+}
+
 /*
 ** 'assign_stringvar' handles assignments to string variables
 ** See 'assign_intval' for general comments
