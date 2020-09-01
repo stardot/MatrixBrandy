@@ -250,7 +250,8 @@ static token tokens [] = {
   {"STRING$(",  8, 4, TYPE_FUNCTION,    BASIC_TOKEN_STRING,   TYPE_FUNCTION, BASIC_TOKEN_STRING,    FALSE,  FALSE}, /* 127 */
   {"SUM",       3, 2, TYPE_FUNCTION,    BASIC_TOKEN_SUM,      TYPE_FUNCTION, BASIC_TOKEN_SUM,       FALSE,  FALSE},
   {"SWAP",      4, 2, TYPE_ONEBYTE,     BASIC_TOKEN_SWAP,     TYPE_ONEBYTE, BASIC_TOKEN_SWAP,       FALSE,  FALSE},
-  {"SYS",       3, 2, TYPE_ONEBYTE,     BASIC_TOKEN_SYS,      TYPE_ONEBYTE, BASIC_TOKEN_SYS,        FALSE,  FALSE},
+  {"SYS(",      4, 4, TYPE_FUNCTION,    BASIC_TOKEN_SYSFN,    TYPE_FUNCTION, BASIC_TOKEN_SYSFN,     FALSE,  FALSE},
+  {"SYS",       3, 3, TYPE_ONEBYTE,     BASIC_TOKEN_SYS,      TYPE_ONEBYTE, BASIC_TOKEN_SYS,        FALSE,  FALSE},
   {"TAB(",      4, 4, TYPE_PRINTFN,     BASIC_TOKEN_TAB,      TYPE_PRINTFN, BASIC_TOKEN_TAB,        FALSE,  FALSE}, /* 131 */
   {"TAN",       3, 1, TYPE_FUNCTION,    BASIC_TOKEN_TAN,      TYPE_FUNCTION, BASIC_TOKEN_TAN,       FALSE,  FALSE},
   {"TEMPO",     5, 2, TYPE_ONEBYTE,     BASIC_TOKEN_TEMPO,    TYPE_FUNCTION, BASIC_TOKEN_TEMPOFN,   FALSE,  FALSE},
@@ -1601,7 +1602,7 @@ static char *functionlist [] = {        /* Functions -> function name */
   "INT", "LEN", "LISTO", "LN", "LOG", "OPENIN","OPENOUT", "OPENUP",             /* 28..2F */
   "PI", "POINT(", "POS", "RAD", "REPORT$", "RETCODE", "RND", "SGN",             /* 30..37 */
   "SIN", "SQR", "STR$", "STRING$(", "SUM", "TAN", "TEMPO", "USR",               /* 38..3F */
-  "VAL", "VERIFY(", "VPOS", "XLATE$("                                                   /* 40..44 */
+  "VAL", "VERIFY(", "VPOS", "SYS(", "XLATE$("                                   /* 40..44 */
 };
 
 static char *printlist [] = {NIL, "SPC", "TAB("};

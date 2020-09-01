@@ -73,6 +73,8 @@
 #endif
 #endif
 
+#define MAXSYSPARMS 10		/* Maximum number of parameters allowed in a 'SYS' statement */
+
 /*
 ** Define the operating system-specific types used for integer
 ** and floating point types in Basic. 32-bit integer (signed

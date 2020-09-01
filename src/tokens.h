@@ -342,7 +342,8 @@
 #define BASIC_TOKEN_VAL		0x40u
 #define BASIC_TOKEN_VERIFY	0x41u
 #define BASIC_TOKEN_VPOS	0x42u
-#define BASIC_TOKEN_XLATEDOL	0x43u
+#define BASIC_TOKEN_SYSFN	0x43u	/* The function SYS( */
+#define BASIC_TOKEN_XLATEDOL	0x44u	/* Must remain the last in the list */
 
 /*
 ** Print functions preceded with 0xFE
