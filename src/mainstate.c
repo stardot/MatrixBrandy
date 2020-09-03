@@ -338,9 +338,12 @@ void exec_data(void) {
 /*
 ** 'exec_def' processes 'DEF'-type statements. A DEF is executed
 ** identically to a REM - execution skips to the next line.
+** (which is why we check for 0 instead of using the ateol table)
 */
 void exec_def(void) {
-  while (!ateol[*basicvars.current]) basicvars.current = skip_token(basicvars.current);
+  while (*basicvars.current != '\0') {
+    basicvars.current = skip_token(basicvars.current);
+  }
 }
 
 /*

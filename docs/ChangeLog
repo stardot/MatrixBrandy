@@ -2,6 +2,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 * V1.22.8 - 
+- Fix REM behaviour of DEF line.
 
 * V1.22.7 - 01 August 2020
 - Platforms: Native display builds for RISC OS available, including
