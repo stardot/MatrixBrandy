@@ -44,7 +44,7 @@ extern void  mos_sys(int32, int32[], int32[], int32*);
 #else
 extern void  mos_sys(int64, int64[], int64[], int64*);
 #endif
-extern int32 mos_getswinum(char *, int32);
+extern int32 mos_getswinum(char *, int32, int32);
 extern void  mos_setend(int32);
 extern void  mos_waitdelay(int32);
 extern void  mos_mouse_on(int32);
@@ -82,5 +82,7 @@ extern byte *sysvar;
 
 #define sv_VideoVDU       250
 #define sv_VideoDisplay   251
+
+#define XBIT 0x20000		/* Mask for 'X' bit in SWI numbers */
 
 #endif

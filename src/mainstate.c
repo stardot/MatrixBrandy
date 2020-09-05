@@ -52,7 +52,6 @@
 #include "keyboard.h"
 
 #define MAXWHENS 500		/* maximum number of WHENs allowed per CASE statement */
-#define MAXSYSPARMS 10		/* Maximum number of parameters allowed in a 'SYS' statement */
 
 /* Replacement for memmove where we dedupe pairs of double quotes */
 static int memcpydedupe(char *dest, const unsigned char *src, size_t len, char dedupe) {
@@ -2295,7 +2294,7 @@ void exec_sys(void) {
     break;
   case STACK_STRING: case STACK_STRTEMP:
     descriptor = pop_string();
-    swino = mos_getswinum(descriptor.stringaddr, descriptor.stringlen);
+    swino = mos_getswinum(descriptor.stringaddr, descriptor.stringlen, XBIT);
     if (parmtype == STACK_STRTEMP) free_string(descriptor);
     break;
   default:

@@ -158,7 +158,8 @@ FUNCTIONS_C = $(DEPCOMMON) \
 	$(SRCDIR)/mos.h \
 	$(SRCDIR)/miscprocs.h \
 	$(SRCDIR)/fileio.h \
-	$(SRCDIR)/functions.h
+	$(SRCDIR)/functions.h \
+	$(SRCDIR)/mos_sys.h
 
 $(SRCDIR)/functions.o: $(FUNCTIONS_C)
 

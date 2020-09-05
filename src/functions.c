@@ -51,6 +51,7 @@
 #include "miscprocs.h"
 #include "fileio.h"
 #include "functions.h"
+#include "mos_sys.h"
 
 
 /* #define DEBUG */
@@ -1728,6 +1729,34 @@ static void fn_xlatedol(void) {
   }
 }
 
+static void fn_sysfn(void) {
+  basicstring descriptor;
+  stackitem stringtype;
+  char *tmpstring;
+#ifdef TARGET_RISCOS
+  int32 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+#else
+  int64 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+#endif
+  (*factor_table[*basicvars.current])();
+  stringtype = GET_TOPITEM;
+  if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
+    descriptor = pop_string();
+    tmpstring = strdup(descriptor.stringaddr);
+    if (tmpstring == NULL) error(ERR_BROKEN, __LINE__, "functions");
+    tmpstring[descriptor.stringlen]='\0';
+    inregs[1] = (size_t)tmpstring;
+    mos_sys(SWI_OS_SWINumberFromString+XBIT, inregs, outregs, 0);
+    push_int64(outregs[0]);
+    free(tmpstring);
+    if (stringtype == STACK_STRTEMP) free_string(descriptor);
+  }
+  else {
+    error(ERR_TYPESTR);
+  }
+  if (*basicvars.current != ')')  error(ERR_RPMISS);
+  basicvars.current++;	/* Skip the ')' */
+}
 
 /*
 ** The function table maps the function token to the function that deals
@@ -1750,7 +1779,8 @@ static void (*function_table[])(void) = {
   fn_reportdol, fn_retcode, fn_rnd, fn_sgn, 		/* 34..37 */
   fn_sin, fn_sqr, fn_str, fn_string,  			/* 38..3B */
   fn_sum, fn_tan, fn_tempofn, fn_usr, 			/* 3C..3F */
-  fn_val, fn_verify, fn_vpos, fn_xlatedol		/* 40..43 */
+  fn_val, fn_verify, fn_vpos, fn_sysfn,			/* 40..43 */
+  fn_xlatedol						/* 44 */
 };
 
 /*
