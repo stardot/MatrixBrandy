@@ -154,8 +154,6 @@ static void native_oscli(char *command, char *respfile, FILE *respfh);
 #define PI_ALT4   3
 #define PI_ALT5   2
 
-#define XBIT 0x20000		/* Mask for 'X' bit in SWI numbers */
-
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
 static void cmd_brandyinfo() {
@@ -629,7 +627,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
 }
 
 /* This gets the virtual SWI num of Brandy-specific calls that are only valid within Matrix Brandy */
-static int32 mos_getswinum2(char *name, int32 length) {
+static int32 mos_getswinum2(char *name, int32 length, int32 inxflag) {
   int32 ptr;
   int32 xflag=0;
   char namebuffer[128];
@@ -644,8 +642,12 @@ static int32 mos_getswinum2(char *name, int32 length) {
   }
   strncpy(namebuffer,name, length);
   namebuffer[length]='\0';
-  if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN, namebuffer);
-  return ((swilist[ptr].swinum)+xflag);
+  if (swilist[ptr].swinum==0xFFFFFFFF) {
+    if (inxflag != XBIT) error(ERR_SWINAMENOTKNOWN, namebuffer);
+    return (-1);
+  } else {
+    return ((swilist[ptr].swinum)+xflag);
+  }
 }
 
 
@@ -653,7 +655,7 @@ static int32 mos_getswinum2(char *name, int32 length) {
 ** 'mos_getswinum' returns the SWI number corresponding to
 ** SWI 'name'
 */
-int32 mos_getswinum(char *name, int32 length) {
+int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
   int32 ilength = length;
   char *iname = name;
   _kernel_oserror *oserror;
@@ -665,7 +667,7 @@ int32 mos_getswinum(char *name, int32 length) {
   swiname[length] = NUL;		/* Ensure name is null-terminated */
   regs.r[1] = (int)(&swiname[0]);
   oserror = _kernel_swi(OS_SWINumberFromString, &regs, &regs);
-  if (oserror!=NIL) return mos_getswinum2(iname, ilength);
+  if (oserror!=NIL) return mos_getswinum2(iname, ilength, inxflag);
   return regs.r[0];
 }
 
@@ -2329,7 +2331,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 ** 'mos_get_swinum' returns the SWI number corresponding to
 ** SWI 'name'
 */
-int32 mos_getswinum(char *name, int32 length) {
+int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
   int32 ptr;
   int32 xflag=0;
   char namebuffer[128];
@@ -2344,8 +2346,12 @@ int32 mos_getswinum(char *name, int32 length) {
   }
   strncpy(namebuffer,name, length);
   namebuffer[length]='\0';
-  if (swilist[ptr].swinum==0xFFFFFFFF) error(ERR_SWINAMENOTKNOWN, namebuffer);
-  return ((swilist[ptr].swinum)+xflag);
+  if (swilist[ptr].swinum==0xFFFFFFFF) {
+    if (inxflag != XBIT) error(ERR_SWINAMENOTKNOWN, namebuffer);
+    return (-1);
+  } else {
+    return ((swilist[ptr].swinum)+xflag);
+  }
 }
 
 /*
@@ -2380,7 +2386,7 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
       outregs[1]=inregs[1];
       for(ptr=0;*((char *)(size_t)inregs[1]+ptr) >=32; ptr++) ;
       *((byte *)(size_t)inregs[1]+ptr)='\0';
-      outregs[0]=mos_getswinum((char *)(size_t)inregs[1], strlen((char *)(size_t)inregs[1]));
+      outregs[0]=mos_getswinum((char *)(size_t)inregs[1], strlen((char *)(size_t)inregs[1]), xflag);
       break;
     default:
       mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */

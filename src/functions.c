@@ -1746,7 +1746,7 @@ static void fn_sysfn(void) {
     if (tmpstring == NULL) error(ERR_BROKEN, __LINE__, "functions");
     tmpstring[descriptor.stringlen]='\0';
     inregs[1] = (size_t)tmpstring;
-    mos_sys(SWI_OS_SWINumberFromString, inregs, outregs, 0);
+    mos_sys(SWI_OS_SWINumberFromString+XBIT, inregs, outregs, 0);
     push_int64(outregs[0]);
     free(tmpstring);
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
