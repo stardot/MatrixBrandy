@@ -689,7 +689,7 @@ void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
     outregs[1]=inregs[1];
     for(n=0;*(char *)(inregs[1]+n) >=32; n++) ;
     *(char *)(inregs[1]+n)='\0';
-    outregs[0]=mos_getswinum((char *)inregs[1], strlen((char *)inregs[1]), 0);
+    outregs[0]=mos_getswinum((char *)inregs[1], strlen((char *)inregs[1]), (swino & XBIT));
   } else if (swino >= 0x140000) {
     /* Brandy-specific virtual SYS calls */
     mos_sys_ext(swino & ~XBIT, inregs, outregs, swino & XBIT, flags);
