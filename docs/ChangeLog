@@ -9,7 +9,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   networking. 26-bit and 32-bit builds both possible.
 - Platforms: SYS calls on RISC OS can call the Brandy_* calls from within
   the interpreter in addition to the RISC OS native calls.
-  OS_SWINumerFromString is intercepted to also recognise the Brandy_* calls.
+  OS_SWINumberFromString is intercepted to also recognise the Brandy_* calls.
 - Platforms: BrandyApp build mechanism changed, no longer relies on ld to
   build a .o file, instead uses a BASIC program to build a .c file with the
   program data embedded.
@@ -37,8 +37,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Some subtle bugs fixed as a result of clang compiler warnings.
 - System: Block attempts to free workspace memory that shouldn't be randomly
   freed.
-- System: INKEY(-256) now returns &4D (M) for all builds. System specifics
-  can be obtained from SYS "Brandy_Platform".
+- System: INKEY(-256) now returns &4D (M) for all builds except RISC OS.
+  System specifics can be obtained from SYS "Brandy_Platform".
 - System: OSBYTE &87 implemented for non-MODE7 screen modes. (MODE 7
   was previously implemented)
 - System: Now builds on MacOS High Sierra and Catalina. Note, it requires

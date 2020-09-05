@@ -118,11 +118,12 @@
  1180IF A% = 24 OR A% = 48 THEN PRINT:ON:OSCLI"FX229":END
  1190IF A% = 6 THEN PROCtogglescreen: GOTO 1170
  1200IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
- 1210IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
- 1220IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
- 1230IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
- 1240IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
- 1250IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
+ 1205IF A% = 50 THEN borked%=1: S$ = "glasstty.com:6503"
+ 1210IF A% = 51 THEN borked%=1: S$ = "glasstty.com:6504"
+ 1215IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
+ 1220IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
+ 1225IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
+ 1230IF A% = 55 THEN borked%=0: S$ = "endofthelinebbs.com:6502"
  1260IF A% = 84 OR A% = 116 THEN telnet%=telnet% EOR 1: GOTO 1160
  1270CLS
  1280="ip0:"+S$
@@ -132,12 +133,13 @@
  1320PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1330PRINT
  1340PRINT CHR$(131);"1 - Telstar";CHR$(133);"(CURRER)"
- 1350PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
- 1360PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
- 1370PRINT
- 1380PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
- 1390PRINT CHR$(131);"5 - NXtel"
- 1400PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Teletext"
+ 1345PRINT CHR$(131);"2 - Telstar";CHR$(133);"(ELLIS)"
+ 1350PRINT CHR$(131);"3 - Telstar";CHR$(133);"(ACTON)"
+ 1355PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
+ 1360PRINT CHR$(131);"5 - NXtel"
+ 1365PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Teletext"
+ 1370REMPRINT CHR$(131);"7 - End Of The Line BBS"
+ 1400
  1410PRINT
  1420PRINT CHR$(131);"T - Toggle Telnet codes -";
  1430IF telnet%=1 THEN PRINT CHR$(130);"ON" ELSE PRINT CHR$(129);"OFF"
