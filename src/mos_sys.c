@@ -575,7 +575,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         size_t (*dlsh)(size_t, ...);
 
         dlerror(); /* Flush the error state */
-        *(void **)(&dlsh)=(void *)inregs[0];
+        *(void **)(&dlsh)=(void *)(size_t)inregs[0];
         if (dlsh != (void *)-1) {
           outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
         } else {

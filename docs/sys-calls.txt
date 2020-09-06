@@ -221,7 +221,8 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &140014 Brandy_dlgetaddr        Fetches the address of the library function
                                 call given in R0, and returns the address
-                                in R0.
+                                in R0. If the symbol isn't found and the X flag
+                                is set, R0 contains -1, else an error is raised.
 
 &140015 Brandy_dlcalladdr       Similar to Brandy_dlcall (above), but takes
                                 the address of the symbol in R0 instead of
