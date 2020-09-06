@@ -158,14 +158,14 @@ void *get_dladdr(size_t nameptr, int32 xflag) {
   *(void **)(&dlsh)=rtrdlsym(RTLD_DEFAULT, (void *)nameptr);
   if (dlsh == NULL) { 
     if (!xflag) error(ERR_DL_NOSYM, "Symbol not found");
-    dlsh = NULL;
+    dlsh = (void *)-1;
   }
 #else
   *(void **)(&dlsh)=dlsym(RTLD_DEFAULT, (void *)nameptr);
   errcond=dlerror();
   if (errcond != NULL) { 
     if (!xflag) error(ERR_DL_NOSYM, errcond);
-    dlsh = NULL;
+    dlsh = (void *)-1;
   }
 #endif
   return (dlsh);
@@ -506,7 +506,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=get_dladdr(inregs[0], xflag);
-        if (dlsh) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
+        if (dlsh != (void *)-1) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
       }
 #else
       if (!xflag) error(ERR_DL_NODL);
@@ -576,7 +576,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=(void *)inregs[0];
-        if (dlsh) {
+        if (dlsh != (void *)-1) {
           outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
         } else {
           error(ERR_ADDREXCEPT);
