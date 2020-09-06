@@ -147,6 +147,30 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 }
 #endif
 
+void *get_dladdr(size_t nameptr, int32 xflag) {
+  void *dlsh;
+#ifndef TARGET_MINGW
+  char *errcond;
+#endif
+
+  dlerror(); /* Flush the error state */
+#ifdef TARGET_MINGW
+  *(void **)(&dlsh)=rtrdlsym(RTLD_DEFAULT, (void *)nameptr);
+  if (dlsh == NULL) { 
+    if (!xflag) error(ERR_DL_NOSYM, "Symbol not found");
+    dlsh = NULL;
+  }
+#else
+  *(void **)(&dlsh)=dlsym(RTLD_DEFAULT, (void *)nameptr);
+  errcond=dlerror();
+  if (errcond != NULL) { 
+    if (!xflag) error(ERR_DL_NOSYM, errcond);
+    dlsh = NULL;
+  }
+#endif
+  return (dlsh);
+}
+
 static uint32 gpio2rpi(uint32 boardtype) {
   int32 ptr;
   for (ptr=0; rpiboards[ptr].boardtype!=255; ptr++) {
@@ -477,32 +501,12 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_dlcall:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-      if (1) {
+      {
         size_t (*dlsh)(size_t, ...);
-#ifndef TARGET_MINGW
-        char *errcond;
-#endif
 
         dlerror(); /* Flush the error state */
-#ifdef TARGET_MINGW
-        *(void **)(&dlsh)=rtrdlsym(RTLD_DEFAULT, (void *)(size_t)inregs[0]);
-        if (dlsh == NULL) { 
-          if (!xflag) error(ERR_DL_NOSYM, "Symbol not found");
-          outregs[0]=0;
-        } else {
-          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
-        }
-#else
-        *(void **)(&dlsh)=dlsym(RTLD_DEFAULT, (void *)(size_t)inregs[0]);
-        errcond=dlerror();
-        if (errcond != NULL) { 
-          if (!xflag) error(ERR_DL_NOSYM, errcond);
-          outregs[0]=0;
-        } else {
-
-          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
-        }
-#endif
+        *(void **)(&dlsh)=get_dladdr(inregs[0], xflag);
+        if (dlsh) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
       }
 #else
       if (!xflag) error(ERR_DL_NODL);
@@ -557,6 +561,32 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         set_mouseevent_expiry((uint32)inregs[0]);
 #endif
         break;
+    case SWI_Brandy_dlgetaddr:
+#if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+        outregs[0]=(size_t)get_dladdr(inregs[0], xflag);
+#else
+        if (!xflag) error(ERR_DL_NODL);
+        outregs[0]=0;
+#endif
+        break;
+    case SWI_Brandy_dlcalladdr:
+#if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+      {
+        size_t (*dlsh)(size_t, ...);
+
+        dlerror(); /* Flush the error state */
+        *(void **)(&dlsh)=(void *)inregs[0];
+        if (dlsh) {
+          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
+        } else {
+          error(ERR_ADDREXCEPT);
+        }
+      }
+#else
+      if (!xflag) error(ERR_DL_NODL);
+      outregs[0]=0;
+#endif
+      break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;
       break;

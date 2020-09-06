@@ -2294,7 +2294,7 @@ void exec_sys(void) {
     break;
   case STACK_STRING: case STACK_STRTEMP:
     descriptor = pop_string();
-    swino = mos_getswinum(descriptor.stringaddr, descriptor.stringlen, XBIT);
+    swino = mos_getswinum(descriptor.stringaddr, descriptor.stringlen, 0);
     if (parmtype == STACK_STRTEMP) free_string(descriptor);
     break;
   default:

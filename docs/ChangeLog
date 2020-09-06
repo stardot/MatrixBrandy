@@ -2,7 +2,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 * V1.22.8 - 
-- Fix REM behaviour of DEF line.
+- BASIC: Fix REM behaviour of DEF line.
+- BASIC: Implemented SYS() function, somewhat in line with BBCSDL's version.
+  In Matrix Brandy, this calls OS_SWINumberFromString, and also works under
+  RISC OS.
 
 * V1.22.7 - 01 August 2020
 - Platforms: Native display builds for RISC OS available, including
