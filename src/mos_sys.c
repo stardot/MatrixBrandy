@@ -147,6 +147,7 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 }
 #endif
 
+#if defined(TARGET_UNIX) || defined(TARGET_MINGW)
 void *get_dladdr(size_t nameptr, int32 xflag) {
   void *dlsh;
 #ifndef TARGET_MINGW
@@ -170,6 +171,7 @@ void *get_dladdr(size_t nameptr, int32 xflag) {
 #endif
   return (dlsh);
 }
+#endif
 
 static uint32 gpio2rpi(uint32 boardtype) {
   int32 ptr;
