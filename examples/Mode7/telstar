@@ -114,7 +114,7 @@
  1140:
  1150DEFFNwelcome
  1160PROCwelcomescreen
- 1170REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 54) OR A%=6 OR A%=24 OR A%=84 OR A%=116
+ 1170REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 55) OR A%=6 OR A%=24 OR A%=84 OR A%=116
  1180IF A% = 24 OR A% = 48 THEN PRINT:ON:OSCLI"FX229":END
  1190IF A% = 6 THEN PROCtogglescreen: GOTO 1170
  1200IF A% = 49 THEN borked%=1: S$ = "glasstty.com:6502"
@@ -123,12 +123,12 @@
  1215IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
  1220IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
  1225IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
- 1230IF A% = 55 THEN borked%=0: S$ = "endofthelinebbs.com:6502"
+ 1230IF A% = 55 THEN borked%=0: S$ = "alterant.leenooks.net:516": VDU23,16,0|
  1260IF A% = 84 OR A% = 116 THEN telnet%=telnet% EOR 1: GOTO 1160
  1270CLS
  1280="ip0:"+S$
  1290:
- 1300DEFPROCwelcomescreen:CLS
+ 1300DEFPROCwelcomescreen:CLS:VDU23,16,1|
  1310PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1320PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1330PRINT
@@ -138,7 +138,7 @@
  1355PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1360PRINT CHR$(131);"5 - NXtel"
  1365PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Teletext"
- 1370REMPRINT CHR$(131);"7 - End Of The Line BBS"
+ 1370PRINT CHR$(131);"7 - ANSItex BBS"
  1400
  1410PRINT
  1420PRINT CHR$(131);"T - Toggle Telnet codes -";
