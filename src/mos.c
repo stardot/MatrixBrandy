@@ -2327,6 +2327,27 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 }
 
 
+char swiname_result[80];
+char *mos_getswiname(int swino, int32 inxflag) {
+  int32 ptr;
+
+  *swiname_result='\0';
+  if (swino & XBIT) {
+    swino &= ~XBIT;
+    strncat(swiname_result, "X",2);
+  }
+  for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
+    if (swino == swilist[ptr].swinum) {
+      strncat(swiname_result, swilist[ptr].swiname, 77);
+      break;
+    }
+  }
+  if (swilist[ptr].swinum==0xFFFFFFFF) {
+    if (inxflag != XBIT) error(ERR_SWINUMNOTKNOWN, swino);
+  }
+  return swiname_result;
+}
+
 /*
 ** 'mos_get_swinum' returns the SWI number corresponding to
 ** SWI 'name'
@@ -2339,7 +2360,7 @@ int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
   if (name[0] == 'X') {
     name++;
     length--;
-    xflag=0x20000;
+    xflag=XBIT;
   }
   for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
     if ((!strncmp(name, swilist[ptr].swiname, length)) && length==strlen(swilist[ptr].swiname)) break;
@@ -2365,7 +2386,7 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
   int32 xflag;
 
   xflag = swino & XBIT;	/* Is the X flag set? */
-  swino = swino & ~XBIT;		/* Strip off the X flag if set */
+  swino &= ~XBIT;		/* Strip off the X flag if set */
   switch (swino) {
     case SWI_OS_CLI:
       outregs[0]=inregs[0];
@@ -2381,6 +2402,9 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
       mos_osword(inregs[0], inregs[1]);
       outregs[0]=inregs[0];
       outregs[1]=inregs[1];
+      break;
+    case SWI_OS_SWINumberToString:
+      outregs[0]=(size_t)mos_getswiname(inregs[0], xflag);
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
