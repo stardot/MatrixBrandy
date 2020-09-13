@@ -1629,6 +1629,11 @@ static void move_curforward(void) {
     }
   }
   hide_cursor();	/* Remove cursor */
+  /* Do this check twice, as in scroll protect mode xtext may already be off the edge */
+  if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
+    xtext = textxhome();
+    move_down();
+  }
   xtext+=textxinc();
   if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
     xtext = textxhome();

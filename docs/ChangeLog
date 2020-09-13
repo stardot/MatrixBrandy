@@ -9,6 +9,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Implement two SYS calls for obtaining the address of a system call
   (Brandy_dlgetaddr) and to call it (Brandy_dlcalladdr).
 - System: Implement OS_SWINumberToString.
+- Display: Fix a subtle VDU23,16,1| bug. Thanks to Richard Russell for this one.
 
 * V1.22.7 - 01 August 2020
 - Platforms: Native display builds for RISC OS available, including
