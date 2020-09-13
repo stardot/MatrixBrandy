@@ -61,6 +61,10 @@ OS_Plot			Executes a PLOT function. Note that this bypasses the
 
 OS_ScreenMode		Only R0=0,1,7,8,9,10 are supported.
 
+OS_SWINumberToString	Returns SWI string from number.
+			On RISC OS this is NOT intercepted so it does not
+			recognise Brandy-specific calls.
+
 OS_SWINumberFromString	Returns SWI number from name.
 			On RISC OS this call is intercepted so we can also
 			recognise Brandy-specific calls.

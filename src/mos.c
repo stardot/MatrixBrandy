@@ -2327,25 +2327,24 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 }
 
 
-char swiname_result[80];
-char *mos_getswiname(int swino, int32 inxflag) {
+void mos_getswiname(size_t swino, size_t namebuf, size_t buflen, int32 inxflag) {
   int32 ptr;
+  char *swiname_result=(char *)namebuf;
 
   *swiname_result='\0';
   if (swino & XBIT) {
     swino &= ~XBIT;
     strncat(swiname_result, "X",2);
+    buflen--;
   }
   for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
     if (swino == swilist[ptr].swinum) {
-      strncat(swiname_result, swilist[ptr].swiname, 77);
+      strncat(swiname_result, swilist[ptr].swiname, buflen);
       break;
     }
   }
-  if (swilist[ptr].swinum==0xFFFFFFFF) {
+  if (swilist[ptr].swinum==0xFFFFFFFF)
     if (inxflag != XBIT) error(ERR_SWINUMNOTKNOWN, swino);
-  }
-  return swiname_result;
 }
 
 /*
@@ -2404,7 +2403,10 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
       outregs[1]=inregs[1];
       break;
     case SWI_OS_SWINumberToString:
-      outregs[0]=(size_t)mos_getswiname(inregs[0], xflag);
+      mos_getswiname(inregs[0], inregs[1], inregs[2], xflag);
+      outregs[0]=inregs[0];
+      outregs[1]=inregs[1];
+      outregs[2]=strlen((char *)outregs[1])+1; /* returned length includes terminator */
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
