@@ -879,6 +879,11 @@ SUM LEN
 	Returns the total length of all of the strings in string
 	array <array>.
 
+SYS(
+	Use: SYS(<string>)
+	This is a wrapper for SYS call OS_SWINumberFromString, and
+	returns the SWI number for a given SWI name.
+
 TAN
 	Use: TAN <factor>
 	Returns the tangent of numeric value <factor>
