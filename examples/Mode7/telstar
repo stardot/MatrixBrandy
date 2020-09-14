@@ -5,7 +5,7 @@
    50REM interface is a local extension, as is the screen memory access and
    60REM the *WinTitle command.
    70:
-   80VER$="Viewdata client version 20200912"
+   80VER$="Viewdata client version 20200914"
    90:
   100sdl%=0
   110IF (INKEY(-256) AND &A0) = &A0 THEN GOTO 140: REM RISC OS, let's hope the user knows what they're doing.
@@ -16,7 +16,7 @@
   160OSCLI"Key1|_":OSCLI"KEY2"+CHR$(130)
   170IF sdl% THEN *WinTitle Matrix Network Viewdata/Teletext Client
   180ON ERROR GOTO 510
-  190MODE 7:OFF: VDU23,16,1,0|23,18,1,0|
+  190MODE 7:OFF: VDU23,16,1|23,18,1|
   200reveal%=0:scan%=0:width%=1
   210dh%=0:dhline%=0:borked%=0:telnet%=1:extended%=0
   220allowfs%=1:DIM scr%% 1000
@@ -123,12 +123,12 @@
  1215IF A% = 52 THEN borked%=0: S$ = "fish.ccl4.org:23"
  1220IF A% = 53 THEN borked%=0: S$ = "nx.nxtel.org:23280"
  1225IF A% = 54 THEN borked%=0: S$ = "pegasus.matrixnetwork.co.uk:6502"
- 1230IF A% = 55 THEN borked%=0: S$ = "alterant.leenooks.net:516": VDU23,16,0|
+ 1230IF A% = 55 THEN borked%=0: S$ = "alterant.leenooks.net:516"
  1260IF A% = 84 OR A% = 116 THEN telnet%=telnet% EOR 1: GOTO 1160
  1270CLS
  1280="ip0:"+S$
  1290:
- 1300DEFPROCwelcomescreen:CLS:VDU23,16,1|
+ 1300DEFPROCwelcomescreen:CLS
  1310PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1320PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1330PRINT
