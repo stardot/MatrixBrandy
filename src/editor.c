@@ -781,6 +781,7 @@ static filetype identify(FILE *thisfile, char *name) {
 void read_basic(char *name) {
   FILE *loadfile;
   int32 length, ftype;
+  if (strlen(name) > (FNAMESIZE - 1)) error(ERR_INVALIDFNAME);
   loadfile = open_file(name);
   if (loadfile==NIL) error(ERR_NOTFOUND, name);
   last_added = NIL;
@@ -908,6 +909,7 @@ void read_library(char *name, boolean onheap) {
   FILE *libfile;
   int32 ftype;
 
+  if (strlen(name) > (FNAMESIZE - 1)) error(ERR_INVALIDFNAME);
   if (onheap)	/* Check if library has already been loaded */
     lp = basicvars.liblist;
   else {

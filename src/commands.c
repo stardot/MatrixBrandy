@@ -947,24 +947,25 @@ void exec_command(void) {
 */
 void init_commands(void) {
   char *editor;
+  memset(editname, 0, 80); /* Fill the buffer with zero bytes. Ensures whatever we get back is null-terminated. */
   editor = getenv(EDITOR_VARIABLE);
   if (editor != NULL)
-    strcpy(editname, editor);
+    strncpy(editname, editor,79);
   else {
 #ifdef TARGET_UNIX
     editor=getenv("EDITOR");
     if (editor != NULL)
-      strcpy(editname, editor);
+      strncpy(editname, editor,79);
     else {
       editor=getenv("VISUAL");
       if (editor != NULL)
-        strcpy(editname, editor);
+        strncpy(editname, editor,79);
       else {
-        strcpy(editname, DEFAULT_EDITOR);
+        strncpy(editname, DEFAULT_EDITOR,79);
       }
     }
 #else
-    strcpy(editname, DEFAULT_EDITOR);
+    strncpy(editname, DEFAULT_EDITOR,79);
 #endif
   }
 }

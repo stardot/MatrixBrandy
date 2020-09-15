@@ -535,7 +535,10 @@ static void run_interpreter(void) {
     if (loadfile!=NIL) {	/*  Name of program to load was given on command line */
       read_basic(loadfile);
       init_expressions();
-      strcpy(basicvars.program, loadfile);	/* Save the name of the file */
+      memset(basicvars.program, 0, FNAMESIZE);
+      if (strlen(loadfile) < FNAMESIZE ) {
+        strncpy(basicvars.program, loadfile, FNAMESIZE-1);	/* Save the name of the file */
+      }
       if (basicvars.runflags.loadngo) run_program(basicvars.start);	/* Start program execution */
     }
 #endif
