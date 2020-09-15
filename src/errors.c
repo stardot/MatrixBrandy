@@ -534,6 +534,7 @@ static detail errortable [] = {
 /* ERR_GETPTRFAIL */	{FATAL,    NOPARM,   0, "The file pointer's value cannot be found"},
 /* ERR_GETEXTFAIL */	{FATAL,    NOPARM,   0, "The size of the file cannot be found"},
 /* ERR_MAXHANDLE */	{NONFATAL, NOPARM, 192, "The maximum allowed number of files is already open"},
+/* ERR_INVALIDFNAME */	{NONFATAL, NOPARM, 253, "Invalid file name"},
 /* ERR_NOMEMORY */	{FATAL,    NOPARM,   0, "Amount of memory requested exceeds what is available"},
 //
 /* ERR_BROKEN */	{FATAL,    INTSTR,   0, "The interpreter has gone wrong at line %d in %s"},

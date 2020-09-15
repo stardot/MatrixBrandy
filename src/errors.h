@@ -152,6 +152,7 @@ typedef enum {
     ERR_GETPTRFAIL,     /* File pointer cannot be read */
     ERR_GETEXTFAIL,     /* File size cannot be found */
     ERR_MAXHANDLE,      /* Maximum number of files are already open */
+    ERR_INVALIDFNAME,   /* Invalid file name */
     ERR_NOMEMORY,       /* Not enough memory available to run interpreter */
     ERR_BROKEN,         /* Basic program is corrupt or interpreter logic error */
     ERR_COMMAND,        /* Basic command found in program */

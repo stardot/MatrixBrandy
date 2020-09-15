@@ -9,6 +9,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Implement two SYS calls for obtaining the address of a system call
   (Brandy_dlgetaddr) and to call it (Brandy_dlcalladdr).
 - System: Implement OS_SWINumberToString.
+- System: Fix bugs in string handling on OPENIN, OPENOUT and OPENUP
+  (CVE-2020-14662 and CVE-2020-14663 reported on upstream Brandy)
 - Display: Fix a subtle VDU23,16,1| bug. Thanks to Richard Russell for this.
 - Examples: Telstar client updated with ANSItex BBS added.
 
