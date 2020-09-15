@@ -643,6 +643,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   int32 n;
   char filename [FNAMESIZE];
 
+  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
