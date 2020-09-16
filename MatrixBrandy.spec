@@ -1,6 +1,6 @@
 Summary: A BBC BASIC interpreter for Linux
 Name: MatrixBrandy
-Version: 1.22.7
+Version: 1.22.8
 Release: 1
 License: GPLv2+
 Group: Development/Tools
@@ -22,7 +22,7 @@ offered by RISC OS including Mode 7 (Teletext), and basic networking
 both of which are used by the bundled "telstar" example. Many bugs are fixed
 and mathematics are brought more in line with Acorn's BBC BASIC VI.
 Some BASIC extensions from Richard Russell's BB4W and BBCSDL are also
-included.
+supported.
 
 %prep
 %setup -q 
