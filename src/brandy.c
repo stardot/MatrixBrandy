@@ -282,6 +282,7 @@ static void init2(void) {
 ** for the Basic program
 */
 static void check_cmdline(int argc, char *argv[]) {
+  boolean had_double_dash = FALSE;
   int n;
   char optchar, *p;
 #ifndef BRANDYAPP
@@ -290,7 +291,7 @@ static void check_cmdline(int argc, char *argv[]) {
   n = 1;
   while (n<argc) {
     p = argv[n];
-    if (*p=='-') {	/* Got an option */
+    if (*p=='-' && !had_double_dash) {	/* Got an option */
       optchar = tolower(*(p+1));	/* Get first character of option name */
       if (optchar=='h') {		/* -help */
         show_help();
@@ -386,6 +387,8 @@ static void check_cmdline(int argc, char *argv[]) {
       }
       else if (optchar=='!')		/* -! - Don't initialise signal handlers */
         basicvars.misc_flags.trapexcp = FALSE;
+      else if (optchar=='-' && *(p+2) == 0)		/* -- - Pass all remaining options to the Basic program */
+        had_double_dash = TRUE;
       else {
 /* Any unrecognised options are assumed to be for the Basic program */
         add_arg(argv[n]);
