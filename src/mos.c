@@ -2406,7 +2406,7 @@ void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
       mos_getswiname(inregs[0], inregs[1], inregs[2], xflag);
       outregs[0]=inregs[0];
       outregs[1]=inregs[1];
-      outregs[2]=strlen((char *)outregs[1])+1; /* returned length includes terminator */
+      outregs[2]=strlen((char *)(size_t)outregs[1])+1; /* returned length includes terminator */
       break;
     case SWI_OS_SWINumberFromString:
       outregs[1]=inregs[1];
