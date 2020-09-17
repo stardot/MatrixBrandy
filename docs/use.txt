@@ -124,6 +124,9 @@ where <filename> is the optional name of the program to load and
 			option allows some unsupported features that do not
 			affect the basic running of the program to be ignored.
 
+--			Subsequent options are passed to the Basic program, rather
+			than being considered as options to the interpreter.
+
 <filename>		Load and run the Basic program <filename>. Remain in
 			the interpreter when the program has finished running.
 
