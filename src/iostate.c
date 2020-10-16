@@ -1061,7 +1061,7 @@ void exec_mode(void) {
   expression();
   itemtype = GET_TOPITEM;
   switch (itemtype) {
-  case STACK_INT: case STACK_FLOAT:
+  case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
     exec_modenum(itemtype);
     break;
   case STACK_STRING: case STACK_STRTEMP:
