@@ -1937,7 +1937,7 @@ static void cmd_save(char *command){
   if(!f) size -= addr-1;
   // fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
 
-  if ((addr == 0) || (size < 0)) {
+  if ((addr == 0) || (size == 0)) {
     emulate_printf("Syntax: SAVE <fname> <start addr> <end addr>|+<length>\r\n");
     return;
   }

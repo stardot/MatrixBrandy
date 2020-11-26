@@ -300,7 +300,7 @@ static void delete(void) {
   if (isateol(basicvars.current)) error(ERR_SYNTAX);
   get_pair(&low, &high, 0, MAXLINENO);
   check_ateol();
-  if (low<0 || low>MAXLINENO || high<0 || high>MAXLINENO) error(ERR_LINENO);
+  if (low>MAXLINENO || high>MAXLINENO) error(ERR_LINENO);
   delete_range(low, high);
 }
 
@@ -314,8 +314,8 @@ static void renumber(void) {
   basicvars.current++;
   get_pair(&start, &step, 10, 10);
   check_ateol();
-  if (start<0 || start>MAXLINENO) error(ERR_LINENO);
-  if (step<=0 || step>=MAXLINENO) error(ERR_SILLY);     /* An increment of zero is silly */
+  if (start>MAXLINENO) error(ERR_LINENO);
+  if (step==0 || step>=MAXLINENO) error(ERR_SILLY);     /* An increment of zero is silly */
   renumber_program(basicvars.start, start, step);
 }
 
@@ -351,7 +351,7 @@ static void list_program(void) {
   basicvars.current++;
   get_pair(&lowline, &highline, 0, MAXLINENO);
   check_ateol();
-  if (lowline<0 || lowline>MAXLINENO || highline<0 || highline>MAXLINENO) error(ERR_LINENO);
+  if (lowline>MAXLINENO || highline>MAXLINENO) error(ERR_LINENO);
   if (lowline == 0)
     p = basicvars.start;
   else {
@@ -421,7 +421,7 @@ static void list_hexline(void) {
   basicvars.current++;
   get_pair(&theline, &theline, 0, 0);
   check_ateol();
-  if (theline<0 || theline>MAXLINENO) error(ERR_LINENO);
+  if (theline>MAXLINENO) error(ERR_LINENO);
   if (theline == 0)
     where = basicvars.start;
   else {

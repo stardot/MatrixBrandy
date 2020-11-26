@@ -2279,7 +2279,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               if (token2>ACORNCMD_HIGHEST) {
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C7      */
               } else {
-		if((token-ACORNCMD_LOWEST < 0 ) || (token-ACORNCMD_LOWEST >= 18)) {
+		if(token-ACORNCMD_LOWEST >= 18) {
 		  error(WARN_BADTOKEN);
 		} else {
 		  p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
@@ -2291,7 +2291,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               if (token2>ACORNOTH_HIGHEST) {
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C6      */
               } else {
-		if ((token-ACORNOTH_LOWEST < 0) || (token-ACORNOTH_LOWEST >= 8)) {
+		if (token-ACORNOTH_LOWEST >= 8) {
 		  error(WARN_BADTOKEN);
 		} else {
 		  p = other_token[token-ACORNOTH_LOWEST];
