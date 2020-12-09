@@ -129,9 +129,6 @@
 #define X_PERCENT 24
 #define Y_PERCENT 25
 
-/* Debug hack */
-extern char *collapse;
-
 /* 'basicstring' defines the layout of a string descriptor */
 
 typedef struct {

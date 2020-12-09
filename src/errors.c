@@ -777,7 +777,9 @@ void error(int32 errnumber, ...) {
 ** UGLY UGLY hack. Use with compilation option -g to allow a stack
 ** backtrace to see exactly where an error condition was raised. */
 #ifdef BORKONERROR
-*collapse="bork";
+  char *collapse = NULL; /* debug hack */
+
+  *collapse="bork";
 #endif
 
 #ifdef USE_SDL

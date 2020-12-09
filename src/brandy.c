@@ -66,8 +66,6 @@ matrixbits matrixflags;		/* This contains flags used by Matrix Brandy extensions
 
 /* Forward references */
 
-char *collapse; /* debug hack */
-
 static void init1(void);
 static void init2(void);
 static void gpio_init(void);
@@ -98,8 +96,6 @@ int main(int argc, char *argv[]) {
 //#ifdef TARGET_RISCOS
 //  _kernel_oscli("WimpSlot 1600K");
 //#endif
-  /* DEBUG HACK */
-  collapse=NULL;
   init1();
   init_timer();	/* Initialise the timer thread */
 #ifndef NONET
