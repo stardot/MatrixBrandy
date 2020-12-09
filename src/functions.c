@@ -273,9 +273,12 @@ static void fn_page(void) {
 ** pointer for the file associated with file handle 'handle'
 */
 static void fn_ptr(void) {
-  if (*basicvars.current != '#') error(ERR_HASHMISS);
-  basicvars.current++;
-  push_int(fileio_getptr(eval_intfactor()));
+  if (*basicvars.current == '#') {
+    basicvars.current++;
+    push_int(fileio_getptr(eval_intfactor()));
+  } else {
+    error(ERR_HASHMISS);
+  }
 }
 
 /*
