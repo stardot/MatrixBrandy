@@ -90,8 +90,6 @@ PLOT x,y                - do PLOT 69,x,y
 =CHR$(x,y)              - read character from screen at x,y
 SOUND ON                - turn sound on (*FX210,0)
 SOUND OFF               - turn sound off (*FX210,1)
-PTR(number)             - does bigendian !number
-PTR(string$)            - returns address of start of string$
 &o                      - octal constant, eg &o107
 %                       - binary constant, eg %100111 (standard extension)
 
