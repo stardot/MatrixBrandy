@@ -93,7 +93,9 @@ SOUND OFF               - turn sound off (*FX210,1)
 &o                      - octal constant, eg &o107
 %                       - binary constant, eg %100111 (standard extension)
 
-ON <various> ...        - interact with GUI system
+DIM HIMEM               - A Basalt extension, use to define byte arrays
+                          outside of heap space using malloc(). Unlike heap
+                          arrays, these can be freed by re-DIMming to -1.
 
 
 Notes on ADVAL(-1) and EOF#0

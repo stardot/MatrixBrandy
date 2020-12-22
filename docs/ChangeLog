@@ -9,6 +9,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   traditional CALL &FFxx route.
 - BASIC: Fix regression on MODE command caused by uint8 data type introduction.
 - BASIC: Implemented 64-bit unary indirection using ']' (as per BBCSDL).
+- BASIC: Implemented DIM HIMEM (a Basalt extension), in Matrix Brandy this
+  allocates memory outside the heap, using malloc() and friends.
 
 * V1.22.8 - 16 September 2020
 - BASIC: Fix REM behaviour of DEF line.

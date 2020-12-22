@@ -420,10 +420,12 @@ for example:
 In fact, blocks of memory allocated this way can only be
 referenced via indirection operators.
 
-Similarly, memory outside the heap can be requested via the
-Brandy-specific system call SYS "Brandy_MAlloc" and freed using
-SYS "Brandy_Free". Memory allocated this way, like those allocated
-from the heap using DIM, can only be referenced via indirection
+Similarly, memory outside the heap can be requested using DIM HIMEM
+(a Basalt extension), or by using the Brandy-specific system call
+SYS "Brandy_MAlloc".  This memory can also be freed using
+DIM HIMEM var%% -1 or using the Brandy-specific extension
+SYS "Brandy_Free". Memory allocated this way, like that allocated
+from the heap using a regular DIM, can only be referenced via indirection
 operators.
 
 Note that it is recommended to use a 64-bit integer when DIMming

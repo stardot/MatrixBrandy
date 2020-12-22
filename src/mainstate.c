@@ -349,10 +349,10 @@ void exec_def(void) {
 ** define_byte_array - Called to handle a DIM of the form:
 **   DIM <name> <size>
 */
-static void define_byte_array(variable *vp) {
+static void define_byte_array(variable *vp, boolean offheap) {
   boolean isindref, islocal;
   int64 offset = 0, highindex;
-  byte *ep;
+  byte *ep = NULL;
 /*
 ** Allocate a byte *array* (index range 0..highindex) of the requested
 ** size. The address stored is in fact the byte offset of the array
@@ -374,6 +374,14 @@ static void define_byte_array(variable *vp) {
     else {
       offset = TOINT64(vp->varentry.varfloat) + eval_intfactor();
     }
+  } else if (offheap) {
+    if (vp->varflags == VAR_INTWORD)
+      offset = vp->varentry.varinteger;
+    else if (vp->varflags == VAR_INTLONG)
+      offset = vp->varentry.var64int;
+    else {
+      offset = TOINT64(vp->varentry.varfloat);
+    }
   }
   islocal = *basicvars.current == BASIC_TOKEN_LOCAL;
   if (islocal) {	/* Allocating block on stack */
@@ -384,21 +392,36 @@ static void define_byte_array(variable *vp) {
     ep = alloc_stackmem(highindex + 1);			/* Allocate memory on the stack */
     if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
   }
-  else {	/* Allocating block from heap */
+  else {	/* Allocating block from heap or malloc*/
     highindex = eval_integer();
     if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
-
-    if (highindex == -1) {	/* Treat size of -1 as special case, although it does not have to be */
-      ep = basicvars.vartop;
+    if (offheap) {
+      ep = (byte *)offset;
+      if (highindex == -1) {
+        free(ep);
+        ep = 0;
+      } else {
+        ep = realloc(ep, highindex);
 #if defined(__LP64__) || defined(__WIN64__)
-      if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) error(ERR_ADDRESS);
+        if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) {
+          free(ep); /* Can't store the address in the variable type given so free it before complaining */
+          error(ERR_ADDRESS);
+        }
 #endif
+      }
     } else {
+      if (highindex == -1) {	/* Treat size of -1 as special case, although it does not have to be */
+        ep = basicvars.vartop;
 #if defined(__LP64__) || defined(__WIN64__)
-      if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
+        if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
-      ep = condalloc(highindex+1);
-      if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
+      } else {
+#if defined(__LP64__) || defined(__WIN64__)
+        if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
+#endif
+        ep = condalloc(highindex+1);
+        if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
+      }
     }
   }
   if (isindref)
@@ -421,6 +444,7 @@ static void define_byte_array(variable *vp) {
 void exec_dim(void) {
   byte *base, *ep;
   variable *vp;
+  boolean offheap = 0;		/* TRUE if allocating a block of memory off the heap */
   boolean blockdef;		/* TRUE if we are allocating a block of memory and not creating an array */
 
 #ifdef DEBUG
@@ -429,6 +453,11 @@ void exec_dim(void) {
   do {
     boolean islocal = FALSE;	/* TRUE if we are defining a local array on the stack */
     basicvars.current++;	/* Skip 'DIM' token or ',' */
+    /* Is the next token HIMEM? If so we're doing an off-heap memory block */
+    if ((*basicvars.current == 0xFF) && (*(basicvars.current+1) == BASIC_TOKEN_HIMEM)) {
+      offheap = TRUE;
+      basicvars.current+=2;
+    }
 /* Must always have a variable name next */
     if (*basicvars.current != BASIC_TOKEN_STATICVAR && *basicvars.current != BASIC_TOKEN_XVAR) error(ERR_NAMEMISS);
     if (*basicvars.current == BASIC_TOKEN_STATICVAR) {	/* Found a static variable */
@@ -460,7 +489,7 @@ void exec_dim(void) {
       }
     }
     if (blockdef)	/* Defining a block of memory */
-      define_byte_array(vp);
+      define_byte_array(vp, offheap);
     else {	/* Defining a normal array */
       define_array(vp, islocal);
     }
