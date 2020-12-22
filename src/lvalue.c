@@ -415,6 +415,8 @@ static void do_unaryind(lvalue *destination) {
     destination->typeinfo = VAR_INTBYTEPTR;
   else if (operator=='!')	/* Word unary indirection operator */
     destination->typeinfo = VAR_INTWORDPTR;
+  else if (operator==']')	/* Word unary indirection operator */
+    destination->typeinfo = VAR_INT64PTR;
   else if (operator=='|')	/* Floating point unary indirection operator */
     destination->typeinfo = VAR_FLOATPTR;
   else {	/* String unary indirection operator */
@@ -453,7 +455,7 @@ static void (*lvalue_table[256])(lvalue *) = {
   bad_token, bad_token, bad_token, bad_token,			/* 50..53 */
   bad_token, bad_token, bad_token, bad_token,			/* 54..57 */
   bad_token, bad_token, bad_token, bad_syntax,			/* 58..5B */
-  bad_syntax, bad_syntax, bad_syntax, bad_token,		/* 5C..5F */
+  bad_syntax, do_unaryind, bad_syntax, bad_token,		/* 5C..5F */
   bad_token, bad_token, bad_token, bad_token,			/* 60..63 */
   bad_token, bad_token, bad_token, bad_token,			/* 64..67 */
   bad_token, bad_token, bad_token, bad_token,			/* 68..6B */

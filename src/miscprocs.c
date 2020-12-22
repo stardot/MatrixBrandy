@@ -194,6 +194,16 @@ int32 get_integer(size_t offset) {
 }
 
 /*
+** 'get_int64' returns the eight byte integer found at offset
+** 'offset' in the Basic workspace. This is used to return the
+** value pointed at by an indirection operator
+*/
+int64 get_int64(size_t offset) {
+  check_read(offset, sizeof(int64));
+  return ((int64)get_integer(offset) & 0xFFFFFFFFl) + (((int64)(get_integer(offset+4)) & 0xFFFFFFFFl) << 32);
+}
+
+/*
 ** 'get_float' returns the eight byte floating point value found
 ** at offset 'offset' in the Basic workspace. This is used to
 ** return the value pointed at by an indirection operator
@@ -217,6 +227,23 @@ void store_integer(size_t offset, int32 value) {
   basicvars.memory[offset+1] = value>>BYTESHIFT;
   basicvars.memory[offset+2] = value>>(2*BYTESHIFT);
   basicvars.memory[offset+3] = value>>(3*BYTESHIFT);
+}
+
+/*
+** 'store_in64' is called to save a 64-bit int value at an arbitrary
+** offset within the basic workspace. 'offset' is the location at
+** which the value is to be stored
+*/
+void store_int64(size_t offset, int64 value) {
+  check_write(offset, sizeof(int64));
+  basicvars.memory[offset] = value;
+  basicvars.memory[offset+1] = value>>BYTESHIFT;
+  basicvars.memory[offset+2] = value>>(2*BYTESHIFT);
+  basicvars.memory[offset+3] = value>>(3*BYTESHIFT);
+  basicvars.memory[offset+4] = value>>(4*BYTESHIFT);
+  basicvars.memory[offset+5] = value>>(5*BYTESHIFT);
+  basicvars.memory[offset+6] = value>>(6*BYTESHIFT);
+  basicvars.memory[offset+7] = value>>(7*BYTESHIFT);
 }
 
 /*

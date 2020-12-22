@@ -176,6 +176,33 @@ static void assign_intwordptr(pointers address) {
 }
 
 /*
+** 'assign_int64ptr' deals with assignments to indirect 64-bit
+** integer variables
+*/
+static void assign_int64ptr(pointers address) {
+#ifdef USE_SDL
+  size_t addr;
+
+  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    addr = address.offset - matrixflags.mode7fb;
+    address.offset = (size_t)mode7frame + addr;
+    mode7changed[addr/40]=1;
+    mode7changed[(addr+7)/40]=1;
+  }
+#endif
+  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+  store_int64(address.offset, pop_anynum64());
+#ifdef USE_SDL
+  if ((address.offset >= (size_t)matrixflags.modescreen_ptr) &&
+     (address.offset < (size_t)(matrixflags.modescreen_sz + matrixflags.modescreen_ptr))) {
+       refresh_location((address.offset-(size_t)matrixflags.modescreen_ptr)/4);
+       refresh_location(1+(address.offset-(size_t)matrixflags.modescreen_ptr)/4);
+  }
+#endif
+}
+
+/*
 ** 'assign_floatptr' assigns a value to an indirect floating point
 ** variable
 */
@@ -818,6 +845,14 @@ static void assiplus_intwordptr(pointers address) {
 }
 
 /*
+** 'assiplus_int64ptr' handles the '+=' assignment operator for word
+** indirect integer variables
+*/
+static void assiplus_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset)+pop_anynum64());
+}
+
+/*
 ** 'assiplus_floatptr' handles the '+=' assignment operator for indirect
 ** floating point variables
 */
@@ -1061,6 +1096,14 @@ static void assiminus_intwordptr(pointers address) {
 }
 
 /*
+** 'assiminus_int64ptr' handles the '-=' assignment operator for word
+** indirect integer variables
+*/
+static void assiminus_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset)-pop_anynum64());
+}
+
+/*
 ** 'assiminus_floatptr' handles the '-=' assignment operator for indirect
 ** floating point variables
 */
@@ -1228,6 +1271,14 @@ static void assiand_intwordptr(pointers address) {
 }
 
 /*
+** 'assiand_int64ptr' handles the 'AND=' assignment operator for word
+** indirect integer variables
+*/
+static void assiand_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset) & pop_anynum64());
+}
+
+/*
 ** 'assiand_floatptr' handles the 'AND=' assignment operator for indirect
 ** floating point variables
 */
@@ -1377,6 +1428,14 @@ static void assior_intbyteptr(pointers address) {
 */
 static void assior_intwordptr(pointers address) {
   store_integer(address.offset, get_integer(address.offset) | pop_anynum32());
+}
+
+/*
+** 'assior_int64ptr' handles the 'OR=' assignment operator for word
+** indirect integer variables
+*/
+static void assior_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset) | pop_anynum64());
 }
 
 /*
@@ -1540,6 +1599,14 @@ static void assieor_intwordptr(pointers address) {
 }
 
 /*
+** 'assieor_int64ptr' handles the 'EOR=' assignment operator for word
+** indirect integer variables
+*/
+static void assieor_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset) ^ pop_anynum64());
+}
+
+/*
 ** 'assieor_float' handles the 'EOR=' assignment operator for floating point
 ** variables
 */
@@ -1697,6 +1764,14 @@ static void assimod_intbyteptr(pointers address) {
 */
 static void assimod_intwordptr(pointers address) {
   store_integer(address.offset, get_integer(address.offset) % pop_anynum32());
+}
+
+/*
+** 'assimod_int64ptr' handles the 'MOD=' assignment operator for word
+** indirect integer variables
+*/
+static void assimod_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset) % pop_anynum64());
 }
 
 /*
@@ -1860,6 +1935,14 @@ static void assidiv_intwordptr(pointers address) {
 }
 
 /*
+** 'assidiv_int64ptr' handles the 'DIV=' assignment operator for word
+** indirect integer variables
+*/
+static void assidiv_int64ptr(pointers address) {
+  store_int64(address.offset, get_int64(address.offset) / pop_anynum64());
+}
+
+/*
 ** 'assidiv_float' handles the 'DIV=' assignment operator for floating point
 ** variables
 */
@@ -1988,7 +2071,7 @@ static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
   assign_strarray, assignment_invalid, assign_int64array, assign_uint8array,
   assignment_invalid, assign_intbyteptr, assign_intwordptr, assign_floatptr,
-  assignment_invalid, assign_dolstrptr, assignment_invalid, assignment_invalid
+  assignment_invalid, assign_dolstrptr, assign_int64ptr, assignment_invalid
 };
 
 static void (*assiplus_table[])(pointers) = {
@@ -1997,7 +2080,7 @@ static void (*assiplus_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiplus_intarray, assiplus_floatarray,
   assiplus_strarray, assignment_invalid, assiplus_int64array, assiplus_uint8array,
   assignment_invalid, assiplus_intbyteptr, assiplus_intwordptr, assiplus_floatptr,
-  assignment_invalid, assiplus_dolstrptr, assignment_invalid, assignment_invalid
+  assignment_invalid, assiplus_dolstrptr, assiplus_int64ptr, assignment_invalid
 };
 
 static void (*assiminus_table[])(pointers) = {
@@ -2006,7 +2089,7 @@ static void (*assiminus_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiminus_intarray, assiminus_floatarray,
   assiminus_badtype, assignment_invalid, assiminus_int64array, assiminus_uint8array,
   assignment_invalid, assiminus_intbyteptr, assiminus_intwordptr, assiminus_floatptr,
-  assignment_invalid, assiminus_badtype, assignment_invalid, assignment_invalid
+  assignment_invalid, assiminus_badtype, assiminus_int64ptr, assignment_invalid
 };
 
 static void (*assiand_table[])(pointers) = {
@@ -2015,7 +2098,7 @@ static void (*assiand_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assiand_intarray, assiand_floatarray,
   assibit_badtype, assignment_invalid, assiand_int64array, assiand_uint8array,
   assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assiand_floatptr,
-  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+  assignment_invalid, assibit_badtype, assiand_int64ptr, assignment_invalid
 };
 
 static void (*assior_table[])(pointers) = {
@@ -2024,7 +2107,7 @@ static void (*assior_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assior_intarray, assior_floatarray,
   assibit_badtype, assignment_invalid, assior_int64array, assior_uint8array,
   assignment_invalid, assior_intbyteptr, assior_intwordptr, assior_floatptr,
-  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+  assignment_invalid, assibit_badtype, assior_int64ptr, assignment_invalid
 };
 
 static void (*assieor_table[])(pointers) = {
@@ -2033,7 +2116,7 @@ static void (*assieor_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assieor_intarray, assieor_floatarray,
   assibit_badtype, assignment_invalid, assieor_int64array, assieor_uint8array,
   assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assieor_floatptr,
-  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+  assignment_invalid, assibit_badtype, assieor_int64ptr, assignment_invalid
 };
 
 static void (*assimod_table[])(pointers) = {
@@ -2042,7 +2125,7 @@ static void (*assimod_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assimod_intarray, assimod_floatarray,
   assibit_badtype, assignment_invalid, assimod_int64array, assimod_uint8array,
   assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assimod_floatptr,
-  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+  assignment_invalid, assibit_badtype, assimod_int64ptr, assignment_invalid
 };
 
 static void (*assidiv_table[])(pointers) = {
@@ -2051,7 +2134,7 @@ static void (*assidiv_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assidiv_intarray, assidiv_floatarray,
   assibit_badtype, assignment_invalid, assidiv_int64array, assidiv_uint8array,
   assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assidiv_floatptr,
-  assignment_invalid, assibit_badtype, assignment_invalid, assignment_invalid
+  assignment_invalid, assibit_badtype, assidiv_int64ptr, assignment_invalid
 };
 
 /*

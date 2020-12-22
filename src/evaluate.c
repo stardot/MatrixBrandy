@@ -1161,6 +1161,25 @@ static void do_getword(void) {
 }
 
 /*
+** 'do_getlong' handles the 64-bit int indirection operator, ']', pushing the
+** 64-bit int addressed by the numeric value on top of the Basic stack on to
+** the stack. The address of the 64-bit int to be pushed is byte-aligned
+*/
+static void do_getlong(void) {
+  size_t offset = 0;
+  basicvars.current++;		/* Skip '!' */
+  (*factor_table[*basicvars.current])();
+  offset = (size_t)pop_anynum64();
+#ifdef USE_SDL
+  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
+    /* Mode 7 screen memory */
+    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
+  }
+#endif
+  push_int64(get_int64(offset));
+}
+
+/*
 ** 'do_getstring' handles the unary string indirection operator, '$'.
 ** It pushes a descriptor for the CR-terminated string addressed by
 ** the numeric value on top of the stack on to the stack. Note that
@@ -4547,7 +4566,7 @@ void (*factor_table[256])(void) = {
   bad_token, bad_token, bad_token, bad_token,			/* 50..53 */
   bad_token, bad_token, bad_token, bad_token,			/* 54..57 */
   bad_token, bad_token, bad_token, bad_syntax,			/* 58..5B */
-  bad_syntax, bad_syntax, bad_syntax, bad_token,		/* 5C..5F */
+  bad_syntax, do_getlong, bad_syntax, bad_token,		/* 5C..5F */
   bad_token, bad_token, bad_token, bad_token,			/* 60..63 */
   bad_token, bad_token, bad_token, bad_token,			/* 64..67 */
   bad_token, bad_token, bad_token, bad_token,			/* 68..6B */
@@ -4790,6 +4809,7 @@ void expression(void) {
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:expression\n");
+  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: *basicvars.current=0x%X\n", *basicvars.current);
 #endif
   (*factor_table[*basicvars.current])();	/* Get first factor in the expression */
   lastop = optable[*basicvars.current];

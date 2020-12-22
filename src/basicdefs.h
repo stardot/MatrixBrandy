@@ -94,6 +94,7 @@
 #define VAR_POINTER 0x10			/* Pointer */
 #define VAR_INTBYTEPTR (VAR_INTBYTE+VAR_POINTER)	/* Pointer to 1 byte integer */
 #define VAR_INTWORDPTR (VAR_INTWORD+VAR_POINTER)	/* Pointer to 4 byte integer */
+#define VAR_INT64PTR (VAR_INTLONG+VAR_POINTER)		/* Pointer to 8 byte integer */
 #define VAR_FLOATPTR (VAR_FLOAT+VAR_POINTER)		/* Pointer to floating point */
 #define VAR_DOLSTRPTR (VAR_DOLSTRING+VAR_POINTER)	/* Pointer to string */
 #define VAR_PROC 0x20				/* Entry is for a procedure */
