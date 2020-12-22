@@ -124,9 +124,13 @@ static void native_oscli(char *command, char *respfile, FILE *respfh);
 
 /* Emulated BBC MOS calls */
 
+#define BBC_OSRDCH 0xFFE0
+#define BBC_OSASCI 0xFFE3
+#define BBC_OSNEWL 0xFFE7
 #define BBC_OSWRCH 0xFFEE
 #define BBC_OSWORD 0xFFF1
 #define BBC_OSBYTE 0xFFF4
+#define BBC_OSCLI  0xFFF7
 
 /* Some defines for the Raspberry Pi GPIO support */
 #define GPSET0 7
@@ -223,6 +227,24 @@ static int32 emulate_mos(int32 address) {
   case BBC_OSWRCH:	/* OSWRCH - Output a character */
     emulate_vdu(areg);
     return areg;
+  case BBC_OSRDCH:
+#ifdef NEWKBD
+    return(kbd_get() & 0xFF);
+#else
+    return(emulate_get());
+#endif
+    break;
+  case BBC_OSASCI:
+    if (areg != 13) {
+      emulate_vdu(areg);
+      return(areg);
+    }
+    /* Deliberate fall-through to OSNEWL */
+  case BBC_OSNEWL:
+    emulate_printf("\r\n");
+    return areg;
+  case BBC_OSCLI:
+    mos_oscli((char *)(size_t)(xreg | ( yreg << 8)), NIL, NULL);
     break;
   }
   return 0;

@@ -255,7 +255,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_OS_WriteC:
       outregs[0]=inregs[0];
       if ((inregs[1]==42) && (inregs[2]==42)) {
-        fprintf(stderr,"%c\r\n", (int32)(inregs[0] & 0xFF));
+        fprintf(stderr,"%c", (int32)(inregs[0] & 0xFF));
       } else {
         emulate_vdu(inregs[0] & 0xFF);
       }

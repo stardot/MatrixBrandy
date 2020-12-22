@@ -5,6 +5,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)
 - System: Accept -- on the commmand line to indicate all further options
   to be passed into the BASIC program even if it's otherwise a Brandy option.
+- System: Implement BBC MOS calls OSRDCH, OSNEWL, OSASCI and OSCLI via the
+  traditional CALL &FFxx route.
 - BASIC: Fix regression on MODE command caused by uint8 data type introduction.
 - BASIC: Implemented 64-bit unary indirection using ']' (as per BBCSDL).
 
