@@ -338,6 +338,7 @@ are:
 	?	Reference to a one byte integer
 	!	Reference to a four byte integer
 	|	Reference to a floating point value
+	]	Reference to an eight byte integer
 	$	Reference to a string
 
 The dyadic operators are:
@@ -345,7 +346,7 @@ The dyadic operators are:
 	?	Reference to a one byte integer
 	!	Reference to a four byte integer
 
-Note that there are not dyadic versions of '$' and '|'.
+Note that there are not dyadic versions of '$', ']' and '|'.
 
 Unary operators can be followed by a variable, array reference or
 an expression in parentheses. For dyadic operators, the item
@@ -358,7 +359,7 @@ Examples of unary operators:
 	$pointer%
 	!abc%
 	?(abc%+10)
-	$text%
+	](abc%%+40)=8589934592
 	$text% = "abc"
 
 Examples of dyadic operators:
@@ -405,7 +406,7 @@ heap to be used used for data structures and accessed via the
 indirection operators. A special form of the DIM statement is
 used for this:
 
-	DIM table% 100
+	DIM table%% 100
 
 Strictly speaking this allocates a byte array with indexes 0 to
 100. From a more practical point of view, it allocates a 101 byte
@@ -413,11 +414,22 @@ block of memory and puts its address in table%. This block can
 then be manipulated using the indirection operators as desired,
 for example:
 
-	$table%="an error message"
-	table%!0 = 0: table%!4 = 99
+	$table%%="an error message"
+	table%%!0 = 0: table%%!4 = 99
 
 In fact, blocks of memory allocated this way can only be
 referenced via indirection operators.
+
+Similarly, memory outside the heap can be requested via the
+Brandy-specific system call SYS "Brandy_MAlloc" and freed using
+SYS "Brandy_Free". Memory allocated this way, like those allocated
+from the heap using DIM, can only be referenced via indirection
+operators.
+
+Note that it is recommended to use a 64-bit integer when DIMming
+memory or using the Brandy_MAlloc/Brandy_Free calls, as on a 64-bit
+system there is no guarantee you will be allocated memory in the bottom
+4GB of the memory map.
 
 
 Array Operations
