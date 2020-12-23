@@ -390,7 +390,7 @@ Examples:
 	!(table%+offset%) = !(table%+offset2)
 	abc = |address+1.0
 	PROCabcd(!table%, table%!4)
-        FOR table%!8=1 TO 10: NEXT
+	FOR table%!8=1 TO 10: NEXT
 
 The interpreter limits the range of addresses that can be read
 from or written to using indirection operators to the Basic
@@ -427,6 +427,9 @@ DIM HIMEM var%% -1 or using the Brandy-specific extension
 SYS "Brandy_Free". Memory allocated this way, like that allocated
 from the heap using a regular DIM, can only be referenced via indirection
 operators.
+
+Numeric arrays can also be defined off-heap using DIM HIMEM but these
+cannot be freed, and will linger until the Brandy process terminates.
 
 Note that it is recommended to use a 64-bit integer when DIMming
 memory or using the Brandy_MAlloc/Brandy_Free calls, as on a 64-bit
