@@ -114,15 +114,7 @@ static gpio2rpistruct rpiboards[]={
 char outstring[65536];
 
 static char*ostype=BRANDY_OS;
-#if defined(__i386__)
-static char*cputype="x86";
-#elif defined(__x86_64__)
-static char*cputype="x86-64";
-#elif defined(__ARM_EABI__)
-static char*cputype="ARM";
-#else
-static char*cputype="Unknown";
-#endif
+static char*cputype=CPUTYPE;
 
 static uint32 mossys_getboardfrommodel(uint32 model) {
   int32 ptr;
@@ -422,7 +414,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #else
       outregs[6]=0x123456789ABCDEF0ll;
 #endif
-#if defined(__LP64__) || defined(__WIN64__)
+#ifdef MATRIX64BIT
       outregs[7]=1;
 #else
       outregs[7]=0;
@@ -535,7 +527,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_Brandy_Platform:
         outregs[0]=(int64)(size_t)ostype;
         outregs[1]=(int64)(size_t)cputype;
-#if defined(__LP64__) || defined(__WIN64__)
+#ifdef MATRIX64BIT
         outregs[2]=1;
 #else
         outregs[2]=0;

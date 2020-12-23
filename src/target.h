@@ -127,6 +127,16 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 ** DIR_SEP	gives the character to be used to separate directory names.
 */
 
+#if defined(__i386__)
+#define CPUTYPE "x86"
+#elif defined(__x86_64__)
+#define CPUTYPE "x86-64"
+#elif defined(__ARM_EABI__)
+#define CPUTYPE "ARM32"
+#else
+#define CPUTYPE "Unknown"
+#endif
+
 #ifndef __riscos
 #define OSVERSION 0x4D
 #endif
@@ -336,7 +346,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef BRANDY_NODISPLAYOS
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
-#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS SFX1 SFX2 SFX3 ") " BRANDY_DATE
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 SFX3 ") " BRANDY_DATE
 #endif
 
 /*
@@ -367,12 +377,12 @@ typedef jmp_buf sigjmp_buf;
 #endif /* TARGET_MINGW */
 
 #if defined(__LP64__) || defined(__WIN64__)
+#define MATRIX64BIT 1
 #define FMT_SZX "%llX"
 #define FMT_SZD "%llu"
 #else
 #define FMT_SZX "%X"
 #define FMT_SZD "%u"
 #endif /* LP64 */
-
 
 #endif

@@ -402,7 +402,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
         ep = 0;
       } else {
         ep = realloc(ep, highindex+1);
-#if defined(__LP64__) || defined(__WIN64__)
+#ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) {
           free(ep); /* Can't store the address in the variable type given so free it before complaining */
           error(ERR_ADDRESS);
@@ -412,11 +412,11 @@ static void define_byte_array(variable *vp, boolean offheap) {
     } else {
       if (highindex == -1) {	/* Treat size of -1 as special case, although it does not have to be */
         ep = basicvars.vartop;
-#if defined(__LP64__) || defined(__WIN64__)
+#ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
       } else {
-#if defined(__LP64__) || defined(__WIN64__)
+#ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
         ep = condalloc(highindex+1);
