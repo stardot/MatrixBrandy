@@ -361,7 +361,7 @@ void list_libraries(char ch) {
 ** of the array. 'islocal' is set to TRUE if the array is a local
 ** array, that is, it is defined in a procedure or function.
 */
-void define_array(variable *vp, boolean islocal) {
+void define_array(variable *vp, boolean islocal, boolean offheap) {
   int32 bounds[MAXDIMS];
   int32 n, dimcount, highindex, elemsize = 0, size;
   basicarray *ap;
@@ -416,9 +416,15 @@ void define_array(variable *vp, boolean islocal) {
     }
   }
   else {	/* Acquire memory from heap for a normal array */
-    ap = condalloc(sizeof(basicarray));		/* Grab memory for array descriptor */
-    if (ap==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
-    ap->arraystart.arraybase = condalloc(size*elemsize);	/* Grab memory for array proper */
+    if (offheap) {
+      ap = malloc(sizeof(basicarray));			/* Grab memory for array descriptor */
+      if (ap==NULL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
+      ap->arraystart.arraybase = malloc(size*elemsize);	/* Grab memory for array proper */
+    } else {
+      ap = condalloc(sizeof(basicarray));		/* Grab memory for array descriptor */
+      if (ap==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
+      ap->arraystart.arraybase = condalloc(size*elemsize);	/* Grab memory for array proper */
+    }
   }
   if (ap->arraystart.arraybase==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
   ap->dimcount = dimcount;
@@ -710,7 +716,7 @@ static void add_libarray(byte *tp, library *lp) {
         if (vp->varentry.vararray!=NIL) error(ERR_DUPLDIM, vp->varname);	      }
     }
     basicvars.current+=LOFFSIZE+1;
-    define_array(vp, FALSE);
+    define_array(vp, FALSE, FALSE); /* could perhaps put the final parameter to TRUE for an off-heap array? */
   } while (*basicvars.current==',');
   if (*basicvars.current!=asc_NUL && *basicvars.current!=':') error(ERR_SYNTAX);
   restore_current();	/* Restore current to its proper value */

@@ -401,7 +401,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
         free(ep);
         ep = 0;
       } else {
-        ep = realloc(ep, highindex);
+        ep = realloc(ep, highindex+1);
 #if defined(__LP64__) || defined(__WIN64__)
         if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) {
           free(ep); /* Can't store the address in the variable type given so free it before complaining */
@@ -491,7 +491,7 @@ void exec_dim(void) {
     if (blockdef)	/* Defining a block of memory */
       define_byte_array(vp, offheap);
     else {	/* Defining a normal array */
-      define_array(vp, islocal);
+      define_array(vp, islocal, offheap);
     }
   } while (*basicvars.current == ',');
   check_ateol();

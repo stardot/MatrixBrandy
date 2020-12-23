@@ -33,7 +33,7 @@ extern void detail_library(library *);
 extern variable *find_variable(byte *, int);
 extern variable *find_fnproc(byte *, int);
 extern variable *create_variable(byte *, int32, library *);
-extern void define_array(variable *, boolean);
+extern void define_array(variable *, boolean, boolean);
 extern void init_staticvars(void);
 
 extern char *nullstring;
