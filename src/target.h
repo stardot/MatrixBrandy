@@ -131,6 +131,10 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define CPUTYPE "x86"
 #elif defined(__x86_64__)
 #define CPUTYPE "x86-64"
+#elif defined(__ARM_ARCH_2__)
+#define CPUTYPE "ARMv2(26)"
+#elif defined(__ARM_ARCH_3__)
+#define CPUTYPE "ARMv3(32)"
 #elif defined(__ARM_EABI__)
 #define CPUTYPE "ARM32"
 #else
