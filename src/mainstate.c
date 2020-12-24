@@ -396,7 +396,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
     highindex = eval_integer();
     if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
     if (offheap) {
-      ep = (byte *)offset;
+      ep = (byte *)(size_t)offset;
       if (highindex == -1) {
         free(ep);
         ep = 0;
