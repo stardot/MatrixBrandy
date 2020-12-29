@@ -162,7 +162,6 @@ typedef enum {
     WARN_RPMISS,        /* ')' missing (warning) */
     WARN_RPAREN,        /* Too many ')' (warning) */
     WARN_PARNEST,       /* '()' nested incorrectly */
-    WARN_NEWSIZE,       /* Size of workspace changed */
     ERR_EDITFAIL,       /* Edit session failed */
     ERR_OSCLIFAIL,      /* OSCLI failed */
     ERR_NOGZIP,         /* gzip support not available */

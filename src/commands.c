@@ -138,7 +138,7 @@ static void exec_new(void) {
       (void) init_workspace(oldsize);
       error(ERR_NOMEMORY);
     }
-    error(WARN_NEWSIZE, basicvars.worksize);
+    emulate_printf("\r\nMemory available for Basic programs is now %d bytes\r\n", basicvars.worksize);
   }
 #ifdef USE_SDL
   if (basicvars.worksize && (basicvars.worksize <= 0x7C00)) {

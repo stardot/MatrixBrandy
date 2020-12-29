@@ -7,6 +7,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   to be passed into the BASIC program even if it's otherwise a Brandy option.
 - System: Implement BBC MOS calls OSRDCH, OSNEWL, OSASCI and OSCLI via the
   traditional CALL &FFxx route.
+- Platforms: Fixed a 64-bit regression in the NEW <size> command.
 - BASIC: Fix regression on MODE command caused by uint8 data type introduction.
 - BASIC: Implemented 64-bit unary indirection using ']' (as per BBCSDL).
 - BASIC: Implemented DIM HIMEM (a Basalt extension), in Matrix Brandy this

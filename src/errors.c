@@ -546,7 +546,6 @@ static detail errortable [] = {
 /* WARN_RPMISS */	{WARNING,  NOPARM,   0, "Warning: number of '(' in line exceeds the number of ')'"},
 /* WARN_RPAREN */	{WARNING,  NOPARM,   0, "Warning: number of '(' in line is less than the number of ')'"},
 /* WARN_PARNEST */	{WARNING,  NOPARM,   0, "Warning: '(' and ')' are nested incorrectly"},
-/* WARN_NEWSIZE */	{WARNING,  INTEGER,  0, "Memory available for Basic programs is now %d bytes"},
 //
 /* ERR_EDITFAIL */	{FATAL,    STRING,   0, "Edit session failed (%s)"},
 /* ERR_OSCLIFAIL */	{NONFATAL, STRING, 254, "OSCLI failed (%s)"},
