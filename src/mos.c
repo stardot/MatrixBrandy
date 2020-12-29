@@ -2208,7 +2208,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
   clen=strlen(command) + 256;
   cmdbufbase=malloc(clen);
   cmdbuf=cmdbufbase;
-  memcpy(cmdbuf, command, strlen(command));
+  memcpy(cmdbuf, command, strlen(command)+1);
 
 #if defined(TARGET_DJGPP) | defined(TARGET_WIN32)
 /* Command is to be sent to underlying DOS-style OS */
