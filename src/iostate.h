@@ -62,5 +62,8 @@ extern void exec_vdu(void);
 extern void exec_voice(void);
 extern void exec_voices(void);
 extern void exec_width(void);
+extern void open_printer(void);
+extern void close_printer(void);
+extern void printout_character(int32);
 
 #endif

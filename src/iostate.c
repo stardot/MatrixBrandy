@@ -1718,3 +1718,18 @@ void exec_width(void) {
   basicvars.printwidth = (width>=0 ? width : 0);
 }
 
+void open_printer(void) {
+  matrixflags.printer = popen("lpr -o document-format='text/plain'","w");
+  if (!matrixflags.printer) error(ERR_PRINTER);
+}
+
+void close_printer(void) {
+  if (matrixflags.printer) pclose(matrixflags.printer);
+  matrixflags.printer = NULL;
+}
+
+/* If connected to the printer, send the character. Otherwise, do nothing */
+void printout_character(int32 ch) {
+  if (ch == matrixflags.printer_ignore) return;
+  if (matrixflags.printer) fputc(ch, matrixflags.printer);
+}

@@ -42,6 +42,7 @@
 #include "scrcommon.h"
 #include "screen.h"
 #include "keyboard.h"
+#include "iostate.h"
 
 #ifdef TARGET_DOSWIN
 #include "conio.h"
@@ -702,15 +703,20 @@ static void vdu_setpalette(void) {
 /* ========== ANSI ========== */
 
 /*
-** 'echo_char' sends the character in the VDU command queue to the
-** output stream. This is used to provide an escape mechanism to allow
-** any character to be sent rather than having characters with codes
-** less than 32 treated as VDU commands. VDU 1 is hijacked to do this.
+** 'printer_char' sends the character in the VDU command queue to the printer
+** stream if connected, or to the output stream. This is used to provide an
+** escape mechanism to allow any character to be sent rather than having
+** characters with codes less than 32 treated as VDU commands. VDU 1 is
+** hijacked to do this.
 ** -- ANSI --
 */
-static void echo_char(void) {
-  putchar(vduqueue[0]);
-  if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
+static void printer_char(void) {
+  if (matrixflags.printer) {
+    fputc(vduqueue[0], matrixflags.printer);
+  } else {
+    putchar(vduqueue[0]);
+    if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
+  }
 }
 
 /*
@@ -1221,7 +1227,8 @@ static void vdu_plot(void) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
-  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
+  if (matrixflags.dospool) fputc(charvalue, matrixflags.dospool);
+  if (matrixflags.printer) printout_character(charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
     if (charvalue>=' ' && charvalue != DEL) {               /* Most common case - print something */
       print_char(charvalue);
@@ -1245,8 +1252,16 @@ void emulate_vdu(int32 charvalue) {
 
   switch (vducmd) {   /* Emulate the various control codes */
   case VDU_NULL:      /* 0 - Do nothing */
-  case VDU_ENAPRINT:  /* 2 - Enable the sending of characters to the printer (ignored) */
-  case VDU_DISPRINT:  /* 3 - Disable the sending of characters to the printer (ignored) */
+    break;
+  case VDU_PRINT:     /* 1 - Send next character to the print stream */
+    printer_char();
+    break;
+  case VDU_ENAPRINT:  /* 2 - Enable the sending of characters to the printer */
+    open_printer();
+    break;
+  case VDU_DISPRINT:  /* 3 - Disable the sending of characters to the printer */
+    close_printer();
+    break;
   case VDU_ENABLE:    /* 6 - Enable the VDU driver (ignored) */
   case VDU_ENAPAGE:   /* 14 - Enable page mode (ignored) */
   case VDU_DISPAGE:   /* 15 - Disable page mode (ignored) */
@@ -1255,9 +1270,6 @@ void emulate_vdu(int32 charvalue) {
   case VDU_GRAPHCOL:  /* 18 - Change current graphics colour */
   case VDU_DEFGRAPH:  /* 24 - Define graphics window */
     error(ERR_NOGRAPHICS);
-    break;
-  case VDU_PRINT:     /* 1 - Send next character to the print stream */
-    echo_char();
     break;
   case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
 #ifndef NOTEKGFX

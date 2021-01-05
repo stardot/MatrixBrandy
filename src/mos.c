@@ -2790,11 +2790,14 @@ switch (areg) {
 		else if (!xflag) error(ERR_MOSVERSION);
 // else return pointer to error block
 		break;
-	case 1: case 3: case 5: case 6:
+	case 1: case 3: case 5:
 		if (areg==3 || areg==4) tmp=tmp-7;
 		return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
 	case 4:
 		matrixflags.osbyte4val = xreg;
+		break;
+	case 6:
+		matrixflags.printer_ignore = xreg;
 		break;
 	case 43:
 		printf("%c", xreg);

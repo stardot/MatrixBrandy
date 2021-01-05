@@ -31,7 +31,8 @@ GSDL_C = $(DEPCOMMON) \
 	$(SRCDIR)/mos.h \
 	$(SRCDIR)/graphsdl.h \
 	$(SRCDIR)/textfonts.h \
-	$(SRCDIR)/keyboard.h
+	$(SRCDIR)/keyboard.h \
+	$(SRCDIR)/iostate.h
 
 $(SRCDIR)/graphsdl.o: $(GSDL_C)
 
@@ -300,7 +301,8 @@ $(SRCDIR)/assign.o: $(ASSIGN_C)
 TEXTONLY_C = $(DEPCOMMON) \
 	$(SRCDIR)/scrcommon.h \
 	$(SRCDIR)/screen.h \
-	$(SRCDIR)/keyboard.h
+	$(SRCDIR)/keyboard.h \
+	$(SRCDIR)/iostate.h
 
 $(SRCDIR)/textonly.o: $(TEXTONLY_C)
 

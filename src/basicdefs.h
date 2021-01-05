@@ -565,6 +565,7 @@ typedef struct {
   unsigned int scrunge;			/* Is the BASIC program scrunged? */
   FILE *doexec;				/* Are we doing a *EXEC? */
   FILE *dospool;			/* Are we doing a *SPOOL / *SPOOLON? */
+  FILE *printer;			/* Are we outputting to a printer? */
   int delcandelete;			/* DEL can delete */
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
   uint32 int_uses_float;		/* Does INT() use floats? */
@@ -575,6 +576,7 @@ typedef struct {
   boolean tekenabled;			/* Tektronix enabled in text mode (default: no) */
   uint32 tekspeed;			/* Emulated bit rate of Tek terminal (0=no slowdown) */
   uint32 osbyte4val;			/* OSBYTE 4 value, default = 0 */
+  int32 printer_ignore;			/* Printer ignore character, default = 10 */
 #ifdef USE_SDL
   byte *modescreen_ptr;			/* Mode screen pointer to pixels memory */
   uint32 modescreen_sz;			/* Mode screen size */

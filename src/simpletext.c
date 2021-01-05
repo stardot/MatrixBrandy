@@ -39,6 +39,7 @@
 #include "basicdefs.h"
 #include "scrcommon.h"
 #include "screen.h"
+#include "iostate.h"
 
 /*
 ** Notes
@@ -95,6 +96,10 @@ void echo_off(void) {
   write_vduflag(VDU_FLAG_ECHO,0);
 }
 
+static void printer_char(void) {
+  if (matrixflags.printer) fputc(vduqueue[0], matrixflags.printer);
+}
+
 /*
 ** 'nogo' is called to handle unsupported VDU driver features
 ** that are seen as cosmetic, that is, they affect the look
@@ -112,7 +117,8 @@ static void nogo(void) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
-  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
+  if (matrixflags.dospool) fputc(charvalue, matrixflags.dospool);
+  if (matrixflags.printer) printout_character(charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
     if (charvalue == 127) charvalue=8;  /* DEL maps to BACKSPACE */
     if (charvalue>=' ') {               /* Most common case - print something */
@@ -139,9 +145,16 @@ void emulate_vdu(int32 charvalue) {
 
   switch (vducmd) {     /* Emulate the various control codes */
   case VDU_NULL:        /* 0 - Do nothing */
+    break;
   case VDU_PRINT:       /* 1 - Send next character to the print stream */
-  case VDU_ENAPRINT:    /* 2 - Enable the sending of characters to the printer (ignored) */
-  case VDU_DISPRINT:    /* 3 - Disable the sending of characters to the printer (ignored) */
+    printer_char();
+    break;
+  case VDU_ENAPRINT:    /* 2 - Enable the sending of characters to the printer */
+    open_printer();
+    break;
+  case VDU_DISPRINT:    /* 3 - Disable the sending of characters to the printer */
+    close_printer();
+    break;
   case VDU_TEXTCURS:    /* 4 - Print text at text cursor (ignored) */
   case VDU_ENABLE:      /* 6 - Enable the VDU driver (ignored) */
   case VDU_ENAPAGE:     /* 14 - Enable page mode (ignored) */

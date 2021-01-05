@@ -46,6 +46,7 @@
 #include "keyboard.h"
 #include "graphsdl.h"
 #include "textfonts.h"
+#include "iostate.h"
 
 #ifdef TARGET_MACOSX
 #if SDL_PATCHLEVEL < 16
@@ -2136,6 +2137,10 @@ static void vdu_movetext(void) {
   }
 }
 
+static void printer_char(void) {
+  if (matrixflags.printer) fputc(vduqueue[0], matrixflags.printer);
+}
+
 /*
 ** 'emulate_vdu' is a simple emulation of the RISC OS VDU driver. It
 ** accepts characters as per the RISC OS driver and uses them to imitate
@@ -2145,7 +2150,8 @@ static void vdu_movetext(void) {
 */
 void emulate_vdu(int32 charvalue) {
   charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
-  if (matrixflags.dospool) fprintf(matrixflags.dospool, "%c", charvalue);
+  if (matrixflags.dospool) fputc(charvalue, matrixflags.dospool);
+  if (matrixflags.printer) printout_character(charvalue);
   if (vduneeded == 0) {			/* VDU queue is empty */
     if (vduflag(VDU_FLAG_DISABLE)) {
       if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);
@@ -2279,12 +2285,13 @@ void emulate_vdu(int32 charvalue) {
   case VDU_NULL:  	/* 0 - Do nothing */
     break;
   case VDU_PRINT:	/* 1 - Send next character to the print stream */
+    printer_char();
     break;
   case VDU_ENAPRINT: 	/* 2 - Enable the sending of characters to the printer */
-    write_vduflag(VDU_FLAG_ENAPRINT,1);
+    open_printer();
     break;
   case VDU_DISPRINT:	/* 3 - Disable the sending of characters to the printer */
-    write_vduflag(VDU_FLAG_ENAPRINT,0);
+    close_printer();
     break;
   case VDU_TEXTCURS:	/* 4 - Print text at text cursor */
     write_vduflag(VDU_FLAG_GRAPHICURS,0);

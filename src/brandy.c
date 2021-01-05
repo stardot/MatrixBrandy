@@ -201,6 +201,9 @@ static void init1(void) {
 #else
   matrixflags.delcandelete = 0;		/* DEL character can delete? */
 #endif
+  matrixflags.dospool = NULL;		/* By default, not doing a *SPOOL */
+  matrixflags.printer = NULL;		/* By default, printer is closed */
+  matrixflags.printer_ignore = 13;	/* By default, ignore carriage return characters */
 
 /*
  * Add dummy first parameter for Basic program command line.

@@ -167,10 +167,11 @@ typedef enum {
     ERR_NOGZIP,         /* gzip support not available */
     WARN_FUNNYFLOAT,    /* Unknown floating point format */
     ERR_SWINAMENOTKNOWN,/* SWI name not known */
-    ERR_SWINUMNOTKNOWN,	/* SWI &xxx not known */
-    ERR_DIRNOTFOUND,	/* Directory not found */
-    ERR_BADBITWISE,	/* 6, Bitwise operations cannot be performed on these operands */
-    ERR_ADDREXCEPT,	/* Address exception - use for segfault handler */
+    ERR_SWINUMNOTKNOWN, /* SWI &xxx not known */
+    ERR_DIRNOTFOUND,    /* Directory not found */
+    ERR_BADBITWISE,     /* 6, Bitwise operations cannot be performed on these operands */
+    ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
+    ERR_PRINTER,        /* Unable to connect to printer */
 // From JGH's Banana Brandy fork
     ERR_BADCOMMAND,	/* 254, Bad command */
     ERR_BADSTRING,	/* 253, Bad string */

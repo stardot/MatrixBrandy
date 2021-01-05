@@ -556,6 +556,7 @@ static detail errortable [] = {
 /* ERR_DIRNOTFOUND */	{NONFATAL, NOPARM, 214, "Directory not found or could not be selected"},
 /* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
 /* ERR_ADDREXCEPT */	{NONFATAL, NOPARM, 243, "Address exception"},
+/* ERR_PRINTER */	{NONFATAL, NOPARM, 509, "Unable to connect to printer"},
 //
 // OSCLI (command line) errors:
 /* ERR_BADCOMMAND */	{NONFATAL, NOPARM, 254, "Bad command"},
