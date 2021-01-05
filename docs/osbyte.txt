@@ -16,6 +16,7 @@ Supported OSBYTE calls
 ----------------------
 A=0:	X=0:  return the MOS version as an error with ERR=247.
 	X<>0: Return the host OS version in the X register (as per the 'use' doc)
+A=6:	Sets the default printer ignore character, default is 13.
 A=20:	Resets the system font (SDL build only)
 A=25:	Resets parts of the system font (SDL build only)
 	X=0 or 16 resets the teletext font (16 ONLY does the teletext font)

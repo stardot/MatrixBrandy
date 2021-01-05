@@ -5,8 +5,13 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)
 - System: Accept -- on the commmand line to indicate all further options
   to be passed into the BASIC program even if it's otherwise a Brandy option.
-- System: Implement BBC MOS calls OSRDCH, OSNEWL, OSASCI and OSCLI via the
+- System: Implemented BBC MOS calls OSRDCH, OSNEWL, OSASCI and OSCLI via the
   traditional CALL &FFxx route.
+- System: Enabled generic plain-text printing under Linux (or other platform
+  with CUPS, it uses 'lpr' to do the heavy lifting).
+- System: Implemented OSBYTE 6 (Printer ignore character), default is 13.
+  (Maybe it's a quirk of my printer, but ignoring 10 as default on the BBC
+  doesn't print right. Could be CUPS though.)
 - Platforms: Fixed a 64-bit regression in the NEW <size> command.
 - BASIC: Fix regression on MODE command caused by uint8 data type introduction.
 - BASIC: Implemented 64-bit unary indirection using ']' (as per BBCSDL).
@@ -20,7 +25,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: Fix REM behaviour of DEF line.
 - BASIC: Implemented SYS() function, somewhat in line with BBCSDL's version.
   In Matrix Brandy, this calls OS_SWINumberFromString, and also works under
-  RISC OS.
+  RISC OS.OSBYTE
 - System: Implement two SYS calls for obtaining the address of a system call
   (Brandy_dlgetaddr) and to call it (Brandy_dlcalladdr).
 - System: Implement OS_SWINumberToString.

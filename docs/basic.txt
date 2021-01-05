@@ -4445,11 +4445,16 @@ VDU 0
 Does nothing.
 
 VDU 1
-Under RISC OS this sends the next character to the printer stream.
-Under other operating systems it sends the next character
-uninterpreted to the output stream, that is, it can be used to
-output values that would normally be treated as VDU commands to
-the output stream.
+This sends the next character to the printer stream.
+
+VDU 2
+This enables the printer on RISC OS and Linux.
+Under Linux, it prints to the default printer using 'lpr',
+therefore to set a specific printer, use:
+SYS "Brandy_dlcall","setenv","PRINTER","<printer name>",1
+
+VDU 3
+This disables the printer.
 
 VDU 4
 Display text at the text cursor position.
