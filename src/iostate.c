@@ -1728,8 +1728,10 @@ void close_printer(void) {
   matrixflags.printer = NULL;
 }
 
-/* If connected to the printer, send the character. Otherwise, do nothing */
+/* Only called when we have the handle.
+** Send the character to the stream if not the ignored character.
+ */
 void printout_character(int32 ch) {
   if (ch == matrixflags.printer_ignore) return;
-  if (matrixflags.printer) fputc(ch, matrixflags.printer);
+  fputc(ch, matrixflags.printer);
 }
