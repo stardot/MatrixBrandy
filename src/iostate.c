@@ -1718,20 +1718,33 @@ void exec_width(void) {
   basicvars.printwidth = (width>=0 ? width : 0);
 }
 
+
+#ifndef TARGET_RISCOS
+/* little routines for opening a connection to the printer.
+** Not used on RISC OS, this will only work on Linux/UNIX
+** with CUPS installed, and are a no-op on other platforms.
+ */
 void open_printer(void) {
+#ifdef TARGET_UNIX
   matrixflags.printer = popen("lpr -o document-format='text/plain'","w");
   if (!matrixflags.printer) error(ERR_PRINTER);
+#endif
 }
 
 void close_printer(void) {
+#ifdef TARGET_UNIX
   if (matrixflags.printer) pclose(matrixflags.printer);
   matrixflags.printer = NULL;
+#endif
 }
 
 /* Only called when we have the handle.
 ** Send the character to the stream if not the ignored character.
  */
 void printout_character(int32 ch) {
+#ifdef TARGET_UNIX
   if (ch == matrixflags.printer_ignore) return;
   fputc(ch, matrixflags.printer);
+#endif
 }
+#endif /* ! TARGET_RISCOS */
