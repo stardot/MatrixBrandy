@@ -35,8 +35,8 @@
 #define BRANDY_NAME  "Matrix"
 #define BRANDY_MAJOR "1"
 #define BRANDY_MINOR "22"
-#define BRANDY_PATCHLEVEL "8"
-#define BRANDY_DATE       "16 Sep 2020"
+#define BRANDY_PATCHLEVEL "9"
+#define BRANDY_DATE       "06 Jan 2021"
 // #define BRANDY_PATCHDATE  "JGH191007"
 
 /*
