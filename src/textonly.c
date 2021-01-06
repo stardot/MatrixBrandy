@@ -856,11 +856,8 @@ static void vdu_textwind(void) {
 
 /* ========== conio ========== */
 
-/*
-** 'echo_char' does nothing in the conio version of the code
-** -- conio --
-*/
-static void echo_char(void) {
+static void printer_char(void) {
+  if (matrixflags.printer) fputc(vduqueue[0], matrixflags.printer);
 }
 
 /*
