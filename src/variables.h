@@ -35,6 +35,7 @@ extern variable *find_fnproc(byte *, int);
 extern variable *create_variable(byte *, int32, library *);
 extern void define_array(variable *, boolean, boolean);
 extern void init_staticvars(void);
+extern void clear_offheaparrays(void);
 
 extern char *nullstring;
 

@@ -87,6 +87,31 @@ void clear_varlists(void) {
   }
 }
 
+void clear_offheaparrays() {
+  /* Initially, let's just dump the arrays on screen. */
+  variable *vp;
+  int n;
+  for (n=0; n<VARLISTS; n++) {
+    vp = basicvars.varlists[n];
+    while (vp!=NIL) {
+      switch (vp->varflags) {
+        case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
+          if (vp->varentry.vararray!=NIL) {	/* Array bounds are undefined */
+            if (vp->varentry.vararray->offheap) {
+              free(vp->varentry.vararray->arraystart.arraybase);
+              free(vp->varentry.vararray);
+            }
+          }
+          break;
+        }
+        default:	/* Bad type of variable flag */
+          break; /* do nothing, we ignore anything else */
+      }
+      vp = vp->varflink;
+    }
+  }
+}
+
 /*
 ** 'list_varlist' lists the variables and arrays (plus their values)
 ** whose names start with the letter 'which'
@@ -429,6 +454,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   if (ap->arraystart.arraybase==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
   ap->dimcount = dimcount;
   ap->arrsize = size;
+  ap->offheap = offheap;
   for (n=0; n<dimcount; n++) ap->dimsize[n] = bounds[n];
   vp->varentry.vararray = ap;
 /* Now zeroise all the array elememts */

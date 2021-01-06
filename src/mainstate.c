@@ -316,6 +316,7 @@ void exec_chain(void) {
 void exec_clear(void) {
   basicvars.current++;	/* Move past token */
   check_ateol();
+  clear_offheaparrays();
   clear_varptrs();
   clear_varlists();
   clear_strings();
@@ -485,7 +486,7 @@ void exec_dim(void) {
         vp = create_variable(base, ep-base, NIL);
       else {	/* Array name exists */
         if (vp->varentry.vararray != NIL) error(ERR_DUPLDIM, vp->varname);	/* Array aleady defined */
-        islocal = TRUE;	/* Name exists but definition does not. Assume a local array */
+        if (!offheap) islocal = TRUE;	/* Name exists but definition does not. Assume a local array */
       }
     }
     if (blockdef)	/* Defining a block of memory */

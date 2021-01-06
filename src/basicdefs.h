@@ -151,6 +151,7 @@ typedef struct {
     void *arraybase;			/* Pointer to start of array */
   } arraystart;				/* Pointer to start of array */
   int32 dimsize[MAXDIMS];		/* Sizes of the array dimemsions */
+  boolean offheap;			/* TRUE if off heap */
 } basicarray;
 
 typedef union {
