@@ -315,14 +315,19 @@ void exec_chain(void) {
 */
 void exec_clear(void) {
   basicvars.current++;	/* Move past token */
-  check_ateol();
-  clear_offheaparrays();
-  clear_varptrs();
-  clear_varlists();
-  clear_strings();
-  clear_heap();
-  clear_stack();
-  init_expressions();
+  if ((*basicvars.current == 0xFF) && (*(basicvars.current+1) == BASIC_TOKEN_HIMEM)) {
+    basicvars.current+=2;
+    exec_clear_himem();
+  } else {
+    check_ateol();
+    clear_offheaparrays();
+    clear_varptrs();
+    clear_varlists();
+    clear_strings();
+    clear_heap();
+    clear_stack();
+    init_expressions();
+  }
 }
 
 /*

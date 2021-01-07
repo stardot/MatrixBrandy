@@ -40,6 +40,7 @@
 #include "miscprocs.h"
 #include "screen.h"
 #include "lvalue.h"
+#include "statement.h"
 
 #define FIELDWIDTH 20		/* Width of field used to print each variable's value */
 #define PRINTWIDTH 80		/* Default maximum number of characters printed per line */
@@ -100,6 +101,7 @@ void clear_offheaparrays() {
             if (vp->varentry.vararray->offheap) {
               free(vp->varentry.vararray->arraystart.arraybase);
               free(vp->varentry.vararray);
+              vp->varentry.vararray=NULL;
             }
           }
           break;
@@ -109,6 +111,15 @@ void clear_offheaparrays() {
       }
       vp = vp->varflink;
     }
+  }
+}
+
+void exec_clear_himem(void) {
+  if (isateol(basicvars.current)) {
+    clear_offheaparrays();
+  } else {
+    /* To extend, to accept CLEAR HIMEM arrayname(). For now, complain. */
+    error(ERR_SYNTAX);
   }
 }
 

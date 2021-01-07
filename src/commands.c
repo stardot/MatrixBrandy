@@ -576,7 +576,12 @@ static void print_help(void) {
     detailed_help(parm);
   }
 #else
-  show_options(1);
+  if (!isateol(basicvars.current)) {
+    emulate_printf("Detailed help not available (compiled with -DNOINLINEHELP)\r\n");
+    while (*basicvars.current != '\0') basicvars.current = skip_token(basicvars.current);
+  } else {
+    show_options(1);
+  }
 #endif
   check_ateol();
 }
@@ -1010,7 +1015,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "CIRCLE")) {
     emulate_printf("CIRCLE [FILL] x, y, r: draw circle outline [solid].");
   } else if (!strcmp(cmd, "CLEAR")) {
-    emulate_printf("Forget all variables.");
+    emulate_printf("CLEAR: Forget all variables, and frees off-heap arrays apart from memory blocks\r\nCLEAR HIMEM: De-allocates off-heap arrays. Does not affect memory blocks.");
   } else if (!strcmp(cmd, "CLG")) {
     emulate_printf("Clear graphics screen.");
   } else if (!strcmp(cmd, "CLOSE")) {
@@ -1034,7 +1039,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "DELETE")) {
     emulate_printf("This command deletes all lines between the specified numbers.\r\nDELETE <start line number>[,<end line number>]");
   } else if (!strcmp(cmd, "DIM")) {
-    emulate_printf("DIM fred(100,100): create and initialise an array.\r\nDIM fred [LOCAL] 100: allocate [temporary] space for a byte array etc\r\nDIM(fred()): function gives the number of dimensions\r\nDIM(fred(),n): function gives the size of the n'th dimension.");
+    emulate_printf("DIM [HIMEM] fred(100,100): create and initialise an array [off-heap].\r\nDIM fred [LOCAL] 100: allocate [temporary] space for a byte array etc\r\nDIM HIMEM fred 100: allocate off-heap space for a byte array etc\r\nDIM HIMEM fred -1: De-allocate memory reserved with DIM HIMEM (above)\r\nDIM(fred()): function gives the number of dimensions\r\nDIM(fred(),n): function gives the size of the n'th dimension.");
   } else if (!strcmp(cmd, "DIV")) {
     emulate_printf("Integer division, rounded towards zero, between two integers. Priority 3.");
   } else if (!strcmp(cmd, "DRAW")) {
@@ -1094,7 +1099,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "HELP")) {
     emulate_printf("This command gives help on usage of the interpreter.");
   } else if (!strcmp(cmd, "HIMEM")) {
-    emulate_printf("This pseudo-variable reads or sets the address of the end of BASIC's memory.");
+    emulate_printf("This pseudo-variable reads or sets the address of the end of BASIC's memory.\r\nPart of CLEAR HIMEM or DIM HIMEM statement.");
   } else if (!strcmp(cmd, "IF")) {
     emulate_printf("Single-line if: IF <expression> [THEN] <statements> [ELSE <statements>].\r\nMulti-line if: IF <expression> THEN<newline>\r\n                  <lines>\r\noptional:      ELSE <lines>\r\nmust:          ENDIF");
   } else if (!strcmp(cmd, "INKEY")) {
@@ -1249,7 +1254,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "SWAP")) {
     emulate_printf("SWAP <variable>,<variable>: exchange the contents.");
   } else if (!strcmp(cmd, "SYS")) {
-    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nIn Matrix Brandy, only built-in functionality is supported.\r\nNote that Matrix Brandy's SYS interface can return 64-bit values especially on\r\n64-bit hardware so programs should store such values in 64-bit integers.");
+    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nIn Matrix Brandy, only built-in functionality is supported.\r\nNote that Matrix Brandy's SYS interface can return 64-bit values especially on\r\n64-bit hardware so programs should store such values in 64-bit integers.\r\nSYS(\"syscall_name\"): function gives SWI number, as per OS_SWINumberFromString.");
   } else if (!strcmp(cmd, "TAB(")) {
     emulate_printf("In PRINT or INPUT statements:\r\nTAB to column n: PRINT TAB(10)s$.\r\nTAB to screen position x,y: PRINT TAB(10,20)s$.");
   } else if (!strcmp(cmd, "TAN")) {
