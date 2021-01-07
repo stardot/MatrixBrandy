@@ -118,8 +118,22 @@ void exec_clear_himem(void) {
   if (isateol(basicvars.current)) {
     clear_offheaparrays();
   } else {
-    /* To extend, to accept CLEAR HIMEM arrayname(). For now, complain. */
-    error(ERR_SYNTAX);
+    stackitem topitem;
+    basicarray *descriptor;
+    variable *vp;
+    expression();
+    topitem = get_topitem();
+    switch(topitem) {
+      case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
+        descriptor=pop_array();
+        vp=descriptor->parent;
+        if (!descriptor->offheap) error(ERR_OFFHEAPARRAY);
+        free(vp->varentry.vararray->arraystart.arraybase);
+        free(vp->varentry.vararray);
+        vp->varentry.vararray=NULL;
+        break;
+      default: error(ERR_OFFHEAPARRAY);
+    }
   }
 }
 
@@ -466,6 +480,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   ap->dimcount = dimcount;
   ap->arrsize = size;
   ap->offheap = offheap;
+  ap->parent = vp;
   for (n=0; n<dimcount; n++) ap->dimsize[n] = bounds[n];
   vp->varentry.vararray = ap;
 /* Now zeroise all the array elememts */

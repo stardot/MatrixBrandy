@@ -474,6 +474,7 @@ static detail errortable [] = {
 /* ERR_VARNUM */	{NONFATAL, NOPARM,   6, "Type mismatch: numeric variable wanted"},
 /* ERR_VARNUMSTR */	{NONFATAL, NOPARM,   6, "Type mismatch: number or string wanted"},
 /* ERR_VARARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: array wanted"},
+/* ERR_OFFHEAPARRAY */  {NONFATAL, NOPARM,   6, "Type mismatch: off-heap array wanted"},
 /* ERR_INTARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: integer array wanted"},
 /* ERR_FPARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: floating point array wanted"},
 /* ERR_STRARRAY */	{NONFATAL, NOPARM,   6, "Type mismatch: string array wanted"},

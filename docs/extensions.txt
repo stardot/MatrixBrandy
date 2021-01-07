@@ -92,10 +92,16 @@ SOUND ON                - turn sound on (*FX210,0)
 SOUND OFF               - turn sound off (*FX210,1)
 &o                      - octal constant, eg &o107
 %                       - binary constant, eg %100111 (standard extension)
+%%                      - Variable suffix, to denote a 64-bit integer.
+&                       - Variable suffix, to denote unsigned 8-bit integer.
+]                       - 64-bit unary indirection.
 
 DIM HIMEM               - A Basalt extension, use to define arrays outside
                           of heap space using malloc(). Byte arrays defined
                           this way can be de-allocated by re-DIMming to -1.
+
+CLEAR HIMEM [<array()>] - Deallocate off-heap arrays allocated using DIM HIMEM.
+                          This does not deallocate memory blocks.
 
 
 Notes on ADVAL(-1) and EOF#0

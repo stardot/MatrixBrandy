@@ -97,6 +97,7 @@ typedef enum {
     ERR_VARNUM,         /* Type mismatch: numeric variable wanted */
     ERR_VARNUMSTR,      /* Integer or string value wanted */
     ERR_VARARRAY,       /* Type mismatch: array wanted */
+    ERR_OFFHEAPARRAY,   /* Type mismatch: off-heap array wanted */
     ERR_INTARRAY,       /* Type mismatch: integer array wanted */
     ERR_FPARRAY,        /* Type mismatch: floating point array wanted */
     ERR_STRARRAY,       /* Type mismatch: string array wanted */

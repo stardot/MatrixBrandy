@@ -1015,7 +1015,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "CIRCLE")) {
     emulate_printf("CIRCLE [FILL] x, y, r: draw circle outline [solid].");
   } else if (!strcmp(cmd, "CLEAR")) {
-    emulate_printf("CLEAR: Forget all variables, and frees off-heap arrays apart from memory blocks\r\nCLEAR HIMEM: De-allocates off-heap arrays. Does not affect memory blocks.");
+    emulate_printf("CLEAR: Forget all variables, and frees off-heap arrays apart from memory blocks\r\nCLEAR HIMEM [<array()>]: De-allocates off-heap arrays.\r\n  Use DIM HIMEM variable%%%% -1 to free memory block");
   } else if (!strcmp(cmd, "CLG")) {
     emulate_printf("Clear graphics screen.");
   } else if (!strcmp(cmd, "CLOSE")) {
@@ -1039,7 +1039,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "DELETE")) {
     emulate_printf("This command deletes all lines between the specified numbers.\r\nDELETE <start line number>[,<end line number>]");
   } else if (!strcmp(cmd, "DIM")) {
-    emulate_printf("DIM [HIMEM] fred(100,100): create and initialise an array [off-heap].\r\nDIM fred [LOCAL] 100: allocate [temporary] space for a byte array etc\r\nDIM HIMEM fred 100: allocate off-heap space for a byte array etc\r\nDIM HIMEM fred -1: De-allocate memory reserved with DIM HIMEM (above)\r\nDIM(fred()): function gives the number of dimensions\r\nDIM(fred(),n): function gives the size of the n'th dimension.");
+    emulate_printf("DIM [HIMEM] fred(100,100): create and initialise an array [off-heap].\r\nDIM fred%%%% [LOCAL] 100: allocate [temporary] space for a byte array etc\r\nDIM HIMEM fred%%%% 100: allocate off-heap space for a byte array etc\r\nDIM HIMEM fred%%%% -1: De-allocate memory reserved with DIM HIMEM (above)\r\nDIM(fred()): function gives the number of dimensions\r\nDIM(fred(),n): function gives the size of the n'th dimension.");
   } else if (!strcmp(cmd, "DIV")) {
     emulate_printf("Integer division, rounded towards zero, between two integers. Priority 3.");
   } else if (!strcmp(cmd, "DRAW")) {

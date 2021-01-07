@@ -1593,7 +1593,7 @@ This statement clears the graphics window (normally the whole
 screen) to the current graphics background colour.
 
 CLEAR
-Syntax: CLEAR
+Syntax: CLEAR [HIMEM [<array()>]]
 
 CLEAR discards all of the variables and arrays created so
 far in the program. It also clears the chain of called
@@ -1602,6 +1602,10 @@ procedure or function.
 
 Example:
 	IF silly% THEN CLEAR
+
+Matrix Brandy extends the CLEAR syntax with CLEAR HIMEM [<array()] which
+will de-allocate the array if specified, or all arrays defined using
+DIM HIMEM.
 
 CLOSE
 Syntax: CLOSE# <factor>
@@ -1820,6 +1824,28 @@ dimensions are defined, for example:
 
 	LOCAL abc$()
 	DIM abc$(10,10)
+
+Off-heap Arrays
+---------------
+The interpreter allows arrays to be defined outside of the BASIC heap
+workspace, and as such can be as large as available memory permits.
+Numeric arrays and memory blocks can be declared this way; string arrays
+are only partially off-heap - while the control blocks are outside of the
+heap, the strings themselves are stored within the heap.
+
+The way in which off-heap arrays are defined is as follows:
+
+	DIM HIMEM <array>
+
+Such arrays (not memory blocks) can be cleared and de-allocated using
+the syntax CLEAR HIMEM.[<array()>]. Once cleared, the array variable can
+be re-dimensioned with another DIM [HIMEM] call. This allows a BASIC program
+to resize an array at runtime without having to clear every single variable.
+
+A memory block allocated this way can be de-allocated as follows:
+
+	DIM HIMEM pointer%% -1
+
 
 DRAW and DRAW BY
 Syntax: a) DRAW <x expression> , <y expression>

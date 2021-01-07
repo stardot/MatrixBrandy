@@ -1,6 +1,14 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.10 -
+- BASIC: CLEAR now deallocates arrays (not memory blocks) allocated using
+  DIM HIMEM.
+- BASIC: CLEAR extended to allow CLEAR HIMEM [<array()>], which frees arrays
+  (not memory blocks), but otherwise leaves variables untouched. Specifying
+  which array will de-allocate only that array.  The array variable can
+  subsequently be re-dimensioned using DIM [HIMEM].
+
 * V1.22.9 - 06 January 2021
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)
 - System: Accept -- on the commmand line to indicate all further options
