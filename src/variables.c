@@ -124,7 +124,7 @@ void exec_clear_himem(void) {
     expression();
     topitem = get_topitem();
     switch(topitem) {
-      case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
+      case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY:
         descriptor=pop_array();
         vp=descriptor->parent;
         if (!descriptor->offheap) error(ERR_OFFHEAPARRAY);
@@ -435,6 +435,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
     elemsize = sizeof(float64);
     break;
   case VAR_STRARRAY:
+    if (offheap) error(ERR_NUMARRAY);
     elemsize = sizeof(basicstring);
     break;
   default:

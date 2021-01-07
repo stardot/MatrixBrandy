@@ -1830,8 +1830,7 @@ Off-heap Arrays
 The interpreter allows arrays to be defined outside of the BASIC heap
 workspace, and as such can be as large as available memory permits.
 Numeric arrays and memory blocks can be declared this way; string arrays
-are only partially off-heap - while the control blocks are outside of the
-heap, the strings themselves are stored within the heap.
+cannot be created off-heap.
 
 The way in which off-heap arrays are defined is as follows:
 

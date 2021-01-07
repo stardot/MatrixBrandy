@@ -1254,7 +1254,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "SWAP")) {
     emulate_printf("SWAP <variable>,<variable>: exchange the contents.");
   } else if (!strcmp(cmd, "SYS")) {
-    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nIn Matrix Brandy, only built-in functionality is supported.\r\nNote that Matrix Brandy's SYS interface can return 64-bit values especially on\r\n64-bit hardware so programs should store such values in 64-bit integers.\r\nSYS(\"syscall_name\"): function gives SWI number, as per OS_SWINumberFromString.");
+    emulate_printf("The SYS statement calls the operating system:\r\nSYS <expression> [,<expression>]^ [TO <variable>[,<variable>]^[;<variable>]]\r\nNote that, with the exception of RISC OS, Matrix Brandy's SYS interface can\r\nreturn 64-bit values especially on 64-bit hardware so programs should store\r\nsuch values in 64-bit integers.\r\nSYS(\"syscall_name\"): function gives SWI number, as per OS_SWINumberFromString.");
   } else if (!strcmp(cmd, "TAB(")) {
     emulate_printf("In PRINT or INPUT statements:\r\nTAB to column n: PRINT TAB(10)s$.\r\nTAB to screen position x,y: PRINT TAB(10,20)s$.");
   } else if (!strcmp(cmd, "TAN")) {
