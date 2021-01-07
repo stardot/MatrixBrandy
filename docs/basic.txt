@@ -421,20 +421,17 @@ In fact, blocks of memory allocated this way can only be
 referenced via indirection operators.
 
 Similarly, memory outside the heap can be requested using DIM HIMEM
-(a Basalt extension), or by using the Brandy-specific system call
-SYS "Brandy_MAlloc".  This memory can also be freed using
-DIM HIMEM var%% -1 or using the Brandy-specific extension
-SYS "Brandy_Free". Memory allocated this way, like that allocated
+(a Basalt extension).  This memory can also be freed using
+DIM HIMEM var%% -1. Memory allocated this way, like that allocated
 from the heap using a regular DIM, can only be referenced via indirection
 operators.
 
 Numeric arrays can also be defined off-heap using DIM HIMEM but these
 cannot be freed, and will linger until the Brandy process terminates.
 
-Note that it is recommended to use a 64-bit integer when DIMming
-memory or using the Brandy_MAlloc/Brandy_Free calls, as on a 64-bit
-system there is no guarantee you will be allocated memory in the bottom
-4GB of the memory map.
+Note that it is recommended to use a 64-bit integer when DIMming memory,
+as on a 64-bit system there is no guarantee you will be allocated memory
+in the bottom 4GB of the memory map.
 
 
 Array Operations
@@ -1503,6 +1500,10 @@ Examples:
 CALL
 This is an unsupported statement that allows machine code
 subroutines to be called.
+
+This statement is supported for calling a subset of BBC MOS calls,
+however this is not the recommended method as it is not possible to
+pass complete 64-bit addresses via X% and Y%.
 
 CASE
 Syntax: CASE <expression> OF

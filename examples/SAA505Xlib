@@ -57,7 +57,7 @@
   560:
   570DEFPROCsaa505xr(chi%, cho%, bank%)
   580LOCAL blk%%
-  590SYS"Brandy_MAlloc",64 TO blk%%
+  590DIM HIMEM blk%% 64
   600blk%%?0 = 4
   610blk%%?1 = 44
   620blk%%?2 = chi%
@@ -68,5 +68,5 @@
   670blk%%?2 = cho%
   680blk%%?3 = 0
   690SYS "OS_Word",&8C,blk%%
-  700SYS"Brandy_Free",blk%%
+  700DIM HIMEM blk%% -1
   710ENDPROC

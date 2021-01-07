@@ -1019,8 +1019,8 @@ is it running under:
 
 3)  The hardware type and general environment type can be found by checking
     what is returned by OS_Byte 0. The USR function is not supported except in
-    one special case, to make the BBC Micro MOS OSBYTE call. The following code
-    can be used:
+    one special case, to make calls to a subset of BBC Micro MOS calls. The
+    following code can be used:
 
 	A% = 0: X% = 1: result% = USR &FFF4
 	version% = (result% DIV 256) AND 255
@@ -1041,7 +1041,8 @@ is it running under:
 	SYS "OS_Byte",0,1 TO ,version%
 
 Determining the *interpreter* that is running, as opposed to the platform the
-interpreter is running on, is often more complicated and fiddly. (TBA)
+interpreter is running on, is often more complicated and fiddly. In this case,
+Matrix Brandy always returns 77 to INKEY(-256).
 
 
 I/O Redirection

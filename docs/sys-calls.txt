@@ -192,9 +192,12 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &14000E Brandy_MAlloc           Allocates memory from system call malloc(R0).
                                 Pointer to base returned in R0.
+                                DEPRECATED, please use DIM HIMEM instead.
 
 &14000F Brandy_Free             Frees memory pointed to in R0 from earlier
                                 malloc. Nothing returned.
+                                DEPRECATED, please use DIM HIMEM <var> -1
+                                instead.
 
 &140010 Brandy_BitShift64       This controls whether Brandy calculates bit
                                 shifts in 64-bit space. 32-bit space is used
