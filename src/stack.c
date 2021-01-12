@@ -834,7 +834,7 @@ static void restore_retparm(int32 parmcount) {
     free_string(p->value.savedstring);		/* Discard saved copy of original '$ string' */
     vartype = VAR_DOLSTRPTR;
     break;
-  case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:	/* Array - Do nothing */
+  case VAR_INTARRAY: case VAR_INT64ARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:	/* Array - Do nothing */
     break;
   default:
 #ifdef DEBUG
