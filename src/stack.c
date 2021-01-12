@@ -932,7 +932,7 @@ static void restore(int32 parmcount) {
         memmove(&basicvars.memory[p->savedetails.address.offset], p->value.savedstring.stringaddr, p->value.savedstring.stringlen);
         free_string(p->value.savedstring);
         break;
-      case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
+      case VAR_INTARRAY: case VAR_INT64ARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:
         *p->savedetails.address.arrayaddr = p->value.savedarray;
         break;
       default:

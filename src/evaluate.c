@@ -1322,7 +1322,7 @@ static void do_xfunction(void) {
     if (dp->parmlist == NIL) error(ERR_TOOMANY, vp->varname);	/* Got a '(' but function has no parameters */
   }
   else {	/* No parameters found */
-    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname);	/* But function should have them */
+    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname+1);	/* But function should have them */
   }
   do_function();	/* Call the function */
 }

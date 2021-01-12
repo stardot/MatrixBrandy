@@ -491,7 +491,7 @@ void exec_dim(void) {
         vp = create_variable(base, ep-base, NIL);
       else {	/* Array name exists */
         if (vp->varentry.vararray != NIL) error(ERR_DUPLDIM, vp->varname);	/* Array aleady defined */
-        if (!offheap) islocal = TRUE;	/* Name exists but definition does not. Assume a local array */
+        islocal = TRUE;	/* Name exists but definition does not. Assume a local array */
       }
     }
     if (blockdef)	/* Defining a block of memory */
@@ -1743,7 +1743,7 @@ void exec_xproc(void) {
   set_address(basicvars.current, vp);
   tp = basicvars.current+LOFFSIZE+1;
   if (*tp != '(') {	/* PROC call has no parameters */
-    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname);	/* But it should have */
+    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname+1);	/* But it should have */
     if (!ateol[*tp]) error(ERR_SYNTAX);		/* No parameters - Can check for end of statement here */
   }
   else if (dp->parmlist == NIL) {		/* Got a '(' but PROC/FN has no parameters */

@@ -458,12 +458,18 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   basicvars.current++;	/* Skip the ')' */
 /* Now create the array and initialise it */
   if (islocal) {	/* Acquire memory from stack for a local array */
-    ap = alloc_stackmem(sizeof(basicarray));	/* Grab memory for array descriptor */
-    if (ap==NIL) error(ERR_BADDIM, vp->varname);
-    if (vp->varflags==VAR_STRARRAY)	/* Grab memory for array and mark it as string array */
-      ap->arraystart.arraybase = alloc_stackstrmem(size*elemsize);
-    else {	/* Grab memory for numeric array */
-      ap->arraystart.arraybase = alloc_stackmem(size*elemsize);
+    if (offheap) {
+      ap = malloc(sizeof(basicarray));			/* Grab memory for array descriptor */
+      if (ap==NULL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
+      ap->arraystart.arraybase = malloc(size*elemsize);	/* Grab memory for array proper */
+    } else {
+      ap = alloc_stackmem(sizeof(basicarray));	/* Grab memory for array descriptor */
+      if (ap==NIL) error(ERR_BADDIM, vp->varname);
+      if (vp->varflags==VAR_STRARRAY)	/* Grab memory for array and mark it as string array */
+        ap->arraystart.arraybase = alloc_stackstrmem(size*elemsize);
+      else {	/* Grab memory for numeric array */
+        ap->arraystart.arraybase = alloc_stackmem(size*elemsize);
+      }
     }
   }
   else {	/* Acquire memory from heap for a normal array */
