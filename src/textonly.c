@@ -1248,33 +1248,29 @@ void emulate_vdu(int32 charvalue) {
 /* There are now enough entries in the queue for the current command */
 
   switch (vducmd) {   /* Emulate the various control codes */
-  case VDU_NULL:      /* 0 - Do nothing */
+  case VDU_NULL:        /* 0 - Do nothing */
     break;
-  case VDU_PRINT:     /* 1 - Send next character to the print stream */
+  case VDU_ENABLE:      /* 6 - Enable the VDU driver (ignored) */
+  case VDU_ENAPAGE:     /* 14 - Enable page mode (ignored) */
+  case VDU_DISPAGE:     /* 15 - Disable page mode (ignored) */
+  case VDU_DISABLE:     /* 21 - Disable the VDU driver (ignored) */
+    break;
+  case VDU_PRINT:       /* 1 - Send next character to the print stream */
     printer_char();
     break;
-  case VDU_ENAPRINT:  /* 2 - Enable the sending of characters to the printer */
+  case VDU_ENAPRINT:    /* 2 - Enable the sending of characters to the printer */
     open_printer();
     break;
-  case VDU_DISPRINT:  /* 3 - Disable the sending of characters to the printer */
+  case VDU_DISPRINT:    /* 3 - Disable the sending of characters to the printer */
     close_printer();
     break;
-  case VDU_ENABLE:    /* 6 - Enable the VDU driver (ignored) */
-  case VDU_ENAPAGE:   /* 14 - Enable page mode (ignored) */
-  case VDU_DISPAGE:   /* 15 - Disable page mode (ignored) */
-  case VDU_DISABLE:   /* 21 - Disable the VDU driver (ignored) */
-    break;
-  case VDU_GRAPHCOL:  /* 18 - Change current graphics colour */
-  case VDU_DEFGRAPH:  /* 24 - Define graphics window */
-    error(ERR_NOGRAPHICS);
-    break;
-  case VDU_TEXTCURS:  /* 4 - Print text at text cursor (ignored) */
+  case VDU_TEXTCURS:    /* 4 - Print text at text cursor (ignored) */
 #ifndef NOTEKGFX
     graphicurs = 0;
     if (matrixflags.tekenabled) tekexit();
 #endif
     break;
-  case VDU_GRAPHICURS:        /* 5 - Print text at graphics cursor */
+  case VDU_GRAPHICURS:  /* 5 - Print text at graphics cursor */
 #ifdef NOTEKGFX
     error(ERR_NOGRAPHICS);
 #else
@@ -1283,67 +1279,85 @@ void emulate_vdu(int32 charvalue) {
     graphicurs = 1;
 #endif
     break;
-  case VDU_BEEP:      /* 7 - Sound the bell */
+  case VDU_BEEP:        /* 7 - Sound the bell */
     putch('\7');
     break;
-  case VDU_CURBACK:   /* 8 - Move cursor left one character */
-  case DEL:		/* 127 - Delete */
+  case VDU_CURBACK:     /* 8 - Move cursor left one character */
+  case DEL:             /* 127 - Delete */
     move_curback();
     break;
-  case VDU_CURFORWARD:        /* 9 - Move cursor right one character */
+  case VDU_CURFORWARD:  /* 9 - Move cursor right one character */
     move_curforward();
     break;
-  case VDU_CURDOWN:   /* 10 - Move cursor down one line (linefeed) */
+  case VDU_CURDOWN:     /* 10 - Move cursor down one line (linefeed) */
     move_curdown();
     break;
-  case VDU_CURUP:     /* 11 - Move cursor up one line */
+  case VDU_CURUP:       /* 11 - Move cursor up one line */
     move_curup();
     break;
-  case VDU_CLEARTEXT: /* 12 - Clear text window (formfeed) */
+  case VDU_CLEARTEXT:   /* 12 - Clear text window (formfeed) */
     vdu_cleartext();
     break;
-  case VDU_RETURN:    /* 13 - Carriage return */
+  case VDU_RETURN:      /* 13 - Carriage return */
     vdu_return();
     break;
-  case VDU_TEXTCOL:   /* 17 - Change current text colour */
-    vdu_textcol();
-    break;
-  case VDU_CLEARGRAPH:        /* 16 - Clear graphics window */
+  case VDU_CLEARGRAPH:  /* 16 - Clear graphics window */
     vdu_cleargraph();
     break;
-  case VDU_LOGCOL:    /* 19 - Map logical colour to physical colour */
+  case VDU_TEXTCOL:     /* 17 - Change current text colour */
+    vdu_textcol();
+    break;
+  case VDU_GRAPHCOL:    /* 18 - Change current graphics colour */
+#ifdef NOTEKGFX
+    error(ERR_NOGRAPHICS);
+#else
+    /* Tektronix can't erase apart from the whole screen.
+    ** Make graphics colour changes a no-op instead of complaining. */
+    if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+#endif
+    break;
+  case VDU_LOGCOL:      /* 19 - Map logical colour to physical colour */
     vdu_setpalette();
     break;
-  case VDU_RESTCOL:   /* 20 - Restore logical colours to default values */
+  case VDU_RESTCOL:     /* 20 - Restore logical colours to default values */
     reset_colours();
     textcolor(text_physforecol);
     textbackground(text_physbackcol);
     break;
-  case VDU_SCRMODE:   /* 22 - Change screen mode */
+  case VDU_SCRMODE:     /* 22 - Change screen mode */
     emulate_mode(vduqueue[0]);
     break;
-  case VDU_COMMAND:   /* 23 - Assorted VDU commands */
+  case VDU_COMMAND:     /* 23 - Assorted VDU commands */
     vdu_23command();
     break;
-  case VDU_PLOT:      /* 25 - Issue graphics command */
+  case VDU_DEFGRAPH:  /* 24 - Define graphics window */
+#ifdef NOTEKGFX
+    error(ERR_NOGRAPHICS);
+#else
+    /* Possibly doable in part in the future by altering drawing commands.
+    ** For now, a no-op. */
+    if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+#endif
+    break;
+  case VDU_PLOT:        /* 25 - Issue graphics command */
     vdu_plot();
     break;
-  case VDU_RESTWIND:  /* 26 - Restore default windows */
+  case VDU_RESTWIND:    /* 26 - Restore default windows */
     vdu_restwind();
     break;
-  case VDU_ESCAPE:    /* 27 - Do nothing (but char is sent to screen anyway) */
+  case VDU_ESCAPE:      /* 27 - Do nothing (but char is sent to screen anyway) */
     putch(vducmd);
     break;
-  case VDU_DEFTEXT:   /* 28 - Define text window */
+  case VDU_DEFTEXT:     /* 28 - Define text window */
     vdu_textwind();
     break;
-  case VDU_ORIGIN:    /* 29 - Define graphics origin */
+  case VDU_ORIGIN:      /* 29 - Define graphics origin */
     vdu_origin();
     break;
-  case VDU_HOMETEXT:  /* 30 - Send cursor to top left-hand corner of screen */
+  case VDU_HOMETEXT:    /* 30 - Send cursor to top left-hand corner of screen */
     vdu_hometext();
     break;
-  case VDU_MOVETEXT:  /* 31 - Send cursor to column x, row y on screen */
+  case VDU_MOVETEXT:    /* 31 - Send cursor to column x, row y on screen */
     vdu_movetext();
   }
 }
@@ -2102,7 +2116,13 @@ void emulate_tint(int32 action, int32 tint) {
 ** how the VDU drivers carry out graphics operations.
 */
 void emulate_gcol(int32 action, int32 colour, int32 tint) {
+#ifdef NOTEKGFX
   error(ERR_NOGRAPHICS);
+#else
+  /* Tektronix can't erase apart from the whole screen.
+  ** Make graphics colour changes a no-op instead of complaining. */
+  if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+#endif
 }
 
 /*
@@ -2112,7 +2132,13 @@ void emulate_gcol(int32 action, int32 colour, int32 tint) {
 ** otherwise the foreground colour is altered
 */
 int32 emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
+#ifdef NOTEKGFX
   error(ERR_NOGRAPHICS);
+#else
+  /* Tektronix can't erase apart from the whole screen.
+  ** Make graphics colour changes a no-op instead of complaining. */
+  if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+#endif
   return 0;
 }
 
@@ -2121,7 +2147,13 @@ int32 emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, in
 ** background colour to the colour number 'colnum'
 */
 void emulate_gcolnum(int32 action, int32 background, int32 colnum) {
+#ifdef NOTEKGFX
   error(ERR_NOGRAPHICS);
+#else
+  /* Tektronix can't erase apart from the whole screen.
+  ** Make graphics colour changes a no-op instead of complaining. */
+  if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+#endif
 }
 
 /*
