@@ -629,6 +629,7 @@ static void reveal_cursor() {
 static void toggle_cursor(void) {
   int32 left, right, top, bottom, x, y, mxppc, myppc, xtemp;
 
+  if (vduflag(VDU_FLAG_GRAPHICURS)) return; /* Never display the cursor in VDU5 mode */
   if (screenmode==7) {
     mxppc=M7XPPC;
     myppc=M7YPPC;
@@ -2302,9 +2303,9 @@ void emulate_vdu(int32 charvalue) {
     break;
   case VDU_GRAPHICURS:	/* 5 - Print text at graphics cursor */
     if (!istextonly()) {
-      write_vduflag(VDU_FLAG_GRAPHICURS,1);
       toggle_cursor();	/* Remove the cursor if it is being displayed */
       cursorstate = HIDDEN;
+      write_vduflag(VDU_FLAG_GRAPHICURS,1);
     }
     break;
   case VDU_ENABLE:	/* 6 - Enable the VDU driver */
