@@ -433,11 +433,6 @@ Note that it is recommended to use a 64-bit integer when DIMming memory,
 as on a 64-bit system there is no guarantee you will be allocated memory
 in the bottom 4GB of the memory map.
 
-While these arrays can be declared in a procedure after LOCAL arrayname(),
-a DIM HIMEM array MUST be deallocated (with CLEAR HIMEM arrayname() or DIM
-HIMEM block%% -1) prior to leaving the scope of the local variable, otherwise
-the handle is lost and the memory remains allocated but unreachable.
-
 
 Array Operations
 ~~~~~~~~~~~~~~~~
