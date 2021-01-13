@@ -2294,11 +2294,23 @@ void exec_swap(void) {
     }
   }
   else if ((first.typeinfo & VAR_ARRAY) != 0) {
-    basicarray *arraytemp;
+    /* Arrays have become more complicated due to offheap arrays.
+    ** We need to ensure the variable structure itself is corrected */
+    basicarray *arraytemp1, *arraytemp2, *arrayswap;
+    variable *var1, *var2, *vartmp;
     if (second.typeinfo != first.typeinfo) error(ERR_NOSWAP);
-    arraytemp = *first.address.arrayaddr;
-    *first.address.arrayaddr = *second.address.arrayaddr;
-    *second.address.arrayaddr = arraytemp;
+    arraytemp1 = *first.address.arrayaddr;
+    arraytemp2 = *second.address.arrayaddr;
+    var1 = arraytemp1->parent;
+    var2 = arraytemp2->parent;
+    /* Firstly, swap the basicarray pointers */
+    arrayswap = var1->varentry.vararray;
+    var1->varentry.vararray = var2->varentry.vararray;
+    var2->varentry.vararray = arrayswap;
+    /* But we need to swap back the parent references */
+    vartmp=var1->varentry.vararray->parent;
+    var1->varentry.vararray->parent=var2->varentry.vararray->parent;
+    var2->varentry.vararray->parent=vartmp;
   }
   else {	/* Cannot swap these operands */
     error(ERR_NOSWAP);
