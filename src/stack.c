@@ -343,12 +343,12 @@ void push_dolstring(int32 strlength, char *strtext) {
 
 static stackitem arraytype [] = {	/* Variable type -> array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_INTARRAY, STACK_FLOATARRAY,
-  STACK_STRARRAY, STACK_UNKNOWN, STACK_INT64ARRAY, STACK_UNKNOWN
+  STACK_STRARRAY, STACK_UNKNOWN, STACK_INT64ARRAY, STACK_UINT8ARRAY
 };
 
 static stackitem arraytemptype [] = {	/* Variable type -> temporary array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_IATEMP, STACK_FATEMP,
-  STACK_SATEMP, STACK_UNKNOWN, STACK_I64ATEMP, STACK_UNKNOWN
+  STACK_SATEMP, STACK_UNKNOWN, STACK_I64ATEMP, STACK_U8ATEMP
 };
 
 /*

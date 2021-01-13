@@ -2351,7 +2351,7 @@ static void eval_ivmul(void) {
       uint8 *srce;
       if (rhitem == STACK_INT) {
         int32 *base;
-        base = make_array(VAR_INTLONG, lharray);
+        base = make_array(VAR_INTWORD, lharray);
         srce = lharray->arraystart.uint8base;
         for (n = 0; n < count; n++) {
           floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint);	/* This is going to be slow */
