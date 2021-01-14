@@ -1,7 +1,7 @@
 /*
 ** This file is part of the Matrix Brandy Basic V/VI Interpreter.
 ** Copyright (C) 2000-2014 David Daniels
-** Copyright (C) 2018-2019 Michael McConnell and contributors
+** Copyright (C) 2018-2021 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -128,7 +128,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 */
 
 #if defined(__i386__)
-#define CPUTYPE "x86"
+#define CPUTYPE "x86-32"
 #elif defined(__x86_64__)
 #define CPUTYPE "x86-64"
 #elif defined(__arm__)

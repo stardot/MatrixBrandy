@@ -47,7 +47,7 @@ program and a list of the known bugs.
 Copyright
 ~~~~~~~~~
 Brandy is copyright (C) 2000-2014 David Daniels.
-Matrix Brandy modifications are copyright (C) 2018-2020 Michael McConnell and
+Matrix Brandy modifications are copyright (C) 2018-2021 Michael McConnell and
 contributors.
 
 The program is distributed under the terms of the GNU GPL.
