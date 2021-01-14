@@ -8,7 +8,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   (not memory blocks), but otherwise leaves variables untouched. Specifying
   which array will de-allocate only that array.  The array variable can
   subsequently be re-dimensioned using DIM [HIMEM].
-- DIM HIMEM can no longer attempt to create string arrays.
+- BASIC: DIM HIMEM can no longer attempt to create string arrays.
+- BASIC: SWAP now works correctly on off-heap arrays.
+- BASIC: Fixed a bug in array arithmetic on uint8 arrays
 
 * V1.22.9 - 06 January 2021
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)

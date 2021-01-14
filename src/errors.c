@@ -802,10 +802,10 @@ void error(int32 errnumber, ...) {
 #ifndef TARGET_RISCOS
   purge_keys();        /* RISC OS purges the keybuffer during escape processing */
 #endif
+#endif // !NEWKBD
 #ifdef USE_SDL
   if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
 #endif
-#endif // !NEWKBD
   va_start(parms, errnumber);
   vsprintf(errortext, errortable[errnumber].msgtext, parms);
   va_end(parms);

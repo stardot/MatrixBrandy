@@ -4257,6 +4257,7 @@ void refresh_location(uint32 offset) {
   blit_scaled(ox,oy,ox,oy);
 }
 
+/* 0=off, 1=on, 2=onerror */
 void star_refresh(int flag) {
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;
