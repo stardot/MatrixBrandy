@@ -2810,7 +2810,7 @@ static void assign_page(void) {
 static void assign_ptr(void) {
   int32 handle, newplace;
   basicvars.current++;
-  if (*basicvars.current!='#') error(ERR_HASHMISS);
+  if (*basicvars.current=='#') {
   basicvars.current++;
   handle = eval_intfactor();
   if (*basicvars.current!='=') error(ERR_EQMISS);
@@ -2818,6 +2818,30 @@ static void assign_ptr(void) {
   newplace = eval_integer();
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   fileio_setptr(handle, newplace);
+  } else if (*basicvars.current=='(') {
+    int64 newptr;
+    stackitem topitem;
+    basicarray *descriptor;
+    variable *vp;
+    basicvars.current++;
+    expression();
+    topitem = get_topitem();
+    switch(topitem) {
+      case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
+        descriptor=pop_array();
+        vp=descriptor->parent;
+        basicvars.current++;
+	if (*basicvars.current!='=') error(ERR_EQMISS);
+	basicvars.current++;
+	newptr=eval_int64();
+	vp->varentry.vararray = (basicarray *)newptr;
+        break;
+      default:
+        error(ERR_VARARRAY);
+    }
+  } else {
+    error(ERR_HASHMISS);
+  }
 }
 
 /*

@@ -1192,6 +1192,19 @@ As a function:
 	Example:
 		place = PTR# thefile%
 
+        Additionally, PTR can get the address of an array or string.
+
+	Example 1:
+		stringptr%% = PTR(string$)
+	Note that the string is not terminated.
+
+	Example 2:
+		arrayptr%% = PTR(array())
+	This points to the array structure (see basicdefs.h structure
+	basicarray), and the positions of items will vary between
+	32-bit and 64-bit builds. The address of the first member of the
+	array is at ](arrayptr%%+8) (64-bit) or !(arrayptr%%+8) (32-bit).
+
 On left-hand side:
 	Use: PTR# <factor> = <expression>
 	Sets the file pointer of the open file with handle <factor>

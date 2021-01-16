@@ -276,6 +276,28 @@ static void fn_ptr(void) {
   if (*basicvars.current == '#') {
     basicvars.current++;
     push_int(fileio_getptr(eval_intfactor()));
+  } else if (*basicvars.current == '(') {
+    stackitem topitem;
+    basicarray *descriptor;
+    basicstring strdesc;
+
+    basicvars.current++;
+
+    expression();
+    topitem = get_topitem();
+    switch(topitem) {
+      case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
+        descriptor=pop_array();
+        push_int64((int64)descriptor);
+        break;
+      case STACK_STRING:
+        strdesc=pop_string();
+	push_int64((int64)strdesc.stringaddr);
+        break;
+      default:
+        error(ERR_UNSUITABLEVAR);
+    }
+    basicvars.current++;
   } else {
     error(ERR_HASHMISS);
   }
