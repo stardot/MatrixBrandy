@@ -288,11 +288,11 @@ static void fn_ptr(void) {
     switch(topitem) {
       case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
         descriptor=pop_array();
-        push_int64((int64)descriptor);
+        push_int64((int64)(size_t)descriptor);
         break;
       case STACK_STRING:
         strdesc=pop_string();
-	push_int64((int64)strdesc.stringaddr);
+	push_int64((int64)(size_t)strdesc.stringaddr);
         break;
       default:
         error(ERR_UNSUITABLEVAR);
