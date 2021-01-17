@@ -150,9 +150,15 @@ typedef struct {
     basicstring *stringbase;		/* Pointer to start of string elements */
     void *arraybase;			/* Pointer to start of array */
   } arraystart;				/* Pointer to start of array */
+#ifndef MATRIX64BIT
+  void *dummy1;				/* Padding on 32-bit */
+#endif
   int32 dimsize[MAXDIMS];		/* Sizes of the array dimemsions */
-  void *parent;				/* Address of parent variable record */
   boolean offheap;			/* TRUE if off heap */
+  void *parent;				/* Address of parent variable record */
+#ifndef MATRIX64BIT
+  void *dummy2;				/* Padding on 32-bit */
+#endif
 } basicarray;
 
 typedef union {
