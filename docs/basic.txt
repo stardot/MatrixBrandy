@@ -1201,17 +1201,21 @@ As a function:
 	Example 2:
 		arrayptr%% = PTR(array())
 	This points to the array structure (see basicdefs.h structure
-	basicarray), and the positions of items will vary between
-	32-bit and 64-bit builds. The address of the first member of the
-	array is at ](arrayptr%%+8) (64-bit) or !(arrayptr%%+8) (32-bit).
+	basicarray). The address of the first member of the array is
+	stored at ](arrayptr%%+8). (The address is zero padded on 32-bit
+	platforms.) 
 
 On left-hand side:
 	Use: PTR# <factor> = <expression>
 	Sets the file pointer of the open file with handle <factor>
 	to <expression>. This is offset into the file in bytes.
 
-	Example:
+	Example 1:
 		PTR# thefile% = 0
+
+	Example 2:
+		PTR(array()) = arrayptr%%
+	This sets array() to use the array structure contained at arrayptr%%. 
 
 RIGHT$
 As a function:
