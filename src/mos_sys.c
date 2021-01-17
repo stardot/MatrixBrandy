@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include "target.h"
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
@@ -41,6 +42,7 @@
 #include "mos_sys.h"
 #include "screen.h"
 #include "keyboard.h"
+#include "miscprocs.h"
 #ifdef USE_SDL
 #include "SDL.h"
 #include "graphsdl.h"
@@ -234,8 +236,10 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 #else
 void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
 #endif
-  int32 a;
+  int32 a, b;
   FILE *file_handle;
+  char *pointer;
+  struct stat statbuf;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
@@ -270,6 +274,78 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #else
       outregs[0]=emulate_get(); break;
 #endif
+    case SWI_OS_File:
+      outregs[0]=inregs[0];outregs[1]=inregs[1];
+      outregs[2]=inregs[2];outregs[3]=inregs[3];
+      outregs[4]=inregs[4];outregs[5]=inregs[5];
+      switch(inregs[0]) {
+        case 0: case 10:
+          file_handle=fopen((char *)inregs[1], "wb");
+          if (!file_handle) error(ERR_OPENWRITE);
+          pointer = (char *)inregs[4];
+#ifdef USE_SDL
+            /* Mode 7 screen memory */
+          if (inregs[4] >= matrixflags.mode7fb && inregs[4] <= (matrixflags.mode7fb + 1023)) pointer = (pointer - matrixflags.mode7fb) + (size_t)mode7frame;
+#endif
+          for(int64 i=0; i<(inregs[5]-inregs[4]); i++) fputc(*pointer++,file_handle);
+          fclose(file_handle);
+          break;
+        case 1: case 2: case 3: case 4: case 5: /* No-op, no equivalent */
+        case 9: /* No-op, not supported */
+        case 13: case 15: case 17: /* No-op, no equivalent */
+        case 18: /* No-op, no equivalent */
+        case 20: case 21: case 22: case 23: /* No-op, not supported */
+          break;
+        case 6:
+          outregs[0]=0;
+          if (stat((char *)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)inregs[1]);
+          if (S_ISDIR(statbuf.st_mode)) {
+            outregs[0]=2;
+            if (rmdir((char *)inregs[1])) error(ERR_DIRNOTEMPTY);
+          } else {
+            outregs[0]=1;
+            if (unlink((char *)inregs[1])) error(ERR_FILELOCKED);
+          }
+          break;
+        case 7: case 11:
+          file_handle=fopen((char *)inregs[1], "w");
+          if (!file_handle) error(ERR_OPENWRITE);
+          fclose(file_handle);
+          break;
+        case 8:
+          if (mkdir((char *)inregs[1], 0777)) error(ERR_NODIR);
+          break;
+        case 12: /* Should separate these out into the way they read the filename. */
+        case 14:
+        case 16:
+        case 255:
+          outregs[0]=1;
+          file_handle=fopen((char *)inregs[1], "rb");
+          if (!file_handle) error(ERR_NOTFOUND, (char *)inregs[1]);
+          pointer = (char *)inregs[2];
+#ifdef USE_SDL
+            /* Mode 7 screen memory */
+          if (inregs[2] >= matrixflags.mode7fb && inregs[2] <= (matrixflags.mode7fb + 1023)) pointer = (pointer - matrixflags.mode7fb) + (size_t)mode7frame;
+#endif
+          b=0;
+          while((a=getc(file_handle)) != EOF) {
+            *pointer++ = a;
+            b++;
+          }
+          fclose(file_handle);
+          outregs[4]=b;
+          star_refresh(3);
+          break;
+        case 19:
+          error(ERR_NOTFOUND, (char *)inregs[1]);
+          break;
+        case 24:
+          if (stat((char *)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)inregs[1]);
+          outregs[2]=statbuf.st_blksize;
+          break;
+        default: error(ERR_BAD_OSFILE);
+      }
+      break;
 #ifdef NEWKBD
     case SWI_OS_ReadLine:
 // RISC OS method is to tweek entry parameters then drop into ReadLine32

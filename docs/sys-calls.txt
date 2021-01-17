@@ -20,68 +20,71 @@ access the buffer will not work.
 
 OS_xxx
 ======
-OS_WriteC		R0: Send (R0 AND &FF) to the VDU stream.
-			Matrix Brandy extension:
-			   If R1 and R2 are both set to 42, the character is
-			   output to the controlling terminal on the stderr
-			   stream.
+OS_WriteC               R0: Send (R0 AND &FF) to the VDU stream.
+                        Matrix Brandy extension:
+                           If R1 and R2 are both set to 42, the character is
+                           output to the controlling terminal on the stderr
+                           stream.
 
-OS_Write0:		R0: Pointer to NULL-terminated string, to be sent to
-			    the VDU stream.
-			Matrix Brandy extension:
-			   If R1 and R2 are both set to 42, the string is
-			   output to the controlling terminal on the stderr
-			   stream.
+OS_Write0:              R0: Pointer to NULL-terminated string, to be sent to
+                        the VDU stream.
+                        Matrix Brandy extension:
+                           If R1 and R2 are both set to 42, the string is
+                           output to the controlling terminal on the stderr
+                           stream.
 
-OS_NewLine		Sends \r\n (&0D, &0A) to the VDU stream.
+OS_NewLine              Sends \r\n (&0D, &0A) to the VDU stream.
 
-OS_ReadC		Reads a character from the keyboard, returned in R0.
+OS_ReadC                Reads a character from the keyboard, returned in R0.
 
 OS_ReadLine and
+OS_ReadLine32           Returns a string input from the keyboard, pointed in R0.
 
-OS_ReadLine32		Returns a string input from the keyboard, pointed in R0.
+OS_Mouse                Returns mouse state.
 
-OS_Mouse		Returns mouse state.
+OS_ReadModeVariable     Read a mode variable into R2.
 
-OS_ReadModeVariable	Read a mode variable into R2.
+OS_ReadVduVariables     Read VDU variables requested in block pointed in R0
+                        into block pointed in R1. R0 and R1 may point to the
+                        same block.
 
-OS_ReadVduVariables	Read VDU variables requested in block pointed in R0
-			into block pointed in R1. R0 and R1 may point to the
-			same block.
+OS_ReadMonotonicTime    Return centisecond timer in R0.
+                        Matrix Brandy extension:
+                           As the centisecond timer is centiseconds since the
+                           start of the instance, the offset from the raw value
+                           is returned in R1.
 
-OS_ReadMonotonicTime	Return centisecond timer in R0.
-			Matrix Brandy extension:
-			   As the centisecond timer is centiseconds since the
-			   start of the instance, the offset from the raw value
-			   is returned in R1.
+OS_Plot                 Executes a PLOT function. Note that this bypasses the
+                        VDU driver so plotting this way will not be picked up
+                        by *SPOOL.
 
-OS_Plot			Executes a PLOT function. Note that this bypasses the
-			VDU driver so plotting this way will not be picked up
-			by *SPOOL.
+OS_ScreenMode           Only R0=0,1,7,8,9,10 are supported.
 
-OS_ScreenMode		Only R0=0,1,7,8,9,10 are supported.
+OS_SWINumberToString    Returns SWI string from number.
+                        On RISC OS this is NOT intercepted so it does not
+                        recognise Brandy-specific calls.
 
-OS_SWINumberToString	Returns SWI string from number.
-			On RISC OS this is NOT intercepted so it does not
-			recognise Brandy-specific calls.
+OS_SWINumberFromString  Returns SWI number from name.
+                        On RISC OS this call is intercepted so we can also
+                        recognise Brandy-specific calls.
 
-OS_SWINumberFromString	Returns SWI number from name.
-			On RISC OS this call is intercepted so we can also
-			recognise Brandy-specific calls.
+OS_WriteI block         (SWIs 256-511). Call by number.
+                        Matrix Brandy extension:
+                           If R1 and R2 are both set to 42, the character is
+                           output to the controlling terminal on the stderr
+                           stream.
 
-OS_WriteI block		(SWIs 256-511). Call by number.
-			Matrix Brandy extension:
-			   If R1 and R2 are both set to 42, the character is
-			   output to the controlling terminal on the stderr
-			   stream.
+OS_Byte                 R0, R1, R2 are A, X and Y.
+                        Calls the OSBYTE system call, see docs/osbyte.txt
 
-OS_Byte			R0, R1, R2 are A, X and Y.
-			Calls the OSBYTE system call, see docs/osbyte.txt
+OS_Word                 R0 is A, R1 is the address of the data block.
+                        Only R0=9, 10, 139, 140 are supported.
+                        139 and 140 are specific to Matrix Brandy and
+                        BBCSDL. Details in docs/Mode7.txt
 
-OS_Word			R0 is A, R1 is the address of the data block.
-			Only R0=9, 10, 139, 140 are supported.
-			139 and 140 are specific to Matrix Brandy and
-			BBCSDL. Details in docs/Mode7.txt
+OS_File                 Calls 0, 6, 7, 8, 12, 14, 16, 19, 24 and 255 only.
+                        Calls 12, 14, 16 and 255 are identical (for now).
+                        Implementation is incomplete.
 
 ColourTrans_xxx
 ===============
@@ -239,43 +242,43 @@ Brandy_xxx  (SWI numbers start &140000)
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
 
-&140100 RaspberryPi_GPIOInfo	Returns:
-				R0: 1 if available, 0 otherwise
-				R1: If available, memory-mapped I/O base.
+&140100 RaspberryPi_GPIOInfo    Returns:
+                                R0: 1 if available, 0 otherwise
+                                R1: If available, memory-mapped I/O base.
 
 &140101 RaspberryPi_GetGPIOPortMode
-				R0 contains GPIO port number
-				Returns:
-				R0 contains GPIO port mode:
-					0: Input
-					1: Output
-					2: ALT5
-					3: ALT4
-					4: ALT0
-					5: ALT1
-					6: ALT2
-					7: ALT3
+                                R0 contains GPIO port number
+                                Returns:
+                                R0 contains GPIO port mode:
+                                        0: Input
+                                        1: Output
+                                        2: ALT5
+                                        3: ALT4
+                                        4: ALT0
+                                        5: ALT1
+                                        6: ALT2
+                                        7: ALT3
 
 
 &140102 RaspberryPi_SetGPIOPortMode
-				R0 contains GPIO port number
-				R1 contains GPIO port mode (as above).
+                                R0 contains GPIO port number
+                                R1 contains GPIO port mode (as above).
 
 &140103 RaspberryPi_SetGPIOPortPullUpDownMode
-				R0 contains GPIO port number
-				R1 contains GPIO Pull-Up/Pull-Down mode:
-					0: Off
-					1: Down
-					2: Up
+                                R0 contains GPIO port number
+                                R1 contains GPIO Pull-Up/Pull-Down mode:
+                                        0: Off
+                                        1: Down
+                                        2: Up
 
 &140104 RaspberryPi_ReadGPIOPort
-				R0 contains GPIO port number
-				Returns:
-				R0 contains GPIO port state
+                                R0 contains GPIO port number
+                                Returns:
+                                R0 contains GPIO port state
 
 &140105 RaspberryPi_WriteGPIOPort
-				R0 contains GPIO port number
-				R1 contains GPIO port state
+                                R0 contains GPIO port number
+                                R1 contains GPIO port state
 
 A few of the RISC OS GPIO module (SWI base &58F80) are also recognised:
 &58FBE GPIO_GetBoard

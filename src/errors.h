@@ -190,6 +190,11 @@ typedef enum {
 // Dynamic Linker errors
     ERR_DL_NODL,	/* 0, dlopen() and friends not available */
     ERR_DL_NOSYM,	/* 0, Symbol not found */
+// Misc errors
+    ERR_BAD_OSFILE,	/* 1026, Bad OSFile call */
+    ERR_FILELOCKED,	/* 67779, This item is locked */
+    ERR_DIRNOTEMPTY,	/* 104884, Directory not empty */
+    ERR_NODIR,		/* 104885, Unable to create directory */
     HIGHERROR		/* Leave last, dummy error */
 } errnum;
 

@@ -579,7 +579,12 @@ static detail errortable [] = {
 /* ERR_DL_NODL */	{FATAL,    NOPARM,   0, "Dynamic Linking not available"},
 /* ERR_DL_NOSYM */	{FATAL,    STRING,   0, "%s"},
 //
-/* HIGHERROR */		{NONFATAL, NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
+/* ERR_BAD_OSFILE */	{NONFATAL, NOPARM,1026, "Bad OSFile call"},
+/* ERR_FILELOCKED */	{NONFATAL, NOPARM, 195, "This item is locked to stop changes being made to it"},
+/* ERR_DIRNOTEMPTY */	{NONFATAL, NOPARM, 180, "Directory not empty"},
+/* ERR_NODIR */		{NONFATAL, NOPARM, 189, "Unable to create directory"},
+//
+/* HIGHERROR */		{FATAL,    NOPARM,   0, "You should never see this"} /* ALWAYS leave this as the last error */
 };
 
 /*

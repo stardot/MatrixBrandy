@@ -3,6 +3,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.22.10 -
 - System: *Refresh OnError wasn't working correctly. Fixed.
+- System: Implemented enough of SYS "OS_File" to hopefully be useful.
 - BASIC: CLEAR now deallocates arrays (not memory blocks) allocated using
   DIM HIMEM.
 - BASIC: CLEAR extended to allow CLEAR HIMEM [<array()>], which frees arrays

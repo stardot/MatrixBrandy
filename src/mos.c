@@ -1896,7 +1896,7 @@ static void cmd_load(char *command){
     return;
   }
 
-  if ( (filep = fopen(chbuff,"r")) == (FILE*)0){
+  if ( (filep = fopen(chbuff,"rb")) == (FILE*)0){
     fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
     return;
   }
@@ -1964,7 +1964,7 @@ static void cmd_save(char *command){
     return;
   }
 
-  if ( (filep = fopen(chbuff,"w")) == (FILE*)0){
+  if ( (filep = fopen(chbuff,"wb")) == (FILE*)0){
     emulate_printf("SAVE: Could not open file \"%s\"\r\n",chbuff);
     return;
   }

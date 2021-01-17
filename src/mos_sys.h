@@ -53,6 +53,7 @@ typedef struct {
 #define SWI_OS_CLI					0x05
 #define SWI_OS_Byte					0x06
 #define SWI_OS_Word					0x07
+#define SWI_OS_File					0x08
 #define SWI_OS_ReadLine					0x0E
 #define SWI_OS_GetEnv					0x10
 #define SWI_OS_UpdateMEMC				0x1A
@@ -149,6 +150,7 @@ static switable swilist[] = {
 	{SWI_OS_CLI,					"OS_CLI"},
 	{SWI_OS_Byte,					"OS_Byte"},
 	{SWI_OS_Word,					"OS_Word"},
+	{SWI_OS_File,					"OS_File"},
 	{SWI_OS_ReadLine,				"OS_ReadLine"},
 	{SWI_OS_GetEnv,					"OS_GetEnv"},
 	{SWI_OS_UpdateMEMC,				"OS_UpdateMEMC"}, /* Recognised, does nothing */
