@@ -335,7 +335,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
           }
           fclose(file_handle);
           outregs[4]=b;
+#ifdef USE_SDL
           star_refresh(3);
+#endif
           break;
         case 19:
           error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
