@@ -237,6 +237,7 @@ void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int3
 void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
 #endif
   int32 a, b;
+  int64 i;
   FILE *file_handle;
   char *pointer;
   struct stat statbuf;
@@ -280,14 +281,14 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[4]=inregs[4];outregs[5]=inregs[5];
       switch(inregs[0]) {
         case 0: case 10:
-          file_handle=fopen((char *)inregs[1], "wb");
+          file_handle=fopen((char *)(size_t)inregs[1], "wb");
           if (!file_handle) error(ERR_OPENWRITE);
-          pointer = (char *)inregs[4];
+          pointer = (char *)(size_t)inregs[4];
 #ifdef USE_SDL
             /* Mode 7 screen memory */
           if (inregs[4] >= matrixflags.mode7fb && inregs[4] <= (matrixflags.mode7fb + 1023)) pointer = (pointer - matrixflags.mode7fb) + (size_t)mode7frame;
 #endif
-          for(int64 i=0; i<(inregs[5]-inregs[4]); i++) fputc(*pointer++,file_handle);
+          for(i=0; i<(inregs[5]-inregs[4]); i++) fputc(*pointer++,file_handle);
           fclose(file_handle);
           break;
         case 1: case 2: case 3: case 4: case 5: /* No-op, no equivalent */
@@ -298,31 +299,31 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
           break;
         case 6:
           outregs[0]=0;
-          if (stat((char *)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)inregs[1]);
+          if (stat((char *)(size_t)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
           if (S_ISDIR(statbuf.st_mode)) {
             outregs[0]=2;
-            if (rmdir((char *)inregs[1])) error(ERR_DIRNOTEMPTY);
+            if (rmdir((char *)(size_t)inregs[1])) error(ERR_DIRNOTEMPTY);
           } else {
             outregs[0]=1;
-            if (unlink((char *)inregs[1])) error(ERR_FILELOCKED);
+            if (unlink((char *)(size_t)inregs[1])) error(ERR_FILELOCKED);
           }
           break;
         case 7: case 11:
-          file_handle=fopen((char *)inregs[1], "w");
+          file_handle=fopen((char *)(size_t)inregs[1], "wb");
           if (!file_handle) error(ERR_OPENWRITE);
           fclose(file_handle);
           break;
         case 8:
-          if (mkdir((char *)inregs[1], 0777)) error(ERR_NODIR);
+          if (mkdir((char *)(size_t)inregs[1], 0777)) error(ERR_NODIR);
           break;
         case 12: /* Should separate these out into the way they read the filename. */
         case 14:
         case 16:
         case 255:
           outregs[0]=1;
-          file_handle=fopen((char *)inregs[1], "rb");
-          if (!file_handle) error(ERR_NOTFOUND, (char *)inregs[1]);
-          pointer = (char *)inregs[2];
+          file_handle=fopen((char *)(size_t)inregs[1], "rb");
+          if (!file_handle) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
+          pointer = (char *)(size_t)inregs[2];
 #ifdef USE_SDL
             /* Mode 7 screen memory */
           if (inregs[2] >= matrixflags.mode7fb && inregs[2] <= (matrixflags.mode7fb + 1023)) pointer = (pointer - matrixflags.mode7fb) + (size_t)mode7frame;
@@ -337,10 +338,10 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
           star_refresh(3);
           break;
         case 19:
-          error(ERR_NOTFOUND, (char *)inregs[1]);
+          error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
           break;
         case 24:
-          if (stat((char *)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)inregs[1]);
+          if (stat((char *)(size_t)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
           outregs[2]=statbuf.st_blksize;
           break;
         default: error(ERR_BAD_OSFILE);
