@@ -1327,7 +1327,7 @@ static void assiand_uint8array(pointers address) {
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]&=value;
-  } else if (exprtype==STACK_INTARRAY) {	/* array1()&=array2() */
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()&=array2() */
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
@@ -1495,7 +1495,7 @@ static void assior_uint8array(pointers address) {
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]|=value;
-  } else if (exprtype==STACK_INTARRAY) {	/* array1()|=array2() */
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()|=array2() */
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
@@ -1663,7 +1663,7 @@ static void assieor_uint8array(pointers address) {
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]^=value;
-  } else if (exprtype==STACK_INTARRAY) {	/* array1()^=array2() */
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()^=array2() */
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
@@ -1831,7 +1831,7 @@ static void assimod_uint8array(pointers address) {
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]%=value;
-  } else if (exprtype==STACK_INTARRAY) {	/* array1()%=array2() */
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()%=array2() */
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
@@ -1999,7 +1999,7 @@ static void assidiv_uint8array(pointers address) {
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
-  } else if (exprtype==STACK_INTARRAY) {	/* array1()/=array2() */
+  } else if (exprtype==STACK_UINT8ARRAY) {	/* array1()/=array2() */
     ap2 = pop_array();
     if (ap2==NIL) error(ERR_NODIMS, "(");	/* Undefined array */
     if (!check_arrays(ap, ap2)) error(ERR_TYPEARRAY);
