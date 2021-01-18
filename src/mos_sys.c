@@ -347,8 +347,12 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
           error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
           break;
         case 24:
+#ifdef TARGET_MINGW
+          outregs[2]=65536; /* Dummy value, information is not available in Windows */
+#else
           if (stat((char *)(size_t)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
           outregs[2]=statbuf.st_blksize;
+#endif
           break;
         default: error(ERR_BAD_OSFILE);
       }
