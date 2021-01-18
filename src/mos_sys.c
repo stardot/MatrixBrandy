@@ -314,7 +314,11 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
           fclose(file_handle);
           break;
         case 8:
-          if (mkdir((char *)(size_t)inregs[1], 0777)) error(ERR_NODIR);
+          if (mkdir((char *)(size_t)inregs[1]
+#ifndef TARGET_MINGW
+          , 0777
+#endif
+          )) error(ERR_NODIR);
           break;
         case 12: /* Should separate these out into the way they read the filename. */
         case 14:
