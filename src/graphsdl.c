@@ -3045,7 +3045,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     semiminor = abs(ds.ylast-ylast3)/ds.ygupp;
     sx = GXTOPX(xlast3);
     sy = GYTOPY(ylast3);
-    shearx=GXTOPX(ds.xlast)-sx;
+    shearx=(GXTOPX(ds.xlast)-sx)*(ylast3 > ds.ylast ? -1 : 1); /* Hopefully this corrects some incorrectly plotted ellipses? */
 
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
       draw_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
