@@ -209,7 +209,7 @@ static void scroll_down(int32 windowed);
 static void scroll_left(int32 windowed);
 static void scroll_right(int32 windowed);
 static void reveal_cursor(void);
-static void plot_pixel(SDL_Surface *, int64, Uint32, Uint32);
+static void plot_pixel(SDL_Surface *, int32, int32, Uint32, Uint32);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
 static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
@@ -1425,14 +1425,14 @@ static void plot_char(int32 ch) {
     if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) plot_pixel(screenbank[ds.writebank], (topx + 0 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x40) plot_pixel(screenbank[ds.writebank], (topx + 1 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x20) plot_pixel(screenbank[ds.writebank], (topx + 2 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x10) plot_pixel(screenbank[ds.writebank], (topx + 3 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x08) plot_pixel(screenbank[ds.writebank], (topx + 4 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x04) plot_pixel(screenbank[ds.writebank], (topx + 5 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x02) plot_pixel(screenbank[ds.writebank], (topx + 6 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x01) plot_pixel(screenbank[ds.writebank], (topx + 7 + (topy+y)*ds.vscrwidth), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x80) plot_pixel(screenbank[ds.writebank], (topx + 0), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x40) plot_pixel(screenbank[ds.writebank], (topx + 1), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x20) plot_pixel(screenbank[ds.writebank], (topx + 2), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x10) plot_pixel(screenbank[ds.writebank], (topx + 3), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x08) plot_pixel(screenbank[ds.writebank], (topx + 4), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x04) plot_pixel(screenbank[ds.writebank], (topx + 5), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x02) plot_pixel(screenbank[ds.writebank], (topx + 6), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      if (line & 0x01) plot_pixel(screenbank[ds.writebank], (topx + 7), (topy+y), ds.gf_colour, ds.graph_fore_action);
     }
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
@@ -2649,9 +2649,10 @@ int32 emulate_modefn(void) {
 
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
-static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32 action) {
+static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Uint32 action) {
   Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
   int32 rox = 0, roy = 0;
+  int64 offset = x + (y*ds.vscrwidth);
 
   if (ds.clipping) {
     rox = (offset % ds.screenwidth)*ds.xgupp;
@@ -2711,7 +2712,7 @@ static void plot_pixel(SDL_Surface *surface, int64 offset, Uint32 colour, Uint32
 
 static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
   if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) != ds.gb_colour) return;
-  plot_pixel(screenbank[ds.writebank], x + y*ds.vscrwidth, colour, action); /* Plot this pixel */
+  plot_pixel(screenbank[ds.writebank], x, y, colour, action); /* Plot this pixel */
   if (x >= 1) /* Left */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x-1, y, colour, action);
@@ -2812,7 +2813,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case PLOT_POINT:	/* Plot a single point */
     hide_cursor();
     if ((ex < 0) || (ex >= ds.screenwidth) || (ey < 0) || (ey >= ds.screenheight)) break;
-    plot_pixel(screenbank[ds.writebank], ex + ey*ds.vscrwidth, colour, action);
+    plot_pixel(screenbank[ds.writebank], ex, ey, colour, action);
     blit_scaled(ex, ey, ex, ey);
     reveal_cursor();
     break;
@@ -3889,7 +3890,7 @@ static void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col
     if (x2 < 0) x2 = 0;
     if (x2 >= ds.vscrwidth) x2 = ds.vscrwidth-1;
     for (i = x1; i <= x2; i++)
-      plot_pixel(sr, i + y*ds.vscrwidth, col, action);
+      plot_pixel(sr, i, y, col, action);
   }
 }
 
@@ -3965,7 +3966,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
         skip=0;
       } else {
         if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
-          plot_pixel(sr, x + y*ds.vscrwidth, col, action);
+          plot_pixel(sr, x, y, col, action);
         if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3982,7 +3983,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
         skip=0;
       } else {
         if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
-          plot_pixel(sr, x + y*ds.vscrwidth, col, action);
+          plot_pixel(sr, x, y, col, action);
         if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3995,7 +3996,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
   }
   if ( ! (style & 0x08)) {
     if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
-      plot_pixel(sr, x + y*ds.vscrwidth, col, action);
+      plot_pixel(sr, x, y, col, action);
   }
 }
 
@@ -4030,12 +4031,12 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
     s=shearx*(1.0*y/ym);
     si=s;
     if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth - x + si, c, action);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth + x + si, c, action);
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
     }
     if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth - x - si, c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth + x - si, c, action);
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
     }
 
     if (h < 0) {
@@ -4061,12 +4062,12 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
     s=shearx*(1.0*y/ym);
     si=s;
     if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth - x + si, c, action);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 - y)*ds.vscrwidth + x + si, c, action);
+      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
+      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
     } 
     if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth - x - si, c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + (y0 + y)*ds.vscrwidth + x - si, c, action);
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 - x - si, + (y0 + y), c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + x - si, + (y0 + y), c, action);
     }
 
     if (h < 0)
