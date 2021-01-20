@@ -4028,6 +4028,7 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
       float axis_ratio = (float) width / (float) height;
       float shear_per_line = (float) (shear) / (float) height;
       float xshear = 0.0;
+      int y=0;
       int odd_sequence = 1;
       int y_squared = 0;
       int h_squared = height * height;
@@ -4038,7 +4039,7 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
       int xl_this = 0;
       int xr_this = 0;
       // Start at -1 to allow the pipeline to fill
-      for (int y = -1; y < height; y++) {
+      for (y = -1; y < height; y++) {
          float x = axis_ratio * sqrtf(h_squared - y_squared);
          int xl_next = (int) (xshear - x);
          int xr_next = (int) (xshear + x);
@@ -4093,10 +4094,11 @@ static void filled_ellipse(SDL_Surface *screen,
     float axis_ratio = (float) width / (float) height;
     float shear_per_line = (float) (shear) / (float) height;
     float xshear = 0.0;
+    int y=0;
     int odd_sequence = 1;
     int y_squared = 0;
     int h_squared = height * height;
-    for (int y = 0; y <= height; y++) {
+    for (y = 0; y <= height; y++) {
       float x = axis_ratio * sqrtf(h_squared - y_squared);
       int xl = (int) (xshear - x);
       int xr = (int) (xshear + x);
