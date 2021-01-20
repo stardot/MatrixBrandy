@@ -1992,7 +1992,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     semiminor = abs(ylast-ylast3)/ygupp;
     sx = xlast3;
     sy = ylast3;
-    shearx=xlast-sx;
+    shearx=(xlast-sx)*(ylast3 > ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
 
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
       draw_ellipse(sx, sy, semimajor, semiminor, shearx);

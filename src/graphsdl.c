@@ -4066,8 +4066,8 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
       if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
     } 
     if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 - x - si, + (y0 + y), c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + x - si, + (y0 + y), c, action);
+      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
+      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
     }
 
     if (h < 0)
