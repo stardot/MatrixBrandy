@@ -2654,6 +2654,8 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
   int32 rox = 0, roy = 0;
   int64 offset = x + (y*ds.vscrwidth);
 
+  if ((x < 0) || (x >= ds.screenwidth) || (y < 0) || (y >= ds.screenheight)) return;
+
   if (ds.clipping) {
     rox = (offset % ds.screenwidth)*ds.xgupp;
     roy = ds.ygraphunits - ds.ygupp - (offset / ds.vscrwidth)*ds.ygupp;
@@ -3878,7 +3880,7 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 /*
 ** Draw a horizontal line
 */
-static void draw_h_line(SDL_Surface *sr, int32 x1, int32 y, int32 x2, Uint32 col, Uint32 action) {
+static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action) {
   int32 tt, i;
   if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth ) || (x1 > x2)) return;
   if (x1 > x2) {
@@ -3931,7 +3933,7 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
 
   /* fill horizontal spans of pixels from geom_left[] to geom_right[] */
   for (iy = low; iy <= high; iy++)
-    draw_h_line(sr, geom_left[iy], iy, geom_right[iy], col, action);
+    draw_h_line(sr, geom_left[iy], geom_right[iy], iy, col, action);
 }
 
 /*
@@ -3965,8 +3967,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       if (skip) {
         skip=0;
       } else {
-        if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
-          plot_pixel(sr, x, y, col, action);
+        plot_pixel(sr, x, y, col, action);
         if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3982,8 +3983,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       if (skip) {
         skip=0;
       } else {
-        if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
-          plot_pixel(sr, x, y, col, action);
+        plot_pixel(sr, x, y, col, action);
         if (style & 0x10) skip=1;
       }
       if (d >= 0) {
@@ -3994,10 +3994,8 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
       d += ax;
     }
   }
-  if ( ! (style & 0x08)) {
-    if ((x >= 0) && (x < ds.screenwidth) && (y >= 0) && (y < ds.screenheight))
-      plot_pixel(sr, x, y, col, action);
-  }
+  if ( ! (style & 0x08))
+    plot_pixel(sr, x, y, col, action);
 }
 
 /*
@@ -4031,12 +4029,12 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
     s=shearx*(1.0*y/ym);
     si=s;
     if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
+      plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
+      plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
     }
     if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
+      plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
+      plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
     }
 
     if (h < 0) {
@@ -4062,12 +4060,12 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
     s=shearx*(1.0*y/ym);
     si=s;
     if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
-      if (((x0 - x + si) >= 0) && ((x0 - x + si) < ds.vscrwidth)) plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
-      if (((x0 + x + si) >= 0) && ((x0 + x + si) < ds.vscrwidth)) plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
+      plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
+      plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
     } 
     if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      if (((x0 - x - si) >= 0) && ((x0 - x - si) < ds.vscrwidth)) plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
-      if (((x0 + x - si) >= 0) && ((x0 + x - si) < ds.vscrwidth)) plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
+      plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
+      plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
     }
 
     if (h < 0)
@@ -4105,7 +4103,7 @@ static void filled_ellipse(SDL_Surface *sr,
   dx = 0;
   ym = y = b;
 
-  draw_h_line(sr, x0-a, y0, x0 + a, c, action);
+  draw_h_line(sr, x0-a, x0 + a, y0, c, action);
 
   for (y=1; y <= b; y++) {
     s=shearx*(1.0*y/ym);
@@ -4115,8 +4113,8 @@ static void filled_ellipse(SDL_Surface *sr,
       if (x*x*bb + y*y*aa < aabb) break;
     dx = width -x;
     width = x;
-    draw_h_line(sr,x0-width+si, y0-y, x0+width+si, c, action);
-    draw_h_line(sr,x0-width-si, y0+y, x0+width-si, c, action);
+    draw_h_line(sr,x0-width+si, x0+width+si, y0-y, c, action);
+    draw_h_line(sr,x0-width-si, x0+width-si, y0+y, c, action);
   }
 
 }
