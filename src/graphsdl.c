@@ -220,6 +220,14 @@ static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
 static void mode7renderline(int32 ypos, int32 fast);
 
+static inline int max(int a, int b) {
+  return (a > b) ? a : b;
+}
+
+static inline int min(int a, int b) {
+  return (a < b) ? a : b;
+}
+
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
 }
@@ -2891,32 +2899,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case FLOOD_BACKGROUND:	/* Flood fill background with graphics foreground colour */
     flood_fill(ex, ey, colour, action);
     break;
-  case PLOT_CIRCLE:		/* Plot the outline of a circle */
-  case FILL_CIRCLE: {		/* Plot a filled circle */
-    int32 xradius, yradius, xr;
-/*
-** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
-** point on the circumference, specifically the left-most point of the
-** circle.
-*/
-    xradius = abs(ds.xlast2-ds.xlast)/ds.xgupp;
-    yradius = abs(ds.xlast2-ds.xlast)/ds.ygupp;
-    xr=ds.xlast2-ds.xlast;
-    if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-      draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
-    else {
-      filled_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
-    }
-    /* To match RISC OS, xlast needs to be the right-most point not left-most. */
-    ds.xlast+=(xr*2);
-    ex = sx-xradius;
-    ey = sy-yradius;
-/* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    hide_cursor();
-    blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
-    reveal_cursor();
-    break;
-  }
   case SHIFT_RECTANGLE: {	/* Move or copy a rectangle */
     int32 destleft, destop, left, right, top, bottom;
     if (xlast3 < ds.xlast2) {	/* Figure out left and right hand extents of rectangle */
@@ -3036,6 +3018,32 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     break;
   }
+  case PLOT_CIRCLE:		/* Plot the outline of a circle */
+  case FILL_CIRCLE: {		/* Plot a filled circle */
+    int32 xradius, yradius, xr;
+/*
+** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
+** point on the circumference, specifically the left-most point of the
+** circle.
+*/
+    xradius = abs(ds.xlast2-ds.xlast)/ds.xgupp;
+    yradius = abs(ds.xlast2-ds.xlast)/ds.ygupp;
+    xr=ds.xlast2-ds.xlast;
+    if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
+      draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+    else {
+      filled_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+    }
+    /* To match RISC OS, xlast needs to be the right-most point not left-most. */
+    ds.xlast+=(xr*2);
+    ex = sx-xradius;
+    ey = sy-yradius;
+/* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
+    hide_cursor();
+    blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
+    reveal_cursor();
+    break;
+  }
   case PLOT_ELLIPSE:		/* Draw an ellipse outline */
   case FILL_ELLIPSE: {		/* Draw a filled ellipse */
     int32 semimajor, semiminor, shearx;
@@ -3048,7 +3056,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     semiminor = abs(ds.ylast-ylast3)/ds.ygupp;
     sx = GXTOPX(xlast3);
     sy = GYTOPY(ylast3);
-    shearx=(GXTOPX(ds.xlast)-sx)*(ylast3 > ds.ylast ? -1 : 1); /* Hopefully this corrects some incorrectly plotted ellipses? */
+    shearx=(GXTOPX(ds.xlast)-sx)*(ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
 
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
       draw_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
@@ -3354,7 +3362,7 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
   sinv = sin(angle);
   maxy = sqrt(((minorlen*cosv)*(minorlen*cosv))+((majorlen*sinv)*(majorlen*sinv)));
   if (maxy == 0) {
-    slicew = 0;
+    slicew = majorlen;
     shearx = 0;
   } else {
     slicew = (minorlen*majorlen)/maxy;
@@ -3882,7 +3890,7 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action) {
   int32 tt, i;
-  if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth ) || (x1 > x2)) return;
+  if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth )) return;
   if (x1 > x2) {
     tt = x1; x1 = x2; x2 = tt;
   }
@@ -4012,69 +4020,58 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 
 /*
 ** Draw an ellipse into a buffer
+** This code is based on the RISC OS implementation, as translated from ARM to C by hoglet@Stardot for PiTubeDirect.
 */
-static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, int32 shearx, Uint32 c, Uint32 action) {
-  int32 x, y, y1, aa, bb, d, g, h, ym, si;
-  float64 s;
-
-  aa = a * a;
-  bb = b * b;
-
-  h = (FAST_4_DIV(aa)) - b * aa + bb;
-  g = (FAST_4_DIV(9 * aa)) - (FAST_3_MUL(b * aa)) + bb;
-  x = 0;
-  ym = y = b;
-
-  while (g < 0) {
-    s=shearx*(1.0*y/ym);
-    si=s;
-    if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
-      plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
-      plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
-    }
-    if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
-      plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
-    }
-
-    if (h < 0) {
-      d = ((FAST_2_MUL(x)) + 3) * bb;
-      g += d;
-    }
-    else {
-      d = ((FAST_2_MUL(x)) + 3) * bb - FAST_2_MUL((y - 1) * aa);
-      g += (d + (FAST_2_MUL(aa)));
-      --y;
-    }
-
-    h += d;
-    ++x;
-  }
-
-  y1 = y;
-  h = (FAST_4_DIV(bb)) - a * bb + aa;
-  x = a;
-  y = 0;
-
-  while (y <= y1) {
-    s=shearx*(1.0*y/ym);
-    si=s;
-    if (((y0 - y) >= 0) && ((y0 - y) < ds.vscrheight)) {
-      plot_pixel(sr, x0 - x + si, (y0 - y), c, action);
-      plot_pixel(sr, x0 + x + si, (y0 - y), c, action);
-    } 
-    if (((y0 + y) >= 0) && ((y0 + y) < ds.vscrheight)) {
-      plot_pixel(sr, x0 - x - si, (y0 + y), c, action);
-      plot_pixel(sr, x0 + x - si, (y0 + y), c, action);
-    }
-
-    if (h < 0)
-      h += ((FAST_2_MUL(y)) + 3) * aa;
-    else {
-      h += (((FAST_2_MUL(y) + 3) * aa) - (FAST_2_MUL(x - 1) * bb));
-      --x;
-    }
-    ++y;
+static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, int32 height, int32 shear, Uint32 colour, Uint32 action) {
+  if (height == 0) draw_h_line(screen,xc-width, xc+width, yc, colour, action);
+  else {
+      float axis_ratio = (float) width / (float) height;
+      float shear_per_line = (float) (shear) / (float) height;
+      float xshear = 0.0;
+      int odd_sequence = 1;
+      int y_squared = 0;
+      int h_squared = height * height;
+      // Maintain the left/right coordinated of the previous, current, and next slices
+      // to allow lines to be drawn to make sure the pixels are connected
+      int xl_prev = 0;
+      int xr_prev = 0;
+      int xl_this = 0;
+      int xr_this = 0;
+      // Start at -1 to allow the pipeline to fill
+      for (int y = -1; y < height; y++) {
+         float x = axis_ratio * sqrtf(h_squared - y_squared);
+         int xl_next = (int) (xshear - x);
+         int xr_next = (int) (xshear + x);
+         xshear += shear_per_line;
+         // It's probably quicker to just use y * y
+         y_squared += odd_sequence;
+         odd_sequence += 2;
+         // Initialize the pipeline for the first slice
+         if (y == 0) {
+            xl_prev = -xr_next;
+            xr_prev = -xl_next;
+         }
+         // Draw the slice as a single horizintal line
+         if (y >= 0) {
+            // Left line runs from xl_this rightwards to max(xl_this, max(xl_prev, xl_next) - 1)
+            int xl = max(xl_this, max(xl_prev, xl_next) - 1);
+            // Right line runs from xr_this leftwards to min(xr_this, min(xr_prev, xr_next) + 1)
+            int xr = min(xr_this, min(xr_prev, xr_next) + 1);
+            draw_h_line(screen, xc + xl_this, xc + xl, yc + y, colour, action);
+            draw_h_line(screen, xc + xr_this, xc + xr, yc + y, colour, action);
+            if (y > 0) {
+               draw_h_line(screen, xc - xl_this, xc - xl, yc - y, colour, action);
+               draw_h_line(screen, xc - xr_this, xc - xr, yc - y, colour, action);
+            }
+         }
+         xl_prev = xl_this;
+         xr_prev = xr_this;
+         xl_this = xl_next;
+         xr_this = xr_next;
+      }
+      // Draw the final slice
+      draw_h_line(screen, xc + xl_this, xc + xr_this, yc + height, colour, action);
+      draw_h_line(screen, xc - xl_this, xc - xr_this, yc - height, colour, action);
   }
 }
 
@@ -4082,41 +4079,38 @@ static void draw_ellipse(SDL_Surface *sr, int32 x0, int32 y0, int32 a, int32 b, 
 ** Draw a filled ellipse into a buffer
 */
 
-static void filled_ellipse(SDL_Surface *sr, 
-  int32 x0, /* Centre X */
-  int32 y0, /* Centre Y */
-  int32 a, /* Width */
-  int32 b, /* Height */
-  int32 shearx, /* X shear */
-  Uint32 c, Uint32 action
+static void filled_ellipse(SDL_Surface *screen, 
+  int32 xc, /* Centre X */
+  int32 yc, /* Centre Y */
+  int32 width, /* Width */
+  int32 height, /* Height */
+  int32 shear, /* X shear */
+  Uint32 colour, Uint32 action
 ) {
-
-  int32 x, y, width, aa, bb, aabb, ym, dx, si;
-  float64 s;
-
-  aa = a * a;
-  bb = b * b;
-  aabb=aa*bb;
-
-  x = 0;
-  width=a;
-  dx = 0;
-  ym = y = b;
-
-  draw_h_line(sr, x0-a, x0 + a, y0, c, action);
-
-  for (y=1; y <= b; y++) {
-    s=shearx*(1.0*y/ym);
-    si=s;
-    x=width-(dx-1);
-    for (;x>0; x--)
-      if (x*x*bb + y*y*aa < aabb) break;
-    dx = width -x;
-    width = x;
-    draw_h_line(sr,x0-width+si, x0+width+si, y0-y, c, action);
-    draw_h_line(sr,x0-width-si, x0+width-si, y0+y, c, action);
+  if (height == 0) {
+    draw_h_line(screen, xc - width, xc + width, yc, colour, action);
+  } else {
+    float axis_ratio = (float) width / (float) height;
+    float shear_per_line = (float) (shear) / (float) height;
+    float xshear = 0.0;
+    int odd_sequence = 1;
+    int y_squared = 0;
+    int h_squared = height * height;
+    for (int y = 0; y <= height; y++) {
+      float x = axis_ratio * sqrtf(h_squared - y_squared);
+      int xl = (int) (xshear - x);
+      int xr = (int) (xshear + x);
+      xshear += shear_per_line;
+      // It's probably quicker to just use y * y
+      y_squared += odd_sequence;
+      odd_sequence += 2;
+      // Draw the slice as a single horizintal line
+      draw_h_line(screen, xc + xl, xc + xr, yc + y, colour, action);
+      if (y > 0) {
+         draw_h_line(screen, xc - xl, xc - xr, yc - y, colour, action);
+      }
+    }
   }
-
 }
 
 Uint8 mousebuttonstate = 0;

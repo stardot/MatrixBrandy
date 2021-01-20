@@ -4,6 +4,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.10 -
 - System: *Refresh OnError wasn't working correctly. Fixed.
 - System: Implemented enough of SYS "OS_File" to hopefully be useful.
+- Graphics: New ellipse drawing code. Based on RISC OS ARM implementation,
+  translated to C by hoglet@Stardot for PiTubeDirect.
 - BASIC: CLEAR now deallocates arrays (not memory blocks) allocated using
   DIM HIMEM.
 - BASIC: CLEAR extended to allow CLEAR HIMEM [<array()>], which frees arrays
@@ -14,6 +16,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: SWAP now works correctly on off-heap arrays.
 - BASIC: Fixed a bug in array arithmetic on uint8 arrays
 - BASIC: Implemented PTR(string$) and PTR(array()).
+- BASIC: PTR#0 now returns 0 (in line with RISC OS) rather than throwing
+  an error.
 
 * V1.22.9 - 06 January 2021
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)
