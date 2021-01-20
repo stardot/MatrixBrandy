@@ -1120,7 +1120,7 @@ void fileio_setptr(int32 handle, int32 newoffset) {
 int32 fileio_getptr(int32 handle) {
   int32 result;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) return 0; /* This is what happens on RISC OS 3.71 */
   handle = map_handle(handle);
   result = TOINT(ftell(fileinfo[handle].stream));
   if (result==-1) error(ERR_GETPTRFAIL);	/* File pointer cannot be read */
