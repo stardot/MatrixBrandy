@@ -4023,8 +4023,9 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 ** This code is based on the RISC OS implementation, as translated from ARM to C by hoglet@Stardot for PiTubeDirect.
 */
 static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, int32 height, int32 shear, Uint32 colour, Uint32 action) {
-  if (height == 0) draw_h_line(screen,xc-width, xc+width, yc, colour, action);
-  else {
+  if (height == 0) {
+    draw_h_line(screen,xc-width, xc+width, yc, colour, action);
+  } else {
       float axis_ratio = (float) width / (float) height;
       float shear_per_line = (float) (shear) / (float) height;
       float xshear = 0.0;
@@ -4052,7 +4053,7 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
             xl_prev = -xr_next;
             xr_prev = -xl_next;
          }
-         // Draw the slice as a single horizintal line
+         // Draw the slice as a single horizontal line
          if (y >= 0) {
             // Left line runs from xl_this rightwards to max(xl_this, max(xl_prev, xl_next) - 1)
             int xl = max(xl_this, max(xl_prev, xl_next) - 1);
@@ -4106,7 +4107,7 @@ static void filled_ellipse(SDL_Surface *screen,
       // It's probably quicker to just use y * y
       y_squared += odd_sequence;
       odd_sequence += 2;
-      // Draw the slice as a single horizintal line
+      // Draw the slice as a single horizontal line
       draw_h_line(screen, xc + xl, xc + xr, yc + y, colour, action);
       if (y > 0) {
          draw_h_line(screen, xc - xl, xc - xr, yc - y, colour, action);

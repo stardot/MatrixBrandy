@@ -480,6 +480,7 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 */
 int32 fileio_getptr(int32 handle) {
   int32 pointer;
+  if (handle == 0) return 0;
   pointer = _kernel_osargs(0, handle, 0);	/* OS_Args 0 = read file pointer */
   if (pointer==_kernel_ERROR) report();
   return pointer;
