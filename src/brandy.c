@@ -72,7 +72,11 @@ matrixbits matrixflags;		/* This contains flags used by Matrix Brandy extensions
 static void init1(void);
 static void init2(void);
 static void gpio_init(void);
+#ifdef USE_SDL
+static int run_interpreter(void *);
+#else
 static void run_interpreter(void);
+#endif
 static void init_timer(void);
 static void init_clock(void);
 
@@ -111,7 +115,12 @@ int main(int argc, char *argv[]) {
   check_cmdline(argc, argv);
   init2();
   gpio_init();
+#ifdef USE_SDL
+  basicvars.interp_thread = SDL_CreateThread(run_interpreter,NULL);
+  videoupdatethread();
+#else
   run_interpreter();
+#endif
   return EXIT_FAILURE;
 }
 
@@ -511,7 +520,7 @@ static void init_timer() {
     fprintf(stderr, "Timer thread failed to start\n");
     exit(1);
   }
-  basicvars.video_thread = SDL_CreateThread(videoupdatethread,NULL);
+  //basicvars.video_thread = SDL_CreateThread(videoupdatethread,NULL);
 #else
   pthread_t timer_thread_id;
   int err = pthread_create(&timer_thread_id,NULL,&timer_thread,NULL);
@@ -529,7 +538,11 @@ static void init_timer() {
 ** here in the event of an error by means of a 'siglongjmp' to
 ** 'basicvars.restart'
 */
+#ifdef USE_SDL
+int run_interpreter(void *dummydata) {
+#else
 static void run_interpreter(void) {
+#endif
   if (sigsetjmp(basicvars.restart, 1)==0) {
     if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
     init_errors();	/* Set up the signal handlers */
@@ -555,6 +568,9 @@ static void run_interpreter(void) {
     tokenize(inputline, thisline, HASLINE, TRUE);
     interpret_line();
   }
+#ifdef USE_SDL
+  return 0;
+#endif
 }
 
 /*

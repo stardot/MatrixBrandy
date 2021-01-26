@@ -4510,7 +4510,7 @@ void set_refresh_interval(int32 v) {
 }
 
 /* Refreshes the display at 100Hz. Also implements MODE7 flash */
-int videoupdatethread(void *data) {
+int videoupdatethread(void) {
   int64 mytime = 0;
   while(1) {
     if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
