@@ -55,6 +55,9 @@
 #include "mos.h"
 #include "keyboard.h"
 #include "screen.h"
+#ifdef USE_SDL
+#include "graphsdl.h"
+#endif
 #include "miscprocs.h"
 #include "evaluate.h"
 #include "net.h"
@@ -508,6 +511,7 @@ static void init_timer() {
     fprintf(stderr, "Timer thread failed to start\n");
     exit(1);
   }
+  basicvars.video_thread = SDL_CreateThread(videoupdatethread,NULL);
 #else
   pthread_t timer_thread_id;
   int err = pthread_create(&timer_thread_id,NULL,&timer_thread,NULL);

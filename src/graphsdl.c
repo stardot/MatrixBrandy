@@ -38,6 +38,9 @@
 #include <math.h>
 #include "common.h"
 #include "target.h"
+#ifdef TARGET_UNIX
+#include <X11/Xlib.h>
+#endif
 #include "errors.h"
 #include "basicdefs.h"
 #include "scrcommon.h"
@@ -149,7 +152,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
-Uint8 mode7changed[26];			/* Marks changed lines */
+Uint8 mode7changed;			/* Has Mode 7 framebuffer been changed? */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -232,6 +235,12 @@ static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
 }
 
+static void safe_SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
+  matrixflags.noupdate=1;
+  SDL_BlitSurface(src, srcrect, dst, dstrect);
+  matrixflags.noupdate=0;
+}
+
 static void reset_mode7() {
   int p, q;
   write_vduflag(MODE7_VDU141MODE,1);
@@ -248,7 +257,7 @@ static void reset_mode7() {
   place_rect.h=M7YPPC;
   font_rect.h=M7YPPC;
 
-  for(p=0;p<26;p++) mode7changed[p]=vdu141track[p]=0;
+  for(p=0;p<26;p++) vdu141track[p]=0;
   for (p=0; p<25; p++) {
     for (q=0; q<40; q++) mode7frame[p][q]=32;
   }
@@ -317,7 +326,6 @@ void reset_sysfont(int x) {
   if (!x) {
     memcpy(sysfont, sysfontbase, sizeof(sysfont));
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-    if ((screenmode == 7) && (ds.autorefresh==1)) mode7renderscreen();
     return;
   }
   if ((x>=1) && (x<= 7)) {
@@ -331,23 +339,6 @@ void reset_sysfont(int x) {
   }
   if (x == 16) {
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
-    if ((screenmode == 7) && (ds.autorefresh==1)) mode7renderscreen();
-  }
-}
-
-static void do_sdl_flip(SDL_Surface *layer) {
-//  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
-  if (((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
-    SDL_Flip(layer);
-    ds.videorefresh = basicvars.centiseconds;
-  }
-}
-
-static void do_sdl_updaterect(SDL_Surface *layer, Sint32 x, Sint32 y, Sint32 w, Sint32 h) {
-//  if (((screenmode == 7) && vduflag(MODE7_UPDATE_HIGHACC)) || ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
-  if (((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1))) {
-    SDL_UpdateRect(layer, x, y, w, h);
-    ds.videorefresh = basicvars.centiseconds;
   }
 }
 
@@ -535,7 +526,6 @@ static void vdu_2318(void) {
   if (vduqueue[1] == 3) {
     write_vduflag(MODE7_BLACK, vduqueue[2] & 1);
   }
-  mode7renderscreen();
 }
 
 /* BB4W/BBCSDL - Define and select custom mode */
@@ -648,7 +638,7 @@ static void toggle_cursor(void) {
   xtemp = xtext;
   if (xtemp > twinright) xtemp=twinright;
   if (ds.displaybank != ds.writebank) return;
-  curstate instate=cursorstate;
+  //curstate instate=cursorstate;
   if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
   if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
     cursorstate = SUSPENDED;
@@ -680,7 +670,6 @@ static void toggle_cursor(void) {
         *((Uint32*)matrixflags.surface->pixels + x + y*ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
     }
   }
-  if (instate != cursorstate) do_sdl_updaterect(matrixflags.surface, xtemp*ds.xscale*mxppc, ytext*ds.yscale*myppc, ds.xscale*mxppc, ds.yscale*myppc);
 }
 
 /*
@@ -718,7 +707,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
     scale_rect.y = top;
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
-    SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
+    safe_SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
   } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
@@ -968,7 +957,6 @@ static void scroll_up_mode7(int32 windowed) {
   }
   /* Blank the bottom line */
   for (n=l; n<=r; n++) mode7frame[b][n] = 32;
-  mode7renderscreen();
 }
 
 static void scroll_up(int32 windowed) {
@@ -1018,7 +1006,6 @@ static void scroll_up(int32 windowed) {
       *(uint32 *)(matrixflags.surface->pixels+(dest*ds.yscale)+loop) = SWAPENDIAN(ds.tb_colour);
     }
   }
-  do_sdl_flip(matrixflags.surface);
   toggle_cursor();
 }
 
@@ -1040,7 +1027,6 @@ static void scroll_down_mode7(int32 windowed) {
   }
   /* Blank the top line */
   for (n=l; n<=r; n++) mode7frame[t][n] = 32;
-  mode7renderscreen();
 }
 
 static void scroll_down(int32 windowed) {
@@ -1090,7 +1076,6 @@ static void scroll_down(int32 windowed) {
       *(uint32 *)(matrixflags.surface->pixels+loop) = SWAPENDIAN(ds.tb_colour);
     }
   }
-  do_sdl_flip(matrixflags.surface);
   toggle_cursor();
 }
 
@@ -1112,7 +1097,6 @@ static void scroll_left_mode7(int32 windowed) {
   }
   /* Blank the right line */
   for (n=t; n<=b; n++) mode7frame[n][r] = 32;
-  mode7renderscreen();
 }
 
 static void scroll_left(int32 windowed) {
@@ -1159,7 +1143,6 @@ static void scroll_left(int32 windowed) {
     }
     blit_scaled(0, 0, ds.screenwidth, ds.screenheight);
   }
-  do_sdl_flip(matrixflags.surface);
   toggle_cursor();
 }
 
@@ -1181,7 +1164,6 @@ static void scroll_right_mode7(int32 windowed) {
   }
   /* Blank the right line */
   for (n=t; n<=b; n++) mode7frame[n][l] = 32;
-  mode7renderscreen();
 }
 
 static void scroll_right(int32 windowed) {
@@ -1229,7 +1211,6 @@ static void scroll_right(int32 windowed) {
     }
     blit_scaled(0, 0, ds.screenwidth, ds.screenheight);
   }
-  do_sdl_flip(matrixflags.surface);
   toggle_cursor();
 }
 
@@ -1255,45 +1236,7 @@ static void scroll(updown direction) {
 */
 static void echo_text(void) {
   if (xtext == 0) return;	/* Return if nothing has changed */
-  if (screenmode == 7) {
-    do_sdl_flip(matrixflags.surface);
-    return;
-  }
-    blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
-}
-
-unsigned long m7updatetimer=0;
-void mode7flipbank() {
-  int64 mytime;
-  int32 ypos;
-  
-  if (screenmode != 7) {
-    if ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1) && (ds.displaybank == ds.writebank)) {
-      SDL_UpdateRect(matrixflags.surface, 0, 0, 0, 0);
-      ds.videorefresh = basicvars.centiseconds;
-    }
-  } else {
-    mytime=basicvars.centiseconds;
-    if ((ds.autorefresh==1) && vduflag(MODE7_UPDATE) && ((mytime-m7updatetimer) > 2)) {
-      for (ypos=0; ypos<=24; ypos++) if (mode7changed[ypos]) mode7renderline(ypos, 0);
-      do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
-      m7updatetimer=mytime;
-    }
-    if ((mode7timer - mytime) <= 0) {
-      hide_cursor();
-      if (!vduflag(MODE7_UPDATE) && (ds.autorefresh==1)) mode7renderscreen();
-      if (vduflag(MODE7_BANK)) {
-        SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
-        write_vduflag(MODE7_BANK,0);
-        mode7timer=mytime + 100;
-      } else {
-        SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
-        write_vduflag(MODE7_BANK,1);
-        mode7timer=mytime + 33;
-      }
-      reveal_cursor();
-    }
-  }
+  blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
 }
 
 /*
@@ -1317,8 +1260,6 @@ static void write_char(int32 ch) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        ds.videorefresh=0;
-        do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
         }
@@ -1374,8 +1315,6 @@ static void write_char(int32 ch) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        ds.videorefresh=0;
-        do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
         }
@@ -1666,8 +1605,6 @@ static void move_curdown(void) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
 #ifdef NEWKBD
-        ds.videorefresh=0;
-        do_sdl_flip(matrixflags.surface);
         while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
           usleep(5000);
         }
@@ -1752,7 +1689,6 @@ static void vdu_cleartext(void) {
     SDL_FillRect(screen2, &line_rect, ds.tb_colour);
     SDL_FillRect(screen3, &line_rect, ds.tb_colour);
     blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
-    mode7renderscreen();
   }
   else {	/* Text window is not being used */
     reset_mode7();
@@ -1769,7 +1705,6 @@ static void vdu_cleartext(void) {
     ytext = textyhome();
     reveal_cursor();	/* Redraw cursor */
   }
-  do_sdl_flip(matrixflags.surface);
 }
 
 /*
@@ -1792,7 +1727,6 @@ static void vdu_return(void) {
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
       set_rgb();
-      mode7flipbank();
     }
   }
 }
@@ -1862,7 +1796,6 @@ static void vdu_cleargraph(void) {
   }
   blit_scaled(GXTOPX(ds.gwinleft), GYTOPY(ds.gwintop), GXTOPX(ds.gwinright), GYTOPY(ds.gwinbottom));
   if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();	/* Redraw cursor */
-  do_sdl_flip(matrixflags.surface);
 }
 
 /*
@@ -2133,17 +2066,6 @@ static void vdu_movetext(void) {
     if (column > twinright || row > twinbottom) return;	/* Ignore command if values are out of range */
     move_cursor(column, row);
   }
-  if (screenmode == 7) {
-    write_vduflag(MODE7_VDU141ON,0);
-    write_vduflag(MODE7_GRAPHICS,0);
-    write_vduflag(MODE7_SEPGRP,0);
-    write_vduflag(MODE7_CONCEAL,0);
-    write_vduflag(MODE7_HOLD,0);
-    write_vduflag(MODE7_FLASH,0);
-    text_physforecol = text_forecol = 7;
-    text_physbackcol = text_backcol = 0;
-    set_rgb();
-  }
 }
 
 static void printer_char(void) {
@@ -2195,7 +2117,6 @@ void emulate_vdu(int32 charvalue) {
               ytext--;
               scroll(SCROLL_UP);
             }
-            mode7renderline(ytext, 0);
           }
           if (ytext < twintop) {
             if (vdu2316byte & 16) {
@@ -2204,7 +2125,6 @@ void emulate_vdu(int32 charvalue) {
               ytext++;
               scroll(SCROLL_DOWN);
             }
-            mode7renderline(ytext, 0);
           }
         }
         if (charvalue == 127) {
@@ -2214,13 +2134,7 @@ void emulate_vdu(int32 charvalue) {
         } else {
           mode7frame[ytext][xtext]=charvalue;
         }
-        mode7changed[ytext]=1;
-        if (vduflag(MODE7_UPDATE_HIGHACC)) {
-          if ((ds.videorefresh < (basicvars.centiseconds-ds.videofreq)) && (ds.autorefresh==1)) {
-            mode7renderline(ytext, 0);
-            ds.videorefresh = basicvars.centiseconds;
-          }
-        }
+        mode7changed=1;
         xtext+=textxinc();
         if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
           xtext = textxhome();
@@ -2243,12 +2157,10 @@ void emulate_vdu(int32 charvalue) {
           if (ytext > twinbottom) {
             ytext--;
             scroll(SCROLL_UP);
-            mode7renderline(ytext, 0);
           }
           if (ytext < twintop) {
             ytext++;
             scroll(SCROLL_DOWN);
-            mode7renderline(ytext, 0);
           }
         }
         return; /* End of MODE 7 block */
@@ -2465,6 +2377,9 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int p;
 
+  while (matrixflags.videothreadbusy) ;
+  ds.videorefresh = 0;
+  matrixflags.noupdate = 1;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
   if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
@@ -2489,7 +2404,7 @@ static void setup_mode(int32 mode) {
     sx=ox; sy=oy;
     matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
-    do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
+    matrixflags.noupdate = 0;
     if (matrixflags.failovermode == 255) error(ERR_BADMODE);
   }
   ds.autorefresh=1;
@@ -2568,6 +2483,7 @@ static void setup_mode(int32 mode) {
     font_rect.w = place_rect.w = XPPC;
     font_rect.h = place_rect.h = YPPC;
   }
+  matrixflags.noupdate = 0;
   hide_cursor();
 }
 
@@ -2587,7 +2503,6 @@ void emulate_mode(int32 mode) {
   }
   xtext = textxhome();
   ytext = textyhome();
-  do_sdl_flip(matrixflags.surface);
   emulate_vdu(VDU_CLEARGRAPH);
 }
 
@@ -3122,7 +3037,7 @@ void emulate_pointto(int32 x, int32 y) {
 ** This doesn't always work, but better this than a no-op or an Unsupported error message.
 */
 void emulate_wait(void) {
-  SDL_Flip(matrixflags.surface);
+  //SDL_Flip(matrixflags.surface);
 }
 
 /*
@@ -3476,6 +3391,10 @@ boolean init_screen(void) {
   pixfmt.alpha=255;
 #endif
 
+#ifdef TARGET_UNIX
+  XInitThreads();
+#endif
+
   ds.autorefresh=1;
   ds.displaybank=0;
   ds.writebank=0;
@@ -3562,6 +3481,8 @@ boolean init_screen(void) {
 ** of the run
 */
 void end_screen(void) {
+  while (matrixflags.videothreadbusy) ;
+  matrixflags.noupdate = 1;
   SDL_EnableUNICODE(SDL_DISABLE);
   SDL_Quit();
 }
@@ -3598,7 +3519,7 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 //}
 
 static void mode7renderline(int32 ypos, int32 fast) {
-  int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt, yt;
+  int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt;
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
   
@@ -3608,8 +3529,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
   l_text_backcol=text_backcol;
   l_text_physforecol=text_physforecol;
   l_text_forecol=text_forecol;
-  xt=xtext;
-  yt=ytext;
 
   text_physbackcol=text_backcol=0;
   text_physforecol=text_forecol=7;
@@ -3625,8 +3544,8 @@ static void mode7renderline(int32 ypos, int32 fast) {
   m7_rect.h=M7YPPC;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
-  for (xtext=0; xtext<=39; xtext++) {
-    ch=mode7frame[ypos][xtext];
+  for (xt=0; xt<=39; xt++) {
+    ch=mode7frame[ypos][xt];
     if (ch < 32) ch |= 0x80;
     /* Check the Set At codes here */
     if (is_teletextctrl(ch)) switch (ch) {
@@ -3659,7 +3578,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         break;
     }
     /* Now we write the character. Copied and optimised from write_char() above */
-    topx = xtext*M7XPPC;
+    topx = xt*M7XPPC;
     topy = ypos*M7YPPC;
     place_rect.x = topx;
     place_rect.y = topy;
@@ -3685,7 +3604,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       for (y=0; y < M7YPPC; y++) {
         line = 0;
         if (vduflag(MODE7_VDU141ON)) {
-          yy=((y/2)+(M7YPPC*vduflag(MODE7_VDU141MODE)/2));
+          yy=((y/2)+(vduflag(MODE7_VDU141MODE) ? 10 : 0));
           if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
             line = teletextgraphic(ch, yy);
           else
@@ -3794,8 +3713,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         if (vduflag(MODE7_BLACK)) write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
     }
   }
-  SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
-  if (!fast) do_sdl_updaterect(matrixflags.surface, 0, topy, 40*M7XPPC, M7YPPC);
+  safe_SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
 
   vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
   text_physbackcol=l_text_physbackcol;
@@ -3803,9 +3721,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
   text_physforecol=l_text_physforecol;
   text_forecol=l_text_forecol;
   set_rgb();
-  xtext=xt;
-  ytext=yt;
-  mode7changed[ypos]=0;
 
   /* Cascade VDU141 changes */
   if ((!vdu141used) && vdu141track[ypos]==1) vdu141track[ypos]=0;
@@ -3815,7 +3730,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
   }
 }
 
-void mode7renderscreen(void) {
+static void mode7renderscreen(void) {
   int32 ypos;
   Uint8 bmpstate=vduflag(MODE7_UPDATE);
   
@@ -3825,7 +3740,6 @@ void mode7renderscreen(void) {
   for (ypos=0; ypos < 26;ypos++) vdu141track[ypos]=0;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos, 1);
   write_vduflag(MODE7_UPDATE,bmpstate);
-  do_sdl_flip(matrixflags.surface);
 }
 
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
@@ -4203,6 +4117,8 @@ void set_wintitle(char *title) {
 }
 
 void fullscreenmode(int onoff) {
+  while (matrixflags.videothreadbusy) ;
+  matrixflags.noupdate = 1;
   if (onoff == 1) {
     matrixflags.sdl_flags |= SDL_FULLSCREEN;
   } else if (onoff == 2) {
@@ -4213,7 +4129,7 @@ void fullscreenmode(int onoff) {
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
   matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
   SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
-  do_sdl_updaterect(matrixflags.surface, 0, 0, 0, 0);
+  matrixflags.noupdate = 0;
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
@@ -4255,28 +4171,26 @@ void refresh_location(uint32 offset) {
 
 /* 0=off, 1=on, 2=onerror */
 void star_refresh(int flag) {
+  matrixflags.noupdate = 1;
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;
   }
   if (flag & 1) {
-    if (screenmode == 7) {
-      mode7renderscreen();
-    } else {
-      blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
-      if ((screenmode == 3) || (screenmode == 6)) {
-        int p;
-        hide_cursor();
-        scroll_rect.x=0;
-        scroll_rect.w=ds.screenwidth*ds.xscale;
-        scroll_rect.h=4;
-        for (p=0; p<25; p++) {
-          scroll_rect.y=16+(p*20);
-          SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
-        }
+    blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+    if ((screenmode == 3) || (screenmode == 6)) {
+      int p;
+      hide_cursor();
+      scroll_rect.x=0;
+      scroll_rect.w=ds.screenwidth*ds.xscale;
+      scroll_rect.h=4;
+      for (p=0; p<25; p++) {
+        scroll_rect.y=16+(p*20);
+        SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
       }
     }
     SDL_Flip(matrixflags.surface);
   }
+  matrixflags.noupdate = 0;
 }
 
 int get_refreshmode(void) {
@@ -4379,8 +4293,8 @@ void osbyte113(int x) {
 void screencopy(int32 src, int32 dst) {
   SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
   if (dst==(ds.displaybank+1)) {
-    SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
-    SDL_Flip(matrixflags.surface);
+    safe_SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
+    //SDL_Flip(matrixflags.surface);
   }
 }
 
@@ -4463,7 +4377,6 @@ void osword8C(int64 x) {
   for (i=0; i<= 19; i++) {
     mode7font[offset][i] = block[(2*i)+5] + (256*block[(2*i)+4]);
   }
-  if ((screenmode == 7) && (ds.autorefresh==1)) mode7renderscreen();
 }
 
 void sdl_screensave(char *fname) {
@@ -4499,8 +4412,8 @@ void sdl_screenload(char *fname) {
   } else {
     SDL_BlitSurface(placeholder, NULL, screenbank[ds.writebank], NULL);
     if (ds.displaybank == ds.writebank) {
-      SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
-      SDL_Flip(matrixflags.surface);
+      safe_SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
+      //SDL_Flip(matrixflags.surface);
     }
     SDL_FreeSurface(placeholder);
   }
@@ -4593,4 +4506,42 @@ int32 readmodevariable(int32 scrmode, int32 var) {
 
 void set_refresh_interval(int32 v) {
   ds.videofreq=v;
+}
+
+/* Refreshes the display at 100Hz. Also implements MODE7 flash */
+int videoupdatethread(void *data) {
+  int64 mytime = 0;
+  while(1) {
+    if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
+      matrixflags.videothreadbusy = 1;
+      if (screenmode == 7) {
+        if (mode7changed && vduflag(MODE7_UPDATE)) {
+          mode7renderscreen();
+          mode7changed = 0;
+        }
+        mytime = basicvars.centiseconds;
+        if ((mode7timer - mytime) <= 0) {
+          hide_cursor();
+          if (vduflag(MODE7_BANK)) {
+            SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
+            write_vduflag(MODE7_BANK,0);
+            mode7timer=mytime + 100;
+          } else {
+            SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
+            write_vduflag(MODE7_BANK,1);
+            mode7timer=mytime + 33;
+          }
+          reveal_cursor();
+        }
+      }
+      if (matrixflags.surface) {
+        hide_cursor();
+        SDL_Flip(matrixflags.surface);
+        if (basicvars.centiseconds % 50 < 25)reveal_cursor();
+      }
+      matrixflags.videothreadbusy = 0;
+    }
+    usleep(10000);
+  }
+  return 0;
 }

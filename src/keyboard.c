@@ -360,7 +360,6 @@ static struct termios origtty;  /* Copy of original keyboard parameters */
 #include "SDL_events.h"
 #include "graphsdl.h"
 // Move these later
-extern void mode7flipbank();
 Uint8 mousestate, *keystate=NULL;
 int64 esclast=0;
 #endif
@@ -939,9 +938,6 @@ int32 kbd_inkey(int32 arg) {
   // Timed wait for keypress
   // -----------------------
   if (arg < 0x8000) {
-#ifdef USE_SDL
-    mode7flipbank();
-#endif
     if (basicvars.runflags.inredir		/* Input redirected			*/
       || matrixflags.doexec			/*  or *EXEC file active		*/
       || fn_string_count) return kbd_get();	/*  or function key active		*/
@@ -1507,7 +1503,6 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
-    mode7flipbank();
     while (SDL_PollEvent(&ev) > 0) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
@@ -1614,7 +1609,6 @@ int32 read_key(void) {
 /*
 ** First check the SDL event Queue
 */
-    mode7flipbank();
     SDL_PumpEvents();
     if (SDL_PollEvent(&ev)) {
       SDL_GetMouseState(&mx, &my);

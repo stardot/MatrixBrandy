@@ -96,8 +96,6 @@ static HANDLE sigintthread = NULL;     /* Thread number for Escape key watching 
 
 static char errortext[200];     /* Copy of text of last error for REPORT */
 
-extern void mode7renderscreen(void);
-
 /*
 ** 'handle_signal' deals with any signals raised during program execution.
 ** Under some operating systems raising a signal causes the signal handler
@@ -110,9 +108,6 @@ static void handle_signal(int signo) {
   case SIGUSR1:
     return;
   case SIGUSR2:
-#ifdef USE_SDL
-    mode7renderscreen();
-#endif
     return;
   case SIGPIPE:
     return;
@@ -749,9 +744,6 @@ static void handle_error(errortype severity) {
     emulate_vdu(VDU_ENABLE);    /* Ensure VDU driver is enabled */
     emulate_vdu(VDU_TEXTCURS);  /* And that output goes to the text cursor */
     print_details(severity>WARNING);
-#ifdef USE_SDL
-    mode7renderscreen();
-#endif
     if (basicvars.runflags.closefiles) fileio_shutdown();
     if (basicvars.runflags.quitatend) exit_interpreter(EXIT_FAILURE);   /* Leave interpreter if flag is set */
     basicvars.current = NIL;
@@ -789,6 +781,7 @@ void error(int32 errnumber, ...) {
 #endif
 
 #ifdef USE_SDL
+  while (matrixflags.videothreadbusy) ;
   hide_cursor();
 #endif
   if (errnumber<1 || errnumber>HIGHERROR) {

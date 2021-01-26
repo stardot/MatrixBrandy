@@ -236,7 +236,6 @@ static int fx44x=1;
 #ifdef USE_SDL
 #include "SDL.h"
 #include "SDL_events.h"
-extern void mode7flipbank();
 Uint8 mousestate, *keystate=NULL;
 #endif
 
@@ -247,8 +246,6 @@ Uint8 mousestate, *keystate=NULL;
 //#include "SDL.h"
 //#include "SDL_events.h"
 //#include "keyboard-inkey.h"
-
-//extern void mode7flipbank();
 
 static Uint32 waitkey_callbackfunc(Uint32 interval, void *param)
 {
@@ -657,7 +654,6 @@ int32 read_key(void) {
 /*
 ** First check the SDL event Queue
 */
-    mode7flipbank();
     if (SDL_PollEvent(&ev))
       switch(ev.type)
       {
@@ -1091,9 +1087,6 @@ int32 emulate_get(void) {
 
 int32 emulate_inkey(int32 arg) {
   int32 result;
-#ifdef USE_SDL
-  mode7flipbank();
-#endif
   if (arg >= 0) {	/* Timed wait for a key to be pressed */
     if (basicvars.runflags.inredir) error(ERR_UNSUPPORTED);     /* There is no keyboard to read */
     if (arg > INKEYMAX) arg = INKEYMAX; /* Wait must be in range 0..32767 centiseconds */

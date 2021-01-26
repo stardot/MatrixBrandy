@@ -1134,7 +1134,6 @@ void mos_waitdelay(int32 time) {
   tbase=mos_centiseconds();
   while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
-    mode7flipbank();
 #ifdef NEWKBD
     if (kbd_escpoll()) {
 //  if(basicvars.escape_enabled && kbd_inkey(-113)) {

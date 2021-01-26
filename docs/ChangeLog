@@ -4,6 +4,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.10 -
 - System: *Refresh OnError wasn't working correctly. Fixed.
 - System: Implemented enough of SYS "OS_File" to hopefully be useful.
+- System: SDL graphics in its own thread. MODE7 now runs like a startled cat.
+  As a bonus, we now have a flashing cursor too. The performance tweak call
+  SYS "Brandy_RefreshInterval" is now a no-op.
 - Graphics: New ellipse drawing code. Based on RISC OS ARM implementation,
   translated to C by hoglet@Stardot for PiTubeDirect.
 - BASIC: CLEAR now deallocates arrays (not memory blocks) allocated using
@@ -16,8 +19,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: SWAP now works correctly on off-heap arrays.
 - BASIC: Fixed a bug in array arithmetic on uint8 arrays
 - BASIC: Implemented PTR(string$) and PTR(array()).
-- BASIC: PTR#0 now returns 0 (in line with RISC OS) rather than throwing
-  an error.
+- BASIC: PTR#0 now returns 0 (in line with BBC BASIC 2-5, 1 unknown) rather
+  than throwing an error. Note ARM BBC BASIC VI returns the temporary file
+  number as per OS_Args 0,0 with zero meaning none in use.
 
 * V1.22.9 - 06 January 2021
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)

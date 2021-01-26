@@ -556,6 +556,7 @@ typedef struct {
   size_t memdump_lastaddr;		/* Last address used by LISTB/LISTW */
 #ifdef USE_SDL
   SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
+  SDL_Thread *video_thread;	/* Holder for centisecond timer thread */
 #endif  
   char program[FNAMESIZE];		/* Name of program loaded */
   char filename[FNAMESIZE];		/* Name of last file read */
@@ -592,6 +593,8 @@ typedef struct {
   SDL_Surface *surface;			/* SDL Surface handle for screen0 */
   int32 sdl_flags;			/* SDL surface flags */
   uint32 vdu14lines;			/* Line counter for VDU14 page mode */
+  boolean noupdate;                     /* Skip update if TRUE */
+  boolean videothreadbusy;              /* True when thread is doing stuff */
 #endif
 } matrixbits;
 extern matrixbits matrixflags;
