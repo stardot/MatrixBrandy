@@ -4171,6 +4171,7 @@ void refresh_location(uint32 offset) {
 
 /* 0=off, 1=on, 2=onerror */
 void star_refresh(int flag) {
+  while (matrixflags.videothreadbusy) ;
   matrixflags.noupdate = 1;
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;
