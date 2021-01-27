@@ -152,7 +152,6 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
-Uint8 mode7changed;			/* Has Mode 7 framebuffer been changed? */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -234,12 +233,6 @@ static inline int min(int a, int b) {
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
-}
-
-static void safe_SDL_BlitSurface(SDL_Surface *src, SDL_Rect *srcrect, SDL_Surface *dst, SDL_Rect *dstrect) {
-  matrixflags.noupdate=1;
-  SDL_BlitSurface(src, srcrect, dst, dstrect);
-  matrixflags.noupdate=0;
 }
 
 static void reset_mode7() {
@@ -704,7 +697,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
     scale_rect.y = top;
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
-    safe_SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
+    SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
   } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
@@ -2090,7 +2083,6 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
       if (screenmode == 7) {
-        mode7changed=1;
         if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
           xtext = textxhome();
           ytext+=textyinc();
@@ -3714,7 +3706,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         if (vduflag(MODE7_BLACK)) write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
     }
   }
-  safe_SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
+  SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
 
   vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
   text_physbackcol=l_text_physbackcol;
@@ -4292,7 +4284,7 @@ void osbyte113(int x) {
 void screencopy(int32 src, int32 dst) {
   SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
   if (dst==(ds.displaybank+1)) {
-    safe_SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
+    SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
   }
 }
 
@@ -4410,7 +4402,7 @@ void sdl_screenload(char *fname) {
   } else {
     SDL_BlitSurface(placeholder, NULL, screenbank[ds.writebank], NULL);
     if (ds.displaybank == ds.writebank) {
-      safe_SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
+      SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
     }
     SDL_FreeSurface(placeholder);
   }
@@ -4508,6 +4500,8 @@ void set_refresh_interval(int32 v) {
 /* Refreshes the display at 100Hz. Also implements MODE7 flash */
 int videoupdatethread(void) {
   int64 mytime = 0;
+  Uint8 mode7cloneframe[26][40];
+  
   while(1) {
     if (tmsg.modechange >= 0) {
       if (tmsg.modechange & 0x400) {
@@ -4536,9 +4530,10 @@ int videoupdatethread(void) {
       matrixflags.videothreadbusy = 1;
       SDL_PumpEvents(); /* This is for the keyboard stuff */
       if (screenmode == 7) {
-        if (mode7changed) {
+        if (memcmp(mode7cloneframe, mode7frame, 1000)) {
+          memcpy(mode7cloneframe, mode7frame, 1000);
           mode7renderscreen();
-          mode7changed = 0;
+          SDL_BlitSurface(vduflag(MODE7_BANK) ? screen2 :  screen3, NULL, matrixflags.surface, NULL);
         }
         mytime = basicvars.centiseconds;
         if ((mode7timer - mytime) <= 0) {
