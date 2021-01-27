@@ -4,9 +4,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * V1.22.10 -
 - System: *Refresh OnError wasn't working correctly. Fixed.
 - System: Implemented enough of SYS "OS_File" to hopefully be useful.
-- System: SDL graphics in its own thread. MODE7 now runs like a startled cat.
+- System: SDL graphics in its own thread. MODE 7 now runs like a startled cat.
   As a bonus, we now have a flashing cursor too. The performance tweak call
   SYS "Brandy_RefreshInterval" is now a no-op.
+- System: MODE 7 is now fast enough that VDU 23,18,1 is a no-op.
 - Graphics: New ellipse drawing code. Based on RISC OS ARM implementation,
   translated to C by hoglet@Stardot for PiTubeDirect.
 - BASIC: CLEAR now deallocates arrays (not memory blocks) allocated using

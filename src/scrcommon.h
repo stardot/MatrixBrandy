@@ -257,11 +257,9 @@ static unsigned int vduflags = 0;	/* VDU flags */
 #define VDU_FLAG_ECHO		0x00000010	/* if character should be echoed on screen immediately */
 #define VDU_FLAG_TEXTWIN	0x00000020	/* if a text window has been defined */
 /* Flags used by the Teletext emulation in graphsdl.c */
-#define MODE7_BANK		0x00000800	/* Bank switching for Mode 7 Flashing */
-#define MODE7_BLACK		0x00001000	/* RISC OS 5 - Allow teletext black codes */
-#define MODE7_UPDATE		0x00002000	/* RISC OS 5 - do we update bitmap and blit after each character. */
-#define MODE7_UPDATE_HIGHACC	0x00004000	/* RISC OS 5 - most accurate updates. */
-#define MODE7_REVEAL		0x00008000	/* RISC OS 5 - reveal content hidden by CONCEAL */
+#define MODE7_BANK		0x00001000	/* Bank switching for Mode 7 Flashing */
+#define MODE7_BLACK		0x00002000	/* RISC OS 5 - Allow teletext black codes */
+#define MODE7_REVEAL		0x00004000	/* RISC OS 5 - reveal content hidden by CONCEAL */
 
 /* The below flags are reset on a new line in MODE 7 */
 #define MODE7_VDU141MODE	0x00010000	/* Mode 7 VDU141 0=top, 1=bottom */

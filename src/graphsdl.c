@@ -516,10 +516,6 @@ static void vdu_2317(void) {
 
 /* RISC OS 5 - Set Teletext characteristics */
 static void vdu_2318(void) {
-  if (vduqueue[1] == 1) {
-    write_vduflag(MODE7_UPDATE_HIGHACC, vduqueue[2] & 2);
-    write_vduflag(MODE7_UPDATE, (vduqueue[2] & 1)==0);
-  }
   if (vduqueue[1] == 2) {
     write_vduflag(MODE7_REVEAL, vduqueue[2] & 1);
   }
@@ -2093,6 +2089,7 @@ void emulate_vdu(int32 charvalue) {
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
       if (screenmode == 7) {
+        mode7changed=1;
         if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
           xtext = textxhome();
           ytext+=textyinc();
@@ -2136,7 +2133,6 @@ void emulate_vdu(int32 charvalue) {
         } else {
           mode7frame[ytext][xtext]=charvalue;
         }
-        mode7changed=1;
         xtext+=textxinc();
         if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
           xtext = textxhome();
@@ -3446,8 +3442,6 @@ boolean init_screen(void) {
   vdunext = 0;
   vduneeded = 0;
   write_vduflag(VDU_FLAG_ENAPRINT,0);
-  write_vduflag(MODE7_UPDATE,1);
-  write_vduflag(MODE7_UPDATE_HIGHACC,1);
   ds.xgupp = ds.ygupp = 1;
 #if defined(BRANDY_GITCOMMIT) && !defined(BRANDY_RELEASE)
   SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter - git " BRANDY_GITCOMMIT, "Matrix Brandy");
@@ -3520,7 +3514,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
   int32 vdu141used = 0;
   
-  if (!vduflag(MODE7_UPDATE) || (screenmode != 7)) return;
   /* Preserve values */
   l_text_physbackcol=text_physbackcol;
   l_text_backcol=text_backcol;
@@ -3729,14 +3722,11 @@ static void mode7renderline(int32 ypos, int32 fast) {
 
 static void mode7renderscreen(void) {
   int32 ypos;
-  Uint8 bmpstate=vduflag(MODE7_UPDATE);
   
   if (screenmode != 7) return;
   
-  write_vduflag(MODE7_UPDATE,1);
   for (ypos=0; ypos < 26;ypos++) vdu141track[ypos]=0;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos, 1);
-  write_vduflag(MODE7_UPDATE,bmpstate);
 }
 
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
@@ -4513,7 +4503,7 @@ int videoupdatethread(void) {
       matrixflags.videothreadbusy = 1;
       SDL_PumpEvents(); /* This is for the keyboard stuff */
       if (screenmode == 7) {
-        if (mode7changed && vduflag(MODE7_UPDATE)) {
+        if (mode7changed) {
           mode7renderscreen();
           mode7changed = 0;
         }

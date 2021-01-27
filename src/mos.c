@@ -108,7 +108,7 @@
 #include "SDL.h"
 #include "graphsdl.h"
 #include "soundsdl.h"
-extern Uint8 mode7changed[26];
+extern Uint8 mode7changed;
 #endif
 
 static int check_command(char *text);
@@ -1903,7 +1903,7 @@ static void cmd_load(char *command){
     /* Mode 7 screen memory */
     ptr = (ptr - matrixflags.mode7fb) + (size_t)mode7frame;
   }
-  for (i=0; i<=24; i++) mode7changed[i]=1;
+  mode7changed=1;
 #endif
 
   while((ch=getc(filep)) != EOF) *ptr++ = ch;
