@@ -4537,7 +4537,11 @@ int videoupdatethread(void) {
         }
       }
       if (matrixflags.surface) {
-        hide_cursor();
+        if (basicvars.centiseconds % 50 < 25) {
+          reveal_cursor();
+        } else {
+          hide_cursor();
+        }
         SDL_Flip(matrixflags.surface);
         if (basicvars.centiseconds % 50 < 25)reveal_cursor();
       }
