@@ -593,8 +593,9 @@ typedef struct {
   SDL_Surface *surface;			/* SDL Surface handle for screen0 */
   int32 sdl_flags;			/* SDL surface flags */
   uint32 vdu14lines;			/* Line counter for VDU14 page mode */
-  boolean noupdate;                     /* Skip update if TRUE */
-  boolean videothreadbusy;              /* True when thread is doing stuff */
+  boolean noupdate;			/* Skip update if TRUE */
+  boolean videothreadbusy;		/* True when thread is doing stuff */
+  boolean cursorbusy;			/* TRUE when cursor is being worked on */
 #endif
 } matrixbits;
 extern matrixbits matrixflags;

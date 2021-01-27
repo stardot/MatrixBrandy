@@ -646,6 +646,7 @@ static void toggle_cursor(void) {
     if (!vduflag(VDU_FLAG_GRAPHICURS)) cursorstate = ONSCREEN;
   if (ds.autorefresh != 1) return;
   if (ytext >= textheight) return;
+  if (matrixflags.cursorbusy) return;
   left = xtemp*ds.xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + ds.xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
@@ -1251,6 +1252,7 @@ static void write_char(int32 ch) {
   int32 y, topx, topy, line;
   
   if (cursorstate == ONSCREEN) toggle_cursor();
+  matrixflags.cursorbusy = 1;
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
@@ -1344,6 +1346,7 @@ static void write_char(int32 ch) {
       }
     }
   }
+  matrixflags.cursorbusy = 0;
 }
 
 /*
@@ -4537,10 +4540,12 @@ int videoupdatethread(void) {
         }
       }
       if (matrixflags.surface) {
-        if (basicvars.centiseconds % 50 < 25) {
-          reveal_cursor();
-        } else {
-          hide_cursor();
+        if (!matrixflags.cursorbusy) {
+          if (basicvars.centiseconds % 50 < 25) {
+            reveal_cursor();
+          } else {
+            hide_cursor();
+          }
         }
         SDL_Flip(matrixflags.surface);
       }
