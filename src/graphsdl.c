@@ -4063,7 +4063,7 @@ void get_sdl_mouse(int64 values[]) {
 
   if (mousequeuelength != 0) fprintf(stderr,"Warning: mousequeuelength out of sync (%d), correcting\n", mousequeuelength);
   mousequeuelength=0; /* Not strictly necessary, but keeps things in sync, just in case */
-  SDL_PumpEvents();
+  while (matrixflags.videothreadbusy) usleep(1000);
   SDL_GetMouseState(&x, &y);
   while(!breakout && SDL_PeepEvents(&ev,1,SDL_GETEVENT, -1 ^ (SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP)))) {
     switch (ev.type) {
@@ -4084,7 +4084,6 @@ void get_sdl_mouse(int64 values[]) {
         breakout=1;
         break;
     }
-    SDL_PumpEvents();
   }
   x=(x*2);
   if (x < 0) x = 0;
@@ -4101,20 +4100,23 @@ void get_sdl_mouse(int64 values[]) {
 }
 
 void warp_sdlmouse(int32 x, int32 y) {
+  while (matrixflags.videothreadbusy) usleep(1000);
   SDL_WarpMouse(x/2,ds.vscrheight-(y/2));
 }
 
 void sdl_mouse_onoff(int state) {
+  while (matrixflags.videothreadbusy) usleep(1000);
   if (state) SDL_ShowCursor(SDL_ENABLE);
   else SDL_ShowCursor(SDL_DISABLE);
 }
 
 void set_wintitle(char *title) {
+  while (matrixflags.videothreadbusy) usleep(1000);
   SDL_WM_SetCaption(title, title);
 }
 
 void fullscreenmode(int onoff) {
-  while (matrixflags.videothreadbusy) ;
+  while (matrixflags.videothreadbusy) usleep(1000);
   matrixflags.noupdate = 1;
   if (onoff == 1) {
     matrixflags.sdl_flags |= SDL_FULLSCREEN;

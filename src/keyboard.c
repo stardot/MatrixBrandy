@@ -958,7 +958,7 @@ int32 kbd_inkey(int32 arg) {
     int mx, my;
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(&mx, &my);
-    while(SDL_PollEvent(&ev)) {
+    while(SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) {
       switch(ev.type) {
         case SDL_QUIT:
           exit_interpreter(EXIT_SUCCESS);
@@ -1421,7 +1421,7 @@ void purge_keys(void) {
 #ifdef USE_SDL
   SDL_Event ev;
   holdcount = 0;
-  while(SDL_PollEvent(&ev)) ;
+  while(SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) ;
 #else
 #endif
   while (kbd_inkey(0)>-1);		/* Suck everything out of keyboard	*/
@@ -1506,7 +1506,7 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
-    while (SDL_PollEvent(&ev) > 0) {
+    while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS) > 0) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
         case SDL_KEYUP:
@@ -1615,7 +1615,7 @@ int32 read_key(void) {
 
     while (matrixflags.videothreadbusy) usleep(1000);
     matrixflags.noupdate = 1;
-    if (SDL_PollEvent(&ev)) {
+    if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
         case SDL_QUIT:

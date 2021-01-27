@@ -454,7 +454,7 @@ void purge_keys(void) {
 #ifdef USE_SDL
   SDL_Event ev;
   holdcount = 0;
-  while(SDL_PollEvent(&ev)) ;
+  while(SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) ;
 #endif
 }
 
@@ -576,7 +576,7 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
-    while (SDL_PollEvent(&ev) > 0) 
+    while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS) > 0) 
       switch(ev.type)
       {
         case SDL_USEREVENT:
@@ -654,7 +654,7 @@ int32 read_key(void) {
 /*
 ** First check the SDL event Queue
 */
-    if (SDL_PollEvent(&ev))
+    if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS))
       switch(ev.type)
       {
 	case SDL_KEYUP:
