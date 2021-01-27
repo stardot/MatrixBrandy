@@ -153,11 +153,11 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
 Uint8 mode7changed;			/* Has Mode 7 framebuffer been changed? */
-static int32 modechange;		/* Is a mode change in flight? */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
+threadmsg tmsg;
 
 static struct {
   int32 vscrwidth;			/* Width of virtual screen in pixels */
@@ -2386,7 +2386,7 @@ static void setup_mode(int32 mode) {
   hide_cursor();
   if (modetable[mode].xres == 0) {
     if (matrixflags.failovermode == 255) {
-      modechange = -2;
+      tmsg.modechange = -2;
       return;
     } else {
       modecopy = mode = matrixflags.failovermode;
@@ -2403,7 +2403,7 @@ static void setup_mode(int32 mode) {
     matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
     if (matrixflags.failovermode == 255) {
-      modechange = -2;
+      tmsg.modechange = -2;
       return;
     }
   }
@@ -2483,7 +2483,7 @@ static void setup_mode(int32 mode) {
     font_rect.w = place_rect.w = XPPC;
     font_rect.h = place_rect.h = YPPC;
   }
-  modechange = -1;
+  tmsg.modechange = -1;
   hide_cursor();
 }
 
@@ -2496,9 +2496,9 @@ void emulate_mode(int32 mode) {
   int p;
 
   /* Signal the display update thread to change mode */
-  modechange = mode;
-  while (modechange >= 0) usleep(1000);
-  if (modechange == -2) error(ERR_BADMODE);
+  tmsg.modechange = mode;
+  while (tmsg.modechange >= 0) usleep(1000);
+  if (tmsg.modechange == -2) error(ERR_BADMODE);
 /* Reset colours, clear screen and home cursor */
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
   for (p=0; p<4; p++) {
@@ -3403,6 +3403,12 @@ boolean init_screen(void) {
   ds.videorefresh=0;
   ds.videofreq=1;
 
+  tmsg.titlepointer = NULL;
+  tmsg.modechange = -1;
+  tmsg.mousecmd = 0;
+  tmsg.x = 0;
+  tmsg.y = 0;
+
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
     fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
@@ -4095,24 +4101,22 @@ void get_sdl_mouse(int64 values[]) {
 }
 
 void warp_sdlmouse(int32 x, int32 y) {
-  while (matrixflags.videothreadbusy) usleep(1000);
-  SDL_WarpMouse(x/2,ds.vscrheight-(y/2));
+  tmsg.x = x;
+  tmsg.y = y;
+  tmsg.mousecmd = 2;
 }
 
 void sdl_mouse_onoff(int state) {
-  while (matrixflags.videothreadbusy) usleep(1000);
-  if (state) SDL_ShowCursor(SDL_ENABLE);
-  else SDL_ShowCursor(SDL_DISABLE);
+  tmsg.x = state;
+  tmsg.mousecmd = 1;
 }
 
 void set_wintitle(char *title) {
-  while (matrixflags.videothreadbusy) usleep(1000);
-  SDL_WM_SetCaption(title, title);
+  /* This is picked up by the video update thread */
+  tmsg.titlepointer = title;
 }
 
 void fullscreenmode(int onoff) {
-  while (matrixflags.videothreadbusy) usleep(1000);
-  matrixflags.noupdate = 1;
   if (onoff == 1) {
     matrixflags.sdl_flags |= SDL_FULLSCREEN;
   } else if (onoff == 2) {
@@ -4123,7 +4127,8 @@ void fullscreenmode(int onoff) {
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
   matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
   SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
-  matrixflags.noupdate = 0;
+  tmsg.modechange = -1;
+
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
@@ -4260,7 +4265,7 @@ int32 osbyte42(int x) {
   /* Handle the lowest 2 bits - REFRESH state */
   if (ref) star_refresh(ref-1);
   /* Handle the next 2 bits - FULLSCREEN state */
-  if (fsc) fullscreenmode(fsc-1);
+  if (fsc) tmsg.modechange = 0x400 + (fsc-1);
   /* If bit 4 set, do immediate refrsh */
   if (x & 16) star_refresh(3);
   return((x << 8) + 42);
@@ -4504,8 +4509,28 @@ void set_refresh_interval(int32 v) {
 int videoupdatethread(void) {
   int64 mytime = 0;
   while(1) {
-    if (modechange >= 0) {
-      setup_mode(modechange);
+    if (tmsg.modechange >= 0) {
+      if (tmsg.modechange & 0x400) {
+        fullscreenmode(tmsg.modechange & 3);
+      } else {
+        setup_mode(tmsg.modechange);
+      }
+    }
+    if (tmsg.titlepointer) {
+      SDL_WM_SetCaption(tmsg.titlepointer, tmsg.titlepointer);
+      tmsg.titlepointer = NULL;
+    }
+    if (tmsg.mousecmd) {
+      switch (tmsg.mousecmd) {
+        case 1: /* Toggle mouse on and off */
+          if (tmsg.x) SDL_ShowCursor(SDL_ENABLE);
+          else SDL_ShowCursor(SDL_DISABLE);
+          break;
+        case 2:
+          SDL_WarpMouse(tmsg.x/2,ds.vscrheight-(tmsg.y/2));
+          break;
+      }
+      tmsg.mousecmd = 0;
     }
     if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
       matrixflags.videothreadbusy = 1;

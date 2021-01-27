@@ -109,6 +109,7 @@
 #include "graphsdl.h"
 #include "soundsdl.h"
 extern Uint8 mode7changed;
+extern threadmsg tmsg;
 #endif
 
 static int check_command(char *text);
@@ -1432,7 +1433,7 @@ static void cmd_fullscreen(char *command) {
   if (strcmp(command, "0" ) == 0) flag=0;
   if (strcasecmp(command, "on" ) == 0) flag=1;
   if (strcasecmp(command, "off" ) == 0) flag=0;
-  if (flag != 3) fullscreenmode(flag);
+  if (flag != 3) tmsg.modechange = 0x400 + (flag);
   else emulate_printf("Syntax: FullScreen [<ON|OFF|1|0>]\r\nWith no parameter, this command toggles the current setting.\r\n");
 #endif
   return;

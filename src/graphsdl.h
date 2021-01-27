@@ -24,6 +24,14 @@
 #ifndef GRAPHSDL_INC
 #define GRAPHSDL_INC
 
+typedef struct {
+        char *titlepointer;             /* Not NULL to set title bar */
+        int32 mousecmd;                 /* Mouse toggle stuff */
+        int32 modechange;               /* Is a mode change in flight? */
+        int32 x;                        /* X coordinate or parameter 1 */
+        int32 y;                        /* Y coordinate or parameter 2 */
+} threadmsg;
+
 extern void get_sdl_mouse(int64 values[]);
 extern void warp_sdlmouse(int32 x, int32 y);
 extern void sdl_mouse_onoff(int state);
