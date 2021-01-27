@@ -4257,7 +4257,10 @@ int32 osbyte42(int x) {
   /* Handle the lowest 2 bits - REFRESH state */
   if (ref) star_refresh(ref-1);
   /* Handle the next 2 bits - FULLSCREEN state */
-  if (fsc) tmsg.modechange = 0x400 + (fsc-1);
+  if (fsc) {
+    tmsg.modechange = 0x400 + (fsc-1);
+    while (tmsg.modechange >= 0) usleep(1000);
+  }
   /* If bit 4 set, do immediate refrsh */
   if (x & 16) star_refresh(3);
   return((x << 8) + 42);
