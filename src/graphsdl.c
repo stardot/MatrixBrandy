@@ -38,7 +38,7 @@
 #include <math.h>
 #include "common.h"
 #include "target.h"
-#ifdef TARGET_UNIX
+#if defined(TARGET_UNIX) && !defined(TARGET_MACOSX)
 #include <X11/Xlib.h>
 #endif
 #include "errors.h"
@@ -3392,7 +3392,7 @@ boolean init_screen(void) {
   pixfmt.alpha=255;
 #endif
 
-#ifdef TARGET_UNIX
+#if defined(TARGET_UNIX) && !defined(TARGET_MACOSX)
   XInitThreads();
 #endif
 
