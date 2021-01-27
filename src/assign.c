@@ -51,7 +51,7 @@
 
 #ifdef USE_SDL
 #include "graphsdl.h"
-extern Uint8 mode7changed[26];
+extern Uint8 mode7changed;
 #endif
 
 /*
@@ -137,7 +137,7 @@ static void assign_intbyteptr(pointers address) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
     address.offset = (size_t)mode7frame + addr;
-    mode7changed[addr/40]=1;
+    mode7changed=1;
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -162,8 +162,7 @@ static void assign_intwordptr(pointers address) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
     address.offset = (size_t)mode7frame + addr;
-    mode7changed[addr/40]=1;
-    mode7changed[(addr+3)/40]=1;
+    mode7changed=1;
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -187,8 +186,7 @@ static void assign_int64ptr(pointers address) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
     address.offset = (size_t)mode7frame + addr;
-    mode7changed[addr/40]=1;
-    mode7changed[(addr+7)/40]=1;
+    mode7changed=1;
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -214,7 +212,7 @@ static void assign_floatptr(pointers address) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
     address.offset = (size_t)mode7frame + addr;
-    mode7changed[addr/40]=1;
+    mode7changed=1;
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -223,7 +221,6 @@ static void assign_floatptr(pointers address) {
 
 static void assign_dolstrptr(pointers address) {
 #ifdef USE_SDL
-  uint32 loop;
   size_t addr;
 #endif
   stackitem exprtype;
@@ -238,7 +235,7 @@ static void assign_dolstrptr(pointers address) {
     /* Mode 7 screen memory */
     addr = address.offset - matrixflags.mode7fb;
     address.offset = (size_t)mode7frame + addr;
-    for (loop=(addr/40); loop<=((addr+result.stringlen)/40); loop++) mode7changed[loop]=1;
+    mode7changed=1;
   }
 #endif
   memmove(&basicvars.memory[address.offset], result.stringaddr, result.stringlen);

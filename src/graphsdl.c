@@ -638,7 +638,6 @@ static void toggle_cursor(void) {
   xtemp = xtext;
   if (xtemp > twinright) xtemp=twinright;
   if (ds.displaybank != ds.writebank) return;
-  //curstate instate=cursorstate;
   if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
   if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
     cursorstate = SUSPENDED;
@@ -2986,7 +2985,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     hide_cursor();
     blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
-    //blit_scaled(ex, ey, ex+2*semimajor, ey+2*semiminor);
     reveal_cursor();
     break;
   }
@@ -3040,7 +3038,7 @@ void emulate_pointto(int32 x, int32 y) {
 ** This doesn't always work, but better this than a no-op or an Unsupported error message.
 */
 void emulate_wait(void) {
-  //SDL_Flip(matrixflags.surface);
+  while(matrixflags.videothreadbusy) ; /* Synchronise with the video refresh thread */
 }
 
 /*
@@ -3516,10 +3514,6 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   }
   return(val);
 }
-
-//static boolean is_teletextctrl(int32 ch) {
-//  return ((ch >= 0x80) && (ch <= 0x9F));
-//}
 
 static void mode7renderline(int32 ypos, int32 fast) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt;
@@ -4291,14 +4285,12 @@ void osbyte113(int x) {
   if (x==0) x=1;
   if (x <= MAXBANKS) ds.displaybank=(x-1);
   blit_scaled_actual(0, 0, ds.screenwidth, ds.screenheight);
-  SDL_Flip(matrixflags.surface);
 }
 
 void screencopy(int32 src, int32 dst) {
   SDL_BlitSurface(screenbank[src-1],NULL,screenbank[dst-1],NULL);
   if (dst==(ds.displaybank+1)) {
     safe_SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
-    //SDL_Flip(matrixflags.surface);
   }
 }
 
@@ -4417,7 +4409,6 @@ void sdl_screenload(char *fname) {
     SDL_BlitSurface(placeholder, NULL, screenbank[ds.writebank], NULL);
     if (ds.displaybank == ds.writebank) {
       safe_SDL_BlitSurface(placeholder, NULL, matrixflags.surface, NULL);
-      //SDL_Flip(matrixflags.surface);
     }
     SDL_FreeSurface(placeholder);
   }

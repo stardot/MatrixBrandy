@@ -1136,16 +1136,14 @@ void mos_waitdelay(int32 time) {
 #ifdef USE_SDL
 #ifdef NEWKBD
     if (kbd_escpoll()) {
-//  if(basicvars.escape_enabled && kbd_inkey(-113)) {
-//    basicvars.escape=TRUE;
 #else
     if(basicvars.escape_enabled && emulate_inkey(-113)) {
       basicvars.escape=TRUE;
-#endif
+#endif /* NEWKBD */
       time=0;
       error(ERR_ESCAPE);
     }
-#endif
+#endif /* USE_SDL */
     usleep(2000);
   }
 }
