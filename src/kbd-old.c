@@ -747,7 +747,8 @@ int32 read_key(void) {
     }
 #endif /* TARGET_MINGW */
 /*  If we reach here then nothing happened and so we should sleep */
-    SDL_Delay(10);
+    //SDL_Delay(10);
+    usleep(10000);
   }
 #else /* ! USE_SDL */
 #ifndef BODGEMGW

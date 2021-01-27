@@ -4515,6 +4515,7 @@ int videoupdatethread(void) {
   while(1) {
     if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
       matrixflags.videothreadbusy = 1;
+      SDL_PumpEvents(); /* This is for the keyboard stuff */
       if (screenmode == 7) {
         if (mode7changed && vduflag(MODE7_UPDATE)) {
           mode7renderscreen();

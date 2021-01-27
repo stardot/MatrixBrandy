@@ -952,7 +952,9 @@ int32 kbd_inkey(int32 arg) {
 
 #ifdef USE_SDL
     SDL_Event ev;
-    SDL_PumpEvents();
+
+    while (matrixflags.videothreadbusy) usleep(1000);
+    matrixflags.noupdate = 1;
     int mx, my;
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(&mx, &my);
@@ -975,6 +977,7 @@ int32 kbd_inkey(int32 arg) {
           break;
       }
     }
+    matrixflags.noupdate = 0;
 
     if (arg <= 2) {				/* Test either modifier key		*/
       if (
@@ -1609,7 +1612,9 @@ int32 read_key(void) {
 /*
 ** First check the SDL event Queue
 */
-    SDL_PumpEvents();
+
+    while (matrixflags.videothreadbusy) usleep(1000);
+    matrixflags.noupdate = 1;
     if (SDL_PollEvent(&ev)) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
@@ -1678,17 +1683,24 @@ int32 read_key(void) {
 //            return ESCAPE;
             default:
               ch = ev.key.keysym.unicode;
-              if (ch < 0x100) return ch; else ch=0;
+              if (ch < 0x100) {
+                matrixflags.noupdate = 0;
+                return ch;
+              } else {
+                ch=0;
+              }
           }
           if (ch) {
             if (ev.key.keysym.mod & KMOD_ALT)         ch ^= 0x30;
               else if (ev.key.keysym.mod & KMOD_CTRL) ch ^= 0x20;
             if (ev.key.keysym.mod & KMOD_SHIFT)       ch ^= 0x10;
             push_key(ch);
+            matrixflags.noupdate = 0;
             return asc_NUL;
           }
         }
       }
+      matrixflags.noupdate = 0;
 
 /*
 ** Then check stdin
@@ -1709,7 +1721,7 @@ int32 read_key(void) {
     }
 #endif /* TARGET_MINGW */
 /*  If we reach here then nothing happened and so we should sleep */
-    SDL_Delay(10);
+    usleep(10000);
   }
 #else /* ! USE_SDL */
 
