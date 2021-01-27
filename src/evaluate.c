@@ -1111,7 +1111,7 @@ static void do_unaryminus(void) {
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {
     case STACK_INT:   NEGATE_INT; break;
-    case STACK_UINT8: error(ERR_UNSUITABLEVAR); break;
+    case STACK_UINT8: push_int(pop_anyint() * -1); break;
     case STACK_INT64: NEGATE_INT64; break;
     case STACK_FLOAT: NEGATE_FLOAT; break;
     default: error(ERR_TYPENUM);
