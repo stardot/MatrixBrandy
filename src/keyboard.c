@@ -120,6 +120,10 @@
 #include "inkey.h"
 #include "mos.h"
 
+#ifdef USE_SDL
+#define MATRIX_SDL_KEYBOARD_MOUSE_EVENTS (SDL_EVENTMASK(SDL_KEYDOWN) | SDL_EVENTMASK(SDL_KEYUP) | SDL_EVENTMASK(SDL_MOUSEBUTTONDOWN) | SDL_EVENTMASK(SDL_MOUSEBUTTONUP) | SDL_EVENTMASK(SDL_MOUSEMOTION) | SDL_EVENTMASK(SDL_QUIT))
+#endif
+
 #ifdef TARGET_RISCOS
 /* New keyboard routines */
 /* --------------------- */
@@ -1506,7 +1510,7 @@ static boolean waitkey(int wait) {
 /*
  * First check for SDL events
 */
-    while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS) > 0) {
+    while (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, MATRIX_SDL_KEYBOARD_MOUSE_EVENTS) > 0) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
         case SDL_KEYUP:
@@ -1615,7 +1619,7 @@ int32 read_key(void) {
 
     while (matrixflags.videothreadbusy) usleep(1000);
     matrixflags.noupdate = 1;
-    if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) {
+    if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, MATRIX_SDL_KEYBOARD_MOUSE_EVENTS)) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
         case SDL_QUIT:

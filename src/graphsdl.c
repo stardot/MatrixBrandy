@@ -153,6 +153,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
 Uint8 mode7changed;			/* Has Mode 7 framebuffer been changed? */
+static int32 modechange;		/* Is a mode change in flight? */
 static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
@@ -2375,9 +2376,7 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int p;
 
-  while (matrixflags.videothreadbusy) usleep(1000);
   ds.videorefresh = 0;
-  matrixflags.noupdate = 1;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
   modecopy = mode;
   if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
@@ -2387,7 +2386,8 @@ static void setup_mode(int32 mode) {
   hide_cursor();
   if (modetable[mode].xres == 0) {
     if (matrixflags.failovermode == 255) {
-      error(ERR_BADMODE);
+      modechange = -2;
+      return;
     } else {
       modecopy = mode = matrixflags.failovermode;
     }
@@ -2402,8 +2402,10 @@ static void setup_mode(int32 mode) {
     sx=ox; sy=oy;
     matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
-    matrixflags.noupdate = 0;
-    if (matrixflags.failovermode == 255) error(ERR_BADMODE);
+    if (matrixflags.failovermode == 255) {
+      modechange = -2;
+      return;
+    }
   }
   ds.autorefresh=1;
   ds.vscrwidth = sx;
@@ -2481,7 +2483,7 @@ static void setup_mode(int32 mode) {
     font_rect.w = place_rect.w = XPPC;
     font_rect.h = place_rect.h = YPPC;
   }
-  matrixflags.noupdate = 0;
+  modechange = -1;
   hide_cursor();
 }
 
@@ -2493,7 +2495,10 @@ static void setup_mode(int32 mode) {
 void emulate_mode(int32 mode) {
   int p;
 
-  setup_mode(mode);
+  /* Signal the display update thread to change mode */
+  modechange = mode;
+  while (modechange >= 0) usleep(1000);
+  if (modechange == -2) error(ERR_BADMODE);
 /* Reset colours, clear screen and home cursor */
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
   for (p=0; p<4; p++) {
@@ -4499,6 +4504,9 @@ void set_refresh_interval(int32 v) {
 int videoupdatethread(void) {
   int64 mytime = 0;
   while(1) {
+    if (modechange >= 0) {
+      setup_mode(modechange);
+    }
     if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
       matrixflags.videothreadbusy = 1;
       SDL_PumpEvents(); /* This is for the keyboard stuff */
