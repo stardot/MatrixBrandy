@@ -4543,7 +4543,6 @@ int videoupdatethread(void) {
           hide_cursor();
         }
         SDL_Flip(matrixflags.surface);
-        if (basicvars.centiseconds % 50 < 25)reveal_cursor();
       }
       matrixflags.videothreadbusy = 0;
     }
