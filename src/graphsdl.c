@@ -2379,7 +2379,7 @@ static void setup_mode(int32 mode) {
   Uint32 sx, sy, ox, oy;
   int p;
 
-  while (matrixflags.videothreadbusy) ;
+  while (matrixflags.videothreadbusy) usleep(1000);
   ds.videorefresh = 0;
   matrixflags.noupdate = 1;
   mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
@@ -3038,7 +3038,7 @@ void emulate_pointto(int32 x, int32 y) {
 ** This doesn't always work, but better this than a no-op or an Unsupported error message.
 */
 void emulate_wait(void) {
-  while(matrixflags.videothreadbusy) ; /* Synchronise with the video refresh thread */
+  while (matrixflags.videothreadbusy) usleep(1000); /* Synchronise with the video refresh thread */
 }
 
 /*
@@ -3482,7 +3482,7 @@ boolean init_screen(void) {
 ** of the run
 */
 void end_screen(void) {
-  while (matrixflags.videothreadbusy) ;
+  while (matrixflags.videothreadbusy) usleep(1000);
   matrixflags.noupdate = 1;
   SDL_EnableUNICODE(SDL_DISABLE);
   SDL_Quit();
@@ -4170,7 +4170,7 @@ void refresh_location(uint32 offset) {
 
 /* 0=off, 1=on, 2=onerror */
 void star_refresh(int flag) {
-  while (matrixflags.videothreadbusy) ;
+  while (matrixflags.videothreadbusy) usleep(1000);
   matrixflags.noupdate = 1;
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;

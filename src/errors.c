@@ -781,7 +781,7 @@ void error(int32 errnumber, ...) {
 #endif
 
 #ifdef USE_SDL
-  while (matrixflags.videothreadbusy) ;
+  while (matrixflags.videothreadbusy) usleep(1000);
   hide_cursor();
 #endif
   if (errnumber<1 || errnumber>HIGHERROR) {
