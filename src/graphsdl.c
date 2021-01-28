@@ -1723,9 +1723,9 @@ static void vdu_return(void) {
   }
 }
 
-static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom, Uint32 colour, Uint32 action) {
-  Uint32 xloop, yloop, pxoffset, prevcolour, a, altcolour = 0;
-  int32 rox = 0, roy = 0;
+static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uint32 colour, int32 action) {
+  int32 xloop, yloop, pxoffset, rox = 0, roy = 0;
+  Uint32 prevcolour, a, altcolour = 0;
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   for (yloop=top;yloop<=bottom; yloop++) {
@@ -1739,6 +1739,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
         if ((rox < ds.gwinleft) || (rox > ds.gwinright)) continue;
       }
       pxoffset = xloop + yloop*ds.vscrwidth;
+      if (pxoffset < 0) continue;
       prevcolour=SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + pxoffset));
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
       if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
@@ -1768,7 +1769,7 @@ static void fill_rectangle(Uint32 left, Uint32 top, Uint32 right, Uint32 bottom,
         altcolour=altcolour*3;
         altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
       }
-      *((Uint32*)screenbank[ds.writebank]->pixels + pxoffset) = SWAPENDIAN(altcolour);
+      if (pxoffset >= 0)*((Uint32*)screenbank[ds.writebank]->pixels + pxoffset) = SWAPENDIAN(altcolour);
     }
   }
 
