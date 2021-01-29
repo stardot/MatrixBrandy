@@ -516,6 +516,7 @@ static void vdu_2318(void) {
   if (vduqueue[1] == 3) {
     write_vduflag(MODE7_BLACK, vduqueue[2] & 1);
   }
+  tmsg.mode7forcerefresh=1;
 }
 
 /* BB4W/BBCSDL - Define and select custom mode */
@@ -3590,7 +3591,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
       if (ch >= 0xA0) ch = ch & 0x7F;
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
-    if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
     /* Skip this chunk for control codes */
     if (!is_teletextctrl(ch) && (!vduflag(MODE7_CONCEAL) || vduflag(MODE7_REVEAL))) {
       ch7=(ch & 0x7F);
@@ -3678,6 +3678,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         if (vduflag(MODE7_BLACK)) {
           write_vduflag(MODE7_GRAPHICS,1);
           write_vduflag(MODE7_CONCEAL,0);
+          if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
           text_physforecol = text_forecol = 0;
           set_rgb();
         }
@@ -3691,6 +3692,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_GRAPHICS_WHITE:
         write_vduflag(MODE7_GRAPHICS,1);
         write_vduflag(MODE7_CONCEAL,0);
+        if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
         text_physforecol = text_forecol = (ch - 144);
         set_rgb();
          break;
@@ -4165,12 +4167,22 @@ void refresh_location(uint32 offset) {
 /* 0=off, 1=on, 2=onerror */
 void star_refresh(int flag) {
   while (matrixflags.videothreadbusy) usleep(1000);
-  matrixflags.noupdate = 1;
   if ((flag == 0) || (flag == 1) || (flag==2)) {
     ds.autorefresh=flag;
   }
   if (flag & 1) {
-    blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+    if (screenmode == 7) {
+      int tmpflag=ds.autorefresh;
+      ds.autorefresh=1;
+      tmsg.mode7forcerefresh=1;
+      while (!matrixflags.videothreadbusy) usleep(1000);
+      while (matrixflags.videothreadbusy) usleep(1000);
+      ds.autorefresh=tmpflag;
+      return;
+    } else {
+      matrixflags.noupdate = 1;
+      blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+    }
     if ((screenmode == 3) || (screenmode == 6)) {
       int p;
       hide_cursor();
@@ -4531,14 +4543,15 @@ int videoupdatethread(void) {
       }
       tmsg.mousecmd = 0;
     }
+    SDL_PumpEvents(); /* This is for the keyboard stuff */
     if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
       matrixflags.videothreadbusy = 1;
-      SDL_PumpEvents(); /* This is for the keyboard stuff */
       if (screenmode == 7) {
-        if (memcmp(mode7cloneframe, mode7frame, 1000)) {
+        if (tmsg.mode7forcerefresh || memcmp(mode7cloneframe, mode7frame, 1000)) {
           memcpy(mode7cloneframe, mode7frame, 1000);
+          tmsg.mode7forcerefresh = 0;
           mode7renderscreen();
-          SDL_BlitSurface(vduflag(MODE7_BANK) ? screen2 :  screen3, NULL, matrixflags.surface, NULL);
+          SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
         }
         mytime = basicvars.centiseconds;
         if ((mode7timer - mytime) <= 0) {
@@ -4557,10 +4570,8 @@ int videoupdatethread(void) {
       }
       if (matrixflags.surface) {
         if (!matrixflags.cursorbusy) {
-          if (basicvars.centiseconds % 50 < 25) {
-            reveal_cursor();
-          } else {
-            hide_cursor();
+          if (basicvars.centiseconds % 50 < 25) { reveal_cursor();
+          } else { hide_cursor();
           }
         }
         SDL_Flip(matrixflags.surface);

@@ -30,6 +30,7 @@ typedef struct {
         int32 modechange;               /* Is a mode change in flight? */
         int32 x;                        /* X coordinate or parameter 1 */
         int32 y;                        /* Y coordinate or parameter 2 */
+        boolean mode7forcerefresh;      /* Set to TRUE if we need a force refresh of MODE 7 */
 } threadmsg;
 
 extern void get_sdl_mouse(int64 values[]);
