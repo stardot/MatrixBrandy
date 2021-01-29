@@ -3678,6 +3678,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       if (ch >= 0xA0) ch = ch & 0x7F;
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
+    if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
     /* Skip this chunk for control codes */
     if (!is_teletextctrl(ch) && (!vduflag(MODE7_CONCEAL) || vduflag(MODE7_REVEAL))) {
       ch7=(ch & 0x7F);
