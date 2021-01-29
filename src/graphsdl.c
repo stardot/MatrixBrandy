@@ -130,13 +130,13 @@ static unsigned int YPPC=8;
 ** SDL related defines, Variables and params
 */
 static SDL_Surface *screenbank[MAXBANKS];
-static SDL_Surface *screen1, *screen2, *screen2A, *screen3, *screen3A;
+static SDL_Surface *screen1, *screen2, *screen3;
 static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
 #ifdef TARGET_MACOSX
 static SDL_PixelFormat pixfmt;
 #endif
 
-static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect, m7_rect;
+static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
 
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
@@ -152,7 +152,7 @@ static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
-static int32 mode7prevchar = 0;		/* Placeholder for storing previous char */
+Uint8 mode7cloneframe[26][40];
 static int64 mode7timer = 0;		/* Timer for bank switching */
 static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
@@ -237,17 +237,12 @@ static void write_vduflag(unsigned int flags, int yesno) {
 
 static void reset_mode7() {
   int p, q;
-  write_vduflag(MODE7_VDU141MODE,1);
-  write_vduflag(MODE7_VDU141ON,0);
   write_vduflag(MODE7_GRAPHICS,0);
   write_vduflag(MODE7_SEPGRP,0);
   write_vduflag(MODE7_SEPREAL,0);
-  write_vduflag(MODE7_CONCEAL,0);
   write_vduflag(MODE7_HOLD,0);
-  write_vduflag(MODE7_FLASH,0);
   write_vduflag(MODE7_BANK,0);
   mode7timer=0;
-  mode7prevchar=32;
   place_rect.h=M7YPPC;
   font_rect.h=M7YPPC;
 
@@ -688,6 +683,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
 ** Note that 'screenwidth' and 'screenheight' give the dimensions of the
 ** RISC OS screen mode in pixels
 */
+  if(screenmode == 7) return;
   if (right < 0 || bottom < 0 || left >= ds.screenwidth || top >= ds.screenheight) return;	/* Is off screen completely */
   if (left < 0) left = 0;				/* Clip the rectangle as necessary */
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
@@ -698,7 +694,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
     scale_rect.y = top;
     scale_rect.w = (right+1 - left);
     scale_rect.h = (bottom+1 - top);
-    SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
+    if (screenmode != 7) SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
   } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
@@ -1226,7 +1222,7 @@ static void scroll(updown direction) {
 ** start of the line to the current value of the text cursor
 */
 static void echo_text(void) {
-  if (xtext == 0) return;	/* Return if nothing has changed */
+  if ((xtext == 0) || (screenmode == 7)) return;	/* Return if nothing has changed */
   blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
 }
 
@@ -1711,12 +1707,9 @@ static void vdu_return(void) {
     xtext = textxhome();
     reveal_cursor();	/* Redraw cursor */
     if (screenmode == 7) {
-      write_vduflag(MODE7_VDU141ON,0);
       write_vduflag(MODE7_GRAPHICS,0);
-      write_vduflag(MODE7_FLASH,0);
       write_vduflag(MODE7_SEPGRP,0);
       write_vduflag(MODE7_SEPREAL,0);
-      mode7prevchar=32;
       text_physforecol = text_forecol = 7;
       text_physbackcol = text_backcol = 0;
       set_rgb();
@@ -2416,12 +2409,8 @@ static void setup_mode(int32 mode) {
   screen1 = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen2);
   screen2 = SDL_DisplayFormat(matrixflags.surface);
-  SDL_FreeSurface(screen2A);
-  screen2A = SDL_DisplayFormat(matrixflags.surface);
   SDL_FreeSurface(screen3);
   screen3 = SDL_DisplayFormat(matrixflags.surface);
-  SDL_FreeSurface(screen3A);
-  screen3A = SDL_DisplayFormat(matrixflags.surface);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
   YPPC=8; if ((mode == 3) || (mode == 6) || (mode == 11) || (mode == 14) || (mode == 17)) YPPC=10;
@@ -3429,9 +3418,7 @@ boolean init_screen(void) {
   ds.writebank=0;
   screen1 = SDL_DisplayFormat(screenbank[0]);
   screen2 = SDL_DisplayFormat(screenbank[0]);
-  screen2A = SDL_DisplayFormat(screenbank[0]);
   screen3 = SDL_DisplayFormat(screenbank[0]);
-  screen3A = SDL_DisplayFormat(screenbank[0]);
   fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE,   XPPC,   YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
   m7fontbuf = SDL_CreateRGBSurface(SDL_SWSURFACE, M7XPPC, M7YPPC, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
 #ifdef TARGET_MACOSX
@@ -3517,7 +3504,8 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 static void mode7renderline(int32 ypos, int32 fast) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt;
   int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
-  int32 vdu141used = 0;
+  int32 vdu141used = 0, mode7prevchar=32;
+  Uint8 mode7flash=0, mode7vdu141on=0, mode7vdu141mode=1, conceal=0;
   
   /* Preserve values */
   l_text_physbackcol=text_physbackcol;
@@ -3530,13 +3518,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
   set_rgb();
 
   vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
-  write_vduflag(MODE7_VDU141MODE,1);
-  mode7prevchar=32;
-
-  m7_rect.x=0;
-  m7_rect.w=40*M7XPPC;
-  m7_rect.y=ypos*M7YPPC;
-  m7_rect.h=M7YPPC;
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   for (xt=0; xt<=39; xt++) {
@@ -3545,14 +3526,14 @@ static void mode7renderline(int32 ypos, int32 fast) {
     /* Check the Set At codes here */
     if (is_teletextctrl(ch)) switch (ch) {
       case TELETEXT_FLASH_OFF:
-        write_vduflag(MODE7_FLASH,0);
+        mode7flash = 0;
         break;
       case TELETEXT_SIZE_NORMAL:
-        if (vduflag(MODE7_VDU141ON)) mode7prevchar=32;
-        write_vduflag(MODE7_VDU141ON,0);
+        if (mode7vdu141on) mode7prevchar=32;
+        mode7vdu141on=0;
         break;
       case TELETEXT_CONCEAL:
-        write_vduflag(MODE7_CONCEAL,1);
+        conceal=1;
         break;
       case TELETEXT_GRAPHICS_CONTIGUOUS:
         write_vduflag(MODE7_SEPGRP,0);
@@ -3578,7 +3559,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
     place_rect.x = topx;
     place_rect.y = topy;
     SDL_FillRect(sdl_m7fontbuf, NULL, ds.tb_colour);
-    if (vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
+    if (mode7flash) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     xch=ch;
     if (vduflag(MODE7_HOLD) && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && vduflag(MODE7_REVEAL)) || (ch >= 153 && ch <= 159))) {
       ch=mode7prevchar;
@@ -3592,14 +3573,14 @@ static void mode7renderline(int32 ypos, int32 fast) {
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
     /* Skip this chunk for control codes */
-    if (!is_teletextctrl(ch) && (!vduflag(MODE7_CONCEAL) || vduflag(MODE7_REVEAL))) {
+    if (!is_teletextctrl(ch) && (!conceal || vduflag(MODE7_REVEAL))) {
       ch7=(ch & 0x7F);
       if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
       if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) mode7prevchar=ch;
       for (y=0; y < M7YPPC; y++) {
         line = 0;
-        if (vduflag(MODE7_VDU141ON)) {
-          yy=((y/2)+(vduflag(MODE7_VDU141MODE) ? 10 : 0));
+        if (mode7vdu141on) {
+          yy=((y/2)+(mode7vdu141mode ? 10 : 0));
           if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
             line = teletextgraphic(ch, yy);
           else
@@ -3632,15 +3613,15 @@ static void mode7renderline(int32 ypos, int32 fast) {
         }
       }
     }
+    if (!mode7flash) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen2, &place_rect);
-    if (!vduflag(MODE7_FLASH)) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     ch=xch; /* restore value */
     /* And now handle the Set After codes */
     if (is_teletextctrl(ch)) switch (ch) {
       case TELETEXT_ALPHA_BLACK:
         if (vduflag(MODE7_BLACK)) {
           write_vduflag(MODE7_GRAPHICS,0);
-          write_vduflag(MODE7_CONCEAL,0);
+          conceal=0;
           mode7prevchar=32;
           text_physforecol = text_forecol = 0;
           set_rgb();
@@ -3654,30 +3635,30 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_ALPHA_CYAN:
       case TELETEXT_ALPHA_WHITE:
         write_vduflag(MODE7_GRAPHICS,0);
-        write_vduflag(MODE7_CONCEAL,0);
+        conceal=0;
         mode7prevchar=32;
         text_physforecol = text_forecol = (ch - 128);
         set_rgb();
         break;
       case TELETEXT_FLASH_ON:
-        write_vduflag(MODE7_FLASH,1);
+        mode7flash=1;
         break;
       case TELETEXT_SIZE_DOUBLEHEIGHT:
-        if (!vduflag(MODE7_VDU141ON)) mode7prevchar=32;
-        write_vduflag(MODE7_VDU141ON,1);
+        if (!mode7vdu141on) mode7prevchar=32;
+        mode7vdu141on=1;
         vdu141used=1;
         if (vdu141track[ypos] < 2) {
           vdu141track[ypos] = 1;
           vdu141track[ypos+1]=2;
-          write_vduflag(MODE7_VDU141MODE,0);
+          mode7vdu141mode=0;
         } else {
-          write_vduflag(MODE7_VDU141MODE,1);
+          mode7vdu141mode=1;
         }
         break;
       case TELETEXT_GRAPHICS_BLACK:
         if (vduflag(MODE7_BLACK)) {
           write_vduflag(MODE7_GRAPHICS,1);
-          write_vduflag(MODE7_CONCEAL,0);
+          conceal=0;
           if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
           text_physforecol = text_forecol = 0;
           set_rgb();
@@ -3691,7 +3672,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_GRAPHICS_CYAN:
       case TELETEXT_GRAPHICS_WHITE:
         write_vduflag(MODE7_GRAPHICS,1);
-        write_vduflag(MODE7_CONCEAL,0);
+        conceal=0;
         if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
         text_physforecol = text_forecol = (ch - 144);
         set_rgb();
@@ -3710,7 +3691,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
         if (vduflag(MODE7_BLACK)) write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
     }
   }
-  SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 : screen2, &m7_rect, matrixflags.surface, &m7_rect);
 
   vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
   text_physbackcol=l_text_physbackcol;
@@ -4517,7 +4497,6 @@ void set_refresh_interval(int32 v) {
 /* Refreshes the display at 100Hz. Also implements MODE7 flash */
 int videoupdatethread(void) {
   int64 mytime = 0;
-  Uint8 mode7cloneframe[26][40];
   
   while(1) {
     if (tmsg.modechange >= 0) {
@@ -4544,7 +4523,7 @@ int videoupdatethread(void) {
       tmsg.mousecmd = 0;
     }
     SDL_PumpEvents(); /* This is for the keyboard stuff */
-    if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1) {
+    if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {
       matrixflags.videothreadbusy = 1;
       if (screenmode == 7) {
         if (tmsg.mode7forcerefresh || memcmp(mode7cloneframe, mode7frame, 1000)) {
@@ -4568,14 +4547,14 @@ int videoupdatethread(void) {
           reveal_cursor();
         }
       }
-      if (matrixflags.surface) {
-        if (!matrixflags.cursorbusy) {
-          if (basicvars.centiseconds % 50 < 25) { reveal_cursor();
-          } else { hide_cursor();
-          }
+      if (!matrixflags.cursorbusy) {
+        if (basicvars.centiseconds % 50 < 25) {
+          reveal_cursor();
+        } else {
+          hide_cursor();
         }
-        SDL_Flip(matrixflags.surface);
       }
+      SDL_Flip(matrixflags.surface);
       matrixflags.videothreadbusy = 0;
     }
     usleep(10000);
