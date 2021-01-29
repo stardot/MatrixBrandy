@@ -3022,7 +3022,9 @@ void emulate_pointto(int32 x, int32 y) {
 ** This doesn't always work, but better this than a no-op or an Unsupported error message.
 */
 void emulate_wait(void) {
-  while (matrixflags.videothreadbusy) usleep(1000); /* Synchronise with the video refresh thread */
+  /* Synchronise with the video refresh thread */
+  tmsg.videothread=1;
+  while (tmsg.videothread) usleep(1000);
 }
 
 /*
@@ -4556,6 +4558,7 @@ int videoupdatethread(void) {
       }
       SDL_Flip(matrixflags.surface);
       matrixflags.videothreadbusy = 0;
+      tmsg.videothread = 0;
     }
     usleep(10000);
   }
