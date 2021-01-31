@@ -30,6 +30,7 @@ typedef struct {
         int32 modechange;               /* Is a mode change in flight? */
         int32 x;                        /* X coordinate or parameter 1 */
         int32 y;                        /* Y coordinate or parameter 2 */
+	unsigned char crtc6845r10;	/* CRTC Register 10, cursor control */
         boolean mode7forcerefresh;      /* Set to TRUE if we need a force refresh of MODE 7 */
 	boolean videothread;		/* Set to 0 when video thread pass finished */
 } threadmsg;

@@ -552,10 +552,11 @@ static void vdu_23command(void) {
   switch (vduqueue[0]) {	/* First byte in VDU queue gives the command type */
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
+      tmsg.crtc6845r10 = vduqueue[2];
       if (vduqueue[2] == 32) {
         hide_cursor();
         cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
-      } else if (vduqueue[2] == 114) {
+      } else if (vduqueue[2] & 64) {
         cursorstate = SUSPENDED;
         toggle_cursor();
         cursorstate = ONSCREEN;
@@ -3393,6 +3394,7 @@ boolean init_screen(void) {
   tmsg.mousecmd = 0;
   tmsg.x = 0;
   tmsg.y = 0;
+  tmsg.crtc6845r10 = 96;
 
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -4550,10 +4552,13 @@ int videoupdatethread(void) {
         }
       }
       if (!matrixflags.cursorbusy) {
-        if (basicvars.centiseconds % 50 < 25) {
-          reveal_cursor();
-        } else {
-          hide_cursor();
+        if (tmsg.crtc6845r10 & 64) {
+	  int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
+	  if (basicvars.centiseconds % cadence < (cadence >>1)) {
+            reveal_cursor();
+          } else {
+            hide_cursor();
+          }
         }
       }
       SDL_Flip(matrixflags.surface);
