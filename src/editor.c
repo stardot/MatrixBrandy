@@ -753,10 +753,19 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
 */
 static filetype identify(FILE *thisfile, char *name) {
   int32 count;
+  int32 ptr=0,flag=1;
 
   count = fread(basicvars.stringwork, sizeof(byte), 260, thisfile);
   fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
   if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
+
+  /* Try to identify some pathological cases. Read until &0D or &0A and if
+   * everything until then is >= 32 then assume textfile. */
+  while ((basicvars.stringwork[ptr] != asc_CR) && (basicvars.stringwork[ptr] != asc_LF) && (ptr < 260)) {
+    if (basicvars.stringwork[ptr] < 32) flag=0;
+    ptr++;
+  }
+  if (flag) return TEXTFILE;
 
   if (basicvars.stringwork[0] == asc_CR)			/* Simple check for Acorn format */
     if ((unsigned char)basicvars.stringwork[3] > 3)
