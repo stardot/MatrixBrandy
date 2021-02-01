@@ -759,10 +759,11 @@ static filetype identify(FILE *thisfile, char *name) {
   fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
   if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
 
-  /* Try to identify some pathological cases. Read until &0D or &0A and if
-   * everything until then is >= 32 then assume textfile. */
-  while ((basicvars.stringwork[ptr] != asc_CR) && (basicvars.stringwork[ptr] != asc_LF) && (ptr < 260)) {
-    if (basicvars.stringwork[ptr] < 32 || basicvars.stringwork[ptr] > 126) flag=0;
+  /* Try to identify some pathological cases. Read entire buffer (up to count)
+   * and if everything is 10, 13 or 32-126 then assume textfile. */
+  while (ptr < count) {
+    if (basicvars.stringwork[ptr] != asc_CR && basicvars.stringwork[ptr] != asc_LF)
+      if (basicvars.stringwork[ptr] < 32 || basicvars.stringwork[ptr] > 126) flag=0;
     ptr++;
   }
   if (flag) return TEXTFILE;
