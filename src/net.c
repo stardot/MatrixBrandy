@@ -121,7 +121,7 @@ int brandynet_connect(char *dest, char type) {
 
   /* This is a dirty hack because RISC OS can't build a hostent struct from an IP address in gethostbyname() */
   ipaddr = inet_addr(host);
-  inaddr=&ipaddr;
+  inaddr=(struct in_addr *)&ipaddr;
   if (ipaddr == INADDR_NONE) {
     if ((he = gethostbyname(host)) == NULL) {
       free(host);
