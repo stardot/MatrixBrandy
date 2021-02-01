@@ -755,7 +755,7 @@ static filetype identify(FILE *thisfile, char *name) {
   int32 count;
   int32 ptr=0,flag=1;
 
-  count = fread(basicvars.stringwork, sizeof(byte), 260, thisfile);
+  count = fread(basicvars.stringwork, sizeof(byte), 2048, thisfile);
   fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
   if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
 
