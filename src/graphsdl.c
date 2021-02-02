@@ -612,51 +612,43 @@ static void reveal_cursor() {
 ** of cursor can be drawn, an underline and a block
 */
 static void toggle_cursor(void) {
-  int32 left, right, top, bottom, x, y, mxppc, myppc, xtemp;
+  int32 left, right, x, y, mxppc, myppc, xtemp = xtext, startpt, ysc = ds.yscale, ys, curheight = 0;
+  int32 csroffset = 0;
 
-  if (vduflag(VDU_FLAG_GRAPHICURS)) return; /* Never display the cursor in VDU5 mode */
+  if (
+    vduflag(VDU_FLAG_GRAPHICURS                                 /* Never display the cursor in VDU5 mode */)
+  ||
+    ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN))   /* Cursor is not being displayed so give up */
+  ||
+    (ds.autorefresh != 1)                                       /* We're not autoupdating (*Refresh Off or OnError) */
+  ||
+    (ds.displaybank != ds.writebank)                            /* *FX112 / 113 pointing at different banks */
+  ||
+    (matrixflags.cursorbusy)                                    /* Have we flagged the cursor as being busy? */
+  ) return;
+
   if (screenmode==7) {
-    mxppc=M7XPPC;
-    myppc=M7YPPC;
+    mxppc=M7XPPC; myppc=M7YPPC;
   } else {
-    mxppc=XPPC;
-    myppc=YPPC;
+    mxppc=XPPC;   myppc=YPPC;
   }
-  xtemp = xtext;
+  startpt = myppc;
   if (xtemp > twinright) xtemp=twinright;
-  if (ds.displaybank != ds.writebank) return;
-  if ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN)) return;	/* Cursor is not being displayed so give up now */
-  if (cursorstate == ONSCREEN)	/* Toggle the cursor state */
-    cursorstate = SUSPENDED;
-  else
-    if (!vduflag(VDU_FLAG_GRAPHICURS)) cursorstate = ONSCREEN;
-  if (ds.autorefresh != 1) return;
-  if (ytext >= textheight) return;
-  if (matrixflags.cursorbusy) return;
-  left = xtemp*ds.xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
+  cursorstate = (cursorstate == ONSCREEN) ? SUSPENDED : ONSCREEN;       /* Toggle the cursor state */
+  left = xtemp*ds.xscale*mxppc;                                 /* Calculate pixel coordinates of ends of cursor */
   right = left + ds.xscale*mxppc -1;
-  if (cursmode == UNDERLINE) {
-    int64 csroffset = 0;
-    int32 startpt = myppc, ysc = ds.yscale, ys;
-    y = ((ytext+1)*ds.yscale*myppc - ds.yscale) * ds.vscrwidth;
-    if (screenmode == 3 || screenmode == 6) csroffset = 2;
-    while (startpt > (tmsg.crtc6845r10 & 31)) {
-      for (ys=0; ys < ysc; ys++) {
-        for (x=left; x <= right; x++) {
+  if (cursmode == UNDERLINE) curheight=(tmsg.crtc6845r10 & 31);
+  y = ((ytext+1)*ds.yscale*myppc - ds.yscale) * ds.vscrwidth;
+  if (screenmode == 3 || screenmode == 6) csroffset = 2;
+  while (startpt > curheight) {
+    for (ys=0; ys < ysc; ys++) {
+      for (x=left; x <= right; x++) {
+        if ((x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight))      /* Prevent offscreen drawing */
           *((Uint32*)matrixflags.surface->pixels + x + y + (ds.vscrwidth * csroffset)) ^= SWAPENDIAN(ds.xor_mask);
-        }
-        csroffset--;
       }
-      startpt--;
+      csroffset--;
     }
-  }
-  else if (cursmode == BLOCK) {
-    top = ytext*ds.yscale*myppc;
-    bottom = top + myppc*ds.yscale -1;
-    for (y = top; y <= bottom; y++) {
-      for (x = left; x <= right; x++)
-        *((Uint32*)matrixflags.surface->pixels + x + y*ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
-    }
+    startpt--;
   }
 }
 
@@ -4554,8 +4546,8 @@ int videoupdatethread(void) {
             reveal_cursor();
           }
         }
-        if ((screenmode != 7) && ((basicvars.centiseconds % 50) == 0) && (cursorstate == SUSPENDED)) blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
-        if (!matrixflags.cursorbusy) {
+        if ((screenmode != 7) && ((basicvars.centiseconds % 16) == 0) && (cursorstate == SUSPENDED)) blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+        if (!matrixflags.cursorbusy && !(basicvars.centiseconds % 16)) {
           if (tmsg.crtc6845r10 & 64) {
             int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
             if (basicvars.centiseconds % cadence < (cadence >>1)) {
