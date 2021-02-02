@@ -568,7 +568,6 @@ static void vdu_23command(void) {
       hide_cursor();
       cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
     }
-    if (vduqueue[1] == 1 && cursorstate != NOCURSOR) cursorstate = ONSCREEN;
     if (vduqueue[1] == 1) cursorstate = ONSCREEN;
     else cursorstate = HIDDEN;
     break;
@@ -2423,7 +2422,7 @@ static void setup_mode(int32 mode) {
   write_vduflag(VDU_FLAG_ECHO,1);
   write_vduflag(VDU_FLAG_GRAPHICURS,0);
   cursmode = UNDERLINE;
-  cursorstate = ONSCREEN;	/* Graphics mode text cursor is not being displayed */
+  cursorstate = SUSPENDED;      /* Cursor will be switched on later */
   ds.clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
   ds.xgupp = ds.xgraphunits/ds.screenwidth;	/* Graphics units per pixel in X direction */
   ds.ygupp = ds.ygraphunits/ds.screenheight;	/* Graphics units per pixel in Y direction */
@@ -2444,9 +2443,8 @@ static void setup_mode(int32 mode) {
   reset_colours();
   init_palette();
   write_vduflag(VDU_FLAG_ENAPAGE,0);
-  if (cursorstate == NOCURSOR) cursorstate = ONSCREEN;
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
-  for (p=0; p<4; p++) {
+  for (p=0; p<MAXBANKS; p++) {
     SDL_FillRect(screenbank[p], NULL, ds.tb_colour);
   }
   SDL_FillRect(screen2, NULL, ds.tb_colour);
@@ -2463,7 +2461,6 @@ static void setup_mode(int32 mode) {
     tmsg.crtc6845r10 = 103;
   }
   tmsg.modechange = -1;
-  hide_cursor();
 }
 
 /*
@@ -4522,6 +4519,7 @@ int videoupdatethread(void) {
       }
     } else {
       SDL_PumpEvents(); /* This is for the keyboard stuff */
+      mytime = basicvars.centiseconds;
       if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {
         matrixflags.videothreadbusy = 1;
         if (screenmode == 7) {
@@ -4531,7 +4529,6 @@ int videoupdatethread(void) {
             mode7renderscreen();
             SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
           }
-          mytime = basicvars.centiseconds;
           if ((mode7timer - mytime) <= 0) {
             hide_cursor();
             if (vduflag(MODE7_BANK)) {
@@ -4546,15 +4543,13 @@ int videoupdatethread(void) {
             reveal_cursor();
           }
         }
-        if ((screenmode != 7) && ((basicvars.centiseconds % 16) == 0) && (cursorstate == SUSPENDED)) blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
-        if (!matrixflags.cursorbusy && !(basicvars.centiseconds % 16)) {
-          if (tmsg.crtc6845r10 & 64) {
-            int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
-            if (basicvars.centiseconds % cadence < (cadence >>1)) {
-              reveal_cursor();
-            } else {
-              hide_cursor();
-            }
+        if ((screenmode != 7) && ((mytime % 32) == 0) && (cursorstate == SUSPENDED)) blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+        if (tmsg.crtc6845r10 & 64) {
+          int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
+          if (mytime % cadence < (cadence >>1)) {
+            reveal_cursor();
+          } else {
+            hide_cursor();
           }
         }
         SDL_Flip(matrixflags.surface);
