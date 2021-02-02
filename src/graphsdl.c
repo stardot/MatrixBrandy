@@ -636,17 +636,18 @@ static void toggle_cursor(void) {
   left = xtemp*ds.xscale*mxppc;	/* Calculate pixel coordinates of ends of cursor */
   right = left + ds.xscale*mxppc -1;
   if (cursmode == UNDERLINE) {
+    int64 csroffset = 0;
+    int32 startpt = myppc, ysc = ds.yscale, ys;
     y = ((ytext+1)*ds.yscale*myppc - ds.yscale) * ds.vscrwidth;
-    for (x=left; x <= right; x++) {
-      *((Uint32*)matrixflags.surface->pixels + x + y) ^= SWAPENDIAN(ds.xor_mask);
-      if (ds.yscale != 1) *((Uint32*)matrixflags.surface->pixels + x + y + ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
-      if (myppc==10) { /* gapped modes */
-        *((Uint32*)matrixflags.surface->pixels + x + y - ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
-        *((Uint32*)matrixflags.surface->pixels + x + y - (ds.vscrwidth*2)) ^= SWAPENDIAN(ds.xor_mask);
-        *((Uint32*)matrixflags.surface->pixels + x + y - (ds.vscrwidth*3)) ^= SWAPENDIAN(ds.xor_mask);
-        *((Uint32*)matrixflags.surface->pixels + x + y - (ds.vscrwidth*4)) ^= SWAPENDIAN(ds.xor_mask);
+    if (screenmode == 3 || screenmode == 6) csroffset = 2;
+    while (startpt > (tmsg.crtc6845r10 & 31)) {
+      for (ys=0; ys < ysc; ys++) {
+        for (x=left; x <= right; x++) {
+          *((Uint32*)matrixflags.surface->pixels + x + y + (ds.vscrwidth * csroffset)) ^= SWAPENDIAN(ds.xor_mask);
+        }
+        csroffset--;
       }
-      if (screenmode ==7) *((Uint32*)matrixflags.surface->pixels + x + y - ds.vscrwidth) ^= SWAPENDIAN(ds.xor_mask);
+      startpt--;
     }
   }
   else if (cursmode == BLOCK) {
@@ -2463,9 +2464,11 @@ static void setup_mode(int32 mode) {
   if (screenmode == 7) {
     font_rect.w = place_rect.w = M7XPPC;
     font_rect.h = place_rect.h = M7YPPC;
+    tmsg.crtc6845r10 = 114;
   } else {
     font_rect.w = place_rect.w = XPPC;
     font_rect.h = place_rect.h = YPPC;
+    tmsg.crtc6845r10 = 103;
   }
   tmsg.modechange = -1;
   hide_cursor();
@@ -3394,7 +3397,7 @@ boolean init_screen(void) {
   tmsg.mousecmd = 0;
   tmsg.x = 0;
   tmsg.y = 0;
-  tmsg.crtc6845r10 = 96;
+  tmsg.crtc6845r10 = 103;
 
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -4503,13 +4506,6 @@ int videoupdatethread(void) {
   int64 mytime = 0;
   
   while(1) {
-    if (tmsg.modechange >= 0) {
-      if (tmsg.modechange & 0x400) {
-        fullscreenmode(tmsg.modechange & 3);
-      } else {
-        setup_mode(tmsg.modechange);
-      }
-    }
     if (tmsg.titlepointer) {
       SDL_WM_SetCaption(tmsg.titlepointer, tmsg.titlepointer);
       tmsg.titlepointer = NULL;
@@ -4526,44 +4522,53 @@ int videoupdatethread(void) {
       }
       tmsg.mousecmd = 0;
     }
-    SDL_PumpEvents(); /* This is for the keyboard stuff */
-    if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {
-      matrixflags.videothreadbusy = 1;
-      if (screenmode == 7) {
-        if (tmsg.mode7forcerefresh || memcmp(mode7cloneframe, mode7frame, 1000)) {
-          memcpy(mode7cloneframe, mode7frame, 1000);
-          tmsg.mode7forcerefresh = 0;
-          mode7renderscreen();
-          SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
-        }
-        mytime = basicvars.centiseconds;
-        if ((mode7timer - mytime) <= 0) {
-          hide_cursor();
-          if (vduflag(MODE7_BANK)) {
-            SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
-            write_vduflag(MODE7_BANK,0);
-            mode7timer=mytime + 100;
-          } else {
-            SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
-            write_vduflag(MODE7_BANK,1);
-            mode7timer=mytime + 33;
-          }
-          reveal_cursor();
-        }
+    if (tmsg.modechange >= 0) {
+      if (tmsg.modechange & 0x400) {
+        fullscreenmode(tmsg.modechange & 3);
+      } else {
+        setup_mode(tmsg.modechange);
       }
-      if (!matrixflags.cursorbusy) {
-        if (tmsg.crtc6845r10 & 64) {
-	  int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
-	  if (basicvars.centiseconds % cadence < (cadence >>1)) {
-            reveal_cursor();
-          } else {
+    } else {
+      SDL_PumpEvents(); /* This is for the keyboard stuff */
+      if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {
+        matrixflags.videothreadbusy = 1;
+        if (screenmode == 7) {
+          if (tmsg.mode7forcerefresh || memcmp(mode7cloneframe, mode7frame, 1000)) {
+            memcpy(mode7cloneframe, mode7frame, 1000);
+            tmsg.mode7forcerefresh = 0;
+            mode7renderscreen();
+            SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
+          }
+          mytime = basicvars.centiseconds;
+          if ((mode7timer - mytime) <= 0) {
             hide_cursor();
+            if (vduflag(MODE7_BANK)) {
+              SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
+              write_vduflag(MODE7_BANK,0);
+              mode7timer=mytime + 100;
+            } else {
+              SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
+              write_vduflag(MODE7_BANK,1);
+              mode7timer=mytime + 33;
+            }
+            reveal_cursor();
           }
         }
+        if ((screenmode != 7) && ((basicvars.centiseconds % 50) == 0) && (cursorstate == SUSPENDED)) blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+        if (!matrixflags.cursorbusy) {
+          if (tmsg.crtc6845r10 & 64) {
+            int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
+            if (basicvars.centiseconds % cadence < (cadence >>1)) {
+              reveal_cursor();
+            } else {
+              hide_cursor();
+            }
+          }
+        }
+        SDL_Flip(matrixflags.surface);
+        matrixflags.videothreadbusy = 0;
+        tmsg.videothread = 0;
       }
-      SDL_Flip(matrixflags.surface);
-      matrixflags.videothreadbusy = 0;
-      tmsg.videothread = 0;
     }
     usleep(10000);
   }

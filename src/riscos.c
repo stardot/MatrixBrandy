@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <math.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
