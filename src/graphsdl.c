@@ -2112,6 +2112,12 @@ void emulate_vdu(int32 charvalue) {
           mode7frame[ytext][xtext]=32;
           move_curback();
         } else {
+          /* The character shuffle that used to be in mode7renderline() */
+          switch (charvalue) {
+            case 35: charvalue=95; break;
+            case 95: charvalue=96; break;
+            case 96: charvalue=35; break;
+          }
           mode7frame[ytext][xtext]=charvalue;
         }
         xtext+=textxinc();
@@ -3549,6 +3555,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         write_vduflag(MODE7_HOLD,1);
         break;
     }
+    if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
     /* Now we write the character. Copied and optimised from write_char() above */
     topx = xt*M7XPPC;
     topy = ypos*M7YPPC;
@@ -3557,14 +3564,9 @@ static void mode7renderline(int32 ypos, int32 fast) {
     SDL_FillRect(sdl_m7fontbuf, NULL, ds.tb_colour);
     if (mode7flash) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     xch=ch;
-    if (vduflag(MODE7_HOLD) && ((ch >= 128 && ch <= 140) || (ch >= 142 && ch <= 151 ) || (ch == 152 && vduflag(MODE7_REVEAL)) || (ch >= 153 && ch <= 159))) {
+    if (vduflag(MODE7_HOLD) && ((ch >= 0x80 && ch <= 0x8C) || (ch >= 0x8E && ch <= 0x97 ) || (ch == 0x98 && vduflag(MODE7_REVEAL)) || (ch >= 0x99 && ch <= 0x9F))) {
       ch=mode7prevchar;
     } else {
-      switch (ch) {
-        case 35: ch=95; break;
-        case 95: ch=96; break;
-        case 96: ch=35; break;
-      }
       if (ch >= 0xA0) ch = ch & 0x7F;
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
@@ -3673,13 +3675,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
         text_physforecol = text_forecol = (ch - 144);
         set_rgb();
          break;
-      /* These two break the teletext spec, but matches the behaviour in the SAA5050 and RISC OS */
-      case TELETEXT_BACKGROUND_BLACK:
-      case TELETEXT_BACKGROUND_SET:
-        if (!vduflag(MODE7_BLACK)) { /* If we allow Black, don't emulate the SAA5050 bug */
-          mode7prevchar=32;
-        }
-        break;
       case TELETEXT_GRAPHICS_RELEASE:
         write_vduflag(MODE7_HOLD,0);
         break;
