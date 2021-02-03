@@ -4179,7 +4179,13 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
   cx+=twinleft;
   cy+=twintop;
   if (screenmode == 7) {
-    return (mode7frame[cy][cx]);
+    int32 charvalue=mode7frame[cy][cx];
+    switch (charvalue) {
+      case 35: charvalue=96; break;
+      case 96: charvalue=95; break;
+      case 95: charvalue=35; break;
+    }
+    return (charvalue);
   } else {
     int32 topx, topy, bgc, y, match;
     unsigned char cell[8];
