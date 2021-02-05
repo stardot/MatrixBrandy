@@ -3,6 +3,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.22.10 -
 - System: *Refresh OnError wasn't working correctly. Fixed.
+- System: Added a fix reducing the likelihood of where a textfile BASIC
+  program could be misinterpreted as a tokenised one.
 - System: Implemented enough of SYS "OS_File" to hopefully be useful.
 - System: SDL graphics in its own thread. MODE 7 now runs like a startled cat.
   As a bonus, we now have a flashing cursor too. The performance tweak call

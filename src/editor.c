@@ -745,24 +745,35 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
 ** Basic and plain text.
 ** Acorn Basic files start with <cr><hi><lo><len>..., len-><cr>
 ** Russell Basic files start with <len><hi><lo>... len-1-><cr>
-** This is not a 100% rigourous test, a carefully constructed
+** This is not a 100% rigorous test, a carefully constructed
 ** text file that starts with a <cr> could be recognised as an
-** Acorn Basic file. Strictly speaking, the entire file needs
-** to be scanned following the line length links and checking
+** Acorn Basic file, and one where the first character happens
+** to point to the character after a 0x0D could be recognised as
+** a Z80-format tokenised file. Strictly speaking, the entire file
+** needs to be scanned following the line length links and checking
 ** what scanning procedure gives a valid file.
 */
 static filetype identify(FILE *thisfile, char *name) {
   int32 count;
   int32 ptr=0,flag=1;
 
-  count = fread(basicvars.stringwork, sizeof(byte), 2048, thisfile);
+  count = fread(basicvars.stringwork, sizeof(byte), 260, thisfile);
   fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
   if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
 
   /* Try to identify some pathological cases. Read entire buffer (up to count)
-   * and if everything is 10, 13 or 32-126 then assume textfile. */
+   * and if everything, excluding strings in quotes, is 10, 13 or 32-126 then
+   * assume textfile. If teletext codes or other high-bit codes are used in REM
+   * statements or similar then this will fail to match as a text file. All isn't
+   * lost, however as if it fails the next two tests it will still be considered
+   * a text file.
+   */
   while (ptr < count) {
-    if (basicvars.stringwork[ptr] != asc_CR && basicvars.stringwork[ptr] != asc_LF)
+    if ((basicvars.stringwork[ptr] == 34) && (ptr < count-1)) { /* " */
+      ptr++;
+      while ((basicvars.stringwork[ptr] != 34) && (ptr < count)) ptr++;
+    }
+    if ((ptr < count) && basicvars.stringwork[ptr] != asc_CR && basicvars.stringwork[ptr] != asc_LF)
       if (basicvars.stringwork[ptr] < 32 || basicvars.stringwork[ptr] > 126) flag=0;
     ptr++;
   }

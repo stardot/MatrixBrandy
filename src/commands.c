@@ -1005,7 +1005,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "BPUT")) {
     emulate_printf("BPUT#<channel>,<number>[,<number>...]: put byte(s) to open stream.\r\nBPUT#<channel>,<string>[;]: put string to open file, with[out] newline.\r\n<channel> is a file or network stream handle opened with OPENOUT or OPENUP.");
   } else if (!strcmp(cmd, "CALL")) {
-    emulate_printf("CALL <expression>[,<variable>]^: Call machine code.\r\nIn Matrix Brandy, only calls to selected BBC Micro OS vectors are supported.");
+    emulate_printf("CALL <expression>: Call machine code.\r\nIn Matrix Brandy, only calls to selected BBC Micro OS vectors are supported.");
   } else if (!strcmp(cmd, "CASE")) {
     emulate_printf("CASE <expression> OF: start of CASE..WHEN..OTHERWISE..ENDCASE structure.");
   } else if (!strcmp(cmd, "CHAIN")) {
