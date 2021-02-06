@@ -4491,7 +4491,7 @@ void set_refresh_interval(int32 v) {
   ds.videofreq=v;
 }
 
-/* Refreshes the display at 100Hz. Also implements MODE7 flash */
+/* Refreshes the display approximately every 15ms. Also implements MODE7 flash */
 int videoupdatethread(void) {
   int64 mytime = 0;
   
@@ -4558,7 +4558,7 @@ int videoupdatethread(void) {
         tmsg.videothread = 0;
       }
     }
-    usleep(10000);
+    usleep(15000);
   }
   return 0;
 }
