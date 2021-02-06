@@ -2466,9 +2466,9 @@ boolean init_screen(void) {
   /* When running interactively change the console title bar too */
   if (!basicvars.runflags.loadngo) {
 #if defined(BRANDY_GITCOMMIT) && !defined(BRANDY_RELEASE)
-    set_wintitle("Matrix Brandy Basic VI Interpreter - git " BRANDY_GITCOMMIT);
+    set_wintitle("Matrix Brandy Basic VI - git " BRANDY_GITCOMMIT);
 #else
-    set_wintitle("Matrix Brandy Basic VI Interpreter");
+    set_wintitle("Matrix Brandy Basic VI");
 #endif
   }
   return TRUE;

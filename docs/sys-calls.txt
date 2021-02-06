@@ -219,9 +219,7 @@ Brandy_xxx  (SWI numbers start &140000)
                                     (formatted as PID + (PPID << 32))
                                     Note: PPID not returned on Windows.
 
-&140012 Brandy_RefreshInterval  Sets the SDL display refresh interval in
-                                centiseconds in R0. 0 means no refresh delays.
-                                Nothing is returned.
+&140012 Brandy_RefreshInterval  Deleted, no longer recognised.
 
 &140013 Brandy_MouseEventExpire Sets the mouse event expiry time in
                                 centiseonds, 0 disables.

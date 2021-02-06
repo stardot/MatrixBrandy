@@ -12,7 +12,7 @@
   120IF INKEY(-256) <> &4D THEN PRINT "This program works on Matrix Brandy for RISC OS or SDL only.":END
   130sdl%=1
   140:
-  150SYS"OS_Byte",229,1: SYS "OS_Byte",4,1: IF sdl% THEN SYS "Brandy_RefreshInterval",0
+  150SYS"OS_Byte",229,1: SYS "OS_Byte",4,1
   160OSCLI"Key1|_":OSCLI"KEY2"+CHR$(130)
   170IF sdl% THEN *WinTitle Matrix Network Viewdata/Teletext Client
   180ON ERROR GOTO 520

@@ -3385,7 +3385,6 @@ boolean init_screen(void) {
   ds.displaybank=0;
   ds.writebank=0;
   ds.videorefresh=0;
-  ds.videofreq=1;
 
   tmsg.titlepointer = NULL;
   tmsg.modechange = -1;
@@ -3438,9 +3437,9 @@ boolean init_screen(void) {
   write_vduflag(VDU_FLAG_ENAPRINT,0);
   ds.xgupp = ds.ygupp = 1;
 #if defined(BRANDY_GITCOMMIT) && !defined(BRANDY_RELEASE)
-  SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter - git " BRANDY_GITCOMMIT, "Matrix Brandy");
+  SDL_WM_SetCaption("Matrix Brandy Basic VI - git " BRANDY_GITCOMMIT, "Matrix Brandy");
 #else
-  SDL_WM_SetCaption("Matrix Brandy Basic VI Interpreter", "Matrix Brandy");
+  SDL_WM_SetCaption("Matrix Brandy Basic VI", "Matrix Brandy");
 #endif
   SDL_EnableUNICODE(SDL_ENABLE);
   SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
@@ -3555,7 +3554,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         write_vduflag(MODE7_HOLD,1);
         break;
     }
-    if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
+    if(!vduflag(MODE7_HOLD) && !vduflag(MODE7_BLACK)) mode7prevchar=32;
     /* Now we write the character. Copied and optimised from write_char() above */
     topx = xt*M7XPPC;
     topy = ypos*M7YPPC;
@@ -4370,14 +4369,8 @@ void sdl_screensave(char *fname) {
     fname++;
   }
 
-  if (screenmode == 7) {
-    if (SDL_SaveBMP(screen2, fname)) {
-      error(ERR_CANTWRITE);
-    }
-  } else {
-    if (SDL_SaveBMP(matrixflags.surface, fname)) {
-      error(ERR_CANTWRITE);
-    }
+  if (SDL_SaveBMP((screenmode == 7) ? screen2 : matrixflags.surface, fname)) {
+    error(ERR_CANTWRITE);
   }
 }
 
@@ -4485,10 +4478,6 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 161: /* MaxMode */	return HIGHMODE;
     default:	return 0;
   }
-}
-
-void set_refresh_interval(int32 v) {
-  ds.videofreq=v;
 }
 
 /* Refreshes the display approximately every 15ms. Also implements MODE7 flash */

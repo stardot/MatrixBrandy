@@ -632,11 +632,6 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         outregs[6]=getpid() + ((uint64)getppid() << 32);
 #endif
         break;
-    case SWI_Brandy_RefreshInterval:
-#ifdef USE_SDL
-        set_refresh_interval(inregs[0]-1);
-#endif
-        break;
     case SWI_Brandy_MouseEventExpire:
 #ifdef USE_SDL
         set_mouseevent_expiry((uint32)inregs[0]);
