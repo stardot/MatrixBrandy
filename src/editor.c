@@ -56,7 +56,7 @@ static byte *last_added;	/* Address of last line added to program */
 static boolean needsnumbers;	/* TRUE if a program need to be renumbered */
 
 #ifdef BRANDYAPP
-extern const char _binary_app_start;
+extern const char *_binary_app_start;
 extern const int _binary_app_len;
 static unsigned long int blockptr;
 #endif
