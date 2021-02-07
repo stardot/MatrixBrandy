@@ -3504,9 +3504,8 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 
 static void mode7renderline(int32 ypos, int32 fast) {
   int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt;
-  int32 y=0, yy=0, topx=0, topy=0, line=0, xch=0;
-  int32 vdu141used = 0, mode7prevchar=32;
-  Uint8 mode7flash=0, mode7vdu141on=0, mode7vdu141mode=1, conceal=0;
+  int32 y=0, yy=0, line=0, xch=0, mode7prevchar=32;
+  Uint8 mode7flash=0, mode7vdu141on=0, mode7vdu141mode=1;
   
   /* Preserve values */
   l_text_physbackcol=text_physbackcol;
@@ -3534,7 +3533,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
         mode7vdu141on=0;
         break;
       case TELETEXT_CONCEAL:
-        conceal=1;
+        write_vduflag(MODE7_CONCEAL,1);
         break;
       case TELETEXT_GRAPHICS_CONTIGUOUS:
         write_vduflag(MODE7_SEPGRP,0);
@@ -3554,12 +3553,12 @@ static void mode7renderline(int32 ypos, int32 fast) {
         write_vduflag(MODE7_HOLD,1);
         break;
     }
+    /* This is the so-called SAA5050 hold bug */
     if(!vduflag(MODE7_HOLD) && !vduflag(MODE7_BLACK)) mode7prevchar=32;
+
     /* Now we write the character. Copied and optimised from write_char() above */
-    topx = xt*M7XPPC;
-    topy = ypos*M7YPPC;
-    place_rect.x = topx;
-    place_rect.y = topy;
+    place_rect.x = xt*M7XPPC;
+    place_rect.y = ypos*M7YPPC;
     SDL_FillRect(sdl_m7fontbuf, NULL, ds.tb_colour);
     if (mode7flash) SDL_BlitSurface(sdl_m7fontbuf, &font_rect, screen3, &place_rect);
     xch=ch;
@@ -3570,7 +3569,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       if (vduflag(MODE7_GRAPHICS)) write_vduflag(MODE7_SEPREAL,vduflag(MODE7_SEPGRP));
     }
     /* Skip this chunk for control codes */
-    if (!is_teletextctrl(ch) && (!conceal || vduflag(MODE7_REVEAL))) {
+    if ((!is_teletextctrl(ch) && !vduflag(MODE7_CONCEAL)) || vduflag(MODE7_REVEAL)) {
       ch7=(ch & 0x7F);
       if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
       if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) mode7prevchar=ch;
@@ -3618,7 +3617,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_ALPHA_BLACK:
         if (vduflag(MODE7_BLACK)) {
           write_vduflag(MODE7_GRAPHICS,0);
-          conceal=0;
+          write_vduflag(MODE7_CONCEAL,0);
           mode7prevchar=32;
           text_physforecol = text_forecol = 0;
           set_rgb();
@@ -3632,7 +3631,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_ALPHA_CYAN:
       case TELETEXT_ALPHA_WHITE:
         write_vduflag(MODE7_GRAPHICS,0);
-        conceal=0;
+        write_vduflag(MODE7_CONCEAL,0);
         mode7prevchar=32;
         text_physforecol = text_forecol = (ch - 128);
         set_rgb();
@@ -3643,7 +3642,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_SIZE_DOUBLEHEIGHT:
         if (!mode7vdu141on) mode7prevchar=32;
         mode7vdu141on=1;
-        vdu141used=1;
         if (vdu141track[ypos] < 2) {
           vdu141track[ypos] = 1;
           vdu141track[ypos+1]=2;
@@ -3655,7 +3653,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_GRAPHICS_BLACK:
         if (vduflag(MODE7_BLACK)) {
           write_vduflag(MODE7_GRAPHICS,1);
-          conceal=0;
+          write_vduflag(MODE7_CONCEAL,0);
           if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
           text_physforecol = text_forecol = 0;
           set_rgb();
@@ -3669,7 +3667,7 @@ static void mode7renderline(int32 ypos, int32 fast) {
       case TELETEXT_GRAPHICS_CYAN:
       case TELETEXT_GRAPHICS_WHITE:
         write_vduflag(MODE7_GRAPHICS,1);
-        conceal=0;
+        write_vduflag(MODE7_CONCEAL,0);
         if(!vduflag(MODE7_HOLD)) mode7prevchar=32;
         text_physforecol = text_forecol = (ch - 144);
         set_rgb();
@@ -3688,13 +3686,6 @@ static void mode7renderline(int32 ypos, int32 fast) {
   text_physforecol=l_text_physforecol;
   text_forecol=l_text_forecol;
   set_rgb();
-
-  /* Cascade VDU141 changes */
-  if ((!vdu141used) && vdu141track[ypos]==1) vdu141track[ypos]=0;
-  if ((ypos < 24) && vdu141track[ypos+1]) {
-    if ((vdu141track[ypos] == 0) || (vdu141track[ypos] == 2)) vdu141track[ypos+1]=1;
-    mode7renderline(ypos+1, 0);
-  }
 }
 
 static void mode7renderscreen(void) {

@@ -266,7 +266,8 @@ static unsigned int vduflags = 0;	/* VDU flags */
 #define MODE7_SEPGRP		0x00020000	/* Separated graphics in Mode 7 */
 #define MODE7_SEPREAL		0x00040000	/* Separated graphics in Mode 7 */
 #define MODE7_HOLD		0x00080000	/* Hold Graphics flag */
-#define MODE7_ALTCHARS		0x00100000	/* Use secondary character bank? */
+#define MODE7_CONCEAL		0x00100000	/* Conceal (for REVEAL) */
+#define MODE7_ALTCHARS		0x00200000	/* Use secondary character bank? */
 
 /*
 ** The logical-to-physical table maps the RISC OS logical colours to
