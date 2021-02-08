@@ -160,6 +160,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh);
 
 static time_t startime;		/* Adjustment subtracted in 'TIME' */
 
+#ifdef BRANDY_PATCHDATE
+char mos_patchdate[]=__DATE__;
+#endif
+
 static void cmd_brandyinfo() {
   emulate_printf("\r\n%s\r\n", IDSTRING);
 #ifdef BRANDY_GITCOMMIT
@@ -1603,9 +1607,6 @@ static void cmd_fx(char *command) {
 /*
  * *HELP - display help on topic
  */
-#ifdef BRANDY_PATCHDATE
-char mos_patchdate[]=__DATE__;
-#endif
 static void cmd_help(char *command)
 {
   int cmd;
