@@ -211,30 +211,19 @@ void release_heap(void) {
 /*
 ** 'allocmem' is called to allocate space for variables, arrays, strings
 ** and so forth. The memory between 'lomem' and 'stacklimit' is available
-** for this
+** for this. The second parameter is a flag, set to 1 for traditional
+** allocmem behaviour of reporting an error, or 0 for old condalloc
+** behaviour of returning NIL upon an error to allow the calling function
+** to deal with the error.
 */
-void *allocmem(int32 size) {
-  byte *newlimit, bsize;
-  size = ALIGN(size);
-  bsize=size;
-  newlimit = basicvars.stacklimit.bytesp+bsize;
-  if (newlimit>=basicvars.stacktop.bytesp) error(ERR_NOROOM);	/* Have run out of memory */
-  basicvars.stacklimit.bytesp = newlimit;
-  newlimit = basicvars.vartop;
-  basicvars.vartop+=size;
-  return newlimit;
-}
-
-/*
-** 'condalloc' allocates memory in the same way as 'allocmem' except that it
-** returns 'NIL' if the requested memory is not available to allow the calling
-** function to deal with the error
-*/
-void *condalloc(int32 size) {
+void *allocmem(int32 size, boolean reporterror) {
   byte *newlimit;
   size = ALIGN(size);
   newlimit = basicvars.stacklimit.bytesp+size;
-  if (newlimit>=basicvars.stacktop.bytesp) return NIL;	/* Have run out of memory */
+  if (newlimit>=basicvars.stacktop.bytesp) {	/* Have run out of memory */
+    if (reporterror) error(ERR_NOROOM);
+    else return NIL;
+  }
   basicvars.stacklimit.bytesp = newlimit;
   newlimit = basicvars.vartop;
   basicvars.vartop+=size;

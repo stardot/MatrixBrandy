@@ -478,9 +478,9 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
       if (ap==NULL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
       ap->arraystart.arraybase = malloc(size*elemsize);	/* Grab memory for array proper */
     } else {
-      ap = condalloc(sizeof(basicarray));		/* Grab memory for array descriptor */
+      ap = allocmem(sizeof(basicarray), 0);		/* Grab memory for array descriptor */
       if (ap==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
-      ap->arraystart.arraybase = condalloc(size*elemsize);	/* Grab memory for array proper */
+      ap->arraystart.arraybase = allocmem(size*elemsize, 0);	/* Grab memory for array proper */
     }
   }
   if (ap->arraystart.arraybase==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
@@ -526,8 +526,8 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:create_variable\n");
 #endif
-  np = allocmem(namelen+2);
-  vp = allocmem(sizeof(variable));
+  np = allocmem(namelen+2, 1);
+  vp = allocmem(sizeof(variable), 1);
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "varname=%s, namelen=%d\n", varname, namelen);
 #endif
@@ -673,7 +673,7 @@ static void scan_parmlist(variable *vp) {
       basicvars.current++;	/* Skip '(' or ',' and point at a parameter */
       isreturn = *basicvars.current==BASIC_TOKEN_RETURN;
       if (isreturn) basicvars.current++;
-      fp = allocmem(sizeof(formparm));	/* Create new parameter list entry */
+      fp = allocmem(sizeof(formparm), 1);	/* Create new parameter list entry */
       get_lvalue(&(fp->parameter));
       if (isreturn) fp->parameter.typeinfo+=VAR_RETURN;
       fp->nextparm = NIL;
@@ -695,7 +695,7 @@ static void scan_parmlist(variable *vp) {
     if (AT_PROGEND(basicvars.current)) error(ERR_SYNTAX);	/* There is no procedure body */
     basicvars.current = FIND_EXEC(basicvars.current);	/* Find the first executable token */
   }
-  dp = allocmem(sizeof(fnprocdef));
+  dp = allocmem(sizeof(fnprocdef), 1);
   dp->fnprocaddr = basicvars.current;
   dp->parmcount = count;
   dp->simple = count==1 && formlist->parameter.typeinfo==VAR_INTWORD;
@@ -802,7 +802,7 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
   namelen = ep-base;
   memmove(pfname, base, namelen);
   pfname[namelen] = asc_NUL;
-  fpp = allocmem(sizeof(libfnproc));
+  fpp = allocmem(sizeof(libfnproc), 1);
   fpp->fpline = bp;
   fpp->fpname = base;
   fpp->fpmarker = tp+1;	/* Need pointer to the XFNPROCALL token for scan_parmlist() */
@@ -872,8 +872,8 @@ static variable *search_library(library *lp, char *name) {
     fpp = fpp->fpflink;
   } while (fpp!=NIL);
   if (fpp==NIL) return NIL;		/* Entry not found in library */
-  vp = allocmem(sizeof(variable));	/* Entry found. Create symbol table entry for it */
-  vp->varname = allocmem(namelen+1);	/* +1 for NUL at end of name */
+  vp = allocmem(sizeof(variable), 1);	/* Entry found. Create symbol table entry for it */
+  vp->varname = allocmem(namelen+1, 1);	/* +1 for NUL at end of name */
   strcpy(vp->varname, name);
   vp->varhash = hashvalue;
   vp->varentry.varmarker = fpp->fpmarker;	/* Needed in 'scan_parmlist' */
@@ -904,8 +904,8 @@ static variable *mark_procfn(byte *pp) {
   ep = skip_name(base);
   if (*(ep-1)=='(') ep--;
   namelen = ep-base;
-  cp = allocmem(namelen+1);
-  vp = allocmem(sizeof(variable));
+  cp = allocmem(namelen+1, 1);
+  vp = allocmem(sizeof(variable), 1);
   memcpy(cp, base, namelen);	/* Make copy of name */
   *(cp+namelen) = asc_NUL;	/* And add a null at the end */
   vp->varname = cp;

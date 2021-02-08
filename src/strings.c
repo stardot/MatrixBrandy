@@ -168,7 +168,7 @@ void *alloc_string(int32 size) {
 /* There was nothing in the bin. Try grabbing more memory from the heap */
 
     size = binsizes[bin];  	/* Get string size for bin 'bin' */
-    p = condalloc(size);
+    p = allocmem(size, 0);
     if (p!=NIL) {		/* Allocated block from heap successfully */
 #ifdef DEBUG
       allocated+=size;

@@ -655,7 +655,7 @@ void push_parameters(fnprocdef *dp, char *base) {
 ** variable, that is, one that is not followed by an indirection operator
 */
 static void do_staticvar(void) {
-  PUSH_INT(basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger);
+  push_int(basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger);
   basicvars.current+=2;
 }
 
@@ -675,10 +675,10 @@ static void do_statindvar(void) {
 /* Now load the value on to the Basic stack */
   if (operator == '?') {		/* Byte-sized integer */
     check_read(address, sizeof(byte));
-    PUSH_INT(basicvars.memory[address]);
+    push_int(basicvars.memory[address]);
   }
   else {		/* Word-sized integer */
-    PUSH_INT(get_integer(address));
+    push_int(get_integer(address));
   }
 }
 
@@ -687,7 +687,7 @@ static void do_statindvar(void) {
 */
 static void do_intzero(void) {
   basicvars.current++;
-  PUSH_INT(0);
+  push_int(0);
 }
 
 /*
@@ -695,14 +695,14 @@ static void do_intzero(void) {
 */
 static void do_intone(void) {
   basicvars.current++;
-  PUSH_INT(1);
+  push_int(1);
 }
 
 /*
 ** 'do_smallconst' pushes a small integer value on to the Basic stack
 */
 static void do_smallconst(void) {
-  PUSH_INT(*(basicvars.current+1)+1);	/* +1 as values 1..256 are held as 0..255 */
+  push_int(*(basicvars.current+1)+1);	/* +1 as values 1..256 are held as 0..255 */
   basicvars.current+=2;	/* Skip 'smallconst' token and value */
 }
 
@@ -711,7 +711,7 @@ static void do_smallconst(void) {
 */
 static void do_intconst(void) {
   basicvars.current++;		/* Point current at binary version of number */
-  PUSH_INT(GET_INTVALUE(basicvars.current));
+  push_int(GET_INTVALUE(basicvars.current));
   basicvars.current+=INTSIZE;
 }
 
@@ -720,7 +720,7 @@ static void do_intconst(void) {
 */
 static void do_int64const(void) {
   basicvars.current++;		/* Point current at binary version of number */
-  PUSH_INT64(GET_INT64VALUE(basicvars.current));
+  push_int64(GET_INT64VALUE(basicvars.current));
   basicvars.current+=INT64SIZE;
 }
 
@@ -730,7 +730,7 @@ static void do_int64const(void) {
 */
 static void do_floatzero(void) {
   basicvars.current++;
-  PUSH_FLOAT(0.0);
+  push_float(0.0);
 }
 
 /*
@@ -739,7 +739,7 @@ static void do_floatzero(void) {
 */
 static void do_floatone(void) {
   basicvars.current++;
-  PUSH_FLOAT(1.0);
+  push_float(1.0);
 }
 
 /*
@@ -747,7 +747,7 @@ static void do_floatone(void) {
 ** the token on to the Basic stack
 */
 static void do_floatconst(void) {
-  PUSH_FLOAT(get_fpvalue(basicvars.current));
+  push_float(get_fpvalue(basicvars.current));
   basicvars.current+=(FLOATSIZE+1);
 }
 
@@ -760,7 +760,7 @@ static void do_intvar(void) {
   int32 *ip;
   ip = GET_ADDRESS(basicvars.current, int32 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
-  PUSH_INT(*ip);
+  push_int(*ip);
 }
 
 /*
@@ -771,7 +771,7 @@ static void do_uint8var(void) {
   uint8 *ip;
   ip = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
-  PUSH_UINT8(*ip);
+  push_uint8(*ip);
 }
 
 /*
@@ -782,7 +782,7 @@ static void do_int64var(void) {
   int64 *ip;
   ip = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
-  PUSH_INT64(*ip);
+  push_int64(*ip);
 }
 
 /*
@@ -793,7 +793,7 @@ static void do_floatvar(void) {
   float64 *fp;
   fp = GET_ADDRESS(basicvars.current, float64 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
-  PUSH_FLOAT(*fp);
+  push_float(*fp);
 }
 
 /*
@@ -803,7 +803,7 @@ static void do_stringvar(void) {
   basicstring *sp;
   sp = GET_ADDRESS(basicvars.current, basicstring *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
-  PUSH_STRING(*sp);
+  push_string(*sp);
 }
 
 /*
@@ -862,23 +862,23 @@ static void do_arrayref(void) {
   basicvars.current++;		/* Point at character after the ')' */
   if (*basicvars.current != '?' && *basicvars.current != '!') {	/* Ordinary array reference */
     if (vartype == VAR_INTARRAY) {	/* Can push the array element on to the stack then go home */
-      PUSH_INT(vp->varentry.vararray->arraystart.intbase[element]);
+      push_int(vp->varentry.vararray->arraystart.intbase[element]);
       return;
     }
     if (vartype == VAR_UINT8ARRAY) {	/* Can push the array element on to the stack then go home */
-      PUSH_UINT8(vp->varentry.vararray->arraystart.uint8base[element]);
+      push_uint8(vp->varentry.vararray->arraystart.uint8base[element]);
       return;
     }
     if (vartype == VAR_INT64ARRAY) {	/* Can push the array element on to the stack then go home */
-      PUSH_INT64(vp->varentry.vararray->arraystart.int64base[element]);
+      push_int64(vp->varentry.vararray->arraystart.int64base[element]);
       return;
     }
     if (vartype == VAR_FLOATARRAY) {
-      PUSH_FLOAT(vp->varentry.vararray->arraystart.floatbase[element]);
+      push_float(vp->varentry.vararray->arraystart.floatbase[element]);
       return;
     }
     if (vartype == VAR_STRARRAY) {
-      PUSH_STRING(vp->varentry.vararray->arraystart.stringbase[element]);
+      push_string(vp->varentry.vararray->arraystart.stringbase[element]);
       return;
     }
     error(ERR_BROKEN, __LINE__, "evaluate");	/* Sanity check */
@@ -1052,7 +1052,7 @@ static void do_stringcon(void) {
   descriptor.stringaddr = TOSTRING(get_srcaddr(basicvars.current));
   descriptor.stringlen = GET_SIZE(basicvars.current+1+OFFSIZE);
   basicvars.current+=1+OFFSIZE+SIZESIZE;
-  PUSH_STRING(descriptor);
+  push_string(descriptor);
 }
 
 /*
@@ -1504,7 +1504,7 @@ static void eval_fvplus(void) {
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
     floatvalue+=TOFLOAT(pop_anyint());	/* This has to be split otherwise the macro */
-    PUSH_FLOAT(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
+    push_float(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
@@ -1997,7 +1997,7 @@ static void eval_fvminus(void) {
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {	/* <int>-<float> */
     floatvalue = TOFLOAT(pop_anyint()) - floatvalue;
-    PUSH_FLOAT(floatvalue);
+    push_float(floatvalue);
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<float value> */
@@ -4222,7 +4222,7 @@ static void eval_sveq(void) {
   else {
     result = memcmp(lhstring.stringaddr, rhstring.stringaddr, lhstring.stringlen) == 0 ? BASTRUE : BASFALSE;
   }
-  PUSH_INT(result);
+  push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
 }
@@ -4270,7 +4270,7 @@ static void eval_svne(void) {
   else {
     result = memcmp(lhstring.stringaddr, rhstring.stringaddr, lhstring.stringlen) != 0 ? BASTRUE : BASFALSE;
   }
-  PUSH_INT(result);
+  push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
 }
@@ -4324,7 +4324,7 @@ static void eval_svgt(void) {
   else {
     result = BASFALSE;
   }
-  PUSH_INT(result);
+  push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
 }
@@ -4378,7 +4378,7 @@ static void eval_svlt(void) {
   else {
     result = BASFALSE;
   }
-  PUSH_INT(result);
+  push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
 }

@@ -278,7 +278,7 @@ void exec_xcase(void) {
     }
   }
 /* Create 'CASE' table */
-  cp = allocmem(sizeof(casetable)+whencount*sizeof(whenvalue));	/* Hacksville, Tennessee */
+  cp = allocmem(sizeof(casetable)+whencount*sizeof(whenvalue), 1);	/* Hacksville, Tennessee */
   cp->whencount = whencount;
   cp->defaultaddr = defaultaddr;
   for (n=0; n<whencount; n++) cp->whentable[n] = whentable[n];
@@ -425,7 +425,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
 #ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
-        ep = condalloc(highindex+1);
+        ep = allocmem(highindex+1, 0);
         if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
       }
     }
@@ -712,19 +712,19 @@ void exec_fnreturn(void) {
   returnblock = pop_fn();	/* Fetch return address and so forth */
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had arguments - restore old values */
   if (resultype == STACK_INT) {	/* Lastly, put the result back on the stack */
-    PUSH_INT(intresult);
+    push_int(intresult);
   }
   else if (resultype == STACK_UINT8) {	/* Lastly, put the result back on the stack */
-    PUSH_UINT8(uint8result);
+    push_uint8(uint8result);
   }
   else if (resultype == STACK_INT64) {
-    PUSH_INT64(int64result);
+    push_int64(int64result);
   }
   else if (resultype == STACK_FLOAT) {
-    PUSH_FLOAT(fpresult);
+    push_float(fpresult);
   }
   else if (resultype == STACK_STRING) {
-    PUSH_STRING(stresult);
+    push_string(stresult);
   }
   else if (resultype == STACK_STRTEMP) {
     push_strtemp(stresult.stringlen, stresult.stringaddr);

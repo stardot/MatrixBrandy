@@ -713,7 +713,7 @@ static void fn_exp(void) {
 */
 void fn_false(void) {
   basicvars.current++;
-  PUSH_INT(BASFALSE);
+  push_int(BASFALSE);
 }
 
 /*
@@ -951,7 +951,7 @@ static void fn_len(void) {
   stringtype = GET_TOPITEM;
   if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
     descriptor = pop_string();
-    PUSH_INT(descriptor.stringlen);
+    push_int(descriptor.stringlen);
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
   }
   else {
@@ -1230,20 +1230,20 @@ static void fn_sgn(void) {
   if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
     int64 value = pop_anyint();
     if (value>0) {
-      PUSH_INT(1);
+      push_int(1);
     } else if (value == 0) {
-      PUSH_INT(0);
+      push_int(0);
     } else {
-      PUSH_INT(-1);
+      push_int(-1);
     }
   } else if (GET_TOPITEM == STACK_FLOAT) {
     floatvalue = pop_float();
     if (floatvalue>0.0) {
-      PUSH_INT(1);
+      push_int(1);
     } else if (floatvalue == 0.0) {
-      PUSH_INT(0);
+      push_int(0);
     } else {
-      PUSH_INT(-1);
+      push_int(-1);
     }
   } else error(ERR_TYPENUM);
 }

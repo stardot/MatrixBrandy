@@ -842,8 +842,8 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
   library *lp;
   int n;
   if (onheap) {		/* Library is held on Basic heap */
-    lp = allocmem(sizeof(library));	/* Add library to list */
-    lp->libname = allocmem(strlen(name)+1);	/* +1 for NULL at end */
+    lp = allocmem(sizeof(library), 1);	/* Add library to list */
+    lp->libname = allocmem(strlen(name)+1, 1);	/* +1 for NULL at end */
     lp->libflink = basicvars.liblist;
     basicvars.liblist = lp;
   }
