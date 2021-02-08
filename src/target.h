@@ -62,7 +62,11 @@
 */
 #ifdef USE_SDL
 #ifndef BRANDY_STARTUP_MODE
+#ifdef BRANDY_MODE7ONLY
+#define BRANDY_STARTUP_MODE 7
+#else
 #define BRANDY_STARTUP_MODE 0
+#endif
 #endif
 #endif
 

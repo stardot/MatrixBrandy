@@ -27,6 +27,7 @@
 ** Built-in ISO Latin-1 font for all modes other than Teletext.
 ** The first character in the table is a blank.
 */
+#ifndef BRANDY_MODE7ONLY
 static byte sysfont[224][8];
 static byte sysfontbase [224][8] = {
 /*   */  {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u},
@@ -262,6 +263,7 @@ static byte sysfontbase [224][8] = {
 /* þ */  {0x60u, 0x60u, 0x7Cu, 0x66u, 0x7Cu, 0x60u, 0x60u, 0u},
 /* ÿ */  {0x66u, 0u, 0x66u, 0x66u, 0x66u, 0x3Eu, 0x6u, 0x3Cu}
 };
+#endif /* BRANDY_MODE7ONLY */
 
 static unsigned short mode7font[224][20];
 static unsigned short mode7fontro5[224][20] = {

@@ -92,7 +92,11 @@
 */
 
 #ifndef MAXBANKS
+#ifdef BRANDY_MODE7ONLY
+#define MAXBANKS 1
+#else
 #define MAXBANKS 4
+#endif
 #endif
 #define MAX_YRES 16384
 #define MAX_XRES 16384
@@ -136,7 +140,10 @@ static SDL_Surface *sdl_fontbuf, *sdl_m7fontbuf;
 static SDL_PixelFormat pixfmt;
 #endif
 
-static SDL_Rect font_rect, place_rect, scroll_rect, line_rect, scale_rect;
+static SDL_Rect font_rect, place_rect, line_rect, scale_rect;
+#ifndef BRANDY_MODE7ONLY
+static SDL_Rect scroll_rect;
+#endif
 
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
@@ -148,7 +155,9 @@ uint32 mousequeuelength = 0;
 uint32 mouseqexpire = 0;
 #define MOUSEQUEUEMAX 7
 
+#ifndef BRANDY_MODE7ONLY
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
+#endif
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
@@ -212,15 +221,17 @@ static void scroll_down(int32 windowed);
 static void scroll_left(int32 windowed);
 static void scroll_right(int32 windowed);
 static void reveal_cursor(void);
+#ifndef BRANDY_MODE7ONLY
 static void plot_pixel(SDL_Surface *, int32, int32, Uint32, Uint32);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
 static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void toggle_cursor(void);
-static void vdu_cleartext(void);
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
+#endif
+static void toggle_cursor(void);
+static void vdu_cleartext(void);
 static void mode7renderline(int32 ypos, int32 fast);
 
 static inline int max(int a, int b) {
@@ -237,11 +248,6 @@ static void write_vduflag(unsigned int flags, int yesno) {
 
 static void reset_mode7() {
   int p, q;
-  write_vduflag(MODE7_GRAPHICS,0);
-  write_vduflag(MODE7_SEPGRP,0);
-  write_vduflag(MODE7_SEPREAL,0);
-  write_vduflag(MODE7_HOLD,0);
-  write_vduflag(MODE7_BANK,0);
   mode7timer=0;
   place_rect.h=M7YPPC;
   font_rect.h=M7YPPC;
@@ -310,13 +316,17 @@ static void drain_mouse_expired() {
 
 
 void reset_sysfont(int x) {
+#ifndef BRANDY_MODE7ONLY
   int p, c, i;
-
+#endif
   if (!x) {
+#ifndef BRANDY_MODE7ONLY
     memcpy(sysfont, sysfontbase, sizeof(sysfont));
+#endif
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
     return;
   }
+#ifndef BRANDY_MODE7ONLY
   if ((x>=1) && (x<= 7)) {
     p=(x-1)*32;
     for (c=0; c<= 31; c++) 
@@ -326,6 +336,7 @@ void reset_sysfont(int x) {
     for (c=0; c<=95; c++)
       for (i=0; i<= 7; i++) sysfont[c][i]=sysfontbase[c][i];
   }
+#endif
   if (x == 16) {
     memcpy(mode7font, mode7fontro5, sizeof(mode7font));
   }
@@ -335,6 +346,7 @@ static int istextonly(void) {
   return ((screenmode == 3 || screenmode == 6 || screenmode == 7));
 }
 
+#ifndef BRANDY_MODE7ONLY
 static int32 riscoscolour(int32 colour) {
   return (((colour & 0xFF) <<16) + (colour & 0xFF00) + ((colour & 0xFF0000) >> 16));
 }
@@ -353,6 +365,7 @@ static int32 colour24bit(int32 colour, int32 tint) {
   col = tint24bit(col, tint);
   return col;
 }
+#endif /* BRANDY_MODE7ONLY */
 
 static int32 textxhome(void) {
   if (vdu2316byte & 2) return twinright;
@@ -469,6 +482,7 @@ static void vdu_2316(void) {
 ** '
 ' deals with various flavours of the sequence VDU 23,17,...
 */
+#ifndef BRANDY_MODE7ONLY
 static void vdu_2317(void) {
   int32 temp;
   switch (vduqueue[1]) {	/* vduqueue[1] is the byte after the '17' and says what to change */
@@ -502,6 +516,7 @@ static void vdu_2317(void) {
   }
   set_rgb();
 }
+#endif
 
 /* RISC OS 5 - Set Teletext characteristics */
 static void vdu_2318(void) {
@@ -516,6 +531,7 @@ static void vdu_2318(void) {
 
 /* BB4W/BBCSDL - Define and select custom mode */
 /* Implementation not likely to be exact, char width and height are fixed in Brandy so are /8 to generate xscale and yscale */
+#ifndef BRANDY_MODE7ONLY
 static void vdu_2322(void) {
   int32 mwidth, mheight, mxscale, myscale, cols, charset;
   
@@ -543,12 +559,15 @@ static void vdu_2322(void) {
     vdu_cleartext();
   }
 }
+#endif
 
 /*
 ** 'vdu_23command' emulates some of the VDU 23 command sequences
 */
 static void vdu_23command(void) {
+#ifndef BRANDY_MODE7ONLY
   int codeval, n;
+#endif
   switch (vduqueue[0]) {	/* First byte in VDU queue gives the command type */
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
@@ -578,12 +597,15 @@ static void vdu_23command(void) {
   case 16:	/* Controls the movement of the cursor after printing */
     vdu_2316();
     break;
+#ifndef BRANDY_MODE7ONLY
   case 17:	/* Set the tint value for a colour in 256 colour modes, etc */
     vdu_2317();
     break;
+#endif
   case 18:	/* RISC OS 5 set Teletext characteristics */
     vdu_2318();
     break;
+#ifndef BRANDY_MODE7ONLY
   case 22:	/* BB4W/BBCSDL Custom Mode */
     vdu_2322();
     break;
@@ -592,6 +614,7 @@ static void vdu_23command(void) {
     if ((codeval < 32) || (codeval == 127)) break;   /* Ignore unhandled commands */
     /* codes 32 to 255 are user-defined character setup commands */
     for (n=0; n < 8; n++) sysfont[codeval-32][n] = vduqueue[n+1];
+#endif
   }
 }
 
@@ -615,15 +638,15 @@ static void toggle_cursor(void) {
   int32 csroffset = 0;
 
   if (
-    vduflag(VDU_FLAG_GRAPHICURS                                 /* Never display the cursor in VDU5 mode */)
+        vduflag(VDU_FLAG_GRAPHICURS)                                /* Never display the cursor in VDU5 mode */
   ||
-    ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN))   /* Cursor is not being displayed so give up */
+        ((cursorstate != SUSPENDED) && (cursorstate != ONSCREEN))   /* Cursor is not being displayed so give up */
   ||
-    (ds.autorefresh != 1)                                       /* We're not autoupdating (*Refresh Off or OnError) */
+        (ds.autorefresh != 1)                                       /* We're not autoupdating (*Refresh Off or OnError) */
   ||
-    (ds.displaybank != ds.writebank)                            /* *FX112 / 113 pointing at different banks */
+        (ds.displaybank != ds.writebank)                            /* *FX112 / 113 pointing at different banks */
   ||
-    (matrixflags.cursorbusy)                                    /* Have we flagged the cursor as being busy? */
+        (matrixflags.cursorbusy)                                    /* Have we flagged the cursor as being busy? */
   ) return;
 
   if (screenmode==7) {
@@ -669,6 +692,7 @@ static void toggle_cursor(void) {
 ** converted to real pixel coordinates by multiplying them by 'xscale'
 ** and 'yscale'.
 */
+#ifndef BRANDY_MODE7ONLY
 static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
@@ -723,6 +747,7 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
   if ((ds.autorefresh != 1) || (ds.displaybank != ds.writebank)) return;
   blit_scaled_actual(left, top, right, bottom);
 }
+#endif
 
 #define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
 #define TINTSTEP 17		/* RGB colour value increment used for tints */
@@ -748,6 +773,7 @@ static void init_palette(void) {
   hardpalette[18] = 0; hardpalette[19] = hardpalette[20] = 255;	/* Cyan */
   hardpalette[21] = hardpalette[22] = hardpalette[23] = 255;	    /* White */
   switch (colourdepth) {
+#ifndef BRANDY_MODE7ONLY
   case 2:	/* Two colour - Black and white only */
     palette[0] = palette[1] = palette[2] = 0;
     palette[3] = palette[4] = palette[5] = 255;
@@ -768,6 +794,7 @@ static void init_palette(void) {
     palette[18] = 0;   palette[19] =      palette[20] = 255;	/* Cyan */
     palette[21] =      palette[22] =      palette[23] = 255;	/* White */
     break;
+#endif
   case 16:	/* Sixteen colour */
     palette[0]  =      palette[1]  =      palette[2]  = 0;	/* Black */
     palette[3]  = 255; palette[4]  =      palette[5]  = 0;	/* Red */
@@ -786,6 +813,7 @@ static void init_palette(void) {
     palette[42] = 0;   palette[43] =      palette[44] = 160;	/* Cyan */
     palette[45] =      palette[46] =      palette[47] = 160;	/* Grey */
     break;
+#ifndef BRANDY_MODE7ONLY
   case 256:
   case COL24BIT: {	/* >= 256 colour */
     int red, green, blue, tint, colour;
@@ -822,9 +850,11 @@ static void init_palette(void) {
     }
     break;
   }
+#endif
   default:	/* 32K colour modes are not supported */
     error(ERR_UNSUPPORTED);
   }
+#ifndef BRANDY_MODE7ONLY
   if (colourdepth >= 256) {
     text_physforecol = (text_forecol<<COL256SHIFT)+text_foretint;
     text_physbackcol = (text_backcol<<COL256SHIFT)+text_backtint;
@@ -837,6 +867,7 @@ static void init_palette(void) {
     ds.graph_physforecol = ds.graph_forecol;
     ds.graph_physbackcol = ds.graph_backcol;
   }
+#endif
   set_rgb();
 }
 
@@ -845,11 +876,13 @@ static void init_palette(void) {
 ** colour 'colour' to the colour defined by the RGB values red, green
 ** and blue. The screen is updated by this call
 */
+#ifndef BRANDY_MODE7ONLY
 static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
   palette[colour*3+0] = red;	/* The palette is not structured */
   palette[colour*3+1] = green;
   palette[colour*3+2] = blue;
 }
+#endif
 
 /*
  * emulate_colourfn - This performs the function COLOUR(). It
@@ -858,6 +891,7 @@ static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
  * blue components passed to it.
  */
 int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
+#ifndef BRANDY_MODE7ONLY
   int32 n, distance, test, best, dr, dg, db;
 
   if (colourdepth == COL24BIT) return (red + (green << 8) + (blue << 16));
@@ -874,6 +908,9 @@ int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
     }
   }
   return best;
+#else
+  return 0;
+#endif
 }
 
 /*
@@ -882,6 +919,7 @@ int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
  * (palette entry number). This is used when a colour has
  * been matched with an entry in the palette via COLOUR()
  */
+#ifndef BRANDY_MODE7ONLY
 static void set_text_colour(boolean background, int colnum) {
   if (background)
     text_physbackcol = text_backcol = (colnum & (colourdepth - 1));
@@ -906,6 +944,7 @@ static void set_graphics_colour(boolean background, int colnum) {
   ds.graph_fore_action = ds.graph_back_action = 0;
   set_rgb();
 }
+#endif /* BRANDY_MODE7ONLY */
 
 /*
 ** 'scroll' scrolls the graphics screen up or down by the number of
@@ -940,9 +979,12 @@ static void scroll_up_mode7(int32 windowed) {
 }
 
 static void scroll_up(int32 windowed) {
+#ifndef BRANDY_MODE7ONLY
   int left, right, top, dest, topwin;
   if (screenmode == 7) { 
+#endif
     scroll_up_mode7(windowed);
+#ifndef BRANDY_MODE7ONLY
     return;
   }
   toggle_cursor();
@@ -987,6 +1029,7 @@ static void scroll_up(int32 windowed) {
     }
   }
   toggle_cursor();
+#endif
 }
 
 static void scroll_down_mode7(int32 windowed) {
@@ -1010,9 +1053,12 @@ static void scroll_down_mode7(int32 windowed) {
 }
 
 static void scroll_down(int32 windowed) {
+#ifndef BRANDY_MODE7ONLY
   int left, right, top, dest, topwin;
   if (screenmode == 7) { 
+#endif
     scroll_down_mode7(windowed);
+#ifndef BRANDY_MODE7ONLY
     return;
   }
   toggle_cursor();
@@ -1057,6 +1103,7 @@ static void scroll_down(int32 windowed) {
     }
   }
   toggle_cursor();
+#endif
 }
 
 static void scroll_left_mode7(int32 windowed) {
@@ -1080,9 +1127,12 @@ static void scroll_left_mode7(int32 windowed) {
 }
 
 static void scroll_left(int32 windowed) {
+#ifndef BRANDY_MODE7ONLY
   int left, right, top, dest, topwin;
   if (screenmode == 7) { 
+#endif
     scroll_left_mode7(windowed);
+#ifndef BRANDY_MODE7ONLY
     return;
   }
   toggle_cursor();
@@ -1124,6 +1174,7 @@ static void scroll_left(int32 windowed) {
     blit_scaled(0, 0, ds.screenwidth, ds.screenheight);
   }
   toggle_cursor();
+#endif
 }
 
 static void scroll_right_mode7(int32 windowed) {
@@ -1147,9 +1198,12 @@ static void scroll_right_mode7(int32 windowed) {
 }
 
 static void scroll_right(int32 windowed) {
+#ifndef BRANDY_MODE7ONLY
   int left, right, top, dest, topwin;
   if (screenmode == 7) { 
+#endif
     scroll_right_mode7(windowed);
+#ifndef BRANDY_MODE7ONLY
     return;
   }
   toggle_cursor();
@@ -1192,6 +1246,7 @@ static void scroll_right(int32 windowed) {
     blit_scaled(0, 0, ds.screenwidth, ds.screenheight);
   }
   toggle_cursor();
+#endif
 }
 
 /*
@@ -1215,8 +1270,10 @@ static void scroll(updown direction) {
 ** start of the line to the current value of the text cursor
 */
 static void echo_text(void) {
+#ifndef BRANDY_MODE7ONLY
   if ((xtext == 0) || (screenmode == 7)) return;	/* Return if nothing has changed */
   blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
+#endif
 }
 
 /*
@@ -1227,6 +1284,7 @@ static void echo_text(void) {
 ** by this code so the cursor state is automatically set to
 ** 'suspended' (if the cursor is being displayed)
 */
+#ifndef BRANDY_MODE7ONLY
 static void write_char(int32 ch) {
   int32 y, topx, topy, line;
   
@@ -1396,7 +1454,7 @@ static void plot_space_opaque(void) {
     if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Below bottom of graphics window - Wrap around to top */
   }
 }
-
+#endif /* BRANDY_MODE7ONLY */
 /*
 ** 'echo_on' turns on cursor and the immediate echo of characters to the screen
 */
@@ -1448,6 +1506,7 @@ void set_cursor(boolean underline) {
 ** entries (VDU 19). When the interpreter is in full screen mode it
 ** can also redefine colours for in the palette.
 */
+#ifndef BRANDY_MODE7ONLY
 static void vdu_setpalette(void) {
   int32 logcol, pmode, mode, offset, c, newcol;
   if (screenmode == 7) return;
@@ -1472,6 +1531,7 @@ static void vdu_setpalette(void) {
     blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   }
 }
+#endif
 
 /*
 ** 'move_down' moves the text cursor down a line within the text
@@ -1670,7 +1730,9 @@ static void vdu_cleartext(void) {
     SDL_FillRect(screenbank[ds.writebank], &line_rect, ds.tb_colour);
     SDL_FillRect(screen2, &line_rect, ds.tb_colour);
     SDL_FillRect(screen3, &line_rect, ds.tb_colour);
+#ifndef BRANDY_MODE7ONLY
     blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
+#endif
   }
   else {	/* Text window is not being used */
     reset_mode7();
@@ -1680,7 +1742,9 @@ static void vdu_cleartext(void) {
     bottom = twinbottom*myppc+myppc-1;
     SDL_FillRect(screenbank[ds.writebank], NULL, ds.tb_colour);
     // blit_scaled(left, top, right, bottom);
+#ifndef BRANDY_MODE7ONLY
     blit_scaled(0, 0, ds.screenwidth-1, ds.screenheight-1);
+#endif
     SDL_FillRect(screen2, NULL, ds.tb_colour);
     SDL_FillRect(screen3, NULL, ds.tb_colour);
     xtext = textxhome();
@@ -1710,6 +1774,7 @@ static void vdu_return(void) {
   }
 }
 
+#ifndef BRANDY_MODE7ONLY
 static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uint32 colour, int32 action) {
   int32 xloop, yloop, pxoffset, rox = 0, roy = 0;
   Uint32 prevcolour, a, altcolour = 0;
@@ -1810,6 +1875,7 @@ static void vdu_textcol(void) {
   }
   set_rgb();
 }
+#endif /* BRANDY_MODE7ONLY */
 
 /*
 ** 'reset_colours' initialises the RISC OS logical to physical colour
@@ -1817,6 +1883,7 @@ static void vdu_textcol(void) {
 ** and background text and graphics colours to white and black
 ** respectively (VDU 20)
 */
+#ifndef BRANDY_MODE7ONLY
 static void reset_colours(void) {
   switch (colourdepth) {	/* Initialise the text mode colours */
   case 2:
@@ -1871,11 +1938,13 @@ static void reset_colours(void) {
   text_backcol = ds.graph_backcol = 0;
   init_palette();
 }
+#endif
 
 /*
 ** 'vdu_graphcol' sets the graphics foreground or background colour and
 ** changes the type of plotting action to be used for graphics (VDU 18).
 */
+#ifndef BRANDY_MODE7ONLY
 static void vdu_graphcol(void) {
   int32 colnumber;
   colnumber = vduqueue[1];
@@ -1951,6 +2020,7 @@ static void vdu_plot(void) {
   if (y > 0x7FFF) y = -(0x10000-y);	/* Y is negative */
   emulate_plot(vduqueue[0], x, y);	/* vduqueue[0] gives the plot code */
 }
+#endif /* BRANDY_MODE7ONLY */
 
 /*
 ** 'vdu_restwind' restores the default (full screen) text and
@@ -2008,6 +2078,7 @@ static void vdu_textwind(void) {
 /*
 ** 'vdu_origin' sets the graphics origin (VDU 29)
 */
+#ifndef BRANDY_MODE7ONLY
 static void vdu_origin(void) {
   int32 x, y;
   x = vduqueue[0]+vduqueue[1]*256;
@@ -2015,6 +2086,7 @@ static void vdu_origin(void) {
   ds.xorigin = x<=32767 ? x : -(0x10000-x);
   ds.yorigin = y<=32767 ? y : -(0x10000-y);
 }
+#endif
 
 /*
 ** 'vdu_hometext' sends the text cursor to the top left-hand corner of
@@ -2070,7 +2142,9 @@ void emulate_vdu(int32 charvalue) {
     }
     if (charvalue >= ' ') {		/* Most common case - print something */
       /* Handle Mode 7 */
+#ifndef BRANDY_MODE7ONLY
       if (screenmode == 7) {
+#endif
         if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
           xtext = textxhome();
           ytext+=textyinc();
@@ -2149,6 +2223,7 @@ void emulate_vdu(int32 charvalue) {
           }
         }
         return; /* End of MODE 7 block */
+#ifndef BRANDY_MODE7ONLY
       } else {
         if (vduflag(VDU_FLAG_GRAPHICURS)) {			    /* Sending text output to graphics cursor */
           if (charvalue == 127) {
@@ -2169,6 +2244,7 @@ void emulate_vdu(int32 charvalue) {
           }
         }
       }
+#endif
       return;
     }
     else {	/* Control character - Found start of new VDU command */
@@ -2233,9 +2309,11 @@ void emulate_vdu(int32 charvalue) {
     move_curup();
     break;
   case VDU_CLEARTEXT:	/* 12 - Clear text window (formfeed) */
+#ifndef BRANDY_MODE7ONLY
     if (vduflag(VDU_FLAG_GRAPHICURS))	/* In VDU 5 mode, clear the graphics window */
       vdu_cleargraph();
     else		/* In text mode, clear the text window */
+#endif
       vdu_cleartext();
     vdu_hometext();
     break;
@@ -2248,6 +2326,7 @@ void emulate_vdu(int32 charvalue) {
   case VDU_DISPAGE:	/* 15 - Disable page mode */
     write_vduflag(VDU_FLAG_ENAPAGE,0);
     break;
+#ifndef BRANDY_MODE7ONLY
   case VDU_CLEARGRAPH:	/* 16 - Clear graphics window */
     vdu_cleargraph();
     break;
@@ -2263,6 +2342,7 @@ void emulate_vdu(int32 charvalue) {
   case VDU_RESTCOL:	/* 20 - Restore logical colours to default values */
     reset_colours();
     break;
+#endif
   case VDU_DISABLE:	/* 21 - Disable the VDU driver */
     write_vduflag(VDU_FLAG_DISABLE,1);
     break;
@@ -2272,12 +2352,14 @@ void emulate_vdu(int32 charvalue) {
   case VDU_COMMAND:	/* 23 - Assorted VDU commands */
     vdu_23command();
     break;
+#ifndef BRANDY_MODE7ONLY
   case VDU_DEFGRAPH:	/* 24 - Define graphics window */
     vdu_graphwind();
     break;
   case VDU_PLOT:	/* 25 - Issue graphics command */
     vdu_plot();
     break;
+#endif
   case VDU_RESTWIND:	/* 26 - Restore default windows */
     vdu_restwind();
     break;
@@ -2287,9 +2369,11 @@ void emulate_vdu(int32 charvalue) {
   case VDU_DEFTEXT:	/* 28 - Define text window */
     vdu_textwind();
     break;
+#ifndef BRANDY_MODE7ONLY
   case VDU_ORIGIN:	/* 29 - Define graphics origin */
     vdu_origin();
     break;
+#endif
   case VDU_HOMETEXT:	/* 30 - Send cursor to top left-hand corner of screen */
     vdu_hometext();
     break;
@@ -2446,7 +2530,9 @@ static void setup_mode(int32 mode) {
   xtext = textxhome();
   ytext = textyhome();
   ds.graph_fore_action = ds.graph_back_action = 0;
+#ifndef BRANDY_MODE7ONLY
   reset_colours();
+#endif
   init_palette();
   write_vduflag(VDU_FLAG_ENAPAGE,0);
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
@@ -2483,7 +2569,7 @@ void emulate_mode(int32 mode) {
   if (tmsg.modechange == -2) error(ERR_BADMODE);
 /* Reset colours, clear screen and home cursor */
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
-  for (p=0; p<4; p++) {
+  for (p=0; p<MAXBANKS; p++) {
     SDL_FillRect(screenbank[p], NULL, ds.tb_colour);
   }
   xtext = textxhome();
@@ -2497,6 +2583,7 @@ void emulate_mode(int32 mode) {
  * form of the MODE statement
  */
 void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
+#ifndef BRANDY_MODE7ONLY
   int32 coldepth, n;
   if (xres == 0 || yres == 0 || rate == 0 || bpp == 0) error(ERR_BADMODE);
   switch (bpp) {
@@ -2516,6 +2603,7 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
     setupnewmode(n, xres, yres, coldepth, 1, 1, 1, 1);
   }
   emulate_mode(n);
+#endif
 }
 
 /*
@@ -2525,6 +2613,7 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
 ** instead of a colour one
 */
 void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 xeig, int32 yeig, int32 rate) {
+#ifndef BRANDY_MODE7ONLY
   int32 coldepth, n;
   if (xres == 0 || yres == 0 || rate == 0 || (colours == 0 && greys == 0)) error(ERR_BADMODE);
   coldepth = colours!=0 ? colours : greys;
@@ -2546,6 +2635,7 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
       intensity+=step;
     }
   }
+#endif
 }
 
 /*
@@ -2557,6 +2647,7 @@ int32 emulate_modefn(void) {
 
 /* The plot_pixel function plots pixels for the drawing functions, and
    takes into account the GCOL foreground action code */
+#ifndef BRANDY_MODE7ONLY
 static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Uint32 action) {
   Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
   int32 rox = 0, roy = 0;
@@ -2619,7 +2710,6 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
 **
 ** This code is slow but does the job, and is HIGHLY recursive (and memory hungry).
 */
-
 static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
   if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) != ds.gb_colour) return;
   plot_pixel(screenbank[ds.writebank], x, y, colour, action); /* Plot this pixel */
@@ -2651,6 +2741,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
   blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   reveal_cursor();
 }
+#endif /* BRANDY_MODE7ONLY */
 
 /*
 ** 'emulate_plot' emulates the Basic statement 'PLOT'. It also represents
@@ -2662,6 +2753,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
 ** for speed as updating the entire screen each time is too slow
 */
 void emulate_plot(int32 code, int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   int32 xlast3, ylast3, sx, sy, ex, ey, action;
   Uint32 colour = 0;
   SDL_Rect plot_rect, temp_rect;
@@ -2974,6 +3066,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   //default:
     //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
+#endif
 }
 
 /*
@@ -2981,6 +3074,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 ** the colour number of the point (x,y) on the screen
 */
 int32 emulate_pointfn(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   int32 colour, colnum;
   x += ds.xorigin;
   y += ds.yorigin;
@@ -2990,6 +3084,9 @@ int32 emulate_pointfn(int32 x, int32 y) {
   colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
   return colnum;
+#else
+  return 0;
+#endif
 }
 
 /*
@@ -2998,6 +3095,7 @@ int32 emulate_pointfn(int32 x, int32 y) {
 ** screen. This is one of 0, 0x40, 0x80 or 0xC0
 */
 int32 emulate_tintfn(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   int32 colour;
 
   if (colourdepth < 256) return 0;
@@ -3006,6 +3104,9 @@ int32 emulate_tintfn(int32 x, int32 y) {
   if ((x < 0) || (x >= ds.screenwidth*ds.xgupp) || (y < 0) || (y >= ds.screenheight*ds.ygupp)) return 0;
   colour = SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + (GXTOPX(x) + GYTOPY(y)*ds.vscrwidth))) & 0xFFFFFF;
   return(colour & 3)<<TINTSHIFT;
+#else
+  return 0;
+#endif
 }
 
 /*
@@ -3052,8 +3153,7 @@ void emulate_off(void) {
   int32 n;
   emulate_vdu(VDU_COMMAND);
   emulate_vdu(1);
-  emulate_vdu(0);
-  for (n=1; n<=7; n++) emulate_vdu(0);
+  for (n=1; n<=8; n++) emulate_vdu(0);
 }
 
 /*
@@ -3078,6 +3178,7 @@ void emulate_on(void) {
 ** bits as well (I can never remember where it goes)
 */
 void emulate_tint(int32 action, int32 tint) {
+#ifndef BRANDY_MODE7ONLY
   int32 n;
   emulate_vdu(VDU_COMMAND);		/* Use VDU 23,17 */
   emulate_vdu(17);
@@ -3085,6 +3186,7 @@ void emulate_tint(int32 action, int32 tint) {
   //if (tint<=MAXTINT) tint = tint<<TINTSHIFT;	/* Assume value is in the wrong place */
   emulate_vdu(tint);
   for (n=1; n<=7; n++) emulate_vdu(0);
+#endif
 }
 
 /*
@@ -3093,10 +3195,12 @@ void emulate_tint(int32 action, int32 tint) {
 ** how the VDU drivers carry out graphics operations.
 */
 void emulate_gcol(int32 action, int32 colour, int32 tint) {
+#ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_GRAPHCOL);
   emulate_vdu(action);
   emulate_vdu(colour);
   emulate_tint(colour < 128 ? TINT_FOREGRAPH : TINT_BACKGRAPH, tint);
+#endif
 }
 
 /*
@@ -3106,9 +3210,13 @@ void emulate_gcol(int32 action, int32 colour, int32 tint) {
 ** otherwise the foreground colour is altered
 */
 int emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
+#ifndef BRANDY_MODE7ONLY
   int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
   emulate_gcolnum(action, background, colnum);
   return(colnum);
+#else
+  return 0;
+#endif
 }
 
 /*
@@ -3117,21 +3225,25 @@ int emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int3
 ** is a bit of a hack
 */
 void emulate_gcolnum(int32 action, int32 background, int32 colnum) {
+#ifndef BRANDY_MODE7ONLY
   if (background)
     ds.graph_back_action = action;
   else {
     ds.graph_fore_action = action;
   }
   set_graphics_colour(background, colnum);
+#endif
 }
 
 /*
 ** 'emulate_colourtint' deals with the Basic 'COLOUR <colour> TINT' statement
 */
 void emulate_colourtint(int32 colour, int32 tint) {
+#ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_TEXTCOL);
   emulate_vdu(colour);
   emulate_tint(colour<128 ? TINT_FORETEXT : TINT_BACKTEXT, tint);
+#endif
 }
 
 /*
@@ -3139,12 +3251,14 @@ void emulate_colourtint(int32 colour, int32 tint) {
 ** statement.
 */
 void emulate_mapcolour(int32 colour, int32 physcolour) {
+#ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_LOGCOL);
   emulate_vdu(colour);
   emulate_vdu(physcolour);	/* Set logical logical colour to given physical colour */
   emulate_vdu(0);
   emulate_vdu(0);
   emulate_vdu(0);
+#endif
 }
 
 /*
@@ -3152,9 +3266,13 @@ void emulate_mapcolour(int32 colour, int32 physcolour) {
 ** statement
 */
 int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
+#ifndef BRANDY_MODE7ONLY
   int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
   set_text_colour(background, colnum);
   return(colnum);
+#else
+  return 0;
+#endif
 }
 
 /*
@@ -3162,7 +3280,9 @@ int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
 ** background colour to the colour number 'colnum'
 */
 void emulate_setcolnum(int32 background, int32 colnum) {
+#ifndef BRANDY_MODE7ONLY
   set_text_colour(background, colnum);
+#endif
 }
 
 /*
@@ -3170,12 +3290,14 @@ void emulate_setcolnum(int32 background, int32 colnum) {
 ** statement
 */
 void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
+#ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_LOGCOL);
   emulate_vdu(colour);
   emulate_vdu(16);	/* Set both flash palettes for logical colour to given colour */
   emulate_vdu(red);
   emulate_vdu(green);
   emulate_vdu(blue);
+#endif
 }
 
 /*
@@ -3183,7 +3305,9 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 ** position (x,y) on the screen
 */
 void emulate_move(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
+#endif
 }
 
 /*
@@ -3191,7 +3315,9 @@ void emulate_move(int32 x, int32 y) {
 ** and 'y' relative to its current position
 */
 void emulate_moveby(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
+#endif
 }
 
 /*
@@ -3199,7 +3325,9 @@ void emulate_moveby(int32 x, int32 y) {
 ** cursor position to the absolute position (x,y) on the screen
 */
 void emulate_draw(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
+#endif
 }
 
 /*
@@ -3208,7 +3336,9 @@ void emulate_draw(int32 x, int32 y) {
 ** position
 */
 void emulate_drawby(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
+#endif
 }
 
 /*
@@ -3216,8 +3346,10 @@ void emulate_drawby(int32 x, int32 y) {
 ** on the screen to (x2,y2)
 */
 void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x2, y2);
+#endif
 }
 
 /*
@@ -3225,7 +3357,9 @@ void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
 ** (x,y) on the screen
 */
 void emulate_point(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
+#endif
 }
 
 /*
@@ -3233,7 +3367,9 @@ void emulate_point(int32 x, int32 y) {
 ** 'y' from the current graphics position
 */
 void emulate_pointby(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
+#endif
 }
 
 /*
@@ -3255,6 +3391,7 @@ void emulate_pointby(int32 x, int32 y) {
 ** PLOT XXX,x+shearx,y+maxy
 */
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
+#ifndef BRANDY_MODE7ONLY
   int32 slicew, shearx, maxy;
   
   float64 cosv, sinv;
@@ -3277,15 +3414,18 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
   else {
     emulate_plot(PLOT_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   }
+#endif
 }
 
 void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of circle */
   if (isfilled)
     emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);	/* Plot to a point on the circumference */
   else {
     emulate_plot(PLOT_CIRCLE+DRAW_ABSOLUTE, x-radius, y);
   }
+#endif
 }
 
 /*
@@ -3293,6 +3433,7 @@ void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
 ** filled rectangle
 */
 void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isfilled) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   if (isfilled)
     emulate_plot(FILL_RECTANGLE+DRAW_RELATIVE, width, height);
@@ -3302,6 +3443,7 @@ void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isf
     emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, -width, 0);
     emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, 0, -height);
   }
+#endif
 }
 
 /*
@@ -3310,6 +3452,7 @@ void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isf
 ** current background colour
 */
 void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, int32 y2, boolean ismove) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, width, height);
   if (ismove)	/* Move the area just marked */
@@ -3317,6 +3460,7 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
   }
+#endif
 }
 
 /*
@@ -3325,7 +3469,9 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
 ** screen
 */
 void emulate_fill(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(FLOOD_BACKGROUND+DRAW_ABSOLUTE, x, y);
+#endif
 }
 
 /*
@@ -3334,7 +3480,9 @@ void emulate_fill(int32 x, int32 y) {
 ** 'x' and 'y' relative to the current graphics cursor position
 */
 void emulate_fillby(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_plot(FLOOD_BACKGROUND+DRAW_RELATIVE, x, y);
+#endif
 }
 
 /*
@@ -3342,11 +3490,13 @@ void emulate_fillby(int32 x, int32 y) {
 ** sets the absolute location of the origin on the graphics screen
 */
 void emulate_origin(int32 x, int32 y) {
+#ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_ORIGIN);
   emulate_vdu(x & BYTEMASK);
   emulate_vdu((x>>BYTESHIFT) & BYTEMASK);
   emulate_vdu(y & BYTEMASK);
   emulate_vdu((y>>BYTESHIFT) & BYTEMASK);
+#endif
 }
 
 /*
@@ -3458,8 +3608,12 @@ boolean init_screen(void) {
   scale_rect.x = scale_rect.y = 0;
   scale_rect.w = scale_rect.h = 1;
 
+  for (p=0; p<=6; p++) modetable[p].xres = 0;
+
   setup_mode(BRANDY_STARTUP_MODE);
+#ifndef BRANDY_MODE7ONLY
   star_refresh(3);
+#endif
 
   return TRUE;
 }
@@ -3503,16 +3657,10 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 }
 
 static void mode7renderline(int32 ypos, int32 fast) {
-  int32 ch, ch7, l_text_physbackcol, l_text_backcol, l_text_physforecol, l_text_forecol, xt;
+  int32 ch, ch7, xt;
   int32 y=0, yy=0, line=0, xch=0, mode7prevchar=32;
   Uint8 mode7flash=0, mode7vdu141on=0, mode7vdu141mode=1;
   
-  /* Preserve values */
-  l_text_physbackcol=text_physbackcol;
-  l_text_backcol=text_backcol;
-  l_text_physforecol=text_physforecol;
-  l_text_forecol=text_forecol;
-
   text_physbackcol=text_backcol=0;
   text_physforecol=text_forecol=7;
   set_rgb();
@@ -3679,24 +3827,20 @@ static void mode7renderline(int32 ypos, int32 fast) {
         if (vduflag(MODE7_BLACK)) write_vduflag(MODE7_ALTCHARS, vduflag(MODE7_ALTCHARS)? 0 : 1);
     }
   }
-
-  vduflags &=0x0000FFFF; /* Clear the teletext flags which are reset on a new line */
-  text_physbackcol=l_text_physbackcol;
-  text_backcol=l_text_backcol;
-  text_physforecol=l_text_physforecol;
-  text_forecol=l_text_forecol;
-  set_rgb();
 }
 
 static void mode7renderscreen(void) {
   int32 ypos;
   
+#ifndef BRANDY_MODE7ONLY
   if (screenmode != 7) return;
+#endif
   
   for (ypos=0; ypos < 26;ypos++) vdu141track[ypos]=0;
   for (ypos=0; ypos<=24; ypos++) mode7renderline(ypos, 1);
 }
 
+#ifndef BRANDY_MODE7ONLY
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
   int32 dx, dy, xf, yf, a, b, t, i;
 
@@ -3984,6 +4128,7 @@ static void filled_ellipse(SDL_Surface *screen,
     }
   }
 }
+#endif /* BRANDY_MODE7ONLY */
 
 Uint8 mousebuttonstate = 0;
 
@@ -4089,6 +4234,7 @@ void fullscreenmode(int onoff) {
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
+#ifndef BRANDY_MODE7ONLY
   if ((mode < 64) || (mode > HIGHMODE)) {
     emulate_printf("Warning: Can only define modes in the range 64 to %d.\r\n", HIGHMODE);
     return;
@@ -4115,14 +4261,17 @@ void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale,
   modetable[mode].ytext = (yres / 8);
   modetable[mode].xscale = mxscale;
   modetable[mode].yscale = myscale;
+#endif
 }
 
 void refresh_location(uint32 offset) {
+#ifndef BRANDY_MODE7ONLY
   uint32 ox,oy;
 
   ox=offset % ds.screenwidth;
   oy=offset / ds.screenwidth;
   blit_scaled(ox,oy,ox,oy);
+#endif
 }
 
 /* 0=off, 1=on, 2=onerror */
@@ -4132,7 +4281,9 @@ void star_refresh(int flag) {
     ds.autorefresh=flag;
   }
   if (flag & 1) {
+#ifndef BRANDY_MODE7ONLY
     if (screenmode == 7) {
+#endif
       int tmpflag=ds.autorefresh;
       ds.autorefresh=1;
       tmsg.mode7forcerefresh=1;
@@ -4140,6 +4291,7 @@ void star_refresh(int flag) {
       while (matrixflags.videothreadbusy) usleep(1000);
       ds.autorefresh=tmpflag;
       return;
+#ifndef BRANDY_MODE7ONLY
     } else {
       matrixflags.noupdate = 1;
       blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
@@ -4155,6 +4307,7 @@ void star_refresh(int flag) {
         SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
       }
     }
+#endif
     SDL_Flip(matrixflags.surface);
   }
   matrixflags.noupdate = 0;
@@ -4168,7 +4321,9 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
   if ((cx < 0) || (cy < 0) || (cx > (twinright-twinleft)) || (cy > (twinbottom-twintop))) return -1;
   cx+=twinleft;
   cy+=twintop;
+#ifndef BRANDY_MODE7ONLY
   if (screenmode == 7) {
+#endif
     int32 charvalue=mode7frame[cy][cx];
     switch (charvalue) {
       case 35: charvalue=96; break;
@@ -4176,6 +4331,7 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
       case 95: charvalue=35; break;
     }
     return (charvalue);
+#ifndef BRANDY_MODE7ONLY
   } else {
     int32 topx, topy, bgc, y, match;
     unsigned char cell[8];
@@ -4217,6 +4373,7 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
     }
     return (match);
   }
+#endif
 }
 
 int32 osbyte42(int x) {
@@ -4248,21 +4405,25 @@ int32 osbyte42(int x) {
 }
 
 void osbyte112(int x) {
+#ifndef BRANDY_MODE7ONLY
   /* OSBYTE 112 selects which bank of video memory is to be written to */
   sysvar[250]=x;
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) ds.writebank=(x-1);
   matrixflags.modescreen_ptr = screenbank[ds.writebank]->pixels;
+#endif
 }
 
 void osbyte113(int x) {
+#ifndef BRANDY_MODE7ONLY
   /* OSBYTE 113 selects which bank of video memory is to be displayed */
   sysvar[251]=x;
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) ds.displaybank=(x-1);
   blit_scaled_actual(0, 0, ds.screenwidth, ds.screenheight);
+#endif
 }
 
 void screencopy(int32 src, int32 dst) {
@@ -4293,6 +4454,7 @@ int32 osbyte251() {
 }
 
 void osword09(int64 x) {
+#ifndef BRANDY_MODE7ONLY
   unsigned char *block;
   int32 px, py;
 
@@ -4300,9 +4462,11 @@ void osword09(int64 x) {
   px=block[0] + (block[1] << 8);
   py=block[2] + (block[3] << 8);
   block[4] = emulate_pointfn(px, py);
+#endif
 }
 
 void osword0A(int64 x) {
+#ifndef BRANDY_MODE7ONLY
   unsigned char *block;
   int32 offset, i;
   
@@ -4310,6 +4474,7 @@ void osword0A(int64 x) {
   offset = block[0]-32;
   if (offset < 0) return;
   for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
+#endif
 }
 
 /* Like OSWORD 10 but for the MODE 7 16x20 font
@@ -4387,6 +4552,7 @@ void sdl_screenload(char *fname) {
 }
 
 void swi_swap16palette() {
+#ifndef BRANDY_MODE7ONLY
   Uint8 place = 0;
   int ptr = 0;
   if (colourdepth != 16) return;
@@ -4396,6 +4562,7 @@ void swi_swap16palette() {
     palette[ptr+24]=place;
   }
   set_rgb();
+#endif
 }
 
 /* Only a few flags are relevant to the emulation in Brandy */
@@ -4436,9 +4603,11 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 2:	return (modetable[scrmode].ytext-1);
     case 3:
       tmp=modetable[scrmode].coldepth;
+#ifndef BRANDY_MODE7ONLY
       if (tmp==256) tmp=64;
       if (tmp==COL15BIT) tmp=65536;
       if (tmp==COL24BIT) tmp=0;
+#endif
       return tmp-1;
     case 4:	return (modetable[scrmode].xscale);
     case 5:	return (modetable[scrmode].yscale);
@@ -4456,6 +4625,7 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 133: /* TWBRow */	return twinbottom;
     case 134: /* TWRCol */	return twinright;
     case 135: /* TWTRow */	return twintop;
+#ifndef BRANDY_MODE7ONLY
     case 136: /* OrgX */	return ds.xorigin;
     case 137: /* OrgY */	return ds.yorigin;
     case 153: /* GFCOL */	return ds.graph_forecol;
@@ -4466,6 +4636,7 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 158: /* GBTint */	return ds.graph_backtint;
     case 159: /* TFTint */	return text_foretint;
     case 160: /* TBTint */	return text_backtint;
+#endif
     case 161: /* MaxMode */	return HIGHMODE;
     default:	return 0;
   }
@@ -4524,7 +4695,9 @@ int videoupdatethread(void) {
             reveal_cursor();
           }
         }
+#ifndef BRANDY_MODE7ONLY
         if ((screenmode != 7) && ((mytime % 32) == 0) && (cursorstate == SUSPENDED)) blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
+#endif
         if (tmsg.crtc6845r10 & 64) {
           int cadence = (tmsg.crtc6845r10 & 32) ? 64 : 32;
           if (mytime % cadence < (cadence >>1)) {

@@ -90,6 +90,7 @@ static modetails modetable [127] = {
 /*  5 */  { 160, 256,   4, 1280,  1024,  20, 32, 4, 2,  TRUE},
 /*  6 */  { 320, 250,   2, 1280,  1000,  40, 25, 2, 2, FALSE},
 /*  7 */  { 640, 500,  16, 1280,  1000,  40, 25, 1, 1, FALSE},
+#ifndef BRANDY_MODE7ONLY
 /*  8 */  { 640, 256,   4, 1280,  1024,  80, 32, 1, 2,  TRUE},
 /*  9 */  { 320, 256,  16, 1280,  1024,  40, 32, 2, 2,  TRUE},
 /* 10 */  { 160, 256, 256, 1280,  1024,  20, 32, 4, 2,  TRUE},
@@ -171,6 +172,7 @@ static modetails modetable [127] = {
 /* 83 */  {1280,1024, COL24BIT, 2560,  2048, 160,128, 1, 1,  TRUE},
 /* 84 */  {1280, 768, COL24BIT, 2560,  1536, 160, 96, 1, 1,  TRUE},
 /* 85 */  {1600, 900, COL24BIT, 3200,  1800, 200,112, 1, 1,  TRUE},
+#endif /* BRANDY_MODE7ONLY */
 };
 #endif /* SIMPLETEXT_BUILD */
 
@@ -221,13 +223,15 @@ static int32
 #ifndef SIMPLETEXT_BUILD
 static int32
   colourdepth,			/* Number of colours allowed in current screen mode */
+#ifndef BRANDY_MODE7ONLY
   colourmask,			/* Mask to isolate logical colour number */
+  text_foretint,		/* Tint value added to foreground text colour in 256 colour modes */
+  text_backtint,		/* Tint value added to background text colour in 256 colour modes */
+#endif
   text_forecol,			/* Current text foreground logical colour number */
   text_backcol,			/* Current text background logical colour number */
   text_physforecol,		/* Current text foreground physical colour number */
   text_physbackcol,		/* Current text background physical colour number */
-  text_foretint,		/* Tint value added to foreground text colour in 256 colour modes */
-  text_backtint,		/* Tint value added to background text colour in 256 colour modes */
 #ifndef USE_SDL
   realwidth,			/* Width of the real screen in characters */
   realheight,			/* Height of the real screen in characters */
@@ -277,7 +281,9 @@ static unsigned int vduflags = 0;	/* VDU flags */
 ** equivalents under the other OSes.
 */
 #ifndef SIMPLETEXT_BUILD
+#ifndef BRANDY_MODE7ONLY
 static int32 logtophys[16];
+#endif
 #endif
 
 #endif
