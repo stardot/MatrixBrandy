@@ -3608,7 +3608,9 @@ boolean init_screen(void) {
   scale_rect.x = scale_rect.y = 0;
   scale_rect.w = scale_rect.h = 1;
 
+#ifdef BRANDY_MODE7ONLY
   for (p=0; p<=6; p++) modetable[p].xres = 0;
+#endif
 
   setup_mode(BRANDY_STARTUP_MODE);
 #ifndef BRANDY_MODE7ONLY
