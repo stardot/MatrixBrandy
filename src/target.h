@@ -61,14 +61,18 @@
 ** BRANDY_BUILD_FLAGS environment variable to override
 */
 #ifdef USE_SDL
-#ifndef BRANDY_STARTUP_MODE
+
 #ifdef BRANDY_MODE7ONLY
+#ifdef BRANDY_STARTUP_MODE
+#undef BRANDY_STARTUP_MODE
 #define BRANDY_STARTUP_MODE 7
+#endif
 #else
+#ifndef BRANDY_STARTUP_MODE
 #define BRANDY_STARTUP_MODE 0
 #endif
-#endif
-#endif
+#endif /* BRANDY_MODE7ONLY */
+#endif /* USE_SDL */
 
 /* Make NEWKBD the default */
 #ifndef OLDKBD

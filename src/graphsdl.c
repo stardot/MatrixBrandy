@@ -3613,7 +3613,7 @@ boolean init_screen(void) {
 #endif
 
   setup_mode(BRANDY_STARTUP_MODE);
-#ifndef BRANDY_MODE7ONLY
+#if BRANDY_STARTUP_MODE != 7
   star_refresh(3);
 #endif
 
@@ -4688,11 +4688,11 @@ int videoupdatethread(void) {
             if (vduflag(MODE7_BANK)) {
               SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
               write_vduflag(MODE7_BANK,0);
-              mode7timer=mytime + 100;
+              mode7timer=mytime + 96;
             } else {
               SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
               write_vduflag(MODE7_BANK,1);
-              mode7timer=mytime + 33;
+              mode7timer=mytime + 32;
             }
             reveal_cursor();
           }
