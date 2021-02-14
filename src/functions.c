@@ -353,14 +353,6 @@ static void fn_right(void) {
 }
 
 /*
-** 'fn_time' returns the value of the centisecond timer. How accurate
-** this is depends on the underlying OS
-*/
-static void fn_time(void) {
-  push_int(mos_rdtime());
-}
-
-/*
 ** 'timedol' returns the date and time as string in the standard
 ** RISC OS format. There is no need to emulate this as standard C
 ** functions can be used to return the value
@@ -374,6 +366,19 @@ static void fn_timedol(void) {
   cp = alloc_string(length);
   memcpy(cp, basicvars.stringwork, length);
   push_strtemp(length, cp);
+}
+
+/*
+** 'fn_time' returns the value of the centisecond timer. How accurate
+** this is depends on the underlying OS
+*/
+static void fn_time(void) {
+  if (*basicvars.current == '$') {
+    basicvars.current++;
+    fn_timedol();
+  } else {
+    push_int(mos_rdtime());
+  }
 }
 
 /*
@@ -1790,7 +1795,7 @@ static void fn_sysfn(void) {
 static void (*function_table[])(void) = {
   bad_token, fn_himem, fn_ext, fn_filepath,		/* 00..03 */
   fn_left, fn_lomem, fn_mid, fn_page,			/* 04..07 */
-  fn_ptr, fn_right, fn_time, fn_timedol,		/* 08..0B */
+  fn_ptr, fn_right, fn_time, bad_token,			/* 08..0B */
   bad_token, bad_token, bad_token, bad_token,		/* 0C..0F */
   fn_abs, fn_acs, fn_adval, fn_argc,			/* 10..13 */
   fn_argvdol, fn_asc, fn_asn, fn_atn, 			/* 14..17 */

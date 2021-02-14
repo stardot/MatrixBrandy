@@ -285,7 +285,6 @@
 #define BASIC_TOKEN_PTR		0x08u
 #define BASIC_TOKEN_RIGHT	0x09u
 #define BASIC_TOKEN_TIME	0x0Au
-#define BASIC_TOKEN_TIMEDOL	0x0Bu
 
 /*
 ** Functions.

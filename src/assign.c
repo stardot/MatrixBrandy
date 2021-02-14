@@ -2922,7 +2922,7 @@ void assign_pseudovar(void) {
   byte token;
   basicvars.current++;
   token = *basicvars.current;
-  if (token>=BASIC_TOKEN_HIMEM && token<=BASIC_TOKEN_TIMEDOL)
+  if (token>=BASIC_TOKEN_HIMEM && token<=BASIC_TOKEN_TIME)
     (*pseudovars[token])();	/* Dispatch an assignment to a pseudo variable */
   else if (token<=BASIC_TOKEN_VPOS)	/* Function call on left hand side of assignment */
     error(ERR_SYNTAX);

@@ -256,7 +256,6 @@ static token tokens [] = {
   {"TAN",       3, 1, TYPE_FUNCTION,    BASIC_TOKEN_TAN,      TYPE_FUNCTION, BASIC_TOKEN_TAN,       FALSE,  FALSE},
   {"TEMPO",     5, 2, TYPE_ONEBYTE,     BASIC_TOKEN_TEMPO,    TYPE_FUNCTION, BASIC_TOKEN_TEMPOFN,   FALSE,  FALSE},
   {"THEN",      4, 2, TYPE_ONEBYTE,     BASIC_TOKEN_THEN,     TYPE_ONEBYTE, BASIC_TOKEN_THEN,       FALSE,  TRUE},
-  {"TIME$",     5, 5, TYPE_FUNCTION,    BASIC_TOKEN_TIMEDOL,  TYPE_FUNCTION, BASIC_TOKEN_TIMEDOL,   TRUE,   FALSE},
   {"TIME",      4, 2, TYPE_FUNCTION,    BASIC_TOKEN_TIME,     TYPE_FUNCTION, BASIC_TOKEN_TIME,      TRUE,   FALSE},
   {"TINT",      4, 3, TYPE_ONEBYTE,     BASIC_TOKEN_TINT,     TYPE_ONEBYTE, BASIC_TOKEN_TINT,       FALSE,  FALSE}, /* 137 */
   {"TO",        2, 3, TYPE_ONEBYTE,     BASIC_TOKEN_TO,       TYPE_ONEBYTE, BASIC_TOKEN_TO,         FALSE,  FALSE},
@@ -1984,7 +1983,7 @@ boolean isvalid(byte *bp) {
         if (cp[1] == 0 || cp[1] > BASIC_TOKEN_TAB) return FALSE;
         break;
      case TYPE_FUNCTION:
-        if (cp[1] == 0 || (cp[1] > BASIC_TOKEN_TIMEDOL && cp[1] < BASIC_TOKEN_ABS) || cp[1] > BASIC_TOKEN_VPOS) return FALSE;
+        if (cp[1] == 0 || (cp[1] > BASIC_TOKEN_TIME && cp[1] < BASIC_TOKEN_ABS) || cp[1] > BASIC_TOKEN_VPOS) return FALSE;
         break;
       case TYPE_COMMAND:
         if (cp[1] == 0 || cp[1] > BASIC_TOKEN_TWINO) return FALSE;
