@@ -552,21 +552,14 @@ static boolean nextis(char *string) {
 ** not perfect but it should get around most problems.
 */
 static int kwsearch(void) {
-  int n, count, kwlength, cont = 1;
+  int n, count, kwlength;
   char first, *cp;
   boolean nomatch, abbreviated;
   char keyword[MAXKWLEN+1];
   cp = lp;
-  for (n=0; n<MAXKWLEN && cont && (isalpha(*cp) || *cp == '$' || *cp == '('); n++) {
+  for (n=0; n<MAXKWLEN && (isalpha(*cp) || *cp == '$' || *cp == '('); n++) {
     keyword[n] = *cp;
     cp++;
-    /* This is a bit of a kludge, it assumes that a keyword cannot have
-    ** any character following a '(', and the only character that can follow
-    ** a '$' is a '(', e.g. MID$(. By using a flag instead of break, n gets
-    ** incremented as needed.
-    */
-    if (keyword[n] == '(') cont = 0;
-    if (keyword[n] == '$' && *cp != '(') cont = 0;
   }
   abbreviated = n < MAXKWLEN && *cp == '.';
   if (!abbreviated && n == 1) return NOKEYWORD; /* Text is only one character long - Cannot be a keyword */
