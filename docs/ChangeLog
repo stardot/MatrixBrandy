@@ -26,6 +26,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: PTR#0 now returns 0 (in line with BBC BASIC 2-5, 1 unknown) rather
   than throwing an error. Note ARM BBC BASIC VI returns the temporary file
   number as per OS_Args 0,0 with zero meaning none in use.
+- BASIC: Brandy internally used separate tokens for TIME and TIME$ meaning
+  TI.$ couldn't be used as an abbreviation (and it confused the parser). The
+  TIME$ token has been removed, so TI.$ works as per Acorn BBC BASIC.
 
 * V1.22.9 - 06 January 2021
 - Code: Removed some pointless comparisons (e.g. unsigned < 0)
