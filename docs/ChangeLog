@@ -1,7 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.10 -
+* V1.22.11 - 
+- System: Mouse position wasn't taking into account change of ORIGIN.
+
+* V1.22.10 - 14 February 2021
 - System: *Refresh OnError wasn't working correctly. Fixed.
 - System: Added a fix reducing the likelihood of where a textfile BASIC
   program could be misinterpreted as a tokenised one.

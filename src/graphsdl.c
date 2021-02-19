@@ -4146,9 +4146,12 @@ void get_sdl_mouse(int64 values[]) {
     mx=(mousebuffer->x *2);
     if (mx < 0) mx = 0;
     if (mx >= ds.xgraphunits) mx = (ds.xgraphunits - 1);
+    mx -= ds.xorigin;
+
     my=(2*(ds.vscrheight - mousebuffer->y));
     if (my < 0) my = 0;
     if (my >= ds.ygraphunits) my = (ds.ygraphunits - 1);
+    my -= ds.yorigin;
 
     mousequeue *m;
     values[0]=mx;
@@ -4193,10 +4196,12 @@ void get_sdl_mouse(int64 values[]) {
   x=(x*2);
   if (x < 0) x = 0;
   if (x >= ds.xgraphunits) x = (ds.xgraphunits - 1);
+  x -= ds.xorigin;
 
   y=(2*(ds.vscrheight-y));
   if (y < 0) y = 0;
   if (y >= ds.ygraphunits) y = (ds.ygraphunits - 1);
+  y -= ds.yorigin;
 
   values[0]=x;
   values[1]=y;
@@ -4205,8 +4210,8 @@ void get_sdl_mouse(int64 values[]) {
 }
 
 void warp_sdlmouse(int32 x, int32 y) {
-  tmsg.x = x;
-  tmsg.y = y;
+  tmsg.x = x + ds.xorigin;
+  tmsg.y = y + ds.yorigin;
   tmsg.mousecmd = 2;
 }
 
