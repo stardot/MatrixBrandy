@@ -386,6 +386,7 @@ void init_sound(){
 
  snd_tempo = 0;
  snd_beats = 0;
+ sdl_voices(4);
 }
 
 void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int32 delay){
