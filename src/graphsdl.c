@@ -193,6 +193,8 @@ static struct {
   int32 ylast;				/* Graphics Y coordinate of last point visited */
   int32 xlast2;				/* Graphics X coordinate of last-but-one point visited */
   int32 ylast2;				/* Graphics Y coordinate of last-but-one point visited */
+  int32 xlast3;				/* Graphics X coordinate of last-but-two point visited */
+  int32 ylast3;				/* Graphics Y coordinate of last-but-two point visited */
   int32 xorigin;			/* X coordinate of graphics origin */
   int32 yorigin;			/* Y coordinate of graphics origin */
   int32 xscale;				/* X direction scale factor */
@@ -2754,15 +2756,15 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
 */
 void emulate_plot(int32 code, int32 x, int32 y) {
 #ifndef BRANDY_MODE7ONLY
-  int32 xlast3, ylast3, sx, sy, ex, ey, action;
+  int32 sx, sy, ex, ey, action;
   Uint32 colour = 0;
   SDL_Rect plot_rect, temp_rect;
   if (istextonly()) return;
 /* Decode the command */
   ds.plot_inverse = 0;
   action = ds.graph_fore_action;
-  xlast3 = ds.xlast2;
-  ylast3 = ds.ylast2;
+  ds.xlast3 = ds.xlast2;
+  ds.ylast3 = ds.ylast2;
   ds.xlast2 = ds.xlast;
   ds.ylast2 = ds.ylast;
   if ((code & ABSCOORD_MASK) != 0 ) {		/* Coordinate (x,y) is absolute */
@@ -2821,10 +2823,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     break;
   case FILL_TRIANGLE: {		/* Plot a filled triangle */
     int32 left, right, top, bottom;
-    filled_triangle(screenbank[ds.writebank], GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
+    filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
-    left = right = xlast3;
-    top = bottom = ylast3;
+    left = right = ds.xlast3;
+    top = bottom = ds.ylast3;
     if (ds.xlast2 < left) left = ds.xlast2;
     if (ds.xlast < left) left = ds.xlast;
     if (ds.xlast2 > right) right = ds.xlast2;
@@ -2864,13 +2866,13 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
   case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
     int32 vx, vy, left, right, top, bottom;
-    filled_triangle(screenbank[ds.writebank], GXTOPX(xlast3), GYTOPY(ylast3), sx, sy, ex, ey, colour, action);
-    vx = xlast3-ds.xlast2+ds.xlast;
-    vy = ylast3-ds.ylast2+ds.ylast;
-    filled_triangle(screenbank[ds.writebank], ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(xlast3), GYTOPY(ylast3), colour, action);
+    filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
+    vx = ds.xlast3-ds.xlast2+ds.xlast;
+    vy = ds.ylast3-ds.ylast2+ds.ylast;
+    filled_triangle(screenbank[ds.writebank], ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the parallelogram */
-    left = right = xlast3;
-    top = bottom = ylast3;
+    left = right = ds.xlast3;
+    top = bottom = ds.ylast3;
     if (ds.xlast2 < left) left = ds.xlast2;
     if (ds.xlast < left) left = ds.xlast;
     if (vx < left) left = vx;
@@ -2893,21 +2895,21 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     break;
   case SHIFT_RECTANGLE: {	/* Move or copy a rectangle */
     int32 destleft, destop, left, right, top, bottom;
-    if (xlast3 < ds.xlast2) {	/* Figure out left and right hand extents of rectangle */
-      left = GXTOPX(xlast3);
+    if (ds.xlast3 < ds.xlast2) {	/* Figure out left and right hand extents of rectangle */
+      left = GXTOPX(ds.xlast3);
       right = GXTOPX(ds.xlast2);
     }
     else {
       left = GXTOPX(ds.xlast2);
-      right = GXTOPX(xlast3);
+      right = GXTOPX(ds.xlast3);
     }
-    if (ylast3 > ds.ylast2) {	/* Figure out upper and lower extents of rectangle */
-      top = GYTOPY(ylast3);
+    if (ds.ylast3 > ds.ylast2) {	/* Figure out upper and lower extents of rectangle */
+      top = GYTOPY(ds.ylast3);
       bottom = GYTOPY(ds.ylast2);
     }
     else {
       top = GYTOPY(ds.ylast2);
-      bottom = GYTOPY(ylast3);
+      bottom = GYTOPY(ds.ylast3);
     }
     destleft = GXTOPX(ds.xlast);		/* X coordinate of top left-hand corner of destination */
     destop = GYTOPY(ds.ylast)-(bottom-top);	/* Y coordinate of top left-hand corner of destination */
@@ -3044,11 +3046,11 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 ** point on the circumference in the +ve X direction and (xlast, ylast)
 ** is a point on the circumference in the +ve Y direction
 */
-    semimajor = abs(ds.xlast2-xlast3)/ds.xgupp;
-    semiminor = abs(ds.ylast-ylast3)/ds.ygupp;
-    sx = GXTOPX(xlast3);
-    sy = GYTOPY(ylast3);
-    shearx=(GXTOPX(ds.xlast)-sx)*(ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
+    semimajor = abs(ds.xlast2-ds.xlast3)/ds.xgupp;
+    semiminor = abs(ds.ylast-ds.ylast3)/ds.ygupp;
+    sx = GXTOPX(ds.xlast3);
+    sy = GYTOPY(ds.ylast3);
+    shearx=(GXTOPX(ds.xlast)-sx)*(ds.ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
 
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
       draw_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
@@ -4635,6 +4637,16 @@ int32 readmodevariable(int32 scrmode, int32 var) {
 #ifndef BRANDY_MODE7ONLY
     case 136: /* OrgX */	return ds.xorigin;
     case 137: /* OrgY */	return ds.yorigin;
+    case 138: /* GCsX */	return ds.xlast-ds.xorigin;
+    case 139: /* GCsY */	return ds.ylast-ds.yorigin;
+    case 140: /* OlderCsX */	return ds.xlast3/(2*ds.xscale);
+    case 141: /* OlderCsY */	return ds.ylast3/(2*ds.yscale);
+    case 142: /* OldCsX */	return ds.xlast2/(2*ds.xscale);
+    case 143: /* OldCsY */	return ds.ylast2/(2*ds.yscale);
+    case 144: /* GCsIX */	return ds.xlast/(2*ds.xscale);
+    case 145: /* GCsIY */	return ds.ylast/(2*ds.yscale);
+    case 146: /* NewPtX */	return ds.xlast/(2*ds.xscale);
+    case 147: /* NewPtY */	return ds.ylast/(2*ds.yscale);
     case 153: /* GFCOL */	return ds.graph_forecol;
     case 154: /* GBCOL */	return ds.graph_backcol;
     case 155: /* TForeCol */	return text_forecol;
