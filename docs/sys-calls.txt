@@ -187,7 +187,8 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &14000B Brandy_uSleep           Calls the OS function usleep(R0).
 
-&14000C Brandy_dlopen           Calls the OS function dlopen(R0,RTLD_LAZY).
+&14000C Brandy_dlopen           Calls the OS function
+                                dlopen(R0,RTLD_NOW|RTLD_GLOBAL).
                                 Handle is returned in R0.
 
 &14000D Brandy_dlcall           Locates the symbol in R0, and calls it with

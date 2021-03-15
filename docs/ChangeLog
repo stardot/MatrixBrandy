@@ -3,6 +3,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.22.11 - 
 - System: Mouse position wasn't taking into account change of ORIGIN.
+- System: Changes to dlopen, otherwise symbols weren't being recognised.
+- BASIC: On non-RISC OS platforms, increase SYS parameters to 16 to support
+  "Brandy_dlcall" calling symbols which take a lot of parameters.
 
 * V1.22.10 - 14 February 2021
 - System: *Refresh OnError wasn't working correctly. Fixed.

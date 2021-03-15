@@ -574,7 +574,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       break;
     case SWI_Brandy_dlopen:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-      outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0], RTLD_LAZY);
+      outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0], RTLD_NOW|RTLD_GLOBAL);
 #else
       if (!xflag) error(ERR_DL_NODL);
       outregs[0]=0;
@@ -587,7 +587,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=get_dladdr(inregs[0], xflag);
-        if (dlsh != (void *)-1) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
+        if (dlsh != (void *)-1) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9], (size_t)inregs[10], (size_t)inregs[11], (size_t)inregs[12], (size_t)inregs[13], (size_t)inregs[14], (size_t)inregs[15]);
       }
 #else
       if (!xflag) error(ERR_DL_NODL);
@@ -653,7 +653,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=(void *)(size_t)inregs[0];
         if (dlsh != (void *)-1) {
-          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9]);
+          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9], (size_t)inregs[10], (size_t)inregs[11], (size_t)inregs[12], (size_t)inregs[13], (size_t)inregs[14], (size_t)inregs[15]);
         } else {
           error(ERR_ADDREXCEPT);
         }
