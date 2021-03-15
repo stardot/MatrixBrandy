@@ -142,21 +142,22 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 #endif
 
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-void *get_dladdr(size_t nameptr, int32 xflag) {
+static void *get_dladdr(size_t nameptr, void *libhandle, int32 xflag) {
   void *dlsh;
 #ifndef TARGET_MINGW
   char *errcond;
 #endif
 
+  if (libhandle == NULL) libhandle = RTLD_DEFAULT;
   dlerror(); /* Flush the error state */
 #ifdef TARGET_MINGW
-  *(void **)(&dlsh)=rtrdlsym(RTLD_DEFAULT, (void *)nameptr);
+  *(void **)(&dlsh)=rtrdlsym(libhandle, (void *)nameptr);
   if (dlsh == NULL) { 
     if (!xflag) error(ERR_DL_NOSYM, "Symbol not found");
     dlsh = (void *)-1;
   }
 #else
-  *(void **)(&dlsh)=dlsym(RTLD_DEFAULT, (void *)nameptr);
+  *(void **)(&dlsh)=dlsym(libhandle, (void *)nameptr);
   errcond=dlerror();
   if (errcond != NULL) { 
     if (!xflag) error(ERR_DL_NOSYM, errcond);
@@ -586,7 +587,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         size_t (*dlsh)(size_t, ...);
 
         dlerror(); /* Flush the error state */
-        *(void **)(&dlsh)=get_dladdr(inregs[0], xflag);
+        *(void **)(&dlsh)=get_dladdr(inregs[0], NULL, xflag);
         if (dlsh != (void *)-1) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9], (size_t)inregs[10], (size_t)inregs[11], (size_t)inregs[12], (size_t)inregs[13], (size_t)inregs[14], (size_t)inregs[15]);
       }
 #else
@@ -639,7 +640,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         break;
     case SWI_Brandy_dlgetaddr:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-        outregs[0]=(size_t)get_dladdr(inregs[0], xflag);
+        outregs[0]=(size_t)get_dladdr(inregs[0], (void *)inregs[1], xflag);
 #else
         if (!xflag) error(ERR_DL_NODL);
         outregs[0]=0;
