@@ -243,7 +243,9 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
   FILE *file_handle;
   char *pointer;
   struct stat statbuf;
+#ifdef USE_SDL
   SDL_SysWMinfo wmInfo;
+#endif
 
   memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
@@ -649,7 +651,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         break;
     case SWI_Brandy_dlgetaddr:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-        outregs[0]=(size_t)get_dladdr(inregs[0], (void *)inregs[1], xflag);
+        outregs[0]=(size_t)get_dladdr(inregs[0], (void *)(size_t)inregs[1], xflag);
 #else
         if (!xflag) error(ERR_DL_NODL);
         outregs[0]=0;
