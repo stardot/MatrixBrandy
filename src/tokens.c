@@ -1845,7 +1845,7 @@ static void clear_varaddrs(byte *bp) {
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
-    if (*tp == BASIC_TOKEN_XVAR || (*tp >= BASIC_TOKEN_INTVAR && *tp <= BASIC_TOKEN_FLOATINDVAR)) {
+    if (*tp == BASIC_TOKEN_XVAR || (*tp >= BASIC_TOKEN_UINT8VAR && *tp <= BASIC_TOKEN_FLOATINDVAR)) {
       while (*sp != BASIC_TOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
       if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
       sp++;     /* Point at first char of name */
