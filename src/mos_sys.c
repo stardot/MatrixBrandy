@@ -45,6 +45,7 @@
 #include "miscprocs.h"
 #ifdef USE_SDL
 #include "SDL.h"
+#include "SDL_syswm.h"
 #include "graphsdl.h"
 #endif
 #ifdef TARGET_MINGW
@@ -242,6 +243,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
   FILE *file_handle;
   char *pointer;
   struct stat statbuf;
+  SDL_SysWMinfo wmInfo;
 
   memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
@@ -521,6 +523,13 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       outregs[4]=matrixflags.mode7fb;
       outregs[5]=(size_t)matrixflags.surface;
       outregs[6]=(size_t)matrixflags.surface->format;
+      SDL_GetWMInfo(&wmInfo);
+      /* Ugh, the UNIX struct is a different shape to the others! */
+#ifdef TARGET_UNIX
+      outregs[7]=(size_t)wmInfo.info.x11.window;
+#else
+      outregs[7]=(size_t)wmInfo.window;
+#endif /* TARGET_UNIX */
 #else
       strncpy(outstring,"no_sdl",64);
       outregs[2] = 0;

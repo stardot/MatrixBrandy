@@ -125,6 +125,7 @@ Brandy_xxx  (SWI numbers start &140000)
                                 R5: SDL surface handle (pointer)
                                 R6: Pointer to SDL_PixelFormat structure of
                                     the display surface.
+                                R7: OS-native window handle
 
 &140003 Brandy_SetFailoverMode  R0: Set mode to be selected should chosen screen
                                     mode be unavailable (instead of returning
