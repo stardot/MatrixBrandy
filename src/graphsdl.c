@@ -4689,10 +4689,10 @@ int videoupdatethread(void) {
         setup_mode(tmsg.modechange);
       }
     } else {
-      SDL_PumpEvents(); /* This is for the keyboard stuff */
       mytime = basicvars.centiseconds;
       if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {
         matrixflags.videothreadbusy = 1;
+        SDL_PumpEvents(); /* This is for the keyboard stuff */
         if (screenmode == 7) {
           if (tmsg.mode7forcerefresh || memcmp(mode7cloneframe, mode7frame, 1000)) {
             memcpy(mode7cloneframe, mode7frame, 1000);
