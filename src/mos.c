@@ -707,7 +707,7 @@ int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
 ** The layout of the flags bits are:
 **  N (sign) Z (zero) C (carry) V (overflow)
 */
-void mos_sys(int32 swino, int32 inregs[], int32 outregs[], int32 *flags) {
+void mos_sys(size_t swino, size_t inregs[], size_t outregs[], size_t *flags) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int n;
@@ -898,7 +898,7 @@ void mos_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
 /*
 ** 'mos_mouse' emulates the Basic 'MOUSE' statement
 */
-void mos_mouse(int64 values[]) {
+void mos_mouse(size_t values[]) {
 #ifdef USE_SDL
   get_sdl_mouse(values);
 #else
@@ -942,7 +942,7 @@ void mos_mouse(int64 values[]) {
 ** -12- other buffers		etc
 */
 int32 mos_adval(int32 x) {
-  int64 inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
+  size_t inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
 
   x = x & 0xFFFF;				/* arg is a 16-bit value		*/
   if((x>6) & (x<10)) {
@@ -2372,7 +2372,7 @@ void mos_getswiname(size_t swino, size_t namebuf, size_t buflen, int32 inxflag) 
 ** 'mos_get_swinum' returns the SWI number corresponding to
 ** SWI 'name'
 */
-int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
+size_t mos_getswinum(char *name, int32 length, int32 inxflag) {
   int32 ptr;
   int32 xflag=0;
   char namebuffer[128];
@@ -2401,7 +2401,7 @@ int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
 ** Most SWI calls are defined in mos_sys.c except the few that
 ** call other functions in this file.
 */
-void mos_sys(int64 swino, int64 inregs[], int64 outregs[], int64 *flags) {
+void mos_sys(size_t swino, size_t inregs[], size_t outregs[], size_t *flags) {
   int32 ptr, rtn;
   int32 xflag;
 

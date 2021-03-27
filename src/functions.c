@@ -1763,11 +1763,7 @@ static void fn_sysfn(void) {
   basicstring descriptor;
   stackitem stringtype;
   char *tmpstring;
-#ifdef TARGET_RISCOS
-  int32 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
-#else
-  int64 inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
-#endif
+  size_t inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
@@ -1777,7 +1773,7 @@ static void fn_sysfn(void) {
     tmpstring[descriptor.stringlen]='\0';
     inregs[1] = (size_t)tmpstring;
     mos_sys(SWI_OS_SWINumberFromString+XBIT, inregs, outregs, 0);
-    push_int64(outregs[0]);
+    push_varyint(outregs[0]);
     free(tmpstring);
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
   }

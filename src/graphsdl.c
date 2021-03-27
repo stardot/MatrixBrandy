@@ -4136,7 +4136,7 @@ static void filled_ellipse(SDL_Surface *screen,
 
 Uint8 mousebuttonstate = 0;
 
-void get_sdl_mouse(int64 values[]) {
+void get_sdl_mouse(size_t values[]) {
   int x, y;
   int breakout = 0;
   SDL_Event ev;

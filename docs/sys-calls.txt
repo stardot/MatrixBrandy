@@ -105,7 +105,8 @@ Brandy_xxx  (SWI numbers start &140000)
                                 R3: Git commit SHA (if available)
                                 R4: Pointer to host OS name string
                                 R5: 1 if SDL build, otherwise 0.
-                                R6: Returns a fixed 64-bit value:
+                                R6: Returns a fixed 64-bit value on 64-bit
+                                    hardware (truncated on 32-bit):
                                     &123456789ABCDEF0
                                 R7: 1 if 64-bit build, otherwise 0.
 
@@ -217,8 +218,8 @@ Brandy_xxx  (SWI numbers start &140000)
                                 R3: SDL build? (1 or 0)
                                 R4: Machine type (as returned by OSBYTE 0)
                                 R5: "Legacy" INKEY-256 (e.g. &F9 for Linux)
-                                R6: The PID and PPID of the current process.
-                                    (formatted as PID + (PPID << 32))
+                                R6: The PID of the current process.
+                                R7: The Parent PID of the current process.
                                     Note: PPID not returned on Windows.
 
 &140012 Brandy_RefreshInterval  Deleted, no longer recognised.

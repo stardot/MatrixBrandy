@@ -26,21 +26,12 @@
 #ifndef MOS_SWINUMS_H
 #define MOS_SWINUMS_H
 
-#ifdef TARGET_RISCOS
-extern void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags);
+extern void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, size_t *flags);
 
 typedef struct {
-  int32 swinum;		/* RISC OS SWI number */
+  size_t swinum;		/* RISC OS SWI number */
   char *swiname;	/* SWI Name */
 } switable;
-#else
-extern void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags);
-
-typedef struct {
-  int64 swinum;		/* RISC OS SWI number */
-  char *swiname;	/* SWI Name */
-} switable;
-#endif
 
 /* Source: http://www.riscos.com/support/developers/prm_index/numswilist.html */
 

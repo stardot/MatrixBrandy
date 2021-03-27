@@ -35,7 +35,7 @@ typedef struct {
 	boolean videothread;		/* Set to 0 when video thread pass finished */
 } threadmsg;
 
-extern void get_sdl_mouse(int64 values[]);
+extern void get_sdl_mouse(size_t values[]);
 extern void warp_sdlmouse(int32 x, int32 y);
 extern void sdl_mouse_onoff(int state);
 extern void fullscreenmode(int onoff);

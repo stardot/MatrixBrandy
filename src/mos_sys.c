@@ -143,6 +143,14 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 #endif
 
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+#pragma GCC optimize "O0"
+static size_t do_syscall(size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
+                       size_t, size_t, size_t, size_t, size_t, size_t, size_t), size_t inregs[]) {
+
+    return (*dlsh)(inregs[1], inregs[2], inregs[3], inregs[4], inregs[5], inregs[6], inregs[7], inregs[8], inregs[9], inregs[10], inregs[11], inregs[12], inregs[13], inregs[14], inregs[15]);
+}
+#pragma GCC reset_options
+
 static void *get_dladdr(size_t nameptr, void *libhandle, int32 xflag) {
   void *dlsh;
 #ifndef TARGET_MINGW
@@ -188,11 +196,7 @@ static uint32 rpi2gpio(uint32 newtype) {
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
 ** This implementation is local to Brandy.
 */
-#ifdef TARGET_RISCOS
-static void mos_rpi_gpio_sys(int32 swino, int32 inregs[], int32 outregs[], int32 xflag) {
-#else
-static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32 xflag) {
-#endif
+static void mos_rpi_gpio_sys(size_t swino, size_t inregs[], size_t outregs[], int32 xflag) {
   if (!matrixflags.gpio) {
     if (!xflag) error(ERR_NO_RPI_GPIO);
     return;
@@ -233,11 +237,7 @@ static void mos_rpi_gpio_sys(int64 swino, int64 inregs[], int64 outregs[], int32
 /* This is the handler for almost all SYS calls on non-RISC OS platforms.
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
-#ifdef TARGET_RISCOS
-void mos_sys_ext(int32 swino, int32 inregs[], int32 outregs[], int32 xflag, int32 *flags) {
-#else
-void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int64 *flags) {
-#endif
+void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, size_t *flags) {
   int32 a, b;
   int64 i;
   FILE *file_handle;
@@ -385,7 +385,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       a=kbd_readline(outstring, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
       outregs[1]=a;				/* Returned length			*/
 						/* Should also set Carry if Escape	*/
-      outregs[0]=(int64)(size_t)outstring;
+      outregs[0]=(size_t)outstring;
       break;
 #else
     case SWI_OS_ReadLine:
@@ -400,7 +400,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       *vptr='\0';
       (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
       a=outregs[1]=strlen(outstring);
-      outregs[0]=(int64)(size_t)outstring;
+      outregs[0]=(size_t)outstring;
       break;
 #endif
     case SWI_OS_GetEnv:
@@ -485,11 +485,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif /* not TARGET_RISCOS */
     case SWI_Brandy_Version:
       strncpy(outstring,BRANDY_OS,64);
-#ifdef TARGET_RISCOS
       outregs[4]=(size_t)outstring;
-#else
-      outregs[4]=(int64)(size_t)outstring;
-#endif
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
       outregs[3]=strtol(BRANDY_GITCOMMIT,NULL,16);
@@ -501,11 +497,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #else
       outregs[5]=0;
 #endif
-#ifdef TARGET_RISCOS
-      outregs[6]=0x9ABCDEF0;
-#else
-      outregs[6]=0x123456789ABCDEF0ll;
-#endif
+      outregs[6]=(size_t)0x123456789ABCDEF0ll;
 #ifdef MATRIX64BIT
       outregs[7]=1;
 #else
@@ -544,7 +536,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
       strncpy(outstring,"riscos",64);
 #endif
       outregs[1]=strlen(outstring);
-      outregs[0]=(int64)(size_t)outstring;
+      outregs[0]=(size_t)outstring;
       break;
     case SWI_Brandy_SetFailoverMode:
       matrixflags.failovermode=inregs[0];
@@ -595,11 +587,14 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
     case SWI_Brandy_dlcall:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
-        size_t (*dlsh)(size_t, ...);
+        size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
+                       size_t, size_t, size_t, size_t, size_t, size_t, size_t);
 
+        fprintf(stderr, "function %s, inregs[1]=&%X (%d)\n", (char *)inregs[0], inregs[1], inregs[1]);
+	fflush(stderr);
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=get_dladdr(inregs[0], NULL, xflag);
-        if (dlsh != (void *)-1) outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9], (size_t)inregs[10], (size_t)inregs[11], (size_t)inregs[12], (size_t)inregs[13], (size_t)inregs[14], (size_t)inregs[15]);
+        if (dlsh != (void *)-1) outregs[0]=do_syscall(dlsh, inregs);
       }
 #else
       if (!xflag) error(ERR_DL_NODL);
@@ -624,8 +619,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
         matrixflags.bitshift64 = inregs[0];
         break;
     case SWI_Brandy_Platform:
-        outregs[0]=(int64)(size_t)ostype;
-        outregs[1]=(int64)(size_t)cputype;
+        outregs[0]=(size_t)ostype;
+        outregs[1]=(size_t)cputype;
 #ifdef MATRIX64BIT
         outregs[2]=1;
 #else
@@ -638,11 +633,8 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 #endif
         outregs[4]=(MACTYPE >> 8);
         outregs[5]=LEGACY_OSVERSION;
-#ifdef TARGET_MINGW
         outregs[6]=getpid();
-#else
-        outregs[6]=getpid() + ((uint64)getppid() << 32);
-#endif
+        outregs[7]=getppid();
         break;
     case SWI_Brandy_MouseEventExpire:
 #ifdef USE_SDL
@@ -705,7 +697,7 @@ void mos_sys_ext(int64 swino, int64 inregs[], int64 outregs[], int32 xflag, int6
 	  fclose(file_handle);
 	}
       }
-      outregs[1]=(int64)(size_t)outstring;
+      outregs[1]=(size_t)outstring;
       break;
     /* ALL OTHER GPIO stuff down here */
     case SWI_RaspberryPi_GetGPIOPortMode:
