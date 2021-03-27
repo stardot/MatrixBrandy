@@ -590,8 +590,6 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
         size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
                        size_t, size_t, size_t, size_t, size_t, size_t, size_t);
 
-        fprintf(stderr, "function %s, inregs[1]=&%X (%d)\n", (char *)inregs[0], inregs[1], inregs[1]);
-	fflush(stderr);
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=get_dladdr(inregs[0], NULL, xflag);
         if (dlsh != (void *)-1) outregs[0]=do_syscall(dlsh, inregs);
@@ -652,12 +650,13 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
     case SWI_Brandy_dlcalladdr:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
-        size_t (*dlsh)(size_t, ...);
+        size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
+                       size_t, size_t, size_t, size_t, size_t, size_t, size_t);
 
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=(void *)(size_t)inregs[0];
         if (dlsh != (void *)-1) {
-          outregs[0]=(*dlsh)((size_t)inregs[1], (size_t)inregs[2], (size_t)inregs[3], (size_t)inregs[4], (size_t)inregs[5], (size_t)inregs[6], (size_t)inregs[7], (size_t)inregs[8], (size_t)inregs[9], (size_t)inregs[10], (size_t)inregs[11], (size_t)inregs[12], (size_t)inregs[13], (size_t)inregs[14], (size_t)inregs[15]);
+          outregs[0]=do_syscall(dlsh, inregs);
         } else {
           error(ERR_ADDREXCEPT);
         }
