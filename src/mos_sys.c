@@ -632,7 +632,9 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
         outregs[4]=(MACTYPE >> 8);
         outregs[5]=LEGACY_OSVERSION;
         outregs[6]=getpid();
+#ifdef TARGET_UNIX
         outregs[7]=getppid();
+#endif
         break;
     case SWI_Brandy_MouseEventExpire:
 #ifdef USE_SDL
