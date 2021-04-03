@@ -1610,14 +1610,17 @@ void exec_oscli(void) {
   basicstring descriptor;
   lvalue response, linecount;
   boolean tofile;
+  char *oscli_string;
   char respname[FNAMESIZE];
   int count, n;
   FILE *respfile, *respfh;
   basicarray *ap;
+
   basicvars.current++;	/* Hop over the OSCLI token */
   expression();
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  oscli_string=malloc(MAXSTRING);
   tofile = *basicvars.current == BASIC_TOKEN_TO;
   if (tofile) {	/* Have got 'OSCLI <command> TO' */
     basicvars.current++;
@@ -1633,12 +1636,13 @@ void exec_oscli(void) {
   }
   check_ateol();
   descriptor = pop_string();
-  memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);	/* Copy string */
-  basicvars.stringwork[descriptor.stringlen] = asc_NUL;		/* Append a NUL keep OS_CLI happy */
+  memmove(oscli_string, descriptor.stringaddr, descriptor.stringlen);	/* Copy string */
+  oscli_string[descriptor.stringlen] = asc_NUL;		/* Append a NUL keep OS_CLI happy */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
 /* Issue command */
   if (!tofile) {	/* Response not wanted - Run command and go home */
-    mos_oscli(basicvars.stringwork, NIL, NULL);
+    mos_oscli(oscli_string, NIL, NULL);
+    free(oscli_string);
     return;
   }
 /*
@@ -1646,10 +1650,12 @@ void exec_oscli(void) {
 */
   respfh=secure_tmpnam(respname);
   if (!respfh) {
+    free(oscli_string);
     error (ERR_OSCLIFAIL, strerror (errno));
     return;
   }
-  mos_oscli(basicvars.stringwork, respname, respfh);
+  mos_oscli(oscli_string, respname, respfh);
+  free(oscli_string);
   respfile = fopen(respname, "rb");
   if (respfile == 0) return;
   ap = *response.address.arrayaddr;

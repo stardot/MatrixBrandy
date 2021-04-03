@@ -6,6 +6,11 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Changes to dlopen, otherwise symbols weren't being recognised.
 - System: SYS "Brandy_dlgetaddr" optionally takes a second parameter of a
   library handle returned by SYS "Brandy_dlopen".
+- System: SYS now only operates in 64-bit mode on 64-bit hardware.
+- System: Fixed a bug where the keyboard would stop responding after a while
+  in full-screen mode.
+- BASIC: Fixed a bug whereby the OSCLI command might have its parameter
+  trampled on.
 - BASIC: On non-RISC OS platforms, increase SYS parameters to 16 to support
   "Brandy_dlcall" calling symbols which take a lot of parameters.
 
