@@ -2597,7 +2597,7 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
     coldepth = COL24BIT;
   }
   for (n=0; n<=HIGHMODE; n++) {
-    if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
+    if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth && modetable[n].graphics==TRUE) break;
   }
   if (n > HIGHMODE) {
     /* Mode isn't predefined. So, let's make it. */
