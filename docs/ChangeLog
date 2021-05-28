@@ -9,6 +9,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: SYS now only operates in 64-bit mode on 64-bit hardware.
 - System: Fixed a bug where the keyboard would stop responding after a while
   in full-screen mode.
+- System: Bug fix on new-style MODE call where MODEs 3, 6 and 7 could be
+  matched.  It now only matches existing graphics-capable modes, and will
+  construct one (effectively doing *NewMode 126 x y bpp 1 1) if no matches
+  to existing modes are found.
 - BASIC: Fixed a bug whereby the OSCLI command might have its parameter
   trampled on.
 - BASIC: On non-RISC OS platforms, increase SYS parameters to 16 to support
