@@ -583,7 +583,8 @@ int32 TOINT(float64 fltmp) {
 }
 
 int64 TOINT64(float64 fltmp) {
-  if ((fltmp > MAXINT64VAL) || (fltmp < MININT64VAL)) error(ERR_RANGE);
+  if (fltmp > MAXINT64FLT) error(ERR_RANGE);
+  if (fltmp < MININT64FLT) error(ERR_RANGE);
   return (int64)fltmp;
 }
 

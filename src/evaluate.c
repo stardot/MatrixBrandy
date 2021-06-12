@@ -4059,7 +4059,7 @@ static void eval_vpow(void) {
   result = mpow(pop_anynumfp(), floatvalue);
   if ((lhitem == STACK_INT || lhitem == STACK_UINT8 || lhitem == STACK_INT64) &&
       (rhitem == STACK_INT || rhitem == STACK_UINT8 || rhitem == STACK_INT64) &&
-       (result <= MAXINT64VAL) && (result >= MININT64VAL)) {
+       (result <= MAXINT64FLT) && (result >= MININT64FLT)) {
     push_int64((int64)result);
   } else { /*Not all parameters are ints */
     push_float((float64)result);
