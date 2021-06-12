@@ -4051,9 +4051,8 @@ static long double mpow(float64 lh, float64 rh) {
 ** a 32-bit or 64-bit integer, or a floating point value
 */
 static void eval_vpow(void) {
-  int64 resultint;
-  long double resultfloat;
   stackitem lhitem, rhitem;
+  long double result;
   lhitem = GET_TOPITEM;
   floatvalue = pop_anynumfp();
   rhitem = GET_TOPITEM;
@@ -4061,9 +4060,9 @@ static void eval_vpow(void) {
   if ((lhitem == STACK_INT || lhitem == STACK_UINT8 || lhitem == STACK_INT64) &&
       (rhitem == STACK_INT || rhitem == STACK_UINT8 || rhitem == STACK_INT64) &&
        (result <= MAXINT64VAL) && (result >= MININT64VAL)) {
-    push_int64((int64)mpow(pop_anynumfp(), floatvalue));
+    push_int64((int64)result);
   } else { /*Not all parameters are ints */
-    push_float((float64)mpow(pop_anynumfp(), floatvalue));
+    push_float((float64)result);
   }
 }
 
