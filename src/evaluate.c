@@ -4040,8 +4040,8 @@ static void eval_famod(void) {
  * (FPA build on RISC OS 3.71).
  * It is slightly more permissive than BASIC versions I to V.
  */
-static float64 mpow(float64 lh, float64 rh) {
-  float64 result=pow(lh,rh);
+static long double mpow(float64 lh, float64 rh) {
+  long double result=powl((long double)lh,(long double)rh);
   if (isnan(result) || isinf(result)) error(ERR_ARITHMETIC);
   return result;
 }
@@ -4051,8 +4051,16 @@ static float64 mpow(float64 lh, float64 rh) {
 ** a 32-bit or 64-bit integer, or a floating point value
 */
 static void eval_vpow(void) {
+  stackitem lhitem, rhitem;
+  lhitem = GET_TOPITEM;
   floatvalue = pop_anynumfp();
-  push_float(mpow(pop_anynumfp(), floatvalue));
+  rhitem = GET_TOPITEM;
+  if ((lhitem == STACK_INT || lhitem == STACK_UINT8 || lhitem == STACK_INT64) &&
+      (rhitem == STACK_INT || rhitem == STACK_UINT8 || rhitem == STACK_INT64)) {
+    push_int64((int64)mpow(pop_anynumfp(), floatvalue));
+  } else { /*Not all parameters are ints */
+    push_float((float64)mpow(pop_anynumfp(), floatvalue));
+  }
 }
 
 /*

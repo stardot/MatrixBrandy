@@ -578,12 +578,12 @@ FILE *secure_tmpnam(char *name)
 
 /* These are reimplemented from macros */
 int32 TOINT(float64 fltmp) {
-  if ((fltmp >= 2147483648.0) || (fltmp <= -2147483649.0)) error(ERR_RANGE);
+  if ((fltmp >= 2147483648.0) || (fltmp < -2147483648.0)) error(ERR_RANGE);
   return (int32)fltmp;
 }
 
 int64 TOINT64(float64 fltmp) {
-  if ((fltmp > ((unsigned long int)1<<63)-1) || ((int64)fltmp < -(((int64)1<<63)-1))) error(ERR_RANGE);
+  if (((uint64)fltmp > MAXINT64VAL) || ((int64)fltmp < MININT64VAL)) error(ERR_RANGE);
   return (int64)fltmp;
 }
 

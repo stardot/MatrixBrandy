@@ -1080,6 +1080,18 @@ float64 pop_anynumfp(void) {
   return 0; /* Control never reaches here */
 }
 
+long double pop_anynumld(void) {
+  switch(GET_TOPITEM) {
+    case STACK_INT: return (long double)pop_int();
+    case STACK_UINT8: return (long double)pop_uint8();
+    case STACK_INT64: return (long double)pop_int64();
+    case STACK_FLOAT: return (long double)pop_float();
+    default: error(ERR_TYPENUM);
+  }
+  return 0; /* Control never reaches here */
+}
+
+
 /*
 ** 'pop_float' pops a floating point value from the Basic stack
 */

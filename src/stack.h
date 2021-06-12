@@ -68,6 +68,7 @@ extern int64 pop_int64(void);
 extern int32 pop_anynum32(void);
 extern int64 pop_anynum64(void);
 extern float64 pop_anynumfp(void);
+extern long double pop_anynumld(void);
 extern float64 pop_float(void);
 extern basicstring pop_string(void);
 extern basicarray *pop_array(void);
