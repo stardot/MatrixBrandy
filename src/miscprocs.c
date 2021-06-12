@@ -583,7 +583,7 @@ int32 TOINT(float64 fltmp) {
 }
 
 int64 TOINT64(float64 fltmp) {
-  if ((fltmp > ((int64)1<<62)-1) || ((int64)fltmp < -(((int64)1<<62)-1))) error(ERR_RANGE);
+  if ((fltmp > ((unsigned long int)1<<63)-1) || ((int64)fltmp < -(((int64)1<<63)-1))) error(ERR_RANGE);
   return (int64)fltmp;
 }
 

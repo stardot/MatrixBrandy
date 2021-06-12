@@ -1438,7 +1438,7 @@ static void print_screen(void) {
           if (matrixflags.hex64)
             size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_anynum64());
           else
-            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_anynum32());
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_anynum64());
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
         }
