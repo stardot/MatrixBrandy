@@ -4041,20 +4041,10 @@ static void eval_famod(void) {
  * It is slightly more permissive than BASIC versions I to V.
  */
 static long double mpow(float64 lh, float64 rh) {
-  long double result=powl((long double)lh,(long double)rh);
+  long double result;
+  set_fpu();
+  result=powl((long double)lh,(long double)rh);
   if (isnan(result) || isinf(result)) error(ERR_ARITHMETIC);
-  return result;
-}
-
-/* 64-bit integer power function */
-static int64 ipow(int64 base, int64 exp) {
-  int64 result = 1;
-  for (;;) {
-    if (exp & 1) result *=base;
-    exp >>=1;
-    if (!exp) break;
-    base *= base;
-  }
   return result;
 }
 
@@ -4063,18 +4053,12 @@ static int64 ipow(int64 base, int64 exp) {
 ** a 32-bit or 64-bit integer, or a floating point value
 */
 static void eval_vpow(void) {
-  int lhint, rhint;
   long double lh, rh, result;
-  int64 iresult = 1;
   rh = pop_anynumfp();
   lh = pop_anynumfp();
-  /* Now, are the numbers ints even if stored on the stack as floats? */
-  lhint = (lh == (int64)lh);
-  rhint = ((rh == (int64)rh) && rh >= 0);
   result = mpow(lh, rh);
-  if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && lhint && rhint) {
-    iresult = ipow((int64)lh, (int64)rh);
-    push_int64(iresult);
+  if (result == (int64)result) {
+    push_int64((int64)result);
   } else {
     push_float((float64)result);
   }

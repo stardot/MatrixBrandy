@@ -597,3 +597,10 @@ int32 INT64TO32(int64 itmp) {
   if ((itmp > 4294967295ll) || (itmp < -2147483648ll)) error(ERR_RANGE); /* Allow &80000000-FFFFFFFF */
   return (int32)itmp;
 }
+
+void set_fpu(void) {
+#if defined(__i386__) || defined(__x86_64__)
+  unsigned int mode = 0x37F;
+  asm ("fldcw %0" : : "m" (*&mode));
+#endif
+}

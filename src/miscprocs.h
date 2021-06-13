@@ -63,6 +63,7 @@ extern FILE *secure_tmpnam(char []);
 extern int32 TOINT(float64);
 extern int32 INT64TO32(int64);
 extern int64 TOINT64(float64);
+extern void set_fpu(void);
 #ifdef USE_SDL
 extern Uint8 mode7frame[25][40];
 #endif
