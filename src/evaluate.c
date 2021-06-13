@@ -4048,19 +4048,39 @@ static long double mpow(float64 lh, float64 rh) {
   return result;
 }
 
+/* 64-bit integer power function */
+static int64 ipow(int64 base, int64 exp) {
+  int64 result = 1;
+  for (;;) {
+    if (exp & 1) result *=base;
+    exp >>=1;
+    if (!exp) break;
+    base *= base;
+  }
+  return result;
+}
+
 /*
 ** 'eval_vpow' deals with the 'raise' operator when the right-hand operand is
 ** a 32-bit or 64-bit integer, or a floating point value
 */
 static void eval_vpow(void) {
+  int lhint, rhint;
   long double lh, rh, result;
+  rhint = TOPITEMISINT;
   rh = pop_anynumfp();
+  lhint = TOPITEMISINT;
   lh = pop_anynumfp();
   result = mpow(lh, rh);
-  if (result == (int64)result) {
-    push_int64((int64)result);
+  if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && lhint && rhint) {
+    push_int64(ipow((int64)lh, (int64)rh));
   } else {
-    push_float((float64)result);
+    if (result == (int64)result) {
+      /* Integer result by happenstance, return as a 64-bit int so as not to lose precision */
+      push_int64((int64)result);
+    } else {
+      push_float((float64)result);
+    }
   }
 }
 
