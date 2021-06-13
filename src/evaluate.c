@@ -4072,8 +4072,8 @@ static void eval_vpow(void) {
   lhint = (lh == (int64)lh);
   rhint = ((rh == (int64)rh) && rh >= 0);
   result = mpow(lh, rh);
-  if (lhint && rhint) iresult = ipow((int64)lh, (int64)rh);
   if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && lhint && rhint) {
+    iresult = ipow((int64)lh, (int64)rh);
     push_int64(iresult);
   } else {
     push_float((float64)result);
