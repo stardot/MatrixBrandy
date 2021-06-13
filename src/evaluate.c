@@ -4046,18 +4046,35 @@ static long double mpow(float64 lh, float64 rh) {
   return result;
 }
 
+/* 64-bit integer power function */
+static int64 ipow(int64 base, int64 exp) {
+  int64 result = 1;
+  for (;;) {
+    if (exp & 1) result *=base;
+    exp >>=1;
+    if (!exp) break;
+    base *= base;
+  }
+  return result;
+}
+
 /*
 ** 'eval_vpow' deals with the 'raise' operator when the right-hand operand is
 ** a 32-bit or 64-bit integer, or a floating point value
 */
 static void eval_vpow(void) {
-  long double result;
-  int64 iresult;
-  floatvalue = pop_anynumfp();
-  result = mpow(pop_anynumfp(), floatvalue);
-  iresult = (int64)result;
-  if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && (iresult == result)) {
-    push_int64((int64)result);
+  int lhint, rhint;
+  long double lh, rh, result;
+  int64 iresult = 1;
+  rh = pop_anynumfp();
+  lh = pop_anynumfp();
+  /* Now, are the numbers ints even if stored on the stack as floats? */
+  lhint = (lh == (int64)lh);
+  rhint = ((rh == (int64)rh) && rh >= 0);
+  result = mpow(lh, rh);
+  if (lhint && rhint) iresult = ipow((int64)lh, (int64)rh);
+  if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && lhint && rhint) {
+    push_int64(iresult);
   } else {
     push_float((float64)result);
   }
