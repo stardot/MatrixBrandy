@@ -4051,6 +4051,7 @@ static long double mpow(float64 lh, float64 rh) {
 /* 64-bit integer power function */
 static int64 ipow(int64 base, int64 exp) {
   int64 result = 1;
+  if (exp < 0) return 0; /* Should never be tripped, but remove risk of a near-infinite loop */
   for (;;) {
     if (exp & 1) result *=base;
     exp >>=1;
@@ -4069,6 +4070,7 @@ static void eval_vpow(void) {
   long double lh, rh, result;
   rhint = TOPITEMISINT;
   rh = pop_anynumfp();
+  if (rh<0) rhint=FALSE; /* Don't use integer routine if exponent is negative */
   lhint = TOPITEMISINT;
   lh = pop_anynumfp();
   result = mpow(lh, rh);
