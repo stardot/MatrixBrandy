@@ -67,7 +67,7 @@
 
 #define OPSTACKMARK 0			/* 'Operator' used as sentinel at the base of the operator stack */
 
-static float64 floatvalue;		/* Temporary for holding floating point values */
+static long double floatvalue;		/* Temporary for holding floating point values */
 static int64 int64value;		/* Temporary for holding 64-bit integers */
 /*
 ** Notes:
@@ -4068,6 +4068,7 @@ static int64 ipow(int64 base, int64 exp) {
 static void eval_vpow(void) {
   int lhint, rhint;
   long double lh, rh, result;
+  float64 res64;
   rhint = TOPITEMISINT;
   rh = pop_anynumfp();
   if (rh<0) rhint=FALSE; /* Don't use integer routine if exponent is negative */
@@ -4081,7 +4082,9 @@ static void eval_vpow(void) {
       /* Integer result by happenstance, return as a 64-bit int so as not to lose precision */
       push_int64((int64)result);
     } else {
-      push_float((float64)result);
+      res64=result;
+      if (isnan(res64) || isinf(res64)) error(ERR_ARITHMETIC);
+      push_float(res64);
     }
   }
 }
