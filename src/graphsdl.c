@@ -4647,14 +4647,15 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 145: /* GCsIY */	return ds.ylast/(2*ds.yscale);
     case 146: /* NewPtX */	return ds.xlast/(2*ds.xscale);
     case 147: /* NewPtY */	return ds.ylast/(2*ds.yscale);
+// 148-152 currently unsupported
     case 153: /* GFCOL */	return ds.graph_forecol;
     case 154: /* GBCOL */	return ds.graph_backcol;
     case 155: /* TForeCol */	return text_forecol;
     case 156: /* TBackCol */	return text_backcol;
-    case 157: /* GFTint */	return ds.graph_foretint;
-    case 158: /* GBTint */	return ds.graph_backtint;
-    case 159: /* TFTint */	return text_foretint;
-    case 160: /* TBTint */	return text_backtint;
+    case 157: /* GFTint */	return ds.graph_foretint << 6;
+    case 158: /* GBTint */	return ds.graph_backtint << 6;
+    case 159: /* TFTint */	return text_foretint << 6;
+    case 160: /* TBTint */	return text_backtint << 6;
 #endif
     case 161: /* MaxMode */	return HIGHMODE;
     default:	return 0;

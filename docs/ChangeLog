@@ -19,6 +19,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   "Brandy_dlcall" calling symbols which take a lot of parameters.
 - BASIC: Power was broken in the upper echelons of 64-bit ints, also conversion
   to ints was a bit broken for edge cases.
+- BASIC: Evaluations now carried out internally with 80-bit floats (where 
+  available), cast to 64-bit when returning values to BASIC.
 
 * V1.22.10 - 14 February 2021
 - System: *Refresh OnError wasn't working correctly. Fixed.
