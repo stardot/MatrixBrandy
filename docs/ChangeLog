@@ -13,6 +13,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   matched.  It now only matches existing graphics-capable modes, and will
   construct one (effectively doing *NewMode 126 x y bpp 1 1) if no matches
   to existing modes are found.
+- System: Emulated syscall OS_ReadModeVariable was incorrectly also returning
+  VDU variables. Now only Mode variables are returned, attempts to get any
+  other variable return 0, as they do on RISC OS.
+- Graphics: Reading VDU variables for TINT was giving incorrect values.
 - BASIC: Fixed a bug whereby the OSCLI command might have its parameter
   trampled on.
 - BASIC: On non-RISC OS platforms, increase SYS parameters to 16 to support
