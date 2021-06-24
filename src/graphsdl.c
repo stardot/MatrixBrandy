@@ -4487,6 +4487,13 @@ void osword0A(int64 x) {
 }
 
 void osword0B(int64 x) {
+  unsigned char *block;
+  
+  block=(unsigned char *)(size_t)x;
+  block[1] = 16;
+  block[2] = palette[block[0]*3+0];
+  block[3] = palette[block[0]*3+1];
+  block[4] = palette[block[0]*3+2];
 }
 
 void osword0C(int64 x) {
