@@ -4691,7 +4691,11 @@ int32 readmodevariable(int32 scrmode, int32 var) {
     case 145: /* GCsIY */	return ds.ylast/(2*ds.yscale);
     case 146: /* NewPtX */	return ds.xlast/(2*ds.xscale);
     case 147: /* NewPtY */	return ds.ylast/(2*ds.yscale);
-// 148-152 currently unsupported
+    case 148: /* ScreenStart */
+    case 149: /* DisplayStart */ return (size_t)matrixflags.modescreen_ptr;
+    case 150: /* TotalScreenSize */ return matrixflags.modescreen_sz;
+    case 151: /* GPLFMD */	return ds.graph_fore_action;
+    case 152: /* GPLBMD */	return ds.graph_back_action;
     case 153: /* GFCOL */	return ds.graph_forecol;
     case 154: /* GBCOL */	return ds.graph_backcol;
     case 155: /* TForeCol */	return text_forecol;

@@ -17,6 +17,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   VDU variables. Now only Mode variables are returned, attempts to get any
   other variable return 0, as they do on RISC OS.
 - System: Implemented OSWORDs 11 and 12, and SYS "OS_ReadPalette"
+- System: Implemented VDU flags 148-152, so 0-12 and 128-161 are now supported.
 - Graphics: Reading VDU variables for TINT was giving incorrect values.
 - BASIC: Fixed a bug whereby the OSCLI command might have its parameter
   trampled on.
