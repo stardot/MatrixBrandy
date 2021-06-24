@@ -58,6 +58,7 @@ extern void osword0B(int64 x);
 extern void osword0C(int64 x);
 extern void osword8B(int64 x);
 extern void osword8C(int64 x);
+extern int32 os_readpalette(int32 colour, int32 mode);
 extern void sdl_screensave(char *fname);
 extern void sdl_screenload(char *fname);
 extern void swi_swap16palette(void);

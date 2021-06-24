@@ -413,6 +413,11 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
     case SWI_OS_Mouse:
       mos_mouse(outregs);
       break;
+    case SWI_OS_ReadPalette:
+      outregs[0]=inregs[0];
+      outregs[1]=inregs[1];
+      outregs[3]=outregs[2]=os_readpalette(inregs[0], inregs[1]);
+      break;
     case SWI_OS_ReadModeVariable:
       outregs[0]=inregs[0];
       outregs[1]=inregs[1];

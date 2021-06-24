@@ -42,6 +42,8 @@ OS_ReadLine32           Returns a string input from the keyboard, pointed in R0.
 
 OS_Mouse                Returns mouse state.
 
+OS_ReadPalette          Read the colour palette. Only R1=16 supported.
+
 OS_ReadModeVariable     Read a mode variable into R2.
 
 OS_ReadVduVariables     Read VDU variables requested in block pointed in R0

@@ -4496,6 +4496,11 @@ void osword0B(int64 x) {
   block[4] = palette[block[0]*3+2];
 }
 
+int32 os_readpalette(int32 colour, int32 mode) {
+  if (mode != 16) return 0;
+  return 16 + (palette[colour*3+0] << 8) + (palette[colour*3+1] << 16) + (palette[colour*3+2] << 24);
+}
+
 void osword0C(int64 x) {
   unsigned char *block;
   int32 logcol, pmode, mode, offset, c, newcol;
