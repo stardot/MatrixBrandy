@@ -4486,6 +4486,38 @@ void osword0A(int64 x) {
 #endif
 }
 
+void osword0B(int64 x) {
+}
+
+void osword0C(int64 x) {
+  unsigned char *block;
+  int32 logcol, pmode, mode, offset, c, newcol;
+  
+  block=(unsigned char *)(size_t)x;
+  if (screenmode == 7) return;
+  logcol = block[0] & colourmask;
+  mode = block[1];
+  pmode = mode % 16;
+  if (mode < 16 && colourdepth <= 16) {	/* Just change the RISC OS logical to physical colour mapping */
+    logtophys[logcol] = mode;
+    palette[logcol*3+0] = hardpalette[pmode*3+0];
+    palette[logcol*3+1] = hardpalette[pmode*3+1];
+    palette[logcol*3+2] = hardpalette[pmode*3+2];
+  } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
+    change_palette(logcol, block[2], block[3], block[4]);
+  set_rgb();
+  /* Now, go through the framebuffer and change the pixels */
+  if (colourdepth <= 256) {
+    c = logcol * 3;
+    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
+    for (offset=0; offset < (ds.screenheight*ds.screenwidth*ds.xscale); offset++) {
+      if ((SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[ds.writebank]->pixels + offset) = SWAPENDIAN(newcol);
+    }
+    blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
+  }
+
+}
+
 /* Like OSWORD 10 but for the MODE 7 16x20 font
  */
 void osword8B(int64 x) {

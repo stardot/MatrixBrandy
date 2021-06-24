@@ -2473,6 +2473,16 @@ static void mos_osword(int32 areg, int64 xreg) {
       osword0A(xreg);
 #endif
       break;
+    case 11:
+#ifdef USE_SDL
+      osword0B(xreg);
+#endif
+      break;
+    case 12:
+#ifdef USE_SDL
+      osword0C(xreg);
+#endif
+      break;
     case 139:
 #ifdef USE_SDL
       osword8B(xreg);

@@ -54,6 +54,8 @@ extern void hide_cursor(void);
 //extern void reveal_cursor(void);
 extern void osword09(int64 x);
 extern void osword0A(int64 x);
+extern void osword0B(int64 x);
+extern void osword0C(int64 x);
 extern void osword8B(int64 x);
 extern void osword8C(int64 x);
 extern void sdl_screensave(char *fname);

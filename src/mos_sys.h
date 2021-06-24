@@ -49,6 +49,7 @@ typedef struct {
 #define SWI_OS_GetEnv					0x10
 #define SWI_OS_UpdateMEMC				0x1A
 #define SWI_OS_Mouse					0x1C
+#define SWI_OS_ReadPalette				0x2F
 #define SWI_OS_ReadVduVariables				0x31
 #define SWI_OS_ReadModeVariable				0x35
 #define SWI_OS_SWINumberToString			0x38
@@ -146,6 +147,7 @@ static switable swilist[] = {
 	{SWI_OS_GetEnv,					"OS_GetEnv"},
 	{SWI_OS_UpdateMEMC,				"OS_UpdateMEMC"}, /* Recognised, does nothing */
 	{SWI_OS_Mouse,					"OS_Mouse"},
+	{SWI_OS_ReadPalette,				"OS_ReadPalette"},
 	{SWI_OS_ReadVduVariables,			"OS_ReadVduVariables"},
 	{SWI_OS_ReadModeVariable,			"OS_ReadModeVariable"},
 	{SWI_OS_SWINumberToString,			"OS_SWINumberToString"},
