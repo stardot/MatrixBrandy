@@ -171,7 +171,7 @@ extern void emulate_vdu(int32);
 extern void emulate_vdustr(char *, int32);
 extern void emulate_printf(char *, ...);
 extern void emulate_newline(void);
-extern int32 emulate_vdufn(int32);
+extern size_t emulate_vdufn(int32);
 extern int32 emulate_pos(void);
 extern int32 emulate_vpos(void);
 extern void emulate_mode(int32);

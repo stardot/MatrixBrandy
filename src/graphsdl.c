@@ -2420,7 +2420,7 @@ void emulate_printf(char *format, ...) {
 ** Now combined with the readmodevariable call which
 ** supports SWIs OS_ReadVduVariables and OS_ReadModeVariable
 */
-int32 emulate_vdufn(int variable) {
+size_t emulate_vdufn(int variable) {
   return readmodevariable(-1,variable);
 }
 
@@ -4647,7 +4647,7 @@ static int32 log2bpp(int32 scrmode) {
   }
 }
 /* Using values returned by RISC OS 3.7 */
-int32 readmodevariable(int32 scrmode, int32 var) {
+size_t readmodevariable(int32 scrmode, int32 var) {
   int tmp=0;
   if (scrmode == -1) scrmode = screenmode;
   switch (var) {

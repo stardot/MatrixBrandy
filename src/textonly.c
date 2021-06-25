@@ -1396,7 +1396,7 @@ void emulate_printf(char *format, ...) {
 ** returns the value of the specified VDU variable. Only a
 ** small subset of the possible values are returned
 */
-int32 emulate_vdufn(int variable) {
+size_t emulate_vdufn(int variable) {
   switch (variable) {
   case 0: /* ModeFlags */       return 1;
   case 1: /* ScrRCol */         return textwidth - 1;

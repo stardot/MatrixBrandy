@@ -1582,7 +1582,7 @@ void fn_vdu(void) {
   int variable;
   basicvars.current++;
   variable = eval_intfactor();	/* Number of VDU variable */
-  push_int(emulate_vdufn(variable));
+  push_int64(emulate_vdufn(variable));
 }
 
 /*

@@ -123,7 +123,7 @@ void emulate_printf(char *format, ...) {
 ** emulate_vdufn - Emulates the Basic VDU function. This
 ** returns the value of the specified VDU variable
 */
-int32 emulate_vdufn(int variable) {
+size_t emulate_vdufn(int variable) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int vdublock[2];

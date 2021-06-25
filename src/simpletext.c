@@ -235,7 +235,7 @@ void emulate_newline(void) {
 ** emulate_vdufn - Emulates the Basic VDU function. This
 ** returns the value of the specified VDU variable
 */
-int32 emulate_vdufn(int variable) {
+size_t emulate_vdufn(int variable) {
   return 0;
 }
 
