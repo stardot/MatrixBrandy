@@ -18,8 +18,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   other variable return 0, as they do on RISC OS.
 - System: Implemented OSWORDs 11 and 12, and SYS "OS_ReadPalette"
 - System: Implemented VDU flags 148-152, so 0-12 and 128-161 are now supported.
-- Graphics: Reading VDU variables for TINT was giving incorrect values.
-- Graphics: VDU20 wasn't updating the display (unlike VDU19), fixed.
+- System: Reading VDU variables for TINT was giving incorrect values.
+- System: VDU20 wasn't updating the display (unlike VDU19), fixed.
 - BASIC: Fixed a bug whereby the OSCLI command might have its parameter
   trampled on.
 - BASIC: On non-RISC OS platforms, increase SYS parameters to 16 to support
