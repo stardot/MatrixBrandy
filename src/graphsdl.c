@@ -1886,6 +1886,18 @@ static void vdu_textcol(void) {
 ** respectively (VDU 20)
 */
 #ifndef BRANDY_MODE7ONLY
+static void resetpixels(int32 numcols) {
+  int32 logcol, newcol, c, offset;
+  for (logcol=0; logcol < numcols; logcol++) {
+    c = logcol * 3;
+    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
+    for (offset=0; offset < (ds.screenheight*ds.screenwidth*ds.xscale); offset++) {
+      if ((SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[ds.writebank]->pixels + offset) = SWAPENDIAN(newcol);
+    }
+  }
+  blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
+}
+
 static void reset_colours(void) {
   switch (colourdepth) {	/* Initialise the text mode colours */
   case 2:
@@ -1939,6 +1951,7 @@ static void reset_colours(void) {
   }
   text_backcol = ds.graph_backcol = 0;
   init_palette();
+  if (colourdepth <= 16) resetpixels(colourdepth);
 }
 #endif
 
