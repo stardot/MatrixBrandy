@@ -426,8 +426,8 @@ DIM HIMEM var%% -1. Memory allocated this way, like that allocated
 from the heap using a regular DIM, can only be referenced via indirection
 operators.
 
-Numeric arrays can also be defined off-heap using DIM HIMEM but these
-cannot be freed, and will linger until the Brandy process terminates.
+Numeric arrays can also be defined off-heap using DIM HIMEM, but these
+use a different syntax to free them, see CLEAR HIMEM.
 
 Note that it is recommended to use a 64-bit integer when DIMming memory,
 as on a 64-bit system there is no guarantee you will be allocated memory
@@ -1625,7 +1625,7 @@ procedure or function.
 Example:
 	IF silly% THEN CLEAR
 
-Matrix Brandy extends the CLEAR syntax with CLEAR HIMEM [<array()] which
+Matrix Brandy extends the CLEAR syntax with CLEAR HIMEM [<array()>] which
 will de-allocate the array if specified, or all arrays defined using
 DIM HIMEM.
 
