@@ -681,7 +681,7 @@ static int32 mos_getswinum2(char *name, int32 length, int32 inxflag) {
 ** 'mos_getswinum' returns the SWI number corresponding to
 ** SWI 'name'
 */
-int32 mos_getswinum(char *name, int32 length, int32 inxflag) {
+size_t mos_getswinum(char *name, int32 length, int32 inxflag) {
   int32 ilength = length;
   char *iname = name;
   _kernel_oserror *oserror;
