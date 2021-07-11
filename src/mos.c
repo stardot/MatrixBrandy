@@ -411,7 +411,7 @@ void mos_mouse_rectangle(int32 left, int32 bottom, int32 right, int32 top) {
 /*
 ** 'mos_mouse' returns the current position of the mouse
 */
-void mos_mouse(int64 values[]) {
+void mos_mouse(size_t values[]) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   oserror = _kernel_swi(OS_Mouse, &regs, &regs);
