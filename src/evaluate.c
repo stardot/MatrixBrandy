@@ -2308,7 +2308,7 @@ static void eval_ivmul(void) {
     lhint = pop_anyint();
     intres=lhint*rhint;
     floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
-    if (fabs(floatres) > MAXINT64VAL)
+    if (fabs(floatres) > (long double)MAXINT64VAL)
       push_float(floatres);
     else
       push_varyint(intres);
