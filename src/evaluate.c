@@ -2328,7 +2328,7 @@ static void eval_ivmul(void) {
         srce = lharray->arraystart.intbase;
         for (n = 0; n < count; n++) {
           floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint);	/* This is going to be slow */
-          if (fabs(floatvalue) <= TOFLOAT(MAXINT64VAL))
+          if (fabsl(floatvalue) <= TOFLOAT(MAXINT64VAL))
             base[n] = srce[n]*rhint;			/* Redo in int64-space as at the higher end float loses precision */
           else {					/* Value is out of range for a 64-bit integer */
             error(ERR_RANGE);
@@ -2355,7 +2355,7 @@ static void eval_ivmul(void) {
         srce = lharray->arraystart.uint8base;
         for (n = 0; n < count; n++) {
           floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint);	/* This is going to be slow */
-          if (fabs(floatvalue) <= TOFLOAT(MAXINT64VAL))
+          if (fabsl(floatvalue) <= TOFLOAT(MAXINT64VAL))
             base[n] = srce[n]*rhint;			/* Redo in int64-space as at the higher end float loses precision */
           else {					/* Value is out of range for a 64-bit integer */
             error(ERR_RANGE);
@@ -2367,7 +2367,7 @@ static void eval_ivmul(void) {
         srce = lharray->arraystart.uint8base;
         for (n = 0; n < count; n++) {
           floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint);	/* This is going to be slow */
-          if (fabs(floatvalue) <= TOFLOAT(MAXINT64VAL))
+          if (fabsl(floatvalue) <= TOFLOAT(MAXINT64VAL))
             base[n] = srce[n]*rhint;			/* Redo in int64-space as at the higher end float loses precision */
           else {					/* Value is out of range for a 64-bit integer */
             error(ERR_RANGE);
@@ -2387,7 +2387,7 @@ static void eval_ivmul(void) {
       srce = lharray->arraystart.int64base;
       for (n = 0; n < count; n++) {
         floatvalue = TOFLOAT(srce[n])*TOFLOAT(rhint);	/* This is going to be slow */
-        if (fabs(floatvalue) <= TOFLOAT(MAXINT64VAL))
+        if (fabsl(floatvalue) <= TOFLOAT(MAXINT64VAL))
           base[n] = srce[n]*rhint;			/* Redo in int64-space as at the higher end float loses precision */
         else {		/* Value is out of range for an integer */
           error(ERR_RANGE);
@@ -2486,7 +2486,7 @@ static void eval_iamul(void) {
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) {
       floatvalue = TOFLOAT(lhint64)*TOFLOAT(rhsrce[n]);
-      if (fabs(floatvalue) <= MAXINT64VAL)
+      if (fabsl(floatvalue) <= MAXINT64VAL)
         base[n] = lhint64*rhsrce[n];
       else {		/* Result is out of range for an integer */
         error(ERR_RANGE);
@@ -2589,7 +2589,7 @@ static void eval_iu8amul(void) {
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) {
       floatvalue = TOFLOAT(lhint64)*TOFLOAT(rhsrce[n]);
-      if (fabs(floatvalue) <= MAXINT64VAL)
+      if (fabsl(floatvalue) <= MAXINT64VAL)
         base[n] = lhint64*rhsrce[n];
       else {		/* Result is out of range for an integer */
         error(ERR_RANGE);
