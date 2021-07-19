@@ -4515,6 +4515,7 @@ int32 os_readpalette(int32 colour, int32 mode) {
 }
 
 void osword0C(int64 x) {
+#ifndef BRANDY_MODE7ONLY
   unsigned char *block;
   int32 logcol, pmode, mode, offset, c, newcol;
   
@@ -4540,7 +4541,7 @@ void osword0C(int64 x) {
     }
     blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   }
-
+#endif
 }
 
 /* Like OSWORD 10 but for the MODE 7 16x20 font
