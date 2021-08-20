@@ -1,6 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.12 - 
+- System: Fix some floating-point data size mismatches
+- Graphics: Implemented GCOL action codes 5-7
+
 * V1.22.11 - 11 July 2021
 - System: Mouse position wasn't taking into account change of ORIGIN.
 - System: Changes to dlopen, otherwise symbols weren't being recognised.
