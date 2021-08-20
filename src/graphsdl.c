@@ -2668,6 +2668,8 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
   int32 rox = 0, roy = 0;
   int64 offset = x + (y*ds.vscrwidth);
 
+  if (action == 5) return;
+
   if ((x < 0) || (x >= ds.screenwidth) || (y < 0) || (y >= ds.screenheight)) return;
 
   if (ds.clipping) {
@@ -2700,6 +2702,12 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
         break;
       case 4:
         altcolour=(prevcolour ^ (colourdepth-1));
+        break;
+      case 6:
+        altcolour=(prevcolour & ((~drawcolour) & (colourdepth-1)));
+        break;
+      case 7:
+        altcolour=(prevcolour | ((~drawcolour) & (colourdepth-1)));
         break;
       default:
         altcolour=drawcolour; /* Invalid GCOL action code handled as 0 */
