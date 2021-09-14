@@ -8,6 +8,7 @@ app.c
 *.ko
 *.obj
 *.elf
+*,ff8
 
 # Libraries
 *.lib
