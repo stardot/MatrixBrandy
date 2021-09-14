@@ -3121,7 +3121,7 @@ int32 emulate_tintfn(int32 x, int32 y) {
 #ifndef BRANDY_MODE7ONLY
   int32 colour;
 
-  if (colourdepth < 256) return 0;
+  if (colourdepth != 256) return 0;
   x += ds.xorigin;
   y += ds.yorigin;
   if ((x < 0) || (x >= ds.screenwidth*ds.xgupp) || (y < 0) || (y >= ds.screenheight*ds.ygupp)) return 0;
