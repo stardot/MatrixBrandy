@@ -184,6 +184,8 @@ static struct {
   int32 graph_back_action;		/* Background graphics PLOT action (ignored) */
   int32 graph_forecol;			/* Current graphics foreground logical colour number */
   int32 graph_backcol;			/* Current graphics background logical colour number */
+  int32 graph_forelog;			/* Current graphics foreground palette colour number */
+  int32 graph_backlog;			/* Current graphics background palette colour number */
   int32 graph_physforecol;		/* Current graphics foreground physical colour number */
   int32 graph_physbackcol;		/* Current graphics background physical colour number */
   int32 graph_foretint;			/* Tint value added to foreground graphics colour in 256 colour modes */
@@ -939,9 +941,9 @@ static void set_text_colour(boolean background, int colnum) {
  */
 static void set_graphics_colour(boolean background, int colnum) {
   if (background)
-    ds.graph_physbackcol = ds.graph_backcol = (colnum & (colourdepth - 1));
+    ds.graph_physbackcol = ds.graph_backlog = ds.graph_backcol = (colnum & (colourdepth - 1));
   else {
-    ds.graph_physforecol = ds.graph_forecol = (colnum & (colourdepth - 1));
+    ds.graph_physforecol = ds.graph_forelog = ds.graph_forecol = (colnum & (colourdepth - 1));
   }
   ds.graph_fore_action = ds.graph_back_action = 0;
   set_rgb();
@@ -1903,14 +1905,14 @@ static void reset_colours(void) {
   case 2:
     logtophys[0] = VDU_BLACK;
     logtophys[1] = VDU_WHITE;
-    text_forecol = ds.graph_forecol = 1;
+    text_forecol = ds.graph_forecol = ds.graph_forelog = 1;
     break;
   case 4:
     logtophys[0] = VDU_BLACK;
     logtophys[1] = VDU_RED;
     logtophys[2] = VDU_YELLOW;
     logtophys[3] = VDU_WHITE;
-    text_forecol = ds.graph_forecol = 3;
+    text_forecol = ds.graph_forecol = ds.graph_forelog = 3;
     break;
   case 16:
     logtophys[0] = VDU_BLACK;
@@ -1929,15 +1931,15 @@ static void reset_colours(void) {
     logtophys[13] = FLASH_MAGREEN;
     logtophys[14] = FLASH_CYANRED;
     logtophys[15] = FLASH_WHITEBLA;
-    text_forecol = ds.graph_forecol = 7;
+    text_forecol = ds.graph_forecol = ds.graph_forelog = 7;
     break;
   case 256:
-    text_forecol = ds.graph_forecol = 63;
+    text_forecol = ds.graph_forecol = ds.graph_forelog = 63;
     ds.graph_foretint = text_foretint = MAXTINT;
     ds.graph_backtint = text_backtint = 0;
     break;
   case COL24BIT:
-    text_forecol = ds.graph_forecol = 0xFFFFFF;
+    text_forecol = ds.graph_forecol = ds.graph_forelog = 0xFFFFFF;
     ds.graph_foretint = text_foretint = MAXTINT;
     ds.graph_backtint = text_backtint = 0;
     break;
@@ -1949,7 +1951,7 @@ static void reset_colours(void) {
   else {
     colourmask = colourdepth-1;
   }
-  text_backcol = ds.graph_backcol = 0;
+  text_backcol = ds.graph_backcol = ds.graph_backlog = 0;
   init_palette();
   if (colourdepth <= 16) resetpixels(colourdepth);
 }
@@ -1966,23 +1968,25 @@ static void vdu_graphcol(void) {
   if (colnumber < 128) {	/* Setting foreground graphics colour */
       ds.graph_fore_action = vduqueue[0];
       if (colourdepth == 256) {
-        ds.graph_forecol = colnumber & COL256MASK;
+        ds.graph_forecol = ds.graph_forelog = colnumber & COL256MASK;
         ds.graph_physforecol = (ds.graph_forecol<<COL256SHIFT)+ds.graph_foretint;
       } else if (colourdepth == COL24BIT) {
+        ds.graph_forelog = colnumber & COL256MASK;
         ds.graph_physforecol = ds.graph_forecol = colour24bit(colnumber, ds.graph_foretint);
       } else {
-        ds.graph_physforecol = ds.graph_forecol = colnumber & colourmask;
+        ds.graph_physforecol = ds.graph_forecol = ds.graph_forelog = colnumber & colourmask;
       }
   }
   else {	/* Setting background graphics colour */
     ds.graph_back_action = vduqueue[0];
     if (colourdepth == 256) {
-      ds.graph_backcol = colnumber & COL256MASK;
+      ds.graph_backcol = ds.graph_backlog = colnumber & COL256MASK;
       ds.graph_physbackcol = (ds.graph_backcol<<COL256SHIFT)+ds.graph_backtint;
     } else if (colourdepth == COL24BIT) {
+      ds.graph_backlog = colnumber & COL256MASK;
       ds.graph_physbackcol = ds.graph_backcol = colour24bit(colnumber, ds.graph_backtint);
     } else {	/* Operating in text mode */
-      ds.graph_physbackcol = ds.graph_backcol = colnumber & colourmask;
+      ds.graph_physbackcol = ds.graph_backcol = ds.graph_backlog = colnumber & colourmask;
     }
   }
   set_rgb();
@@ -4718,8 +4722,8 @@ size_t readmodevariable(int32 scrmode, int32 var) {
     case 150: /* TotalScreenSize */ return matrixflags.modescreen_sz;
     case 151: /* GPLFMD */	return ds.graph_fore_action;
     case 152: /* GPLBMD */	return ds.graph_back_action;
-    case 153: /* GFCOL */	return ds.graph_forecol;
-    case 154: /* GBCOL */	return ds.graph_backcol;
+    case 153: /* GFCOL */	return ds.graph_forelog;
+    case 154: /* GBCOL */	return ds.graph_backlog;
     case 155: /* TForeCol */	return text_forecol;
     case 156: /* TBackCol */	return text_backcol;
     case 157: /* GFTint */	return ds.graph_foretint << 6;
