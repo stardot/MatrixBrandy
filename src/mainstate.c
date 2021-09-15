@@ -872,8 +872,7 @@ void exec_for(void) {
     basicvars.current++;
     expression();
     if (isinteger) {	/* Loop is an integer loop */
-      if (TOPITEMISINT) intstep=pop_anyint();
-        else error(ERR_TYPENUM);
+      intstep=pop_anynum64();
       if (intstep == 0) error(ERR_SILLY);
     } else {	/* Loop is a floating point loop */
       floatstep = pop_anynumfp();
