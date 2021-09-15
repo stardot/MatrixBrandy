@@ -1,0 +1,52 @@
+# Makefile for Brandy under RISC OS cross-compiled from Linux
+
+CC = arm-unknown-riscos-gcc
+LD = arm-unknown-riscos-gcc
+STRIP = arm-unknown-riscos-strip
+ELFAIF = elf2aif
+ADDFLAGS = ${BRANDY_BUILD_FLAGS}
+
+include git.mk
+
+#CFLAGS = -g -DDEBUG -DNONET -DNEWKBD -Wall $(GITFLAGS) -mlibscl
+#CFLAGS = -g -DNONET -DNEWKBD -Wall $(GITFLAGS) -mlibscl
+CFLAGS = -O2 -DNONET -DNEWKBD -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) $(ADDFLAGS)
+
+LDFLAGS += 
+
+LIBS =
+
+SRCDIR = ../src
+
+OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/riscos.o \
+	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
+	$(SRCDIR)/miscprocs.o $(SRCDIR)/mainstate.o $(SRCDIR)/lvalue.o \
+	$(SRCDIR)/keyboard.o $(SRCDIR)/iostate.o $(SRCDIR)/heap.o \
+	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
+	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
+	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
+	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
+
+SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/riscos.c \
+	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
+	$(SRCDIR)/miscprocs.c $(SRCDIR)/mainstate.c $(SRCDIR)/lvalue.c \
+	$(SRCDIR)/keyboard.c $(SRCDIR)/iostate.c $(SRCDIR)/heap.c \
+	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
+	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
+	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
+
+brandy,ff8:	$(OBJ)
+	$(LD) $(LDFLAGS) -static -o Brandy.elf $(OBJ) $(LIBS)
+	$(STRIP) Brandy.elf
+	$(ELFAIF) Brandy.elf Brandy,ff8
+
+include depends.mk
+
+.c.o:
+	$(CC) $(CFLAGS) $< -c -o $@
+
+clean:
+	rm -f $(SRCDIR)/*.o Brandy,ff8 Brandy.elf
+
+all:	brandy,ff8

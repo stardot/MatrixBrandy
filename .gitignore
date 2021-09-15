@@ -8,7 +8,6 @@ app.c
 *.ko
 *.obj
 *.elf
-*,ff8
 
 # Libraries
 *.lib
@@ -27,6 +26,7 @@ app.c
 *.i*86
 *.x86_64
 *.hex
+*,ff8
 
 # Patch bits
 *.rej
