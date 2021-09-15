@@ -642,7 +642,9 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #endif
         outregs[4]=(MACTYPE >> 8);
         outregs[5]=LEGACY_OSVERSION;
+#ifndef __TARGET_SCL__
         outregs[6]=getpid();
+#endif
 #ifdef TARGET_UNIX
         outregs[7]=getppid();
 #endif

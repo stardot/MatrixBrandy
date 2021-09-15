@@ -377,12 +377,17 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define ALIGN(x) ((x+sizeof(int32)-1) & -(int)sizeof(int32))
 #endif
 
-#ifdef TARGET_MINGW
+#if defined(TARGET_MINGW) || defined(__TARGET_SCL__)
 #include <setjmp.h>
 #define sigsetjmp(env, savesigs) __builtin_setjmp(env)
 #define siglongjmp(env, val) __builtin_longjmp(env, val)
 typedef jmp_buf sigjmp_buf;
-#endif /* TARGET_MINGW */
+#endif /* TARGET_MINGW || __TARGET_SCL__ */
+
+#ifdef __TARGET_SCL__
+/* FIXME: Implement this properly! */
+#define usleep(x)
+#endif
 
 #if defined(__LP64__) || defined(__WIN64__)
 #define MATRIX64BIT 1

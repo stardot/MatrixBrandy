@@ -109,8 +109,10 @@ static void handle_signal(int signo) {
     return;
   case SIGUSR2:
     return;
+#ifdef SIGPIPE
   case SIGPIPE:
     return;
+#endif
 #endif
   case SIGINT:
 #ifdef TARGET_MINGW
@@ -194,15 +196,19 @@ void watch_signals(void) {
 void init_errors(void) {
   errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
-#if defined(TARGET_MINGW) || defined(TARGET_DJGPP)
+#if defined(TARGET_MINGW) || defined(TARGET_DJGPP) || defined(__TARGET_SCL__)
 #ifndef TARGET_MINGW
     (void) signal(SIGUSR1, handle_signal);
     (void) signal(SIGUSR2, handle_signal);
-#ifndef BODGEDJP
+#ifdef SIGTTIN
     (void) signal(SIGTTIN, SIG_IGN);
+#endif
+#ifdef SIGTTOU
     (void) signal(SIGTTOU, SIG_IGN);
 #endif
+#ifdef SIGPIPE
     (void) signal(SIGPIPE, handle_signal);
+#endif
 #endif
     (void) signal(SIGFPE, handle_signal);
     (void) signal(SIGSEGV, handle_signal);
