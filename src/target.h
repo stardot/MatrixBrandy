@@ -382,7 +382,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define sigsetjmp(env, savesigs) __builtin_setjmp(env)
 #define siglongjmp(env, val) __builtin_longjmp(env, val)
 typedef jmp_buf sigjmp_buf;
-#endif /* TARGET_MINGW */
+#endif /* TARGET_MINGW || __TARGET_SCL__ */
 
 #ifdef __TARGET_SCL__
 /* FIXME: Implement this properly! */
