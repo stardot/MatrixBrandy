@@ -3,12 +3,13 @@
 CC = arm-unknown-riscos-gcc
 LD = arm-unknown-riscos-gcc
 STRIP = arm-unknown-riscos-strip
+ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include git.mk
 
 #CFLAGS = -g -DDEBUG -DNONET -DNEWKBD -Wall $(GITFLAGS) -mlibscl
 #CFLAGS = -g -DNONET -DNEWKBD -Wall $(GITFLAGS) -mlibscl
-CFLAGS = -O2 -DNONET -DNEWKBD -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) -mlibscl
+CFLAGS = -O2 -DNONET -DNEWKBD -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) $(ADDFLAGS) -mlibscl
 
 LDFLAGS += -mlibscl
 
