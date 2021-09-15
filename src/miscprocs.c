@@ -566,7 +566,7 @@ FILE *secure_tmpnam(char *name)
 #else
   int fdes;
   strcpy(name, "/tmp/.brandy.XXXXXX");
-#if defined(BODGEMGW) | defined(BODGESDL)
+#if defined(BODGEMGW) | defined(BODGESDL) | defined(__TARGET_SCL__)
   return fopen(name, "w+");
 #else
   fdes=mkstemp(name);
