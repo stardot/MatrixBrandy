@@ -3,6 +3,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.22.12 - 
 - System: Fix some floating-point data size mismatches
+- System: New RISC OS build process using GCCSDK under Linux (thank you
+  Cameron Cawley!)
 - Keyboard: Fixed keyboard from eating too much from event queue (thanks
   David Hawes!)
 - Graphics: Implemented GCOL action codes 5-7
