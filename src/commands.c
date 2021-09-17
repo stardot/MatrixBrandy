@@ -1286,7 +1286,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "VAL")) {
     emulate_printf("This function gives the numeric value of a textual string e.g. VAL\"23\".");
   } else if (!strcmp(cmd, "VDU")) {
-    emulate_printf("VDU <number>[;|][,<number>[;|]]: list of values to be sent to vdu.\r\n, only - 8 bits.\r\n; 16 bits.\r\n| 8 bytes of zeroes.\r\nAs a function VDU x gives the value of the specified vdu variable.");
+    emulate_printf("VDU <number>[;|][,<number>[;|]]: list of values to be sent to vdu.\r\n, only - 8 bits.\r\n; 16 bits.\r\n| 9 bytes of zeroes.\r\nAs a function VDU x gives the value of the specified vdu variable.");
   } else if (!strcmp(cmd, "VOICE")) {
     emulate_printf("VOICE <channel>,<string>: assign a named sound algorithm to the voice channel.");
   } else if (!strcmp(cmd, "VOICES")) {
