@@ -1023,7 +1023,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "CLS")) {
     emulate_printf("Clear text screen.");
   } else if (!strcmp(cmd, "COLOUR") || !strcmp(cmd, "COLOR")) {
-    emulate_printf("COLOUR A [TINT t]: set text foreground colour [and tint] (background 128+a)\r\nCOLOUR [OF f] [ON b]: set foreground to colour number f and/or background to b.\r\nCOLOUR a,p: set palette entry for logical colour a to physical colour p.\r\nCOLOUR [[OF] r,g,b] [ON r,g,b]: set foreground and/or background to r, g, b.\r\nCOLOUR a,r,g,b: set palette entry for a to r,g, b physical colour.");
+    emulate_printf("COLOUR A [TINT t]: set text foreground colour [and tint] (background 128+a)\r\nCOLOUR [OF f] [ON b]: set foreground to colour number f and/or background to b.\r\nCOLOUR a,p: set palette entry for logical colour a to physical colour p.\r\nCOLOUR [[OF] r,g,b] [ON r,g,b]: set foreground and/or background to r, g, b.\r\nCOLOUR a,r,g,b: set palette entry for a to r,g, b physical colour.\r\nAs a function COLOUR(r,g,b) returns the nearest MODE-dependent colour number.");
   } else if (!strcmp(cmd, "COS")) {
     emulate_printf("This function gives the cosine of a number (<factor>).");
   } else if (!strcmp(cmd, "COUNT")) {

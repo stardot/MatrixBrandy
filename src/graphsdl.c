@@ -911,6 +911,7 @@ int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
       best = n;
     }
   }
+  if (colourdepth == 256) best = best >> COL256SHIFT;
   return best;
 #else
   return 0;
@@ -1784,6 +1785,7 @@ static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uin
   Uint32 prevcolour, a, altcolour = 0;
 
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
+  if (colourdepth == 256) colour = colour << COL256SHIFT;
   for (yloop=top;yloop<=bottom; yloop++) {
     if (ds.clipping) {
       roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
@@ -1798,7 +1800,6 @@ static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uin
       if (pxoffset < 0) continue;
       prevcolour=SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + pxoffset));
       prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
-      if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
       switch (action) {
         case 0:
           altcolour=colour;
@@ -2693,7 +2694,6 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
   } else {
     prevcolour=SWAPENDIAN(*((Uint32*)surface->pixels + offset));
     prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
-    if (colourdepth == 256) prevcolour = prevcolour >> COL256SHIFT;
     switch (action) {
       case 1:
         altcolour=(prevcolour | drawcolour);
@@ -3109,7 +3109,6 @@ int32 emulate_pointfn(int32 x, int32 y) {
   colour = SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + (GXTOPX(x) + GYTOPY(y)*ds.vscrwidth)));
   if (colourdepth == COL24BIT) return riscoscolour(colour);
   colnum = emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
-  if (colourdepth == 256) colnum = colnum >> COL256SHIFT;
   return colnum;
 #else
   return 0;
@@ -3239,6 +3238,7 @@ void emulate_gcol(int32 action, int32 colour, int32 tint) {
 int emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, int32 blue) {
 #ifndef BRANDY_MODE7ONLY
   int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
+  if (colourdepth == 256) colnum = colnum << COL256SHIFT;
   emulate_gcolnum(action, background, colnum);
   return(colnum);
 #else
@@ -3295,6 +3295,7 @@ void emulate_mapcolour(int32 colour, int32 physcolour) {
 int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
 #ifndef BRANDY_MODE7ONLY
   int32 colnum = emulate_colourfn(red & 0xFF, green & 0xFF, blue & 0xFF);
+  if (colourdepth == 256) colnum = colnum << COL256SHIFT;
   set_text_colour(background, colnum);
   return(colnum);
 #else
