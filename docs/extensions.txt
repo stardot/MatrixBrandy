@@ -83,10 +83,7 @@ COLOUR l,p              - do VDU 19,l,p,0,0,0
 COLOUR l,r,g,b          - do VDU 19,l,16,r,g,b or VDU 19,l,24,r,g,b if l<0
 GCOL c                  - do GCOL 0,c
 PLOT x,y                - do PLOT 69,x,y
-=COLOUR(x,y)
-=COLOUR(r,g,b)
-=GCOL(x,y)
-=GCOL(r,g,b)
+=COLOUR(r,g,b)          - MODE-dependent colour number closest matching RGB.
 =CHR$(x,y)              - read character from screen at x,y
 SOUND ON                - turn sound on (*FX210,0)
 SOUND OFF               - turn sound off (*FX210,1)
