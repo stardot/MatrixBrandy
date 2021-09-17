@@ -152,6 +152,12 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef __riscos
 #define TARGET_RISCOS
 #define BRANDY_OS "RISC OS"
+#undef CPUTYPE
+#ifdef __TARGET_SCL__
+#define CPUTYPE "CLib"
+#else
+#define CPUTYPE "UnixLib"
+#endif /* __TARGET_SCL__ */
 // OSVERSION returned by OS call
 // This could be changed...
 #define LEGACY_OSVERSION 0xA0

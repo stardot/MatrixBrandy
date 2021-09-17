@@ -10,7 +10,7 @@ include git.mk
 
 #CFLAGS = -g -DDEBUG -DNONET -DNEWKBD -Wall $(GITFLAGS) -mlibscl
 #CFLAGS = -g -DNONET -DNEWKBD -Wall $(GITFLAGS) -mlibscl
-CFLAGS = -O2 -DNONET -DNEWKBD -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O2 -DNEWKBD -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS += 
 
@@ -36,7 +36,7 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/riscos.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
-brandy,ff8:	$(OBJ)
+Brandy,ff8:	$(OBJ)
 	$(LD) $(LDFLAGS) -static -o Brandy.elf $(OBJ) $(LIBS)
 	$(STRIP) Brandy.elf
 	$(ELFAIF) Brandy.elf Brandy,ff8
@@ -49,4 +49,4 @@ include depends.mk
 clean:
 	rm -f $(SRCDIR)/*.o Brandy,ff8 Brandy.elf
 
-all:	brandy,ff8
+all:	Brandy,ff8

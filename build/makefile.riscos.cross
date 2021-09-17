@@ -35,8 +35,8 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/riscos.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
-brandy,ff8:	$(OBJ)
-	$(LD) $(LDFLAGS) -o brandy,ff8 $(OBJ) $(LIBS)
+Brandy,ff8:	$(OBJ)
+	$(LD) $(LDFLAGS) -o Brandy,ff8 $(OBJ) $(LIBS)
 
 include depends.mk
 
@@ -44,6 +44,6 @@ include depends.mk
 	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
-	rm -f $(SRCDIR)/*.o brandy,ff8
+	rm -f $(SRCDIR)/*.o Brandy,ff8
 
-all:	brandy,ff8
+all:	Brandy,ff8
