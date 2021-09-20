@@ -489,6 +489,7 @@ void init_clock() {
 #endif /* !TARGET_RISCOS */
 }
 
+#ifndef TARGET_RISCOS
 #ifdef USE_SDL
 static int timer_thread(void *data) {
 #else
@@ -509,6 +510,7 @@ static void *timer_thread(void *data) {
   }
   return 0;
 }
+#endif /* !TARGET_RISCOS */
 
 /* This function starts a timer thread */
 static void init_timer() {

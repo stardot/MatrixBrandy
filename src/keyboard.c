@@ -127,8 +127,10 @@
 #include "kernel.h"
 #include "swis.h"
 
+#ifndef TARGET_RISCOS
 static boolean waitkey(int wait);		/* To prevent a forward reference	*/
 static int32 pop_key(void);			/* To prevent a forward reference	*/
+#endif
 
 /* Veneers, fill in later */
 boolean kbd_init() { return init_keyboard(); }
@@ -174,10 +176,12 @@ int32 kbd_get() {
 
 /* Legacy code from here onwards */
 /* ----------------------------- */
+#ifndef TARGET_RISCOS
 static int nokeyboard=0;
 static int escint=128;
 static int escmul=1;
 static int fx44x=1;
+#endif
 
 /* ================================================================= */
 /* ================= RISC OS versions of functions ================= */
@@ -260,6 +264,7 @@ int set_fn_string(int key, char *string, int length) {
 }
 
 char *get_fn_string(int key, int *len) {
+  return "";
 }
 
 boolean init_keyboard(void) {

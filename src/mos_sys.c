@@ -238,11 +238,13 @@ static void mos_rpi_gpio_sys(size_t swino, size_t inregs[], size_t outregs[], in
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
 void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, size_t *flags) {
+#ifndef TARGET_RISCOS
   int32 a, b;
   int64 i;
-  FILE *file_handle;
   char *pointer;
   struct stat statbuf;
+#endif
+  FILE *file_handle;
 #ifdef USE_SDL
   SDL_SysWMinfo wmInfo;
 #endif

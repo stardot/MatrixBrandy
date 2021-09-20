@@ -89,10 +89,10 @@ int brandynet_connect(char *dest, char type) {
 
 #ifdef TARGET_RISCOS
   char *host, *port;
-  int n,ptr, len, mysocket, portnum, ipaddr;
+  int n, mysocket, portnum, result;
   struct sockaddr_in netdest;
-  struct hostent *he;
-  struct in_addr *inaddr;
+  struct hostent *he = NULL;
+  struct in_addr *inaddr = NULL;
 
   if(networking==0) {
     error(ERR_NET_NOTSUPP);
@@ -120,9 +120,8 @@ int brandynet_connect(char *dest, char type) {
 
 
   /* This is a dirty hack because RISC OS can't build a hostent struct from an IP address in gethostbyname() */
-  ipaddr = inet_addr(host);
-  inaddr=(struct in_addr *)&ipaddr;
-  if (ipaddr == INADDR_NONE) {
+  result = inet_aton(host, inaddr);
+  if (0 == result) {
     if ((he = gethostbyname(host)) == NULL) {
       free(host);
       error(ERR_NET_NOTFOUND);

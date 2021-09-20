@@ -214,7 +214,7 @@ void fileio_close(int32 handle) {
 ** 'fileio_bget' returns the next character from file 'handle'.
 */
 int32 fileio_bget(int32 handle) {
-  int32 ch;
+  int32 ch = 0;
   if (handle==0) error(ERR_BADHANDLE);
 
 #ifndef NONET
@@ -237,10 +237,10 @@ int32 fileio_bget(int32 handle) {
     oserror = _kernel_swi(OS_BGet, &regs, &regs);
     if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
     ch=regs.r[0];
-    return ch;
 #ifndef NONET
   }
 #endif
+  return ch;
 
 }
 
@@ -346,7 +346,7 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
 ** that is, the last character of the string is first.
 */
 int32 fileio_getstring(int32 handle, char *p) {
-  int32 marker, length, n;
+  int32 marker = 0, length = 0, n = 0;
   marker = read(handle);
   switch (marker) {
   case PRINT_SHORTSTR:	/* Reading short string in 'Acorn' format */
@@ -368,7 +368,6 @@ int32 fileio_getstring(int32 handle, char *p) {
 ** 'fileio_bput' writes a character to a file
 */
 void fileio_bput(int32 handle, int32 value) {
-  int32 result;
   if (handle==0) error(ERR_BADHANDLE);
 #ifndef NONET
   if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {

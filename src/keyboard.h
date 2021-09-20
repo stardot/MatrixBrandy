@@ -43,6 +43,7 @@ extern void purge_keys(void);
 extern char *get_fn_string(int key, int *len);
 extern boolean init_keyboard(void);
 extern void end_keyboard(void);
+extern int set_fn_string(int key, char *string, int length);
 #endif
 extern boolean kbd_init();
 extern void  kbd_quit(void);

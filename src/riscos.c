@@ -510,6 +510,7 @@ int32 emulate_gcolrgb(int32 action, int32 background, int32 red, int32 green, in
   if (background) regs.r[3] = 128;
   oserror = _kernel_swi(ColourTrans_SetGCOL, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  return emulate_colourfn(red, green, blue);
 }
 
 /*
@@ -563,6 +564,7 @@ int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
   if (background) regs.r[3] = 128;	/* Set background colour */
   oserror = _kernel_swi(ColourTrans_SetTextColour, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  return emulate_colourfn(red, green, blue);
 }
 
 /*

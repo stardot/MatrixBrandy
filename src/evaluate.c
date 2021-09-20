@@ -44,6 +44,11 @@
 #include "functions.h"
 #include "keyboard.h"
 
+#ifdef TARGET_RISCOS
+extern long double powl(long double x, long double y);
+extern long double fabsl(long double x);
+#endif
+
 /* #define DEBUG */
 
 /*

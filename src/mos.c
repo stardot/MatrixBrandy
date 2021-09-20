@@ -111,11 +111,13 @@
 extern threadmsg tmsg;
 #endif
 
+#ifndef TARGET_RISCOS
 static int check_command(char *text);
 static void mos_osword(int32 areg, int64 xreg);
 static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
 static void native_oscli(char *command, char *respfile, FILE *respfh);
+#endif
 
 /* Address range used to identify emulated calls to the BBC Micro MOS */
 
@@ -429,12 +431,13 @@ void mos_mouse(size_t values[]) {
 ** If x<0 reads buffer status, if x>=0 reads input device.
 */
 int32 mos_adval(int32 x) {
-  _kernel_oserror *oserror;
+//  _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   regs.r[0] = 128;	/* Use OS_Byte 128 for this */
   regs.r[1] = x;
   regs.r[2] = x >> 8;
-  oserror = _kernel_swi(OS_Byte, &regs, &regs);
+//  oserror = _kernel_swi(OS_Byte, &regs, &regs);
+  _kernel_swi(OS_Byte, &regs, &regs);
 // Bug in RISC OS, *mustn't* return an error here
   return regs.r[1]+(regs.r[2]<<BYTESHIFT);
 }
@@ -721,7 +724,7 @@ void mos_sys(size_t swino, size_t inregs[], size_t outregs[], size_t *flags) {
     mos_sys_ext(swino & ~XBIT, inregs, outregs, swino & XBIT, flags);
   } else {
     for (n=0; n<10; n++) regs.r[n] = inregs[n];
-    oserror = _kernel_swi_c(swino, &regs, &regs, flags);
+    oserror = _kernel_swi_c(swino, &regs, &regs, (int *)flags);
     if (oserror!=NIL && (swino & XBIT)==0) error(ERR_CMDFAIL, oserror->errmess);
     *flags = *flags!=0 ? CARRY_FLAG : 0;
     if (oserror!=NIL) *flags+=OVERFLOW_FLAG;
@@ -1160,6 +1163,7 @@ void mos_waitdelay(int32 time) {
  * ======================================
  */
 
+#ifndef TARGET_RISCOS
 /*
  * mos_gstrans() - General String Translation
  * GSTrans convert input string, as used by *KEY, etc.
@@ -1234,6 +1238,7 @@ static unsigned int cmd_parse_dec(char** text)
 	*text=command;
 	return ByteVal;
 }
+#endif /* !TARGET_RISCOS */
 
 #ifdef USE_SDL /* This code doesn't depend on SDL, but it's currently only called by code that does depend on it */
 static unsigned int cmd_parse_num(char** text)
