@@ -3952,7 +3952,7 @@ static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col
 */
 static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint32 col, Uint32 action) {
   int32 i, iy;
-  int32 low = 32767, high = 0;
+  int32 low = 32767, high = -1;
 
   /* set highest and lowest points to visit */
   for (i = 0; i < n; i++) {
