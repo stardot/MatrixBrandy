@@ -536,7 +536,9 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
       outregs[6]=(size_t)matrixflags.surface->format;
       SDL_GetWMInfo(&wmInfo);
       /* Ugh, the UNIX struct is a different shape to the others! */
-#if defined(TARGET_UNIX) && !defined(TARGET_MACOSX)
+#if defined(TARGET_MACOSX)
+      outregs[7]=0;
+#elif defined(TARGET_UNIX)
       outregs[7]=(size_t)wmInfo.info.x11.window;
 #else
       outregs[7]=(size_t)wmInfo.window;
