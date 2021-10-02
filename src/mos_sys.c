@@ -143,13 +143,17 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 #endif
 
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
+#ifndef __clang__
 #pragma GCC optimize "O0"
+#endif
 static size_t do_syscall(size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
                        size_t, size_t, size_t, size_t, size_t, size_t, size_t), size_t inregs[]) {
 
     return (*dlsh)(inregs[1], inregs[2], inregs[3], inregs[4], inregs[5], inregs[6], inregs[7], inregs[8], inregs[9], inregs[10], inregs[11], inregs[12], inregs[13], inregs[14], inregs[15]);
 }
+#ifndef __clang__
 #pragma GCC reset_options
+#endif
 
 static void *get_dladdr(size_t nameptr, void *libhandle, int32 xflag) {
   void *dlsh;
@@ -532,7 +536,7 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
       outregs[6]=(size_t)matrixflags.surface->format;
       SDL_GetWMInfo(&wmInfo);
       /* Ugh, the UNIX struct is a different shape to the others! */
-#ifdef TARGET_UNIX
+#if defined(TARGET_UNIX) && !defined(TARGET_MACOSX)
       outregs[7]=(size_t)wmInfo.info.x11.window;
 #else
       outregs[7]=(size_t)wmInfo.window;
