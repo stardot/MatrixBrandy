@@ -1201,6 +1201,7 @@ static float64 randomfraction(void) {
 ** 'fn_rnd' evaluates the function 'RND'. See also fn_rndpar
 */
 static void fn_rnd(void) {
+  if(*basicvars.current <= BASIC_TOKEN_LINENUM) error(ERR_VARMISSX);
   nextrandom();
   push_int(lastrandom);
 }

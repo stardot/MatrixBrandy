@@ -173,6 +173,7 @@ typedef enum {
     ERR_BADBITWISE,     /* 6, Bitwise operations cannot be performed on these operands */
     ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
     ERR_PRINTER,        /* Unable to connect to printer */
+    ERR_VARMISSX,       /* Unknown or missing variable */
 // From JGH's Banana Brandy fork
     ERR_BADCOMMAND,	/* 254, Bad command */
     ERR_BADSTRING,	/* 253, Bad string */
