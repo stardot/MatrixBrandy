@@ -328,7 +328,7 @@
 #define BASIC_TOKEN_RAD		0x33u
 #define BASIC_TOKEN_REPORTDOL	0x34u	/* The function REPORT$ */
 #define BASIC_TOKEN_RETCODE	0x35u
-#define BASIC_TOKEN_RND		0x36u
+#define BASIC_TOKEN_RND		0x36u	/* The function RND (with no parameter) */
 #define BASIC_TOKEN_SGN		0x37u
 #define BASIC_TOKEN_SIN		0x38u
 #define BASIC_TOKEN_SQR		0x39u
@@ -342,7 +342,8 @@
 #define BASIC_TOKEN_VERIFY	0x41u
 #define BASIC_TOKEN_VPOS	0x42u
 #define BASIC_TOKEN_SYSFN	0x43u	/* The function SYS( */
-#define BASIC_TOKEN_XLATEDOL	0x44u	/* Must remain the last in the list */
+#define BASIC_TOKEN_RNDPAR	0x44u	/* The function RND( */
+#define BASIC_TOKEN_XLATEDOL	0x45u	/* Must remain the last in the list */
 
 /*
 ** Print functions preceded with 0xFE

@@ -1198,31 +1198,33 @@ static float64 randomfraction(void) {
 }
 
 /*
-** 'fn_rnd' evaluates the function 'RND'.
+** 'fn_rnd' evaluates the function 'RND'. See also fn_rndpar
 */
 static void fn_rnd(void) {
+  nextrandom();
+  push_int(lastrandom);
+}
+
+/*
+** 'fn_rndpar' evaluates the function 'RND('. See also fn_rnd
+*/
+static void fn_rndpar(void) {
   int32 value;
-  if (*basicvars.current == '(') {		/* Have got 'RND()' */
-    basicvars.current++;
-    value = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
-    basicvars.current++;
-    if (value<0) {	/* Negative value = reseed random number generator */
-      lastrandom = value;
-      randomoverflow = 0;
-      push_int(value);
-    } else if (value == 0) {	/* Return last result */
-      push_float(randomfraction());
-    } else if (value == 1) {	/* Return value in range 0 to 0.9999999999 */
-      nextrandom();
-      push_float(randomfraction());
-    } else {
-      nextrandom();
-      push_int(TOINT(1+randomfraction()*TOFLOAT(value)));
-    }
-  } else {	/* Return number in the range 0x80000000..0x7fffffff */
+  value = eval_integer();
+  if (*basicvars.current != ')') error(ERR_RPMISS);
+  basicvars.current++;
+  if (value<0) {	/* Negative value = reseed random number generator */
+    lastrandom = value;
+    randomoverflow = 0;
+    push_int(value);
+  } else if (value == 0) {	/* Return last result */
+    push_float(randomfraction());
+  } else if (value == 1) {	/* Return value in range 0 to 0.9999999999 */
     nextrandom();
-    push_int(lastrandom);
+    push_float(randomfraction());
+  } else {
+    nextrandom();
+    push_int(TOINT(1+randomfraction()*TOFLOAT(value)));
   }
 }
 
@@ -1806,7 +1808,7 @@ static void (*function_table[])(void) = {
   fn_sin, fn_sqr, fn_str, fn_string,  			/* 38..3B */
   fn_sum, fn_tan, fn_tempofn, fn_usr, 			/* 3C..3F */
   fn_val, fn_verify, fn_vpos, fn_sysfn,			/* 40..43 */
-  fn_xlatedol						/* 44 */
+  fn_rndpar, fn_xlatedol				/* 44..45 */
 };
 
 /*
