@@ -402,6 +402,28 @@ static int32 textyinc(void) {
   return 1;
 }
 
+static int32 gtextxhome(void) {
+  if (vdu2316byte & 2) return ds.gwinright-XPPC*ds.xgupp+2;
+  return ds.gwinleft;
+}
+
+static int32 gtextyhome(void) {
+  if (vdu2316byte & 4) return ds.gwinbottom+YPPC*ds.ygupp;
+  return ds.gwintop;
+}
+
+#if 0 /* Currently don't need these */
+static int32 gtextxedge(void) {
+  if (vdu2316byte & 2) return ds.gwinleft;
+  return ds.gwinright-XPPC*ds.xgupp+2;
+}
+
+static int32 gtextyedge(void) {
+  if (vdu2316byte & 4) return ds.gwintop;
+  return ds.gwinbottom+YPPC*ds.ygupp;
+}
+#endif
+
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
 ** its position is valid, that is, lies within the text window.
@@ -1391,6 +1413,30 @@ static void write_char(int32 ch) {
   matrixflags.cursorbusy = 0;
 }
 
+static void vdu5_cursorup(void) {
+  if ((vdu2316byte & 4) == 0) {
+    if (ds.ylast > ds.gwintop) {		/* Move above top of window */
+      ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Wrap around to bottom of window */
+    }
+  } else {
+    if (ds.ylast < ds.gwinbottom) {		/* Move above top of window */
+      ds.ylast = ds.gwintop-1;	/* Wrap around to bottom of window */
+    }
+  }
+}
+
+static void vdu5_cursordown(void) {
+  if ((vdu2316byte & 4) == 0) {
+    if (ds.ylast < ds.gwinbottom) {		/* Move above top of window */
+      ds.ylast = ds.gwintop;	/* Wrap around to bottom of window */
+    }
+  } else {
+    if (ds.ylast > ds.gwintop) {		/* Move above top of window */
+      ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Wrap around to bottom of window */
+    }
+  }
+}
+
 /*
 ** 'plot_char' draws a character when in fullscreen graphics mode
 ** when output is going to the graphics cursor. It will scale the
@@ -1430,11 +1476,13 @@ static void plot_char(int32 ch) {
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
-  ds.xlast += XPPC*ds.xgupp;	/* Move to next character position in X direction */
-  if ((ds.xlast > ds.gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
-    ds.xlast = ds.gwinleft;
-    ds.ylast -= YPPC*ds.ygupp;
-    if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Below bottom of graphics window - Wrap around to top */
+  ds.xlast += XPPC*ds.xgupp * textxinc();	/* Move to next character position in X direction */
+  if ((!(vdu2316byte & 64)) && 
+    ((((vdu2316byte & 2) == 0) && (ds.xlast > ds.gwinright)) ||
+     (((vdu2316byte & 2) == 2) && (ds.xlast < ds.gwinleft)))) {	/* But position is outside the graphics window */
+    ds.xlast = gtextxhome();
+    ds.ylast -= YPPC*ds.ygupp * textyinc();
+    vdu5_cursordown();
   }
   if (ds.clipping) {
     SDL_SetClipRect(screenbank[ds.writebank], NULL);
@@ -1452,12 +1500,6 @@ static void plot_space_opaque(void) {
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
-  ds.xlast += XPPC*ds.xgupp;	/* Move to next character position in X direction */
-  if ((ds.xlast > ds.gwinright) && (!(vdu2316byte & 64))) {	/* But position is outside the graphics window */
-    ds.xlast = ds.gwinleft;
-    ds.ylast -= YPPC*ds.ygupp;
-    if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Below bottom of graphics window - Wrap around to top */
-  }
 }
 #endif /* BRANDY_MODE7ONLY */
 /*
@@ -1593,12 +1635,18 @@ static void move_up(void) {
 */
 static void move_curback(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
-    ds.xlast -= XPPC*ds.xgupp;
-    if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
-      ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
-      ds.ylast += YPPC*ds.ygupp;
-      if (ds.ylast > ds.gwintop) {		/* Move above top of window */
-        ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Wrap around to bottom of window */
+    ds.xlast -= XPPC*ds.xgupp*textxinc();
+    if ((vdu2316byte & 2) == 0) {
+      if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
+        ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
+        ds.ylast += YPPC*ds.ygupp;
+        vdu5_cursorup();
+      }
+    } else {
+      if (ds.xlast > ds.gwinright) {		/* Cursor is outside the graphics window */
+        ds.xlast = ds.gwinleft;	/* Move back to right edge of previous line */
+        ds.ylast += YPPC*ds.ygupp*textyinc();
+        vdu5_cursorup();
       }
     }
   } else {
@@ -1617,11 +1665,19 @@ static void move_curback(void) {
 */
 static void move_curforward(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
-    ds.xlast += XPPC*ds.xgupp;
-    if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
-      ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
-      ds.ylast -= YPPC*ds.ygupp;
-      if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+    ds.xlast += XPPC*ds.xgupp*textxinc();
+    if ((vdu2316byte & 2) == 0) {
+      if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
+        ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
+        ds.ylast -= YPPC*ds.ygupp;
+        if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+      }
+    } else {
+      if (ds.xlast < ds.gwinleft) {	/* Cursor is outside the graphics window */
+        ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;		/* Move to left side of window on next line */
+        ds.ylast -= YPPC*ds.ygupp*textyinc();
+        if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+      }
     }
   }
   hide_cursor();	/* Remove cursor */
@@ -1644,8 +1700,8 @@ static void move_curforward(void) {
 */
 static void move_curdown(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ds.ylast -= YPPC*ds.ygupp;
-    if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+    ds.ylast -= YPPC*ds.ygupp*textyinc();
+    vdu5_cursordown();
   } else {
     /* VDU14 check here - all these should be optimisable */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
@@ -1675,8 +1731,8 @@ static void move_curdown(void) {
 */
 static void move_curup(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ds.ylast += YPPC*ds.ygupp;
-    if (ds.ylast > ds.gwintop) ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Move above top of window - Wrap around to bottow */
+    ds.ylast += YPPC*ds.ygupp*textyinc();
+    vdu5_cursorup();
   } else {
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
@@ -1763,7 +1819,7 @@ static void vdu_cleartext(void) {
 */
 static void vdu_return(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ds.xlast = ds.gwinleft;
+    ds.xlast = gtextxhome();
   } else {
     hide_cursor();	/* Remove cursor */
     xtext = textxhome();
@@ -2114,8 +2170,8 @@ static void vdu_origin(void) {
 */
 static void vdu_hometext(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Send graphics cursor to top left-hand corner of graphics window */
-    ds.xlast = ds.gwinleft;
-    ds.ylast = ds.gwintop;
+    ds.xlast = gtextxhome();
+    ds.ylast = gtextyhome();
   }
   else {	/* Send text cursor to the top left-hand corner of the text window */
     move_cursor(textxhome(), textyhome());
@@ -2249,7 +2305,6 @@ void emulate_vdu(int32 charvalue) {
           if (charvalue == 127) {
             move_curback();
             plot_space_opaque();
-            move_curback();
           } else {
             plot_char(charvalue);
           }
