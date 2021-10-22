@@ -1725,12 +1725,24 @@ static void move_curback(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
     if (MOVFLAG & 4) {
       ds.ylast += YPPC*ds.ygupp*textyinc();
-/* Handle wraparound here */
+      if ((vdu2316byte & 4) == 0) {
+        if (ds.ylast < ds.gwinbottom) {		/* Cursor is outside the graphics window */
+          ds.ylast = ds.gwintop-1;	/* Move back to right edge of previous line */
+          ds.xlast += XPPC*ds.xgupp*textxinc();
+          vdu5_cursorup();
+        }
+      } else {
+        if (ds.ylast > ds.gwintop) {		/* Cursor is outside the graphics window */
+          ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Move back to right edge of previous line */
+          ds.xlast += XPPC*ds.xgupp*textxinc();
+          vdu5_cursorup();
+        }
+      }
     } else {
       ds.xlast -= XPPC*ds.xgupp*textxinc();
       if ((vdu2316byte & 2) == 0) {
         if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp-1;	/* Move back to right edge of previous line */
           ds.ylast += YPPC*ds.ygupp;
           vdu5_cursorup();
         }
@@ -1761,7 +1773,7 @@ static void move_curforward(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
     if (MOVFLAG & 4) {
       ds.ylast -= YPPC*ds.ygupp*textyinc();
-/* Handle wraparound here */
+      /* Wraparound is handled in plot_char() */
     } else {
       ds.xlast += XPPC*ds.xgupp*textxinc();
       if ((vdu2316byte & 2) == 0) {
