@@ -121,6 +121,9 @@
 #define GXTOPX(x) ((x) / ds.xgupp)
 #define GYTOPY(y) ((ds.ygraphunits - 1 -(y)) / ds.ygupp)
 
+#define MOVFLAG ((vdu2316byte & 14) >> 1)
+#define SCROLLPROT (vdu2316byte & 14)
+
 /* Size of character in pixels in X direction */
 #define XPPC 8
 /* Size of character in pixels in Y direction - this can change in a few modes e.g. 3 and 6 */
@@ -148,7 +151,7 @@ static SDL_Rect scroll_rect;
 static Uint8 palette[768];		/* palette for screen */
 static Uint8 hardpalette[24];		/* palette for screen */
 
-static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. */
+static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. Defaults to Scroll Protect On.*/
 
 mousequeue *mousebuffer = NULL;
 uint32 mousequeuelength = 0;
@@ -224,6 +227,12 @@ static void scroll_up(int32 windowed);
 static void scroll_down(int32 windowed);
 static void scroll_left(int32 windowed);
 static void scroll_right(int32 windowed);
+static void scroll_xpos(int32 windowed);
+static void scroll_xneg(int32 windowed);
+static void scroll_ypos(int32 windowed);
+static void scroll_yneg(int32 windowed);
+//static void cursor_move_sp(int32 *curx, int32 *cury, int32 incx, int32 incy);
+//static void cursor_move(int32 *curx, int32 *cury, int32 incx, int32 incy);
 static void reveal_cursor(void);
 #ifndef BRANDY_MODE7ONLY
 static void plot_pixel(SDL_Surface *, int32, int32, Uint32, Uint32);
@@ -481,16 +490,16 @@ static void vdu_2307(void) {
       scroll_up(windowed);
       break;
     case 4: /* Scroll in positive X direction (default right) */
-      if (vdu2316byte & 2) scroll_left(windowed); else scroll_right(windowed);
+      scroll_xpos(windowed);
       break;
     case 5: /* Scroll in negative X direction (default left) */
-      if (vdu2316byte & 2) scroll_right(windowed); else scroll_left(windowed);
+      scroll_xneg(windowed);
       break;
     case 6: /* Scroll in positive Y direction (default down) */
-      if (vdu2316byte & 4) scroll_up(windowed); else scroll_down(windowed);
+      scroll_ypos(windowed);
       break;
     case 7: /* Scroll in negative Y direction (default up) */
-      if (vdu2316byte & 4) scroll_down(windowed); else scroll_up(windowed);
+      scroll_yneg(windowed);
       break;
   }
 }
@@ -1291,6 +1300,86 @@ static void scroll(updown direction) {
   }
 }
 
+static void scroll_xpos(int32 windowed) {
+  switch (MOVFLAG) {
+    case 0: case 2: scroll_right(windowed); break;
+    case 1: case 3: scroll_left(windowed); break;
+    case 4: case 6: scroll_down(windowed); break;
+    case 5: case 7: scroll_up(windowed); break;
+  }
+}
+
+static void scroll_xneg(int32 windowed) {
+  switch (MOVFLAG) {
+    case 0: case 2: scroll_left(windowed); break;
+    case 1: case 3: scroll_right(windowed); break;
+    case 4: case 6: scroll_up(windowed); break;
+    case 5: case 7: scroll_down(windowed); break;
+  }
+}
+
+static void scroll_ypos(int32 windowed) {
+  switch (MOVFLAG) {
+    case 0: case 2: scroll_down(windowed); break;
+    case 1: case 3: scroll_up(windowed); break;
+    case 4: case 6: scroll_right(windowed); break;
+    case 5: case 7: scroll_left(windowed); break;
+  }
+}
+
+static void scroll_yneg(int32 windowed) {
+  switch (MOVFLAG) {
+    case 0: case 2: scroll_up(windowed); break;
+    case 1: case 3: scroll_down(windowed); break;
+    case 4: case 6: scroll_left(windowed); break;
+    case 5: case 7: scroll_right(windowed); break;
+  }
+}
+
+#if 0
+static void cursor_move_sp(int32 *curx, int32 *cury, int32 incx, int32 incy) {
+  int32 lx, ly;
+  lx = *curx;
+  ly = *cury;
+  switch (MOVFLAG) {
+    case 0:
+      lx += incx;
+      break;
+  }
+  *curx = lx;
+  *cury = ly;
+}
+
+static void cursor_move(int32 *curx, int32 *cury, int32 incx, int32 incy) {
+  int32 lx, ly;
+  lx = *curx;
+  ly = *cury;
+  switch (MOVFLAG) {
+    case 0:
+      lx += incx;
+      if (lx > twinright) {
+        lx=twinleft;
+        ly ++;
+        if (*cury > twinbottom) {
+          scroll(SCROLL_UP);
+          ly --;
+        }
+      }
+      if (lx < twinleft) {
+        lx = twinright;
+        ly --;
+        if (ly < twintop) {
+          scroll(SCROLL_DOWN);
+          ly ++;
+        }
+      }
+      break;
+  }
+  *curx = lx;
+  *cury = ly;
+}
+#endif
+
 /*
 ** 'write_char' draws a character when in fullscreen graphics mode
 ** when output is going to the text cursor. It assumes that the
@@ -1305,7 +1394,7 @@ static void write_char(int32 ch) {
   
   if (cursorstate == ONSCREEN) toggle_cursor();
   matrixflags.cursorbusy = 1;
-  if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
+  if (SCROLLPROT && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     xtext = textxhome();
     ytext+=textyinc();
     /* VDU14 check here */
@@ -1357,7 +1446,7 @@ static void write_char(int32 ch) {
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   xtext+=textxinc();
-  if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
+  if (!SCROLLPROT && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
     xtext = textxhome();
     ytext+=textyinc();
     /* VDU14 check here */
@@ -1398,26 +1487,40 @@ static void write_char(int32 ch) {
 }
 
 static void vdu5_cursorup(void) {
-  if ((vdu2316byte & 4) == 0) {
-    if (ds.ylast > ds.gwintop) {		/* Move above top of window */
-      ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Wrap around to bottom of window */
-    }
-  } else {
-    if (ds.ylast < ds.gwinbottom) {		/* Move above top of window */
-      ds.ylast = ds.gwintop-1;	/* Wrap around to bottom of window */
-    }
+  switch (MOVFLAG) {
+    case 0: case 1:
+      if (ds.ylast > ds.gwintop)  ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;
+      break;
+    case 2: case 3:
+      if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop-1;
+      break;
+    case 4: case 6:
+      if (ds.xlast < ds.gwinleft) ds.xlast = ds.gwinright-XPPC*ds.xgupp-1;
+      break;
+    case 5: case 7:
+      if (ds.xlast > ds.gwinright) ds.xlast = ds.gwinleft;
+      break;
   }
 }
 
 static void vdu5_cursordown(void) {
-  if ((vdu2316byte & 4) == 0) {
-    if (ds.ylast < ds.gwinbottom) {		/* Move above top of window */
-      ds.ylast = ds.gwintop;	/* Wrap around to bottom of window */
-    }
-  } else {
-    if (ds.ylast > ds.gwintop) {		/* Move above top of window */
-      ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Wrap around to bottom of window */
-    }
+  switch (MOVFLAG) {
+    case 0: case 1:
+      ds.ylast -= YPPC*ds.ygupp*textyinc();
+      if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop-1;
+      break;
+    case 2: case 3:
+      ds.ylast -= YPPC*ds.ygupp*textyinc();
+      if (ds.ylast > ds.gwintop)  ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;
+      break;
+    case 4: case 6:
+      ds.xlast += XPPC*ds.xgupp;
+      if (ds.xlast > ds.gwinright) ds.xlast = ds.gwinleft;
+      break;
+    case 5: case 7:
+      ds.xlast -= XPPC*ds.xgupp;
+      if (ds.xlast < ds.gwinleft) ds.xlast = ds.gwinright-XPPC*ds.xgupp-1;
+      break;
   }
 }
 
@@ -1460,12 +1563,18 @@ static void plot_char(int32 ch) {
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
-  ds.xlast += XPPC*ds.xgupp * textxinc();	/* Move to next character position in X direction */
-  if ((!(vdu2316byte & 64)) && 
+  if (!(vdu2316byte & 8)) ds.xlast += XPPC*ds.xgupp * textxinc();	/* Move to next character position in X direction */
+  if ((vdu2316byte & 8)) ds.ylast -= YPPC*ds.ygupp * textyinc();	/* Move to next character position in X direction */
+  if ((!(vdu2316byte & 64)) && (!(vdu2316byte & 8)) &&
     ((((vdu2316byte & 2) == 0) && (ds.xlast > ds.gwinright)) ||
      (((vdu2316byte & 2) == 2) && (ds.xlast < ds.gwinleft)))) {	/* But position is outside the graphics window */
     ds.xlast = gtextxhome();
-    ds.ylast -= YPPC*ds.ygupp * textyinc();
+    vdu5_cursordown();
+  }
+  if ((!(vdu2316byte & 64)) && ((vdu2316byte & 8)) && 
+    ((((vdu2316byte & 4) == 0) && (ds.ylast < ds.gwinbottom)) ||
+     (((vdu2316byte & 4) == 4) && (ds.ylast > ds.gwintop)))) {	/* But position is outside the graphics window */
+    ds.ylast = gtextyhome();
     vdu5_cursordown();
   }
   if (ds.clipping) {
@@ -1614,21 +1723,27 @@ static void move_up(void) {
 */
 static void move_curback(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
-    ds.xlast -= XPPC*ds.xgupp*textxinc();
-    if ((vdu2316byte & 2) == 0) {
-      if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
-        ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
-        ds.ylast += YPPC*ds.ygupp;
-        vdu5_cursorup();
-      }
+    if (MOVFLAG & 4) {
+      ds.ylast += YPPC*ds.ygupp*textyinc();
+/* Handle wraparound here */
     } else {
-      if (ds.xlast > ds.gwinright) {		/* Cursor is outside the graphics window */
-        ds.xlast = ds.gwinleft;	/* Move back to right edge of previous line */
-        ds.ylast += YPPC*ds.ygupp*textyinc();
-        vdu5_cursorup();
+      ds.xlast -= XPPC*ds.xgupp*textxinc();
+      if ((vdu2316byte & 2) == 0) {
+        if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
+          ds.ylast += YPPC*ds.ygupp;
+          vdu5_cursorup();
+        }
+      } else {
+        if (ds.xlast > ds.gwinright) {		/* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinleft;	/* Move back to right edge of previous line */
+          ds.ylast += YPPC*ds.ygupp*textyinc();
+          vdu5_cursorup();
+        }
       }
     }
-  } else {
+
+  } else {	/* VDU4 mode */
     hide_cursor();	/* Remove cursor */
     xtext-=textxinc();
     if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at left-hand edge of text window so move up a line */
@@ -1644,33 +1759,39 @@ static void move_curback(void) {
 */
 static void move_curforward(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
-    ds.xlast += XPPC*ds.xgupp*textxinc();
-    if ((vdu2316byte & 2) == 0) {
-      if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
-        ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
-        ds.ylast -= YPPC*ds.ygupp;
-        if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
-      }
+    if (MOVFLAG & 4) {
+      ds.ylast -= YPPC*ds.ygupp*textyinc();
+/* Handle wraparound here */
     } else {
-      if (ds.xlast < ds.gwinleft) {	/* Cursor is outside the graphics window */
-        ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;		/* Move to left side of window on next line */
-        ds.ylast -= YPPC*ds.ygupp*textyinc();
-        if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+      ds.xlast += XPPC*ds.xgupp*textxinc();
+      if ((vdu2316byte & 2) == 0) {
+        if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
+          ds.ylast -= YPPC*ds.ygupp;
+          if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+        }
+      } else {
+        if (ds.xlast < ds.gwinleft) {	/* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;		/* Move to left side of window on next line */
+          ds.ylast -= YPPC*ds.ygupp*textyinc();
+          if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+        }
       }
     }
+  } else {	/* VDU4 mode */
+    hide_cursor();	/* Remove cursor */
+    /* Do this check twice, as in scroll protect mode xtext may already be off the edge */
+    if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
+      xtext = textxhome();
+      move_down();
+    }
+    xtext+=textxinc();
+    if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
+      xtext = textxhome();
+      move_down();
+    }
+    reveal_cursor();	/* Redraw cursor */
   }
-  hide_cursor();	/* Remove cursor */
-  /* Do this check twice, as in scroll protect mode xtext may already be off the edge */
-  if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
-    xtext = textxhome();
-    move_down();
-  }
-  xtext+=textxinc();
-  if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
-    xtext = textxhome();
-    move_down();
-  }
-  reveal_cursor();	/* Redraw cursor */
 }
 
 /*
@@ -1679,7 +1800,6 @@ static void move_curforward(void) {
 */
 static void move_curdown(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ds.ylast -= YPPC*ds.ygupp*textyinc();
     vdu5_cursordown();
   } else {
     /* VDU14 check here - all these should be optimisable */
@@ -1798,7 +1918,11 @@ static void vdu_cleartext(void) {
 */
 static void vdu_return(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
-    ds.xlast = gtextxhome();
+    if (MOVFLAG & 4) {
+      ds.ylast = gtextyhome();
+    } else {
+      ds.xlast = gtextxhome();
+    }
   } else {
     hide_cursor();	/* Remove cursor */
     xtext = textxhome();
