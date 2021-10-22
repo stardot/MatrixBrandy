@@ -1292,18 +1292,6 @@ static void scroll(updown direction) {
 }
 
 /*
-** 'echo_text' is called to display text held in the screen buffer on the
-** graphics screen when working in 'no echo' mode. If displays from the
-** start of the line to the current value of the text cursor
-*/
-static void echo_text(void) {
-#ifndef BRANDY_MODE7ONLY
-  if ((xtext == 0) || (screenmode == 7)) return;	/* Return if nothing has changed */
-  blit_scaled(0, ytext*YPPC, xtext*XPPC-1, ytext*YPPC+YPPC-1);
-#endif
-}
-
-/*
 ** 'write_char' draws a character when in fullscreen graphics mode
 ** when output is going to the text cursor. It assumes that the
 ** screen in is fullscreen graphics mode.
@@ -1318,7 +1306,6 @@ static void write_char(int32 ch) {
   if (cursorstate == ONSCREEN) toggle_cursor();
   matrixflags.cursorbusy = 1;
   if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
-    if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
     ytext+=textyinc();
     /* VDU14 check here */
@@ -1368,12 +1355,9 @@ static void write_char(int32 ch) {
     *((Uint32*)screenbank[ds.writebank]->pixels + topx + 6 + ((topy+y)*ds.vscrwidth)) = (line & 0x02) ? ds.tf_colour : ds.tb_colour;
     *((Uint32*)screenbank[ds.writebank]->pixels + topx + 7 + ((topy+y)*ds.vscrwidth)) = (line & 0x01) ? ds.tf_colour : ds.tb_colour;
   }
-  if (vduflag(VDU_FLAG_ECHO) || (vdu2316byte & 0xFE)) {
-    blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
-  }
+  blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   xtext+=textxinc();
   if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {  /* Scroll before character if scroll protect enabled */
-    if (!vduflag(VDU_FLAG_ECHO)) echo_text();	/* Line is full so flush buffered characters */
     xtext = textxhome();
     ytext+=textyinc();
     /* VDU14 check here */
@@ -1506,9 +1490,6 @@ static void plot_space_opaque(void) {
 ** 'echo_on' turns on cursor and the immediate echo of characters to the screen
 */
 void echo_on(void) {
-  write_vduflag(VDU_FLAG_ECHO,1);
-  echo_text();		/* Flush what is in the graphics buffer */
-  reveal_cursor();	/* Display cursor again */
 }
 
 /*
@@ -1516,8 +1497,6 @@ void echo_on(void) {
 ** to the screen. This is used to make character output more efficient
 */
 void echo_off(void) {
-  write_vduflag(VDU_FLAG_ECHO,0);
-  hide_cursor();	/* Remove the cursor if it is being displayed */
 }
 
 /*
@@ -2323,7 +2302,6 @@ void emulate_vdu(int32 charvalue) {
       return;
     }
     else {	/* Control character - Found start of new VDU command */
-      if (!vduflag(VDU_FLAG_ECHO)) echo_text();
       vducmd = charvalue;
       vduneeded = vdubytes[charvalue];
       vdunext = 0;
@@ -2369,7 +2347,7 @@ void emulate_vdu(int32 charvalue) {
     break;
   case VDU_BEEP:	/* 7 - Sound the bell */
     putchar('\7');
-    if (vduflag(VDU_FLAG_ECHO)) fflush(stdout);
+    fflush(stdout);
     break;
   case VDU_CURBACK:	/* 8 - Move cursor left one character */
     move_curback();
@@ -2584,7 +2562,6 @@ static void setup_mode(int32 mode) {
   ds.xscale = modetable[mode].xscale;
   ds.yscale = modetable[mode].yscale;
   ds.scaled = ds.yscale != 1 || ds.xscale != 1;	/* TRUE if graphics screen is scaled to fit real screen */
-  write_vduflag(VDU_FLAG_ECHO,1);
   write_vduflag(VDU_FLAG_GRAPHICURS,0);
   cursmode = UNDERLINE;
   cursorstate = SUSPENDED;      /* Cursor will be switched on later */
