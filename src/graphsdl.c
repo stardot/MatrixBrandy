@@ -1627,7 +1627,7 @@ static void move_cursor(int32 column, int32 row) {
       ytext = row;
     break;
     case 1:
-      xtext = twinright-column;
+      xtext = twinright+twinleft-column;
       ytext = row;
     break;
     case 2:
@@ -2639,7 +2639,7 @@ int32 emulate_pos(void) {
       ret = xtext - twinleft;
       break;
     case 1: case 3:
-      ret = twinright - (xtext-twinleft);
+      ret = twinright - xtext;
       break;
   }
   return ret;
@@ -4680,7 +4680,7 @@ int32 osbyte134_165(int32 a) {
 }
 
 int32 osbyte135() {
-    return ((screenmode << 16) + (get_character_at_pos(xtext,ytext) << 8) + 135);
+    return ((screenmode << 16) + (get_character_at_pos(xtext-twinleft,ytext-twintop) << 8) + 135);
 }
 
 int32 osbyte250() {
