@@ -122,7 +122,7 @@
 #define GYTOPY(y) ((ds.ygraphunits - 1 -(y)) / ds.ygupp)
 
 #define MOVFLAG ((vdu2316byte & 14) >> 1)
-#define SCROLLPROT (vdu2316byte & 14)
+#define SCROLLPROT (vdu2316byte & 1)
 
 /* Size of character in pixels in X direction */
 #define XPPC 8
@@ -2336,7 +2336,7 @@ void emulate_vdu(int32 charvalue) {
 #ifndef BRANDY_MODE7ONLY
       if (screenmode == 7) {
 #endif
-        if ((vdu2316byte & 1) && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
+        if (SCROLLPROT && ((xtext > twinright) || (xtext < twinleft))) { /* Have reached edge of text window. Skip to next line  */
           xtext = textxhome();
           ytext+=textyinc();
           /* VDU14 check here */
@@ -2386,7 +2386,7 @@ void emulate_vdu(int32 charvalue) {
           mode7frame[ytext][xtext]=charvalue;
         }
         xtext+=textxinc();
-        if ((!(vdu2316byte & 1)) && ((xtext > twinright) || (xtext < twinleft))) {
+        if ((!SCROLLPROT) && ((xtext > twinright) || (xtext < twinleft))) {
           xtext = textxhome();
           ytext+=textyinc();
           /* VDU14 check here */
