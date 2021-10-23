@@ -1620,6 +1620,24 @@ static void move_cursor(int32 column, int32 row) {
   hide_cursor();	/* Remove cursor */
   xtext = column;
   ytext = row;
+  switch(MOVFLAG) {
+    case 0:
+      xtext = column;
+      ytext = row;
+    break;
+    case 1:
+      xtext = twinright-column;
+      ytext = row;
+    break;
+    case 2:
+      xtext = column;
+      ytext = twinbottom - row;
+    break;
+    case 3:
+      xtext = twinright-column;
+      ytext = twinbottom - row;
+    break;
+  }
   reveal_cursor();	/* Redraw cursor */
 }
 
@@ -2289,7 +2307,7 @@ static void vdu_hometext(void) {
     ds.ylast = gtextyhome();
   }
   else {	/* Send text cursor to the top left-hand corner of the text window */
-    move_cursor(textxhome(), textyhome());
+    move_cursor(twinleft, twintop);
   }
 }
 
@@ -2303,10 +2321,10 @@ static void vdu_movetext(void) {
     ds.xlast = ds.gwinleft+vduqueue[0]*XPPC*ds.xgupp;
     ds.ylast = ds.gwintop-vduqueue[1]*YPPC*ds.ygupp+1;
   }
-  else {	/* Text is going to the graphics cursor */
+  else {	/* Text is going to the text cursor */
     column = vduqueue[0] + twinleft;
     row = vduqueue[1] + twintop;
-    if (column > twinright || row > twinbottom) return;	/* Ignore command if values are out of range */
+    if (column > (twinright + SCROLLPROT) || row > twinbottom) return;	/* Ignore command if values are out of range */
     move_cursor(column, row);
   }
 }
@@ -2614,7 +2632,16 @@ size_t emulate_vdufn(int variable) {
 ** is located in the text window
 */
 int32 emulate_pos(void) {
-  return xtext-twinleft;
+  int32 ret=0;
+  switch(MOVFLAG) {
+    case 0: case 2:
+      ret = xtext - twinleft;
+      break;
+    case 1: case 3:
+      ret = twinright - (xtext-twinleft);
+      break;
+  }
+  return ret;
 }
 
 /*
@@ -2622,7 +2649,16 @@ int32 emulate_pos(void) {
 ** is located in the text window
 */
 int32 emulate_vpos(void) {
-  return ytext-twintop;
+  int32 ret=0;
+  switch(MOVFLAG) {
+    case 0: case 1:
+      ret=ytext-twintop;
+      break;
+    case 2: case 3:
+      ret=twinbottom-(ytext-twintop);
+      break;
+  }
+  return ret;
 }
 
 /*
