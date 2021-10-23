@@ -700,8 +700,9 @@ static void toggle_cursor(void) {
   while (startpt > curheight) {
     for (ys=0; ys < ysc; ys++) {
       for (x=left; x <= right; x++) {
-        if ((x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight))      /* Prevent offscreen drawing */
+        if ((x + y + (ds.vscrwidth * csroffset)) >= 0 && (x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight)) {      /* Prevent offscreen drawing */
           *((Uint32*)matrixflags.surface->pixels + x + y + (ds.vscrwidth * csroffset)) ^= SWAPENDIAN(ds.xor_mask);
+        }
       }
       csroffset--;
     }
