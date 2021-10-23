@@ -1621,23 +1621,15 @@ static void move_cursor(int32 column, int32 row) {
   hide_cursor();	/* Remove cursor */
   xtext = column;
   ytext = row;
-  switch(MOVFLAG) {
-    case 0:
+  if (!(MOVFLAG & 4)) {
+    if (MOVFLAG & 1)
+      xtext = twinright + twinleft - column;
+    else
       xtext = column;
+    if (MOVFLAG & 2)
+      ytext = twinbottom + twintop - row;
+    else
       ytext = row;
-    break;
-    case 1:
-      xtext = twinright+twinleft-column;
-      ytext = row;
-    break;
-    case 2:
-      xtext = column;
-      ytext = twinbottom - row;
-    break;
-    case 3:
-      xtext = twinright-column;
-      ytext = twinbottom - row;
-    break;
   }
   reveal_cursor();	/* Redraw cursor */
 }
@@ -2653,10 +2645,10 @@ int32 emulate_vpos(void) {
   int32 ret=0;
   switch(MOVFLAG) {
     case 0: case 1:
-      ret=ytext-twintop;
+      ret = ytext - twintop;
       break;
     case 2: case 3:
-      ret=twinbottom-(ytext-twintop);
+      ret = twinbottom - ytext;
       break;
   }
   return ret;
