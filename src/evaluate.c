@@ -474,7 +474,8 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       case STACK_INT:   *p = intparm; break;
       case STACK_UINT8: *p = uint8parm; break;
       case STACK_INT64:
-        if (int64parm <= 0x7FFFFFFFll && int64parm >= 0xFFFFFFFF80000000ll)
+        if ((int64parm >= 0 && int64parm <= 0x7FFFFFFFll) ||
+            (int64parm < 0 && int64parm >= 0xFFFFFFFF80000000ll))
           *p = (int32)int64parm;
         else
           error(ERR_RANGE);
