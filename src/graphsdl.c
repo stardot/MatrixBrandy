@@ -417,7 +417,7 @@ static int32 gtextxhome(void) {
 }
 
 static int32 gtextyhome(void) {
-  if (vdu2316byte & 4) return ds.gwinbottom+YPPC*ds.ygupp;
+  if (vdu2316byte & 4) return ds.gwinbottom+YPPC*ds.ygupp-(ds.yscale);
   return ds.gwintop;
 }
 
@@ -1744,7 +1744,7 @@ static void move_curback(void) {
         }
       } else {
         if (ds.ylast > ds.gwintop) {		/* Cursor is outside the graphics window */
-          ds.ylast = ds.gwinbottom+YPPC*ds.ygupp-1;	/* Move back to right edge of previous line */
+          ds.ylast = ds.gwinbottom+YPPC*ds.ygupp;	/* Move back to right edge of previous line */
           ds.xlast += XPPC*ds.xgupp*textxinc();
           vdu5_cursorup();
         }
@@ -1753,7 +1753,7 @@ static void move_curback(void) {
       ds.xlast -= XPPC*ds.xgupp*textxinc();
       if ((vdu2316byte & 2) == 0) {
         if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinright-XPPC*ds.xgupp-1;	/* Move back to right edge of previous line */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
           ds.ylast += YPPC*ds.ygupp;
           vdu5_cursorup();
         }
@@ -2296,8 +2296,8 @@ static void vdu_origin(void) {
 */
 static void vdu_hometext(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Send graphics cursor to top left-hand corner of graphics window */
-    ds.xlast = gtextxhome();
-    ds.ylast = gtextyhome();
+    ds.xlast = (gtextxhome()/(2*ds.xscale))*2*ds.xscale;
+    ds.ylast = (gtextyhome()/(2*ds.yscale))*2*ds.yscale;
   }
   else {	/* Send text cursor to the top left-hand corner of the text window */
     move_cursor(twinleft, twintop);
@@ -4903,8 +4903,8 @@ size_t readmodevariable(int32 scrmode, int32 var) {
 #ifndef BRANDY_MODE7ONLY
     case 136: /* OrgX */	return ds.xorigin;
     case 137: /* OrgY */	return ds.yorigin;
-    case 138: /* GCsX */	return ds.xlast-ds.xorigin;
-    case 139: /* GCsY */	return ds.ylast-ds.yorigin;
+    case 138: /* GCsX */	return ((ds.xlast-ds.xorigin)/(2*ds.xscale))*2*ds.xscale;
+    case 139: /* GCsY */	return ((ds.ylast-ds.yorigin)/(2*ds.yscale))*2*ds.yscale;
     case 140: /* OlderCsX */	return ds.xlast3/(2*ds.xscale);
     case 141: /* OlderCsY */	return ds.ylast3/(2*ds.yscale);
     case 142: /* OldCsX */	return ds.xlast2/(2*ds.xscale);
