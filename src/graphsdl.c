@@ -1736,7 +1736,7 @@ static void move_curback(void) {
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
     if (MOVFLAG & 4) {
       ds.ylast += YPPC*ds.ygupp*textyinc();
-      if ((vdu2316byte & 4) == 0) {
+      if ((MOVFLAG & 2) == 0) {
         if (ds.ylast < ds.gwinbottom) {		/* Cursor is outside the graphics window */
           ds.ylast = ds.gwintop-1;	/* Move back to right edge of previous line */
           ds.xlast += XPPC*ds.xgupp*textxinc();
@@ -1751,10 +1751,10 @@ static void move_curback(void) {
       }
     } else {
       ds.xlast -= XPPC*ds.xgupp*textxinc();
-      if ((vdu2316byte & 2) == 0) {
+      if ((MOVFLAG & 1) == 0) {
         if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
           ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
-          ds.ylast += YPPC*ds.ygupp;
+          ds.ylast += YPPC*ds.ygupp*textyinc();
           vdu5_cursorup();
         }
       } else {
