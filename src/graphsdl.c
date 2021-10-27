@@ -1753,7 +1753,7 @@ static void move_curback(void) {
       ds.xlast -= XPPC*ds.xgupp*textxinc();
       if ((MOVFLAG & 1) == 0) {
         if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;	/* Move back to right edge of previous line */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+(2*ds.xscale);	/* Move back to right edge of previous line */
           ds.ylast += YPPC*ds.ygupp*textyinc();
           vdu5_cursorup();
         }
@@ -1795,7 +1795,7 @@ static void move_curforward(void) {
         }
       } else {
         if (ds.xlast < ds.gwinleft) {	/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinright-XPPC*ds.xgupp+1;		/* Move to left side of window on next line */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+(2*ds.xscale);		/* Move to left side of window on next line */
           ds.ylast -= YPPC*ds.ygupp*textyinc();
           if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
         }
