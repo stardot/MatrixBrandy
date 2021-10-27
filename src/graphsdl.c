@@ -1787,10 +1787,10 @@ static void move_curforward(void) {
       /* Wraparound is handled in plot_char() */
     } else {
       ds.xlast += XPPC*ds.xgupp*textxinc();
-      if ((vdu2316byte & 2) == 0) {
+      if ((MOVFLAG & 1) == 0) {
         if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
           ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
-          ds.ylast -= YPPC*ds.ygupp;
+          ds.ylast -= YPPC*ds.ygupp*textyinc();
           if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
         }
       } else {
