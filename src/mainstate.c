@@ -1031,7 +1031,7 @@ void exec_singlif(void) {
 void exec_xif(void) {
   byte *lp2 = NULL, *dest, *ifplace, *thenplace, *elseplace;
   int64 result = 0;
-  boolean single;
+  boolean single = 0;
   ifplace = basicvars.current; 		/* Set up a pointer to the 'IF' token */
   thenplace = ifplace+1;		/* Set up addresses where offsets will be stored */
   elseplace = ifplace+1+OFFSIZE;

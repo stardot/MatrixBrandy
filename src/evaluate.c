@@ -1444,7 +1444,11 @@ static void eval_ivplus(void) {
   rhint=pop_anyint();
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
-    push_varyint(pop_anyint() + rhint);
+	if (matrixflags.legacyintmaths && is8or32int(rhitem) && is8or32int(lhitem)) {
+	  push_int(pop_int() + rhint);
+    } else {
+      push_varyint(pop_anyint() + rhint);
+    }
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(TOFLOAT(rhint));	/* float+int - Update value on stack in place */
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<integer value> */
@@ -1938,7 +1942,11 @@ static void eval_ivminus(void) {
   rhint = pop_anyint();
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {	/* Branch according to type of left-hand operand */
-    push_varyint(pop_anyint() - rhint);
+	  if (matrixflags.legacyintmaths && is8or32int(rhitem) && is8or32int(lhitem)) {
+      push_int(pop_int() - rhint);
+    } else {
+      push_varyint(pop_anyint() - rhint);
+    }
   } else if (lhitem == STACK_FLOAT)
     DECR_FLOAT(TOFLOAT(rhint));
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */

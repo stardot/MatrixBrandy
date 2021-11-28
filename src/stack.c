@@ -1419,3 +1419,8 @@ void clear_stack(void) {
   basicvars.procstack = NIL;
   basicvars.gosubstack = NIL;
 }
+
+boolean is8or32int(stackitem item) {
+  if ((item == STACK_INT) || (item == STACK_UINT8)) return 1;
+  return 0;
+}
