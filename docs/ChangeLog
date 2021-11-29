@@ -16,6 +16,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   modes.
 - BASIC: Fix behaviour of RND followed by a space before parentheses to match
   ARM and 6502 BBC BASIC.
+- BASIC: Change the behaviour of cascaded IF calls to match the behaviour of
+  BBCSDL and friends. This is switchable and can be switched back to Acorn's
+  (strange) behaviour via a SYS call.
 
 * V1.22.11 - 11 July 2021
 - System: Mouse position wasn't taking into account change of ORIGIN.

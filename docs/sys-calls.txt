@@ -226,8 +226,13 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &140012 Brandy_CascadedIFtweak  Change behaviour of cascaded IF calls to try
                                 to match the behaviour of Richard Russell's
-                                BBC BASICs. Disabled by default, to match the
-                                Acorn ARM BBC BASICs.
+                                BBC BASICs. Enabled by default, but can be
+                                disabled to match the Acorn behaviour.
+                                As this affects the parser and tokeniser, if
+                                the block of code has been seen before this
+                                call, then the behaviour won't be changed.
+                                If used, it is recommended this be called at
+                                the top of a program.
 
 &140013 Brandy_MouseEventExpire Sets the mouse event expiry time in
                                 centiseonds, 0 disables.

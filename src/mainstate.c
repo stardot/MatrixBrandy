@@ -1031,7 +1031,7 @@ void exec_singlif(void) {
 void exec_xif(void) {
   byte *lp2 = NULL, *lp3 = NULL, *dest, *ifplace, *thenplace, *elseplace;
   int64 result = 0;
-  int64 tokenvalue = 0;
+  int32 depth;
   boolean single = 0;
   boolean cascade = 0;
   ifplace = basicvars.current; 		/* Set up a pointer to the 'IF' token */
@@ -1065,36 +1065,41 @@ void exec_xif(void) {
 ** be found. Of course, there might not be an 'ELSE' in which case the 'ELSE'
 ** offset just points at the next line
 */
-      if (*basicvars.current == BASIC_TOKEN_XIF) cascade = 1;
+      if (start_blockif(basicvars.current)) cascade = 1;
       if (*basicvars.current != BASIC_TOKEN_THEN) lp2 = basicvars.current;
       set_dest(thenplace, lp2);
       if (cascade && matrixflags.cascadeiftweak) {
         /* Scan the line for a trailing THEN. If so, we need to look for
          * an ENDIF token and set the location of that to elseplace. */
-         while (*lp2 != asc_NUL) {
-           lp3 = lp2;
-           lp2 = skip_token(lp2);
-         }
-         if (*lp3 != BASIC_TOKEN_THEN) {
-           /* Not a block IF */
-           lp2++;
-           lp2 = FIND_EXEC(lp2);
-         } else {
-           while (*lp2 != BASIC_TOKEN_ENDIF) {
-             tokenvalue = *lp2;
-             lp2 = skip_token(lp2);
-             if (*lp2 == asc_NUL) {
-               lp2++;
-               lp2 = FIND_EXEC(lp2);
-             }
-           }
-           lp2++;
-           if (*lp2 == asc_NUL) {
-             lp2++;
-             lp2 = FIND_EXEC(lp2);
-           }
-         }
-         set_dest(elseplace,lp2);
+        while (*lp2 != asc_NUL) {
+          lp3 = lp2;
+          lp2 = skip_token(lp2);
+        }
+        if (*lp3 != BASIC_TOKEN_THEN) {
+          /* Not a block IF */
+          lp2++;
+          lp2 = FIND_EXEC(lp2);
+        } else {
+/* START ENDIF SEARCH LOOP */
+          depth = 1;
+          while (depth > 0) {
+            if (*lp2 == BASIC_TOKEN_ENDIF) {
+              depth--;
+            } else if ((*lp2 == BASIC_TOKEN_THEN) && start_blockif(lp2)) {
+              depth++;
+            } else if ((depth == 1) && (*lp2 == BASIC_TOKEN_XLHELSE)) {
+              depth--;
+            } 
+            lp2 = skip_token(lp2);
+            if (*lp2 == asc_NUL) {
+              lp2++;
+              lp2 = FIND_EXEC(lp2);
+            }
+          }
+/* END ENDIF SEARCH LOOP */
+        }
+        set_dest(elseplace,lp2);
+        /* End of Cascaded IF handler */
       } else {
         while (*lp2 != asc_NUL && *lp2 != BASIC_TOKEN_XELSE) lp2 = skip_token(lp2);
         if (*lp2 == BASIC_TOKEN_XELSE) lp2+=1+OFFSIZE;	/* Find the token after the 'ELSE' */
@@ -1107,7 +1112,6 @@ void exec_xif(void) {
     }
   }
   else {	/* Dealing with a block 'IF' */
-    int32 depth;
     *ifplace = BASIC_TOKEN_BLOCKIF;
 /*
 ** Now find the 'ELSE' or 'ENDIF' that matches this 'IF' to fill in the
