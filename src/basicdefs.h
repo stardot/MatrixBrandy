@@ -579,6 +579,7 @@ typedef struct {
   int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
   uint32 int_uses_float;		/* Does INT() use floats? */
   uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
+  uint32 cascadeiftweak;   /* Handle cascaded IFs the way BBCSDL does */
   boolean hex64;			/* Decode hex in 64-bit? */
   boolean bitshift64;			/* Do bit shifts work in 64-bit space? */
   boolean pseudovarsunsigned;		/* Unsigned pseudovars on 32-bit */

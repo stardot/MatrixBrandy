@@ -1029,9 +1029,11 @@ void exec_singlif(void) {
 ** 'THEN' and 'ELSE' parts of the statement.
 */
 void exec_xif(void) {
-  byte *lp2 = NULL, *dest, *ifplace, *thenplace, *elseplace;
+  byte *lp2 = NULL, *lp3 = NULL, *dest, *ifplace, *thenplace, *elseplace;
   int64 result = 0;
+  int64 tokenvalue = 0;
   boolean single = 0;
+  boolean cascade = 0;
   ifplace = basicvars.current; 		/* Set up a pointer to the 'IF' token */
   thenplace = ifplace+1;		/* Set up addresses where offsets will be stored */
   elseplace = ifplace+1+OFFSIZE;
@@ -1063,15 +1065,45 @@ void exec_xif(void) {
 ** be found. Of course, there might not be an 'ELSE' in which case the 'ELSE'
 ** offset just points at the next line
 */
+      if (*basicvars.current == BASIC_TOKEN_XIF) cascade = 1;
       if (*basicvars.current != BASIC_TOKEN_THEN) lp2 = basicvars.current;
       set_dest(thenplace, lp2);
-      while (*lp2 != asc_NUL && *lp2 != BASIC_TOKEN_XELSE) lp2 = skip_token(lp2);
-      if (*lp2 == BASIC_TOKEN_XELSE) lp2+=1+OFFSIZE;	/* Find the token after the 'ELSE' */
-      if (*lp2 == asc_NUL) {	/* Find the first token on the next line */
-        lp2++;
-        lp2 = FIND_EXEC(lp2);
+      if (cascade && matrixflags.cascadeiftweak) {
+        /* Scan the line for a trailing THEN. If so, we need to look for
+         * an ENDIF token and set the location of that to elseplace. */
+         while (*lp2 != asc_NUL) {
+           lp3 = lp2;
+           lp2 = skip_token(lp2);
+         }
+         if (*lp3 != BASIC_TOKEN_THEN) {
+           /* Not a block IF */
+           lp2++;
+           lp2 = FIND_EXEC(lp2);
+         } else {
+           while (*lp2 != BASIC_TOKEN_ENDIF) {
+             tokenvalue = *lp2;
+             lp2 = skip_token(lp2);
+             if (*lp2 == asc_NUL) {
+               lp2++;
+               lp2 = FIND_EXEC(lp2);
+             }
+           }
+           lp2++;
+           if (*lp2 == asc_NUL) {
+             lp2++;
+             lp2 = FIND_EXEC(lp2);
+           }
+         }
+         set_dest(elseplace,lp2);
+      } else {
+        while (*lp2 != asc_NUL && *lp2 != BASIC_TOKEN_XELSE) lp2 = skip_token(lp2);
+        if (*lp2 == BASIC_TOKEN_XELSE) lp2+=1+OFFSIZE;	/* Find the token after the 'ELSE' */
+        if (*lp2 == asc_NUL) {	/* Find the first token on the next line */
+          lp2++;
+          lp2 = FIND_EXEC(lp2);
+        }
+        set_dest(elseplace, lp2);
       }
-      set_dest(elseplace, lp2);
     }
   }
   else {	/* Dealing with a block 'IF' */

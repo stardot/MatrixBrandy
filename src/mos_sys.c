@@ -657,6 +657,9 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
         outregs[7]=getppid();
 #endif
         break;
+    case SWI_Brandy_CascadedIFtweak:
+        matrixflags.cascadeiftweak = inregs[0];
+        break;
     case SWI_Brandy_MouseEventExpire:
 #ifdef USE_SDL
         set_mouseevent_expiry((uint32)inregs[0]);

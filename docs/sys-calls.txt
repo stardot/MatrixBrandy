@@ -224,7 +224,10 @@ Brandy_xxx  (SWI numbers start &140000)
                                 R7: The Parent PID of the current process.
                                     Note: PPID not returned on Windows.
 
-&140012 Brandy_RefreshInterval  Deleted, no longer recognised.
+&140012 Brandy_CascadedIFtweak  Change behaviour of cascaded IF calls to try
+                                to match the behaviour of Richard Russell's
+                                BBC BASICs. Disabled by default, to match the
+                                Acorn ARM BBC BASICs.
 
 &140013 Brandy_MouseEventExpire Sets the mouse event expiry time in
                                 centiseonds, 0 disables.
