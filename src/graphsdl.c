@@ -1733,6 +1733,7 @@ static void move_up(void) {
 ** 'move_curback' moves the cursor back one character on the screen (VDU 8)
 */
 static void move_curback(void) {
+#ifndef BRANDY_MODE7ONLY
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
     if (MOVFLAG & 4) {
       ds.ylast += YPPC*ds.ygupp*textyinc();
@@ -1767,6 +1768,7 @@ static void move_curback(void) {
     }
 
   } else {	/* VDU4 mode */
+#endif
     hide_cursor();	/* Remove cursor */
     xtext-=textxinc();
     if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at left-hand edge of text window so move up a line */
@@ -1774,7 +1776,9 @@ static void move_curback(void) {
       move_up();
     }
     reveal_cursor();	/* Redraw cursor */
+#ifndef BRANDY_MODE7ONLY
   }
+#endif
 }
 
 /*
@@ -1822,9 +1826,11 @@ static void move_curforward(void) {
 ** performs the linefeed operation (VDU 10)
 */
 static void move_curdown(void) {
+#ifndef BRANDY_MODE7ONLY
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
     vdu5_cursordown();
   } else {
+#endif
     /* VDU14 check here - all these should be optimisable */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       matrixflags.vdu14lines++;
@@ -1845,17 +1851,21 @@ static void move_curdown(void) {
     hide_cursor();	/* Remove cursor */
     move_down();
     reveal_cursor();	/* Redraw cursor */
+#ifndef BRANDY_MODE7ONLY
   }
+#endif
 }
 
 /*
 ** 'move_curup' moves the cursor up a line on the screen (VDU 11)
 */
 static void move_curup(void) {
+#ifndef BRANDY_MODE7ONLY
   if (vduflag(VDU_FLAG_GRAPHICURS)) {
     ds.ylast += YPPC*ds.ygupp*textyinc();
     vdu5_cursorup();
   } else {
+#endif
     /* VDU14 check here */
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       matrixflags.vdu14lines++;
@@ -1877,7 +1887,9 @@ static void move_curup(void) {
     hide_cursor();	/* Remove cursor */
     move_up();
     reveal_cursor();	/* Redraw cursor */
+#ifndef BRANDY_MODE7ONLY
   }
+#endif
 }
 
 /*
