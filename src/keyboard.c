@@ -151,6 +151,22 @@ int32 kbd_inkey(int32 arg) {
   // -----------------------------
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
+  if (arg == -256) return OSVERSION;
+  regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
+  regs.r[1] = arg & BYTEMASK;
+  regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
+  oserror = _kernel_swi(OS_Byte, &regs, &regs);
+  if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
+  if (regs.r[2] == 0)	return regs.r[1];	/* Character was read successfully	*/
+  else			return -1;		/* Timed out				*/
+}
+int32 kbd_inkey256() {
+
+  // RISC OS, pass directly to MOS
+  // -----------------------------
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  int32 arg = -256;
   regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;

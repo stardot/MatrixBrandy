@@ -649,7 +649,11 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
         outregs[3]=0;
 #endif
         outregs[4]=(MACTYPE >> 8);
+#ifdef TARGET_RISCOS
+        outregs[5]=kbd_inkey256();
+#else
         outregs[5]=LEGACY_OSVERSION;
+#endif
 #ifndef __TARGET_SCL__
         outregs[6]=getpid();
 #endif

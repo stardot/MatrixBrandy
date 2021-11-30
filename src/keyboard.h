@@ -50,6 +50,9 @@ extern void  kbd_quit(void);
 extern int32 kbd_get(void);
 extern int32 kbd_get0(void);
 extern int32 kbd_inkey(int32);
+#ifdef TARGET_RISCOS
+extern int32 kbd_inkey256(void);
+#endif
 extern int32 kbd_modkeys(int32);
 extern int   kbd_fnkeyset(int key, char *string, int length);
 extern char *kbd_fnkeyget(int key, int *length);
