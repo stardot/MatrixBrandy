@@ -2386,7 +2386,7 @@ void exec_sys(void) {
   }
 /* Set up default values for all possible parameters */
   for (n=0; n<MAXSYSPARMS; n++) {
-    inregs[n] = 0;
+    outregs[n] = inregs[n] = 0;
     tempdesc[n].stringaddr = NIL;
   }
   parmcount = 0;
