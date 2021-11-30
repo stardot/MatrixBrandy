@@ -145,9 +145,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define CPUTYPE "Unknown"
 #endif
 
-#ifndef __riscos
 #define OSVERSION 0x4D
-#endif
 
 #ifdef __riscos
 #define TARGET_RISCOS
