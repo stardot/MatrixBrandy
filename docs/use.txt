@@ -967,9 +967,10 @@ is it running under:
 	&A9	RISC OS 4.32 to 4.37
 	&AA	RISC OS 5
 
-    When not running on RISC OS, Matrix Brandy returns &4D (ASC"M").
+    On all platforms including RISC OS, Matrix Brandy returns &4D (ASC"M").
 
-    Older versions of Brandy (and Matrix Brandy older than 1.22.6) added the following:
+    Older versions of Brandy (and Matrix Brandy older than 1.22.6) added the
+    following:
 
 	&F5	Amiga
 	&F6	OpenBSD
@@ -981,34 +982,31 @@ is it running under:
 	&FC	Windows 32
 	&FE	NetBSD
 
-    Matrix Brandy can ascertain this via the SYS "Brandy_Platform" call,
+    Matrix Brandy can obtain this via the SYS "Brandy_Platform" call,
     with the above values in the R5 response.
 
     Other values might be added to this list for other operating systems.
-    Note that this tells you the *platform* the program is running on, not the
-    interpreter. For example, Brandy could be running on RISC OS so INKEY-256
-    would return &A0-&AF; ARM BASIC could be running on a BBC second processor,
-    so INKEY-256 could return &FE.
+    Traditionally, this tells you the *platform* the program is running on,
+    not the interpreter. For example, ARM BASIC could be running on a BBC
+    second processor, so INKEY-256 could return &FE.  However, there is
+    no other reliable way to ascertain whether the interpreter in use is
+    ARM BBC BASIC or Matrix Brandy, thus as of V1.22.12 Matrix Brandy also
+    returns &4D under RISC OS.
 
     This is open to interpretation, thus Matrix Brandy, along with Richard
     Russell's BBC BASIC for Windows and BBC BASIC for SDL 2.0, have chosen
     to interpret this platform specifier to be a MOS version (or emulation)
     identifier. Thus, all non-RISC OS builds of Matrix Brandy from version
-    1.22.6 return &4D (ASC"M"). RISC OS builds return the "native" value as
-    the real MOS is being used. For reference, BB4W returns &57 (ASC"W"),
-    BBSDL from assembly source returns &53 (ASC"S") and from C source returns
-    &73 (ASC"s").
+    1.22.6 return &4D (ASC"M"). RISC OS builds until V.1.22.12 returned the
+    "native" value as the real MOS is being used. For reference, BB4W returns
+    &57 (ASC"W"), BBSDL from assembly source returns &53 (ASC"S") and from C
+    source returns &73 (ASC"s").
 
-    To reliably identify Matrix Brandy with suitable capabilities for a program
-    that requires a graphical output, you can use the following:
+    To reliably identify Matrix Brandy as of V1.22.12 with suitable capabilities
+    for a program that requires a graphical output, you can use the following:
 
 	graphics%=0
-	IF INKEY(-256)=&4D OR (INKEY(-256) AND &F0)=&A0 THEN
-	  CASE (INKEY(-256) AND &F0) OF
-	    WHEN &40: SYS "Brandy_Platform" TO ,,,graphics%
-	    WHEN &A0: SYS "XOS_SWINumberFromString",,"Brandy_Version" TO ver%: IF ver% = &140000 THEN graphics%=1
-	  ENDCASE
-	ENDIF
+	IF INKEY(-256)=&4D THEN SYS "Brandy_Platform" TO ,,,graphics%
 	IF graphics% = 0 THEN ERROR 0,"This program requires Matrix Brandy BASIC with graphics capability".
 	REM We got here, so we're good to go.
 

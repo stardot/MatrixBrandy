@@ -19,6 +19,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: Change the behaviour of cascaded IF calls to match the behaviour of
   BBCSDL and friends. This is switchable and can be switched back to Acorn's
   (strange) behaviour via a SYS call.
+- INKEY(-256) now returns ASC("M") (&4D) on ALL platforms, including RISC OS.
 
 * V1.22.11 - 11 July 2021
 - System: Mouse position wasn't taking into account change of ORIGIN.
