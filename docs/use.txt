@@ -986,7 +986,7 @@ is it running under:
     with the above values in the R5 response.
 
     Other values might be added to this list for other operating systems.
-    Traditionally, this tells you the *platform* the program is running on,
+    Traditionally, this identified the *platform* the program is running on,
     not the interpreter. For example, ARM BASIC could be running on a BBC
     second processor, so INKEY-256 could return &FE.  However, there is
     no other reliable way to ascertain whether the interpreter in use is

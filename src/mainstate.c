@@ -1083,7 +1083,9 @@ void exec_xif(void) {
 /* START ENDIF SEARCH LOOP */
           depth = 1;
           while (depth > 0) {
-            if (*lp2 == BASIC_TOKEN_ENDIF) {
+            if (AT_PROGEND(lp2)) {
+              error(ERR_ENDIF);
+            } else if (*lp2 == BASIC_TOKEN_ENDIF) {
               depth--;
             } else if ((*lp2 == BASIC_TOKEN_THEN) && start_blockif(lp2)) {
               depth++;
