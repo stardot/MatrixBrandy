@@ -337,7 +337,7 @@ static void ttxtcopychar(int32 in, int32 out, int32 srcbank) {
 static void saa505xregset(int32 set, int32 alt) {
   int32 iloop = 0;
   if (alt) alt=0x80;
-  switch(set & 7) {
+  switch(set & 0x7F) {
     case 0: /* SAA5050 - British */
       ttxtcopychar(0xA3, alt+0x23, 0); 
       ttxtcopychar(0x8F, alt+0x5B, 0);
@@ -424,8 +424,8 @@ static void saa505xregset(int32 set, int32 alt) {
       ttxtcopychar(0x3F, alt+0x26,1);
       break;
   }
-  /* Is bit 3 (value=8) set? If so replace block with Euro */
-  if (set & 8) ttxtcopychar(0x80, alt+0x7F, 0);
+  /* Is bit 7 set? If so replace block with Euro */
+  if (set & 0x80) ttxtcopychar(0x80, alt+0x7F, 0);
     else ttxtcopychar(0x81, alt+0x7F, 0);
 }
 
@@ -674,7 +674,7 @@ static void vdu_2318(void) {
     write_vduflag(MODE7_BLACK, vduqueue[2] & 1);
   }
   if (vduqueue[1] == 4) {
-    saa505xregion(vduqueue[2] & 0xF, vduqueue[3] & 0xF);
+    saa505xregion(vduqueue[2], vduqueue[3]);
   }
   tmsg.mode7forcerefresh=1;
 }
