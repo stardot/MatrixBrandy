@@ -11,7 +11,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   David Hawes!)
 - Graphics: Implemented GCOL action codes 5-7
 - Graphics: Hopefully fixed a triangle drawing bug.
-- Graphics: Implement VDU23,16 (as far as already implemented) in VDU5 mode
+- Graphics: Implement VDU23,16 (as far as already implemented) in VDU5 mode.
+- Teletext: Implemented VDU23,18,4,pri,alt| to select character sets.
+  This is much cleaner than using SAA505Xlib in the examples, but that will
+  remain as an example for OSWORDs &8B and &8C.
 - BASIC: Fix COLOUR(r,g,b) function to return correct values in 256-colour
   modes.
 - BASIC: Fix behaviour of RND followed by a space before parentheses to match

@@ -25,6 +25,13 @@ More strictly, this code toggle is an extended features toggle, which include
 Alpha Black (&80), Graphics Black (&90) and Alternative Character Set (&9B),
 and also corrects the Hold "bug" in the SAA5050 Teletext chip.
 
+VDU23,18,4,pri,alt,0,0,0,0,0 - Select Teletext character set
+  The values are as per the SAA505x family of chips. This is extended in
+  Matrix Brandy by ORing the value with 8 to substitute the solid block
+  with the Euro symbol. pri is the Primary character set that is normally
+  displayed, alt is the Alternative Character Set selected with &9B
+  (if enabled using VDU23,18,3,1|)
+
 Two new OSWORD calls are available, one to read the character definition
 of a teletext character, another to change a character with a new definition.
 These OSWORD calls are specific to Matrix Brandy and Richard Russell's BBCSDL

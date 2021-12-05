@@ -327,6 +327,118 @@ static void drain_mouse_expired() {
   }
 }
 
+static void ttxtcopychar(int32 in, int32 out, int32 srcbank) {
+  int32 iloop = 0;
+  for(iloop=0; iloop<20; iloop++) {
+    mode7font[out-32][iloop]=mode7fontbanks[srcbank][in][iloop];
+  }
+}
+
+static void saa505xregset(int32 set, int32 alt) {
+  int32 iloop = 0;
+  if (alt) alt=0x80;
+  switch(set & 7) {
+    case 0: /* SAA5050 - British */
+      ttxtcopychar(0xA3, alt+0x23, 0); 
+      ttxtcopychar(0x8F, alt+0x5B, 0);
+      ttxtcopychar(0xBD, alt+0x5C, 0);
+      ttxtcopychar(0x90, alt+0x5D, 0);
+      ttxtcopychar(0x8D, alt+0x5E, 0);
+      ttxtcopychar(0x23, alt+0x5F, 0);
+      ttxtcopychar(0x96, alt+0x60, 0);
+      ttxtcopychar(0xBC, alt+0x7B, 0);
+      ttxtcopychar(0x9D, alt+0x7C, 0);
+      ttxtcopychar(0xBE, alt+0x7D, 0);
+      ttxtcopychar(0xF7, alt+0x7E, 0);
+      break;
+    case 1: /* SAA5051 - German */
+      ttxtcopychar(0xA7, alt+0x40, 0);
+      ttxtcopychar(0xC4, alt+0x5B, 0);
+      ttxtcopychar(0xD6, alt+0x5C, 0);
+      ttxtcopychar(0xDC, alt+0x5D, 0);
+      ttxtcopychar(0xB0, alt+0x60, 0);
+      ttxtcopychar(0xE4, alt+0x7B, 0);
+      ttxtcopychar(0xF6, alt+0x7C, 0);
+      ttxtcopychar(0xFC, alt+0x7D, 0);
+      ttxtcopychar(0xDF, alt+0x7E, 0);
+      break;
+    case 2: /* SAA5052 - Swedish */
+      ttxtcopychar(0xA4, alt+0x24, 0);
+      ttxtcopychar(0xC9, alt+0x40, 0);
+      ttxtcopychar(0xC4, alt+0x5B, 0);
+      ttxtcopychar(0xD6, alt+0x5C, 0);
+      ttxtcopychar(0xC5, alt+0x5D, 0);
+      ttxtcopychar(0xDC, alt+0x5E, 0);
+      ttxtcopychar(0xE9, alt+0x60, 0);
+      ttxtcopychar(0xE4, alt+0x7B, 0);
+      ttxtcopychar(0xF6, alt+0x7C, 0);
+      ttxtcopychar(0xE5, alt+0x7D, 0);
+      ttxtcopychar(0xFC, alt+0x7E, 0);
+      break;
+    case 3: /* SAA5053 - Italian */
+      ttxtcopychar(0xA3, alt+0x23, 0); 
+      ttxtcopychar(0xE9, alt+0x40, 0);
+      ttxtcopychar(0xB0, alt+0x5B, 0);
+      ttxtcopychar(0xE7, alt+0x5C, 0);
+      ttxtcopychar(0x90, alt+0x5D, 0);
+      ttxtcopychar(0x8D, alt+0x5E, 0);
+      ttxtcopychar(0x23, alt+0x5F, 0);
+      ttxtcopychar(0xD9, alt+0x60, 0);
+      ttxtcopychar(0xE0, alt+0x7B, 0);
+      ttxtcopychar(0xD2, alt+0x7C, 0);
+      ttxtcopychar(0xE8, alt+0x7D, 0);
+      ttxtcopychar(0xEC, alt+0x7E, 0);
+      break;
+    case 4: /* SAA5054 - Belgian / French */
+      ttxtcopychar(0xE9, alt+0x23, 0); 
+      ttxtcopychar(0xEF, alt+0x24, 0); 
+      ttxtcopychar(0xE0, alt+0x40, 0);
+      ttxtcopychar(0xEB, alt+0x5B, 0);
+      ttxtcopychar(0xEA, alt+0x5C, 0);
+      ttxtcopychar(0xD9, alt+0x5D, 0);
+      ttxtcopychar(0xEE, alt+0x5E, 0);
+      ttxtcopychar(0x23, alt+0x5F, 0);
+      ttxtcopychar(0xE8, alt+0x60, 0);
+      ttxtcopychar(0xE2, alt+0x7B, 0);
+      ttxtcopychar(0xF4, alt+0x7C, 0);
+      ttxtcopychar(0xFB, alt+0x7D, 0);
+      ttxtcopychar(0xE7, alt+0x7E, 0);
+      break;
+    case 5: /* SAA5055 - US-ASCII */
+      /* Do nothing, that's the position after reset */
+      break;
+    case 6: /* SAA5056 - Hebrew */
+      ttxtcopychar(0xA3, alt+0x23, 0); 
+      ttxtcopychar(0x8F, alt+0x5B, 0);
+      ttxtcopychar(0xBD, alt+0x5C, 0);
+      ttxtcopychar(0x90, alt+0x5D, 0);
+      ttxtcopychar(0x8D, alt+0x5E, 0);
+      ttxtcopychar(0x23, alt+0x5F, 0);
+      ttxtcopychar(0x9D, alt+0x7C, 0);
+      ttxtcopychar(0xBE, alt+0x7D, 0);
+      ttxtcopychar(0xF7, alt+0x7E, 0);
+      for(iloop=0;iloop<=27;iloop++) ttxtcopychar(iloop,alt+iloop+0x60,0);
+      break;
+    case 7: /* SAA5057 - Cyrillic */
+      for(iloop=0;iloop<=62;iloop++) ttxtcopychar(iloop,alt+iloop+0x40,1);
+      ttxtcopychar(0x3F, alt+0x26,1);
+      break;
+  }
+  /* Is bit 3 (value=8) set? If so replace block with Euro */
+  if (set & 8) ttxtcopychar(0x80, alt+0x7F, 0);
+    else ttxtcopychar(0x81, alt+0x7F, 0);
+}
+
+static void saa505xregion(int32 pri, int32 alt) {
+  int32 loop=0;
+  /* First, reset the font to a known state. Pri = SAA5050, Alt = SAA5055 */
+  for(loop=32; loop<127; loop++) {
+    ttxtcopychar(loop,loop,0);
+    ttxtcopychar(loop,128+loop,0);
+  }
+  saa505xregset(pri,0);
+  saa505xregset(alt,1);
+}
 
 void reset_sysfont(int x) {
 #ifndef BRANDY_MODE7ONLY
@@ -336,7 +448,7 @@ void reset_sysfont(int x) {
 #ifndef BRANDY_MODE7ONLY
     memcpy(sysfont, sysfontbase, sizeof(sysfont));
 #endif
-    memcpy(mode7font, mode7fontro5, sizeof(mode7font));
+    saa505xregion(0,5);
     return;
   }
 #ifndef BRANDY_MODE7ONLY
@@ -351,7 +463,7 @@ void reset_sysfont(int x) {
   }
 #endif
   if (x == 16) {
-    memcpy(mode7font, mode7fontro5, sizeof(mode7font));
+    saa505xregion(0,5);
   }
 }
 
@@ -560,6 +672,9 @@ static void vdu_2318(void) {
   }
   if (vduqueue[1] == 3) {
     write_vduflag(MODE7_BLACK, vduqueue[2] & 1);
+  }
+  if (vduqueue[1] == 4) {
+    saa505xregion(vduqueue[2] & 0xF, vduqueue[3] & 0xF);
   }
   tmsg.mode7forcerefresh=1;
 }
