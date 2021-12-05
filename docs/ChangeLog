@@ -1,7 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.12 - 
+* V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches
 - System: Fix calculations of matrix dot products (thank you 
   mikefairbank@Github!)
