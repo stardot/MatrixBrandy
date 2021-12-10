@@ -301,12 +301,16 @@ int kbd_escack() {
 }
 
 int kbd_esctest() {
-  fprintf(stderr, "Error state: %d (EINTR=%d)\n", errno, EINTR); fflush(stderr);
-  return FALSE;
+  byte result;
+  result = _kernel_osbyte(229,0,255);
+  if(0 != result) return FALSE;
+  result = _kernel_osbyte(200,0,255);
+  if((result & 1) == 1) return FALSE;
+  return TRUE;
 }
 
 int kbd_escpoll() {
-  if (kbd_inkey(-113)) basicvars.escape=TRUE;
+  if (kbd_esctest()) if (kbd_inkey(-113)) basicvars.escape=TRUE;
   return basicvars.escape;
 }
 

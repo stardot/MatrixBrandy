@@ -2851,6 +2851,13 @@ switch (areg) {
 	case 113:			// OSBYTE 113 - screen bank displayed
 		osbyte113(xreg);
 		break;
+  case 124:
+    basicvars.escape = FALSE;
+    break;
+  case 125:
+    basicvars.escape = TRUE;
+    error(ERR_ESCAPE);
+    break;
 	case 134:			// OSBYTE 134 - Read POS and VPOS
 	case 165:			// OSBYTE 165 - Read editing cursor position (we don't have seperate cursors)
 		return osbyte134_165(areg);
