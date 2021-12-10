@@ -382,7 +382,7 @@ extern boolean isempty(byte []);
 #define GET_DEST(p) (p+(*p | (*(p+1)<<BYTESHIFT)))
 #define GET_LINELEN(p) (*(p+OFFLENGTH) | (*(p+OFFLENGTH+1)<<BYTESHIFT))
 #define GET_LINENO(p) (*(p+OFFLINE) | (*(p+OFFLINE+1)<<BYTESHIFT))
-#define GET_SRCADDR(p) (p-(*(p+1)+(*(p+2)<<BYTESHIFT))
+#define GET_SRCADDR(p) (p-(*(p+1)+(*(p+2)<<BYTESHIFT)))
 #define AT_PROGEND(p) (*(p+OFFLINE+1)==ENDMARKER)
 #define FIND_EXEC(p) (p+*(p+OFFEXEC)+(*(p+OFFEXEC+1)<<BYTESHIFT))
 
