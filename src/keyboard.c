@@ -126,6 +126,7 @@
 
 #include "kernel.h"
 #include "swis.h"
+#include "errno.h"
 
 #ifndef TARGET_RISCOS
 static boolean waitkey(int wait);		/* To prevent a forward reference	*/
@@ -294,15 +295,19 @@ void kbd_quit() {
 }
 
 int kbd_escack() {
-  return 0;
+  byte tmp=basicvars.escape;
+  basicvars.escape=FALSE;				/* Clear pending Escape		*/
+  return tmp ? -1 : 0;					/* Return previous Escape state	*/
 }
 
 int kbd_esctest() {
+  fprintf(stderr, "Error state: %d (EINTR=%d)\n", errno, EINTR); fflush(stderr);
   return FALSE;
 }
 
 int kbd_escpoll() {
-  return 0;
+  if (kbd_inkey(-113)) basicvars.escape=TRUE;
+  return basicvars.escape;
 }
 
 int32 kbd_readline(char *buffer, int32 length, int32 chars) {

@@ -115,11 +115,13 @@ static void handle_signal(int signo) {
 #endif
 #endif
   case SIGINT:
-#ifdef TARGET_MINGW
+#ifndef TARGET_RISCOS
+    if (kbd_esctest())
+#endif
+      basicvars.escape = TRUE;
+#if defined(TARGET_MINGW) || defined(TARGET_RISCOS)
     (void) signal(SIGINT, handle_signal);
 #endif
-//  if (basicvars.escape_enabled) basicvars.escape = TRUE;
-    if (kbd_esctest()) basicvars.escape = TRUE;
     return;
   case SIGFPE:
 #ifdef TARGET_MINGW
@@ -618,16 +620,16 @@ static void print_details(boolean iserror) {
   char *libname;
   basicvars.printcount = 0;             /* Reset no. of chars Basic has printed on line to zero */
   if (basicvars.error_line==0) {        /* Error occured when dealing with the command line */
-    if (basicvars.linecount==0)
+    if (basicvars.linecount==0) {
       emulate_printf("\r\n%s\r\n", errortext);
-    else {
+    } else {
       emulate_printf("[Line %d] %s\r\n", basicvars.linecount, errortext);
     }
   }
   else {        /* Error occured in running program */
-    if (basicvars.procstack==NIL)
+    if (basicvars.procstack==NIL) {
       emulate_printf("\r\n%s at line %d", errortext, basicvars.error_line);
-    else {
+    } else {
       emulate_printf("\r\n%s at line %d in %s%s", errortext, basicvars.error_line,
        procfn(basicvars.procstack->fnprocname), basicvars.procstack->fnprocname+1);
     }
@@ -800,7 +802,6 @@ void error(int32 errnumber, ...) {
 #ifdef NEWKBD
   if (errnumber == ERR_ESCAPE) kbd_escack();				/* Acknowledge and process Escape effects */
 #else // OLDKBD
-
   basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */
 #ifdef TARGET_MINGW
   FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
@@ -809,6 +810,7 @@ void error(int32 errnumber, ...) {
   purge_keys();        /* RISC OS purges the keybuffer during escape processing */
 #endif
 #endif // !NEWKBD
+
 #ifdef USE_SDL
   if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
 #endif
