@@ -375,14 +375,9 @@ static void list_program(void) {
         paused = TRUE;
         emulate_printf("-- More --");
         do {
-#ifdef NEWKBD
 //        if (basicvars.escape) error(ERR_ESCAPE);
           if (kbd_escpoll()) error(ERR_ESCAPE);
           count = kbd_get();
-#else
-          if (basicvars.escape) error(ERR_ESCAPE);
-          count = emulate_get();
-#endif
           switch (count) {
           case ' ':
             count = 0;
@@ -400,12 +395,7 @@ static void list_program(void) {
       }
     }
 #ifdef USE_SDL
-#ifdef NEWKBD
     if (kbd_escpoll()) error(ERR_ESCAPE);
-//  if (kbd_inkey(-113)) basicvars.escape=TRUE;
-#else
-    if (emulate_inkey(-113)) basicvars.escape=TRUE;
-#endif
 #endif
     if (basicvars.escape) error(ERR_ESCAPE);
   }

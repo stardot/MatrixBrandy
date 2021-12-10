@@ -255,21 +255,13 @@ static void gpio_init() {
 ** 'init2' finishes initialising the interpreter
 */
 static void init2(void) {
-#ifdef NEWKBD
   if (!mos_init() || !kbd_init() || !init_screen()) {
-#else
-  if (!mos_init() || !init_keyboard() || !init_screen()) {
-#endif
     cmderror(CMD_INITFAIL);	/* Initialisation failed */
     exit_interpreter(EXIT_FAILURE);	/* End run */
   }
   if (!init_heap() || !init_workspace(worksize)) {
     cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
-#ifdef NEWKBD
     kbd_quit();
-#else
-    end_keyboard();
-#endif
     exit(EXIT_FAILURE);
   }
 #ifdef USE_SDL
@@ -587,11 +579,7 @@ static void run_interpreter(void) {
 void exit_interpreter(int retcode) {
   fileio_shutdown();
   end_screen();
-#ifdef NEWKBD
   kbd_quit();
-#else
-  end_keyboard();
-#endif
   mos_final();
   restore_handlers();
   release_heap();

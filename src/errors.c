@@ -143,11 +143,7 @@ static void handle_signal(int signo) {
 #ifdef TARGET_MINGW
     (void) signal(SIGCONT, handle_signal);
 #endif
-//#ifdef NEWKBD
 //    kbd_init();		// shouldn't be re-init'ing kbd in middle of a signal
-//#else
-//    init_keyboard();
-//#endif
     return;
 #endif
   default:
@@ -799,17 +795,7 @@ void error(int32 errnumber, ...) {
     errnumber = ERR_BROKEN;
   }
 
-#ifdef NEWKBD
   if (errnumber == ERR_ESCAPE) kbd_escack();				/* Acknowledge and process Escape effects */
-#else // OLDKBD
-  basicvars.escape = FALSE;             /* Ensure ESCAPE state is clear */
-#ifdef TARGET_MINGW
-  FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
-#endif
-#ifndef TARGET_RISCOS
-  purge_keys();        /* RISC OS purges the keybuffer during escape processing */
-#endif
-#endif // !NEWKBD
 
 #ifdef USE_SDL
   if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */

@@ -1260,11 +1260,7 @@ static void do_function(void) {
   byte *tp;
   fnprocdef *dp;
   variable *vp;
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
 #ifdef TARGET_DJGPP
   if (stackavail()<DJGPPLIMIT) error(ERR_STACKFULL);
 #endif

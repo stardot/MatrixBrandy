@@ -1517,16 +1517,7 @@ static void write_char(int32 ch) {
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
-#ifdef NEWKBD
-        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-          usleep(5000);
-        }
-#else
-        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-          if (basicvars.escape_enabled) checkforescape();
-          usleep(5000);
-        }
-#endif
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
         matrixflags.vdu14lines=0;
       }
     }
@@ -1569,16 +1560,7 @@ static void write_char(int32 ch) {
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
-#ifdef NEWKBD
-        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-          usleep(5000);
-        }
-#else
-        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-          if (basicvars.escape_enabled) checkforescape();
-          usleep(5000);
-        }
-#endif
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
         matrixflags.vdu14lines=0;
       }
     }
@@ -1950,16 +1932,7 @@ static void move_curdown(void) {
     if (vduflag(VDU_FLAG_ENAPAGE)) {
       matrixflags.vdu14lines++;
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
-#ifdef NEWKBD
-        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-          usleep(5000);
-        }
-#else
-        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-          if (basicvars.escape_enabled) checkforescape();
-          usleep(5000);
-        }
-#endif
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
         matrixflags.vdu14lines=0;
       }
     }
@@ -1986,16 +1959,7 @@ static void move_curup(void) {
       matrixflags.vdu14lines++;
 // BUG: paged mode should not stop scrolling upwards
       if (matrixflags.vdu14lines > (twinbottom-twintop)) {
-#ifdef NEWKBD
-        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-          usleep(5000);
-        }
-#else
-        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-          if (basicvars.escape_enabled) checkforescape();
-          usleep(5000);
-        }
-#endif
+        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
         matrixflags.vdu14lines=0;
       }
     }
@@ -2481,15 +2445,7 @@ void emulate_vdu(int32 charvalue) {
           if (vduflag(VDU_FLAG_ENAPAGE)) {
             matrixflags.vdu14lines++;
             if (matrixflags.vdu14lines > (twinbottom-twintop)) {
-#ifdef NEWKBD
-        while (kbd_modkeys(1)==0 && kbd_escpoll()==0) {
-          usleep(5000);
-        }
-#else
-        while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-          usleep(5000);
-        }
-#endif
+              while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
               matrixflags.vdu14lines=0;
             }
           }
@@ -2531,14 +2487,7 @@ void emulate_vdu(int32 charvalue) {
           if (vduflag(VDU_FLAG_ENAPAGE)) {
             matrixflags.vdu14lines++;
             if (matrixflags.vdu14lines > (twinbottom-twintop)) {
-#ifdef NEWKBD
               while (kbd_modkeys(1)==0 && kbd_escpoll()==0) usleep(5000);
-#else
-              while (!emulate_inkey(-4) && !emulate_inkey2(-7)) {
-                if (basicvars.escape_enabled) checkforescape();
-                usleep(5000);
-              }
-#endif
               matrixflags.vdu14lines=0;
             }
           }

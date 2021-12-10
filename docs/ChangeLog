@@ -1,6 +1,11 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.22.13 - 
+- System: Stricter handling of oversize variable and PROC/FN names.
+- System: Improved handling of ESCAPE under RISC OS (notably, it no longer
+  crashes the interpreter).
+
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches
 - System: Fix calculations of matrix dot products (thank you 

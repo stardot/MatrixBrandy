@@ -234,11 +234,7 @@ static int32 emulate_mos(int32 address) {
     emulate_vdu(areg);
     return areg;
   case BBC_OSRDCH:
-#ifdef NEWKBD
     return(kbd_get() & 0xFF);
-#else
-    return(emulate_get());
-#endif
     break;
   case BBC_OSASCI:
     if (areg != 13) {
@@ -952,10 +948,8 @@ int32 mos_adval(int32 x) {
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
-#ifdef NEWKBD
   if (x == 0x007F) return kbd_get0();		/* Low-level examine of keyboard buffer	*/
   if (x == 0xFFFF) return kbd_buffered();	/* ADVAL(-1), amount in keyboard buffer	*/
-#endif
 
   return 0;
 }
@@ -1141,12 +1135,7 @@ void mos_waitdelay(int32 time) {
   tbase=mos_centiseconds();
   while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
-#ifdef NEWKBD
     if (kbd_escpoll()) {
-#else
-    if(basicvars.escape_enabled && emulate_inkey(-113)) {
-      basicvars.escape=TRUE;
-#endif /* NEWKBD */
       time=0;
       error(ERR_ESCAPE);
     }
@@ -1769,11 +1758,7 @@ static void cmd_key(char *command) {
   if (*command == ',') command++;		// Step past any comma
 
   command=mos_gstrans(command, &len);		// Get GSTRANS string
-#ifdef NEWKBD
   if (kbd_fnkeyset(key, command, len)) error(ERR_KEYINUSE);
-#else
-  if (set_fn_string(key, command, len)) error(ERR_KEYINUSE);
-#endif
 }
 
 /*
@@ -1795,11 +1780,7 @@ static void cmd_show(char *command) {
   if (*command != 0) error(ERR_BADCOMMAND);
 
   for (; key1 <= key2; key1++) {
-#ifdef NEWKBD
     string=kbd_fnkeyget(key1, &len);
-#else
-    string=get_fn_string(key1, &len);
-#endif
     emulate_printf("*Key %d \x22", key1);
     while (len--) {
       c=*string++;
@@ -2870,19 +2851,8 @@ switch (areg) {
 		return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
 
 	case 129:			// OSBYTE 129 - INKEY
-#ifdef NEWKBD
 		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
 // NB: Real OSBYTE 129 returns weird result for Escape/Timeout
-#else
-		if ((xreg==0) && (yreg==255)) return ((emulate_inkey(-256) << 8)+0x81);
-		if ((yreg=255) && (xreg >= 128)) {
-#ifdef USE_SDL
-		  if (emulate_inkey(xreg + 0xFFFFFF00)) return (0xFFFF81);
-		    else
-#endif
-		    return (0x81);
-		}
-#endif
 		break;
 
 	case 130:			// OSBYTE 130 - High word of user memory

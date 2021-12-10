@@ -354,11 +354,6 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
  * NON RISC OS VERSIONS OF THE CODE * 
  ************************************/
 
-// Temporary split while finalising NEWKBD code.
-#ifndef NEWKBD
-#include "kbd-old.c"
-#else /* Matching endif is at the end of the file */
-
 #if defined(TARGET_MINGW) || defined(TARGET_WIN32) || defined(TARGET_BCC32)
  #include <windows.h>
 #ifdef CYGWINBUILD
@@ -2151,7 +2146,5 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   sysvar[sv_KeyOptions]=oldopt;
   return READ_OK;
 }
-
-#endif // NEWKBD
 
 #endif // TARGET_RISCOS
