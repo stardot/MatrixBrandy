@@ -40,5 +40,12 @@ extern int32 get_stringlen(size_t);
 extern void show_stringstats(void);
 extern void check_alloc(void);
 
-#endif
+/* Additional string functions needed for RISC OS CLib build */
+#ifdef TARGET_RISCOS
+// #ifdef __TARGET_SCL__ /* Let this get defined on UnixLib builds too. It's in the libraries but not the headers */
+size_t strnlen(const char *, size_t);
+// #endif /* __TARGET_SCL__ */
+#endif /* TARGET_RISCOS */
+
+#endif /* __strings_h */
 

@@ -66,7 +66,7 @@ typedef enum {
     WARN_BADBIN,        /* Bad binary constant */
     WARN_EXPOFLO,       /* Exponent is too large */
     ERR_NAMEMISS,       /* Variable name expected */
-    ERR_EQMISS,         /* '=' missing */
+    ERR_EQMISS,         /* Mistake (usually '=' missing) */
     ERR_COMISS,         /* ',' missing */
     ERR_LPMISS,         /* '(' missing */
     ERR_RPMISS,         /* ')' missing */
@@ -173,6 +173,8 @@ typedef enum {
     ERR_BADBITWISE,     /* 6, Bitwise operations cannot be performed on these operands */
     ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
     ERR_PRINTER,        /* Unable to connect to printer */
+    ERR_BADVARPROCNAME, /* Bad variable or procedure/function name */
+    ERR_BADPROCFNNAME,  /* Bad procedure or function name found at line X */
 // From JGH's Banana Brandy fork
     ERR_BADCOMMAND,	/* 254, Bad command */
     ERR_BADSTRING,	/* 253, Bad string */

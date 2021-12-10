@@ -6,6 +6,7 @@ DEPCOMMON = $(SRCDIR)/common.h \
 # Build VARIABLES.C
 VARIABLES_C = $(DEPCOMMON) \
 	$(SRCDIR)/variables.h \
+	$(SRCDIR)/strings.h \
 	$(SRCDIR)/evaluate.h \
 	$(SRCDIR)/tokens.h \
 	$(SRCDIR)/stack.h \

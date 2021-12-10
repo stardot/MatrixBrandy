@@ -572,3 +572,17 @@ void check_alloc(void) {
 }
 
 #endif
+
+/* Additional string functions needed for RISC OS CLib build */
+#ifdef TARGET_RISCOS
+#ifdef __TARGET_SCL__
+size_t strnlen(const char *s, size_t maxlen) {
+  size_t len;
+  for (len = 0; len < maxlen; len++, s++) {
+    if (!*s) break;
+  }
+  return (len);
+}
+
+#endif /* __TARGET_SCL__ */
+#endif /* TARGET_RISCOS */

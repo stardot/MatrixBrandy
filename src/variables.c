@@ -32,6 +32,7 @@
 #include "target.h"
 #include "basicdefs.h"
 #include "variables.h"
+#include "strings.h"
 #include "evaluate.h"
 #include "tokens.h"
 #include "stack.h"
@@ -144,6 +145,7 @@ void exec_clear_himem(void) {
 static void list_varlist(char which, library *lp) {
   variable *vp;
   char temp[200];
+  int templen=199; /* Leave room for the terminating \0 byte */
   int done = 0, columns = 0, next, len = 0, n, width;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   for (n=0; n<VARLISTS; n++) {
@@ -199,11 +201,11 @@ static void list_varlist(char which, library *lp) {
           }
           memmove(temp+len, vp->varentry.varstring.stringaddr, count);
           if (vp->varentry.varstring.stringlen<=MAXSUBSTR)
-            strcpy(temp+len+count, "\"");
+            strncpy(temp+len+count, "\"", templen-len-count);
           else {
-            strcpy(temp+len+count, "...\"");
+            strncpy(temp+len+count, "...\"", templen-len-count);
           }
-          len = strlen(temp);
+          len = strnlen(temp,templen);
           break;
         }
         case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
@@ -230,7 +232,7 @@ static void list_varlist(char which, library *lp) {
               strcat(temp, temp2);
             }
           }
-          len = strlen(temp);
+          len = strnlen(temp,templen);
           break;
         }
         case VAR_PROC: case VAR_FUNCTION: {
@@ -276,7 +278,7 @@ static void list_varlist(char which, library *lp) {
               }
             } while (fp!=NIL);
           }
-          len = strlen(temp);
+          len = strnlen(temp,templen);
           break;
         }
         case VAR_MARKER: {
@@ -621,6 +623,7 @@ variable *find_variable(byte *np, int namelen) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variable.c:find_variable\n");
 #endif
+  if(namelen > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
   memcpy(name, np, namelen);
   if (name[namelen-1]=='[') name[namelen-1] = '(';
   name[namelen] = asc_NUL;		/* Ensure name is null-terminated */
@@ -904,6 +907,7 @@ static variable *mark_procfn(byte *pp) {
   ep = skip_name(base);
   if (*(ep-1)=='(') ep--;
   namelen = ep-base;
+  if (namelen > (MAXNAMELEN - 1)) error(ERR_BADPROCFNNAME, get_lineno(base-7));
   cp = allocmem(namelen+1, 1);
   vp = allocmem(sizeof(variable), 1);
   memcpy(cp, base, namelen);	/* Make copy of name */

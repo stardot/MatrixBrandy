@@ -559,6 +559,8 @@ static detail errortable [] = {
 /* ERR_BADBITWISE */	{NONFATAL, NOPARM,   6, "Bitwise operations cannot be performed on these operands"},
 /* ERR_ADDREXCEPT */	{NONFATAL, NOPARM, 243, "Address exception"},
 /* ERR_PRINTER */	{NONFATAL, NOPARM, 509, "Unable to connect to printer"},
+/* ERR_BADVARPROCNAME */ {NONFATAL, NOPARM, 126, "Bad variable or procedure/function name"},
+/* ERR_BADPROCFNNAME */ {NONFATAL, INTEGER, 127, "Bad procedure or function name found at line %d"},
 //
 // OSCLI (command line) errors:
 /* ERR_BADCOMMAND */	{NONFATAL, NOPARM, 254, "Bad command"},

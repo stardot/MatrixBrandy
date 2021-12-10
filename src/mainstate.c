@@ -1752,6 +1752,7 @@ void exec_proc(void) {
   if (basicvars.escape) error(ERR_ESCAPE);
 #endif
   vp = GET_ADDRESS(basicvars.current, variable *);
+  if (strlen(vp->varname) > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
   dp = vp->varentry.varfnproc;
   basicvars.current+=1+LOFFSIZE;		/* Skip pointer to procedure */
   if (*basicvars.current == '(') {
