@@ -2884,7 +2884,12 @@ static void setup_mode(int32 mode) {
   SDL_FillRect(screen2, NULL, ds.tb_colour);
   SDL_FillRect(screen3, NULL, ds.tb_colour);
   SDL_SetClipRect(matrixflags.surface, NULL);
-  sdl_mouse_onoff((matrixflags.surface->flags & SDL_FULLSCREEN) ? 0 : 1);
+  /* Are we full screen? If so, turn the mouse off */
+  if (matrixflags.alwaysfullscreen || (matrixflags.surface->flags & SDL_FULLSCREEN)) {
+    sdl_mouse_onoff(0);
+  } else {
+    sdl_mouse_onoff(1);
+  }
   if (screenmode == 7) {
     font_rect.w = place_rect.w = M7XPPC;
     font_rect.h = place_rect.h = M7YPPC;
@@ -3858,7 +3863,7 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
-  
+  char *videodriver;
   int p;
 
 #ifdef TARGET_MACOSX
@@ -3881,6 +3886,8 @@ boolean init_screen(void) {
   XInitThreads();
 #endif
 
+  matrixflags.alwaysfullscreen = 0;
+  
   ds.autorefresh=1;
   ds.displaybank=0;
   ds.writebank=0;
@@ -3965,6 +3972,18 @@ boolean init_screen(void) {
   setup_mode(BRANDY_STARTUP_MODE);
 #if BRANDY_STARTUP_MODE != 7
   star_refresh(3);
+#endif
+
+#ifdef TARGET_UNIX
+  videodriver=malloc(64);
+  SDL_VideoDriverName(videodriver, 64);
+  /* Are we running on a framebuffer console? */
+  if (!strncmp("fbcon", videodriver, 64)) {
+    /* Yep. On FBCON the backspace key returns 0x7F (Delete) */
+    matrixflags.delcandelete = 1;
+    matrixflags.alwaysfullscreen = 1;
+  }
+  free(videodriver);
 #endif
 
   return TRUE;

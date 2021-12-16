@@ -567,36 +567,37 @@ extern workspace basicvars;		/* Interpreter variables for the Basic program */
 
 /* Flags used by Matrix Brandy extensions, that need to be available in more than one place */
 typedef struct {
-  int gpio;				/* TRUE if RPi GPIO present and usable */
+  int gpio;                   /* TRUE if RPi GPIO present and usable */
   int i2c;
-  byte *gpiomem;			/* Pointer for where mmap() places /dev/gpiomem */
-  uint32 *gpiomemint;			/* Unsigned int32 version of gpiomem */
-  unsigned int scrunge;			/* Is the BASIC program scrunged? */
-  FILE *doexec;				/* Are we doing a *EXEC? */
-  FILE *dospool;			/* Are we doing a *SPOOL / *SPOOLON? */
-  FILE *printer;			/* Are we outputting to a printer? */
-  int delcandelete;			/* DEL can delete */
-  int failovermode;			/* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
-  uint32 int_uses_float;		/* Does INT() use floats? */
-  uint32 legacyintmaths;		/* Legacy INT maths (BASIC I-V compatible) */
-  uint32 cascadeiftweak;   /* Handle cascaded IFs the way BBCSDL does */
-  boolean hex64;			/* Decode hex in 64-bit? */
-  boolean bitshift64;			/* Do bit shifts work in 64-bit space? */
-  boolean pseudovarsunsigned;		/* Unsigned pseudovars on 32-bit */
-  boolean tekenabled;			/* Tektronix enabled in text mode (default: no) */
-  uint32 tekspeed;			/* Emulated bit rate of Tek terminal (0=no slowdown) */
-  uint32 osbyte4val;			/* OSBYTE 4 value, default = 0 */
-  int32 printer_ignore;			/* Printer ignore character, default = 10 */
+  byte *gpiomem;              /* Pointer for where mmap() places /dev/gpiomem */
+  uint32 *gpiomemint;         /* Unsigned int32 version of gpiomem */
+  unsigned int scrunge;       /* Is the BASIC program scrunged? */
+  FILE *doexec;               /* Are we doing a *EXEC? */
+  FILE *dospool;              /* Are we doing a *SPOOL / *SPOOLON? */
+  FILE *printer;              /* Are we outputting to a printer? */
+  int delcandelete;           /* DEL can delete */
+  int failovermode;           /* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
+  uint32 int_uses_float;      /* Does INT() use floats? */
+  uint32 legacyintmaths;      /* Legacy INT maths (BASIC I-V compatible) */
+  uint32 cascadeiftweak;      /* Handle cascaded IFs the way BBCSDL does */
+  boolean hex64;              /* Decode hex in 64-bit? */
+  boolean bitshift64;         /* Do bit shifts work in 64-bit space? */
+  boolean pseudovarsunsigned; /* Unsigned pseudovars on 32-bit */
+  boolean tekenabled;         /* Tektronix enabled in text mode (default: no) */
+  uint32 tekspeed;            /* Emulated bit rate of Tek terminal (0=no slowdown) */
+  uint32 osbyte4val;          /* OSBYTE 4 value, default = 0 */
+  int32 printer_ignore;       /* Printer ignore character, default = 10 */
 #ifdef USE_SDL
-  byte *modescreen_ptr;			/* Mode screen pointer to pixels memory */
-  uint32 modescreen_sz;			/* Mode screen size */
-  uint32 mode7fb;			/* Start of MODE 7 frame buffer space */
-  SDL_Surface *surface;			/* SDL Surface handle for screen0 */
-  int32 sdl_flags;			/* SDL surface flags */
-  uint32 vdu14lines;			/* Line counter for VDU14 page mode */
-  boolean noupdate;			/* Skip update if TRUE */
-  boolean videothreadbusy;		/* True when thread is doing stuff */
-  boolean cursorbusy;			/* TRUE when cursor is being worked on */
+  byte *modescreen_ptr;       /* Mode screen pointer to pixels memory */
+  uint32 modescreen_sz;       /* Mode screen size */
+  uint32 mode7fb;             /* Start of MODE 7 frame buffer space */
+  SDL_Surface *surface;       /* SDL Surface handle for screen0 */
+  int32 sdl_flags;            /* SDL surface flags */
+  uint32 vdu14lines;          /* Line counter for VDU14 page mode */
+  boolean noupdate;           /* Skip update if TRUE */
+  boolean videothreadbusy;    /* True when thread is doing stuff */
+  boolean cursorbusy;         /* TRUE when cursor is being worked on */
+  boolean alwaysfullscreen;   /* TRUE on framebuffer driver */
 #endif
 } matrixbits;
 extern matrixbits matrixflags;
