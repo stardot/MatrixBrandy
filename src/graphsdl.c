@@ -3887,6 +3887,17 @@ boolean init_screen(void) {
 #endif
 
   matrixflags.alwaysfullscreen = 0;
+#ifdef TARGET_UNIX
+  videodriver=malloc(64);
+  SDL_VideoDriverName(videodriver, 64);
+  /* Are we running on a framebuffer console? */
+  if (!strncmp("fbcon", videodriver, 64)) {
+    /* Yep. On FBCON the backspace key returns 0x7F (Delete) */
+    matrixflags.delcandelete = 1;
+    matrixflags.alwaysfullscreen = 1;
+  }
+  free(videodriver);
+#endif
   
   ds.autorefresh=1;
   ds.displaybank=0;
@@ -3972,18 +3983,6 @@ boolean init_screen(void) {
   setup_mode(BRANDY_STARTUP_MODE);
 #if BRANDY_STARTUP_MODE != 7
   star_refresh(3);
-#endif
-
-#ifdef TARGET_UNIX
-  videodriver=malloc(64);
-  SDL_VideoDriverName(videodriver, 64);
-  /* Are we running on a framebuffer console? */
-  if (!strncmp("fbcon", videodriver, 64)) {
-    /* Yep. On FBCON the backspace key returns 0x7F (Delete) */
-    matrixflags.delcandelete = 1;
-    matrixflags.alwaysfullscreen = 1;
-  }
-  free(videodriver);
 #endif
 
   return TRUE;
