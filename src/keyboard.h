@@ -38,13 +38,12 @@ extern void set_escmul(int i);
 extern void osbyte44(int x);
 extern readstate emulate_readline(char [], int32, int32);
 extern void purge_keys(void);
-#ifdef NEWKBD
 #ifdef TARGET_RISCOS
 extern char *get_fn_string(int key, int *len);
 extern boolean init_keyboard(void);
 extern void end_keyboard(void);
 extern int set_fn_string(int key, char *string, int length);
-#endif
+#endif /* TARGET_RISCOS */
 extern boolean kbd_init();
 extern void  kbd_quit(void);
 extern int32 kbd_get(void);
@@ -52,7 +51,7 @@ extern int32 kbd_get0(void);
 extern int32 kbd_inkey(int32);
 #ifdef TARGET_RISCOS
 extern int32 kbd_inkey256(void);
-#endif
+#endif /* TARGET_RISCOS */
 extern int32 kbd_modkeys(int32);
 extern int   kbd_fnkeyset(int key, char *string, int length);
 extern char *kbd_fnkeyget(int key, int *length);
@@ -64,14 +63,4 @@ extern int   kbd_escpoll(void);
 extern int   kbd_esctest(void);
 extern int   kbd_escack(void);
 extern void  osbyte21(int32 xreg);
-#else
-extern int32 emulate_get(void);
-extern int32 emulate_inkey(int32);
-extern int32 emulate_inkey2(int32);
-extern int set_fn_string(int key, char *string, int length);
-extern char *get_fn_string(int key, int *len);
-extern boolean init_keyboard(void);
-extern void end_keyboard(void);
-extern void checkforescape(void);
-#endif
-#endif
+#endif /* __keyboard_h */

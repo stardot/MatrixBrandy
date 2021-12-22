@@ -70,13 +70,6 @@
 #endif /* BRANDY_STARTUP_MODE */
 #endif /* USE_SDL */
 
-/* Make NEWKBD the default */
-#ifndef OLDKBD
-#ifndef NEWKBD
-#define NEWKBD
-#endif
-#endif
-
 /*
 ** Define the operating system-specific types used for integer
 ** and floating point types in Basic. 32-bit integer (signed
@@ -343,22 +336,16 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define SFX1 ""
 #endif
 
-#ifdef NEWKBD
-#define SFX2 ""
-#else
-#define SFX2 "/OLDKBD"
-#endif
-
 #ifdef USE_ANSI
-#define SFX3 "/ANSI"
+#define SFX2 "/ANSI"
 #else
-#define SFX3 ""
+#define SFX2 ""
 #endif
 
 #ifdef BRANDY_NODISPLAYOS
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
-#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 SFX3 ") " BRANDY_DATE
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ") " BRANDY_DATE
 #endif
 
 /*

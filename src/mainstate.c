@@ -764,11 +764,7 @@ void exec_endwhile(void) {
     wp = get_while();
   }
   if (wp == NIL) error(ERR_NOTWHILE);	/* Not in a WHILE loop */
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
   basicvars.current = wp->whilexpr;
   expression();
   result = pop_anynum64();
@@ -922,11 +918,7 @@ static byte *set_linedest(byte *tp) {
 */
 void exec_gosub(void) {
   byte *dest = NULL;
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
   basicvars.current++;		/* Slip GOSUB token */
   if (*basicvars.current == BASIC_TOKEN_LINENUM) {
     dest = GET_ADDRESS(basicvars.current, byte *);
@@ -954,11 +946,7 @@ void exec_gosub(void) {
 */
 void exec_goto(void) {
   byte *dest = NULL;
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
   basicvars.current++;		/* Skip 'GOTO' token */
   if (*basicvars.current == BASIC_TOKEN_LINENUM) {
     dest = GET_ADDRESS(basicvars.current, byte *);
@@ -1332,11 +1320,7 @@ void exec_next(void) {
   int64 int64value;
   uint8 uint8value;
   static float64 floatvalue;
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
   do {
     fp = find_for();
     basicvars.current++;	/* Skip NEXT token */
@@ -1746,11 +1730,7 @@ void exec_overlay(void) {
 void exec_proc(void) {
   fnprocdef *dp;
   variable *vp;
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
   vp = GET_ADDRESS(basicvars.current, variable *);
   if (strlen(vp->varname) > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
   dp = vp->varentry.varfnproc;
@@ -2537,11 +2517,7 @@ void exec_until(void) {
     rp = get_repeat();
   }
   if (rp == NIL) error(ERR_NOTREPEAT);	/* Not in a REPEAT loop */
-#ifdef NEWKBD
   if (kbd_escpoll()) error(ERR_ESCAPE);
-#else
-  if (basicvars.escape) error(ERR_ESCAPE);
-#endif
   here = basicvars.current;	/* Note position of UNTIL for trace purposes */
   basicvars.current++;
   expression();

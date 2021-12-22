@@ -281,11 +281,7 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
     case SWI_OS_NewLine:
       emulate_printf("\r\n"); break;
     case SWI_OS_ReadC:
-#ifdef NEWKBD
       outregs[0]=kbd_get() & 0xFF; break;
-#else
-      outregs[0]=emulate_get(); break;
-#endif
     case SWI_OS_File:
       outregs[0]=inregs[0];outregs[1]=inregs[1];
       outregs[2]=inregs[2];outregs[3]=inregs[3];
@@ -368,7 +364,6 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
         default: error(ERR_BAD_OSFILE);
       }
       break;
-#ifdef NEWKBD
     case SWI_OS_ReadLine:
 // RISC OS method is to tweek entry parameters then drop into ReadLine32
 // R0=b31-b28=flags, b27-b0=address
@@ -393,22 +388,6 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 						/* Should also set Carry if Escape	*/
       outregs[0]=(size_t)outstring;
       break;
-#else
-    case SWI_OS_ReadLine:
-      *outstring='\0';
-      (void)emulate_readline(outstring, inregs[1], (inregs[0] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
-      a=strlen(outstring);
-      outregs[1]=a;
-      outregs[0]=out64;
-      break;
-    case SWI_OS_ReadLine32:
-      vptr=outstring;
-      *vptr='\0';
-      (void)emulate_readline(vptr, inregs[1], (inregs[4] & 0x40000000) ? (inregs[4] & 0xFF) : 0);
-      a=outregs[1]=strlen(outstring);
-      outregs[0]=(size_t)outstring;
-      break;
-#endif
     case SWI_OS_GetEnv:
       outregs[0]=-1;
       outregs[1]=(size_t)basicvars.end;

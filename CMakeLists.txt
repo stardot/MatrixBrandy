@@ -3,7 +3,6 @@ project(brandy)
 
 set(BRANDY_USE_GRAPHICS ON CACHE BOOL "Use Graphics")
 set(BRANDY_USE_ANSI ON CACHE BOOL "Use ANSI Escape Sequences")
-set(BRANDY_NEWKBD OFF CACHE BOOL "Use New Keyboard Handler")
 
 set(SRCDIR src)
 set(SRC ${SRCDIR}/variables.c ${SRCDIR}/tokens.c ${SRCDIR}/strings.c
@@ -63,10 +62,6 @@ execute_process(
 )
 
 add_definitions(-DBRANDY_GITCOMMIT=\"${GIT_COMMIT}\" -DBRANDY_GITBRANCH=\"${GIT_BRANCH}\" -DBRANDY_GITDATE=\"${GIT_DATE}\")
-
-if(BRANDY_NEWKBD)
-  add_definitions(-DNEWKBD)
-endif()
 
 add_definitions(-DDEFAULT_IGNORE)
 link_libraries(m)

@@ -514,12 +514,8 @@ static void strip(char line[]) {
 boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = asc_NUL;
-#ifdef NEWKBD
   result = kbd_readline(line, linelen, 0);
   result = READ_OK;	/* temp'y bodge */
-#else
-  result = emulate_readline(line, linelen, 0);
-#endif
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
@@ -538,12 +534,8 @@ boolean read_line(char line[], int32 linelen) {
 */
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
-#ifdef NEWKBD
   result = kbd_readline(line, linelen,0);
   result = READ_OK;	/* temp'y bodge */
-#else
-  result = emulate_readline(line, linelen,0);
-#endif
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
   if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
   strip(line);
