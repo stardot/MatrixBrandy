@@ -129,8 +129,7 @@
 #include "errno.h"
 
 /* Veneers, fill in later */
-boolean kbd_init() { return init_keyboard(); }
-void    kbd_end()  { end_keyboard(); }
+boolean kbd_init() { return TRUE; }
 int     kbd_setfkey(int key, char *string, int length) {
 		return set_fn_string(key, string, length); }
 char   *kbd_getfkey(int key, int *len) {
@@ -268,13 +267,6 @@ int set_fn_string(int key, char *string, int length) {
 
 char *get_fn_string(int key, int *len) {
   return "";
-}
-
-boolean init_keyboard(void) {
-  return TRUE;
-}
-
-void end_keyboard(void) {
 }
 
 void kbd_quit() {

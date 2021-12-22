@@ -556,11 +556,12 @@ FILE *secure_tmpnam(char *name)
   if (!fdes) return NULL;
   return fdes;
 #else
-  int fdes;
-  strcpy(name, "/tmp/.brandy.XXXXXX");
 #if defined(BODGEMGW) | defined(BODGESDL) | defined(__TARGET_SCL__)
+  strcpy(name, "/tmp/.brandy.XXXXXX");
   return fopen(name, "w+");
 #else
+  int fdes;
+  strcpy(name, "/tmp/.brandy.XXXXXX");
   fdes=mkstemp(name);
   if (!fdes) return NULL;
   return fdopen(fdes, "w+");

@@ -51,6 +51,12 @@
 #define MAXNETRCVLEN 65536
 #define MAXNETSOCKETS 4
 
+#ifdef TARGET_RISCOS
+#ifdef __TARGET_SCL__
+extern int close(int);
+#endif
+#endif
+
 static int netsockets[MAXNETSOCKETS];
 #ifndef NONET
 static char netbuffer[MAXNETSOCKETS][MAXNETRCVLEN + 1];

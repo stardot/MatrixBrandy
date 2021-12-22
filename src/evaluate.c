@@ -1257,9 +1257,9 @@ static void do_getfloat(void) {
 ** than this seems to lead to crashes still)
 */
 static void do_function(void) {
-  byte *tp;
-  fnprocdef *dp;
-  variable *vp;
+  byte *tp = NULL;
+  fnprocdef *dp = NULL;
+  variable *vp = NULL;
   if (kbd_escpoll()) error(ERR_ESCAPE);
 #ifdef TARGET_DJGPP
   if (stackavail()<DJGPPLIMIT) error(ERR_STACKFULL);
