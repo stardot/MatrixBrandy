@@ -128,11 +128,6 @@
 #include "swis.h"
 #include "errno.h"
 
-#ifndef TARGET_RISCOS
-static boolean waitkey(int wait);		/* To prevent a forward reference	*/
-static int32 pop_key(void);			/* To prevent a forward reference	*/
-#endif
-
 /* Veneers, fill in later */
 boolean kbd_init() { return init_keyboard(); }
 void    kbd_end()  { end_keyboard(); }
@@ -190,15 +185,6 @@ int32 kbd_get() {
   return regs.r[0];
 }
 
-
-/* Legacy code from here onwards */
-/* ----------------------------- */
-#ifndef TARGET_RISCOS
-static int nokeyboard=0;
-static int escint=128;
-static int escmul=1;
-static int fx44x=1;
-#endif
 
 /* ================================================================= */
 /* ================= RISC OS versions of functions ================= */
@@ -349,7 +335,7 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
 }
 
 
-#else /* Matching endif is at end of file */
+#else /* !TARGET_RISCOS - Matching endif is at end of file */
 /* **********************************
  * NON RISC OS VERSIONS OF THE CODE * 
  ************************************/
