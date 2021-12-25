@@ -232,7 +232,9 @@ Brandy_xxx  (SWI numbers start &140000)
                                 the block of code has been seen before this
                                 call, then the behaviour won't be changed.
                                 If used, it is recommended this be called at
-                                the top of a program.
+                                the top of a program as it affects the way
+                                the tokeniser updates jumps as the program is
+                                scanned upon first execute..
 
 &140013 Brandy_MouseEventExpire Sets the mouse event expiry time in
                                 centiseonds, 0 disables.

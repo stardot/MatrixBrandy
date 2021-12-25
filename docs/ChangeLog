@@ -5,7 +5,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Stricter handling of oversize variable and PROC/FN names.
 - System: Improved handling of ESCAPE under RISC OS (notably, it no longer
   crashes the interpreter).
-- System: Improve behaviour on Linux console framebuffer
+- System: Improve behaviour on Linux console framebuffer, particulary
+  Raspberry Pi. Experience may vary across other hardware.
+- System: Remove the old keyboard code, JGH's NEWKBD code is now the only
+  version present.
 
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches
