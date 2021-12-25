@@ -2908,4 +2908,4 @@ if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
 else
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;	// Default null return
 }
-#endif
+#endif /* TARGET_RISCOS */

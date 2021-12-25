@@ -99,10 +99,6 @@ static char *loadfile;			/* Pointer to name of file to load when interpreter sta
 */
 
 int main(int argc, char *argv[]) {
-// Hmmm. Why doesn't this work?
-//#ifdef TARGET_RISCOS
-//  _kernel_oscli("WimpSlot 1600K");
-//#endif
   init1();
   init_timer();	/* Initialise the timer thread */
 #ifndef NONET
