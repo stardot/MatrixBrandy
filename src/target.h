@@ -365,7 +365,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef TARGET_HPUX
 #define ALIGN(x) ((x+sizeof(double)-1) & -(int)sizeof(double))
 #else
-#define ALIGN(x) ((x+sizeof(int32)-1) & -(int)sizeof(int32))
+#define ALIGN(x) ((x+sizeof(size_t)-1) & -(int)sizeof(size_t))
 #endif
 
 #if defined(TARGET_MINGW) || defined(__TARGET_SCL__)

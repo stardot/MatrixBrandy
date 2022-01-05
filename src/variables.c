@@ -415,7 +415,8 @@ void list_libraries(char ch) {
 */
 void define_array(variable *vp, boolean islocal, boolean offheap) {
   int32 bounds[MAXDIMS];
-  int32 n, dimcount, highindex, elemsize = 0, size;
+  int32 n, dimcount, highindex, elemsize = 0;
+  size_t size;
   basicarray *ap;
 
 #ifdef DEBUG

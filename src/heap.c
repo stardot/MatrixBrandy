@@ -52,7 +52,7 @@
 #endif
 
 #ifdef TARGET_LINUX
-static void *mymap (unsigned int size)
+static void *mymap (size_t size)
 {
   FILE *fp;
   char line[256] ;
@@ -99,7 +99,7 @@ boolean init_heap(void) {
 ** area used is the implementation-defined default. If returns 'true' if
 ** if the heap space could be allocated or 'false' if it failed
 */
-boolean init_workspace(uint32 heapsize) {
+boolean init_workspace(size_t heapsize) {
   byte *wp = NULL;
 #ifdef TARGET_LINUX
   void *base = NULL;
@@ -111,8 +111,8 @@ boolean init_workspace(uint32 heapsize) {
     heapsize = DEFAULTSIZE;
   else if (heapsize<MINSIZE)
     heapsize = MINSIZE;
-  else if (heapsize>0x7FFFFFFFu)
-    heapsize = 0x80000000u;
+  else if (heapsize>0xFFFFFC00ull)
+    heapsize = 0xFFFFFC00ull;
   else {
     heapsize = ALIGN(heapsize);
   }
@@ -122,14 +122,7 @@ boolean init_workspace(uint32 heapsize) {
 #ifdef DEBUG
   fprintf(stderr, "heap.c:init_workspace: Requested heapsize is %d (&%X)\n", heapsize, heapsize);
 #endif
-  base = mymap (heapsize);
-  while ((heapsize > MINSIZE) && (NULL == base)) {
-    if (heapsize >= (MINSIZE * 2))
-      heapsize /= 2;
-    else
-      heapsize = MINSIZE;
-    base = mymap (heapsize);
-  }
+  base = mymap(heapsize);
   if (base != NULL) {
 #ifdef DEBUG
     fprintf(stderr, "heap.c:init_workspace: Allocating at %p, size &%X\n", base, heapsize);
@@ -146,6 +139,10 @@ boolean init_workspace(uint32 heapsize) {
 #endif
       basicvars.misc_flags.usedmmap = 0;
     }
+  } else {
+    /* Trying to allocate via mmap didn't work, let's try malloc instead */
+    wp=malloc(heapsize);
+    basicvars.misc_flags.usedmmap = 0;
   }
 #else
   wp = malloc(heapsize);
@@ -216,7 +213,7 @@ void release_heap(void) {
 ** behaviour of returning NIL upon an error to allow the calling function
 ** to deal with the error.
 */
-void *allocmem(int32 size, boolean reporterror) {
+void *allocmem(size_t size, boolean reporterror) {
   byte *newlimit;
   size = ALIGN(size);
   newlimit = basicvars.stacklimit.bytesp+size;

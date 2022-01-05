@@ -29,7 +29,7 @@
 #include "common.h"
 #include "basicdefs.h"
 
-extern void *alloc_stackmem(int32);
+extern void *alloc_stackmem(size_t);
 extern void *alloc_stackstrmem(int32);
 extern void free_stackmem(void);
 extern void push_lvalue(int32, pointers);

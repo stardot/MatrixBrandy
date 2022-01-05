@@ -9,6 +9,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   Raspberry Pi. Experience may vary across other hardware.
 - System: Remove the old keyboard code, JGH's NEWKBD code is now the only
   version present.
+- System: Permit system memory to be up to 4194303K (4GB less 1K)
 
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches

@@ -439,7 +439,7 @@ void push_gosub(void) {
 ** **NOTE** It is up to the calling function to trap the error if
 ** this function returns NIL.
 */
-void *alloc_stackmem(int32 size) {
+void *alloc_stackmem(size_t size) {
   byte *p, *base;
   size = ALIGN(size);
   base = basicvars.stacktop.bytesp-size;
