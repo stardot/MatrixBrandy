@@ -101,7 +101,7 @@ boolean init_heap(void) {
 */
 boolean init_workspace(size_t heapsize) {
   byte *wp = NULL;
-#ifdef TARGET_LINUX
+#if defined(TARGET_LINUX) && defined(__LP64__)
   void *base = NULL;
   uint32 heaporig;
 #endif
@@ -116,7 +116,7 @@ boolean init_workspace(size_t heapsize) {
   else {
     heapsize = ALIGN(heapsize);
   }
-#ifdef TARGET_LINUX
+#if defined(TARGET_LINUX) && defined(__LP64__)
   heaporig = heapsize;
   basicvars.misc_flags.usedmmap = 1;
 #ifdef DEBUG
@@ -176,7 +176,7 @@ boolean init_workspace(size_t heapsize) {
 */
 void release_workspace(void) {
   if (basicvars.workspace!=NIL) {
-#ifdef TARGET_LINUX
+#if defined(TARGET_LINUX) && defined(__LP64__)
     if (basicvars.misc_flags.usedmmap)
       munmap(basicvars.workspace, basicvars.worksize);
     else
