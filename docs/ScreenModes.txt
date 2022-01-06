@@ -58,28 +58,47 @@ Mode    Text resolution Graphics resolution     Colours         Pixel size
  53         40x30           320x240              256              2x2
 54-63 reserved for future expansion within RISC OS.
 Modes from 64 can be redefined with *NewMode, these definitions are
-local to Matrix Brandy.
- 64        100x37           800x300                2              1x2
- 65        100x37           800x300                4              1x2
- 66        100x37           800x300               16              1x2
- 67        100x37           800x300              256              1x2
- 68         50x37           400x300                2              2x2
- 69         50x37           400x300                4              2x2
- 70         50x37           400x300               16              2x2
- 71         50x37           400x300              256              2x2
- 72        128x97          1024x780                2              1x1
- 73        128x97          1024x780                4              1x1
- 74        128x97          1024x780               16              1x1
- 75        128x97          1024x780              256              1x1
- 76        128x72          1024x576                2              1x1
- 77        128x72          1024x576                4              1x1
- 78        128x72          1024x576               16              1x1
- 79        128x72          1024x576              256              1x1
- 80         80x64           640x512         16777216              1x1
+local to Matrix Brandy, and may be changed in the future.
+Modes 64-68 use the same coordinate system as Tektronix graphical terminals
+ 64        128x97          1024x780                2              1x1
+ 65        128x97          1024x780                4              1x1
+ 66        128x97          1024x780               16              1x1
+ 67        128x97          1024x780              256              1x1
+ 68        128x97          1024x780         16777216              1x1
+Modes 69-93 are widescreen modes, possibly useful for full-screen use.
+ 69        128x72          1024x576                2              1x1
+ 70        128x72          1024x576                4              1x1
+ 71        128x72          1024x576               16              1x1
+ 72        128x72          1024x576              256              1x1
+ 73        128x72          1024x576         16777216              1x1
+ 74        170x36          1360x384                2              1x2
+ 75        170x36          1360x384                4              1x2
+ 76        170x36          1360x384               16              1x2
+ 77        170x36          1360x384              256              1x2
+ 78        170x36          1360x384         16777216              1x2
+ 79        170x72          1360x768                2              1x1
+ 80        170x72          1360x768                4              1x1
+ 81        170x72          1360x768               16              1x1
+ 82        170x72          1360x768              256              1x1
+ 83        170x72          1360x768         16777216              1x1
+ 84        240x67          1920x540                2              1x2
+ 85        240x67          1920x540                4              1x2
+ 86        240x67          1920x540               16              1x2
+ 87        240x67          1920x540              256              1x2
+ 88        240x67          1920x540         16777216              1x2
+ 89        240x135         1920x1080               2              1x1
+ 90        240x135         1920x1080               4              1x1
+ 91        240x135         1920x1080              16              1x1
+ 92        240x135         1920x1080             256              1x1
+ 93        240x135         1920x1080        16777216              1x1
 
 
 Note 1: MODEs 22 and 35 differ in that MODE 22 uses a non-standard pixel
 addressing with a 768x288 display on a 768x576 pixel addressing range,
 while MODE 35 uses the more standard doubling of 1536x1152.
-Note 2: MODE 80 operates in 24-bit colour space. The basic COLOUR and
-GCOL statements w
+Note 2: COLOUR/GCOL numbers and TINT in 24-bit colour modes give the same
+colours as 256-colour modes. Using the newer form of COLOUR r,g,b or
+COLOUR OF r,g,b ON r,g,b (and likewise for GCOL) provide access to the
+full range of 16,777,216 colours.
+Custom screen modes can be used, via *NewMode, VDU23,22 or the newer forms
+of the MODE command.
