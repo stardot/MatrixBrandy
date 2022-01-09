@@ -51,7 +51,7 @@
 #include "swis.h"
 #endif
 
-#ifdef TARGET_LINUX
+#if defined(TARGET_LINUX) && defined(__LP64__)
 static void *mymap (size_t size)
 {
   FILE *fp;
