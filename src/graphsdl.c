@@ -160,7 +160,17 @@ uint32 mouseqexpire = 0;
 
 #ifndef BRANDY_MODE7ONLY
 static int32 geom_left[MAX_YRES], geom_right[MAX_YRES];
-#endif
+
+// Default Dot Patterns
+static uint8_t DEFAULT_DOT_PATTERN[] = {0xAA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+// Dot Pattern state
+static byte dot_pattern[64];
+static byte dot_pattern_packed[8];
+static int  dot_pattern_len;
+static int  dot_pattern_index;
+
+#endif /* ! BRANDY_MODE7ONLY */
 
 /* Data stores for controlling MODE 7 operation */
 Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
@@ -490,7 +500,48 @@ static int32 colour24bit(int32 colour, int32 tint) {
   col = tint24bit(col, tint);
   return col;
 }
-#endif /* BRANDY_MODE7ONLY */
+
+static void set_dot_pattern_len(int32 len);
+static void set_dot_pattern(byte *pattern) {
+  // Expand the pattern into one byte per pixel for efficient access
+  byte *ptr = pattern;
+  uint8_t mask = 0x80;
+  int last_dot = -1;
+  for (int i = 0; i < sizeof(dot_pattern); i++) {
+    if (*ptr & mask) {
+      dot_pattern[i] = 1;
+      last_dot = i;
+    } else {
+      dot_pattern[i] = 0;
+    }
+    mask >>= 1;
+    if (!mask) {
+      mask = 0x80;
+      ptr++;
+    }
+  }
+  // Extend the pattern length if necessary
+  // Note: this is non-standard behaviour
+  last_dot++;
+  if (last_dot > dot_pattern_len) {
+    set_dot_pattern_len(last_dot);
+  }
+  for (int i = 0; i < 8; i++) 
+    dot_pattern_packed[i]=pattern[i];
+}
+
+static void set_dot_pattern_len(int32 len) {
+  if (len == 0) {
+    set_dot_pattern(DEFAULT_DOT_PATTERN);
+    dot_pattern_len = 8;
+  } else if (len <= 64) {
+    dot_pattern_len = len;
+  }
+  dot_pattern_index = 0;
+}
+
+
+#endif /* ! BRANDY_MODE7ONLY */
 
 static int32 textxhome(void) {
   if (vdu2316byte & 2) return twinright;
@@ -740,8 +791,14 @@ static void vdu_23command(void) {
     if (vduqueue[1] == 1) cursorstate = ONSCREEN;
     else cursorstate = HIDDEN;
     break;
+  case 5:
+    break; /* ECF not supported */
+  case 6:
+    set_dot_pattern(vduqueue);
+    break;
   case 7:	/* Scroll the screen or text window */
     vdu_2307();
+    break;
   case 8:	/* Clear part of the text window */
     break;
   case 16:	/* Controls the movement of the cursor after printing */
@@ -2823,6 +2880,7 @@ static void setup_mode(int32 mode) {
   ds.graph_fore_action = ds.graph_back_action = 0;
 #ifndef BRANDY_MODE7ONLY
   reset_colours();
+  set_dot_pattern(DEFAULT_DOT_PATTERN);
 #endif
   init_palette();
   write_vduflag(VDU_FLAG_ENAPAGE,0);
@@ -4286,57 +4344,74 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
 ** Bit 0x20: Don't plot the start point.
 */
 static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style, Uint32 action) {
-  int d, x, y, ax, ay, sx, sy, dx, dy, tt, skip=0;
-  if (x1 > x2) {
-    tt = x1; x1 = x2; x2 = tt;
-    tt = y1; y1 = y2; y2 = tt;
+  int w = x2 - x1;
+  int h = y2 - y1;
+  int mask = (style & 0x38);
+  int dotted =     (mask == 0x10 || mask == 0x18 || mask == 0x30 || mask == 0x38); // Dotted line
+  int omit_first = (mask == 0x20 || mask == 0x28 || mask == 0x30 || mask == 0x38); // Omit first
+  int omit_last =  (mask == 0x08 || mask == 0x18 || mask == 0x28 || mask == 0x38); // Omit last
+  int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+  if (w < 0) {
+    dx1 = -1;
+  } else if (w > 0) {
+    dx1 = 1;
   }
-  dx = x2 - x1;
-  ax = abs(dx) << 1;
-  sx = ((dx < 0) ? -1 : 1);
-  dy = y2 - y1;
-  ay = abs(dy) << 1;
-  sy = ((dy < 0) ? -1 : 1);
-
-  x = x1;
-  y = y1;
-  if (style & 0x20) skip=1;
-
-  if (ax > ay) {
-    d = ay - (ax >> 1);
-    while (x != x2) {
-      if (skip) {
-        skip=0;
+  if (h < 0) {
+    dy1 = -1;
+  } else if (h > 0) {
+    dy1 = 1;
+  }
+  if (w < 0) {
+    dx2 = -1;
+  } else if (w > 0) {
+    dx2 = 1;
+  }
+  int longest = abs(w);
+  int shortest = abs(h);
+  if (!(longest > shortest)) {
+    longest = abs(h);
+    shortest = abs(w);
+    if (h < 0) {
+      dy2 = -1;
+    } else if (h > 0) {
+      dy2 = 1;
+    }
+    dx2 = 0;
+  }
+  int numerator = longest >> 1 ;
+  int x = x1;
+  int y = y1;
+  if (omit_last) {
+    longest--;
+  }
+  int start = 0;
+  // restart the dot pattern if the first point is plotted
+  if (!omit_first) {
+    dot_pattern_index = 0;
+  }
+  for (int i = start; i <= longest; i++) {
+    if (i > start || !omit_first) {
+      if (dotted) {
+        if (dot_pattern[dot_pattern_index++]) {
+          plot_pixel(sr, x, y, col, action);
+        }
+        if (dot_pattern_index == dot_pattern_len) {
+          dot_pattern_index = 0;
+        }
       } else {
         plot_pixel(sr, x, y, col, action);
-        if (style & 0x10) skip=1;
       }
-      if (d >= 0) {
-        y += sy;
-        d -= ax;
-      }
-      x += sx;
-      d += ay;
     }
-  } else {
-    d = ax - (ay >> 1);
-    while (y != y2) {
-      if (skip) {
-        skip=0;
-      } else {
-        plot_pixel(sr, x, y, col, action);
-        if (style & 0x10) skip=1;
-      }
-      if (d >= 0) {
-        x += sx;
-        d -= ay;
-      }
-      y += sy;
-      d += ax;
+    numerator += shortest;
+    if (!(numerator < longest)) {
+      numerator -= longest;
+      x += dx1;
+      y += dy1;
+    } else {
+      x += dx2;
+      y += dy2;
     }
   }
-  if ( ! (style & 0x08))
-    plot_pixel(sr, x, y, col, action);
 }
 
 /*
@@ -4793,12 +4868,19 @@ void osword09(int64 x) {
 void osword0A(int64 x) {
 #ifndef BRANDY_MODE7ONLY
   unsigned char *block;
-  int32 offset, i;
+  size_t offset;
+  int32 i;
   
   block=(unsigned char *)(size_t)x;
-  offset = block[0]-32;
-  if (offset < 0) return;
-  for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
+  switch(block[0]) {
+    case 6:
+      for (i=0; i<= 7; i++) block[i+1]=dot_pattern_packed[i];
+      break;
+    default:
+      offset=block[0]-32;
+      if (offset < 0) return;
+      for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
+  }
 #endif
 }
 

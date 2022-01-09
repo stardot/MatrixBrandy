@@ -10,6 +10,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Remove the old keyboard code, JGH's NEWKBD code is now the only
   version present.
 - System: Permit system memory to be up to 4194303K (4GB less 1K)
+- Graphics: Reworked line drawing, the earlier adaption of upstream was not
+  right. This new version is based on PiTubeDirect's implementation.
 
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches
