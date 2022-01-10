@@ -4345,6 +4345,7 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
 ** Bit 0x20: Don't plot the start point.
 */
 static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, Uint32 col, int32 style, Uint32 action) {
+  int i;
   int w = x2 - x1;
   int h = y2 - y1;
   int mask = (style & 0x38);
@@ -4390,7 +4391,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
   if (!omit_first) {
     dot_pattern_index = 0;
   }
-  for (int i = start; i <= longest; i++) {
+  for (i = start; i <= longest; i++) {
     if (i > start || !omit_first) {
       if (dotted) {
         if (dot_pattern[dot_pattern_index++]) {
