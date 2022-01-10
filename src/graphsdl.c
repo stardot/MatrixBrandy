@@ -505,9 +505,10 @@ static void set_dot_pattern_len(int32 len);
 static void set_dot_pattern(byte *pattern) {
   // Expand the pattern into one byte per pixel for efficient access
   byte *ptr = pattern;
+  int i;
   uint8_t mask = 0x80;
   int last_dot = -1;
-  for (int i = 0; i < sizeof(dot_pattern); i++) {
+  for (i = 0; i < sizeof(dot_pattern); i++) {
     if (*ptr & mask) {
       dot_pattern[i] = 1;
       last_dot = i;
@@ -526,7 +527,7 @@ static void set_dot_pattern(byte *pattern) {
   if (last_dot > dot_pattern_len) {
     set_dot_pattern_len(last_dot);
   }
-  for (int i = 0; i < 8; i++) 
+  for (i = 0; i < 8; i++) 
     dot_pattern_packed[i]=pattern[i];
 }
 
