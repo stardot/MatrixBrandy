@@ -1303,6 +1303,7 @@ static void fn_str(void) {
       numdigits = (format>>BYTESHIFT) & BYTEMASK;
       if (numdigits == 0) numdigits = DEFDIGITS;
       length = sprintf(basicvars.stringwork, fmt, numdigits, pop_float());
+      if (format & COMMADPT) decimaltocomma(basicvars.stringwork, length);
     }
   } else {
     error(ERR_TYPENUM);

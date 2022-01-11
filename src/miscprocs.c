@@ -597,3 +597,9 @@ void set_fpu(void) {
   asm ("fldcw %0" : : "m" (*&mode));
 #endif
 }
+
+void decimaltocomma(char *numstring, int32 len) {
+  int32 i = 0;
+  for(i = 0; i < len; i++)
+    if (numstring[i] == '.') numstring[i] = ',';
+}

@@ -1441,7 +1441,7 @@ static void print_screen(void) {
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_anynum64());
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
-        }
+       }
       }
       else {	/* Left justify the value */
         if (hex)
@@ -1453,6 +1453,7 @@ static void print_screen(void) {
           size = sprintf(basicvars.stringwork, leftfmt, numdigits, pop_anynumfp());
         }
       }
+      if (format & COMMADPT) decimaltocomma(basicvars.stringwork, size);
       emulate_vdustr(basicvars.stringwork, size);
       basicvars.printcount+=size;
       break;
