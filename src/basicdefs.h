@@ -42,11 +42,12 @@
 
 #define ATPERCENT 0			/* Index of '@%' in builtin variables array */
 #define STDFORMAT 0x90A			/* Default number format */
+/* RISC OS BASIC V defaults to 11, BASIC VI defaults to 17. The Beeb uses 10. */
 #define DEFDIGITS 10			/* Default no. of digits to print if format says 0 */
 #define FORMAT_G 0			/* General (and default) format */
 #define FORMAT_E 1			/* Exponent format */
 #define FORMAT_F 2			/* Floating point format */
-#define STRUSE 0x1000000		/* STR$ uses @% to format string */
+#define STRUSE   0xFF000000		/* STR$ uses @% to format string */
 #define COMMADPT 0x80000000		/* Use ',' instead of '.' as the decimal point */
 
 #define FNAMESIZE 256			/* Maximum length of file names */

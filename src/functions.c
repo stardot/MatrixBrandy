@@ -80,7 +80,8 @@
 #define RADCONV 57.2957795130823229	/* Used when converting degrees -> radians and vice versa */
 #define TIMEFORMAT "%a,%d %b %Y.%H:%M:%S"  /* Date format used by 'TIME$' */
 
-#define STRFORMAT 0xA0A			/* Default format used by function STR$ */
+/* RISC OS BASIC V uses &B0A, BASIC VI uses &110A */
+#define STRFORMAT 0x110A			/* Default format used by function STR$ */
 
 static int32 lastrandom;		/* 32-bit pseudo-random number generator value */
 static int32 randomoverflow;		/* 1-bit overflow from pseudo-random number generator */
