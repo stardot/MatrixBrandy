@@ -48,7 +48,7 @@
 #define FORMAT_E 1			/* Exponent format */
 #define FORMAT_F 2			/* Floating point format */
 #define STRUSE   0xFF000000		/* STR$ uses @% to format string */
-#define COMMADPT 0x80000000		/* Use ',' instead of '.' as the decimal point */
+#define COMMADPT 0x800000		/* Use ',' instead of '.' as the decimal point */
 
 #define FNAMESIZE 256			/* Maximum length of file names */
 #define INPUTLEN 1024			/* Size of terminal input buffer */
