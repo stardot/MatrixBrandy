@@ -1358,6 +1358,7 @@ static void print_screen(void) {
   rightjust = TRUE;
   newline = TRUE;
   format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
+  //if (format == 0) format = STDFORMAT;  /* Line disabled, it contradicts Acorn */
   fieldwidth = format & BYTEMASK;
   numdigits = (format>>BYTESHIFT) & BYTEMASK;
   if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
