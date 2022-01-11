@@ -12,6 +12,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Permit system memory to be up to 4194303K (4GB less 1K)
 - Graphics: Reworked line drawing, the earlier adaption of upstream was not
   right. This new version is based on PiTubeDirect's implementation.
+- Graphics: Dot patterns and VDU23,6 now implemented
 
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches
