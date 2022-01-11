@@ -1441,7 +1441,7 @@ static void print_screen(void) {
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_anynum64());
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
-       }
+        }
       }
       else {	/* Left justify the value */
         if (hex)
