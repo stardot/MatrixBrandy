@@ -343,7 +343,7 @@ static void list_entries(library *lp) {
 void list_variables(char which) {
   char n;
   char temp[40];
-  int columns, len, next, width;
+  int columns, len, next, width, atpercent;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   if (which==' ') {	/* List everything */
     emulate_printf("Static integer variables:\r\n");
@@ -364,6 +364,41 @@ void list_variables(char which) {
         columns+=len;
       }
     }
+    /* Let's now do @%, output in hex as it makes more sense. */
+    atpercent = basicvars.staticvars[ATPERCENT].varentry.varinteger;
+    len = sprintf(temp, "@%% = &%X", atpercent);
+    next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
+    while (columns<next) {
+      emulate_vdu(' ');
+      columns++;
+    }
+    emulate_printf("%s", temp);
+    columns+=len;
+    /* And this time, output as string */
+    next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
+    while (columns<next) {
+      emulate_vdu(' ');
+      columns++;
+    }
+    emulate_printf("@%% = \"");
+    if (atpercent & STRUSE) emulate_vdu('+');
+    switch (atpercent & 0x30000) {
+      case 0x10000:
+        emulate_vdu('e');
+        break;
+      case 0x20000:
+        emulate_vdu('f');
+        break;
+      default:
+        emulate_vdu('g');
+    }
+    emulate_printf("%d", atpercent & 0xFF);
+    if (atpercent & 0x800000)
+      emulate_vdu(',');
+    else
+      emulate_vdu('.');
+    emulate_printf("%d", (atpercent & 0xFF00) >> BYTESHIFT);
+    emulate_vdu('"');
     emulate_printf("\r\n\nDynamic variables, procedures and functions:\r\n");
     list_entries(NIL);		/* List entries in main symbol table */
   }

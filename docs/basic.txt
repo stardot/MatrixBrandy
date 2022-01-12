@@ -3142,7 +3142,7 @@ in the least signicant byte.
 If SS is non-zero, STR$ uses the format specified, else it uses the 
 ARM BBC BASIC default value of &110A.
 
-<format> controls how numbers are output. The values it can take
+NN controls how numbers are output. The values it can take
 are:
 
         0  General format
@@ -3151,10 +3151,11 @@ are:
         If bit &80 is set, then use a decimal comma instead of
         a decimal point.
 
-<places> gives the number of digits to print. The range is 1 to
-255.
+PP gives the number of digits to print. The range is 1 to
+255.  If 0 then the maximum number of digits is used (PI returns 17
+significant figures).
 
-<width> is the field width, the number of characters that can be
+WW is the field width, the number of characters that can be
 used when displaying a number. The range is zero to 255
 characters. This affects how a number will be displayed as well
 as the number of characters skipped when using a ',' in a 

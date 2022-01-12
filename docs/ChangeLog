@@ -17,6 +17,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   point.
 - BASIC: PRINT and STR$ now show exponents in the style used by the BBC and
   RISC OS, rather than the C standard.
+- BASIC: LVAR now includes @% in its output, displaying both in hex and its
+  string form.
 
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches
