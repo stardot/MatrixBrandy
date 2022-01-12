@@ -3128,21 +3128,28 @@ can also affect the function STR$.
 @% can best be thought of as being made up of four distinct
 byte-sized fields. They are laid out as follows:
 
-	<flags> <format> <places> <width>
+        @%=&SSNNPPWW
+
+Byte    Range   Default Purpose
+SS      00-01   00      STR$ Format Control
+NN      00-C2   00      Format Selection
+PP      ??-??   09      Number of Digits Printed
+WW      00-0F   0A(10)  Zone and Print Field Width
 
 with <flags> in the most significant byte of @% and <width>
 in the least signicant byte.
 
-<flags> contains two flag bits:
-	&80  Use ',' as decimal point
-	&01  Format is used by the function STR$
+If SS is non-zero, STR$ uses the format specified, else it uses the 
+ARM BBC BASIC default value of &110A.
 
 <format> controls how numbers are output. The values it can take
 are:
 
-	0  General format
-	1  Exponent format
-	2  Floating point format
+        0  General format
+        1  Exponent format
+        2  Floating point format
+        If bit &80 is set, then use a decimal comma instead of
+        a decimal point.
 
 <places> gives the number of digits to print. The range is 1 to
 255.
