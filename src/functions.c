@@ -1266,25 +1266,17 @@ static void fn_sqr(void) {
 static void fn_str(void) {
   boolean ishex;
   int32 length = 0;
-  char *cp;
+  char *cp, *bufptr;
+
   ishex = *basicvars.current == '~';
   if (ishex) basicvars.current++;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
-    if (ishex) {
-      if (matrixflags.hex64)
-        length = sprintf(basicvars.stringwork, "%llX", pop_anyint());
-      else
-        length = sprintf(basicvars.stringwork, "%X", (int32)pop_anyint());
-    } else {
-      length = sprintf(basicvars.stringwork, "%lld", pop_anyint());
-    }
-  } else if (GET_TOPITEM == STACK_FLOAT) {
+  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64 || GET_TOPITEM == STACK_FLOAT) {
     if (ishex)
       if (matrixflags.hex64)
-        length = sprintf(basicvars.stringwork, "%llX", TOINT64(pop_float()));
+        length = sprintf(basicvars.stringwork, "%llX", pop_anynum64());
       else
-        length = sprintf(basicvars.stringwork, "%X", TOINT(pop_float()));
+        length = sprintf(basicvars.stringwork, "%X", pop_anynum32());
     else {
       int32 format, numdigits;
       char *fmt;
@@ -1302,8 +1294,23 @@ static void fn_str(void) {
       }
       numdigits = (format>>BYTESHIFT) & BYTEMASK;
       if (numdigits == 0) numdigits = DEFDIGITS;
-      length = sprintf(basicvars.stringwork, fmt, numdigits, pop_float());
+      length = sprintf(basicvars.stringwork, fmt, numdigits, pop_anynumfp());
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, length);
+      /* Hack to mangle the exponent format to BBC-style rather than C-style */
+      bufptr = strchr(basicvars.stringwork,'E');
+      if(bufptr) {
+        bufptr++;
+        if (*bufptr == '+') {
+          /* Not worried about the length value, the buffer is 64K long and we 
+           * will never get any numbers that long! */
+          memmove(bufptr, bufptr+1, length);
+          length--;
+        } else bufptr++;
+        while (*bufptr == '0') {
+          memmove(bufptr, bufptr+1, length);
+          length--;
+        }
+      }
     }
   } else {
     error(ERR_TYPENUM);

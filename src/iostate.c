@@ -1350,6 +1350,7 @@ static void print_screen(void) {
   boolean hex, rightjust, newline;
   int32 format, fieldwidth, numdigits, size;
   char *leftfmt, *rightfmt;
+  char *bufptr;
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:print_screen\n");
@@ -1438,11 +1439,11 @@ static void print_screen(void) {
           if (matrixflags.hex64)
             size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_anynum64());
           else
-            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, (int32)pop_anynum64());
+            size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_anynum32());
         } else {
           size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
         }
-      }
+      } 
       else {	/* Left justify the value */
         if (hex)
           if (matrixflags.hex64)
@@ -1454,6 +1455,33 @@ static void print_screen(void) {
         }
       }
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, size);
+      /* Hack to mangle the exponent format to BBC-style rather than C-style */
+      bufptr = strchr(basicvars.stringwork,'E');
+      if(bufptr) {
+        bufptr++;
+        if (*bufptr == '+') {
+          if (rightjust) {
+            memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
+            basicvars.stringwork[0]=' ';
+          } else {
+            memmove(bufptr, bufptr+1, size);
+            size--;
+          }
+        } else {
+          if (!rightjust) bufptr++;
+        }
+        if (rightjust) bufptr++;
+        while (*bufptr == '0') {
+          if (rightjust) {
+          memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
+          basicvars.stringwork[0]=' ';
+          bufptr++;
+          } else {
+            memmove(bufptr, bufptr+1, size);
+            size--;
+          }
+        }
+      }
       emulate_vdustr(basicvars.stringwork, size);
       basicvars.printcount+=size;
       break;
