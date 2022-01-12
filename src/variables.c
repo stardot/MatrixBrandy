@@ -393,7 +393,7 @@ void list_variables(char which) {
         emulate_vdu('g');
     }
     emulate_printf("%d", atpercent & 0xFF);
-    if (atpercent & 0x800000)
+    if (atpercent & COMMADPT)
       emulate_vdu(',');
     else
       emulate_vdu('.');

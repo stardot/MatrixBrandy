@@ -1366,6 +1366,7 @@ static void print_screen(void) {
   switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
   case FORMAT_E:
     leftfmt = "%.*E"; rightfmt = "%*.*E";
+    if (numdigits > 1) numdigits--;
     break;
   case FORMAT_F:
     leftfmt = "%.*F"; rightfmt = "%*.*F";
@@ -1460,7 +1461,7 @@ static void print_screen(void) {
       if(bufptr) {
         bufptr++;
         if (*bufptr == '+') {
-          if (rightjust) {
+          if (rightjust && (size <= fieldwidth)) {
             memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
             basicvars.stringwork[0]=' ';
           } else {
@@ -1468,11 +1469,11 @@ static void print_screen(void) {
             size--;
           }
         } else {
-          if (!rightjust) bufptr++;
+          if (!rightjust || (size > fieldwidth)) bufptr++;
         }
-        if (rightjust) bufptr++;
+        if (rightjust && (size <= fieldwidth)) bufptr++;
         while (*bufptr == '0') {
-          if (rightjust) {
+          if (rightjust && (size <= fieldwidth)) {
           memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
           basicvars.stringwork[0]=' ';
           bufptr++;
