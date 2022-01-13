@@ -1363,6 +1363,7 @@ static void print_screen(void) {
   fieldwidth = format & BYTEMASK;
   numdigits = (format>>BYTESHIFT) & BYTEMASK;
   if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
+  if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
   switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
   case FORMAT_E:
     leftfmt = "%.*E"; rightfmt = "%*.*E";

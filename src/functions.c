@@ -1294,6 +1294,7 @@ static void fn_str(void) {
       }
       numdigits = (format>>BYTESHIFT) & BYTEMASK;
       if (numdigits == 0) numdigits = DEFDIGITS;
+      if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
       length = sprintf(basicvars.stringwork, fmt, numdigits, pop_anynumfp());
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, length);
       /* Hack to mangle the exponent format to BBC-style rather than C-style */
