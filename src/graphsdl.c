@@ -794,9 +794,11 @@ static void vdu_23command(void) {
     break;
   case 5:
     break; /* ECF not supported */
+#ifndef BRANDY_MODE7ONLY
   case 6:
     set_dot_pattern(vduqueue);
     break;
+#endif
   case 7:	/* Scroll the screen or text window */
     vdu_2307();
     break;
