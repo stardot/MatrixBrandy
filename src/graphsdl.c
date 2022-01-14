@@ -3873,8 +3873,10 @@ void emulate_origin(int32 x, int32 y) {
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
-  char *videodriver;
   int p;
+#ifdef TARGET_UNIX
+  char *videodriver;
+#endif
 
 #ifdef TARGET_MACOSX
   /* Populate the pixfmt structure */
