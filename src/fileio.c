@@ -601,7 +601,15 @@ int32 fileio_openin(char *name, int32 namelen) {
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
   thefile = fopen(filename, INMODE);
+#ifdef TARGET_RISCOS
   if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+#else
+  if (thefile==NIL) {
+    strcat(filename, ".bbc"); /* Append a .bbc suffix and try again */
+    thefile = fopen(filename, INMODE);
+    if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+  }
+#endif
   fileinfo[n].stream = thefile;
   fileinfo[n].filetype = OPENIN;
   fileinfo[n].eofstatus = OKAY;
@@ -663,7 +671,15 @@ int32 fileio_openup(char *name, int32 namelen) {
   } else {
 #endif
     thefile = fopen(filename, UPMODE);
+#ifdef TARGET_RISCOS
     if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+#else
+    if (thefile==NIL) {
+      strcat(filename, ".bbc"); /* Append a .bbc suffix and try again */
+      thefile = fopen(filename, INMODE);
+      if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+    }
+#endif
     fileinfo[n].stream = thefile;
     fileinfo[n].filetype = OPENUP;
     fileinfo[n].eofstatus = OKAY;

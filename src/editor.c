@@ -453,11 +453,18 @@ static FILE *open_file(char *name) {
   FILE *handle;
   strcpy(basicvars.filename, name);
   handle = fopen(name, "rb");
+#ifndef TARGET_RISCOS
+  if (handle!=NIL) return handle;
+  /* Retry with a .bbc suffix */
+  strcat(basicvars.filename, ".bbc");
+  handle = fopen(basicvars.filename, "rb");
+#endif
   if (handle!=NIL || basicvars.loadpath==NIL || isapath(name)) {
     return handle;
 /* File not found but there is a list of directories to search */
   } else {
     char *dest, *srce = basicvars.loadpath;
+    strcpy(basicvars.filename, name); /* Reset */
     do {
       dest = basicvars.filename;
       if (*srce!=',') {		/* Not got a null directory name */
@@ -475,6 +482,12 @@ static FILE *open_file(char *name) {
       strcat(basicvars.filename, name);
       handle = fopen(basicvars.filename, "rb");
       if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
+#ifndef TARGET_RISCOS
+      /* Add a .bbc suffix and try again */
+      strcat(basicvars.filename, ".bbc");
+      handle = fopen(basicvars.filename, "rb");
+      if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
+#endif
       srce++;
     } while (TRUE);
     return handle;	/* Return file handle or NIL if file not found */

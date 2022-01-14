@@ -9,6 +9,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   Raspberry Pi. Experience may vary across other hardware.
 - System: Remove the old keyboard code, JGH's NEWKBD code is now the only
   version present.
+- System: On non-RISC OS platforms, when using LOAD, CHAIN, OPENIN and
+  OPENUP, if file isn't found, retry with a .bbc suffix before complaining.
+  SAVE and OPENOUT will not use a .bbc suffix unless explicitly provided in
+  the filename.
 - System: Permit system memory to be up to 4194303K (4GB less 1K)
 - Graphics: Reworked line drawing, the earlier adaption of upstream was not
   right. This new version is based on PiTubeDirect's implementation.
@@ -17,6 +21,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   point.
 - BASIC: PRINT and STR$ now show exponents in the style used by the BBC and
   RISC OS, rather than the C standard.
+- BASIC: @% precisions greater than &11xx are now capped at &11xx.
 - BASIC: LVAR now includes @% in its output, displaying both in hex and its
   string form.
 
