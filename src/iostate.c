@@ -1362,10 +1362,10 @@ static void print_screen(void) {
   if (format == 0) format = STDFORMAT;  /* This from upstream contradicts Acorn behaviour */
   fieldwidth = format & BYTEMASK;
   numdigits = (format>>BYTESHIFT) & BYTEMASK;
-  if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
   if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
   switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
   case FORMAT_E:
+    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
     leftfmt = "%.*E"; rightfmt = "%*.*E";
     if (numdigits > 1) numdigits--;
     break;
@@ -1373,6 +1373,7 @@ static void print_screen(void) {
     leftfmt = "%.*F"; rightfmt = "%*.*F";
     break;
   default:	/* Assume anything else will be general format */
+    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
     leftfmt = "%.*G"; rightfmt = "%*.*G";
     break;
   }
@@ -1473,7 +1474,7 @@ static void print_screen(void) {
           if (!rightjust || (size > fieldwidth)) bufptr++;
         }
         if (rightjust && (size <= fieldwidth)) bufptr++;
-        while (*bufptr == '0') {
+        while (*bufptr == '0' && *(bufptr+1) != '\0') {
           if (rightjust && (size <= fieldwidth)) {
           memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
           basicvars.stringwork[0]=' ';

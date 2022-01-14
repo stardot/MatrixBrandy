@@ -1293,7 +1293,8 @@ static void fn_str(void) {
         fmt = "%.*G";
       }
       numdigits = (format>>BYTESHIFT) & BYTEMASK;
-      if (numdigits == 0) numdigits = DEFDIGITS;
+      if (numdigits == 0 && ((format>>2*BYTESHIFT) & BYTEMASK) != FORMAT_F) numdigits = DEFDIGITS;
+      if (((format>>2*BYTESHIFT) & BYTEMASK) == FORMAT_E) numdigits--;
       if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
       length = sprintf(basicvars.stringwork, fmt, numdigits, pop_anynumfp());
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, length);
@@ -1307,7 +1308,7 @@ static void fn_str(void) {
           memmove(bufptr, bufptr+1, length);
           length--;
         } else bufptr++;
-        while (*bufptr == '0') {
+        while (*bufptr == '0' && *(bufptr+1) != '\0') {
           memmove(bufptr, bufptr+1, length);
           length--;
         }
