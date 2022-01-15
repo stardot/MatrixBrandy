@@ -845,8 +845,7 @@ static void reveal_cursor() {
 */
 static void toggle_cursor(void) {
   int32 left, right, x, y, mxppc, myppc, xtemp = xtext, startpt, ysc = ds.yscale, ys, curheight = 0;
-  int32 csroffset = 0;
-
+  int32 csroffset = (ds.yscale)-1;
   if (
         vduflag(VDU_FLAG_GRAPHICURS)                                /* Never display the cursor in VDU5 mode */
   ||
@@ -871,7 +870,6 @@ static void toggle_cursor(void) {
   right = left + ds.xscale*mxppc -1;
   if (cursmode == UNDERLINE) curheight=(tmsg.crtc6845r10 & 31);
   y = ((ytext+1)*ds.yscale*myppc - ds.yscale) * ds.vscrwidth;
-  if (screenmode == 3 || screenmode == 6) csroffset = 2;
   while (startpt > curheight) {
     for (ys=0; ys < ysc; ys++) {
       for (x=left; x <= right; x++) {
@@ -917,13 +915,6 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
-  if(!ds.scaled) {
-    scale_rect.x = left;
-    scale_rect.y = top;
-    scale_rect.w = (right+1 - left);
-    scale_rect.h = (bottom+1 - top);
-    if (screenmode != 7) SDL_BlitSurface(screenbank[ds.displaybank], &scale_rect, matrixflags.surface, &scale_rect);
-  } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
     int32 yy = dtop;
@@ -941,17 +932,14 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       } 
     }
     if ((screenmode == 3) || (screenmode == 6)) {	/* Paint on the black bars over the background */
-      int p;
+      int p,x,y;
       hide_cursor();
-      scroll_rect.x=0;
-      scroll_rect.w=ds.screenwidth*ds.xscale;
-      scroll_rect.h=4;
       for (p=0; p<25; p++) {
-        scroll_rect.y=16+(p*20);
-        SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
+        y=16+(p*20);
+        for (x=0; x < 4*ds.screenwidth*ds.xscale; x++)
+          *((Uint32*)matrixflags.surface->pixels + x + y*ds.vscrwidth) = 0;
       }
     }
-  }
 }
 
 static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
