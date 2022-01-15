@@ -17,6 +17,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Graphics: Reworked line drawing, the earlier adaption of upstream was not
   right. This new version is based on PiTubeDirect's implementation.
 - Graphics: Dot patterns and VDU23,6 now implemented
+- Graphics: Fixed a crash bug due to SDL not being particularly thread-safe.
 - BASIC: PRINT and STR$ now support displaying a decimal comma instead of a
   point.
 - BASIC: PRINT and STR$ now show exponents in the style used by the BBC and
