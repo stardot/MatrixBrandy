@@ -1019,7 +1019,7 @@ static void init_palette(void) {
     palette[33] =      palette[34] = 160; palette[35] = 0;	/* Khaki */
     palette[36] =      palette[37] = 0;   palette[38] = 160;	/* Navy blue */
     palette[39] = 160; palette[40] = 0;   palette[41] = 160;	/* Purple */
-    palette[42] = 0;   palette[43] =      palette[44] = 160;	/* Cyan */
+    palette[42] = 0;   palette[43] =      palette[44] = 160;	/* Dark cyan */
     palette[45] =      palette[46] =      palette[47] = 160;	/* Grey */
     break;
 #ifndef BRANDY_MODE7ONLY
@@ -1564,7 +1564,7 @@ static void cursor_move(int32 *curx, int32 *cury, int32 incx, int32 incy) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line;
+  int32 y, topx, topy, line, r;
   
   if (cursorstate == ONSCREEN) toggle_cursor();
   matrixflags.cursorbusy = 1;
@@ -1600,14 +1600,8 @@ static void write_char(int32 ch) {
   topy = ytext*YPPC;
   for (y=0; y < 8; y++) {
     line = sysfont[ch-' '][y];
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 0 + ((topy+y)*ds.vscrwidth)) = (line & 0x80) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 1 + ((topy+y)*ds.vscrwidth)) = (line & 0x40) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 2 + ((topy+y)*ds.vscrwidth)) = (line & 0x20) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 3 + ((topy+y)*ds.vscrwidth)) = (line & 0x10) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 4 + ((topy+y)*ds.vscrwidth)) = (line & 0x08) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 5 + ((topy+y)*ds.vscrwidth)) = (line & 0x04) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 6 + ((topy+y)*ds.vscrwidth)) = (line & 0x02) ? ds.tf_colour : ds.tb_colour;
-    *((Uint32*)screenbank[ds.writebank]->pixels + topx + 7 + ((topy+y)*ds.vscrwidth)) = (line & 0x01) ? ds.tf_colour : ds.tb_colour;
+    for (r=0; r < 8; r++)
+      *((Uint32*)screenbank[ds.writebank]->pixels + topx + r + ((topy+y)*ds.vscrwidth)) = (line & 1<<(7-r)) ? ds.tf_colour : ds.tb_colour;
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
   xtext+=textxinc();
@@ -1689,7 +1683,7 @@ static void vdu5_cursordown(void) {
 ** 'x' and 'y' direction but never in just the 'x' direction.
 */
 static void plot_char(int32 ch) {
-  int32 y, topx, topy, line;
+  int32 y, topx, topy, line, r;
   SDL_Rect clip_rect;
   if (ds.clipping) {
     clip_rect.x = GXTOPX(ds.gwinleft);
@@ -1706,14 +1700,8 @@ static void plot_char(int32 ch) {
     if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
-      if (line & 0x80) plot_pixel(screenbank[ds.writebank], (topx + 0), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x40) plot_pixel(screenbank[ds.writebank], (topx + 1), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x20) plot_pixel(screenbank[ds.writebank], (topx + 2), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x10) plot_pixel(screenbank[ds.writebank], (topx + 3), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x08) plot_pixel(screenbank[ds.writebank], (topx + 4), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x04) plot_pixel(screenbank[ds.writebank], (topx + 5), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x02) plot_pixel(screenbank[ds.writebank], (topx + 6), (topy+y), ds.gf_colour, ds.graph_fore_action);
-      if (line & 0x01) plot_pixel(screenbank[ds.writebank], (topx + 7), (topy+y), ds.gf_colour, ds.graph_fore_action);
+      for (r=0;r<8;r++)
+        if (line & 1<<(7-r)) plot_pixel(screenbank[ds.writebank], (topx + r), (topy+y), ds.gf_colour, ds.graph_fore_action);
     }
   }
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
