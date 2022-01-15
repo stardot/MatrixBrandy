@@ -903,6 +903,7 @@ static void toggle_cursor(void) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
+  int32 xx, yy;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
@@ -915,10 +916,18 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
+  if (!ds.scaled) {
+    for (xx=left; xx <= right; xx++) {
+      for (yy=top; yy <= bottom; yy++) {
+        *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = *((Uint32*)screenbank[ds.displaybank]->pixels + xx + yy*ds.vscrwidth);
+      }
+    }
+  } else {
     int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
     int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
-    int32 yy = dtop;
-    int32 xx, i, j, ii, jj;
+    int32 i, j, ii, jj;
+
+    yy = dtop;
     for (j = top; j <= bottom; j++) {
       for (jj = 1; jj <= ds.yscale; jj++) {
         xx = dleft;
@@ -932,14 +941,15 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       } 
     }
     if ((screenmode == 3) || (screenmode == 6)) {	/* Paint on the black bars over the background */
-      int p,x,y;
+      int p;
       hide_cursor();
       for (p=0; p<25; p++) {
-        y=16+(p*20);
-        for (x=0; x < 4*ds.screenwidth*ds.xscale; x++)
-          *((Uint32*)matrixflags.surface->pixels + x + y*ds.vscrwidth) = 0;
+        yy=16+(p*20);
+        for (xx=0; xx < 4*ds.screenwidth*ds.xscale; xx++)
+          *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = 0;
       }
     }
+  }
 }
 
 static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
