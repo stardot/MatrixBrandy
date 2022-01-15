@@ -903,7 +903,7 @@ static void toggle_cursor(void) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
-  int32 xx, yy;
+  int32 xx, yy, pxoffset;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
@@ -919,7 +919,8 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
   if (!ds.scaled) {
     for (xx=left; xx <= right; xx++) {
       for (yy=top; yy <= bottom; yy++) {
-        *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = *((Uint32*)screenbank[ds.displaybank]->pixels + xx + yy*ds.vscrwidth);
+        pxoffset = xx + yy*ds.vscrwidth;
+        *((Uint32*)matrixflags.surface->pixels + pxoffset) = *((Uint32*)screenbank[ds.displaybank]->pixels + pxoffset);
       }
     }
   } else {
@@ -945,8 +946,9 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       hide_cursor();
       for (p=0; p<25; p++) {
         yy=16+(p*20);
-        for (xx=0; xx < 4*ds.screenwidth*ds.xscale; xx++)
-          *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = 0;
+        memset(matrixflags.surface->pixels + 4*yy*ds.vscrwidth, 0, 16*ds.screenwidth*ds.xscale);
+        //for (xx=0; xx < 4*ds.screenwidth*ds.xscale; xx++)
+        //  *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = 0;
       }
     }
   }
