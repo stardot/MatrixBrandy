@@ -1013,7 +1013,7 @@ static void init_palette(void) {
     palette[15] = 255; palette[16] = 0;   palette[17] = 255;	/* Magenta */
     palette[18] = 0;   palette[19] =      palette[20] = 255;	/* Cyan */
     palette[21] =      palette[22] =      palette[23] = 255;	/* White */
-    palette[24] =      palette[25] =      palette[26] = 0;	/* Black */
+    palette[24] =      palette[25] =      palette[26] = 80;	/* Dark grey */
     palette[27] = 160; palette[28] =      palette[29] = 0;	/* Dark red */
     palette[30] = 0;   palette[31] = 160; palette[32] = 0;	/* Dark green */
     palette[33] =      palette[34] = 160; palette[35] = 0;	/* Khaki */
