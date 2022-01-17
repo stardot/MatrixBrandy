@@ -4223,11 +4223,7 @@ static void eval_vasr(void) {
 */
 static void eval_iveq(void) {
   int64 rhint = pop_anyint();
-  float64 lhint = pop_anynumfp();
-  int retval = BASFALSE;
-
-  if (rhint == lhint) retval=BASTRUE;
-  push_int(retval);
+  push_int(pop_anynumfp() == rhint ? BASTRUE : BASFALSE);
 }
 
 /*
@@ -4270,11 +4266,7 @@ static void eval_sveq(void) {
 */
 static void eval_ivne(void) {
   int64 rhint = pop_anyint();
-  float64 lhint = pop_anynumfp();
-  int retval = BASTRUE;
-
-  if (rhint == lhint) retval=BASFALSE;
-  push_int(retval);
+  push_int(pop_anynumfp() != rhint ? BASTRUE : BASFALSE);
 }
 
 /*
@@ -4315,14 +4307,7 @@ static void eval_svne(void) {
 */
 static void eval_ivgt(void) {
   int64 rhint = pop_anyint();
-
-  switch(GET_TOPITEM) {						/* Get the left-hand item */
-    case STACK_INT:   CPGT_INT(rhint); break;
-    case STACK_UINT8: CPGT_UINT8(rhint); break;
-    case STACK_INT64: CPGT_INT64(rhint); break;
-    case STACK_FLOAT: push_int(pop_float() > TOFLOAT(rhint) ? BASTRUE : BASFALSE); break;
-    default: want_number();
-  }
+  push_int(pop_anynumfp() > rhint ? BASTRUE : BASFALSE);
 }
 
 /*
@@ -4369,14 +4354,7 @@ static void eval_svgt(void) {
 */
 static void eval_ivlt(void) {
   int64 rhint = pop_anyint();
-
-  switch(GET_TOPITEM) {						/* Get the left-hand item */
-    case STACK_INT:   CPLT_INT(rhint); break;
-    case STACK_UINT8: CPLT_UINT8(rhint); break;
-    case STACK_INT64: CPLT_INT64(rhint); break;
-    case STACK_FLOAT: push_int(pop_float() < TOFLOAT(rhint) ? BASTRUE : BASFALSE); break;
-    default: want_number();
-  }
+  push_int(pop_anynumfp() < rhint ? BASTRUE : BASFALSE);
 }
 
 /*
@@ -4423,14 +4401,7 @@ static void eval_svlt(void) {
 */
 static void eval_ivge(void) {
   int64 rhint = pop_anyint();
-
-  switch(GET_TOPITEM) {						/* Get the left-hand item */
-    case STACK_INT:   CPGE_INT(rhint); break;
-    case STACK_UINT8: CPGE_UINT8(rhint); break;
-    case STACK_INT64: CPGE_INT64(rhint); break;
-    case STACK_FLOAT: push_int(pop_float() >= TOFLOAT(rhint) ? BASTRUE : BASFALSE); break;
-    default: want_number();
-  }
+  push_int(pop_anynumfp() >= rhint ? BASTRUE : BASFALSE);
 }
 
 /*
@@ -4477,14 +4448,7 @@ static void eval_svge(void) {
 */
 static void eval_ivle(void) {
   int64 rhint = pop_anyint();
-
-  switch(GET_TOPITEM) {						/* Get the left-hand item */
-    case STACK_INT:   CPLE_INT(rhint); break;
-    case STACK_UINT8: CPLE_UINT8(rhint); break;
-    case STACK_INT64: CPLE_INT64(rhint); break;
-    case STACK_FLOAT: push_int(pop_float() <= TOFLOAT(rhint) ? BASTRUE : BASFALSE); break;
-    default: want_number();
-  }
+  push_int(pop_anynumfp() <= rhint ? BASTRUE : BASFALSE);
 }
 
 /*
@@ -4532,8 +4496,7 @@ static void eval_svle(void) {
 static void eval_ivand(void) {
   int64 rhint=pop_anynum64();
   int64 lhint=pop_anynum64();
-  int64 retval = lhint & rhint;
-  push_varyint(retval);
+  push_varyint(lhint & rhint);
 }
 
 /*
@@ -4543,8 +4506,7 @@ static void eval_ivand(void) {
 static void eval_ivor(void) {
   int64 rhint=pop_anynum64();
   int64 lhint=pop_anynum64();
-  int64 retval = lhint | rhint;
-  push_varyint(retval);
+  push_varyint(lhint | rhint);
 }
 
 
@@ -4555,8 +4517,7 @@ static void eval_ivor(void) {
 static void eval_iveor(void) {
   int64 rhint=pop_anynum64();
   int64 lhint=pop_anynum64();
-  int64 retval = lhint ^ rhint;
-  push_varyint(retval);
+  push_varyint(lhint ^ rhint);
 }
 /*
 ** 'factor_table' is a table of functions indexed by token type used
