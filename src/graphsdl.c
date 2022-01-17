@@ -1739,20 +1739,6 @@ static void plot_space_opaque(void) {
   cursorstate = SUSPENDED; /* because we just overwrote it */
 }
 #endif /* BRANDY_MODE7ONLY */
-#if 0 /* These functions are no-ops */
-/*
-** 'echo_on' turns on cursor and the immediate echo of characters to the screen
-*/
-void echo_on(void) {
-}
-
-/*
-** 'echo_off' turns off the cursor and the immediate echo of characters
-** to the screen. This is used to make character output more efficient
-*/
-void echo_off(void) {
-}
-#endif /* 0 */
 
 /*
 ** 'move_cursor' sends the text cursor to the position (column, row)
@@ -4297,19 +4283,8 @@ static void buff_convex_poly(SDL_Surface *sr, int32 n, int32 *x, int32 *y, Uint3
 
   /* set highest and lowest points to visit */
   for (i = 0; i < n; i++) {
-#if 1
     if (y[i] > high) high = y[i];
     if (y[i] < low) low = y[i];
-#else
-    if (y[i] > MAX_YRES)
-      y[i] = high = MAX_YRES;
-    else if (y[i] > high)
-      high = y[i];
-    if (y[i] < 0)
-      y[i] = low = 0;
-    else if (y[i] < low)
-      low = y[i];
-#endif
   }
   /* reset the minimum amount of the edge tables */
   for (iy = (low < 0) ? 0: low; iy <= high; iy++) {

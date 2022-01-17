@@ -127,25 +127,6 @@ void mark_end(byte *p) {
   save_lineno(p, ENDLINENO);
 }
 
-/*
-** 'preserve' is called when 'NEW' is issued to save a copy of the start
-** of the program in memory in case 'OLD' is later used.
-*/
-static void preserve(void) {
-  int n;
-  for (n=0; n<PRESERVED; n++) basicvars.savedstart[n] = basicvars.start[n];
-  basicvars.misc_flags.validsaved = TRUE;
-}
-
-/*
-** 'reinstate' restores the start of a program in memory to the values
-** saved when the 'NEW' command was last used.
-*/
-static void reinstate(void) {
-  int n;
-  for (n=0; n<PRESERVED; n++) basicvars.start[n] = basicvars.savedstart[n];
-}
-
 static unsigned char cscrunge(unsigned char c) {
   unsigned char ctable[]={
 0x00,0xC4,0xD2,0x5C,0x80,0xD5,0x30,0x67,0x72,0x87,0x0A,0x68,0x22,0x19,0x11,0x3C,
@@ -188,7 +169,6 @@ void clear_program(void) {
   clear_heap();
   basicvars.start = basicvars.top = basicvars.page+MARKERSIZE;
   memmove(basicvars.page, startmark, STARTMARKSIZE);
-  preserve();	/* Preserve the start of program in memory (if any) */
   mark_end(basicvars.top);
   basicvars.lomem = basicvars.vartop = basicvars.top+ENDMARKSIZE;
   basicvars.stacklimit.bytesp = basicvars.top+STACKBUFFER;
@@ -230,56 +210,6 @@ void clear_program(void) {
 static void adjust_heaplimits(void) {
   basicvars.lomem = basicvars.vartop = (byte *)ALIGN((size_t)basicvars.top+ENDMARKSIZE);
   basicvars.stacklimit.bytesp = basicvars.vartop+(size_t)STACKBUFFER;
-}
-
-/*
-** 'isvalidprog' checks the program in memory to make sure that it is okay.
-** It returns 'true' if the program is okay, otherwise it returns 'false'
-*/
-static boolean isvalidprog(void) {
-  int32 lastline;
-  byte *p;
-  boolean isnotfirst;
-  lastline = 0;
-  isnotfirst = FALSE;	/* So that line number 0 is not flagged as an error */
-  p = basicvars.start;
-  while (!AT_PROGEND(p)) {
-    if (!isvalid(p) || (isnotfirst && get_lineno(p) <= lastline)) return FALSE;
-    lastline = get_lineno(p);
-    isnotfirst = TRUE;
-    p+=get_linelen(p);
-  }
-  return AT_PROGEND(p);
-}
-
-/*
-** 'recover_program' is called to verify that the program at 'page'
-** is legal. It resets the various program pointers if it is, or
-** flags the program as invalid if not (after resetting the various
-** pointer to 'safe' values)
-*/
-void recover_program(void) {
-  byte *bp=NULL;
-  if (basicvars.misc_flags.validsaved) {	/* Only check if the command 'new' has been used */
-    reinstate();		/* Restore start of program */
-    bp = basicvars.start;
-    basicvars.misc_flags.validsaved = isvalidprog();
-  }
-  if (basicvars.misc_flags.validsaved) {	/* Old program is okay */
-    while (!AT_PROGEND(bp)) bp+=get_linelen(bp);	/* Find end */
-    basicvars.top = bp;
-    adjust_heaplimits();
-  }
-  else {	/* Program is not valid - Ensure everything is set to safe values */
-    clear_varlists();
-    clear_strings();
-    clear_heap();
-    basicvars.misc_flags.badprogram = TRUE;
-    save_lineno(basicvars.start, ENDLINENO);
-    basicvars.current = basicvars.datacur = basicvars.top = basicvars.page+MARKERSIZE;
-    adjust_heaplimits();
-    error(ERR_BADPROG);
-  }
 }
 
 /*

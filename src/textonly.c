@@ -217,19 +217,6 @@ static void tekvdu(int chr) {
 #endif
 
 #ifdef USE_ANSI
-#if 0
-static void set_esc_key(unsigned int esckey) {
-  struct termios tty;
-  int fdkbd;
-
-  fdkbd=fileno(stdin);
-  if (tcgetattr(fdkbd, &tty) < 0) return; /* Didn't work, so forget it */
-
-  tty.c_cc[VINTR] = esckey;
-  tcsetattr(fdkbd, TCSADRAIN, &tty);
-  return;
-}
-#endif
 /*
 ** 'find_cursor' reads the position of the cursor on the text
 ** screen. It can only do this if input is coming from the

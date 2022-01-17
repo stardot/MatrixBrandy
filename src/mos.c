@@ -784,17 +784,7 @@ void mos_wrtime(int32 time) {
 */
 
 int64 mos_centiseconds(void) {
-#if 1
   return basicvars.centiseconds;
-#else
-  struct timeval tv;
-  gettimeofday (&tv, NULL);
-
-  /* tv.tv_sec  = Seconds since 1970 */
-  /* tv.tv_usec = and microseconds */
-
-  return (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
-#endif
 }
 
 int32 mos_rdtime(void) {
@@ -2298,14 +2288,14 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
     pclose(sout);
 #endif
-#else
+#else /* !USE_SDL */
     fflush(stdout);			/* Make sure everything has been output */
     fflush(stderr);
     basicvars.retcode = system(cmdbuf);
     find_cursor();			/* Figure out where the cursor has gone to */
     emulate_printf("\r\n");		/* Restore cursor position */
     if (basicvars.retcode < 0) error(ERR_CMDFAIL);
-#endif
+#endif /* USE_SDL */
   } else {				/* Want response back from command */
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");

@@ -152,18 +152,11 @@ static void exec_new(void) {
 }
 
 /*
-** 'exec_old' checks to see if there is a program still in memory and
-** attempts to recover it. Unfortunately, it doesn't work.
+** 'exec_old' used tp check to see if there is a program still in memory
+** and attempt to recover it. Unfortunately, it didn't work.
 */
 static void exec_old(void) {
-#if 1
   error(ERR_UNSUPPORTED);
-#else
-  basicvars.current++;
-  check_ateol();
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
-  recover_program();
-#endif
 }
 
 

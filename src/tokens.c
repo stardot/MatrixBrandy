@@ -878,11 +878,6 @@ static void copy_other(void) {
   case '(':
     brackets++;
     break;
-#if 0
-  case '[':
-    if (!firstitem) brackets++;
-    break;
-#endif
   case ')':
     brackets--;
     if (brackets < 0) { /* More ')' than '(' */
@@ -890,17 +885,6 @@ static void copy_other(void) {
       error(WARN_PARNEST);
     }
     break;
-#if 0
-  case ']':
-    if (!firstitem) {
-      brackets--;
-      if (brackets < 0) {       /* More ')' than '(' */
-        lasterror = ERR_LPMISS;
-        error(WARN_PARNEST);
-      }
-    }
-    break;
-#endif
   case 172:         /* This is '¬' which is a hi-bit char and causes a compiler warning if used directly */
     tclass = TYPE_FUNCTION;
     token = BASIC_TOKEN_NOT;
@@ -1358,12 +1342,6 @@ static void translate(void) {
       do_statvar();
     else if (token == BASIC_TOKEN_XVAR)
       do_dynamvar();
-#if 0
-    else if (token == ')' || token == ']') {    /* Handle ')' and ']' */
-      if (!firstitem && token == ']') token = ')';      /* Assume an array ref - Replace ']' with ')' */
-      store(token);
-      firstitem = FALSE;
-#endif
     else if (token == ')') {    /* Handle ')' */
       store(token);
       firstitem = FALSE;
