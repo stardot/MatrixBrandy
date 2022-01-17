@@ -947,8 +947,6 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       for (p=0; p<25; p++) {
         yy=16+(p*20);
         memset(matrixflags.surface->pixels + 4*yy*ds.vscrwidth, 0, 16*ds.screenwidth*ds.xscale);
-        //for (xx=0; xx < 4*ds.screenwidth*ds.xscale; xx++)
-        //  *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = 0;
       }
     }
   }

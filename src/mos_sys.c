@@ -622,7 +622,7 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #else
         outregs[2]=0;
 #endif
-#if defined(USE_SDL) || defined(TARGET_RISCOS)
+#ifdef USE_SDL
         outregs[3]=1;
 #else
         outregs[3]=0;
