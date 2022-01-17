@@ -385,7 +385,6 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       parmtype = STACK_STRING;
       break;
     case VAR_INTBYTEPTR:	/* Indirect byte-sized integer */
-      check_write(retparm.address.offset, sizeof(byte));
       intparm = basicvars.memory[retparm.address.offset];
       parmtype = STACK_INT;
       break;
@@ -398,7 +397,6 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       parmtype = STACK_FLOAT;
       break;
     case VAR_DOLSTRPTR:		/* Indirect string */
-      check_write(retparm.address.offset, sizeof(byte));
       stringparm.stringlen = get_stringlen(retparm.address.offset);
       stringparm.stringaddr = CAST(&basicvars.memory[retparm.address.offset], char *);
       parmtype = STACK_STRING;
@@ -556,7 +554,6 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     break;
   }
   case VAR_INTBYTEPTR:	/* Indirect byte-sized integer */
-    check_write(fp->parameter.address.offset, sizeof(byte));
     if (isreturn)
       save_retint(retparm, fp->parameter, basicvars.memory[fp->parameter.address.offset]);
     else {
@@ -583,7 +580,6 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   case VAR_DOLSTRPTR: {	/* Indirect string */
     basicstring descriptor;
     byte *sp;
-    check_write(fp->parameter.address.offset, stringparm.stringlen+1);
     sp = &basicvars.memory[fp->parameter.address.offset];	/* This is too long to keep typing... */
 /* Fake a descriptor for the original '$<string>' string */
     descriptor.stringlen = get_stringlen(fp->parameter.address.offset)+1;
@@ -680,7 +676,6 @@ static void do_statindvar(void) {
   address += pop_anynum64();
 /* Now load the value on to the Basic stack */
   if (operator == '?') {		/* Byte-sized integer */
-    check_read(address, sizeof(byte));
     push_int(basicvars.memory[address]);
   }
   else {		/* Word-sized integer */
@@ -902,7 +897,6 @@ static void do_arrayref(void) {
     (*factor_table[*basicvars.current])();
     offset+=pop_anynum64();
     if (operator == '?') {	/* Byte-sized integer */
-      check_read(offset, sizeof(byte));
       push_int(basicvars.memory[offset]);
     }
     else {		/* Word-sized integer */
@@ -934,7 +928,6 @@ static void do_indrefvar(void) {
   (*factor_table[*basicvars.current])();
   offset+=pop_anynum64();
   if (operator == '?') {	/* Byte-sized integer */
-    check_read(offset, sizeof(byte));
 #ifdef USE_SDL
     if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
       /* Mode 7 screen memory */
@@ -1137,7 +1130,6 @@ static void do_getbyte(void) {
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
   offset = (size_t)pop_anynum64();
-  check_read(offset, sizeof(byte));
 #ifdef USE_SDL
   if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
@@ -1205,7 +1197,6 @@ static void do_getstring(void) {
   }
 #endif /* USE_SDL */
   len = get_stringlen(offset);
-  check_read(offset, len);
   push_dolstring(len, CAST(&basicvars.memory[offset], char *));
 }
 

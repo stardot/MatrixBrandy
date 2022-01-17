@@ -140,7 +140,6 @@ static void assign_intbyteptr(pointers address) {
   }
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset] = pop_anynum32();
 #ifdef USE_SDL
   if ((address.offset >= (size_t)matrixflags.modescreen_ptr) &&
@@ -225,7 +224,6 @@ static void assign_dolstrptr(pointers address) {
   exprtype = GET_TOPITEM;
   if (exprtype!=STACK_STRING && exprtype!=STACK_STRTEMP) error(ERR_TYPESTR);
   result = pop_string();
-  check_write(address.offset, result.stringlen);
 #ifdef USE_SDL
   if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
     /* Mode 7 screen memory */
@@ -824,7 +822,6 @@ static void assiplus_stringdol(pointers address) {
 ** byte integer indirect variables
 */
 static void assiplus_intbyteptr(pointers address) {
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset]+=pop_anynum32();
 }
 
@@ -870,7 +867,6 @@ static void assiplus_dolstrptr(pointers address) {
     stringlen++;
   }
   if (stringlen>MAXSTRING) endoff = address.offset;	/* CR at end not found - Assume dest is zero length */
-  check_write(endoff, result.stringlen);
   memmove(&basicvars.memory[endoff], result.stringaddr, result.stringlen);
   basicvars.memory[endoff+result.stringlen] = asc_CR;
   if (exprtype==STACK_STRTEMP) free_string(result);
@@ -1075,7 +1071,6 @@ static void assiminus_float(pointers address) {
 ** byte integer indirect variables
 */
 static void assiminus_intbyteptr(pointers address) {
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset]-=pop_anynum32();
 }
 
@@ -1410,7 +1405,6 @@ static void assior_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assior_intbyteptr(pointers address) {
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset] |= pop_anynum32();
 }
 
@@ -1578,7 +1572,6 @@ static void assieor_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assieor_intbyteptr(pointers address) {
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset] ^= pop_anynum32();
 }
 
@@ -1746,7 +1739,6 @@ static void assimod_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assimod_intbyteptr(pointers address) {
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset] %= pop_anynum32();
 }
 
@@ -1914,7 +1906,6 @@ static void assidiv_int64word(pointers address) {
 ** byte integer indirect variables
 */
 static void assidiv_intbyteptr(pointers address) {
-  check_write(address.offset, sizeof(byte));
   basicvars.memory[address.offset] /= pop_anynum32();
 }
 

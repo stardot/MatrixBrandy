@@ -843,7 +843,6 @@ void exec_for(void) {
     *forvar.address.floataddr = pop_anynumfp();
     break;
   case VAR_INTBYTEPTR:
-    check_write(forvar.address.offset, sizeof(byte));
     basicvars.memory[forvar.address.offset] = pop_anynum32();
     break;
   case VAR_INTWORDPTR:
@@ -1238,7 +1237,6 @@ static void def_locvar(void) {
       locvar.address.straddr->stringaddr = nullstring;	/* 'nullstring' is defined in variables */
       break;
     case VAR_INTBYTEPTR:
-      check_write(locvar.address.offset, sizeof(byte));
       save_int(locvar, basicvars.memory[locvar.address.offset]);
       basicvars.memory[locvar.address.offset] = 0;
       break;
@@ -1251,7 +1249,6 @@ static void def_locvar(void) {
       store_float(locvar.address.offset, 0.0);
       break;
     case VAR_DOLSTRPTR:
-      check_write(locvar.address.offset, sizeof(byte));
       descriptor.stringlen = get_stringlen(locvar.address.offset)+1;	/* +1 for CR at end */
       descriptor.stringaddr = alloc_string(descriptor.stringlen);
       memmove(descriptor.stringaddr, &basicvars.memory[locvar.address.offset], descriptor.stringlen);
@@ -1867,7 +1864,6 @@ static void read_numeric(lvalue destination) {
     *destination.address.floataddr = pop_anynumfp();
     break;
   case VAR_INTBYTEPTR:	/* Pointer to byte-sized integer */
-    check_write(destination.address.offset, sizeof(byte));
     basicvars.memory[destination.address.offset] = pop_anynum32();
     break;
   case VAR_INTWORDPTR:	/* Pointer to word-sized integer */
@@ -1917,7 +1913,6 @@ static void read_string(lvalue destination) {
     if (length != 0) shorten=memcpydedupe(destination.address.straddr->stringaddr, start, length, '"');
     break;
   case VAR_DOLSTRPTR:	/* Pointer to '$<string>' */
-    check_write(destination.address.offset, length+1);   /* +1 for CR at end */
     if (length != 0) shorten=memcpydedupe((char *)&basicvars.memory[destination.address.offset], start, length, '"');
     basicvars.memory[destination.address.offset+length-shorten] = asc_CR;
     break;
@@ -2192,7 +2187,6 @@ void exec_swap(void) {
       isint = FALSE;
       break;
     case VAR_INTBYTEPTR:
-      check_write(first.address.offset, sizeof(byte));
       ival1 = basicvars.memory[first.address.offset];
       isint = TRUE;
       break;
@@ -2232,7 +2226,6 @@ void exec_swap(void) {
       isint = FALSE;
       break;
     case VAR_INTBYTEPTR:
-      check_write(second.address.offset, sizeof(byte));
       ival2 = basicvars.memory[second.address.offset];
       basicvars.memory[second.address.offset] = isint ? ival1 : TOINT(fval1);
       isint = TRUE;
@@ -2291,8 +2284,6 @@ void exec_swap(void) {
       int32 len1, len2;
       len1 = get_stringlen(first.address.offset)+1;	/* +1 for CR at end of string */
       len2 = get_stringlen(second.address.offset)+1;
-      check_write(first.address.offset, len2);
-      check_write(second.address.offset, len1);
       memmove(basicvars.stringwork, &basicvars.memory[first.address.offset], len1);
       memmove(&basicvars.memory[first.address.offset], &basicvars.memory[second.address.offset], len2);
       memmove(&basicvars.memory[second.address.offset], basicvars.stringwork, len1);
@@ -2304,7 +2295,6 @@ void exec_swap(void) {
         first = second;
         second = temp;
       }
-      check_write(second.address.offset, first.address.straddr->stringlen+1);
 /* Move '$bbb' string to a  proper string */
       stringtemp.stringlen = len = get_stringlen(second.address.offset);
       stringtemp.stringaddr = alloc_string(len);

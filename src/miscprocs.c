@@ -98,97 +98,11 @@ byte *skip(byte *p) {
 }
 
 /*
-** 'check_read' is called to ensure that the address from which
-** data is read using an indirection operator is valid, that is,
-** lies within the Basic workspace. This check is not carried out
-** when running under RISC OS
-*/
-void check_read(size_t low, uint32 size) {
-#if 0 /* Make this function a no-op */
-#ifndef TARGET_RISCOS
-  byte *lowaddr = low;
-  
-  if (matrixflags.gpio) {
-    if ((lowaddr >= matrixflags.gpiomem) && (lowaddr+size < (0x1000 + matrixflags.gpiomem))) return;
-  }
-#ifdef USE_SDL
-  if ((low >= matrixflags.modescreen_ptr) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr))) return;
-  if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
-#endif
-  if (lowaddr<basicvars.workspace || lowaddr+size>=basicvars.end) error(ERR_ADDRESS);
-#endif /* TARGET_RISCOS */
-#endif /* 0 */
-}
-
-/*
-** 'check_write is called to ensure that the address to which
-** data is to be written using an indirection operator is valid.
-** For all operating systems, the address must lie within the
-** Basic workspace and is in the area between the end of the
-** program and the Basic stack pointer (lowem to stacktop) or
-** between the top of the stack and the end of the workspace
-** (himem to end). Under RISC OS, addresses beyond the end of
-** the wimp slot can be written to as well (to allow access to
-** the RMA and dynamic areas). Note that the code makes some
-** assumptions about the RISC OS memory map
-*/
-void check_write(size_t low, uint32 size) {
-#if 0 /* Make this function a no-op */
-  byte *lowaddr, *highaddr;
-  lowaddr = low;
-  highaddr = lowaddr+size;
-
-  if (matrixflags.gpio) {
-    if ((low >= matrixflags.gpiomem) && (low < (0xFFF + matrixflags.gpiomem))) return;
-  }
-
-#ifdef USE_SDL
-  if ((low >= matrixflags.modescreen_ptr) && (low < (matrixflags.modescreen_sz + matrixflags.modescreen_ptr))) return;
-#endif
-
-#if 1
-/*
- * Quick hack to fix the DIM LOCAL problem. I must think of a
- * better way as this allows programs to overwrite the Basic
- * stack whereas the old code prevented this
- */
-#ifdef TARGET_RISCOS
-  if (lowaddr>=basicvars.lomem && highaddr<basicvars.end ||
-   lowaddr>=basicvars.slotend) return;
-#else
-  if (lowaddr>=basicvars.lomem && highaddr<basicvars.end) return;
-#endif /* TARGET_RISCOS */
-
-#ifdef USE_SDL
-  /* Mode 7 screen memory */
-  if (low >= matrixflags.mode7fb && low <= (matrixflags.mode7fb + 1023)) return;
-#endif
-
-#else /* 1 */
-
-/* Version that stops stack being overwritten */
-
-#ifdef TARGET_RISCOS
-  if (lowaddr>=basicvars.lomem && highaddr<basicvars.stacktop.bytesp ||
-   lowaddr>=basicvars.himem && highaddr<basicvars.end ||
-   lowaddr>=basicvars.slotend) return;
-#else
-  if (lowaddr>=basicvars.lomem && highaddr<basicvars.stacktop.bytesp ||
-   lowaddr>=basicvars.himem && highaddr<basicvars.end) return;
-#endif /* TARGET_RISCOS */
-
-#endif /* 1 */
-  error(ERR_ADDRESS);
-#endif /* 0 */
-}
-
-/*
 ** 'get_integer' returns the four byte integer found at offset
 ** 'offset' in the Basic workspace. This is used to return the
 ** value pointed at by an indirection operator
 */
 int32 get_integer(size_t offset) {
-  check_read(offset, sizeof(int32));
   return basicvars.memory[offset]+(basicvars.memory[offset+1]<<BYTESHIFT)+
    (basicvars.memory[offset+2]<<(2*BYTESHIFT))+(basicvars.memory[offset+3]<<(3*BYTESHIFT));
 }
@@ -199,7 +113,6 @@ int32 get_integer(size_t offset) {
 ** value pointed at by an indirection operator
 */
 int64 get_int64(size_t offset) {
-  check_read(offset, sizeof(int64));
   return ((int64)get_integer(offset) & 0xFFFFFFFFl) + (((int64)(get_integer(offset+4)) & 0xFFFFFFFFl) << 32);
 }
 
@@ -210,7 +123,6 @@ int64 get_int64(size_t offset) {
 */
 float64 get_float(size_t offset) {
   float64 value;
-  check_read(offset, sizeof(float64));
   memmove(&value, (void *)offset, sizeof(float64));
   return value;
 }
@@ -222,7 +134,6 @@ float64 get_float(size_t offset) {
 ** which the value is to be stored
 */
 void store_integer(size_t offset, int32 value) {
-  check_write(offset, sizeof(int32));
   basicvars.memory[offset] = value;
   basicvars.memory[offset+1] = value>>BYTESHIFT;
   basicvars.memory[offset+2] = value>>(2*BYTESHIFT);
@@ -235,7 +146,6 @@ void store_integer(size_t offset, int32 value) {
 ** which the value is to be stored
 */
 void store_int64(size_t offset, int64 value) {
-  check_write(offset, sizeof(int64));
   basicvars.memory[offset] = value;
   basicvars.memory[offset+1] = value>>BYTESHIFT;
   basicvars.memory[offset+2] = value>>(2*BYTESHIFT);
@@ -252,7 +162,6 @@ void store_int64(size_t offset, int64 value) {
 ** location at which the value is to be stored
 */
 void store_float(size_t offset, float64 value) {
-  check_write(offset, sizeof(float64));
   memmove((void *)offset, &value, sizeof(float64));
 }
 
@@ -416,7 +325,6 @@ void show_byte(size_t low, size_t high) {
   if (low>high) return;
   //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
-  check_read(low,count);
   for (n=0; n<count; n+=16) {
     emulate_printf("%06X  ", low);
     x = 0;
@@ -463,7 +371,6 @@ void show_word(size_t low, size_t high) {
   if (low>high) return;
   //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
-  check_read(low,count);
   for (n=0; n<count; n+=16) {
     emulate_printf("%06X  +%04X  %08X  %08X  %08X  %08X  ",
      low, n, get_integer(low), get_integer(low+4), get_integer(low+8), get_integer(low+12));
