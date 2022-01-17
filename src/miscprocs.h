@@ -41,7 +41,6 @@ extern boolean amend_line(char [], int32);
 extern boolean isidstart(char);
 extern boolean isidchar(char);
 extern boolean isident(byte);
-extern void check_read(size_t, uint32);
 extern int32 get_integer(size_t);
 extern int64 get_int64(size_t);
 extern float64 get_float(size_t);
