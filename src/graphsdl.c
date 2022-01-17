@@ -1739,6 +1739,7 @@ static void plot_space_opaque(void) {
   cursorstate = SUSPENDED; /* because we just overwrote it */
 }
 #endif /* BRANDY_MODE7ONLY */
+#if 0 /* These functions are no-ops */
 /*
 ** 'echo_on' turns on cursor and the immediate echo of characters to the screen
 */
@@ -1751,6 +1752,7 @@ void echo_on(void) {
 */
 void echo_off(void) {
 }
+#endif /* 0 */
 
 /*
 ** 'move_cursor' sends the text cursor to the position (column, row)

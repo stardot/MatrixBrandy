@@ -2228,12 +2228,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
-    echo_off();
     while (fread(&buf, 1, 1, sout) > 0) {
       if (buf == '\n') emulate_vdu('\r');
       emulate_vdu(buf);
     }
-    echo_on();
     pclose(sout);
 #else
     fflush(stdout);			/* Make sure everything has been output */
@@ -2251,11 +2249,15 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       error(ERR_CMDFAIL);
     } else {
       pipebuf=malloc(4096);
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_off();
+#endif
       while (fgets(pipebuf, sizeof(pipebuf)-1, sout)) {
-	fprintf(respfh, "%s", pipebuf);
+        fprintf(respfh, "%s", pipebuf);
       }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_on();
+#endif
       pclose(sout);
       fclose(respfh);
     }
@@ -2282,22 +2284,18 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 // Create the child process.
     CreateChildProcess(cmdbuf);
 
-    echo_off();
     while((getChar=ReadFromPipe()) >0) {
       if (getChar == '\n') emulate_vdu('\r');
       emulate_vdu(getChar);
     }
-    echo_on();
 #if 0
     /* This really needs to be redone using Windows API calls instead of popen() */
     sout = popen(cmdbuf, "r");
     if (sout == NULL) error(ERR_CMDFAIL);
-    echo_off();
     while (fread(&buf, 1, 1, sout) > 0) {
       if (buf == '\n') emulate_vdu('\r');
       emulate_vdu(buf);
     }
-    echo_on();
     pclose(sout);
 #endif
 #else
@@ -2317,11 +2315,15 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       error(ERR_CMDFAIL);
     } else {
       pipebuf=malloc(4096);
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_off();
+#endif
       while (fgets(pipebuf, sizeof(pipebuf)-1, sout)) {
 	fprintf(respfh, "%s", pipebuf);
       }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_on();
+#endif
       pclose(sout);
       fclose(respfh);
     }

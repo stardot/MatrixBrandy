@@ -1755,12 +1755,16 @@ int32 read_key(void) {
 ** work if echo is off
 */
 static void display(int32 what, int32 count) {
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
   if ((what != VDU_CURBACK) && (what != DEL)) echo_off();
+#endif
   while (count > 0) {
     emulate_vdu(what);
     count--;
   }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
   if ((what != VDU_CURBACK) && (what != DEL)) echo_on();
+#endif
 }
 
 /*
@@ -1859,14 +1863,18 @@ static void shift_down(char buffer[], int32 offset) {
   int32 count;
   count = highplace-offset;     /* Number of characters by which to move cursor */
   highplace--;
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
   echo_off();
+#endif
   while (offset < highplace) {
     buffer[offset] = buffer[offset+1];
     emulate_vdu(buffer[offset]);
     offset++;
   }
   emulate_vdu(32);
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
   echo_on();
+#endif
   display(VDU_CURBACK, count);  /* Move cursor back to correct position */
 }
 
@@ -1885,7 +1893,9 @@ static void shift_up(char buffer[], int32 offset) {
     buffer[n] = buffer[n-1];
     n--;
   }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
   echo_off();
+#endif
   emulate_vdu(VDU_CURFORWARD);
   emulate_vdu(DEL);     /* Where new character goes on screen */
   emulate_vdu(VDU_CURFORWARD);
@@ -1894,7 +1904,9 @@ static void shift_up(char buffer[], int32 offset) {
     emulate_vdu(buffer[n]);
     n++;
   }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
   echo_on();
+#endif
   while (n > offset) {  /* Put cursor back where it should be */
     emulate_vdu(VDU_CURBACK);
     n--;
@@ -2052,12 +2064,16 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       place = 0;
       break;
     case CTRL_E:                /* Move cursor to end of line */
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_off();
+#endif
       while (place < highplace) {
         emulate_vdu(buffer[place]);     /* It does the job */
         place++;
       }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_on();
+#endif
       break;
     case HOME:  /* Move cursor to start of line */
       display(VDU_CURBACK, place);
@@ -2069,12 +2085,16 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 
       switch (ch) {
       case END:                 /* Move cursor to end of line */
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
         echo_off();
+#endif
         while (place < highplace) {
           emulate_vdu(buffer[place]);   /* It does the job */
           place++;
         }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
         echo_on();
+#endif
         break;
       case UP:          /* Move backwards one entry in the history list */
         recall_histline(buffer, -1);

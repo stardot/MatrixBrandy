@@ -56,12 +56,16 @@ static void fn_spc(void) {
   if (count > 0) {
     count = count & BYTEMASK;	/* Basic V/VI only uses the low-order byte of the value */
     basicvars.printcount+=count;
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
     echo_off();
+#endif
     while (count > 0) {
       emulate_vdu(' ');
       count--;
     }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
     echo_on();
+#endif
   }
 }
 
@@ -82,12 +86,16 @@ static void fn_tab(void) {
       }
       x = x-basicvars.printcount;	/* figure out how many blanks to print */
       basicvars.printcount+=x;
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_off();
+#endif
       while (x > 0) {	/* Print enough blanks to reach tab position */
         emulate_vdu(' ');
         x--;
       }
+#if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_on();
+#endif
     }
   }
   else if (*basicvars.current == ',') {	/* 'TAB(x,y)' form of function */
