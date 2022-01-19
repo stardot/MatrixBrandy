@@ -174,7 +174,7 @@ void *alloc_string(int32 size) {
       allocated+=size;
       created[bin]+=1;
       allocations[bin]+=1;
-      if (basicvars.debug_flags.strings) fprintf(stderr, "Allocate string at %p, length %d bytes\n", p, size);
+      if (basicvars.debug_flags.strings) fprintf(stderr, "strings.c: alloc_string(): Allocate string at %p, length %d bytes\n", p, size);
 #endif
       return p;
     }
@@ -216,7 +216,7 @@ void *alloc_string(int32 size) {
       }
 #ifdef DEBUG
       allocations[bin]+=1;
-      if (basicvars.debug_flags.strings) fprintf(stderr, "Allocate string at %p, length %d bytes\n", p, size);
+      if (basicvars.debug_flags.strings) fprintf(stderr, "strings.c: alloc_string(): Allocate string at %p, length %d bytes\n", p, size);
 #endif
       return p;
     }
@@ -244,7 +244,7 @@ void free_string(basicstring descriptor) {
   int32 size, bin;
   size = descriptor.stringlen;
 #ifdef DEBUG
-  if (basicvars.debug_flags.strings) fprintf(stderr, "Free string at %p, length %d bytes\n",
+  if (basicvars.debug_flags.strings) fprintf(stderr, "strings.c: free_string(): Free string at %p, length %d bytes\n",
    descriptor.stringaddr, size);
 #endif
   if (size==0) return;	/* Null string - Nothing to return */
@@ -392,7 +392,7 @@ static boolean collect(void) {
   boolean merged;
 #ifdef DEBUG
   int32 largest, count;
-  fprintf(stderr, "Trying to merge %d free strings\n", freestrings);
+  fprintf(stderr, "strings.c: collect(): Trying to merge %d free strings\n", freestrings);
 #endif
   if (freestrings==0) return FALSE;	/* Give up if there is no free memory */
 /*
@@ -445,7 +445,7 @@ static boolean collect(void) {
     next++;
   } while (here<freestrings-1);
 #ifdef DEBUG
-  fprintf(stderr, "%d blocks were merged. Largest block size is %d bytes\n", count, largest);
+  fprintf(stderr, "strings.c: collect(): T%d blocks were merged. Largest block size is %d bytes\n", count, largest);
 #endif
 /*
 ** Start by checking if the last block in the table can be returned to the
@@ -462,7 +462,7 @@ static boolean collect(void) {
     freemem(base[n].freestart, base[n].freesize);
 #ifdef DEBUG
     allocated-=base[n].freesize;
-    fprintf(stderr, "Returned %d bytes at %p to Basic heap\n", base[n].freesize, base[n].freestart);
+    fprintf(stderr, "strings.c: collect(): TReturned %d bytes at %p to Basic heap\n", base[n].freesize, base[n].freestart);
 #endif
     n--;
   }
