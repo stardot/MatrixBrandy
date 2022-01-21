@@ -43,6 +43,11 @@
 #include "fileio.h"
 #include "screen.h"
 
+#ifdef TARGET_RISCOS
+#include "kernel.h"
+#include "swis.h"
+#endif
+
 #ifdef HAVE_ZLIB_H
 # include <zlib.h>
 #endif
@@ -897,6 +902,10 @@ void read_library(char *name, boolean onheap) {
 ** 'write_text' is called to save a program in text form
 */
 void write_text(char *name, FILE *fhandle) {
+#ifdef TARGET_RISCOS
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+#endif
   FILE *savefile;
   byte *bp;
   int32 x;
@@ -918,6 +927,13 @@ void write_text(char *name, FILE *fhandle) {
     bp+=get_linelen(bp);
   }
   fclose(savefile);
+#ifdef TARGET_RISCOS
+  regs.r[0] = 18; /* Set file type */
+  regs.r[1] = name;
+  regs.r[2] = 0xFD1; /* File type of BASIC stored as text */
+  oserror = _kernel_swi(OS_File, &regs, &regs);
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+#endif
 }
 
 /*

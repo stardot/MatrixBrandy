@@ -14,6 +14,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   SAVE and OPENOUT will not use a .bbc suffix unless explicitly provided in
   the filename.
 - System: Permit system memory to be up to 4194303K (4GB less 1K)
+- System: Programs saved under RISC OS now get file type &FD1 (allocated as
+  BASIC stored as text). The file type is associated with Matrix Brandy for
+  loading and running by double-clicking on the desktop.
 - Graphics: Reworked line drawing, the earlier adaption of upstream was not
   right. This new version is based on PiTubeDirect's implementation.
 - Graphics: Dot patterns and VDU23,6 now implemented
