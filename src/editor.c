@@ -929,7 +929,7 @@ void write_text(char *name, FILE *fhandle) {
   fclose(savefile);
 #ifdef TARGET_RISCOS
   regs.r[0] = 18; /* Set file type */
-  regs.r[1] = name;
+  regs.r[1] = (size_t)name;
   regs.r[2] = 0xFD1; /* File type of BASIC stored as text */
   oserror = _kernel_swi(OS_File, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
