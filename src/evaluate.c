@@ -217,6 +217,16 @@ static int64 i64divwithtest(int64 lh, int64 rh) {
   return(lh/rh);
 }
 
+static int32 i32modwithtest(int32 lh, int32 rh) {
+  if(rh == 0) error(ERR_DIVZERO);
+  return(lh%rh);
+}
+
+static int64 i64modwithtest(int64 lh, int64 rh) {
+  if(rh == 0) error(ERR_DIVZERO);
+  return(lh%rh);
+}
+
 /*
 ** 'fmulwithtest' multiplies two float64 values, and checks that the
 ** number is not an invalid response (NaN, Inf, Subnormal). Also,
@@ -3505,8 +3515,8 @@ static void eval_iamod(void) {
   stackitem lhitem;
   basicarray *rharray;
   int32 n, count;
-  uint8 *baseu8;
-  int32 *base, *rhsrce;
+  uint8 *base8;
+  int32 *base32, *rhsrce;
   int64 *base64;
   rharray = pop_array();
   count = rharray->arrsize;
@@ -3514,58 +3524,40 @@ static void eval_iamod(void) {
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <value> MOD <integer array> */
     int32 lhint = lhitem == STACK_INT ? pop_int() : pop_uint8();
-    base = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base[n] = lhint % rhsrce[n];
-    }
+    base32 = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base32[n] = i32modwithtest(lhint, rhsrce[n]);
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> MOD <integer array> */
     int64 lhint = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = lhint % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhint, rhsrce[n]);
   } else if (lhitem == STACK_INTARRAY) {			/* <int32 array> MOD <integer array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.intbase;
-    base = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base[n] = lhsrce[n] % rhsrce[n];
-    }
+    base32 = make_array(VAR_INTWORD, rharray);
+    for (n = 0; n < count; n++) base32[n] = i32modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {			/* <uint8 array> MOD <integer array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.uint8base;
-    baseu8 = make_array(VAR_UINT8, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      baseu8[n] = lhsrce[n] % rhsrce[n];
-    }
+    base8 = make_array(VAR_UINT8, rharray);
+    for (n = 0; n < count; n++) base8[n] = i32modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {			/* <int64 array> MOD <integer array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = lhsrce[n] % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {			/* <float array> MOD <integer array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = TOINT64(lhsrce[n]) % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
 }
 
@@ -3577,68 +3569,54 @@ static void eval_iu8amod(void) {
   stackitem lhitem;
   basicarray *rharray;
   int32 n, count;
-  uint8 *baseu8, *rhsrce;
+  uint8 *base8, *rhsrce;
   int32 *base32;
   int64 *base64;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <value> MOD <int64 array> */
-    int32 lhint = lhitem == STACK_INT ? pop_int() : pop_uint8();
+  if (lhitem == STACK_INT) {		/* <value> MOD <uint8 array> */
+    int32 lhint = pop_int();
     base32 = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base32[n] = lhint % rhsrce[n];
-    }
-  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> MOD <int64 array> */
+    for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhint, rhsrce[n]);
+  } else if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <value> MOD <uint8 array> */
+    int32 lhint = pop_uint8();
+    base8 = make_array(VAR_UINT8, rharray);
+    for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhint, rhsrce[n]);
+  } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> MOD <uint8 array> */
     int64 lhint;
     lhint = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = lhint % rhsrce[n];
-    }
-  } else if (lhitem == STACK_INTARRAY) {			/* <int32 array> MOD <int64 array> */
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhint, rhsrce[n]);
+  } else if (lhitem == STACK_INTARRAY) {			/* <int32 array> MOD <uint8 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base32[n] = lhsrce[n] % rhsrce[n];
-    }
-  } else if (lhitem == STACK_UINT8ARRAY) {			/* <uint8 array> MOD <int64 array> */
+    for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
+  } else if (lhitem == STACK_UINT8ARRAY) {			/* <uint8 array> MOD <uint8 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.uint8base;
-    baseu8 = make_array(VAR_UINT8, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      baseu8[n] = lhsrce[n] % rhsrce[n];
-    }
-  } else if (lhitem == STACK_INT64ARRAY) {			/* <int64 array> MOD <int64 array> */
+    base8 = make_array(VAR_UINT8, rharray);
+    for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
+  } else if (lhitem == STACK_INT64ARRAY) {			/* <int64 array> MOD <uint8 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = lhsrce[n] % rhsrce[n];
-    }
-  } else if (lhitem == STACK_FLOATARRAY) {			/* <float array> MOD <int64 array> */
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
+  } else if (lhitem == STACK_FLOATARRAY) {			/* <float array> MOD <uint8 array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = TOINT64(lhsrce[n]) % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
 }
 
@@ -3650,68 +3628,54 @@ static void eval_i64amod(void) {
   stackitem lhitem;
   basicarray *rharray;
   int32 n, count;
-  uint8 *baseu8;
+  uint8 *base8;
   int32 *base32;
   int64 *base64, *rhsrce;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {		/* <value> MOD <int64 array> */
-    int32 lhint = lhitem == STACK_INT ? pop_int() : pop_uint8();
+  if (lhitem == STACK_INT) {		/* <value> MOD <int64 array> */
+    int32 lhint = pop_int();
     base32 = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base32[n] = lhint % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhint, rhsrce[n]);
+  } else if (lhitem == STACK_UINT8) {		/* <value> MOD <int64 array> */
+    int32 lhint = pop_uint8();
+    base8 = make_array(VAR_UINT8, rharray);
+    for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhint, rhsrce[n]);
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> MOD <int64 array> */
     int64 lhint;
     lhint = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = lhint % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhint, rhsrce[n]);
   } else if (lhitem == STACK_INTARRAY) {			/* <int32 array> MOD <int64 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base32[n] = lhsrce[n] % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {			/* <uint8 array> MOD <int64 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.uint8base;
-    baseu8 = make_array(VAR_UINT8, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      baseu8[n] = lhsrce[n] % rhsrce[n];
-    }
+    base8 = make_array(VAR_UINT8, rharray);
+    for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {			/* <int64 array> MOD <int64 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = lhsrce[n] % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {			/* <float array> MOD <int64 array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0) error(ERR_DIVZERO);
-      base64[n] = TOINT64(lhsrce[n]) % rhsrce[n];
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
 }
 
@@ -3724,68 +3688,53 @@ static void eval_famod(void) {
   basicarray *rharray;
   int32 *base32, n, count;
   int64 *base64;
-  uint8 *baseu8;
+  uint8 *base8;
   float64 *rhsrce;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT || lhitem == STACK_UINT8) {	/* <value> MOD <float array> */
-    int32 lhint;
-    lhint = lhitem == STACK_INT ? pop_int() : pop_uint8();
+  if (lhitem == STACK_INT) {	/* <value> MOD <float array> */
+    int32 lhint = pop_int();
     base32 = make_array(VAR_INTWORD, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
-      base32[n] = lhint % TOINT(rhsrce[n]);
-    }
+    for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhint, TOINT64(rhsrce[n]));
+  } else if (lhitem == STACK_UINT8) {	/* <value> MOD <float array> */
+    int32 lhint = pop_uint8();
+    base8 = make_array(VAR_UINT8, rharray);
+    for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhint, TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {	/* <value> MOD <float array> */
     int64 lhint;
     lhint = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
     base64 = make_array(VAR_INTLONG, rharray);
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
-      base64[n] = lhint % TOINT64(rhsrce[n]);
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhint, TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_INTARRAY) {	/* <int array> MOD <float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base32 = make_array(VAR_INTWORD, rharray);
     lhsrce = lharray->arraystart.intbase;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
-      base32[n] = lhsrce[n] % TOINT(rhsrce[n]);
-    }
+    for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_UINT8ARRAY) {	/* <int array> MOD <float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
-    baseu8 = make_array(VAR_UINT8, rharray);
+    base8 = make_array(VAR_UINT8, rharray);
     lhsrce = lharray->arraystart.uint8base;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
-      baseu8[n] = lhsrce[n] % TOINT(rhsrce[n]);
-    }
+    for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_INT64ARRAY) {	/* <int64 array> MOD <float array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.int64base;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
-      base64[n] = lhsrce[n] % TOINT64(rhsrce[n]);
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_FLOATARRAY) {	/* <float array> MOD <float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
     if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
-    for (n = 0; n < count; n++) {
-      if (rhsrce[n] == 0.0) error(ERR_DIVZERO);
-      base64[n] = TOINT64(lhsrce[n]) % TOINT64(rhsrce[n]);
-    }
+    for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), TOINT64(rhsrce[n]));
   } else want_number();
 }
 
