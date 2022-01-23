@@ -201,6 +201,7 @@ static void set_mode31(int32 xres, int32 yres, int32 bpp) {
   case 4: coldepth = 16; break;
   case 6: case 8: coldepth = 256; break;
   default:
+    coldepth = 0; /* Not used, just to keep the compiler quiet */
     error(ERR_BADMODE); /* Higher colour depths not available on RO3.1 */
   }
 /* See if there is a suitable mode */
