@@ -255,6 +255,8 @@ static void set_modedesc(int32 xres, int32 yres, int32 bpp, int32 rate) {
     mode.vars[1].index = 3;		/* NColour */
     mode.vars[1].value = 255;
     mode.vars[2].index = -1;
+  } else {
+    mode.vars[0].index = -1;		/* No mode variables needed in most cases */
   }
   regs.r[0] = 0;	/* Use OS_ScreenMode 0 - set screen mode */
   regs.r[1] = (int) &mode;
