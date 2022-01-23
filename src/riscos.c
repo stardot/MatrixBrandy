@@ -248,9 +248,8 @@ static void set_modedesc(int32 xres, int32 yres, int32 bpp, int32 rate) {
 ** 256 colour palette is wanted (the mode variables ModeFlags
 ** and NColour have to be set to 128 and 255 respectively).
 */
-  if (bpp == 6)
-    mode.vars[0].index = -1;		/* No mode variables needed */
-  else if (bpp == 8) {
+  mode.vars[0].index = -1;		/* No mode variables needed in most cases */
+  if (bpp == 8) {
     mode.vars[0].index = 0;		/* ModeFlags value */
     mode.vars[0].value = 128;
     mode.vars[1].index = 3;		/* NColour */
