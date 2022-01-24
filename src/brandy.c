@@ -210,7 +210,9 @@ static void init1(void) {
 #else
   matrixflags.delcandelete = 0;		/* DEL character can delete? */
 #endif
+#ifndef TARGET_RISCOS
   matrixflags.dospool = NULL;		/* By default, not doing a *SPOOL */
+#endif
   matrixflags.printer = NULL;		/* By default, printer is closed */
   matrixflags.printer_ignore = 13;	/* By default, ignore carriage return characters */
 

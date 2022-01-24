@@ -575,7 +575,9 @@ typedef struct {
   uint32 *gpiomemint;         /* Unsigned int32 version of gpiomem */
   unsigned int scrunge;       /* Is the BASIC program scrunged? */
   FILE *doexec;               /* Are we doing a *EXEC? */
+#ifndef TARGET_RISCOS /* RISC OS does this for us */
   FILE *dospool;              /* Are we doing a *SPOOL / *SPOOLON? */
+#endif
   FILE *printer;              /* Are we outputting to a printer? */
   int delcandelete;           /* DEL can delete */
   int failovermode;           /* Screen mode to select if invalid mode chosen, 255=error (default, old behaviour) */
