@@ -4665,17 +4665,6 @@ void star_refresh(int flag) {
       matrixflags.noupdate = 1;
       blit_scaled_actual(0,0,ds.screenwidth-1,ds.screenheight-1);
     }
-    if ((screenmode == 3) || (screenmode == 6)) {
-      int p;
-      hide_cursor();
-      scroll_rect.x=0;
-      scroll_rect.w=ds.screenwidth*ds.xscale;
-      scroll_rect.h=4;
-      for (p=0; p<25; p++) {
-        scroll_rect.y=16+(p*20);
-        SDL_FillRect(matrixflags.surface, &scroll_rect, 0);
-      }
-    }
 #endif
     SDL_Flip(matrixflags.surface);
   }

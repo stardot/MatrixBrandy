@@ -754,9 +754,6 @@ int kbd_escack() {
 //  cancel VDU queue
 //  cancel sounds
   }
-#ifdef USE_SDL
-  if (tmp & 2) { star_refresh(1); }			/* Refresh screen		*/
-#endif
   if (tmp & 4) { }
   if (tmp & 8) { }
   tmp=basicvars.escape;
