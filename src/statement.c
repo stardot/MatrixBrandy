@@ -107,9 +107,12 @@ void init_interpreter(void) {
 void trace_line(int32 lineno) {
   int32 len;
   len = sprintf(basicvars.stringwork, "[%d]", lineno);
-  if (basicvars.tracehandle == 0)	/* Trace output goes to screen */
-    emulate_vdustr(basicvars.stringwork, len);
-  else {	/* Trace output goes to a file */
+  if (basicvars.tracehandle == 0)	{ /* Trace output goes to screen */
+    if (basicvars.traces.console)
+      fprintf(stderr, "%s", basicvars.stringwork);
+    else
+      emulate_vdustr(basicvars.stringwork, len);
+  } else {	/* Trace output goes to a file */
     fileio_bputstr(basicvars.tracehandle, basicvars.stringwork, len);
   }
 #ifdef DEBUG
@@ -131,9 +134,12 @@ void trace_proc(char *np, boolean entering) {
   else {	/* Leaving procedure or function */
     len = sprintf(basicvars.stringwork, "%s%s--> ", what, np);
   }
-  if (basicvars.tracehandle == 0)	/* Trace output goes to screen */
-    emulate_vdustr(basicvars.stringwork, len);
-  else {	/* Trace output goes to a file */
+  if (basicvars.tracehandle == 0)	{ /* Trace output goes to screen */
+    if (basicvars.traces.console)
+      fprintf(stderr, "%s", basicvars.stringwork);
+    else
+      emulate_vdustr(basicvars.stringwork, len);
+  } else {	/* Trace output goes to a file */
     fileio_bputstr(basicvars.tracehandle, basicvars.stringwork, len);
   }
 #ifdef DEBUG
@@ -153,9 +159,12 @@ void trace_branch(byte *from, byte *to) {
   toline = find_linestart(to);
   if (fromline == NIL || toline == NIL) return;	/* Do not trace anything if at command line */
   len = sprintf(basicvars.stringwork, "[%d->%d]", get_lineno(fromline), get_lineno(toline));
-  if (basicvars.tracehandle == 0)	/* Trace output goes to screen */
-    emulate_vdustr(basicvars.stringwork, len);
-  else {	/* Trace output goes to a file */
+  if (basicvars.tracehandle == 0)	{ /* Trace output goes to screen */
+    if (basicvars.traces.console)
+      fprintf(stderr, "%s", basicvars.stringwork);
+    else
+      emulate_vdustr(basicvars.stringwork, len);
+  } else {	/* Trace output goes to a file */
     fileio_bputstr(basicvars.tracehandle, basicvars.stringwork, len);
   }
 #ifdef DEBUG

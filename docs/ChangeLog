@@ -29,6 +29,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: @% precisions greater than &11xx are now capped at &11xx.
 - BASIC: LVAR now includes @% in its output, displaying both in hex and its
   string form.
+- BASIC: Extended TRACE with TRACE VDU [OFF], this redirects TRACE output to
+  Brandy's controlling terminal, specifying OFF puts it back to normal.
 
 * V1.22.12 - 05 December 2021
 - System: Fix some floating-point data size mismatches

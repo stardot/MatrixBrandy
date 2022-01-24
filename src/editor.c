@@ -197,6 +197,7 @@ void clear_program(void) {
   basicvars.traces.procs = FALSE;
   basicvars.traces.branches = FALSE;
   basicvars.traces.backtrace = TRUE;
+  basicvars.traces.console = FALSE;
   basicvars.staticvars[ATPERCENT].varentry.varinteger = STDFORMAT;
   basicvars.curcount = 0;
   basicvars.printcount = 0;

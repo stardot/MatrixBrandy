@@ -2438,12 +2438,21 @@ void exec_trace(void) {
     basicvars.traces.enabled = TRUE;
     basicvars.traces.lines = TRUE;
   }
+  else if (*basicvars.current == BASIC_TOKEN_VDU) {
+    if (*(basicvars.current + 1) == BASIC_TOKEN_OFF) {
+      basicvars.current++;
+      basicvars.traces.console = FALSE;
+    } else {
+      basicvars.traces.console = TRUE;
+    }
+  }
   else if (*basicvars.current == BASIC_TOKEN_OFF) {	/* Turn off any active traces */
     basicvars.traces.enabled = FALSE;
     basicvars.traces.lines = FALSE;
     basicvars.traces.procs = FALSE;
     basicvars.traces.pause = FALSE;
     basicvars.traces.branches = FALSE;
+    basicvars.traces.console = FALSE;
   }
   else if (*basicvars.current == BASIC_TOKEN_TO) {	/* Got 'TRACE TO <file>' */
     stackitem stringtype;

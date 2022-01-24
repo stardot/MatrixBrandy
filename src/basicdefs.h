@@ -505,13 +505,14 @@ typedef struct {
     unsigned int swsurface:1;		/* TRUE if we want a software surface */
   } runflags;				/* Various runtime flags */
   struct {
-    unsigned int enabled:1;		/* TRUE if any trace options are enabled */
-    unsigned int lines:1;		/* TRUE if line numbers are being traced */
-    unsigned int procs:1;		/* TRUE if PROC and FN calls/returns are being traced */
-    unsigned int pause:1;		/* TRUE if program execution pauses at each new line */
-    unsigned int branches:1;		/* TRUE if tracing branches in the code */
-    unsigned int backtrace:1;		/* TRUE if a stack backtrace is wanted after an error */
-  } traces;				/* Trace options */
+    unsigned int enabled:1;   /* TRUE if any trace options are enabled */
+    unsigned int lines:1;     /* TRUE if line numbers are being traced */
+    unsigned int procs:1;     /* TRUE if PROC and FN calls/returns are being traced */
+    unsigned int pause:1;     /* TRUE if program execution pauses at each new line */
+    unsigned int branches:1;  /* TRUE if tracing branches in the code */
+    unsigned int backtrace:1; /* TRUE if a stack backtrace is wanted after an error */
+    unsigned int console:1;   /* TRUE if outputting to host console */
+  } traces;                   /* Trace options */
   int tracehandle;			/* Handle of file for output from TRACE */
   struct {
     unsigned int space:1;		/* Insert a space before the listed line */
