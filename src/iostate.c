@@ -1363,13 +1363,12 @@ static void print_screen(void) {
   rightjust = TRUE;
   newline = TRUE;
   format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
-  if (format == 0) format = STDFORMAT;  /* This from upstream contradicts Acorn behaviour */
   fieldwidth = format & BYTEMASK;
   numdigits = (format>>BYTESHIFT) & BYTEMASK;
   if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
   switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
   case FORMAT_E:
-    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
+    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 17 digits if value is 0 */
     leftfmt = "%.*E"; rightfmt = "%*.*E";
     if (numdigits > 1) numdigits--;
     break;
