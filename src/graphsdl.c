@@ -3941,6 +3941,7 @@ boolean init_screen(void) {
   vduneeded = 0;
   write_vduflag(VDU_FLAG_ENAPRINT,0);
   ds.xgupp = ds.ygupp = 1;
+  set_dot_pattern_len(0);
 #if defined(BRANDY_GITCOMMIT) && !defined(BRANDY_RELEASE)
   SDL_WM_SetCaption("Matrix Brandy Basic VI - git " BRANDY_GITCOMMIT, "Matrix Brandy");
 #else
@@ -4801,6 +4802,12 @@ int32 osbyte134_165(int32 a) {
 
 int32 osbyte135() {
     return ((screenmode << 16) + (get_character_at_pos(xtext-twinleft,ytext-twintop) << 8) + 135);
+}
+
+int32 osbyte163_242(int a) {
+  if (a <= 64) set_dot_pattern_len(a);
+  if (a <= 65) return((dot_pattern_len & 0x3F) | 0xC0);
+  return(0);
 }
 
 int32 osbyte250() {

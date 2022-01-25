@@ -47,6 +47,7 @@ extern void osbyte112(int x);
 extern void osbyte113(int x);
 extern int32 osbyte134_165(int32 a);
 extern int32 osbyte135(void);
+extern int32 osbyte163_242(int32 a);
 extern int32 osbyte250(void);
 extern int32 osbyte251(void);
 extern void reset_sysfont(int x);

@@ -2873,18 +2873,15 @@ switch (areg) {
 		    else star_refresh(yreg);
 		  }
 		}
-		if (xreg==2) {		// Set Escape Check Interval, 0 resets defaults
-		  //set_escint(yreg);
-		}
-		if (xreg==3) {		// Set Escape Check Interval, multiplied by 256.
-		  //set_escmul(yreg);
-		}
-		if (xreg==127) {	// Analogue to 'stty sane', moved from 255 as that's allocated to Acornsoft View.
+		if (xreg==127) {	// Analogue to 'stty sane'
 		  star_refresh(1);
 		  osbyte112(1);
 		  osbyte113(1);
 		  emulate_vdu(6);
 		}
+    if (xreg==242) { // GXR and dot pattern
+      return (osbyte163_242(yreg) << 8);
+    }
 		break;
 #endif
 
@@ -2900,4 +2897,4 @@ if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
 else
 	return (3 << 30) | (yreg << 16) | (0xFF00) | areg;	// Default null return
 }
-#endif /* TARGET_RISCOS */
+#endif /* !TARGET_RISCOS */
