@@ -393,13 +393,13 @@ static void define_byte_array(variable *vp, boolean offheap) {
   if (islocal) {	/* Allocating block on stack */
     if (basicvars.procstack == NIL) error(ERR_LOCAL);	/* LOCAL found outside a PROC or FN */
     basicvars.current++;
-    highindex = eval_integer();
+    highindex = eval_int64();
     if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
     ep = alloc_stackmem(highindex + 1);			/* Allocate memory on the stack */
     if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
   }
   else {	/* Allocating block from heap or malloc*/
-    highindex = eval_integer();
+    highindex = eval_int64();
     if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
     if (offheap) {
       ep = (byte *)(size_t)offset;
@@ -408,6 +408,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
         ep = 0;
       } else {
         ep = realloc(ep, highindex+1);
+        if (!ep) error(ERR_BADBYTEDIM); /* Not enough memory left */
 #ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) {
           free(ep); /* Can't store the address in the variable type given so free it before complaining */
