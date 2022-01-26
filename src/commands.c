@@ -1259,7 +1259,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "TOP")) {
     emulate_printf("This function gives the address of the end of the program.");
   } else if (!strcmp(cmd, "TRACE")) {
-    emulate_printf("TRACE [STEP] ON|OFF|PROC|FN|ENDPROC|<number>: trace [in single step mode] on or\r\noff, or procedure and function calls, or procedure/function exit points, or\r\nlines below <number>.\r\nTRACE TO <string>: send all output to stream <string>\r\nTRACE CLOSE: close stream output. Expression: TRACE gives handle of the stream.");
+    emulate_printf("TRACE [STEP] ON|OFF|PROC|FN|ENDPROC|<number>: trace [in single step mode] on or\r\noff, or procedure and function calls, or procedure/function exit points, or\r\nlines below <number>.\r\nTRACE VDU [OFF]: Redirect TRACE output to the controlling terminal's stderr\r\nTRACE TO <string>: send all output to stream <string>\r\nTRACE CLOSE: close stream output. Expression: TRACE gives handle of the stream.");
   } else if (!strcmp(cmd, "TRUE")) {
     emulate_printf("This function gives the logical value 'true' i.e. -1.");
   } else if (!strcmp(cmd, "UNTIL")) {
