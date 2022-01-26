@@ -1348,6 +1348,14 @@ void exec_pointto(void) {
 /*
 ** 'print_screen deals with the Basic 'PRINT' statement when output is
 ** to the screen. This code still needs some improvement
+*
+** Regarding the behaviour of the precision field being set to 0,
+** Acorn's docs are woeful in this area and indicate 0 is not legal, but
+** the Acorn 6502 and ARM sources all clearly handle that particular
+** value and show that unless FORMAT_F is in play then the precision is
+** set to the maximum number of digits supported by that build:
+** BASIC I: 9, II-IV: 10, BASIC V 10 or (since 2017) 11, BASIC VI: 17
+** Matrix Brandy follows this behaviour for BASIC VI.
 */
 static void print_screen(void) {
   stackitem resultype;
@@ -1376,7 +1384,7 @@ static void print_screen(void) {
     leftfmt = "%.*F"; rightfmt = "%*.*F";
     break;
   default:	/* Assume anything else will be general format */
-    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 10 digits if value is 0 */
+    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 17 digits if value is 0 */
     leftfmt = "%.*G"; rightfmt = "%*.*G";
     break;
   }
