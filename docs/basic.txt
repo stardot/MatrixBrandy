@@ -3140,7 +3140,9 @@ with <flags> in the most significant byte of @% and <width>
 in the least signicant byte.
 
 If SS is non-zero, STR$ uses the format specified, else it uses the 
-ARM BBC BASIC default value of &110A.
+ARM BBC BASIC default value of &110A.  Strictly it is only the lowest
+bit of this byte that matters, but in practice if the entire top byte
+is non-zero then STR$ uses the format specified.
 
 NN controls how numbers are output. The values it can take
 are:
