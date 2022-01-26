@@ -3133,7 +3133,7 @@ byte-sized fields. They are laid out as follows:
 Byte    Range   Default Purpose
 SS      00-01   00      STR$ Format Control
 NN      00-C2   00      Format Selection
-PP      ??-??   09      Number of Digits Printed
+PP      00-11   09      Number of Digits Printed
 WW      00-0F   0A(10)  Zone and Print Field Width
 
 with <flags> in the most significant byte of @% and <width>
@@ -3147,13 +3147,27 @@ are:
 
         0  General format
         1  Exponent format
-        2  Floating point format
+        2  Fixed precision format
         If bit &80 is set, then use a decimal comma instead of
         a decimal point.
 
 PP gives the number of digits to print. The range is 1 to
-255.  If 0 then the maximum number of digits is used (PI returns 17
-significant figures).
+255.  If 0 (and not format 2) then the maximum number of digits is used
+(PI returns 17 significant figures).  Acorn's documentation don't
+explicitly mention using 0 here except for fixed precision format, and
+Richard Russell's documentation states it is not valid.  However, the 6502
+disassembly of all the Acorn 8-bit BASICs and the RISC OS source code all
+explicitly handle this eventuality and use the maximum available digits, it
+isn't a side-effect that happens to work. However, use of 0 is not recommended
+as the output is system and version dependent:
+BBC BASIC I (1981) - BBC Micro - 9 significant figures maximum
+BBC BASIC II (1982), BASIC IV (1984), BASIC V (1987-2017) - 10 sf.
+ARM BBC BASIC V (from 2017) - 11 significant figures.
+ARM BBC BASIC VI - 17 significat figures.
+Richard Russell's BASICs all use 9 significant values if 0 is used, even
+though his versions support 64-bit, and sometimes 80-bit floats (depending on platform).
+Note that declaring @% LOCAL in a function or procedure will reset it to 0
+until a new value is assigned.
 
 WW is the field width, the number of characters that can be
 used when displaying a number. The range is zero to 255
