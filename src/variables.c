@@ -144,8 +144,8 @@ void exec_clear_himem(void) {
 */
 static void list_varlist(char which, library *lp) {
   variable *vp;
-  char temp[200];
-  int templen=199; /* Leave room for the terminating \0 byte */
+  char temp[320];
+  int templen=319; /* Leave room for the terminating \0 byte */
   int done = 0, columns = 0, next, len = 0, n, width;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   for (n=0; n<VARLISTS; n++) {
