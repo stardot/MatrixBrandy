@@ -2232,14 +2232,14 @@ static int32 decode_format(basicstring format) {
   original = newformat = basicvars.staticvars[ATPERCENT].varentry.varinteger;
   fp = format.stringaddr;
   ep = fp+format.stringlen;
-  if (fp==ep) return newformat & ~STRUSE;	/* Null string turns off 'use with STR$' flag */
+  if (fp==ep) return newformat & ~STRUSECHK;	/* Null string turns off 'use with STR$' flag */
   if (*fp=='+') {	/* Turn on 'use with STR$' flag */
-    newformat = newformat | STRUSE;
+    newformat = newformat | STRUSESET;
     fp++;
     if (fp==ep) return newformat;
   }
   else {	/* Clear the 'use with STR$' flag */
-    newformat = newformat & ~STRUSE;
+    newformat = newformat & ~STRUSECHK;
   }
   if (tolower(*fp)>='e' && tolower(*fp)<='g') {	/* Change number format */
     switch (tolower(*fp)) {

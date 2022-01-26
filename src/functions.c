@@ -1281,7 +1281,7 @@ static void fn_str(void) {
       int32 format, numdigits;
       char *fmt;
       format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
-      if ((format & STRUSE) == 0) format = STRFORMAT;	/* Use predefined format, not @% */
+      if ((format & STRUSECHK) == 0) format = STRFORMAT;	/* Use predefined format, not @% */
       switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
       case FORMAT_E:
        fmt = "%.*E";

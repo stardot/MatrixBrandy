@@ -48,7 +48,11 @@
 #define FORMAT_G 0			/* General (and default) format */
 #define FORMAT_E 1			/* Exponent format */
 #define FORMAT_F 2			/* Floating point format */
-#define STRUSE   0xFF000000		/* STR$ uses @% to format string */
+/* The docs say set just bit 24 to enable, however in practice if the
+** entire top byte is non-zero, then STR$ uses @% to format the string.
+*/
+#define STRUSECHK   0xFF000000		/* STR$ uses @% to format string */
+#define STRUSESET   0x01000000		/* STR$ uses @% to format string */
 #define COMMADPT 0x800000		/* Use ',' instead of '.' as the decimal point */
 
 #define FNAMESIZE 256			/* Maximum length of file names */

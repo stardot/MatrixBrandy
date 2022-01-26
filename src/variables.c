@@ -381,7 +381,7 @@ void list_variables(char which) {
       columns++;
     }
     emulate_printf("@%% = \"");
-    if (atpercent & STRUSE) emulate_vdu('+');
+    if (atpercent & STRUSECHK) emulate_vdu('+');
     switch (atpercent & 0x30000) {
       case 0x10000:
         emulate_vdu('e');
