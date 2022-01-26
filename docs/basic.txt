@@ -3166,7 +3166,7 @@ BBC BASIC I (1981) - BBC Micro - 9 significant figures maximum
 BBC BASIC II (1982), BASIC IV (1984), BASIC V (1987-2017) - 10 sf.
 ARM BBC BASIC V (from 2017) - 11 significant figures.
 ARM BBC BASIC VI - 17 significat figures.
-Richard Russell's BASICs all use 9 significant values if 0 is used, even
+Richard Russell's BASICs all use 9 significant figures if 0 is used, even
 though his versions support 64-bit, and sometimes 80-bit floats (depending on platform).
 Note that declaring @% LOCAL in a function or procedure will reset it to 0
 until a new value is assigned.
