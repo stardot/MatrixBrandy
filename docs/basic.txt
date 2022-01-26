@@ -1626,8 +1626,8 @@ Example:
 	IF silly% THEN CLEAR
 
 Matrix Brandy extends the CLEAR syntax with CLEAR HIMEM [<array()>] which
-will de-allocate the array if specified, or all arrays defined using
-DIM HIMEM.
+will de-allocate the off-heap array if specified, or all arrays defined
+using DIM HIMEM.
 
 CLOSE
 Syntax: CLOSE# <factor>
@@ -4703,6 +4703,13 @@ The two values defined are:
 
 	23,1,0	This removes the text cursor
 	23,1,1	This displays the text cursor
+
+23,6
+----
+The format of this command is:
+VDU 23,6,n1,n2,n3,n4,n5,n6,n7,n8
+
+Tnis sets the dotted line pattern used by dotted PLOT commands.
 
 23,7
 ----
