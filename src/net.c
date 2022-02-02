@@ -57,8 +57,8 @@ extern int close(int);
 #endif
 #endif
 
-static int netsockets[MAXNETSOCKETS];
 #ifndef NONET
+static int netsockets[MAXNETSOCKETS];
 static char netbuffer[MAXNETSOCKETS][MAXNETRCVLEN + 1];
 static int bufptr[MAXNETSOCKETS];
 static int bufendptr[MAXNETSOCKETS];
@@ -220,8 +220,10 @@ int brandynet_connect(char *dest, char type) {
 }
 
 int brandynet_close(int handle) {
+#ifndef NONET
   close(netsockets[handle]);
   netsockets[handle] = neteof[handle] = 0;
+#endif
   return(0);
 }
 
