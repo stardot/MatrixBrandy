@@ -955,7 +955,7 @@ int32 fileio_getstring(int32 handle, char *p) {
   return length;
 }
 
-static void write(FILE *stream, int32 value) {
+static void fileio_write(FILE *stream, int32 value) {
   int32 result;
   result = fputc(value, stream);
   if (result==EOF) error(ERR_CANTWRITE);
@@ -1022,8 +1022,8 @@ void fileio_printint(int32 handle, int32 value) {
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
-  write(stream, PRINT_INT);
-  for (n=24; n>=0; n-=8) write(stream, value >> n);
+  fileio_write(stream, PRINT_INT);
+  for (n=24; n>=0; n-=8) fileio_write(stream, value >> n);
   fileinfo[handle].lastwaswrite = TRUE;
 }
 
@@ -1035,8 +1035,8 @@ void fileio_printuint8(int32 handle, uint8 value) {
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
-  write(stream, PRINT_UINT8);
-  write(stream, value);
+  fileio_write(stream, PRINT_UINT8);
+  fileio_write(stream, value);
   fileinfo[handle].lastwaswrite = TRUE;
 }
 
@@ -1049,8 +1049,8 @@ void fileio_printint64(int32 handle, int64 value) {
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
-  write(stream, PRINT_INT64);
-  for (n=56; n>=0; n-=8) write(stream, value >> n);
+  fileio_write(stream, PRINT_INT64);
+  for (n=56; n>=0; n-=8) fileio_write(stream, value >> n);
   fileinfo[handle].lastwaswrite = TRUE;
 }
 
@@ -1072,20 +1072,20 @@ void fileio_printfloat(int32 handle, float64 value) {
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
-  write(stream, PRINT_FLOAT);
+  fileio_write(stream, PRINT_FLOAT);
   memmove(temp, &value, sizeof(float64));
   switch (double_type) {
   case XMIXED_ENDIAN:
-    for (n=0; n<sizeof(float64); n++) write(stream, temp[n]);
+    for (n=0; n<sizeof(float64); n++) fileio_write(stream, temp[n]);
     break;
   case XLITTLE_ENDIAN:
-    for (n=0; n<sizeof(float64); n++) write(stream, temp[n^4]);
+    for (n=0; n<sizeof(float64); n++) fileio_write(stream, temp[n^4]);
     break;
   case XBIG_ENDIAN:
-    for (n=0; n<sizeof(float64); n++) write(stream, temp[n^3]);
+    for (n=0; n<sizeof(float64); n++) fileio_write(stream, temp[n^3]);
     break;
   case XBIG_MIXED_ENDIAN:
-    for (n=0; n<sizeof(float64); n++) write(stream, temp[n^7]);
+    for (n=0; n<sizeof(float64); n++) fileio_write(stream, temp[n^7]);
   }
   fileinfo[handle].lastwaswrite = TRUE;
 }
@@ -1109,15 +1109,15 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
   if (length<SHORT_STRING) {	/* Write string in Acorn format */
-    write(stream, PRINT_SHORTSTR);
-    write(stream, length);
-    if (length>0) for (n=length-1; n>=0; n--) write(stream, string[n]);
+    fileio_write(stream, PRINT_SHORTSTR);
+    fileio_write(stream, length);
+    if (length>0) for (n=length-1; n>=0; n--) fileio_write(stream, string[n]);
   }
   else {	/* Long string - Use interpreter's extended format */
-    write(stream, PRINT_LONGSTR);
+    fileio_write(stream, PRINT_LONGSTR);
     temp = length;
     for (n=0; n<sizeof(int32); n++) {	/* Write four byte length to file */
-      write(stream, temp & BYTEMASK);
+      fileio_write(stream, temp & BYTEMASK);
       temp = temp>>BYTESHIFT;
     }
     result = fwrite(string, sizeof(char), length, stream);
