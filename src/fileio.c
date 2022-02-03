@@ -114,7 +114,7 @@ static void report(void) {
 ** 'read' reads a byte from a file, dealing with any error
 ** conditions that might arise
 */
-static int32 read(int32 handle) {
+static int32 fileio_read(int32 handle) {
   int32 value;
   value = _kernel_osbget(handle);
   if (value==_kernel_ERROR) report();	/* Function returned -2 = SWI call failed */
@@ -292,25 +292,25 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
   int32 n, marker;
   char temp[sizeof(float64)];
   memset(temp,0,sizeof(float64));
-  marker = read(handle);
+  marker = fileio_read(handle);
   switch (marker) {
   case PRINT_INT:
-    for (n=1; n<=sizeof(int32); n++) temp[sizeof(int32)-n] = read(handle);
+    for (n=1; n<=sizeof(int32); n++) temp[sizeof(int32)-n] = fileio_read(handle);
     memmove(ip, temp, sizeof(int32));
     *isint = TRUE;
     break;
   case PRINT_UINT8:
-    for (n=1; n<=sizeof(uint8); n++) temp[sizeof(uint8)-n] = read(handle);
+    for (n=1; n<=sizeof(uint8); n++) temp[sizeof(uint8)-n] = fileio_read(handle);
     memmove(ip, temp, sizeof(uint8));
     *isint = TRUE;
     break;
   case PRINT_INT64:
-    for (n=1; n<=sizeof(int64); n++) temp[sizeof(int64)-n] = read(handle);
+    for (n=1; n<=sizeof(int64); n++) temp[sizeof(int64)-n] = fileio_read(handle);
     memmove(ip, temp, sizeof(int64));
     *isint = TRUE;
     break;
   case PRINT_FLOAT:
-    for (n=0; n<sizeof(float64); n++) temp[n] = read(handle);
+    for (n=0; n<sizeof(float64); n++) temp[n] = fileio_read(handle);
     memmove(fp, temp, sizeof(float64));
     *isint = FALSE;
     break;
@@ -325,11 +325,11 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
 ** exponent has 0x80 added to it.
 */
     int32 exponent;
-    int32 mantissa = read(handle);
-    mantissa |= read(handle) << 8;
-    mantissa |= read(handle) << 16;
-    mantissa |= read(handle) << 24;
-    exponent = read(handle);
+    int32 mantissa = fileio_read(handle);
+    mantissa |= fileio_read(handle) << 8;
+    mantissa |= fileio_read(handle) << 16;
+    mantissa |= fileio_read(handle) << 24;
+    exponent = fileio_read(handle);
     if (exponent || mantissa) {
       *fp = ((float64)(mantissa & 0x7FFFFFFF) / 4294967296.0 + 0.5)
             * pow (2, (float64)(exponent - 0x80))
@@ -356,16 +356,16 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
 */
 int32 fileio_getstring(int32 handle, char *p) {
   int32 marker = 0, length = 0, n = 0;
-  marker = read(handle);
+  marker = fileio_read(handle);
   switch (marker) {
   case PRINT_SHORTSTR:	/* Reading short string in 'Acorn' format */
-    length = read(handle);
-    for (n=1; n<=length; n++) p[length-n] = read(handle);
+    length = fileio_read(handle);
+    for (n=1; n<=length; n++) p[length-n] = fileio_read(handle);
     break;
   case PRINT_LONGSTR:	/* Reading long string */
     length = 0;		/* Start by reading the string length (four bytes, little endian) */
-    for (n=0; n<sizeof(int32); n++) length+=read(handle)<<(n*BYTESHIFT);
-    for (n=0; n<length; n++) p[n] = read(handle);
+    for (n=0; n<sizeof(int32); n++) length+=fileio_read(handle)<<(n*BYTESHIFT);
+    for (n=0; n<length; n++) p[n] = fileio_read(handle);
     break;
   default:
     error(ERR_TYPESTR);
@@ -820,7 +820,7 @@ int32 fileio_getdol(int32 handle, char *buffer) {
   return length;
 }
 
-static int32 read(FILE *handle) {
+static int32 fileio_read(FILE *handle) {
   int32 ch;
   ch = fgetc(handle);
   if (ch==EOF) error(ERR_CANTREAD);
@@ -859,46 +859,46 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
     fileinfo[handle].lastwaswrite = FALSE;
   }
   stream = fileinfo[handle].stream;
-  marker = read(stream);
+  marker = fileio_read(stream);
   switch (marker) {
   case PRINT_INT:
     *ip = 0;
-    for (n=24; n>=0; n-=8) *ip |= read(stream) << n;
+    for (n=24; n>=0; n-=8) *ip |= fileio_read(stream) << n;
     *isint = TRUE;
     break;
   case PRINT_UINT8:
-    *ip = read(stream);
+    *ip = fileio_read(stream);
     *isint = TRUE;
     break;
   case PRINT_INT64:
     *ip = 0;
-    for (n=56; n>=0; n-=8) *ip |= read(stream) << n;
+    for (n=56; n>=0; n-=8) *ip |= fileio_read(stream) << n;
     *isint = TRUE;
     break;
   case PRINT_FLOAT:
     switch (double_type) {
     case XMIXED_ENDIAN:
-      for (n=0; n<sizeof(float64); n++) temp[n] = read(stream);
+      for (n=0; n<sizeof(float64); n++) temp[n] = fileio_read(stream);
       break;
     case XLITTLE_ENDIAN:
-      for (n=0; n<sizeof(float64); n++) temp[n^4] = read(stream);
+      for (n=0; n<sizeof(float64); n++) temp[n^4] = fileio_read(stream);
       break;
     case XBIG_ENDIAN:
-      for (n=0; n<sizeof(float64); n++) temp[n^3] = read(stream);
+      for (n=0; n<sizeof(float64); n++) temp[n^3] = fileio_read(stream);
       break;
     case XBIG_MIXED_ENDIAN:
-      for (n=0; n<sizeof(float64); n++) temp[n^7] = read(stream);
+      for (n=0; n<sizeof(float64); n++) temp[n^7] = fileio_read(stream);
     }
     memmove(fp, temp, sizeof(float64));
     *isint = FALSE;
     break;
   case PRINT_FLOAT5: { /* Acorn's five byte format */
     int32 exponent;
-    int32 mantissa = read(stream);
-    mantissa |= read(stream) << 8;
-    mantissa |= read(stream) << 16;
-    mantissa |= read(stream) << 24;
-    exponent = read(stream);
+    int32 mantissa = fileio_read(stream);
+    mantissa |= fileio_read(stream) << 8;
+    mantissa |= fileio_read(stream) << 16;
+    mantissa |= fileio_read(stream) << 24;
+    exponent = fileio_read(stream);
     if (exponent || mantissa) {
       *fp = ((mantissa & 0x7FFFFFFF) / 4294967296.0 + 0.5)
             * pow (2, exponent - 0x80)
@@ -938,16 +938,16 @@ int32 fileio_getstring(int32 handle, char *p) {
     fileinfo[handle].lastwaswrite = FALSE;
   }
   stream = fileinfo[handle].stream;
-  marker = read(stream);
+  marker = fileio_read(stream);
   switch (marker) {
   case PRINT_SHORTSTR:	/* Reading short string in 'Acorn' format */
-    length = read(stream);
-    for (n=1; n<=length; n++) p[length-n] = read(stream);
+    length = fileio_read(stream);
+    for (n=1; n<=length; n++) p[length-n] = fileio_read(stream);
     break;
   case PRINT_LONGSTR:	/* Reading long string */
     length = 0;		/* Start by reading the string length (four bytes, little endian) */
-    for (n=0; n<sizeof(int32); n++) length+=read(stream)<<(n*BYTESHIFT);
-    for (n=0; n<length; n++) p[n] = read(stream);
+    for (n=0; n<sizeof(int32); n++) length+=fileio_read(stream)<<(n*BYTESHIFT);
+    for (n=0; n<length; n++) p[n] = fileio_read(stream);
     break;
   default:
     error(ERR_TYPESTR);
