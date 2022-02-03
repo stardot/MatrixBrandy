@@ -37,7 +37,9 @@
 #include "fileio.h"
 #include "strings.h"
 #include "screen.h"
+#ifndef NONET
 #include "net.h"
+#endif
 #include "keyboard.h"
 
 
@@ -150,13 +152,17 @@ int32 fileio_openout(char *name, int32 namelen) {
 ** 'fileio_openup' opens a file for both input and output
 */
 int32 fileio_openup(char *name, int32 namelen) {
-  int32 handle, n;
+  int32 handle;
+#ifndef NONET
+  int32 n;
+#endif
   char filename [FNAMESIZE];
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
+#ifndef NONET
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (strncmp(filename, "ip0:", 4)==0 || strncmp(filename, "ip4:", 4)==0 || strncmp(filename, "ip6:", 4)==0) {
-  for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);	/* Find an unused handle */
+    for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);	/* Find an unused handle */
     handle=brandynet_connect(filename+4, filename[2]);
     if (handle == -1) return 0;
     fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
@@ -166,10 +172,13 @@ int32 fileio_openup(char *name, int32 namelen) {
     fileinfo[n].nethandle = handle;
     return n;
   } else {
+#endif
     handle = _kernel_osfind(OPEN_UPDATE, filename);
     if (handle==_kernel_ERROR) report();
     return handle;
+#ifndef NONET
   }
+#endif
 }
 
 /*
@@ -540,7 +549,7 @@ void fileio_shutdown(void) {
 void init_fileio(void) {
 }
 
-#else
+#else /* !TARGET_RISCOS */
 
 /* ================================================================== */
 /* ============= NetBSD/Linux/DOS versions of functions ============= */
