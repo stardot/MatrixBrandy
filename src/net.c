@@ -167,6 +167,7 @@ void brandynet_init() {
   swiname=malloc(256);
   regs.r[0] = 0x41200; /* Socket_Creat */
   regs.r[1] = (size_t)swiname;
+  regs.r[2] = 255;
   oserror = _kernel_swi(OS_SWINumberToString, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
   /* LEN("Socket_Creat"+CHR$(0)) = 13 */
@@ -229,12 +230,12 @@ int brandynet_connect(char *dest, char type) {
   netdest.sin_addr = *inaddr;                /* set destination IP address */
   netdest.sin_port = htons(portnum);         /* set destination port number */
   free(host);                                /* Don't need this any more */
-  free(inaddr);                              /* Or this. */
-
   if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
     error(ERR_NET_CONNREFUSED);
     return(-1);
   }
+  free(inaddr);                              /* Don't need this any more */
+
   fcntl(mysocket, F_SETFL, O_NONBLOCK);
   netsockets[n] = mysocket;
   return(n);
