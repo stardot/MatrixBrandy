@@ -37,6 +37,11 @@
 #endif
 #include <sys/types.h>
 #include <errno.h>
+#ifdef TARGET_RISCOS
+#include <ctype.h>
+#include "kernel.h"
+#include "swis.h"
+#endif
 #endif /* NONET */
 
 //#include "common.h"
@@ -54,6 +59,8 @@
 #ifdef TARGET_RISCOS
 #ifdef __TARGET_SCL__
 extern int close(int);
+/* This is a horrible hack, fcntl() isn't available on SharedCLibrary */
+#define fcntl(x,y,z)
 #endif
 #endif
 
@@ -67,6 +74,69 @@ static int neteof[MAXNETSOCKETS];
 
 static int networking=1;
 
+#ifndef NONET
+#ifdef __TARGET_SCL__
+/* SharedCLibrary is missing inet_aton(). Here'a an implementation */
+in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
+	uint32 quads[4];
+	in_addr_t ipaddr = 0;
+	const char *c;
+	char *endptr;
+	int atend = 0, n = 0;
+
+	c = (const char *)cp;
+  while (!atend) {
+    uint32 l;
+
+    l = strtoul(c, &endptr, 0);
+    if (l == ULONG_MAX || (l == 0 && endptr == c)) return (0);
+    ipaddr = (in_addr_t)l;
+    if (endptr == c) return (0);
+    quads[n] = ipaddr;
+    c = endptr;
+    switch (*c) {
+    case '.' :
+      if (n == 3) return (0);
+      n++;
+      c++;
+      break;
+    case '\0':
+      atend = 1;
+      break;
+    default:
+      if (isspace((unsigned char)*c)) {
+        atend = 1;
+        break;
+      } else return (0);
+    }
+  }
+
+  switch (n) {
+  case 0:
+    /* Nothing required here, already checked by strtoul. */
+    break;
+  case 1:
+    if (ipaddr > 0xffffff || quads[0] > 0xff)
+      return (0);
+    ipaddr |= quads[0] << 24;
+    break;
+  case 2:
+    if (ipaddr > 0xffff || quads[0] > 0xff || quads[1] > 0xff)
+      return (0);
+    ipaddr |= (quads[0] << 24) | (quads[1] << 16);
+    break;
+  case 3:
+    if (ipaddr > 0xff || quads[0] > 0xff || quads[1] > 0xff || quads[2] > 0xff)
+      return (0);
+    ipaddr |= (quads[0] << 24) | (quads[1] << 16) | (quads[2] << 8);
+    break;
+  }
+  if (addr != NULL) addr->s_addr = htonl(ipaddr);
+  return (1);
+}
+#endif /* __TARGET_SCL__ */
+#endif /* NONET */
+
 /* This function only called on startup, cleans the buffer and socket stores */
 void brandynet_init() {
 #ifdef NONET /* Used by RISC OS and other targets that don't support POSIX network sockets */
@@ -76,6 +146,11 @@ void brandynet_init() {
 #ifdef TARGET_MINGW
   WSADATA wsaData;
 #endif
+#ifdef TARGET_RISCOS
+  _kernel_oserror *oserror;
+  _kernel_swi_regs regs;
+  char *swiname;
+#endif
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     netsockets[n]=bufptr[n]=bufendptr[n]=neteof[n]=0;
@@ -84,6 +159,21 @@ void brandynet_init() {
 #ifdef TARGET_MINGW
   if(WSAStartup(MAKEWORD(2,2), &wsaData)) networking=0;
 #endif
+
+#ifdef TARGET_RISCOS
+  /* This code checks to see if the underlying SWIs needed for
+   * internet networking are present. If not, we disable networking.
+   */
+  swiname=malloc(256);
+  regs.r[0] = 0x41200; /* Socket_Creat */
+  regs.r[1] = (size_t)swiname;
+  oserror = _kernel_swi(OS_SWINumberToString, &regs, &regs);
+  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  /* LEN("Socket_Creat"+CHR$(0)) = 13 */
+  if (regs.r[2] != 13) networking=0; /* SWI not found */
+  free(swiname);
+#endif
+
 #endif /* NONET */
 }
 
@@ -92,7 +182,6 @@ int brandynet_connect(char *dest, char type) {
   error(ERR_NET_NOTSUPP);
   return(-1);
 #else
-
 #ifdef TARGET_RISCOS
   char *host, *port;
   int n, mysocket, portnum, result;
@@ -126,8 +215,10 @@ int brandynet_connect(char *dest, char type) {
 
 
   /* This is a dirty hack because RISC OS can't build a hostent struct from an IP address in gethostbyname() */
+  inaddr=malloc(sizeof(struct in_addr));
   result = inet_aton(host, inaddr);
   if (0 == result) {
+    inaddr = NULL;
     if ((he = gethostbyname(host)) == NULL) {
       free(host);
       error(ERR_NET_NOTFOUND);
@@ -137,7 +228,8 @@ int brandynet_connect(char *dest, char type) {
   }
   netdest.sin_addr = *inaddr;                /* set destination IP address */
   netdest.sin_port = htons(portnum);         /* set destination port number */
-  free(host);                                /* Don't need this any more*/
+  free(host);                                /* Don't need this any more */
+  free(inaddr);                              /* Or this. */
 
   if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
     error(ERR_NET_CONNREFUSED);
