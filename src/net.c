@@ -18,7 +18,7 @@
 ** Boston, MA 02111-1307, USA.
 */
 #include "target.h"
-#ifndef NONET
+#ifndef NONET /* matching endif at end of file */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,10 +42,6 @@
 #include "kernel.h"
 #include "swis.h"
 #endif
-#endif /* NONET */
-
-//#include "common.h"
-//#include "basicdefs.h"
 
 #ifdef DEBUG
 #include "basicdefs.h"
@@ -59,8 +55,6 @@
 #ifdef TARGET_RISCOS
 #ifdef __TARGET_SCL__
 extern int close(int);
-/* This is a horrible hack, fcntl() isn't available on SharedCLibrary */
-#define fcntl(x,y,z)
 #endif
 #endif
 
@@ -74,7 +68,6 @@ static int neteof[MAXNETSOCKETS];
 
 static int networking=1;
 
-#ifndef NONET
 #ifdef __TARGET_SCL__
 /* SharedCLibrary is missing inet_aton(). Here'a an implementation */
 in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
@@ -135,13 +128,9 @@ in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
   return (1);
 }
 #endif /* __TARGET_SCL__ */
-#endif /* NONET */
 
 /* This function only called on startup, cleans the buffer and socket stores */
 void brandynet_init() {
-#ifdef NONET /* Used by RISC OS and other targets that don't support POSIX network sockets */
-  networking=0;
-#else
   int n;
 #ifdef TARGET_MINGW
   WSADATA wsaData;
@@ -174,15 +163,9 @@ void brandynet_init() {
   if (regs.r[2] != 13) networking=0; /* SWI not found */
   free(swiname);
 #endif
-
-#endif /* NONET */
 }
 
 int brandynet_connect(char *dest, char type) {
-#ifdef NONET
-  error(ERR_NET_NOTSUPP);
-  return(-1);
-#else
 #ifdef TARGET_RISCOS
   char *host, *port;
   int n, mysocket, portnum, result;
@@ -236,7 +219,10 @@ int brandynet_connect(char *dest, char type) {
   }
   free(inaddr);                              /* Don't need this any more */
 
+#ifndef __TARGET_SCL__
+  /* SharedCLibrary doesn't support this */
   fcntl(mysocket, F_SETFL, O_NONBLOCK);
+#endif
   netsockets[n] = mysocket;
   return(n);
 
@@ -309,14 +295,11 @@ int brandynet_connect(char *dest, char type) {
   netsockets[n] = mysocket;
   return(n);
 #endif /* RISCOS */
-#endif /* NONET */
 }
 
 int brandynet_close(int handle) {
-#ifndef NONET
   close(netsockets[handle]);
   netsockets[handle] = neteof[handle] = 0;
-#endif
   return(0);
 }
 
@@ -325,7 +308,6 @@ int brandynet_close(int handle) {
 #define MSG_DONTWAIT 0
 #endif
 
-#ifndef NONET
 static int net_get_something(int handle) {
   int retval = 0;
 
@@ -338,13 +320,8 @@ static int net_get_something(int handle) {
   bufptr[handle] = 0;
   return(retval);
 }
-#endif /* NONET */
 
 int32 net_bget(int handle) {
-#ifdef NONET
-  error(ERR_NET_NOTSUPP);
-  return(-1);
-#else
   int value;
   int retval=0;
 
@@ -357,7 +334,6 @@ int32 net_bget(int handle) {
   value=netbuffer[handle][(bufptr[handle])];
   bufptr[handle]++;
   return(value);
-#endif /* NONET */
 }
 
 boolean net_eof(int handle) {
@@ -365,10 +341,6 @@ boolean net_eof(int handle) {
 }
 
 int net_bput(int handle, int32 value) {
-#ifdef NONET
-  error(ERR_NET_NOTSUPP);
-  return(-1);
-#else
   char minibuf[2];
   int retval;
 
@@ -377,18 +349,13 @@ int net_bput(int handle, int32 value) {
   retval=send(netsockets[handle], (const char *)&minibuf, 1, 0);
   if (retval == -1) return(1);
   return(0);
-#endif /* NONET */
 }
 
 int net_bputstr(int handle, char *string, int32 length) {
-#ifdef NONET
-  error(ERR_NET_NOTSUPP);
-  return(-1);
-#else
   int retval;
 
   retval=send(netsockets[handle], string, length, 0);
   if (retval == -1) return(1);
   return(0);
-#endif /* NONET */
 }
+#endif /* NONET ... right at top of the file */
