@@ -1,6 +1,14 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* V1.2.14 - 
+- System: RISC OS SharedCLibrary build now supports networking.
+- BASIC: Fix LVAR so it doesn't choke on stupidly long variable names.
+- BASIC: Tidied up an earlier cheat - when interpreting @%, if the top byte
+  is non-zero then STR$ obeys @% so we were masking against &FF - but we
+  were setting all the top bits when using "+". This is fixed now the top
+  byte is set to 1 instead. (We still check the byte is non-zero.)
+
 * V1.22.13 - 26 January 2022
 - System: Stricter handling of oversize variable and PROC/FN names.
 - System: Improved handling of ESCAPE under RISC OS (notably, it no longer
