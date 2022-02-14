@@ -1219,7 +1219,7 @@ static void do_getword(void) {
 */
 static void do_getlong(void) {
   size_t offset = 0;
-  basicvars.current++;		/* Skip '!' */
+  basicvars.current++;		/* Skip ']' */
   (*factor_table[*basicvars.current])();
   offset = (size_t)pop_anynum64();
 #ifdef USE_SDL
@@ -1485,8 +1485,8 @@ static void eval_ivplus(void) {
   rhint=pop_anyint();
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
-	if (matrixflags.legacyintmaths && is8or32int(rhitem) && is8or32int(lhitem)) {
-	  push_int(pop_int() + rhint);
+    if (matrixflags.legacyintmaths && is8or32int(rhitem) && is8or32int(lhitem)) {
+      push_int(pop_int() + rhint);
     } else {
       push_varyint(pop_anyint() + rhint);
     }
@@ -1551,11 +1551,11 @@ static void eval_ivplus(void) {
 */
 static void eval_fvplus(void) {
   stackitem lhitem;
-  floatvalue = pop_float();	/* Top item on Basic stack is right-hand operand */
+  floatvalue = pop_float();       /* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
-    floatvalue+=TOFLOAT(pop_anyint());	/* This has to be split otherwise the macro */
-    push_float(floatvalue);		/* expansion of PUSH_FLOAT goes wrong */
+    floatvalue+=TOFLOAT(pop_anyint());  /* This has to be split otherwise the macro */
+    push_float(floatvalue);             /* expansion of PUSH_FLOAT goes wrong */
   } else if (lhitem == STACK_FLOAT)
     INCR_FLOAT(floatvalue);
   else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>+<float value> */
