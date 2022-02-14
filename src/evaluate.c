@@ -2871,7 +2871,6 @@ static void eval_fmmul(void) {
 static void eval_ivdiv(void) {
   stackitem lhitem;
   int64 rhint = pop_anyint();
-  if (rhint == 0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM)
     push_float(fdivwithtest(pop_anynumfp(),TOFLOAT(rhint)));
@@ -2916,7 +2915,6 @@ static void eval_ivdiv(void) {
 static void eval_fvdiv(void) {
   stackitem lhitem;
   floatvalue = pop_float();
-  if (floatvalue == 0.0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM)
     push_float(fdivwithtest(pop_anynumfp(), floatvalue));
@@ -3186,11 +3184,7 @@ static void eval_ivintdiv(void) {
   stackitem lhitem;
   int64 rhint = 0;
   
-  switch(GET_TOPITEM) {
-    case STACK_INT: case STACK_UINT8: case STACK_INT64: rhint = pop_anyint(); break;
-    case STACK_FLOAT: rhint = TOINT64(pop_float()); break;
-    default: error(ERR_BROKEN, __LINE__, "evaluate");
-  }
+  rhint = pop_anynum64();
   if (rhint == 0) error(ERR_DIVZERO);
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)	/* Branch according to type of left-hand operand */
