@@ -357,6 +357,10 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 
 #define MAXSTRING 65536
 
+#ifdef USE_SDL
+#define MODE7FB 0x7C00
+#endif
+
 /*
 ** The ALIGN macro is used to control the sizes of blocks of
 ** memory allocated from the heap. They are always a multiple

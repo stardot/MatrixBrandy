@@ -140,13 +140,6 @@ static void exec_new(void) {
     }
     emulate_printf("\r\nMemory available for Basic programs is now %u bytes\r\n", basicvars.worksize);
   }
-#ifdef USE_SDL
-  if ((size_t)basicvars.page >= 0x8000) {
-    matrixflags.mode7fb = 0x7C00;
-  } else {
-    matrixflags.mode7fb = 0xFFFF7C00;
-  }
-#endif
   clear_program();
   init_expressions();
 }

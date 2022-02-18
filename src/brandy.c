@@ -263,11 +263,6 @@ static void init2(void) {
     exit(EXIT_FAILURE);
   }
 #ifdef USE_SDL
-  if ((size_t)basicvars.page >= 0x8000) {
-    matrixflags.mode7fb = 0x7C00;
-  } else {
-    matrixflags.mode7fb = 0xFFFF7C00;
-  }
   matrixflags.vdu14lines=0;
 #endif
   init_commands();

@@ -43,9 +43,7 @@
 #include "swis.h"
 #endif
 
-#ifdef DEBUG
 #include "basicdefs.h"
-#endif
 #include "errors.h"
 #include "net.h"
 
@@ -65,8 +63,6 @@ static int bufptr[MAXNETSOCKETS];
 static int bufendptr[MAXNETSOCKETS];
 #endif /* NONET */
 static int neteof[MAXNETSOCKETS];
-
-static int networking=1;
 
 #ifdef __TARGET_SCL__
 /* SharedCLibrary is missing inet_aton(). Here'a an implementation */
@@ -141,12 +137,13 @@ void brandynet_init() {
   char *swiname;
 #endif
 
+  matrixflags.networking = 1;
   for (n=0; n<MAXNETSOCKETS; n++) {
     netsockets[n]=bufptr[n]=bufendptr[n]=neteof[n]=0;
     memset(netbuffer, 0, (MAXNETSOCKETS * (MAXNETRCVLEN+1)));
   }
 #ifdef TARGET_MINGW
-  if(WSAStartup(MAKEWORD(2,2), &wsaData)) networking=0;
+  if(WSAStartup(MAKEWORD(2,2), &wsaData)) matrixflags.networking=0;
 #endif
 
 #ifdef TARGET_RISCOS
@@ -160,7 +157,7 @@ void brandynet_init() {
   oserror = _kernel_swi(OS_SWINumberToString, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
   /* LEN("Socket_Creat"+CHR$(0)) = 13 */
-  if (regs.r[2] != 13) networking=0; /* SWI not found */
+  if (regs.r[2] != 13) matrixflags.networking=0; /* SWI not found */
   free(swiname);
 #endif
 }
@@ -173,7 +170,7 @@ int brandynet_connect(char *dest, char type) {
   struct hostent *he = NULL;
   struct in_addr *inaddr = NULL;
 
-  if(networking==0) {
+  if(matrixflags.networking==0) {
     error(ERR_NET_NOTSUPP);
     return(-1);
   }
@@ -234,7 +231,7 @@ int brandynet_connect(char *dest, char type) {
   unsigned long opt;
 #endif
 
-  if(networking==0) {
+  if(matrixflags.networking==0) {
     error(ERR_NET_NOTSUPP);
     return(-1);
   }

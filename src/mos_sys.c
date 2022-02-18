@@ -292,8 +292,8 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
           if (!file_handle) error(ERR_OPENWRITE);
           pointer = (char *)(size_t)inregs[4];
 #ifdef USE_SDL
-            /* Mode 7 screen memory */
-          if (inregs[4] >= matrixflags.mode7fb && inregs[4] <= (matrixflags.mode7fb + 1023)) pointer = (pointer - matrixflags.mode7fb) + (size_t)mode7frame;
+          /* Mode 7 screen memory */
+          pointer = (char *)m7offset((size_t)pointer);
 #endif
           for(i=0; i<(inregs[5]-inregs[4]); i++) fputc(*pointer++,file_handle);
           fclose(file_handle);
@@ -336,8 +336,8 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
           if (!file_handle) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
           pointer = (char *)(size_t)inregs[2];
 #ifdef USE_SDL
-            /* Mode 7 screen memory */
-          if (inregs[2] >= matrixflags.mode7fb && inregs[2] <= (matrixflags.mode7fb + 1023)) pointer = (pointer - matrixflags.mode7fb) + (size_t)mode7frame;
+          /* Mode 7 screen memory */
+          pointer = (char *)m7offset((size_t)pointer);
 #endif
           b=0;
           while((a=getc(file_handle)) != EOF) {
@@ -510,7 +510,7 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
       SDL_VideoDriverName(outstring, 64);
       outregs[2]=(size_t)matrixflags.modescreen_ptr;
       outregs[3]=matrixflags.modescreen_sz;
-      outregs[4]=matrixflags.mode7fb;
+      outregs[4]=MODE7FB;
       outregs[5]=(size_t)matrixflags.surface;
       outregs[6]=(size_t)matrixflags.surface->format;
       SDL_GetWMInfo(&wmInfo);

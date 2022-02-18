@@ -981,22 +981,13 @@ static void do_indrefvar(void) {
   basicvars.current++;
   (*factor_table[*basicvars.current])();
   offset+=pop_anynum64();
-  if (operator == '?') {	/* Byte-sized integer */
 #ifdef USE_SDL
-    if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-      /* Mode 7 screen memory */
-      offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-    }
+  offset = m7offset(offset);
 #endif /* USE_SDL */
+  if (operator == '?') {	/* Byte-sized integer */
     push_int(basicvars.memory[offset]);
   }
   else {		/* Word-sized integer */
-#ifdef USE_SDL
-    if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-      /* Mode 7 screen memory */
-      offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-    }
-#endif
     push_int(get_integer(offset));
   }
 #ifdef DEBUG
@@ -1183,13 +1174,7 @@ static void do_getbyte(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip '?' */
   (*factor_table[*basicvars.current])();
-  offset = (size_t)pop_anynum64();
-#ifdef USE_SDL
-  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
-#endif /* USE_SDL */
+  offset = m7offset((size_t)pop_anynum64());
   push_int(basicvars.memory[offset]);
 }
 
@@ -1202,13 +1187,7 @@ static void do_getword(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip '!' */
   (*factor_table[*basicvars.current])();
-  offset = (size_t)pop_anynum64();
-#ifdef USE_SDL
-  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
-#endif
+  offset = m7offset((size_t)pop_anynum64());
   push_int(get_integer(offset));
 }
 
@@ -1221,13 +1200,7 @@ static void do_getlong(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip ']' */
   (*factor_table[*basicvars.current])();
-  offset = (size_t)pop_anynum64();
-#ifdef USE_SDL
-  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
-#endif
+  offset = m7offset((size_t)pop_anynum64());
   push_int64(get_int64(offset));
 }
 
@@ -1243,13 +1216,7 @@ static void do_getstring(void) {
   int32 len;
   basicvars.current++;		/* Skip '$' */
   (*factor_table[*basicvars.current])();
-  offset = pop_anynum64();
-#ifdef USE_SDL
-  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
-#endif /* USE_SDL */
+  offset = m7offset((size_t)pop_anynum64());
   len = get_stringlen(offset);
   push_dolstring(len, CAST(&basicvars.memory[offset], char *));
 }
@@ -1263,13 +1230,7 @@ static void do_getfloat(void) {
   size_t offset = 0;
   basicvars.current++;		/* Skip '|' */
   (*factor_table[*basicvars.current])();
-  offset = pop_anynum64();
-#ifdef USE_SDL
-  if (offset >= matrixflags.mode7fb && offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    offset = (offset - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
-#endif /* USE_SDL */
+  offset = m7offset((size_t)pop_anynum64());
   push_float(get_float(offset));
 }
 

@@ -596,10 +596,10 @@ typedef struct {
   uint32 tekspeed;            /* Emulated bit rate of Tek terminal (0=no slowdown) */
   uint32 osbyte4val;          /* OSBYTE 4 value, default = 0 */
   int32 printer_ignore;       /* Printer ignore character, default = 10 */
+  boolean networking;         /* TRUE if networking is available */
 #ifdef USE_SDL
   byte *modescreen_ptr;       /* Mode screen pointer to pixels memory */
   uint32 modescreen_sz;       /* Mode screen size */
-  uint32 mode7fb;             /* Start of MODE 7 frame buffer space */
   SDL_Surface *surface;       /* SDL Surface handle for screen0 */
   int32 sdl_flags;            /* SDL surface flags */
   uint32 vdu14lines;          /* Line counter for VDU14 page mode */

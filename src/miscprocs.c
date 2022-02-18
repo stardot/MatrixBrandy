@@ -165,6 +165,15 @@ void store_float(size_t offset, float64 value) {
   memmove((void *)offset, &value, sizeof(float64));
 }
 
+/* Mode 7 screen memory adjust */
+#ifdef USE_SDL
+size_t m7offset(size_t p) {
+  if (p >= MODE7FB && p <= (MODE7FB + 1023)) {
+    p = (p - MODE7FB) + (size_t)mode7frame;
+  }
+  return p;
+}
+#endif
 
 /*
 ** 'save_current' saves the value of the token pointer, current.

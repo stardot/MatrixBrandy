@@ -128,16 +128,10 @@ static void assign_stringdol(pointers address) {
 */
 static void assign_intbyteptr(pointers address) {
 #ifdef USE_SDL
-  size_t addr;
-
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "*** assign.c:assign_intbyteptr: address=%p\n", (void *)address.offset);
 #endif
-  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    addr = address.offset - matrixflags.mode7fb;
-    address.offset = (size_t)mode7frame + addr;
-  }
+  address.offset = m7offset(address.offset);
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   basicvars.memory[address.offset] = pop_anynum32();
@@ -154,13 +148,7 @@ static void assign_intbyteptr(pointers address) {
 */
 static void assign_intwordptr(pointers address) {
 #ifdef USE_SDL
-  size_t addr;
-
-  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    addr = address.offset - matrixflags.mode7fb;
-    address.offset = (size_t)mode7frame + addr;
-  }
+  address.offset = m7offset(address.offset);
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   store_integer(address.offset, pop_anynum32());
@@ -177,13 +165,7 @@ static void assign_intwordptr(pointers address) {
 */
 static void assign_int64ptr(pointers address) {
 #ifdef USE_SDL
-  size_t addr;
-
-  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    addr = address.offset - matrixflags.mode7fb;
-    address.offset = (size_t)mode7frame + addr;
-  }
+  address.offset = m7offset(address.offset);
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   store_int64(address.offset, pop_anynum64());
@@ -202,22 +184,13 @@ static void assign_int64ptr(pointers address) {
 */
 static void assign_floatptr(pointers address) {
 #ifdef USE_SDL
-  size_t addr;
-
-  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    addr = address.offset - matrixflags.mode7fb;
-    address.offset = (size_t)mode7frame + addr;
-  }
+  address.offset = m7offset(address.offset);
 #endif
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   store_float(address.offset, pop_anynumfp());
 }
 
 static void assign_dolstrptr(pointers address) {
-#ifdef USE_SDL
-  size_t addr;
-#endif
   stackitem exprtype;
   basicstring result;
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
@@ -225,11 +198,7 @@ static void assign_dolstrptr(pointers address) {
   if (exprtype!=STACK_STRING && exprtype!=STACK_STRTEMP) error(ERR_TYPESTR);
   result = pop_string();
 #ifdef USE_SDL
-  if (address.offset >= matrixflags.mode7fb && address.offset <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    addr = address.offset - matrixflags.mode7fb;
-    address.offset = (size_t)mode7frame + addr;
-  }
+  address.offset = m7offset(address.offset);
 #endif
   memmove(&basicvars.memory[address.offset], result.stringaddr, result.stringlen);
   basicvars.memory[address.offset+result.stringlen] = asc_CR;

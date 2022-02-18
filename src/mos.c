@@ -166,6 +166,18 @@ static time_t startime;		/* Adjustment subtracted in 'TIME' */
 char mos_patchdate[]=__DATE__;
 #endif
 
+static void show_meminfo() {
+  emulate_printf("\r\nMemory allocation information:\r\n");
+  emulate_printf("  Workspace is at &" FMT_SZX ", size is &" FMT_SZX "\r\n  PAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
+  basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
+  emulate_printf("  stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+#ifdef USE_SDL
+  emulate_printf("  Video frame buffer is at &" FMT_SZX ", size &%X\r\n", matrixflags.modescreen_ptr, matrixflags.modescreen_sz);
+  emulate_printf("  MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", MODE7FB);
+#endif /* USE_SDL */
+  if (matrixflags.gpio) emulate_printf("  GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
+}
+
 static void cmd_brandyinfo() {
   emulate_printf("\r\n%s\r\n", IDSTRING);
 #ifdef BRANDY_GITCOMMIT
@@ -180,15 +192,10 @@ static void cmd_brandyinfo() {
   mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
   // NB: Adjust spaces in above to align version and date strings correctly
 #endif
-  emulate_printf("\r\nMemory allocation information:\r\n\r\n");
-  emulate_printf("Workspace is at &" FMT_SZX ", size is &" FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
-  basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-  emulate_printf("stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
-#ifdef USE_SDL
-  emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", matrixflags.modescreen_ptr, matrixflags.modescreen_sz);
-  emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
-#endif /* USE_SDL */
-  if (matrixflags.gpio) emulate_printf("GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
+  show_meminfo();
+  emulate_printf("Networking facilities ");
+  if (matrixflags.networking == 0) emulate_printf("not ");
+  emulate_printf("available\r\n");
   emulate_printf("\r\n");
 }
 
@@ -1645,15 +1652,7 @@ static void cmd_help(char *command)
 	emulate_printf("  WinTitle   <window title>\r\n");
     break;
     case HELP_MEMINFO:
-      emulate_printf("Memory allocation information:\r\n\r\n");
-      emulate_printf("Workspace is at &" FMT_SZX ", size is &" FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
-       basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
-      emulate_printf("stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
-#ifdef USE_SDL
-      emulate_printf("Video frame buffer is at &" FMT_SZX ", size &%X\r\n", matrixflags.modescreen_ptr, matrixflags.modescreen_sz);
-      emulate_printf("MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", matrixflags.mode7fb);
-#endif /* USE_SDL */
-      if (matrixflags.gpio) emulate_printf("GPIO interface mapped at &" FMT_SZX "\r\n", matrixflags.gpiomem);
+      show_meminfo();
       emulate_printf("\r\n");
     break;
 #ifdef USE_SDL
@@ -1878,10 +1877,7 @@ static void cmd_load(char *command){
   }
   ptr=(char*)num;
 #ifdef USE_SDL
-  if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    ptr = (ptr - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
+  ptr = (char *)m7offset((size_t)ptr);
 #endif
 
   while((ch=getc(filep)) != EOF) *ptr++ = ch;
@@ -1945,10 +1941,7 @@ static void cmd_save(char *command){
   }
   ptr=(char*)addr;
 #ifdef USE_SDL
-  if ((size_t)ptr >= matrixflags.mode7fb && (size_t)ptr <= (matrixflags.mode7fb + 1023)) {
-    /* Mode 7 screen memory */
-    ptr = (ptr - matrixflags.mode7fb) + (size_t)mode7frame;
-  }
+  ptr=(char *)m7offset((size_t)ptr);
 #endif
   for(i=0; i<size; i++){
    fputc(*ptr++,filep);

@@ -149,7 +149,7 @@ static modetails modetable [127] = {
 /* 62 */  {0, 0,   2, 0,  0, 0, 0, 1, 1,  FALSE},
 /* 63 */  {0, 0,   2, 0,  0, 0, 0, 1, 1,  FALSE},
 /* Third party modes start here */ 
-/* These next 4 modes use the same coordinate system as Tektronix */
+/* These next 5 modes use the same coordinate system as Tektronix */
 /* 64 */  {1024, 780,   2, 2048,  1560, 128, 97, 1, 1,  TRUE},
 /* 65 */  {1024, 780,   4, 2048,  1560, 128, 97, 1, 1,  TRUE},
 /* 66 */  {1024, 780,  16, 2048,  1560, 128, 97, 1, 1,  TRUE},

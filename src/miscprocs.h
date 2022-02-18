@@ -47,6 +47,11 @@ extern float64 get_float(size_t);
 extern void store_integer(size_t, int32);
 extern void store_int64(size_t, int64);
 extern void store_float(size_t, float64);
+#ifdef USE_SDL
+extern size_t m7offset(size_t);
+#else
+#define m7offset(p) (p)
+#endif
 extern char *skip_blanks(char *);
 extern byte *skip(byte *);
 extern char *tocstring(char *, int32);
