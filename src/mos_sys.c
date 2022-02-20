@@ -359,7 +359,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
           break;
         case 24:
 #ifdef TARGET_MINGW
-          outregs[2].i=65536; /* Dummy value, information is not available in Windows */
+          outregs[2]=65536; /* Dummy value, information is not available in Windows */
 #else
           if (stat((char *)(size_t)inregs[1].i,&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
           outregs[2]=statbuf.st_blksize;
