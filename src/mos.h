@@ -39,7 +39,7 @@ extern void  mos_rdrtc(char *);
 extern void  mos_wrrtc(char *);
 extern void  mos_call(int32, int32, int32 []);
 extern int32 mos_usr(int32);
-extern void  mos_sys(size_t, size_t[], size_t[], size_t*);
+extern void  mos_sys(size_t, sysparm[], size_t[], size_t*);
 extern size_t mos_getswinum(char *, int32, int32);
 extern void  mos_setend(int32);
 extern void  mos_waitdelay(int32);

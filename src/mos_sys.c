@@ -147,9 +147,13 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 #pragma GCC optimize "O0"
 #endif
 static size_t do_syscall(size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
-                       size_t, size_t, size_t, size_t, size_t, size_t, size_t), size_t inregs[]) {
+                       size_t, size_t, size_t, double, double, double, double),
+                       sysparm inregs[]) {
 
-    return (*dlsh)(inregs[1], inregs[2], inregs[3], inregs[4], inregs[5], inregs[6], inregs[7], inregs[8], inregs[9], inregs[10], inregs[11], inregs[12], inregs[13], inregs[14], inregs[15]);
+    return (*dlsh)( inregs[1].i, inregs[2].i, inregs[3].i, inregs[4].i,
+                    inregs[5].i, inregs[6].i, inregs[7].i, inregs[8].i,
+                    inregs[9].i, inregs[10].i, inregs[11].i, inregs[12].f,
+                    inregs[13].f, inregs[14].f, inregs[15].f);
 }
 #ifndef __clang__
 #pragma GCC reset_options
@@ -200,7 +204,7 @@ static uint32 rpi2gpio(uint32 newtype) {
 /* This function handles the SYS calls for the Raspberry Pi GPIO.
 ** This implementation is local to Brandy.
 */
-static void mos_rpi_gpio_sys(size_t swino, size_t inregs[], size_t outregs[], int32 xflag) {
+static void mos_rpi_gpio_sys(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag) {
   if (!matrixflags.gpio) {
     if (!xflag) error(ERR_NO_RPI_GPIO);
     return;
@@ -209,29 +213,29 @@ static void mos_rpi_gpio_sys(size_t swino, size_t inregs[], size_t outregs[], in
   switch (swino) {
     case SWI_GPIO_ReadMode:
     case SWI_RaspberryPi_GetGPIOPortMode:
-      outregs[0]=(*(matrixflags.gpiomemint + (inregs[0]/10)) >> ((inregs[0]%10)*3)) & 7;
+      outregs[0]=(*(matrixflags.gpiomemint + (inregs[0].i/10)) >> ((inregs[0].i%10)*3)) & 7;
       break;
     case SWI_GPIO_WriteMode:
     case SWI_RaspberryPi_SetGPIOPortMode:
-      matrixflags.gpiomemint[(inregs[0]/10)] = (matrixflags.gpiomemint[(inregs[0]/10)] & ~(7<<((inregs[0]%10)*3))) | (inregs[1]<<((inregs[0]%10)*3));
+      matrixflags.gpiomemint[(inregs[0].i/10)] = (matrixflags.gpiomemint[(inregs[0].i/10)] & ~(7<<((inregs[0].i%10)*3))) | (inregs[1].i<<((inregs[0].i%10)*3));
       break;
     case SWI_RaspberryPi_SetGPIOPortPullUpDownMode:
-      matrixflags.gpiomemint[37] = inregs[1];
+      matrixflags.gpiomemint[37] = inregs[1].i;
       usleep(50);
-      matrixflags.gpiomemint[38+(inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
+      matrixflags.gpiomemint[38+(inregs[0].i>>5)] = (1<<(inregs[0].i&0x1F));
       usleep(50);
       matrixflags.gpiomemint[37] = 0;
       usleep(50);
-      matrixflags.gpiomemint[38+(inregs[0]>>5)] = 0;
+      matrixflags.gpiomemint[38+(inregs[0].i>>5)] = 0;
       break;
     case SWI_GPIO_ReadData:
     case SWI_RaspberryPi_ReadGPIOPort:
-      outregs[0]=(matrixflags.gpiomemint[13 + (inregs[0]>>5)] & (1<<(inregs[0]&0x1F))) ? 1 : 0;
+      outregs[0]=(matrixflags.gpiomemint[13 + (inregs[0].i>>5)] & (1<<(inregs[0].i&0x1F))) ? 1 : 0;
       break;
     case SWI_GPIO_WriteData:
     case SWI_RaspberryPi_WriteGPIOPort:
-      if (inregs[1] == 0) matrixflags.gpiomemint[10 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
-      else                matrixflags.gpiomemint[7 + (inregs[0]>>5)] = (1<<(inregs[0]&0x1F));
+      if (inregs[1].i == 0) matrixflags.gpiomemint[10 + (inregs[0].i>>5)] = (1<<(inregs[0].i & 0x1F));
+      else                matrixflags.gpiomemint[7 + (inregs[0].i>>5)] = (1<<(inregs[0].i & 0x1F));
       break;
     default: /* Defined but unimplemented GPIO SWIs */
       error(ERR_SWINUMNOTKNOWN, swino);
@@ -241,7 +245,7 @@ static void mos_rpi_gpio_sys(size_t swino, size_t inregs[], size_t outregs[], in
 /* This is the handler for almost all SYS calls on non-RISC OS platforms.
 ** OS_CLI, OS_Byte, OS_Word and OS_SWINumberFromString are in mos.c
 */
-void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, size_t *flags) {
+void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, size_t *flags) {
 #ifndef TARGET_RISCOS
   int32 a, b;
   int64 i;
@@ -255,27 +259,27 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 
   memset(outstring,0,65536); /* Clear the output string buffer */
   if ((swino >= 256) && (swino <= 511)) { /* Handle the OS_WriteI block */
-    inregs[0]=swino-256;
+    inregs[0].i=swino-256;
     swino=SWI_OS_WriteC;
   }
   switch (swino) {
 #ifndef TARGET_RISCOS
     case SWI_OS_WriteC:
-      outregs[0]=inregs[0];
-      if ((inregs[1]==42) && (inregs[2]==42)) {
-        fprintf(stderr,"%c", (int32)(inregs[0] & 0xFF));
+      outregs[0]=inregs[0].i;
+      if ((inregs[1].i==42) && (inregs[2].i==42)) {
+        fprintf(stderr,"%c", (int32)(inregs[0].i & 0xFF));
       } else {
-        emulate_vdu(inregs[0] & 0xFF);
+        emulate_vdu(inregs[0].i & 0xFF);
       }
       break;
     case SWI_OS_Write0: /* This is extended in Brandy - normally all args apart
 			   from R0 are ignored; in Brandy, if R1 and R2 are set
 			   to 42, the text is output to the controlling terminal. */
-      outregs[0]=inregs[0]+1+strlen((char *)(size_t)inregs[0]);
-      if ((inregs[1]==42) && (inregs[2]==42)) {
-        fprintf(stderr,"%s\r\n", (char *)(size_t)inregs[0]);
+      outregs[0]=inregs[0].i+1+strlen((char *)(size_t)inregs[0].i);
+      if ((inregs[1].i==42) && (inregs[2].i==42)) {
+        fprintf(stderr,"%s\r\n", (char *)(size_t)inregs[0].i);
       } else {
-        emulate_printf("%s", (char *)(size_t)inregs[0]);
+        emulate_printf("%s", (char *)(size_t)inregs[0].i);
       }
       break;
     case SWI_OS_NewLine:
@@ -283,19 +287,19 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
     case SWI_OS_ReadC:
       outregs[0]=kbd_get() & 0xFF; break;
     case SWI_OS_File:
-      outregs[0]=inregs[0];outregs[1]=inregs[1];
-      outregs[2]=inregs[2];outregs[3]=inregs[3];
-      outregs[4]=inregs[4];outregs[5]=inregs[5];
-      switch(inregs[0]) {
+      outregs[0]=inregs[0].i;outregs[1]=inregs[1].i;
+      outregs[2]=inregs[2].i;outregs[3]=inregs[3].i;
+      outregs[4]=inregs[4].i;outregs[5]=inregs[5].i;
+      switch(inregs[0].i) {
         case 0: case 10:
-          file_handle=fopen((char *)(size_t)inregs[1], "wb");
+          file_handle=fopen((char *)(size_t)inregs[1].i, "wb");
           if (!file_handle) error(ERR_OPENWRITE);
-          pointer = (char *)(size_t)inregs[4];
+          pointer = (char *)(size_t)inregs[4].i;
 #ifdef USE_SDL
           /* Mode 7 screen memory */
           pointer = (char *)m7offset((size_t)pointer);
 #endif
-          for(i=0; i<(inregs[5]-inregs[4]); i++) fputc(*pointer++,file_handle);
+          for(i=0; i<(inregs[5].i-inregs[4].i); i++) fputc(*pointer++,file_handle);
           fclose(file_handle);
           break;
         case 1: case 2: case 3: case 4: case 5: /* No-op, no equivalent */
@@ -306,22 +310,22 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
           break;
         case 6:
           outregs[0]=0;
-          if (stat((char *)(size_t)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
+          if (stat((char *)(size_t)inregs[1].i,&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
           if (S_ISDIR(statbuf.st_mode)) {
             outregs[0]=2;
-            if (rmdir((char *)(size_t)inregs[1])) error(ERR_DIRNOTEMPTY);
+            if (rmdir((char *)(size_t)inregs[1].i)) error(ERR_DIRNOTEMPTY);
           } else {
             outregs[0]=1;
-            if (unlink((char *)(size_t)inregs[1])) error(ERR_FILELOCKED);
+            if (unlink((char *)(size_t)inregs[1].i)) error(ERR_FILELOCKED);
           }
           break;
         case 7: case 11:
-          file_handle=fopen((char *)(size_t)inregs[1], "wb");
+          file_handle=fopen((char *)(size_t)inregs[1].i, "wb");
           if (!file_handle) error(ERR_OPENWRITE);
           fclose(file_handle);
           break;
         case 8:
-          if (mkdir((char *)(size_t)inregs[1]
+          if (mkdir((char *)(size_t)inregs[1].i
 #ifndef TARGET_MINGW
           , 0777
 #endif
@@ -332,9 +336,9 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
         case 16:
         case 255:
           outregs[0]=1;
-          file_handle=fopen((char *)(size_t)inregs[1], "rb");
-          if (!file_handle) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
-          pointer = (char *)(size_t)inregs[2];
+          file_handle=fopen((char *)(size_t)inregs[1].i, "rb");
+          if (!file_handle) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+          pointer = (char *)(size_t)inregs[2].i;
 #ifdef USE_SDL
           /* Mode 7 screen memory */
           pointer = (char *)m7offset((size_t)pointer);
@@ -351,13 +355,13 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #endif
           break;
         case 19:
-          error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
+          error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
           break;
         case 24:
 #ifdef TARGET_MINGW
-          outregs[2]=65536; /* Dummy value, information is not available in Windows */
+          outregs[2].i=65536; /* Dummy value, information is not available in Windows */
 #else
-          if (stat((char *)(size_t)inregs[1],&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1]);
+          if (stat((char *)(size_t)inregs[1].i,&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
           outregs[2]=statbuf.st_blksize;
 #endif
           break;
@@ -372,8 +376,8 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 // R3=highest acceptable character
 // R4=b31-b24=reserved, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
 //
-      inregs[4]=(inregs[4] & 0x00FFFFFF) | (inregs[0] & 0xFF000000);
-      inregs[0]=(inregs[0] & 0x00FFFFFF);	/* Move flags to R4			*/
+      inregs[4].i=(inregs[4].i & 0x00FFFFFF) | (inregs[0].i & 0xFF000000);
+      inregs[0].i=(inregs[0].i & 0x00FFFFFF);	/* Move flags to R4			*/
     case SWI_OS_ReadLine32:
 // R0=address
 // R1=length (buffer size-1)
@@ -383,7 +387,7 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 //
       *outstring='\0';
 //                       addr   length        lochar           hichar                     flags  echo
-      a=kbd_readline(outstring, inregs[1]+1, (inregs[2]<<8) | (inregs[3]<<16) | (inregs[4] & 0xFF0000FF));
+      a=kbd_readline(outstring, inregs[1].i+1, (inregs[2].i<<8) | (inregs[3].i<<16) | (inregs[4].i & 0xFF0000FF));
       outregs[1]=a;				/* Returned length			*/
 						/* Should also set Carry if Escape	*/
       outregs[0]=(size_t)outstring;
@@ -399,18 +403,18 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
       mos_mouse(outregs);
       break;
     case SWI_OS_ReadPalette:
-      outregs[0]=inregs[0];
-      outregs[1]=inregs[1];
+      outregs[0]=inregs[0].i;
+      outregs[1]=inregs[1].i;
 #ifdef USE_SDL
-      outregs[3]=outregs[2]=os_readpalette(inregs[0], inregs[1]);
+      outregs[3]=outregs[2]=os_readpalette(inregs[0].i, inregs[1].i);
 #endif
       break;
     case SWI_OS_ReadModeVariable:
-      outregs[0]=inregs[0];
-      outregs[1]=inregs[1];
+      outregs[0]=inregs[0].i;
+      outregs[1]=inregs[1].i;
 #ifdef USE_SDL
-      if (inregs[1] >= 0 && inregs[1] <= 12) {
-        outregs[2]=readmodevariable(inregs[0],inregs[1]);
+      if (inregs[1].i >= 0 && inregs[1].i <= 12) {
+        outregs[2]=readmodevariable(inregs[0].i,inregs[1].i);
       } else {
         outregs[2]=0;
       }
@@ -422,8 +426,8 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #ifdef USE_SDL
       {
 	int32 *ptra, *ptrb;
-	ptra = (int32 *)(size_t)inregs[0];
-	ptrb = (int32 *)(size_t)inregs[1];
+	ptra = (int32 *)(size_t)inregs[0].i;
+	ptrb = (int32 *)(size_t)inregs[1].i;
 	while (*ptra != -1) {
 	  *ptrb = readmodevariable(-1,*ptra);
 	  ptra++;
@@ -437,46 +441,46 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
       outregs[1]=basicvars.monotonictimebase;
       break;
     case SWI_OS_Plot:
-      emulate_plot(inregs[0], inregs[1], inregs[2]);
+      emulate_plot(inregs[0].i, inregs[1].i, inregs[2].i);
       break;
     case SWI_OS_WriteN:	/* This is extended in Brandy - normally only R0 and R1
 			   are acted upon; in Brandy, if R2 is set to 42, the
 			   characters are output to the controlling terminal. */
-      outregs[0]=inregs[0];
-      if (inregs[2]==42) {
-        for (a=0; a<inregs[1]; a++) fprintf(stderr,"%c", *((byte *)(size_t)inregs[0]+a));
+      outregs[0]=inregs[0].i;
+      if (inregs[2].i==42) {
+        for (a=0; a<inregs[1].i; a++) fprintf(stderr,"%c", *((byte *)(size_t)inregs[0].i+a));
       } else {
-        for (a=0; a<inregs[1]; a++) emulate_vdu(*((byte *)(size_t)inregs[0]+a));
+        for (a=0; a<inregs[1].i; a++) emulate_vdu(*((byte *)(size_t)inregs[0].i+a));
       }
       break;
     case SWI_OS_ScreenMode:
 #ifdef USE_SDL
-      outregs[0]=inregs[0];
-      outregs[1]=inregs[1];
-      switch (inregs[0]) {
-	case 0: 	emulate_mode(inregs[1]);break;
+      outregs[0]=inregs[0].i;
+      outregs[1]=inregs[1].i;
+      switch (inregs[0].i) {
+	case 0: 	emulate_mode(inregs[1].i);break;
 	case 1: 	outregs[1]=emulate_modefn();break;
 	case 7: 	outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
-	case 8: 	osbyte113(inregs[1]);break;
-	case 9: 	osbyte112(inregs[1]);break;
-	case 10:	screencopy(inregs[1], inregs[2]);break;
+	case 8: 	osbyte113(inregs[1].i);break;
+	case 9: 	osbyte112(inregs[1].i);break;
+	case 10:	screencopy(inregs[1].i, inregs[2].i);break;
       }
 #endif
       break;
     case SWI_ColourTrans_SetGCOL:
-      outregs[0]=emulate_gcolrgb(inregs[4], (inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
-      outregs[2]=0; outregs[3]=inregs[3] & 0x80; outregs[4]=inregs[4];
+      outregs[0]=emulate_gcolrgb(inregs[4].i, (inregs[3].i & 0x80), ((inregs[0].i >> 8) & 0xFF), ((inregs[0].i >> 16) & 0xFF), ((inregs[0].i >> 24) & 0xFF));
+      outregs[2]=0; outregs[3]=inregs[3].i & 0x80; outregs[4]=inregs[4].i;
       break;
     case SWI_ColourTrans_GCOLToColourNumber:
-      inregs[0]=inregs[0] & 0xFF; /* Only care about the bottom 8 bits */
-      outregs[0]=((inregs[0] & 0x87) + ((inregs[0] & 0x38) << 1) + ((inregs[0] & 0x40) >> 3));
+      inregs[0].i=inregs[0].i & 0xFF; /* Only care about the bottom 8 bits */
+      outregs[0]=((inregs[0].i & 0x87) + ((inregs[0].i & 0x38) << 1) + ((inregs[0].i & 0x40) >> 3));
       break;
     case SWI_ColourTrans_ColourNumberToGCOL:
-      inregs[0]=inregs[0] & 0xFF; /* Only care about the bottom 8 bits */
-      outregs[0]=((inregs[0] & 0x87) + ((inregs[0] & 0x70) >> 1) + ((inregs[0] & 8) << 3));
+      inregs[0].i=inregs[0].i & 0xFF; /* Only care about the bottom 8 bits */
+      outregs[0]=((inregs[0].i & 0x87) + ((inregs[0].i & 0x70) >> 1) + ((inregs[0].i & 8) << 3));
       break;
     case SWI_ColourTrans_SetTextColour:
-      outregs[0]=emulate_setcolour((inregs[3] & 0x80), ((inregs[0] >> 8) & 0xFF), ((inregs[0] >> 16) & 0xFF), ((inregs[0] >> 24) & 0xFF));
+      outregs[0]=emulate_setcolour((inregs[3].i & 0x80), ((inregs[0].i >> 8) & 0xFF), ((inregs[0].i >> 16) & 0xFF), ((inregs[0].i >> 24) & 0xFF));
       break;
 #endif /* not TARGET_RISCOS */
     case SWI_Brandy_Version:
@@ -537,46 +541,46 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
       outregs[0]=(size_t)outstring;
       break;
     case SWI_Brandy_SetFailoverMode:
-      matrixflags.failovermode=inregs[0];
+      matrixflags.failovermode=inregs[0].i;
       break;
     case SWI_Brandy_AccessVideoRAM:
 #ifdef USE_SDL
       /* R0=0 to read into R2 from offset R1, R0 nonzero to write R2 into offset R1 */
-      if (inregs[1] < matrixflags.modescreen_sz) {
-	if (inregs[0]==0) {
-	  outregs[2]=*(uint32 *)(matrixflags.modescreen_ptr+(inregs[1]*4));
+      if (inregs[1].i < matrixflags.modescreen_sz) {
+	if (inregs[0].i==0) {
+	  outregs[2]=*(uint32 *)(matrixflags.modescreen_ptr+(inregs[1].i*4));
 	} else {
-	  *(uint32 *)(matrixflags.modescreen_ptr+(inregs[1]*4))=inregs[2];
-	  refresh_location(inregs[1]);
+	  *(uint32 *)(matrixflags.modescreen_ptr+(inregs[1].i*4))=inregs[2].i;
+	  refresh_location(inregs[1].i);
 	}
       }
 #endif
       break;
     case SWI_Brandy_INTusesFloat:
-        matrixflags.int_uses_float = inregs[0];
+        matrixflags.int_uses_float = inregs[0].i;
       break;
     case SWI_Brandy_LegacyIntMaths:
-        matrixflags.legacyintmaths = inregs[0];
+        matrixflags.legacyintmaths = inregs[0].i;
       break;
     case SWI_Brandy_Hex64:
-        matrixflags.hex64 = inregs[0];
+        matrixflags.hex64 = inregs[0].i;
         break;
     case SWI_Brandy_DELisBS:
-        matrixflags.delcandelete = inregs[0];
+        matrixflags.delcandelete = inregs[0].i;
       break;
     case SWI_Brandy_PseudovarsUnsigned:
-        matrixflags.pseudovarsunsigned = inregs[0];
+        matrixflags.pseudovarsunsigned = inregs[0].i;
       break;
     case SWI_Brandy_TekEnabled:
-        matrixflags.tekenabled = inregs[0];
-        matrixflags.tekspeed = inregs[1];
+        matrixflags.tekenabled = inregs[0].i;
+        matrixflags.tekspeed = inregs[1].i;
       break;
     case SWI_Brandy_uSleep:
-        usleep(inregs[0]);
+        usleep(inregs[0].i);
       break;
     case SWI_Brandy_dlopen:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-      outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0], RTLD_NOW|RTLD_GLOBAL);
+      outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0].i, RTLD_NOW|RTLD_GLOBAL);
 #else
       if (!xflag) error(ERR_DL_NODL);
       outregs[0]=0;
@@ -586,10 +590,10 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
         size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
-                       size_t, size_t, size_t, size_t, size_t, size_t, size_t);
+                       size_t, size_t, size_t, double, double, double, double);
 
         dlerror(); /* Flush the error state */
-        *(void **)(&dlsh)=get_dladdr(inregs[0], NULL, xflag);
+        *(void **)(&dlsh)=get_dladdr(inregs[0].i, NULL, xflag);
         if (dlsh != (void *)-1) outregs[0]=do_syscall(dlsh, inregs);
       }
 #else
@@ -598,21 +602,21 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #endif
       break;
     case SWI_Brandy_MAlloc:
-        outregs[0]=(size_t)malloc((size_t)inregs[0]);
+        outregs[0]=(size_t)malloc((size_t)inregs[0].i);
         if (!xflag && outregs[0] == 0) error(ERR_NOMEMORY);
       break;
     case SWI_Brandy_Free:
-        if ((size_t)inregs[0] == (size_t)basicvars.workspace) error(ERR_ADDREXCEPT); /* Don't be silly. */
+        if ((size_t)inregs[0].i == (size_t)basicvars.workspace) error(ERR_ADDREXCEPT); /* Don't be silly. */
         if (matrixflags.gpio) {
-          if ((size_t)inregs[0] == (size_t)matrixflags.gpiomem) error(ERR_ADDREXCEPT); /* Don't deallocate GPIO mmap */
+          if ((size_t)inregs[0].i == (size_t)matrixflags.gpiomem) error(ERR_ADDREXCEPT); /* Don't deallocate GPIO mmap */
         }
 #ifdef USE_SDL
-        if ((size_t)inregs[0] == (size_t)matrixflags.modescreen_ptr) error(ERR_ADDREXCEPT); /* Don't allow deallocation of screen memory */
+        if ((size_t)inregs[0].i == (size_t)matrixflags.modescreen_ptr) error(ERR_ADDREXCEPT); /* Don't allow deallocation of screen memory */
 #endif
-        free((void *)(size_t)inregs[0]);
+        free((void *)(size_t)inregs[0].i);
       break;
     case SWI_Brandy_BitShift64:
-        matrixflags.bitshift64 = inregs[0];
+        matrixflags.bitshift64 = inregs[0].i;
         break;
     case SWI_Brandy_Platform:
         outregs[0]=(size_t)ostype;
@@ -641,16 +645,16 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #endif
         break;
     case SWI_Brandy_CascadedIFtweak:
-        matrixflags.cascadeiftweak = inregs[0];
+        matrixflags.cascadeiftweak = inregs[0].i;
         break;
     case SWI_Brandy_MouseEventExpire:
 #ifdef USE_SDL
-        set_mouseevent_expiry((uint32)inregs[0]);
+        set_mouseevent_expiry((uint32)inregs[0].i);
 #endif
         break;
     case SWI_Brandy_dlgetaddr:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
-        outregs[0]=(size_t)get_dladdr(inregs[0], (void *)(size_t)inregs[1], xflag);
+        outregs[0]=(size_t)get_dladdr(inregs[0].i, (void *)(size_t)inregs[1].i, xflag);
 #else
         if (!xflag) error(ERR_DL_NODL);
         outregs[0]=0;
@@ -660,10 +664,10 @@ void mos_sys_ext(size_t swino, size_t inregs[], size_t outregs[], int32 xflag, s
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
         size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
-                       size_t, size_t, size_t, size_t, size_t, size_t, size_t);
+                       size_t, size_t, size_t, double, double, double, double);
 
         dlerror(); /* Flush the error state */
-        *(void **)(&dlsh)=(void *)(size_t)inregs[0];
+        *(void **)(&dlsh)=(void *)(size_t)inregs[0].i;
         if (dlsh != (void *)-1) {
           outregs[0]=do_syscall(dlsh, inregs);
         } else {

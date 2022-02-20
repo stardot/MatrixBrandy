@@ -713,20 +713,20 @@ size_t mos_getswinum(char *name, int32 length, int32 inxflag) {
 ** The layout of the flags bits are:
 **  N (sign) Z (zero) C (carry) V (overflow)
 */
-void mos_sys(size_t swino, size_t inregs[], size_t outregs[], size_t *flags) {
+void mos_sys(size_t swino, sysparm inregs[], size_t outregs[], size_t *flags) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int n;
   if ((swino & ~XBIT) == 57) { /* OS_SWINumberFromString - call our local version */
-    outregs[1]=inregs[1];
-    for(n=0;*(char *)(inregs[1]+n) >=32; n++) ;
-    *(char *)(inregs[1]+n)='\0';
-    outregs[0]=mos_getswinum((char *)inregs[1], strlen((char *)inregs[1]), (swino & XBIT));
+    outregs[1]=inregs[1].i;
+    for(n=0;*(char *)(inregs[1].i+n) >=32; n++) ;
+    *(char *)(inregs[1].i+n)='\0';
+    outregs[0]=mos_getswinum((char *)inregs[1].i, strlen((char *)inregs[1].i), (swino & XBIT));
   } else if (swino >= 0x140000) {
     /* Brandy-specific virtual SYS calls */
     mos_sys_ext(swino & ~XBIT, inregs, outregs, swino & XBIT, flags);
   } else {
-    for (n=0; n<10; n++) regs.r[n] = inregs[n];
+    for (n=0; n<10; n++) regs.r[n] = inregs[n].i;
     oserror = _kernel_swi_c(swino, &regs, &regs, (int *)flags);
     if (oserror!=NIL && (swino & XBIT)==0) error(ERR_CMDFAIL, oserror->errmess);
     *flags = *flags!=0 ? CARRY_FLAG : 0;
@@ -2372,7 +2372,7 @@ size_t mos_getswinum(char *name, int32 length, int32 inxflag) {
 ** Most SWI calls are defined in mos_sys.c except the few that
 ** call other functions in this file.
 */
-void mos_sys(size_t swino, size_t inregs[], size_t outregs[], size_t *flags) {
+void mos_sys(size_t swino, sysparm inregs[], size_t outregs[], size_t *flags) {
   int32 ptr, rtn;
   int32 xflag;
 
@@ -2380,31 +2380,31 @@ void mos_sys(size_t swino, size_t inregs[], size_t outregs[], size_t *flags) {
   swino &= ~XBIT;		/* Strip off the X flag if set */
   switch (swino) {
     case SWI_OS_CLI:
-      outregs[0]=inregs[0];
-      mos_oscli((char *)(size_t)inregs[0], NIL, NULL);
+      outregs[0]=inregs[0].i;
+      mos_oscli((char *)(size_t)inregs[0].i, NIL, NULL);
       break;
     case SWI_OS_Byte:
-      rtn=mos_osbyte(inregs[0], inregs[1], inregs[2], xflag);
-      outregs[0]=inregs[0];
+      rtn=mos_osbyte(inregs[0].i, inregs[1].i, inregs[2].i, xflag);
+      outregs[0]=inregs[0].i;
       outregs[1]=((rtn >> 8) & 0xFF);	// check
       outregs[2]=((rtn >> 16) & 0xFF);	// check
       break;
     case SWI_OS_Word:
-      mos_osword(inregs[0], inregs[1]);
-      outregs[0]=inregs[0];
-      outregs[1]=inregs[1];
+      mos_osword(inregs[0].i, inregs[1].i);
+      outregs[0]=inregs[0].i;
+      outregs[1]=inregs[1].i;
       break;
     case SWI_OS_SWINumberToString:
-      mos_getswiname(inregs[0], inregs[1], inregs[2], xflag);
-      outregs[0]=inregs[0];
-      outregs[1]=inregs[1];
+      mos_getswiname(inregs[0].i, inregs[1].i, inregs[2].i, xflag);
+      outregs[0]=inregs[0].i;
+      outregs[1]=inregs[1].i;
       outregs[2]=strlen((char *)(size_t)outregs[1])+1; /* returned length includes terminator */
       break;
     case SWI_OS_SWINumberFromString:
-      outregs[1]=inregs[1];
-      for(ptr=0;*((char *)(size_t)inregs[1]+ptr) >=32; ptr++) ;
-      *((byte *)(size_t)inregs[1]+ptr)='\0';
-      outregs[0]=mos_getswinum((char *)(size_t)inregs[1], strlen((char *)(size_t)inregs[1]), xflag);
+      outregs[1]=inregs[1].i;
+      for(ptr=0;*((char *)(size_t)inregs[1].i+ptr) >=32; ptr++) ;
+      *((byte *)(size_t)inregs[1].i+ptr)='\0';
+      outregs[0]=mos_getswinum((char *)(size_t)inregs[1].i, strlen((char *)(size_t)inregs[1].i), xflag);
       break;
     default:
       mos_sys_ext(swino, inregs, outregs, xflag, flags); /* in mos_sys.c */

@@ -2339,7 +2339,8 @@ void exec_swap(void) {
 */
 void exec_sys(void) {
   int32 n, parmcount, swino = 0;
-  size_t flags, inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+  size_t flags, outregs[MAXSYSPARMS];
+  sysparm inregs[MAXSYSPARMS];
   stackitem parmtype;
   basicstring descriptor, tempdesc[MAXSYSPARMS];
   lvalue destination;
@@ -2360,7 +2361,7 @@ void exec_sys(void) {
   }
 /* Set up default values for all possible parameters */
   for (n=0; n<MAXSYSPARMS; n++) {
-    outregs[n] = inregs[n] = 0;
+    outregs[n] = inregs[n].i = 0;
     tempdesc[n].stringaddr = NIL;
   }
   parmcount = 0;
@@ -2371,9 +2372,17 @@ void exec_sys(void) {
       expression();
       parmtype = GET_TOPITEM;
       switch (parmtype) {
-      case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
-        inregs[parmcount] = pop_anynum64();
+      case STACK_INT: case STACK_UINT8: case STACK_INT64:
+#ifdef TARGET_RISCOS
+      case STACK_FLOAT:
+#endif
+        inregs[parmcount].i = pop_anynum64();
         break;
+#ifndef TARGET_RISCOS
+      case STACK_FLOAT:
+        inregs[parmcount].f = pop_float();
+        break;
+#endif
       case STACK_STRING: case STACK_STRTEMP: {
         int32 length;
         char *cp;
@@ -2385,7 +2394,7 @@ void exec_sys(void) {
         if (length>0) memmove(cp, descriptor.stringaddr, length);
         cp[length] = asc_NUL;
         if (parmtype == STACK_STRTEMP) free_string(descriptor);
-        inregs[parmcount] = (size_t)cp;
+        inregs[parmcount].i = (size_t)cp;
         break;
       }
       default:

@@ -1760,7 +1760,8 @@ static void fn_sysfn(void) {
   basicstring descriptor;
   stackitem stringtype;
   char *tmpstring;
-  size_t inregs[MAXSYSPARMS], outregs[MAXSYSPARMS];
+  sysparm inregs[MAXSYSPARMS];
+  size_t outregs[MAXSYSPARMS];
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
@@ -1768,7 +1769,7 @@ static void fn_sysfn(void) {
     tmpstring = strdup(descriptor.stringaddr);
     if (tmpstring == NULL) error(ERR_BROKEN, __LINE__, "functions");
     tmpstring[descriptor.stringlen]='\0';
-    inregs[1] = (size_t)tmpstring;
+    inregs[1].i = (size_t)tmpstring;
     mos_sys(SWI_OS_SWINumberFromString+XBIT, inregs, outregs, 0);
     push_varyint(outregs[0]);
     free(tmpstring);

@@ -611,6 +611,18 @@ typedef struct {
 } matrixbits;
 extern matrixbits matrixflags;
 
+typedef union {
+  double f;
+#ifdef MATRIX64BIT
+  size_t i;
+#else
+  struct {
+    size_t h;
+    size_t l;
+  } i;
+#endif
+} sysparm;
+
 #ifdef USE_SDL
 typedef struct {
   int x;
