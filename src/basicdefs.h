@@ -612,8 +612,8 @@ typedef struct {
 extern matrixbits matrixflags;
 
 typedef union {
-  double f;
-  size_t i;
+  double f;   /* Data store for float */
+  size_t i;   /* Data store for integer or pointer */
 } sysparm;
 
 #ifdef USE_SDL

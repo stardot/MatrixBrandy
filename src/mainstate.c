@@ -2338,9 +2338,9 @@ void exec_swap(void) {
 ** as 'SWIs'.
 */
 void exec_sys(void) {
-  int32 n, parmcount, swino = 0;
+  int32 n, parmcount, ip, fp, swino = 0;
   size_t flags, outregs[MAXSYSPARMS];
-  sysparm inregs[MAXSYSPARMS];
+  sysparm inregs[MAXSYSPARMS * 2];
   stackitem parmtype;
   basicstring descriptor, tempdesc[MAXSYSPARMS];
   lvalue destination;
@@ -2362,9 +2362,10 @@ void exec_sys(void) {
 /* Set up default values for all possible parameters */
   for (n=0; n<MAXSYSPARMS; n++) {
     outregs[n] = inregs[n].i = 0;
+    inregs[MAXSYSPARMS+n].f = 0.0;
     tempdesc[n].stringaddr = NIL;
   }
-  parmcount = 0;
+  parmcount = 0; ip = 0; fp = MAXSYSPARMS+1;
   if (*basicvars.current == ',') basicvars.current++;
 /* Now gather the parameters for the SWI call */
   while (!ateol[*basicvars.current] && *basicvars.current != BASIC_TOKEN_TO) {
@@ -2376,11 +2377,13 @@ void exec_sys(void) {
 #ifdef TARGET_RISCOS
       case STACK_FLOAT:
 #endif
-        inregs[parmcount].i = pop_anynum64();
+        inregs[ip].i = pop_anynum64();
+        ip++;
         break;
 #ifndef TARGET_RISCOS
       case STACK_FLOAT:
-        inregs[parmcount].f = pop_float();
+        inregs[fp].f = pop_float();
+        fp++;
         break;
 #endif
       case STACK_STRING: case STACK_STRTEMP: {
@@ -2394,7 +2397,8 @@ void exec_sys(void) {
         if (length>0) memmove(cp, descriptor.stringaddr, length);
         cp[length] = asc_NUL;
         if (parmtype == STACK_STRTEMP) free_string(descriptor);
-        inregs[parmcount].i = (size_t)cp;
+        inregs[ip].i = (size_t)cp;
+        ip++;
         break;
       }
       default:

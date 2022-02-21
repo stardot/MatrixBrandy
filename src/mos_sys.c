@@ -146,14 +146,35 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 #ifndef __clang__
 #pragma GCC optimize "O0"
 #endif
-static size_t do_syscall(size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
-                       size_t, size_t, size_t, double, double, double, double),
+static size_t do_syscall(size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,
+                        size_t,size_t,size_t,size_t,size_t,
+                        size_t,size_t,size_t,size_t,size_t),
                        sysparm inregs[]) {
 
-    return (*dlsh)( inregs[1].i, inregs[2].i, inregs[3].i, inregs[4].i,
-                    inregs[5].i, inregs[6].i, inregs[7].i, inregs[8].i,
-                    inregs[9].i, inregs[10].i, inregs[11].i, inregs[12].f,
-                    inregs[13].f, inregs[14].f, inregs[15].f);
+    size_t wrapper (volatile double fa, volatile double fb, volatile double fc,
+                    volatile double fd, volatile double fe, volatile double ff,
+                    volatile double fg, volatile double fh, volatile double fi,
+                    volatile double fj, volatile double fk, volatile double fl,
+                    volatile double fm, volatile double fn, volatile double fo) {
+      int64 result;
+#ifdef TARGET_MINGW
+      static void* savesp;
+      asm("mov %%esp, %0" : "=m" (savesp)) ;
+#endif
+      result = dlsh (inregs[1].i, inregs[2].i, inregs[3].i, inregs[4].i,
+                     inregs[5].i, inregs[6].i, inregs[7].i, inregs[8].i,
+                     inregs[9].i, inregs[10].i, inregs[11].i, inregs[12].i,
+                     inregs[13].i, inregs[14].i, inregs[15].i);
+#ifdef TARGET_MINGW
+      asm("mov %0, %%esp" : : "m" (savesp)) ;
+#endif
+      return result;
+    }
+
+    return wrapper (inregs[17].f, inregs[18].f, inregs[19].f, inregs[20].f,
+                    inregs[21].f, inregs[22].f, inregs[23].f, inregs[24].f,
+                    inregs[25].f, inregs[26].f, inregs[27].f, inregs[28].f,
+                    inregs[29].f, inregs[30].f, inregs[31].f);
 }
 #ifndef __clang__
 #pragma GCC reset_options
@@ -589,8 +610,8 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_dlcall:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
-        size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
-                       size_t, size_t, size_t, double, double, double, double);
+        size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,size_t,size_t,size_t,
+                        size_t,size_t,size_t,size_t,size_t,size_t,size_t);
 
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=get_dladdr(inregs[0].i, NULL, xflag);
@@ -663,8 +684,8 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_dlcalladdr:
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
-        size_t (*dlsh)(size_t, size_t, size_t, size_t, size_t, size_t, size_t, size_t, 
-                       size_t, size_t, size_t, double, double, double, double);
+        size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,size_t,size_t,size_t,
+                        size_t,size_t,size_t,size_t,size_t,size_t,size_t);
 
         dlerror(); /* Flush the error state */
         *(void **)(&dlsh)=(void *)(size_t)inregs[0].i;
