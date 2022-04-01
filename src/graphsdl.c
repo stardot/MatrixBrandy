@@ -2091,6 +2091,8 @@ static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uin
   int32 xloop, yloop, pxoffset, rox = 0, roy = 0;
   Uint32 prevcolour, a, altcolour = 0;
 
+  if (action == 5) return;
+
   colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
   if (colourdepth == 256) colour = colour << COL256SHIFT;
   for (yloop=top;yloop<=bottom; yloop++) {
@@ -2122,6 +2124,12 @@ static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uin
           break;
         case 4:
           altcolour=(prevcolour ^ (colourdepth-1));
+          break;
+        case 6:
+          altcolour=(prevcolour & ((~colour) & (colourdepth-1)));
+          break;
+        case 7:
+          altcolour=(prevcolour | ((~colour) & (colourdepth-1)));
           break;
         default:
           altcolour=colour;

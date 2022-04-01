@@ -8,6 +8,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   is non-zero then STR$ obeys @% so we were masking against &FF - but we
   were setting all the top bits when using "+". This is fixed now the top
   byte is set to 1 instead. (We still check the byte is non-zero.)
+- Fixed GCOL action codes 5-7 for filled rectangles (this function does
+  not use the plot_pixel prototype).
 
 * V1.22.13 - 26 January 2022
 - System: Stricter handling of oversize variable and PROC/FN names.
