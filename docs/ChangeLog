@@ -5,6 +5,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: RISC OS SharedCLibrary build now supports networking.
 - Graphics: Fixed GCOL action codes 5-7 for filled rectangles (this function
   does not use the plot_pixel prototype).
+- Graphics: Fixed an error where VDU variables 138 and 139 were erroneously
+  clamping to pixel boundaries based on the current screen mode scaling.
 - BASIC: Fix LVAR so it doesn't choke on stupidly long variable names.
 - BASIC: Tidied up an earlier cheat - when interpreting @%, if the top byte
   is non-zero then STR$ obeys @% so we were masking against &FF - but we
