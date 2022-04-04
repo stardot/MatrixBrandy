@@ -5053,8 +5053,8 @@ size_t readmodevariable(int32 scrmode, int32 var) {
 #ifndef BRANDY_MODE7ONLY
     case 136: /* OrgX */	return ds.xorigin;
     case 137: /* OrgY */	return ds.yorigin;
-    case 138: /* GCsX */	return ((ds.xlast-ds.xorigin)/(2*ds.xscale))*2*ds.xscale;
-    case 139: /* GCsY */	return ((ds.ylast-ds.yorigin)/(2*ds.yscale))*2*ds.yscale;
+    case 138: /* GCsX */  return (ds.xlast-ds.xorigin);
+    case 139: /* GCsY */  return (ds.ylast-ds.yorigin);
     case 140: /* OlderCsX */	return ds.xlast3/(2*ds.xscale);
     case 141: /* OlderCsY */	return ds.ylast3/(2*ds.yscale);
     case 142: /* OldCsX */	return ds.xlast2/(2*ds.xscale);
