@@ -5,7 +5,7 @@
    50REM interface is a local extension, as is the screen memory access and
    60REM the *WinTitle command.
    70:
-   80VER$="Viewdata client version 20220117"
+   80VER$="Viewdata client version 20220518"
    90:
   100IF INKEY(-256) <> &4D THEN PRINT "This program works on Matrix Brandy for RISC OS or SDL only.":END
   110SYS"Brandy_Platform" TO ,,,sdl%,,leg%
@@ -138,7 +138,7 @@
  1420:
  1430DEFFNwelcome
  1440PROCwelcomescreen
- 1450REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 55) OR A%=6 OR A%=24 OR A%=84 OR A%=116
+ 1450REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 56) OR A%=6 OR A%=24 OR A%=84 OR A%=116
  1460IF A% = 24 OR A% = 48 THEN PRINT:ON:OSCLI"FX229":END
  1470IF A% = 6 THEN PROCtogglescreen: GOTO 1450
  1480IF A% = 49 THEN borked%=1: S$ = "ip0:glasstty.com:6502"
@@ -146,8 +146,9 @@
  1500IF A% = 51 THEN borked%=1: S$ = "ip0:glasstty.com:6504"
  1510IF A% = 52 THEN borked%=0: S$ = "ip0:fish.ccl4.org:23"
  1520IF A% = 53 THEN borked%=0: S$ = "ip0:nx.nxtel.org:23280"
- 1530IF A% = 54 THEN borked%=0: S$ = "ip0:pegasus.matrixnetwork.co.uk:6502"
- 1540IF A% = 55 THEN borked%=0: S$ = "ip0:endofthelinebbs.com:6502"
+ 1530IF A% = 54 THEN borked%=0: S$ = "ip0:teletext.matrixnetwork.co.uk:6502"
+ 1540IF A% = 55 THEN borked%=0: S$ = "ip0:teletext.matrixnetwork.co.uk:48065"
+ 1545IF A% = 56 THEN borked%=0: S$ = "ip0:teletext.matrixnetwork.co.uk:31744"
  1550IF A% = 84 OR A% = 116 THEN telnet%=telnet% EOR 1: GOTO 1440
  1560CLS
  1570=S$
@@ -163,12 +164,12 @@
  1670PRINT CHR$(131);"4 - Tetrachloromethane";CHR$(133);"(CCl4)"
  1680PRINT CHR$(131);"5 - NXtel"
  1690PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Teletext"
- 1700PRINT CHR$(131);"7 - End Of The Line BBS"
- 1710
- 1720PRINT
- 1730PRINT CHR$(131);"T - Toggle Telnet codes -";
- 1740IF telnet%=1 THEN PRINT CHR$(130);"ON" ELSE PRINT CHR$(129);"OFF"
- 1750PRINT
+ 1700PRINT CHR$(131);"7 - CEEFAX";CHR$(133);"(NMS - teletext)"
+ 1710PRINT CHR$(131);"8 - EMFFAX";CHR$(133);"(teletext)"
+ 1720
+ 1730PRINT
+ 1740PRINT CHR$(131);"T - Toggle Telnet codes -";
+ 1750IF telnet%=1 THEN PRINT CHR$(130);"ON" ELSE PRINT CHR$(129);"OFF"
  1760PRINT CHR$(129);"0 - Exit"
  1770PRINT TAB(0,15)CHR$(134);"While the session is running:"
  1780IF allowfs%=1 THEN PRINT CHR$(134);" Press CTRL-F to toggle Full Screen":
