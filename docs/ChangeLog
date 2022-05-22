@@ -13,7 +13,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   were setting all the top bits when using "+". This is fixed now the top
   byte is set to 1 instead. (We still check the byte is non-zero.)
 - Examples: Telstar client: Removed unnecessary code, TEEFAX server change,
-  added new Teletext services
+  added new Teletext services and a custom address option.
 
 * V1.22.13 - 26 January 2022
 - System: Stricter handling of oversize variable and PROC/FN names.
