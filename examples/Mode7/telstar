@@ -5,7 +5,7 @@
    50REM interface is a local extension, as is the screen memory access and
    60REM the *WinTitle command.
    70:
-   80VER$="Viewdata client version 20220522"
+   80VER$="Viewdata client version 20220523"
    90:
   100IF INKEY(-256) <> &4D THEN PRINT "This program works on Matrix Brandy for RISC OS or SDL only.":END
   110SYS"Brandy_Platform" TO ,,,sdl%,,leg%
@@ -16,7 +16,7 @@
   160ON ERROR GOTO 560
   170MODE 7:OFF: VDU23,16,1|23,18,1|
   180reveal%=0:scan%=0:width%=1:black%=0:ost%=0
-  190borked%=0:telnet%=1:extended%=0
+  190borked%=0:telnet%=1:extended%=0:cur%=0
   200allowfs%=1:DIM scr%% 1000
   210REM Variables for downloading
   220screen%=0
@@ -67,8 +67,8 @@
   670WHEN 10: IF VPOS<23 THEN VDU10 ELSE VDU 31,POS,0
   680WHEN 11: IF VPOS > 0 THEN VDU11 ELSE VDU31,POS,23
   690WHEN 12, 13, 30: VDU M%
-  700WHEN 17: ON
-  710WHEN 20: OFF
+  700WHEN 17: ON:cur%=1
+  710WHEN 20: OFF:cur%=0
   720ENDCASE
   730IF VPOS=24 THEN VDU31,POS,0
   740ENDPROC
@@ -82,11 +82,11 @@
   820ENDPROC
   830:
   840DEFPROCdhscan
-  850IFscan%=0ENDPROC
+  850OFF:IFscan%=0ENDPROC
   860FOR N%=0 TO 22: FOR P%=0 TO 39
   870IF GET(P%,N%) = 141 THEN PROCcopyline: N%+=1
   880NEXT P%, N%
-  890scan%=0
+  890scan%=0:IF cur%=1 THEN ON
   900ENDPROC
   910:
   920DEFPROCcopyline
