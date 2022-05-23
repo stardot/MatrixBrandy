@@ -145,7 +145,6 @@ static void *rtrdlsym (void *handle, const char *symbol) {
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
 #ifndef __clang__
 #pragma GCC optimize "O0"
-#endif
 static size_t do_syscall(size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,
                         size_t,size_t,size_t,size_t,size_t,
                         size_t,size_t,size_t,size_t,size_t),
@@ -176,10 +175,10 @@ static size_t do_syscall(size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,
                     inregs[25].f, inregs[26].f, inregs[27].f, inregs[28].f,
                     inregs[29].f, inregs[30].f, inregs[31].f);
 }
-#ifndef __clang__
 #pragma GCC reset_options
 #endif
 
+#ifndef __clang__
 static void *get_dladdr(size_t nameptr, void *libhandle, int32 xflag) {
   void *dlsh;
 #ifndef TARGET_MINGW
@@ -204,7 +203,8 @@ static void *get_dladdr(size_t nameptr, void *libhandle, int32 xflag) {
 #endif
   return (dlsh);
 }
-#endif
+#endif /* __clang__ */
+#endif /* TARGET_UNIX | TARGET_MINGW */
 
 static uint32 gpio2rpi(uint32 boardtype) {
   int32 ptr;
@@ -600,14 +600,21 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         usleep(inregs[0].i);
       break;
     case SWI_Brandy_dlopen:
+#ifdef __clang__
+      error(ERR_DL_NODL);
+#else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0].i, RTLD_NOW|RTLD_GLOBAL);
 #else
       if (!xflag) error(ERR_DL_NODL);
       outregs[0]=0;
-#endif
+#endif /* TARGET_UNIX | TARGET_MINGW */
+#endif /* __clang__ */
       break;
     case SWI_Brandy_dlcall:
+#ifdef __clang__
+      error(ERR_DL_NODL);
+#else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
         size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,size_t,size_t,size_t,
@@ -620,7 +627,8 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 #else
       if (!xflag) error(ERR_DL_NODL);
       outregs[0]=0;
-#endif
+#endif /* TARGET_UNIX | TARGET_MINGW */
+#endif /* __clang__ */
       break;
     case SWI_Brandy_MAlloc:
         outregs[0]=(size_t)malloc((size_t)inregs[0].i);
@@ -674,14 +682,21 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 #endif
         break;
     case SWI_Brandy_dlgetaddr:
+#ifdef __clang__
+      error(ERR_DL_NODL);
+#else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
         outregs[0]=(size_t)get_dladdr(inregs[0].i, (void *)(size_t)inregs[1].i, xflag);
 #else
         if (!xflag) error(ERR_DL_NODL);
         outregs[0]=0;
-#endif
+#endif /* TARGET_UNIX | TARGET_MINGW */
+#endif /* __clang__ */
         break;
     case SWI_Brandy_dlcalladdr:
+#ifdef __clang__
+      error(ERR_DL_NODL);
+#else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
         size_t (*dlsh)(size_t, size_t,size_t,size_t,size_t,size_t,size_t,size_t,
@@ -698,7 +713,8 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 #else
       if (!xflag) error(ERR_DL_NODL);
       outregs[0]=0;
-#endif
+#endif /* TARGET_UNIX | TARGET_MINGW */
+#endif /* __clang__ */
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;
