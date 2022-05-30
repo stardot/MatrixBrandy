@@ -145,7 +145,7 @@
  1450PROCwelcomescreen
  1460borked%=0: REPEAT A%=GET: UNTIL (A% >= 48 AND A% <= 57) OR A%=6 OR A%=24 OR A%=84 OR A%=116
  1470IF A% = 24 OR A% = 48 THEN PRINT:ON:OSCLI"FX229":END
- 1480IF A% = 6 THEN PROCtogglescreen: GOTO 1390
+ 1480IF A% = 6 THEN PROCtogglescreen: GOTO 1460
  1490IF A% = 49 THEN borked%=1: S$ = "ip0:glasstty.com:6502"
  1500IF A% = 50 THEN borked%=1: S$ = "ip0:glasstty.com:6503"
  1510IF A% = 51 THEN borked%=1: S$ = "ip0:glasstty.com:6504"
