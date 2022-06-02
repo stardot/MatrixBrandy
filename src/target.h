@@ -208,6 +208,18 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DIR_SEP  '/'
 #endif
 
+#ifdef __sun__
+#define TARGET_SUNOS
+#define TARGET_UNIX
+#define BRANDY_OS "SunOS"
+#define LEGACY_OSVERSION 0xF2
+#define MACTYPE   0x0800
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
+#endif
+
 /* Same as Linux, but can be treated exactly like it, see the Linux specific
  * XCASE in src/keyboard.c */
 #ifdef __FreeBSD_kernel__

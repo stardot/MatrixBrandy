@@ -120,6 +120,10 @@
 #include "inkey.h"
 #include "mos.h"
 
+#ifdef TARGET_SUNOS
+#include <sys/filio.h>
+#endif
+
 #ifdef TARGET_RISCOS
 /* New keyboard routines */
 /* --------------------- */
