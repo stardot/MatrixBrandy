@@ -1,8 +1,8 @@
-gitcommit=\""$(shell git log --abbrev-commit -1 2>/dev/null| head -1 |cut -d ' ' -f 2)"\"
+gitcommit=\""$(shell git log -1 --format=%h)"\"
 ifeq ($(gitcommit),\"""\")
   GITFLAGS =
 else
-  gitbranch=\""$(shell git status | head -1 | sed 's/\# //' | cut -d ' ' -f 3 )"\"
-  gitdate=\""$(shell git log --abbrev-commit -1 | grep 'Date:' | cut -d ' ' -f 4-9)"\"
+  gitbranch=\""$(shell git rev-parse --abbrev-ref HEAD)"\"
+  gitdate=\""$(shell git log -1 --format=%cd)"\"
   GITFLAGS = -DBRANDY_GITCOMMIT=$(gitcommit) -DBRANDY_GITBRANCH=$(gitbranch) -DBRANDY_GITDATE=$(gitdate)
 endif
