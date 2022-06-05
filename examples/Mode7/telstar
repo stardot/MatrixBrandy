@@ -153,7 +153,7 @@
  1530IF A% = 53 THEN S$ = "ip0:nx.nxtel.org:23280"
  1540IF A% = 54 THEN S$ = "ip0:teletext.matrixnetwork.co.uk:6502"
  1550IF A% = 55 THEN S$ = "ip0:teletext.matrixnetwork.co.uk:48065"
- 1560IF A% = 56 THEN S$ = "ip0:teletext.matrixnetwork.co.uk:31744"
+ 1560IF A% = 56 THEN GOTO 1460
  1570IF A% = 57 THEN S$ = FNcustom: IF S$="ip0:" THEN GOTO 1450
  1580IF A% = 84 OR A% = 116 THEN telnet%=telnet% EOR 1: GOTO 1450
  1590CLS
@@ -171,7 +171,7 @@
  1710PRINT CHR$(131);"5 - NXtel"
  1720PRINT CHR$(131);"6 - TEEFAX";CHR$(133);"and Matrix Teletext"
  1730PRINT CHR$(131);"7 - CEEFAX";CHR$(133);"(NMS - teletext)"
- 1740PRINT CHR$(131);"8 - EMFFAX";CHR$(133);"(teletext)"
+ 1740PRINT
  1750PRINT CHR$(131);"9 -";CHR$(130);"Custom address"
  1760PRINT CHR$(129);"0 - Exit"
  1770
