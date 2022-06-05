@@ -5,7 +5,7 @@
    50REM interface is a local extension, as is the screen memory access and
    60REM the *WinTitle command.
    70:
-   80VER$="Viewdata client version 20220530"
+   80VER$="Viewdata client version 20220605"
    90:
   100IF INKEY(-256) <> &4D THEN PRINT "This program works on Matrix Brandy for RISC OS or SDL only.":END
   110SYS"Brandy_Platform" TO ,,,sdl%,,leg%
