@@ -366,7 +366,7 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define SFX2 ""
 #endif
 
-#if !defined(TARGET_MIDIPIX) && !defined(TARGET_MACOSX)
+#if defined(TARGET_UNIX) && !defined(TARGET_MIDIPIX) && !defined(TARGET_MACOSX)
 #define USE_X11
 #endif
 
