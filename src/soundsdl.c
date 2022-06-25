@@ -484,7 +484,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  if(!step) tvol = 0;
 
- if( ((snd_rd[cm1]-snd_wr[cm1])&(SNDTABWIDTH-1)) != 2    ){
+ if( delay == 0 || ((snd_rd[cm1]-snd_wr[cm1]-2)&(SNDTABWIDTH-1)) > 2) {
 
   tnow = ((unsigned int)basicvars.centiseconds - snd_inited )/5; /* divide by 5 to covert centiseconds to 20ths */
 
@@ -511,7 +511,11 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
     snd = &sndtab[cm1][snd_wr[cm1]];
   }
 
-  if(delay != 0 || snd_wr[cm1] != snd_rd[cm1]  || snd->count == 0 ){
+  if(delay != 0 || snd->count == 0 ){
+    if( delay > 0 && snd_wr[cm1] == snd_rd[cm1] && snd->count > (delay << 11) ) {
+      snd->count = (delay << 11);
+      stime[cm1] = tnow + delay;
+    }
     /* move to next entry */
     snd_wr[cm1] = (snd_wr[cm1]+1)&(SNDTABWIDTH-1);
     snd = &sndtab[cm1][snd_wr[cm1]];
@@ -524,8 +528,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
      r = snd_rd[cm1];
      snd = & sndtab[cm1][r]; /* over write playing entry */
      snd_wr[cm1] = r;
-    }
-    stime[cm1] = tnow + duration;
+     stime[cm1] = tnow + duration;
+    } else stime[cm1] += duration;
   }
 
   snd->step    = step;
