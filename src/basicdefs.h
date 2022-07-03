@@ -27,7 +27,7 @@
 
 #include <setjmp.h>
 #include <stdio.h>
-#ifdef USE_SDL
+#if defined(USE_SDL) || defined(USE_SDL2)
 #include <SDL.h>
 #endif
 #include "common.h"
@@ -561,7 +561,7 @@ typedef struct {
   int clocktype;			/* Type of clock used in centisecond timer */
   int64 monotonictimebase;		/* Baseline for OS_ReadMonotonicTime */
   size_t memdump_lastaddr;		/* Last address used by LISTB/LISTW */
-#ifdef USE_SDL
+#if defined(USE_SDL) || defined(USE_SDL2)
   SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
   SDL_Thread *interp_thread;	/* Holder for centisecond timer thread */
 #endif  
@@ -597,10 +597,14 @@ typedef struct {
   uint32 osbyte4val;          /* OSBYTE 4 value, default = 0 */
   int32 printer_ignore;       /* Printer ignore character, default = 10 */
   boolean networking;         /* TRUE if networking is available */
-#ifdef USE_SDL
+#if defined(USE_SDL) || defined(USE_SDL2)
   byte *modescreen_ptr;       /* Mode screen pointer to pixels memory */
   uint32 modescreen_sz;       /* Mode screen size */
+#ifdef USE_SDL2
+  SDL_Window *surface;       /* SDL Surface handle for screen0 */
+#else
   SDL_Surface *surface;       /* SDL Surface handle for screen0 */
+#endif
   int32 sdl_flags;            /* SDL surface flags */
   uint32 vdu14lines;          /* Line counter for VDU14 page mode */
   boolean noupdate;           /* Skip update if TRUE */
@@ -616,7 +620,7 @@ typedef union {
   size_t i;   /* Data store for integer or pointer */
 } sysparm;
 
-#ifdef USE_SDL
+#if defined(USE_SDL) || defined(USE_SDL2)
 typedef struct {
   int x;
   int y;
