@@ -1579,6 +1579,7 @@ static boolean waitkey(int wait) {
 #endif
 }
 
+#ifdef USE_SDL
 /* sdl12-compat doesn't return sensible values for CTRL+key in keysym.unicode.
    This is a translation table to provide the same outputs as SDL-1.2.15 */
 uint32 compatkeyfix(SDLKey sym, SDLMod mod) {
@@ -1609,6 +1610,7 @@ uint32 compatkeyfix(SDLKey sym, SDLMod mod) {
   }
   return sym;
 }
+#endif
 
 /*
 ** 'read_key' reads the next character from the keyboard
