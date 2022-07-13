@@ -1579,6 +1579,36 @@ static boolean waitkey(int wait) {
 #endif
 }
 
+/* sdl12-compat doesn't return sensible values for CTRL+key in keysym.unicode.
+   This is a translation table to provide the same outputs as SDL-1.2.15 */
+uint32 compatkeyfix(SDLKey sym, SDLMod mod) {
+  if ((sym > 64) || (sym < 32)) return (sym & 0x1F);
+  if (mod & KMOD_SHIFT) {
+    switch(sym) {
+      case 32: return 0;
+      case 39: return 0;
+      case 45: return 31;
+      case 54: return 30;
+      case 56: return 127;
+      default: return sym;
+    }
+  } else {
+    switch(sym) {
+      case 32: return 0;
+      case 35: return 30;
+      case 47: return 31;
+      case 50: return 0;
+      case 51: return 27;
+      case 52: return 28;
+      case 53: return 29;
+      case 54: return 30;
+      case 55: return 31;
+      case 56: return 127;
+      default: return sym;
+    }
+  }
+  return sym;
+}
 
 /*
 ** 'read_key' reads the next character from the keyboard
@@ -1687,6 +1717,9 @@ int32 read_key(void) {
 //            return ESCAPE;
             default:
               ch = ev.key.keysym.unicode;
+              /* Workaround an sdl12-compat bug */
+              if ((ch == 0) && (ev.key.keysym.mod & KMOD_CTRL)) ch=compatkeyfix(ev.key.keysym.sym, ev.key.keysym.mod);
+              //fprintf(stderr, "keysym.unicode=%d keysym.sym=%d keysym.mod=0x%X\n", ch, ev.key.keysym.sym, ev.key.keysym.mod);
               if (ch < 0x100) {
                 matrixflags.noupdate = 0;
                 return ch;
