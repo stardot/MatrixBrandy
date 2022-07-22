@@ -1213,6 +1213,27 @@ static void fn_rndpar(void) {
   }
 }
 
+/* Exported functions as they can be used elsewhere in Matrix Brandy */
+int32 sgni(int64 v) {
+  if (v>0) {
+    return(1);
+  } else if (v == 0) {
+    return(0);
+  } else {
+    return(-1);
+  }
+}
+
+int32 sgnf(float64 f) {
+  if (f>0.0) {
+    return(1);
+  } else if (f == 0.0) {
+    return(0);
+  } else {
+    return(-1);
+  }
+}
+
 /*
 ** 'fn_sgn' pushes +1, 0 or -1 on to the Basic stack depending on
 ** whether the value there is positive, zero or negative
@@ -1220,23 +1241,9 @@ static void fn_rndpar(void) {
 static void fn_sgn(void) {
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
-    int64 value = pop_anyint();
-    if (value>0) {
-      push_int(1);
-    } else if (value == 0) {
-      push_int(0);
-    } else {
-      push_int(-1);
-    }
+    push_int(sgni(pop_anyint()));
   } else if (GET_TOPITEM == STACK_FLOAT) {
-    floatvalue = pop_float();
-    if (floatvalue>0.0) {
-      push_int(1);
-    } else if (floatvalue == 0.0) {
-      push_int(0);
-    } else {
-      push_int(-1);
-    }
+    push_int(sgnf(pop_float()));
   } else error(ERR_TYPENUM);
 }
 

@@ -3724,6 +3724,7 @@ static int64 ipow(int64 base, int64 exp) {
 */
 static void eval_vpow(void) {
   int lhint, rhint;
+  int64 resint;
   long double lh, rh, result;
   float64 res64;
   rhint = TOPITEMISINT;
@@ -3732,8 +3733,9 @@ static void eval_vpow(void) {
   lhint = TOPITEMISINT;
   lh = pop_anynumfp();
   result = mpow(lh, rh);
-  if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && lhint && rhint) {
-    push_int64(ipow((int64)lh, (int64)rh));
+  resint = ipow((int64)lh, (int64)rh);
+  if ((result <= MAXINT64FLT) && (result >= MININT64FLT) && lhint && rhint && (sgni(resint) == sgnf(result))) {
+    push_int64(resint);
   } else {
     if (result == (int64)result) {
       /* Integer result by happenstance, return as a 64-bit int so as not to lose precision */
