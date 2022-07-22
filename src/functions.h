@@ -50,7 +50,5 @@ extern void fn_end(void);
 extern void fn_dim(void);
 extern void fn_colour(void);
 extern void fn_beats(void);
-extern int32 sgni(int64);
-extern int32 sgnf(float64);
 
 #endif

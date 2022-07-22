@@ -1213,27 +1213,6 @@ static void fn_rndpar(void) {
   }
 }
 
-/* Exported functions as they can be used elsewhere in Matrix Brandy */
-int32 sgni(int64 v) {
-  if (v>0) {
-    return(1);
-  } else if (v == 0) {
-    return(0);
-  } else {
-    return(-1);
-  }
-}
-
-int32 sgnf(float64 f) {
-  if (f>0.0) {
-    return(1);
-  } else if (f == 0.0) {
-    return(0);
-  } else {
-    return(-1);
-  }
-}
-
 /*
 ** 'fn_sgn' pushes +1, 0 or -1 on to the Basic stack depending on
 ** whether the value there is positive, zero or negative

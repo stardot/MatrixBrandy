@@ -68,6 +68,9 @@ extern int32 INT64TO32(int64);
 extern int64 TOINT64(float64);
 extern void set_fpu(void);
 extern void decimaltocomma(char *, int32);
+extern int32 sgni(int64);
+extern int32 sgnf(float64);
+
 #ifdef USE_SDL
 extern Uint8 mode7frame[25][40];
 #endif

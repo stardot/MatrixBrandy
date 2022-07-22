@@ -494,6 +494,7 @@ int32 TOINT(float64 fltmp) {
 int64 TOINT64(float64 fltmp) {
   if (fltmp > MAXINT64FLT) error(ERR_RANGE);
   if (fltmp < MININT64FLT) error(ERR_RANGE);
+  if (sgnf(fltmp) != sgni((int64)fltmp)) error(ERR_RANGE);
   return (int64)fltmp;
 }
 
@@ -518,4 +519,25 @@ void decimaltocomma(char *numstring, int32 len) {
   int32 i = 0;
   for(i = 0; i < len; i++)
     if (numstring[i] == '.') numstring[i] = ',';
+}
+
+/* Return the sign of the number */
+int32 sgni(int64 v) {
+  if (v>0) {
+    return(1);
+  } else if (v == 0) {
+    return(0);
+  } else {
+    return(-1);
+  }
+}
+
+int32 sgnf(float64 f) {
+  if (f>0.0) {
+    return(1);
+  } else if (f == 0.0) {
+    return(0);
+  } else {
+    return(-1);
+  }
 }

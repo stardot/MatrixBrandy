@@ -14,6 +14,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   is non-zero then STR$ obeys @% so we were masking against &FF - but we
   were setting all the top bits when using "+". This is fixed now the top
   byte is set to 1 instead. (We still check the byte is non-zero.)
+- BASIC: Raising to the power has better bounds checking.
 - Examples: Telstar client: Removed unnecessary code, TEEFAX server change,
   added new Teletext services and a custom address option.
 
