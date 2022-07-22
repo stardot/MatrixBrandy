@@ -134,6 +134,8 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #else
 #define CPUTYPE "ARM-unknown"
 #endif
+#elif defined(__arch64__)
+#define CPUTYPE "ARM-64bit"
 #else
 #define CPUTYPE "Unknown"
 #endif
