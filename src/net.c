@@ -47,6 +47,15 @@
 #include "errors.h"
 #include "net.h"
 
+#ifdef TARGET_MINIX
+#include <minix/config.h>
+
+/* OS_REV is new to Minix 3.4 - it's not present in 3.3 */
+#ifndef OS_REV
+#define MINIX_OLDNET
+#endif
+#endif /* TARGET_MINIX */
+
 #define MAXNETRCVLEN 65536
 #define MAXNETSOCKETS 4
 
@@ -163,7 +172,7 @@ void brandynet_init() {
 }
 
 int brandynet_connect(char *dest, char type) {
-#ifdef TARGET_RISCOS
+#if defined(TARGET_RISCOS) | defined(MINIX_OLDNET)
   char *host, *port;
   int n, mysocket, portnum, result;
   struct sockaddr_in netdest;
