@@ -352,7 +352,9 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
 #endif
 
 #ifdef TARGET_UNIX
-// #include <sys/time.h>
+#ifdef TARGET_MINIX
+#include <sys/time.h>
+#endif /* TARGET_MINIX */
 // #include <sys/types.h>
 #include <errno.h>
 // #include <unistd.h>
@@ -360,7 +362,7 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
 #include <termios.h>
 // Move these later
 static struct termios origtty;  /* Copy of original keyboard parameters */
-#endif
+#endif /* TARGET_UNIX */
 
 #ifdef USE_SDL
 #include "SDL.h"

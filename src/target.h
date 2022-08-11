@@ -210,6 +210,18 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #define DIR_SEP  '/'
 #endif
 
+#ifdef __minix
+#define TARGET_MINIX
+#define TARGET_UNIX
+#define BRANDY_OS "Minix"
+#define LEGACY_OSVERSION 0xF2
+#define MACTYPE 0x0800
+#define EDITOR_VARIABLE "BRANDY_EDITOR"
+#define DEFAULT_EDITOR  "vi"
+#define DIR_SEPS "/"
+#define DIR_SEP  '/'
+#endif
+
 #ifdef __midipix__
 #define TARGET_MIDIPIX
 #define TARGET_UNIX
