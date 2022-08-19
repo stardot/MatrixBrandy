@@ -494,7 +494,7 @@ int32 TOINT(float64 fltmp) {
 int64 TOINT64(float64 fltmp) {
   if (fltmp > MAXINT64FLT) error(ERR_RANGE);
   if (fltmp < MININT64FLT) error(ERR_RANGE);
-  if (sgnf(fltmp) != sgni((int64)fltmp)) error(ERR_RANGE);
+  if ((sgni((int64)fltmp) != 0) && (sgnf(fltmp) != sgni((int64)fltmp))) error(ERR_RANGE);
   return (int64)fltmp;
 }
 
