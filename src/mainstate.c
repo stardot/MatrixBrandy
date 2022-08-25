@@ -2338,7 +2338,10 @@ void exec_swap(void) {
 ** as 'SWIs'.
 */
 void exec_sys(void) {
-  int32 n, parmcount, ip, fp, swino = 0;
+  int32 n, parmcount, ip, swino = 0;
+#ifndef TARGET_RISCOS
+  int32 fp;
+#endif
   size_t flags, outregs[MAXSYSPARMS];
   sysparm inregs[MAXSYSPARMS * 2];
   stackitem parmtype;
