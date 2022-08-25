@@ -2368,7 +2368,10 @@ void exec_sys(void) {
     inregs[MAXSYSPARMS+n].f = 0.0;
     tempdesc[n].stringaddr = NIL;
   }
-  parmcount = 0; ip = 0; fp = MAXSYSPARMS+1;
+  parmcount = 0; ip = 0;
+#ifndef TARGET_RISCOS
+  fp = MAXSYSPARMS+1;
+#endif
   if (*basicvars.current == ',') basicvars.current++;
 /* Now gather the parameters for the SWI call */
   while (!ateol[*basicvars.current] && *basicvars.current != BASIC_TOKEN_TO) {
