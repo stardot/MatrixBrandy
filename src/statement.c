@@ -416,7 +416,7 @@ static void exec_statements(byte *lp) {
 //    if (basicvars.escape_enabled) checkforescape();
 #endif
 #ifdef DEBUG
-    if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token %X\n", *basicvars.current);
+    if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
 #endif
     (*statements[*basicvars.current])();	/* Dispatch a statement */
   } while (TRUE);
