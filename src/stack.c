@@ -449,7 +449,7 @@ void *alloc_stackmem(size_t size) {
   basicvars.stacktop.locarraysp->itemtype = STACK_LOCARRAY;
   basicvars.stacktop.locarraysp->arraysize = size;
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "ALlocate memory on stack at %p, size=%d\n", p, size);
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Allocate memory on stack at %p, size=%d\n", p, size);
 #endif
   return base;
 }
@@ -1154,6 +1154,7 @@ basicarray pop_arraytemp(void) {
 */
 fnprocinfo pop_proc(void) {
   stack_proc *p = basicvars.stacktop.procsp;
+  if (p->itemtype != STACK_PROC) error(ERR_ENDPROC);
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'PROC' block at %p\n", p);
 #endif
@@ -1168,6 +1169,7 @@ fnprocinfo pop_proc(void) {
 */
 fnprocinfo pop_fn(void) {
   stack_fn *p = basicvars.stacktop.fnsp;
+  if (p->itemtype != STACK_FN) error(ERR_FNRETURN);
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'FN' block at %p, restart = %p\n", p, p->lastrestart);
 #endif
@@ -1185,6 +1187,7 @@ fnprocinfo pop_fn(void) {
 */
 gosubinfo pop_gosub(void) {
   stack_gosub *p = basicvars.stacktop.gosubsp;
+  if (p->itemtype != STACK_GOSUB) error(ERR_RETURN);
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'GOSUB' block at %p\n", p);
 #endif

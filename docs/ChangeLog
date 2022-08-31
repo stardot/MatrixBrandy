@@ -17,6 +17,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   were setting all the top bits when using "+". This is fixed now the top
   byte is set to 1 instead. (We still check the byte is non-zero.)
 - BASIC: Raising to the power has better bounds checking.
+- BASIC: Fixed a bug in the parser where a variable could be erroneously
+  combined with an indirection operator.
+- BASIC: Fixed a bug where ENDPROC in a function or =expr in a procedure
+  would cause a crash.
 - Examples: Telstar client: Removed unnecessary code, TEEFAX server change,
   added new Teletext services and a custom address option.
 
