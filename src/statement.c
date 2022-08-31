@@ -328,7 +328,7 @@ static void (*statements[256])(void) = {
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 14..17 */
   bad_syntax, bad_syntax, bad_token, bad_token,				/* 18..1B */
   bad_token, bad_token, bad_token, bad_token,				/* 1C..1F */
-  bad_token, exec_assignment, bad_syntax, bad_syntax,			/* 20..23 */
+  skip_colon, exec_assignment, bad_syntax, bad_syntax,			/* 20..23 */
   exec_assignment, bad_syntax, bad_syntax, bad_syntax,			/* 24..27 */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 28..2B */
   bad_syntax, bad_syntax, bad_syntax, bad_syntax,			/* 2C..2F */
