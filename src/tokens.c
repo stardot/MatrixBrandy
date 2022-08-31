@@ -1334,6 +1334,9 @@ static void translate(void) {
   token = tokenbase[source];
   firstitem = TRUE;
   while (token != asc_NUL) {        /* Scan through the tokenised source */
+#ifdef DEBUG
+    if (basicvars.debug_flags.debug) fprintf(stderr, "    translate: token=0x%X\n", token);
+#endif
     if (token == BASIC_TOKEN_STAR)    /* '*' command */
       do_star();
     else if (token>=BASIC_TOKEN_LOWEST)       /* Have found a keyword token */

@@ -144,54 +144,29 @@ static long double floatvalue;		/* Temporary for holding floating point values *
 typedef void operator(void);
 
 
-#if 0          //#ifdef DEBUG - This function is never referenced
-/*
-** 'show_result' is a debugging function used to display the result of an
-** expression
-*/
-static void show_result(void) {
-  if (basicvars.debug_flags.debug) {
-    switch(GET_TOPITEM) {
-    case STACK_INT:
-      fprintf(stderr, "  Integer result, value=%d\n", basicvars.stacktop.intsp->intvalue);
-      break;
-    case STACK_FLOAT:
-      fprintf(stderr, "  Floating point result, value=%g\n", basicvars.stacktop.floatsp->floatvalue);
-      break;
-    case STACK_STRING: case STACK_STRTEMP: {
-      basicstring x;
-      int32 n, limit;
-      char *cp;
-      x = basicvars.stacktop.stringsp->descriptor;
-      fprintf(stderr, "  String result, length=%d, address=%p, value='", x.stringlen, x.stringaddr);
-      cp = x.stringaddr;
-      limit = (x.stringlen > 50 ? 50 : x.stringlen);
-      for (n = 0; n < limit; n++) putchar(*cp++);	/* Print contents of string */
-      if (limit != x.stringlen)
-        fprintf(stderr, "...'\n");
-      else {
-        fprintf(stderr, "'\n");
-      }
-      break;
-    }
-    default:
-      fprintf(stderr, "*** Bad entry on stack, type = %d ***\n", GET_TOPITEM);
-    }
-  }
-}
-#endif
-
 /*
 ** 'eval_integer' evaluates a numeric expression where an integer value
 ** is required, returning the value
 */
 int32 eval_integer(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_integer\n");
+#endif
   expression();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_integer\n");
+#endif
   return pop_anynum32();
 }
 
 int64 eval_int64(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_int64\n");
+#endif
   expression();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_int64\n");
+#endif
   return pop_anynum64();
 }
 
@@ -255,7 +230,13 @@ static float64 fdivwithtest(float64 lh, float64 rh) {
 ** required. The function returns the value obtained.
 */
 int32 eval_intfactor(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_intfactor\n");
+#endif
   (*factor_table[*basicvars.current])();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_intfactor\n");
+#endif
   return pop_anynum32();
 }
 
@@ -267,10 +248,16 @@ int32 eval_intfactor(void) {
 */
 boolean check_arrays(basicarray *p1, basicarray *p2) {
   int32 n;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:check_arrays\n");
+#endif
   if (p1->dimcount != p2->dimcount) return FALSE;
   n = 0;
   while (n < p1->dimcount && p1->dimsize[n] == p2->dimsize[n]) n++;
   return n == p1->dimcount;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:check_arrays\n");
+#endif
 }
 
 /*
@@ -698,12 +685,18 @@ static void push_singleparm(formparm *fp, char *procname) {
 ** function.
 */
 void push_parameters(fnprocdef *dp, char *base) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:push_parameters\n");
+#endif
   basicvars.current++;	/* Skip the '(' */
   if (dp->simple)
     push_singleparm(dp->parmlist, base);
   else {
     push_oneparm(dp->parmlist, 1, base);
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_parameters\n");
+#endif
 }
 
 /*
@@ -711,8 +704,14 @@ void push_parameters(fnprocdef *dp, char *base) {
 ** variable, that is, one that is not followed by an indirection operator
 */
 static void do_staticvar(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_staticvar\n");
+#endif
   push_int(basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger);
   basicvars.current+=2;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_staticvar\n");
+#endif
 }
 
 /*
@@ -723,6 +722,9 @@ static void do_staticvar(void) {
 static void do_statindvar(void) {
   size_t address = basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger;
   byte operator;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_statindvar\n");
+#endif
   basicvars.current+=2;
   operator = *basicvars.current;
   basicvars.current++;
@@ -735,48 +737,81 @@ static void do_statindvar(void) {
   else {		/* Word-sized integer */
     push_int(get_integer(address));
   }
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_statindvar\n");
+#endif
 }
 
 /*
 ** 'do_intzero' pushes the integer value 0 on to the Basic stack
 */
 static void do_intzero(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intzero\n");
+#endif
   basicvars.current++;
   push_int(0);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intzero\n");
+#endif
 }
 
 /*
 ** 'do_intone' pushes the integer value 1 on to the Basic stack
 */
 static void do_intone(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intone\n");
+#endif
   basicvars.current++;
   push_int(1);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intone\n");
+#endif
 }
 
 /*
 ** 'do_smallconst' pushes a small integer value on to the Basic stack
 */
 static void do_smallconst(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_smallconst\n");
+#endif
   push_int(*(basicvars.current+1)+1);	/* +1 as values 1..256 are held as 0..255 */
   basicvars.current+=2;	/* Skip 'smallconst' token and value */
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_smallconst\n");
+#endif
 }
 
 /*
 ** 'do_intconst' pushes a 32-bit integer constant on to the Basic stack
 */
 static void do_intconst(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intconst\n");
+#endif
   basicvars.current++;		/* Point current at binary version of number */
   push_int(GET_INTVALUE(basicvars.current));
   basicvars.current+=INTSIZE;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intconst\n");
+#endif
 }
 
 /*
 ** 'do_int64const' pushes a 64-bit integer constant on to the Basic stack
 */
 static void do_int64const(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_int64const\n");
+#endif
   basicvars.current++;		/* Point current at binary version of number */
   push_int64(GET_INT64VALUE(basicvars.current));
   basicvars.current+=INT64SIZE;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_int64const\n");
+#endif
 }
 
 /*
@@ -784,8 +819,14 @@ static void do_int64const(void) {
 ** Basic stack
 */
 static void do_floatzero(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatzero\n");
+#endif
   basicvars.current++;
   push_float(0.0);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatzero\n");
+#endif
 }
 
 /*
@@ -793,8 +834,14 @@ static void do_floatzero(void) {
 ** Basic stack
 */
 static void do_floatone(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatone\n");
+#endif
   basicvars.current++;
   push_float(1.0);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatone\n");
+#endif
 }
 
 /*
@@ -802,8 +849,14 @@ static void do_floatone(void) {
 ** the token on to the Basic stack
 */
 static void do_floatconst(void) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatconst\n");
+#endif
   push_float(get_fpvalue(basicvars.current));
   basicvars.current+=(FLOATSIZE+1);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatconst\n");
+#endif
 }
 
 /*
@@ -813,9 +866,15 @@ static void do_floatconst(void) {
 */
 static void do_intvar(void) {
   int32 *ip;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intvar\n");
+#endif
   ip = GET_ADDRESS(basicvars.current, int32 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   push_int(*ip);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intvar\n");
+#endif
 }
 
 /*
@@ -824,9 +883,15 @@ static void do_intvar(void) {
 */
 static void do_uint8var(void) {
   uint8 *ip;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_uint8var\n");
+#endif
   ip = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   push_uint8(*ip);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_uint8var\n");
+#endif
 }
 
 /*
@@ -835,9 +900,15 @@ static void do_uint8var(void) {
 */
 static void do_int64var(void) {
   int64 *ip;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_int64var\n");
+#endif
   ip = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   push_int64(*ip);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "Exited function evaluate.c:do_int64var\n");
+#endif
 }
 
 /*
@@ -846,9 +917,15 @@ static void do_int64var(void) {
 */
 static void do_floatvar(void) {
   float64 *fp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatvar\n");
+#endif
   fp = GET_ADDRESS(basicvars.current, float64 *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   push_float(*fp);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatvar\n");
+#endif
 }
 
 /*
@@ -856,9 +933,15 @@ static void do_floatvar(void) {
 */
 static void do_stringvar(void) {
   basicstring *sp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_stringvar\n");
+#endif
   sp = GET_ADDRESS(basicvars.current, basicstring *);
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer */
   push_string(*sp);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_stringvar\n");
+#endif
 }
 
 /*
@@ -866,9 +949,15 @@ static void do_stringvar(void) {
 */
 static void do_arrayvar(void) {
   variable *vp;
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_arrayvar\n");
+#endif
   vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+2;		/* Skip pointer to array and ')' */
   push_array(vp->varentry.vararray, vp->varflags);
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_arrayvar\n");
+#endif
 }
 
 
@@ -1008,7 +1097,7 @@ static void do_xvar(void) {
   boolean isarray;
 
 #ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_xvar\n");
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_xvar, current=0x%llX\n", (int64)basicvars.current);
 #endif
   base = get_srcaddr(basicvars.current);		/* Point 'base' at the start of the variable's name */
   np = skip_name(base);
@@ -1083,7 +1172,7 @@ static void do_xvar(void) {
     }
   }
 #ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_xvar\n");
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_xvar, current=0x%llX\n", (int64)basicvars.current);
 #endif
 }
 
@@ -4445,24 +4534,33 @@ void expression(void) {
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:expression\n");
-  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: *basicvars.current=0x%X\n", *basicvars.current);
+  if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
 #endif
   (*factor_table[*basicvars.current])();	/* Get first factor in the expression */
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)basicvars.current);
+#endif
   lastop = optable[*basicvars.current];
   if (lastop == 0) {
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via lastop=0\n");
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via lastop=0, current=0x%llX\n", (int64)basicvars.current);
 #endif
     return;	/* Quick way out if there is nothing to do */
   }
   basicvars.current++;		/* Skip operator (always one character) */
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
+#endif
   (*factor_table[*basicvars.current])();	/* Get second operand */
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)basicvars.current);
+#endif
   thisop = optable[*basicvars.current];
   if (thisop == 0) {
 /* Have got a simple '<value> <op> <value>' type of expression */
     (*opfunctions[lastop & OPERMASK][GET_TOPITEM])();
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via thisop=0\n");
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via thisop=0, current=0x%llX\n", (int64)basicvars.current);
 #endif
     return;
   }
@@ -4504,7 +4602,7 @@ void expression(void) {
     basicvars.opstop--;
   }
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression at end of function\n");
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression at end of function, current=0x%llX\n", (int64)basicvars.current);
 #endif
 }
 
