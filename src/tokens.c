@@ -1370,6 +1370,10 @@ static void translate(void) {
       do_string();
     else if (token == ' ' || token == asc_TAB)      /* Discard white space characters */
       source++;
+    else if ((token == "?" || token == "!") && (tokenbase[source-1] == ' ')) {
+      store(':');
+      store(token);
+    }
     else if (token == ':') {    /* Handle statement separators */
       store(':');
       do
