@@ -4534,6 +4534,15 @@ void expression(void) {
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:expression\n");
+#endif
+  if (*basicvars.current == ' ') {
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "    expression: Bumping current\n");
+#endif
+
+    basicvars.current++;
+  }
+#ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
 #endif
   (*factor_table[*basicvars.current])();	/* Get first factor in the expression */

@@ -1371,7 +1371,7 @@ static void translate(void) {
     else if (token == ' ' || token == asc_TAB)      /* Discard white space characters */
       source++;
     else if ((token == '?' || token == '!') && (tokenbase[source-1] == ' ')) {
-      store(':');
+      store(' ');
       store(token);
       source++;
     }
@@ -1454,7 +1454,7 @@ static int skiptable [] = {
   LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE,	/* 08..0F */
   LOFFSIZE, 0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE,			/* 10..17 */
   OFFSIZE+SIZESIZE, OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
-  -1,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
+   0,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
    0,  0,  0,  0,  0,  0,  0,  0,					/* 28..2F */
   -1, -1, -1, -1, -1, -1, -1, -1,					/* 30..37 */
   -1, -1,  0,  0,  0,  0,  0,  0,					/* 38..3F */
