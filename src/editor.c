@@ -580,6 +580,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
         else
 #endif
         fclose(textfile);
+        basicvars.misc_flags.badprogram=1; /* The program is incomplete, thus corrupt */
         error(ERR_NOROOM);
       }
       memmove(base, tokenline, length);

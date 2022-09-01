@@ -4539,7 +4539,6 @@ void expression(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "    expression: Bumping current\n");
 #endif
-
     basicvars.current++;
   }
 #ifdef DEBUG

@@ -21,6 +21,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   combined with an indirection operator.
 - BASIC: Fixed a bug where ENDPROC in a function or =expr in a procedure
   would cause a crash.
+- BASIC: Be a bit more graceful if loading a program bigger than the
+  workspace.
 - Examples: Telstar client: Removed unnecessary code, TEEFAX server change,
   added new Teletext services and a custom address option.
 

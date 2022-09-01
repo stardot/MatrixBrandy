@@ -620,6 +620,7 @@ static void print_details(boolean iserror) {
       emulate_printf("\r\n%s\r\n", errortext);
     } else {
       emulate_printf("[Line %d] %s\r\n", basicvars.linecount, errortext);
+      basicvars.linecount = 0;          /* Don't need to preserve it */
     }
   }
   else {        /* Error occured in running program */
