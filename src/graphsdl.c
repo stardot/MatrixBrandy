@@ -3100,7 +3100,7 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
 */
 void emulate_plot(int32 code, int32 x, int32 y) {
 #ifndef BRANDY_MODE7ONLY
-  int32 sx, sy, ex, ey, action;
+  int32 tx, ty, sx, sy, ex, ey, action;
   Uint32 colour = 0;
   SDL_Rect plot_rect, temp_rect;
   if (istextonly()) return;
@@ -3392,14 +3392,14 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
     semimajor = abs(ds.xlast2-ds.xlast3)/ds.xgupp;
     semiminor = abs(ds.ylast-ds.ylast3)/ds.ygupp;
-    sx = GXTOPX(ds.xlast3);
-    sy = GYTOPY(ds.ylast3);
-    shearx=(GXTOPX(ds.xlast)-sx)*(ds.ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
+    tx = GXTOPX(ds.xlast3);
+    ty = GYTOPY(ds.ylast3);
+    shearx=(GXTOPX(ds.xlast)-tx)*(ds.ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
 
     if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-      draw_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
+      draw_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
     else {
-      filled_ellipse(screenbank[ds.writebank], sx, sy, semimajor, semiminor, shearx, colour, action);
+      filled_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
     }
     ex = sx-semimajor;
     ey = sy-semiminor;
@@ -3407,6 +3407,18 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     hide_cursor();
     blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
     reveal_cursor();
+    break;
+  }
+  case PLOT_ARC: {
+    
+    break;
+  }
+  case PLOT_SEGMENT: {
+    
+    break;
+  }
+  case PLOT_SECTOR: {
+    
     break;
   }
   //default:

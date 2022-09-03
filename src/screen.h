@@ -45,24 +45,27 @@
 
 #define DRAW_STYLEMASK	0x38	/* Used for PLOT modes 0-63 */
 
-#define DRAW_SOLIDLINE	0x00	/* Draw a solid line including both end points, bit 0x08 skips final point */
-#define DRAW_DOTLINE	0x10	/* Draw a dotted line including both end points, bit 0x08 skips final point */
-#define DRAW_SOLIDLINE2	0x20	/* Draw a solid line excluding start point, bit 0x08 skips final point */
-#define DRAW_DOTLINE2	0x30	/* Draw a dotted line excluding start point, bit 0x08 skips final point */
-#define PLOT_POINT	0x40	/* Plot a single point */
-#define FILL_TRIANGLE	0x50	/* Plot a filled triangle */
-#define FILL_RECTANGLE	0x60	/* Plot a filled rectangle */
-#define FILL_PARALLELOGRAM 0x70	/* Plot a filled parallelogram */
-#define FLOOD_BACKGROUND 0x80	/* Flood fill as far as background colour */
-#define PLOT_CIRCLE	0x90	/* Plot a circle outline */
-#define FILL_CIRCLE	0x98	/* Plot a filled circle */
-#define SHIFT_RECTANGLE	0xB8	/* Move or copy rectangle */
-#define MOVE_RECTANGLE	0xBD	/* Move rectangle absolute */
-#define COPY_RECTANGLE	0xBE	/* Copy rectangle absolute */
-#define PLOT_ELLIPSE	0xC0	/* Plot an ellipse outline */
-#define FILL_ELLIPSE	0xC8	/* Plot a filled ellipse */
-#define GRAPHOP_MASK	0xF8	/* Mask to extract graphics operation */
-#define GRAPHHOW_MASK	0x07	/* Mask to extract details of operation */
+#define DRAW_SOLIDLINE	0x00    /* Draw a solid line including both end points, bit 0x08 skips final point */
+#define DRAW_DOTLINE	0x10      /* Draw a dotted line including both end points, bit 0x08 skips final point */
+#define DRAW_SOLIDLINE2	0x20    /* Draw a solid line excluding start point, bit 0x08 skips final point */
+#define DRAW_DOTLINE2	0x30      /* Draw a dotted line excluding start point, bit 0x08 skips final point */
+#define PLOT_POINT	0x40        /* Plot a single point */
+#define FILL_TRIANGLE	0x50      /* Plot a filled triangle */
+#define FILL_RECTANGLE	0x60    /* Plot a filled rectangle */
+#define FILL_PARALLELOGRAM 0x70 /* Plot a filled parallelogram */
+#define FLOOD_BACKGROUND 0x80   /* Flood fill as far as background colour */
+#define PLOT_CIRCLE	0x90        /* Plot a circle outline */
+#define FILL_CIRCLE	0x98        /* Plot a filled circle */
+#define PLOT_ARC 0xA0           /* Plot a circular arc */
+#define PLOT_SEGMENT 0xA8       /* Plot a segment */
+#define PLOT_SECTOR 0xB0        /* Plot a sector */
+#define SHIFT_RECTANGLE	0xB8    /* Move or copy rectangle */
+#define MOVE_RECTANGLE	0xBD    /* Move rectangle absolute */
+#define COPY_RECTANGLE	0xBE    /* Copy rectangle absolute */
+#define PLOT_ELLIPSE	0xC0      /* Plot an ellipse outline */
+#define FILL_ELLIPSE	0xC8      /* Plot a filled ellipse */
+#define GRAPHOP_MASK	0xF8      /* Mask to extract graphics operation */
+#define GRAPHHOW_MASK	0x07      /* Mask to extract details of operation */
 
 /* RISC OS plot action codes (set by VDU 18) */
 
