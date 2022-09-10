@@ -11,6 +11,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   does not use the plot_pixel prototype).
 - Graphics: Fixed an error where VDU variables 138 and 139 were erroneously
   clamping to pixel boundaries based on the current screen mode scaling.
+- Graphics: Fixed an integer division rounding error that crept in when
+  drawing went partially off screen.
 - BASIC: Fix LVAR so it doesn't choke on stupidly long variable names.
 - BASIC: Tidied up an earlier cheat - when interpreting @%, if the top byte
   is non-zero then STR$ obeys @% so we were masking against &FF - but we
