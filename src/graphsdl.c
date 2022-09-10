@@ -119,7 +119,7 @@
 ** pixel coordinates
 */
 #define GXTOPX(x) ((x) / ds.xgupp)
-#define GYTOPY(y) ((ds.ygraphunits - 1 -(y)) / ds.ygupp)
+#define GYTOPY(y) (((32768 + ds.ygraphunits - 1 -(y)) / ds.ygupp) - (32768 / ds.ygupp))
 
 #define MOVFLAG ((vdu2316byte & 14) >> 1)
 #define SCROLLPROT (vdu2316byte & 1)
@@ -4343,6 +4343,7 @@ static void draw_line(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32 y2, U
   int omit_first = (mask == 0x20 || mask == 0x28 || mask == 0x30 || mask == 0x38); // Omit first
   int omit_last =  (mask == 0x08 || mask == 0x18 || mask == 0x28 || mask == 0x38); // Omit last
   int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
+
   if (w < 0) {
     dx1 = -1;
   } else if (w > 0) {
