@@ -2891,6 +2891,7 @@ static void setup_mode(int32 mode) {
     font_rect.h = place_rect.h = YPPC;
     tmsg.crtc6845r10 = 103;
   }
+  SDL_Flip(matrixflags.surface);
   tmsg.modechange = -1;
 }
 
