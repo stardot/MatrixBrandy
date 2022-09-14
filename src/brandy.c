@@ -570,6 +570,7 @@ static void run_interpreter(void) {
 ** 'quit' command is followed by a return code, that value is used instead.
 */
 void exit_interpreter(int retcode) {
+  emulate_wait(); /* This blocks while the display update thread is doing stuff */
   fileio_shutdown();
   end_screen();
   kbd_quit();
