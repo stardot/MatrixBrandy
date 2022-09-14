@@ -1993,7 +1993,7 @@ void exec_xproc(void) {
 ** the operating system. It defaults to 0 (EXIT_SUCCESS)
 */
 void exec_quit(void) {
-  int32 retcode;
+  uint8 retcode;
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_quit\n");
 #endif /* DEBUG */
