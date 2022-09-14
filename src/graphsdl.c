@@ -2891,7 +2891,6 @@ static void setup_mode(int32 mode) {
     font_rect.h = place_rect.h = YPPC;
     tmsg.crtc6845r10 = 103;
   }
-  SDL_Flip(matrixflags.surface);
   tmsg.modechange = -1;
 }
 
@@ -3906,6 +3905,7 @@ boolean init_screen(void) {
   tmsg.x = 0;
   tmsg.y = 0;
   tmsg.crtc6845r10 = 103;
+  tmsg.bailout = -1;
 
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
@@ -5127,6 +5127,9 @@ int videoupdatethread(void) {
       } else {
         setup_mode(tmsg.modechange);
       }
+    }
+    if (tmsg.bailout != -1) {
+      exit_interpreter_real(tmsg.bailout);
     } else {
       mytime = basicvars.centiseconds;
       if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {

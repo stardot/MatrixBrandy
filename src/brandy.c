@@ -62,6 +62,10 @@
 #include "evaluate.h"
 #include "net.h"
 
+#ifdef USE_SDL
+extern threadmsg tmsg;
+#endif
+
 /* #define DEBUG */
 
 workspace basicvars;		/* This contains all the important interpreter variables */
@@ -112,6 +116,7 @@ int main(int argc, char *argv[]) {
   init2();
   gpio_init();
 #ifdef USE_SDL
+  tmsg.bailout = -1;
   basicvars.interp_thread = SDL_CreateThread(run_interpreter,NULL);
   videoupdatethread();
 #else
@@ -569,8 +574,7 @@ static void run_interpreter(void) {
 ** an error was found in the Basic program it returns EXIT_FAILURE. If the
 ** 'quit' command is followed by a return code, that value is used instead.
 */
-void exit_interpreter(int retcode) {
-  emulate_wait(); /* This blocks while the display update thread is doing stuff */
+void exit_interpreter_real(int retcode) {
   fileio_shutdown();
   end_screen();
   kbd_quit();
@@ -580,4 +584,10 @@ void exit_interpreter(int retcode) {
   exit(retcode);
 }
 
-
+void exit_interpreter(int retcode) {
+#ifdef USE_SDL
+  tmsg.bailout = retcode;
+#else
+  exit_interpreter_real(retcode);
+#endif
+}

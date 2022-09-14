@@ -627,5 +627,6 @@ typedef struct {
 #endif
 
 extern void exit_interpreter(int);
+extern void exit_interpreter_real(int);
 
 #endif
