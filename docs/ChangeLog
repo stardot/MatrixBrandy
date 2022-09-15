@@ -7,6 +7,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Now compiles on Solaris 11 (tested x86_64). Use "gmake".
 - System: Text mode build available for Minix 3 (no networking yet).
   Use gmake -f build/makefile.minix
+- System: Fixed a bug that caused Brandy to throw an Xlib error in some
+  cases when exiting.
 - Graphics: Fixed GCOL action codes 5-7 for filled rectangles (this function
   does not use the plot_pixel prototype).
 - Graphics: Fixed an error where VDU variables 138 and 139 were erroneously
