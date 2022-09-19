@@ -1634,7 +1634,7 @@ void exec_sound(void) {
     mos_sound_off();
     break;
   default:
-    delay = 0;
+    delay = -1;
     channel = eval_integer();
     if (*basicvars.current != ',') error(ERR_COMISS);
     basicvars.current++;
