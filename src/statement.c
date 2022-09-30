@@ -417,7 +417,9 @@ static void exec_statements(byte *lp) {
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
     kbd_escpoll();
-    if (tmsg.bailout != -1) sleep(10); /* Stop processing while threads are stopped */
+    if (tmsg.bailout != -1) {
+      while(TRUE) sleep(10); /* Stop processing while threads are stopped */
+    }
 #endif
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
