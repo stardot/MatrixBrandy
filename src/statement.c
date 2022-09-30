@@ -26,6 +26,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#ifdef USE_SDL
+#include <unistd.h>
+#endif
 #include "common.h"
 #include "target.h"
 #include "basicdefs.h"
@@ -48,6 +51,7 @@
 #include "keyboard.h"
 #ifdef USE_SDL
 #include "graphsdl.h"
+extern threadmsg tmsg;
 #endif
 
 /* #define DEBUG */
@@ -412,8 +416,8 @@ static void exec_statements(byte *lp) {
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
-      kbd_escpoll();
-//    if (basicvars.escape_enabled) checkforescape();
+    kbd_escpoll();
+    if (tmsg.bailout != -1) sleep(10); /* Stop processing while threads are stopped */
 #endif
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
