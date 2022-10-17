@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <unistd.h>
 #include <SDL.h>
 #include <SDL_audio.h>
 #include "basicdefs.h"
@@ -484,7 +485,8 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
  if(!step) tvol = 0;
 
- if( delay == 0 || ((snd_rd[cm1]-snd_wr[cm1]-2)&(SNDTABWIDTH-1)) > 2) {
+//  if( delay == 0 || ((snd_rd[cm1]-snd_wr[cm1]-2)&(SNDTABWIDTH-1)) > 2) {
+  if(delay)while(((snd_rd[cm1]-snd_wr[cm1]-2)&(SNDTABWIDTH-1)) <= 2) usleep(50000);
 
   tnow = ((unsigned int)basicvars.centiseconds - snd_inited )/5; /* divide by 5 to covert centiseconds to 20ths */
 
@@ -548,9 +550,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
   if( snd_ison && snd_paused){
    SDL_PauseAudio(0);
    snd_paused = 0;
-  }
- }
- 
+  } 
 }
 
 void sdl_sound_onoff(int32 onoff){
