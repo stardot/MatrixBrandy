@@ -5398,9 +5398,9 @@ int videoupdatethread(void) {
       exit_interpreter_real(tmsg.bailout);
     } else {
       mytime = basicvars.centiseconds;
+      SDL_PumpEvents(); /* This is for the keyboard stuff */
       if (matrixflags.noupdate == 0 && matrixflags.videothreadbusy == 0 && ds.autorefresh == 1 && matrixflags.surface) {
         matrixflags.videothreadbusy = 1;
-        SDL_PumpEvents(); /* This is for the keyboard stuff */
         if (screenmode == 7) {
           if (tmsg.mode7forcerefresh || memcmp(mode7cloneframe, mode7frame, 1000)) {
             memcpy(mode7cloneframe, mode7frame, 1000);
