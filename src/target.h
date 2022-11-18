@@ -237,7 +237,11 @@ typedef unsigned long long int uint64;	/* 64-bit unsigned integer */
 #ifdef __sun__
 #define TARGET_SUNOS
 #define TARGET_UNIX
+#ifdef __illumos__
+#define BRANDY_OS "illumos"
+#else
 #define BRANDY_OS "SunOS"
+#endif /* illumos */
 #define LEGACY_OSVERSION 0xF2
 #define MACTYPE   0x0800
 #define EDITOR_VARIABLE "BRANDY_EDITOR"

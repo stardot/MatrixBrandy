@@ -1,19 +1,21 @@
-# Makefile for Brandy in text mode under NetBSD and Linux
+# Makefile for brandy in text mode under NetBSD and Linux
 
 CC = gcc
 LD = gcc
+STRIP = strip
+ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
-include git.mk
+include build/git.mk
 
-#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS)
-#CFLAGS = -g -I/usr/include/SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS)
-CFLAGS = -O2 -I/usr/include/SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS)
+#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -m64 -O3 -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
-LDFLAGS +=
+LDFLAGS =
 
-LIBS = -lm
+LIBS = -m64 -lm -ldl -lpthread -lrt -lsocket
 
-SRCDIR = ../src
+SRCDIR = src
 
 OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o \
 	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
@@ -49,26 +51,24 @@ tbrandy:	$(OBJ) $(TEXTONLYOBJ)
 sbrandy:	$(OBJ) $(SIMPLETEXTOBJ)
 	$(LD) $(LDFLAGS) -o sbrandy $(OBJ) $(SIMPLETEXTOBJ) $(LIBS)
 
-include depends.mk
+include build/depends.mk
 
 .c.o:
 	$(CC) $(CFLAGS) $< -c -o $@
 
 trecompile:
 	$(CC) $(CFLAGS) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
-	echo tbrandy
 
 srecompile:
 	$(CC) $(CFLAGS) $(SRC) $(SIMPLETEXTSRC) $(LIBS) -o sbrandy
-	echo sbrandy
 
 tnodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
-	strip tbrandy
+	$(STRIP) tbrandy
 
 snodebug:
 	$(CC) $(CFLAGS2) $(SRC) $(SIMPLETEXTSRC) $(LIBS) -o sbrandy
-	strip sbrandy
+	$(STRIP) sbrandy
 
 tcheck:
 	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
