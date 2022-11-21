@@ -15,6 +15,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   clamping to pixel boundaries based on the current screen mode scaling.
 - Graphics: Fixed an integer division rounding error that crept in when
   drawing went partially off screen.
+- Graphics: Much faster full-screen blit for 1:1 pixel modes.
 - Sound: Notes are now queued by default if no delay parameter is used.
 - BASIC: Fix LVAR so it doesn't choke on stupidly long variable names.
 - BASIC: Tidied up an earlier cheat - when interpreting @%, if the top byte

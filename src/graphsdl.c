@@ -918,10 +918,14 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
   if (top < 0) top = 0;
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
   if (!ds.scaled) {
-    for (xx=left; xx <= right; xx++) {
-      for (yy=top; yy <= bottom; yy++) {
-        pxoffset = xx + yy*ds.vscrwidth;
-        *((Uint32*)matrixflags.surface->pixels + pxoffset) = *((Uint32*)screenbank[ds.displaybank]->pixels + pxoffset);
+    if ((top == 0) && (left == 0) && (right == ds.screenwidth-1) && (bottom == ds.screenheight-1)) {
+      memcpy(matrixflags.surface->pixels, screenbank[ds.displaybank]->pixels, ds.screenwidth*ds.screenheight*4);
+    } else {
+      for (xx=left; xx <= right; xx++) {
+        for (yy=top; yy <= bottom; yy++) {
+          pxoffset = xx + yy*ds.vscrwidth;
+          *((Uint32*)matrixflags.surface->pixels + pxoffset) = *((Uint32*)screenbank[ds.displaybank]->pixels + pxoffset);
+        }
       }
     }
   } else {
@@ -5071,7 +5075,7 @@ void osbyte113(int x) {
   if (screenmode == 7) return;
   if (x==0) x=1;
   if (x <= MAXBANKS) ds.displaybank=(x-1);
-  blit_scaled_actual(0, 0, ds.screenwidth, ds.screenheight);
+  blit_scaled_actual(0, 0, ds.screenwidth-1, ds.screenheight-1);
 #endif
 }
 
