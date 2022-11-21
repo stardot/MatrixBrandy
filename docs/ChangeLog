@@ -5,6 +5,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Workaround for sdl12-compat library bug affecting keyboard input.
 - System: RISC OS SharedCLibrary build now supports networking.
 - System: Now compiles on Solaris 11 (tested x86_64). Use "gmake".
+- System: Now compiles on illumos (an OpenSolaris fork). Use makefiles in
+  build directory.
 - System: Text mode build available for Minix 3 (no networking yet).
   Use gmake -f build/makefile.minix
 - System: Fixed a bug that caused Brandy to throw an Xlib error in some
@@ -17,6 +19,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   drawing went partially off screen.
 - Graphics: Much faster full-screen blit for 1:1 pixel modes.
 - Sound: Notes are now queued by default if no delay parameter is used.
+- Sound: Block instead of discarding notes if the buffer is full.
 - BASIC: Fix LVAR so it doesn't choke on stupidly long variable names.
 - BASIC: Tidied up an earlier cheat - when interpreting @%, if the top byte
   is non-zero then STR$ obeys @% so we were masking against &FF - but we
