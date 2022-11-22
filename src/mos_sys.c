@@ -723,7 +723,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         valin = (float64 *)inregs[0].i;
         outsin=valin+1;
         outcos=valin+2;
-#ifdef TARGET_RISCOS
+#if defined(TARGET_RISCOS) || defined(TARGET_MINIX)
         /* RISC OS doesn't have sincos() so need to do them separately */
         *outsin=sin(*valin);
         *outcos=cos(*valin);
