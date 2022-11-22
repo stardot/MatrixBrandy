@@ -9,7 +9,7 @@ include git.mk
 
 #CFLAGS = -g -DDEBUG -DNONET -Wall $(GITFLAGS) -mlibscl
 #CFLAGS = -g -DNONET -Wall $(GITFLAGS) -mlibscl
-CFLAGS = -O2 -D_GNU_SOURCE=1 -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) $(ADDFLAGS) -mlibscl
+CFLAGS = -O2 -DBRANDY_DEFAULT_SIZE=512 -Wall $(GITFLAGS) $(ADDFLAGS) -mlibscl
 
 LDFLAGS += -mlibscl
 

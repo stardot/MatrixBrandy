@@ -28,7 +28,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <math.h>
 #include "target.h"
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
 #ifndef __USE_GNU
@@ -716,21 +715,6 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[0]=0;
 #endif /* TARGET_UNIX | TARGET_MINGW */
 #endif /* __clang__ */
-      break;
-    case SWI_Brandy_SINCOS:
-      {
-        float64 *valin, *outsin, *outcos;
-        valin = (float64 *)inregs[0].i;
-        outsin=valin+1;
-        outcos=valin+2;
-#if defined(TARGET_RISCOS) || defined(TARGET_MINIX)
-        /* RISC OS doesn't have sincos() so need to do them separately */
-        *outsin=sin(*valin);
-        *outcos=cos(*valin);
-#else
-        sincos(*valin, outsin, outcos);
-#endif
-      }
       break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;

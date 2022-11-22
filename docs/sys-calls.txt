@@ -253,9 +253,6 @@ Brandy_xxx  (SWI numbers start &140000)
                                 the address of the symbol in R0 instead of
                                 the symbol name.
 
-$140016 Brandy_SINCOS           Takes a pointer to a 24-byte memory block
-                                in R0 with a float in |R0, returns SIN(|R0)
-                                in |(R0+8) and COS(|R0) in |(R0+16).
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt

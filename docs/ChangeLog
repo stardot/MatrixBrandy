@@ -20,7 +20,6 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Graphics: Much faster full-screen blit for 1:1 pixel modes.
 - Sound: Notes are now queued by default if no delay parameter is used.
 - Sound: Block instead of discarding notes if the buffer is full.
-- MOS: Added SYS call "Brandy_SINCOS".
 - BASIC: Fix LVAR so it doesn't choke on stupidly long variable names.
 - BASIC: Tidied up an earlier cheat - when interpreting @%, if the top byte
   is non-zero then STR$ obeys @% so we were masking against &FF - but we

@@ -125,7 +125,6 @@ typedef struct {
 #define SWI_Brandy_MouseEventExpire           0x140013
 #define SWI_Brandy_dlgetaddr                  0x140014
 #define SWI_Brandy_dlcalladdr                 0x140015
-#define SWI_Brandy_SINCOS                     0x140016
 
 #define SWI_RaspberryPi_GPIOInfo                  0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode           0x140101
@@ -221,7 +220,6 @@ static switable swilist[] = {
   {SWI_Brandy_MouseEventExpire,               "Brandy_MouseEventExpire"},
   {SWI_Brandy_dlgetaddr,                      "Brandy_dlgetaddr"},
   {SWI_Brandy_dlcalladdr,                     "Brandy_dlcalladdr"},
-  {SWI_Brandy_SINCOS,                         "Brandy_SINCOS"},
 
   {SWI_RaspberryPi_GPIOInfo,                  "RaspberryPi_GPIOInfo"},
   {SWI_RaspberryPi_GetGPIOPortMode,           "RaspberryPi_GetGPIOPortMode"},
