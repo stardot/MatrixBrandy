@@ -919,7 +919,14 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
   if (!ds.scaled) {
     if ((top == 0) && (left == 0) && (right == ds.screenwidth-1) && (bottom == ds.screenheight-1)) {
-      memcpy(matrixflags.surface->pixels, screenbank[ds.displaybank]->pixels, ds.screenwidth*ds.screenheight*4);
+      uint64 *dptr, *sptr, lptr, scrsz;
+      sptr = screenbank[ds.displaybank]->pixels;
+      dptr = matrixflags.surface->pixels;
+      scrsz = (ds.screenwidth*ds.screenheight)/2;
+      for (lptr = 0; lptr < scrsz; lptr++) {
+        *(dptr+lptr) = *(sptr+lptr);
+      }
+      // memcpy(matrixflags.surface->pixels, screenbank[ds.displaybank]->pixels, ds.screenwidth*ds.screenheight*4);
     } else {
       for (xx=left; xx <= right; xx++) {
         for (yy=top; yy <= bottom; yy++) {
