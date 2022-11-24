@@ -17,6 +17,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   clamping to pixel boundaries based on the current screen mode scaling.
 - Graphics: Fixed an integer division rounding error that crept in when
   drawing went partially off screen.
+- Graphics: Can now plot arcs RISC OS-style (thank you Michael Fairbank)
 - Graphics: Much faster full-screen blit for 1:1 pixel modes.
 - Sound: Notes are now queued by default if no delay parameter is used.
 - Sound: Block instead of discarding notes if the buffer is full.
