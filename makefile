@@ -72,12 +72,14 @@ SRC = \
 	$(SRCDIR)/heap.c
 
 brandy:	$(OBJ)
+	@echo ""
+	@echo "Build flags: $(CFLAGS)"
 	$(LD) $(LDFLAGS) -o brandy $(OBJ) $(LIBS)
 
 include build/depends.mk
 
-.c.o:
-	$(CC) $(CFLAGS) $< -c -o $@
+.c.o:; 	@echo -n "$@ "
+	@$(CC) $(CFLAGS) $< -c -o $@ >/dev/null
 
 recompile:
 	$(CC) $(CFLAGS) $(SRC) $(LIBS) -o brandy

@@ -46,15 +46,19 @@ SIMPLETEXTSRC = $(SRCDIR)/simpletext.c
 all:	tbrandy sbrandy
 
 tbrandy:	$(OBJ) $(TEXTONLYOBJ)
+	@echo ""
+	@echo "Build flags: $(CFLAGS)"
 	$(LD) $(LDFLAGS) -o tbrandy $(OBJ) $(TEXTONLYOBJ) $(LIBS)
 
 sbrandy:	$(OBJ) $(SIMPLETEXTOBJ)
+	@echo ""
 	$(LD) $(LDFLAGS) -o sbrandy $(OBJ) $(SIMPLETEXTOBJ) $(LIBS)
 
 include build/depends.mk
 
 .c.o:
-	$(CC) $(CFLAGS) $< -c -o $@
+	@echo -n "$@ "
+	@$(CC) $(CFLAGS) $< -c -o $@
 
 trecompile:
 	$(CC) $(CFLAGS) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
