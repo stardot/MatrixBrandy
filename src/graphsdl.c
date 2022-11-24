@@ -5446,9 +5446,9 @@ int videoupdatethread(void) {
         }
         SDL_Flip(matrixflags.surface);
         matrixflags.videothreadbusy = 0;
-        tmsg.videothread = 0;
       }
     }
+    tmsg.videothread = 0;
     usleep(15000);
   }
   return 0;
