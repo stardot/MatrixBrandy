@@ -924,9 +924,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       sptr = screenbank[ds.displaybank]->pixels;
       dptr = matrixflags.surface->pixels;
       scrsz = (ds.screenwidth*ds.screenheight)/2;
-      for (lptr = 0; lptr < scrsz; lptr++) {
-        *(dptr+lptr) = *(sptr+lptr);
-      }
+      for (lptr = 0; lptr < scrsz; lptr++) *(dptr++) = *(sptr++);
     } else {
       for (xx=left; xx <= right; xx++) {
         for (yy=top; yy <= bottom; yy++) {
