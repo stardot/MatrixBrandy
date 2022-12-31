@@ -1,7 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* V1.22.14 - 
+* V1.22.14 - 31 December 2022
 - System: Workaround for sdl12-compat library bug affecting keyboard input.
 - System: RISC OS SharedCLibrary build now supports networking.
 - System: Now compiles on Solaris 11 (tested x86_64). Use "gmake".
