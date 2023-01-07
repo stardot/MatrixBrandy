@@ -563,6 +563,7 @@ typedef struct {
   size_t memdump_lastaddr;		/* Last address used by LISTB/LISTW */
 #ifdef USE_SDL
   SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
+  SDL_Thread *escape_thread;	/* Holder for escape poller thread */
   SDL_Thread *interp_thread;	/* Holder for centisecond timer thread */
 #endif  
   char program[FNAMESIZE];		/* Name of program loaded */

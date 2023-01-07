@@ -416,11 +416,11 @@ static void exec_statements(byte *lp) {
   basicvars.current = lp;
   do {	/* This is the main statement execution loop */
 #ifdef USE_SDL
-    kbd_escpoll();
     if (tmsg.bailout != -1) {
       while(TRUE) sleep(10); /* Stop processing while threads are stopped */
     }
 #endif
+    if (basicvars.escape) error(ERR_ESCAPE);
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
 #endif

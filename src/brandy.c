@@ -78,6 +78,7 @@ static void init2(void);
 static void gpio_init(void);
 #ifdef USE_SDL
 static int run_interpreter(void *);
+static int escape_thread(void *);
 #else
 static void run_interpreter(void);
 #endif
@@ -117,6 +118,7 @@ int main(int argc, char *argv[]) {
   gpio_init();
 #ifdef USE_SDL
   tmsg.bailout = -1;
+  basicvars.escape_thread = SDL_CreateThread(escape_thread,NULL);
   basicvars.interp_thread = SDL_CreateThread(run_interpreter,NULL);
   videoupdatethread();
 #else
@@ -524,6 +526,19 @@ static void init_timer() {
 #endif /* USE_SDL */
 #endif /* TARGET_RISCOS */
 }
+
+#ifdef USE_SDL
+int escape_thread(void *dummydata) {
+  while (1) {
+    if (tmsg.bailout != -1) {
+      while(TRUE) sleep(10); /* Stop processing while threads are stopped */
+    }
+    kbd_escpoll();
+    usleep(10000);
+  }
+  return(0); /* Dummy, execution never reaches here */
+}
+#endif
 
 /*
 ** 'run_interpreter' is the main command loop for the interpreter.

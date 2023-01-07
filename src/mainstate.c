@@ -846,7 +846,6 @@ void exec_endwhile(void) {
     wp = get_while();
   }
   if (wp == NIL) error(ERR_NOTWHILE);	/* Not in a WHILE loop */
-  if (kbd_escpoll()) error(ERR_ESCAPE);
   basicvars.current = wp->whilexpr;
   expression();
   result = pop_anynum64();
@@ -1023,7 +1022,6 @@ void exec_gosub(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_gosub\n");
 #endif /* DEBUG */
-  if (kbd_escpoll()) error(ERR_ESCAPE);
   basicvars.current++;		/* Slip GOSUB token */
   if (*basicvars.current == BASIC_TOKEN_LINENUM) {
     dest = GET_ADDRESS(basicvars.current, byte *);
@@ -1057,7 +1055,6 @@ void exec_goto(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_goto\n");
 #endif /* DEBUG */
-  if (kbd_escpoll()) error(ERR_ESCAPE);
   basicvars.current++;		/* Skip 'GOTO' token */
   if (*basicvars.current == BASIC_TOKEN_LINENUM) {
     dest = GET_ADDRESS(basicvars.current, byte *);
@@ -1471,7 +1468,6 @@ void exec_next(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_next\n");
 #endif /* DEBUG */
-  if (kbd_escpoll()) error(ERR_ESCAPE);
   do {
     fp = find_for();
     basicvars.current++;	/* Skip NEXT token */
@@ -1932,7 +1928,6 @@ void exec_proc(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_proc\n");
 #endif /* DEBUG */
-  if (kbd_escpoll()) error(ERR_ESCAPE);
   vp = GET_ADDRESS(basicvars.current, variable *);
   if (strlen(vp->varname) > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
   dp = vp->varentry.varfnproc;
@@ -2836,7 +2831,6 @@ void exec_until(void) {
     rp = get_repeat();
   }
   if (rp == NIL) error(ERR_NOTREPEAT);	/* Not in a REPEAT loop */
-  if (kbd_escpoll()) error(ERR_ESCAPE);
   here = basicvars.current;	/* Note position of UNTIL for trace purposes */
   basicvars.current++;
   expression();
