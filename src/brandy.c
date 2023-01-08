@@ -534,6 +534,9 @@ int escape_thread(void *dummydata) {
       while(TRUE) sleep(10); /* Stop processing while threads are stopped */
     }
     kbd_escpoll();
+#ifdef BREAKONCTRLPRTSC
+    if ((kbd_inkey(-2) && kbd_inkey(-33))) tmsg.bailout = 0;
+#endif
     usleep(10000);
   }
   return(0); /* Dummy, execution never reaches here */

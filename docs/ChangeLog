@@ -3,6 +3,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 * V1.22.15 - 
 - System: For SDL builds, move ESCAPE polling to its own thread.
+- System: Added CTRL+PrtSc to force immediate exit in SDL build.
+  Unfortunately the Pause/Break key doesn't register in SDL. This
+  functionality depends on build-time option BREAKONCTRLPRTSC.
 
 * V1.22.14 - 31 December 2022
 - System: Workaround for sdl12-compat library bug affecting keyboard input.
