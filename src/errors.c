@@ -277,14 +277,18 @@ void restore_handlers(void) {
 */
 void announce(void) {
 #ifdef BRANDY_BANNER_MINIMAL
+  emulate_printf("\nMatrix Brandy ");
+  if ((basicvars.himem-basicvars.page) > (98304*1024))
+    emulate_printf("%uM", (uint32)(basicvars.himem-basicvars.page)>>20);
+  else
+    emulate_printf("%uK", (uint32)(basicvars.himem-basicvars.page)>>10);
 #ifdef USE_SDL
-  emulate_printf("\nMatrix Brandy %uK \x99\r\n\nBASIC\r\n\n", (uint32)(basicvars.himem-basicvars.page)>>10);
-#else
-  emulate_printf("\nMatrix Brandy %uK\r\n\nBASIC\r\n\n", (uint32)(basicvars.himem-basicvars.page)>>10);
+  emulate_printf(" \x99");
 #endif /* USE_SDL */
+  emulate_printf("\r\n\nBASIC\r\n\n");
 #else
   emulate_printf("\n%s\r\n\nStarting with " FMT_SZD " bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
-#endif
+#endif /* BRANDY_BANNER_MINIMAL */
 #ifdef DEBUG
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
