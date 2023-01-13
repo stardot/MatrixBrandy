@@ -1002,6 +1002,13 @@ int32 kbd_inkey(int32 arg) {
       return 0;
     }
 
+#ifdef SDL12_COMPAT_HEADERS
+    /* Really dirty hack for SDL12-compat not quite able to make its mind up over whether it
+       should be using SDLK_PRINT or SDLK_SYSREQ when they're both on the same key. Basically,
+       if it's lit the flag for SYSREQ, we'll manually light the PRINT flag too. Ugh. */
+    if (keystate[SDLK_SYSREQ]) keystate[SDLK_PRINT]=keystate[SDLK_SYSREQ];
+#endif
+
     if (arg < 0x080) {				/* Test for single keypress, INKEY-key	*/
       switch (arg) {
 #ifdef TARGET_DOSWIN
@@ -1705,10 +1712,9 @@ int32 read_key(void) {
               ch = 0x81 + ev.key.keysym.sym - SDLK_F1;
               break;
 #ifdef SDL12_COMPAT_HEADERS
-            case SDLK_SYSREQ:   ch=0x80; break; /* sdl12-compat uses this for some reason */
-#else
-            case SDLK_PRINT:    ch=0x80; break;
+            case SDLK_SYSREQ:   ch=0x80; break; /* sdl12-compat sometimes uses this for some reason */
 #endif
+            case SDLK_PRINT:    ch=0x80; break;
             case SDLK_PAUSE:    ch=0xC4; break;
             case SDLK_INSERT:   ch=0xC6; break;
             case SDLK_DELETE:   ch=0xC7; break;

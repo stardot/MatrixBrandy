@@ -77,11 +77,7 @@ int32 inkeylookup[] = {
   SDLK_F12,		/*  29  F12           */
   SDLK_F10,		/*  30  F10           */
   SDLK_SCROLLOCK,	/*  31  Scroll Lock   */
-#ifdef SDL12_COMPAT_HEADERS
-  SDLK_SYSREQ,	/*  32  Print/F0      For some reason libsdl12-compat uses this. */
-#else
   SDLK_PRINT,		/*  32  Print/F0      EN:no response JP: no response */
-#endif
   SDLK_w,		/*  33  W             */
   SDLK_e,		/*  34  E             */
   SDLK_t,		/*  35  T             */
