@@ -1581,7 +1581,7 @@ static boolean waitkey(int wait) {
 #endif
 }
 
-#ifdef USE_SDL
+#ifdef SDL12_COMPAT_HEADERS
 /* sdl12-compat doesn't return sensible values for CTRL+key in keysym.unicode.
    This is a translation table to provide the same outputs as SDL-1.2.15 */
 uint32 compatkeyfix(SDLKey sym, SDLMod mod) {
@@ -1727,7 +1727,7 @@ int32 read_key(void) {
               ch = ev.key.keysym.unicode;
 #ifdef SDL12_COMPAT_HEADERS
               /* Workaround an sdl12-compat bug */
-              if ((ch == 0) && (ev.key.keysym.mod & KMOD_CTRL)) ch=compatkeyfix(ev.key.keysym.sym, ev.key.keysym.mod);
+              if ((ch >= 32) && (ev.key.keysym.mod & KMOD_CTRL)) ch=compatkeyfix(ev.key.keysym.sym, ev.key.keysym.mod);
 #endif
               //fprintf(stderr, "keysym.unicode=%d keysym.sym=%d keysym.mod=0x%X\n", ch, ev.key.keysym.sym, ev.key.keysym.mod);
               if (ch < 0x100) {
