@@ -1704,7 +1704,11 @@ int32 read_key(void) {
             case SDLK_F11: case SDLK_F12:
               ch = 0x81 + ev.key.keysym.sym - SDLK_F1;
               break;
+#ifdef SDL12_COMPAT_HEADERS
+            case SDLK_SYSREQ:   ch=0x80; break; /* sdl12-compat uses this for some reason */
+#else
             case SDLK_PRINT:    ch=0x80; break;
+#endif
             case SDLK_PAUSE:    ch=0xC4; break;
             case SDLK_INSERT:   ch=0xC6; break;
             case SDLK_DELETE:   ch=0xC7; break;
@@ -1721,8 +1725,10 @@ int32 read_key(void) {
 //            return ESCAPE;
             default:
               ch = ev.key.keysym.unicode;
+#ifdef SDL12_COMPAT_HEADERS
               /* Workaround an sdl12-compat bug */
               if ((ch == 0) && (ev.key.keysym.mod & KMOD_CTRL)) ch=compatkeyfix(ev.key.keysym.sym, ev.key.keysym.mod);
+#endif
               //fprintf(stderr, "keysym.unicode=%d keysym.sym=%d keysym.mod=0x%X\n", ch, ev.key.keysym.sym, ev.key.keysym.mod);
               if (ch < 0x100) {
                 matrixflags.noupdate = 0;
