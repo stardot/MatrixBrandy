@@ -1418,12 +1418,14 @@ static int32 keyboard;          /* File descriptor for keyboard */
 void push_key(int32 ch) {
   holdcount++;
   holdstack[holdcount] = ch;
+  //fprintf(stderr, "push_key called, ch=%d, holdcount=%d\n", ch, holdcount);
 }
 
 /*
 ** pop_key - Remove a key from the held key stack
 */
 static int32 pop_key(void) {
+  //fprintf(stderr, "pop_key called, ch=%d, holdcount=%d\n", holdstack[holdcount], holdcount-1);
   return holdstack[holdcount--];
 }
 

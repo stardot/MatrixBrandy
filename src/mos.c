@@ -1132,7 +1132,7 @@ void mos_waitdelay(int32 time) {
   tbase=mos_centiseconds();
   while(mos_centiseconds() < tbase + time) {
 #ifdef USE_SDL
-    if (kbd_escpoll()) {
+    if (basicvars.escape) {
       time=0;
       error(ERR_ESCAPE);
     }
@@ -2855,6 +2855,9 @@ switch (areg) {
 		else			return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 //	case 133:			// OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 
+	case 138:
+		if (xreg==0) push_key(yreg);
+		return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x8A; 
 	case 160:			// OSBYTE 160 - Read VDU variable
 		return emulate_vdufn(xreg) << 8 | 160;
 #ifdef USE_SDL

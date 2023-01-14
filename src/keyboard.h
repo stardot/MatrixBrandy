@@ -60,5 +60,6 @@ extern void  kbd_escchar(char, char);
 extern int   kbd_escpoll(void);
 extern int   kbd_esctest(void);
 extern int   kbd_escack(void);
+extern void  push_key(int32 ch);
 extern void  osbyte21(int32 xreg);
 #endif /* __keyboard_h */
