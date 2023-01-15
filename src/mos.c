@@ -2748,8 +2748,7 @@ static byte _sysvar[] = { 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &A6 - &AF */
 0 }; /* Overflow for &FF+1 */
 byte *sysvar = _sysvar-166;
 
-static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag)
-{
+static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag){
 int tmp,new;
 
 tmp=(areg=areg & 0xFF);	// Prevent any sillyness
@@ -2760,6 +2759,7 @@ if (areg>=166) {
   yreg = sysvar[areg+1] & 0xFF;
   sysvar[areg] = new;
 // Some variables are 'unclean' because we don't control the kernel
+  if (areg==210) { if (sysvar[210]!=0) mos_sound_off(); else mos_sound_on(); }
   if (areg==220) kbd_escchar(new, xreg);
   return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
 }
@@ -2875,12 +2875,11 @@ switch (areg) {
 		  osbyte113(1);
 		  emulate_vdu(6);
 		}
-    if (xreg==242) { // GXR and dot pattern
-      return (osbyte163_242(yreg) << 8);
-    }
+		if (xreg==242) { // GXR and dot pattern
+		  return (osbyte163_242(yreg) << 8);
+		}
 		break;
 #endif
-
 // This is now in keyboard.c
 //	case 200:		// OSBYTE 200 - bit 0 disables escape if unset
 //	case 229:		// OSBYTE 229 - Enable or disable escape

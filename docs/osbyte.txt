@@ -3,7 +3,7 @@ OSBYTE and *FX calls
 
 Brandy implements a limited set of OSBYTE calls, either by *FX, CALL &FFF4,
 result%=USR &FFF4, or SYS "OS_Byte",A[,X[,Y]] [TO ...]. Where a return value
-is supported, it will be &00YYXXAA.
+is supported, it will be &00YYXXAA when called via USR &FFF4.
 
 OSBYTE 176-255 read and write system variables with
     newvalue = (oldvalue AND Y) EOR X
@@ -64,15 +64,16 @@ A=163:	Application Support - all these are local to Brandy
 		Y=255: Query the state, will return 0, 1 or 2 in Y register.
 	X=127: Analogue of Linux's "stty sane" - enables Refresh, issues a
 	       VDU 6 and sets both video bank controls to 0.
-A=165	Return text cursor position in X and Y. Identical to 134.
+A=165:	Return text cursor position in X and Y. Identical to 134.
 
 A=200:	Set Escape key and Reset effects - only Escape key effect supported.
-A=220:  Set TAB character
-A=220:  Set ESCAPE character
+A=210:	Sound disabled if X is non-zero.
+A=220:	Set TAB character
+A=220:	Set ESCAPE character
 A=229:	Enable or disable ESCAPE, disabled if X non-zero.
-A=230:  Define Escape effects.
+A=230:	Define Escape effects.
 A=250:	Read and write video bank set with OSBYTE 112, returns bank set with
-        OSBYTE 113 in Y
+	OSBYTE 113 in Y
 A=251:	Read and write video bank set with OSBYTE 113.
 
 OSBYTEs 166-255 read and write OSBYTE system variables with new=(old AND Y) EOR X,
