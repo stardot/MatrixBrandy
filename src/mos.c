@@ -70,6 +70,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
 //#include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
@@ -1250,39 +1251,40 @@ static unsigned int cmd_parse_num(char** text)
 /*
  * List of *commands implemented by this code
  */
-#define CMD_UNKNOWN		0
-#define CMD_KEY			1
-#define CMD_CAT			2
-#define CMD_CD			3
-#define CMD_QUIT		4
-#define CMD_WINDOW		6
-#define CMD_FX			7
-#define CMD_VER			8
-#define CMD_TITLE		9
-#define CMD_HELP		10
-#define CMD_WINTITLE		11
-#define CMD_FULLSCREEN		12
-#define CMD_NEWMODE		13
-#define CMD_REFRESH		14
-#define CMD_SCREENSAVE		15
-#define CMD_SCREENLOAD		16
-#define CMD_SHOW		17
-#define CMD_EXEC		18
-#define CMD_SPOOL		19
-#define CMD_SPOOLON		20
-#define CMD_LOAD		27
-#define CMD_SAVE		28
-#define CMD_VOLUME		29
-#define CMD_CHANNELVOICE	30
-#define CMD_VOICES		31
-#define CMD_POINTER		32
-#define CMD_BRANDYINFO		33
-#define HELP_BASIC		1024
-#define HELP_HOST		1025
-#define HELP_MOS		1026
-#define HELP_MATRIX		1027
-#define HELP_SOUND		1028
-#define HELP_MEMINFO		1029
+#define CMD_UNKNOWN       0
+#define CMD_KEY           1
+#define CMD_CAT           2
+#define CMD_EX            3
+#define CMD_CD            4
+#define CMD_QUIT          5
+#define CMD_WINDOW        6
+#define CMD_FX            7
+#define CMD_VER           8
+#define CMD_TITLE         9
+#define CMD_HELP          10
+#define CMD_WINTITLE      11
+#define CMD_FULLSCREEN    12
+#define CMD_NEWMODE       13
+#define CMD_REFRESH       14
+#define CMD_SCREENSAVE    15
+#define CMD_SCREENLOAD    16
+#define CMD_SHOW          17
+#define CMD_EXEC          18
+#define CMD_SPOOL         19
+#define CMD_SPOOLON       20
+#define CMD_LOAD          27
+#define CMD_SAVE          28
+#define CMD_VOLUME        29
+#define CMD_CHANNELVOICE  30
+#define CMD_VOICES        31
+#define CMD_POINTER       32
+#define CMD_BRANDYINFO    33
+#define HELP_BASIC        1024
+#define HELP_HOST         1025
+#define HELP_MOS          1026
+#define HELP_MATRIX       1027
+#define HELP_SOUND        1028
+#define HELP_MEMINFO      1029
 
 #define CMDTABSIZE 256
 
@@ -1358,6 +1360,7 @@ void make_cmdtab(){
   add_cmd( "cat",          CMD_CAT  );
   add_cmd( "cd",           CMD_CD   );
   add_cmd( "chdir",        CMD_CD   );
+  add_cmd( "ex",           CMD_EX   );
   add_cmd( "quit",         CMD_QUIT );
   add_cmd( "fx",           CMD_FX   );
   add_cmd( "help",         CMD_HELP );
@@ -1391,20 +1394,44 @@ void make_cmdtab(){
 }
 
 /*
- * *.(<directory>)
+ * *.(<directory>) or *cat (<directory>)
  * Catalogue directory
- * NB, Only *. does catalog, *CAT passed to host OS
+ * Internal implementation, slightly styled on BBC Micro output, with
+ * column spacing to work in any 20/40/80 screen mode.
  */
 static void cmd_cat(char *command) {
+  char buf[1024];
+  int buflen=0, loop=0;
+  struct dirent *entry;
+  DIR *dirp;
+
+  memset(buf,0,1024);
+  getcwd(buf, 1024);
+  buflen=strlen(buf);
+  if (*command == '.') command++;
+	  else while (*command != ' ') command++;	// Skip command
 	while (*command == ' ') command++;	// Skip spaces
-#if defined(TARGET_DOSWIN)
-	native_oscli("dir /w", NIL, NULL);
-#elif defined(TARGET_MACOSX) | defined(TARGET_UNIX)
-	native_oscli("ls -l", NIL, NULL);
-	// native_oscli("ls -C", NIL, NULL);
-#elif defined(TARGET_AMIGA)
-	native_oscli("list", NIL, NULL);
-#endif
+  if (strlen(command)) {
+    buflen--;
+    strncat(buf, "/", buflen);
+    strncat(buf, command, buflen-strlen(command));
+  }
+  emulate_printf("Dir. %s\r\n", buf);
+  dirp=opendir(buf);
+  if (!dirp) error(ERR_DIRNOTFOUND);
+  else {
+    emulate_printf("\r\n", buf);
+    while ((entry = readdir(dirp)) != NULL) {
+      if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
+      strncpy(buf, entry->d_name, 1023);
+      if (entry->d_type == DT_DIR) strncat(buf, "/", 2);
+      strncat(buf, " ", 2);
+      emulate_printf("%s", buf);
+      loop=(1000 - strlen(buf)) % 20;
+      while(loop--) emulate_printf(" ");
+    }
+  }
+  emulate_printf("\r\n");
 }
 
 /* Sets the window title. */
@@ -1416,6 +1443,19 @@ static void cmd_wintitle(char *command) {
     set_wintitle(command);
   }
   return;
+}
+
+static void cmd_ex(char *command) {
+	while (*command == ' ') command++;	// Skip spaces
+#if defined(TARGET_DOSWIN)
+	native_oscli("dir", NIL, NULL);
+#elif defined(TARGET_MACOSX) | defined(TARGET_UNIX)
+	native_oscli("ls -l", NIL, NULL);
+	// native_oscli("ls -C", NIL, NULL);
+#elif defined(TARGET_AMIGA)
+	native_oscli("list", NIL, NULL);
+#endif
+
 }
 
 static void cmd_fullscreen(char *command) {
@@ -2043,32 +2083,33 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
  */
     cmd = check_command(command);
     switch(cmd){
-      case CMD_KEY:		cmd_key(command+3); return;
-      case CMD_CAT:		cmd_cat(command); return;
-      case CMD_QUIT:		cmd_quit(command+4); return;
-      case CMD_HELP:		cmd_help(command+4); return;
-      case CMD_CD:		cmd_cd(command+2); return;
-      case CMD_FX:		cmd_fx(command+2); return;
-      case CMD_SHOW:		cmd_show(command+4); return;
-      case CMD_EXEC:		cmd_exec(command+4); return;
-      case CMD_SPOOL:		cmd_spool(command+5,0); return;
-      case CMD_SPOOLON:		cmd_spool(command+7,1); return;
-//    case CMD_VER:		cmd_ver(); return;
-      case CMD_SCREENSAVE:	cmd_screensave(command+10); return;
-      case CMD_SCREENLOAD:	cmd_screenload(command+10); return;
-      case CMD_WINTITLE:	cmd_wintitle(command+8); return;
-      case CMD_FULLSCREEN:	cmd_fullscreen(command+10); return;
-      case CMD_NEWMODE:		cmd_newmode(command+7); return;
-      case CMD_REFRESH:		cmd_refresh(command+7); return;
-      case CMD_BRANDYINFO:	cmd_brandyinfo(); return;
+      case CMD_KEY:           cmd_key(command+3); return;
+      case CMD_CAT:           cmd_cat(command); return;
+      case CMD_EX:            cmd_ex(command); return;
+      case CMD_QUIT:          cmd_quit(command+4); return;
+      case CMD_HELP:          cmd_help(command+4); return;
+      case CMD_CD:            cmd_cd(command+2); return;
+      case CMD_FX:            cmd_fx(command+2); return;
+      case CMD_SHOW:          cmd_show(command+4); return;
+      case CMD_EXEC:          cmd_exec(command+4); return;
+      case CMD_SPOOL:         cmd_spool(command+5,0); return;
+      case CMD_SPOOLON:       cmd_spool(command+7,1); return;
+//    case CMD_VER:           cmd_ver(); return;
+      case CMD_SCREENSAVE:    cmd_screensave(command+10); return;
+      case CMD_SCREENLOAD:    cmd_screenload(command+10); return;
+      case CMD_WINTITLE:      cmd_wintitle(command+8); return;
+      case CMD_FULLSCREEN:    cmd_fullscreen(command+10); return;
+      case CMD_NEWMODE:       cmd_newmode(command+7); return;
+      case CMD_REFRESH:       cmd_refresh(command+7); return;
+      case CMD_BRANDYINFO:    cmd_brandyinfo(); return;
 
-      case CMD_LOAD:		cmd_load(command+4); return;
-      case CMD_SAVE:		cmd_save(command+4); return;
+      case CMD_LOAD:          cmd_load(command+4); return;
+      case CMD_SAVE:          cmd_save(command+4); return;
 
-      case CMD_VOLUME:		cmd_volume(command+6);return;
-      case CMD_CHANNELVOICE:	cmd_channelvoice(command+12);return;
-      case CMD_VOICES:		cmd_voices();return;
-      case CMD_POINTER:		cmd_pointer(command+7);return;
+      case CMD_VOLUME:        cmd_volume(command+6);return;
+      case CMD_CHANNELVOICE:  cmd_channelvoice(command+12);return;
+      case CMD_VOICES:        cmd_voices();return;
+      case CMD_POINTER:       cmd_pointer(command+7);return;
     }
   }
 
