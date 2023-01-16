@@ -1424,7 +1424,9 @@ static void cmd_cat(char *command) {
     while ((entry = readdir(dirp)) != NULL) {
       if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
       strncpy(buf, entry->d_name, 1023);
+#ifndef TARGET_DOSWIN
       if (entry->d_type == DT_DIR) strncat(buf, "/", 2);
+#endif
       strncat(buf, " ", 2);
       emulate_printf("%s", buf);
       loop=(1000 - strlen(buf)) % 20;
