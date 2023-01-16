@@ -103,6 +103,9 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#ifndef _DIRENT_HAVE_D_TYPE
+#include <sys/stat.h>
+#endif /* _DIRENT_HAVE_D_TYPE */
 #endif
 
 #ifdef USE_SDL
@@ -1400,14 +1403,17 @@ void make_cmdtab(){
  * column spacing to work in any 20/40/80 screen mode.
  */
 static void cmd_cat(char *command) {
-  char buf[1024];
+  char buf[FILENAME_MAX];
   int buflen=0, loop=0;
   struct dirent *entry;
   DIR *dirp;
+#ifndef _DIRENT_HAVE_D_TYPE
+  struct stat statbuf;
+#endif
 
-  memset(buf,0,1024);
-  getcwd(buf, 1024);
-  buflen=strlen(buf);
+  memset(buf,0,FILENAME_MAX);
+  getcwd(buf, FILENAME_MAX);
+  buflen=FILENAME_MAX - strlen(buf);
   if (*command == '.') command++;
 	  else while (*command != ' ') command++;	// Skip command
 	while (*command == ' ') command++;	// Skip spaces
@@ -1423,10 +1429,14 @@ static void cmd_cat(char *command) {
     emulate_printf("\r\n", buf);
     while ((entry = readdir(dirp)) != NULL) {
       if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
-      strncpy(buf, entry->d_name, 1023);
-#ifndef TARGET_DOSWIN
-      if (entry->d_type == DT_DIR) strncat(buf, "/", 2);
+      strncpy(buf, entry->d_name, FILENAME_MAX - 1);
+#ifdef _DIRENT_HAVE_D_TYPE
+      if (entry->d_type == DT_DIR)
+#else
+      stat(entry->d_name, &statbuf);
+      if ((statbuf.st_mode & S_IFMT) == S_IFDIR)
 #endif
+        strncat(buf, "/", 2);
       strncat(buf, " ", 2);
       emulate_printf("%s", buf);
       loop=(1000 - strlen(buf)) % 20;
