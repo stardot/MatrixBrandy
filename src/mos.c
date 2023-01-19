@@ -102,6 +102,7 @@
 #if defined(TARGET_MINGW) || defined(TARGET_UNIX) || defined(TARGET_MACOSX)
 #include <sys/time.h>
 #include <sys/types.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
 #endif
@@ -1432,11 +1433,11 @@ static void cmd_cat(char *command) {
       while(loop--) emulate_printf(" ");
       emulate_printf("/");
       if ((statbuf.st_mode & S_IFMT) == S_IFDIR) emulate_printf("D");
-      if (statbuf.st_mode & 0x80)
+      if (!access(buf, W_OK))
         emulate_printf("W");
       else
         emulate_printf("L");
-      if (statbuf.st_mode & 0x100)
+      if (!access(buf, R_OK))
         emulate_printf("R ");
       else
         emulate_printf("  ");
