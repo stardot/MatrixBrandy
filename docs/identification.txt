@@ -1,0 +1,25 @@
+BASIC VERSION IDENTIFICATION
+============================
+
+As of version 1.22.12, all builds of Matrix Brandy BASIC VI give an INKEY(-256)
+value of &4D (or ASC("M"), decimal 77).
+
+Therefore. this is a guarantted way fir a BASIC program to identify that it is
+running on Matrix Brandy (as opposed to Acorn BBC BASIC on RISC OS, BBCSDL on
+many other platforms) and can make assumptions based on this, including
+access to SYS "Brandy_*" system calls.  On RISC OS, these are trapped and
+handled internally, all other SYS calls are handed to the operating system,
+on other platforms all SYS calls are handled internally and only a very small
+subset of RISC OS calls are recognised and handled.
+
+To further indentify what platform the program is running on, use the call
+SYS "Brandy_Platform" TO osname$, cpu$, is64bit%, sdl%, mactype%, underlying%, pid%, ppid%
+
+The "underlying%" value is the value of INKEY(-256) that used to be returned
+prior to Matrix Brandy using its own value, for example &F9 on Linux, or a
+value (ANDed with &F0) of &A0 on RISC OS. Therefore, you can assume graphics
+availability if underlying% AND &F0 = &A0 or sdl% = 1.
+
+(The 'tbrandy' build can also offer limited graphics via a Tektronix display
+or emulator, this needs to be specifically enabled at runtime, Brandy has no
+way to detect if it's running with a suitable terminal.)

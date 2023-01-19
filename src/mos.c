@@ -103,9 +103,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifndef _DIRENT_HAVE_D_TYPE
 #include <sys/stat.h>
-#endif /* _DIRENT_HAVE_D_TYPE */
 #endif
 
 #ifdef USE_SDL
@@ -1407,9 +1405,7 @@ static void cmd_cat(char *command) {
   int buflen=0, loop=0;
   struct dirent *entry;
   DIR *dirp;
-#ifndef _DIRENT_HAVE_D_TYPE
   struct stat statbuf;
-#endif
 
   memset(buf,0,FILENAME_MAX);
   getcwd(buf, FILENAME_MAX);
@@ -1430,17 +1426,21 @@ static void cmd_cat(char *command) {
     while ((entry = readdir(dirp)) != NULL) {
       if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
       strncpy(buf, entry->d_name, FILENAME_MAX - 1);
-#ifdef _DIRENT_HAVE_D_TYPE
-      if (entry->d_type == DT_DIR)
-#else
       stat(entry->d_name, &statbuf);
-      if ((statbuf.st_mode & S_IFMT) == S_IFDIR)
-#endif
-        strncat(buf, "/", 2);
-      strncat(buf, " ", 2);
       emulate_printf("%s", buf);
-      loop=(1000 - strlen(buf)) % 20;
+      loop=(1000 - (5+strlen(buf))) % 20;
       while(loop--) emulate_printf(" ");
+      emulate_printf("/");
+      if ((statbuf.st_mode & S_IFMT) == S_IFDIR) emulate_printf("D");
+      if (statbuf.st_mode & 0x80)
+        emulate_printf("W");
+      else
+        emulate_printf("L");
+      if (statbuf.st_mode & 0x100)
+        emulate_printf("R ");
+      else
+        emulate_printf("  ");
+      if ((statbuf.st_mode & S_IFMT) != S_IFDIR) emulate_printf(" ");
     }
   }
   emulate_printf("\r\n");

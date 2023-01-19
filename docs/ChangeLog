@@ -8,6 +8,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   functionality depends on build-time option BREAKONCTRLPRTSC.
 - System: Added some fixes to handle issues with the sdl12-compat
   library.
+- System: Implemented an internal *./*CAT handler, loosely stiled on BBC
+  Micro ADFS utput.
 - MOS: Implemented OSBYTE 210
 
 * V1.22.14 - 31 December 2022
