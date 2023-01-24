@@ -12,7 +12,7 @@
   120IF sdl% = 0 AND ((leg% AND &F0) <> &A0) THEN PRINT "This program works on Matrix Brandy for RISC OS or SDL only.":END
   130:
   140SYS"OS_Byte",229,1: SYS "OS_Byte",4,1
-  150OSCLI"Key1|_":OSCLI"KEY2"+CHR$(130)
+  150OSCLI"Key1|_":OSCLI"KEY2"+CHR$(130):OSCLI"KEY3"+CHR$(131)
   160ON ERROR GOTO 580
   170MODE 7:OFF: VDU23,16,1|23,18,1|
   180reveal%=0:scan%=0:width%=1:black%=0:ost%=0
