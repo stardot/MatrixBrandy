@@ -1402,15 +1402,17 @@ void make_cmdtab(){
  * column spacing to work in any 20/40/80 screen mode.
  */
 static void cmd_cat(char *command) {
-  char buf[FILENAME_MAX];
+  char dbuf[FILENAME_MAX+1];
+  char fbuf[FILENAME_MAX+1];
   int buflen=0, loop=0;
   struct dirent *entry;
   DIR *dirp;
   struct stat statbuf;
 
-  memset(buf,0,FILENAME_MAX);
-  getcwd(buf, FILENAME_MAX);
-  buflen=FILENAME_MAX - strlen(buf);
+  memset(dbuf,0,FILENAME_MAX+1);
+  memset(fbuf,0,FILENAME_MAX+1);
+  getcwd(dbuf, FILENAME_MAX);
+  buflen=FILENAME_MAX - strlen(dbuf);
   while (*command && (*command != ' ')) command++;	// Skip command
 	while (*command && (*command == ' ')) command++;	// Skip spaces
   if (strlen(command)) {
@@ -1419,32 +1421,34 @@ static void cmd_cat(char *command) {
 #else
     if (*command == '/') {
 #endif
-      strncpy(buf, command, buflen);
+      strncpy(dbuf, command, buflen);
     } else {
       buflen--;
-      strncat(buf, "/", buflen);
-      strncat(buf, command, buflen-strlen(command));
+      strncat(dbuf, "/", buflen);
+      strncat(dbuf, command, buflen-strlen(command));
     }
   }
-  emulate_printf("Dir. %s\r\n", buf);
-  dirp=opendir(buf);
+  emulate_printf("Dir. %s\r\n", dbuf);
+  dirp=opendir(dbuf);
   if (!dirp) error(ERR_DIRNOTFOUND);
   else {
-    emulate_printf("\r\n", buf);
+    emulate_printf("\r\n", dbuf);
     while ((entry = readdir(dirp)) != NULL) {
       if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
-      strncpy(buf, entry->d_name, FILENAME_MAX - 1);
-      stat(entry->d_name, &statbuf);
-      emulate_printf("%s", buf);
-      loop=(1000 - (5+strlen(buf))) % 20;
+      strncpy(fbuf, dbuf, FILENAME_MAX+1);
+      strncat(fbuf, "/", 2);
+      strncat(fbuf, entry->d_name, FILENAME_MAX - strlen(dbuf));
+      stat(fbuf, &statbuf);
+      emulate_printf("%s", entry->d_name);
+      loop=(1000 - (5+strlen(entry->d_name))) % 20;
       while(loop--) emulate_printf(" ");
       emulate_printf("/");
       if ((statbuf.st_mode & S_IFMT) == S_IFDIR) emulate_printf("D");
-      if (!access(buf, W_OK))
+      if (!access(fbuf, W_OK))
         emulate_printf("W");
       else
         emulate_printf("L");
-      if (!access(buf, R_OK))
+      if (!access(fbuf, R_OK))
         emulate_printf("R ");
       else
         emulate_printf("  ");
