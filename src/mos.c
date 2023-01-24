@@ -1411,13 +1411,20 @@ static void cmd_cat(char *command) {
   memset(buf,0,FILENAME_MAX);
   getcwd(buf, FILENAME_MAX);
   buflen=FILENAME_MAX - strlen(buf);
-  if (*command == '.') command++;
-	  else while (*command != ' ') command++;	// Skip command
-	while (*command == ' ') command++;	// Skip spaces
+  while (*command && (*command != ' ')) command++;	// Skip command
+	while (*command && (*command == ' ')) command++;	// Skip spaces
   if (strlen(command)) {
-    buflen--;
-    strncat(buf, "/", buflen);
-    strncat(buf, command, buflen-strlen(command));
+#ifdef TARGET_MINGW
+    if ((*(command+1) == ':') && ((*(command+2) == '\\') || (*(command+2) == '/'))) {
+#else
+    if (*command == '/') {
+#endif
+      strncpy(buf, command, buflen);
+    } else {
+      buflen--;
+      strncat(buf, "/", buflen);
+      strncat(buf, command, buflen-strlen(command));
+    }
   }
   emulate_printf("Dir. %s\r\n", buf);
   dirp=opendir(buf);
