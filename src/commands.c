@@ -967,7 +967,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "ASN")) {
     emulate_printf("This function gives the arc sine of a number (<factor>).");
   } else if (!strcmp(cmd, "ATN")) {
-    emulate_printf("This function gives the arc tangent of a number (<factor>).");
+    emulate_printf("This function gives the arc tangent of a number (<factor>).\r\nGiven two parameters in the form ATN(y,x), this gives the principal value of\r\nthe arc tangent of (y/x), using the signs of the two arguments to determine\r\nthe quadrant of the result.");
   } else if (!strcmp(cmd, "AUTO")) {
     emulate_printf("This command generates line numbers for typing in a program.\r\nAUTO [<base number>[,<step size>]]");
   } else if (!strcmp(cmd, "APPEND")) {

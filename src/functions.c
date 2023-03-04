@@ -484,8 +484,25 @@ static void fn_asn(void) {
 ** 'fn_atn' evalutes the arc tangent of its argument
 */
 static void fn_atn(void) {
-  (*factor_table[*basicvars.current])();
-  push_float(atan(pop_anynumfp()));
+  if (*basicvars.current == '(') {
+    float64 parmx = 0, parmy = 0;
+    basicvars.current++;
+    expression();
+    parmx=pop_anynumfp();
+    if(*basicvars.current != ',') {
+      push_float(atan(parmx));
+    } else {
+      basicvars.current++;
+      expression();
+      parmy=pop_anynumfp();
+      push_float(atan2(parmx, parmy));
+    }
+    if (*basicvars.current != ')') error(ERR_SYNTAX);
+    basicvars.current++;
+  } else {
+    (*factor_table[*basicvars.current])();
+    push_float(atan(pop_anynumfp()));
+  }
 }
 
 /*

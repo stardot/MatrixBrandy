@@ -12,6 +12,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Implemented an internal *./*CAT handler, loosely stiled on BBC
   Micro ADFS utput.
 - MOS: Implemented OSBYTE 210
+- BASIC: Extended ATN to take two parameters in parentheses, this calls
+  atan2().
 
 * V1.22.14 - 31 December 2022
 - System: Workaround for sdl12-compat library bug affecting keyboard input.
