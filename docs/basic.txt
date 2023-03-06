@@ -634,7 +634,12 @@ ASN
 
 ATN
 	Use: ATN <factor>
-	Returns the arctan of the numeric value <factor>
+	Use: ATN(y,x)
+	In the first form, this returns the arctan of the numeric
+	value <factor>.
+	In the second form, this calculates the principal value
+	of the arc tangent of (y/x), using the signs of the two
+	arguments to determine the quadrant of the result.
 
 BEAT
 	Use: BEAT
