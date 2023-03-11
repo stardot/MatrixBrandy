@@ -9,8 +9,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   BRANDY_NOBREAKONCTRLPRTSC.
 - System: Added some fixes to handle issues with the sdl12-compat
   library.
-- System: Implemented an internal *./*CAT handler, loosely stiled on BBC
+- System: Implemented an internal *./*CAT handler, loosely styled on BBC
   Micro ADFS utput.
+- System: Exit code is now ERR+1, or 0 if exited with no error.
+  A program can still set its own exit code as a parameter to QUIT.
 - MOS: Implemented OSBYTE 210
 - BASIC: Extended ATN to take two parameters in parentheses, this calls
   atan2().

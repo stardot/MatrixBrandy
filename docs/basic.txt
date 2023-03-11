@@ -3235,7 +3235,7 @@ QUIT
 Syntax: QUIT [ <expression> ]
 
 The QUIT statement is used to exit from the interpreter. It
-canoptioanlly  be followed by a numeric expression. This value
+can optionally be followed by a numeric expression. This value
 is passed back to the operating system under which the program
 is running as a return or status code. If omitted it defaults
 to zero.

@@ -756,7 +756,7 @@ static void handle_error(errortype severity) {
     emulate_vdu(VDU_TEXTCURS);  /* And that output goes to the text cursor */
     print_details(severity>WARNING);
     if (basicvars.runflags.closefiles) fileio_shutdown();
-    if (basicvars.runflags.quitatend) exit_interpreter(EXIT_FAILURE);   /* Leave interpreter if flag is set */
+    if (basicvars.runflags.quitatend) exit_interpreter(1+basicvars.error_number);   /* Leave interpreter if flag is set */
     basicvars.current = NIL;
     basicvars.procstack = NIL;
     basicvars.gosubstack = NIL;
