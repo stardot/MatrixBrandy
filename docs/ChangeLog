@@ -11,7 +11,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   library.
 - System: Implemented an internal *./*CAT handler, loosely styled on BBC
   Micro ADFS utput.
-- System: Exit code is now ERR+1, or 0 if exited with no error.
+- System: Exit code is now ERR MOD 256 (or 255 if that would result in 0),
+  or 0 if exited with no error.
   A program can still set its own exit code as a parameter to QUIT.
 - MOS: Implemented OSBYTE 210
 - BASIC: Extended ATN to take two parameters in parentheses, this calls
