@@ -2693,8 +2693,10 @@ void exec_sys(void) {
       default:
         error(ERR_VARNUMSTR);	/* Parameter must be an integer or string value */
       }
+    } else {
+      ip++;
     }
-    parmcount+=1;
+    parmcount++;;
     if (parmcount>=MAXSYSPARMS) error(ERR_SYSCOUNT);
     if (*basicvars.current == ',')
       basicvars.current++;	/* Point at start of next parameter */
