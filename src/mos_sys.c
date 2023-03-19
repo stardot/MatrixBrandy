@@ -446,14 +446,14 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_OS_ReadVduVariables:
 #ifdef USE_SDL
       {
-	int32 *ptra, *ptrb;
-	ptra = (int32 *)(size_t)inregs[0].i;
-	ptrb = (int32 *)(size_t)inregs[1].i;
-	while (*ptra != -1) {
-	  *ptrb = readmodevariable(-1,*ptra);
-	  ptra++;
-	  ptrb++;
-	}
+        int32 *ptra, *ptrb;
+        ptra = (int32 *)inregs[0].i;
+        ptrb = (int32 *)inregs[1].i;
+        while (*ptra != -1) {
+          *ptrb = readmodevariable(-1,*ptra);
+          ptra++;
+          ptrb++;
+        }
       }
 #endif
       break;
@@ -479,12 +479,12 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[0]=inregs[0].i;
       outregs[1]=inregs[1].i;
       switch (inregs[0].i) {
-	case 0: 	emulate_mode(inregs[1].i);break;
-	case 1: 	outregs[1]=emulate_modefn();break;
-	case 7: 	outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
-	case 8: 	osbyte113(inregs[1].i);break;
-	case 9: 	osbyte112(inregs[1].i);break;
-	case 10:	screencopy(inregs[1].i, inregs[2].i);break;
+        case 0: 	emulate_mode(inregs[1].i);break;
+        case 1: 	outregs[1]=emulate_modefn();break;
+        case 7: 	outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
+        case 8: 	osbyte113(inregs[1].i);break;
+        case 9: 	osbyte112(inregs[1].i);break;
+        case 10:	screencopy(inregs[1].i, inregs[2].i);break;
       }
 #endif
       break;

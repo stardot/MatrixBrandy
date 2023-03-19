@@ -50,6 +50,7 @@
 #include "fileio.h"
 #include "mainstate.h"
 #include "keyboard.h"
+#include "mos_sys.h"
 
 #define MAXWHENS 500		/* maximum number of WHENs allowed per CASE statement */
 
@@ -2671,8 +2672,15 @@ void exec_sys(void) {
         break;
 #ifndef TARGET_RISCOS
       case STACK_FLOAT:
-        inregs[fp].f = pop_float();
-        fp++;
+        /* We only populate the floats for the dlcall bits, otherwise we end
+         * up breaking every other SYS call if we pass a non-integer variable. */
+        if ((swino == SWI_Brandy_dlcall) || (swino == SWI_Brandy_dlcalladdr)) {
+          inregs[fp].f = pop_float();
+         fp++;
+        } else {
+          inregs[ip].i = pop_anynum64();
+          ip++;
+        }
         break;
 #endif
       case STACK_STRING: case STACK_STRTEMP: {

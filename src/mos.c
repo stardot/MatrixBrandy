@@ -151,8 +151,8 @@ static void native_oscli(char *command, char *respfile, FILE *respfh);
 #define GPPUDCLK0 38
 #define GPPUDCLK1 39
 
-#define PI_BANK (inregs[0]>>5)
-#define PI_BIT  (1<<(inregs[0]&0x1F))
+#define PI_BANK (inregs[0].i >> 5)
+#define PI_BIT  (1<<(inregs[0].i & 0x1F))
 
 #define PI_INPUT  0
 #define PI_OUTPUT 1
