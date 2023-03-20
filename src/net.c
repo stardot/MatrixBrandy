@@ -39,9 +39,12 @@
 #include <errno.h>
 #ifdef TARGET_RISCOS
 #include <ctype.h>
+#ifdef __TARGET_SCL__
+#include <sys/ioctl.h>
+#endif /* __TARGET_SCL__ */
 #include "kernel.h"
 #include "swis.h"
-#endif
+#endif /* TARGET_RISCOS */
 
 #include "basicdefs.h"
 #include "errors.h"
@@ -178,6 +181,9 @@ int brandynet_connect(char *dest, char type) {
   struct sockaddr_in netdest;
   struct hostent *he = NULL;
   struct in_addr *inaddr = NULL;
+#ifdef __TARGET_SCL__
+  unsigned long opt;
+#endif
 
   if(matrixflags.networking==0) {
     error(ERR_NET_NOTSUPP);
@@ -225,8 +231,11 @@ int brandynet_connect(char *dest, char type) {
   }
   free(inaddr);                              /* Don't need this any more */
 
-#ifndef __TARGET_SCL__
-  /* SharedCLibrary doesn't support this */
+#ifdef __TARGET_SCL__
+  /* SharedCLibrary doesn't support fcntl */
+  opt=1;
+  socketioctl(mysocket, FIONBIO, &opt);
+#else
   fcntl(mysocket, F_SETFL, O_NONBLOCK);
 #endif
   netsockets[n] = mysocket;
