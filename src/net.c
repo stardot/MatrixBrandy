@@ -177,7 +177,7 @@ void brandynet_init() {
 int brandynet_connect(char *dest, char type) {
 #if defined(TARGET_RISCOS) | defined(MINIX_OLDNET)
   char *host, *port;
-  int n, mysocket, portnum, result;
+  int n, mysocket, portnum, result, flags;
   struct sockaddr_in netdest;
   struct hostent *he = NULL;
   struct in_addr *inaddr = NULL;
@@ -236,14 +236,15 @@ int brandynet_connect(char *dest, char type) {
   opt=1;
   socketioctl(mysocket, FIONBIO, &opt);
 #else
-  fcntl(mysocket, F_SETFL, O_NONBLOCK);
+  flags = fcntl(mysocket, F_GETFL, 0);
+  fcntl(mysocket, F_SETFL, flags | O_NONBLOCK);
 #endif
   netsockets[n] = mysocket;
   return(n);
 
 #else /* not TARGET_RISCOS */
   char *host, *port;
-  int n, mysocket=0, ret;
+  int n, mysocket=0, ret, flags;
   struct addrinfo hints, *addrdata, *rp;
 #ifdef TARGET_MINGW
   unsigned long opt;
@@ -305,7 +306,8 @@ int brandynet_connect(char *dest, char type) {
   opt=1;
   ioctlsocket(mysocket, FIONBIO, &opt);
 #else
-  fcntl(mysocket, F_SETFL, O_NONBLOCK);
+  flags = fcntl(mysocket, F_GETFL, 0);
+  fcntl(mysocket, F_SETFL, flags | O_NONBLOCK);
 #endif
   netsockets[n] = mysocket;
   return(n);
