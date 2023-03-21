@@ -14,6 +14,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Exit code is now ERR MOD 256 (or 255 if that would result in 0),
   or 0 if exited with no error.
   A program can still set its own exit code as a parameter to QUIT.
+- System: Fixed a regression in the way floats were handled by SYS.
+- System: Corrected a flawed usage of fcntl().
 - MOS: Implemented OSBYTE 210
 - BASIC: Extended ATN to take two parameters in parentheses, this calls
   atan2().
