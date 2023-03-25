@@ -103,6 +103,9 @@ extern void init_stack(void);
 extern void clear_stack(void);
 extern void *alloc_local(int32);
 extern boolean is8or32int(stackitem);
+#ifdef DEBUG
+extern void debug_show_stackitemtype(int32);
+#endif
 
 /* LARGEST_ENTRY is the size of the largest string or numeric entry on the stack */
 

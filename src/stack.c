@@ -1427,3 +1427,120 @@ boolean is8or32int(stackitem item) {
   if ((item == STACK_INT) || (item == STACK_UINT8)) return 1;
   return 0;
 }
+
+#ifdef DEBUG
+/* Output to stderr the stack item type supplied */
+void debug_show_stackitemtype(int32 item) {
+  fprintf(stderr, "Item type is ");
+  switch(item) {
+    case STACK_UNKNOWN:
+      fprintf(stderr, "STACK_UNKNOWN");
+      break;
+    case STACK_LVALUE:
+      fprintf(stderr, "STACK_LVALUE");
+      break;
+    case STACK_UINT8:
+      fprintf(stderr, "STACK_UINT8");
+      break;
+    case STACK_INT:
+      fprintf(stderr, "STACK_INT");
+      break;
+    case STACK_INT64:
+      fprintf(stderr, "STACK_INT64");
+      break;
+    case STACK_FLOAT:
+      fprintf(stderr, "STACK_FLOAT");
+      break;
+    case STACK_STRING:
+      fprintf(stderr, "STACK_STRING");
+      break;
+    case STACK_STRTEMP:
+      fprintf(stderr, "STACK_STRTEMP");
+      break;
+    case STACK_INTARRAY:
+      fprintf(stderr, "STACK_INTARRAY");
+      break;
+    case STACK_IATEMP:
+      fprintf(stderr, "STACK_IATEMP");
+      break;
+    case STACK_UINT8ARRAY:
+      fprintf(stderr, "STACK_UINT8ARRAY");
+      break;
+    case STACK_U8ATEMP:
+      fprintf(stderr, "STACK_U8ATEMP");
+      break;
+    case STACK_INT64ARRAY:
+      fprintf(stderr, "STACK_INT64ARRAY");
+      break;
+    case STACK_I64ATEMP:
+      fprintf(stderr, "STACK_I64ATEMP");
+      break;
+    case STACK_FLOATARRAY:
+      fprintf(stderr, "STACK_FLOATARRAY");
+      break;
+    case STACK_FATEMP:
+      fprintf(stderr, "STACK_FATEMP");
+      break;
+    case STACK_STRARRAY:
+      fprintf(stderr, "STACK_STRARRAY");
+      break;
+    case STACK_SATEMP:
+      fprintf(stderr, "STACK_SATEMP");
+      break;
+    case STACK_LOCARRAY:
+      fprintf(stderr, "STACK_LOCARRAY");
+      break;
+    case STACK_LOCSTRING:
+      fprintf(stderr, "STACK_LOCSTRING");
+      break;
+    case STACK_GOSUB:
+      fprintf(stderr, "STACK_GOSUB");
+      break;
+    case STACK_PROC:
+      fprintf(stderr, "STACK_PROC");
+      break;
+    case STACK_FN:
+      fprintf(stderr, "STACK_FN");
+      break;
+    case STACK_LOCAL:
+      fprintf(stderr, "STACK_LOCAL");
+      break;
+    case STACK_RETPARM:
+      fprintf(stderr, "STACK_RETPARM");
+      break;
+    case STACK_WHILE:
+      fprintf(stderr, "STACK_WHILE");
+      break;
+    case STACK_REPEAT:
+      fprintf(stderr, "STACK_REPEAT");
+      break;
+    case STACK_INTFOR:
+      fprintf(stderr, "STACK_INTFOR");
+      break;
+    case STACK_INT64FOR:
+      fprintf(stderr, "STACK_INT64FOR");
+      break;
+    case STACK_FLOATFOR:
+      fprintf(stderr, "STACK_FLOATFOR");
+      break;
+    case STACK_ERROR:
+      fprintf(stderr, "STACK_ERROR");
+      break;
+    case STACK_DATA:
+      fprintf(stderr, "STACK_DATA");
+      break;
+    case STACK_OPSTACK:
+      fprintf(stderr, "STACK_OPSTACK");
+      break;
+    case STACK_RESTART:
+      fprintf(stderr, "STACK_RESTART");
+      break;
+    case STACK_HIGHEST:
+      fprintf(stderr, "STACK_HIGHEST (should never appear)");
+      break;
+    default:
+      fprintf(stderr, "Unknown value, should never appear");
+  }
+  fprintf(stderr, "\n");
+}
+#endif /* DEBUG */
