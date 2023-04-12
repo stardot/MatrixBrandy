@@ -348,6 +348,9 @@ void show_help(void) {
   printf("  -fullscreen    Start Brandy in fullscreen mode\n");
   printf("  -swsurface     Use a software SDL surface\n");
 #endif
+#if !defined(TARGET_RISCOS) && !defined(TARGET_MINGW) && !defined(USE_SDL)
+  printf("  -tek           Enable Tek graphics (on compatible builds)\n");
+#endif
 #ifndef BRANDYAPP
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");

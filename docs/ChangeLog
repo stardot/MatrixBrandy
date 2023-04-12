@@ -1,6 +1,10 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
+* 1.22.16 -
+- System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'
+  on compatible platforms. Equivalent to issuing SYS"Brandy_TekEnabled",1
+
 * V1.22.15 - 21 March 2023
 - System: For SDL builds, move ESCAPE polling to its own thread.
 - System: Added CTRL+PrtSc to force immediate exit in SDL build.
@@ -10,7 +14,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Added some fixes to handle issues with the sdl12-compat
   library.
 - System: Implemented an internal *./*CAT handler, loosely styled on BBC
-  Micro ADFS utput.
+  Micro ADFS output.
 - System: Exit code is now ERR MOD 256 (or 255 if that would result in 0),
   or 0 if exited with no error.
   A program can still set its own exit code as a parameter to QUIT.

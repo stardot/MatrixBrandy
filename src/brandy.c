@@ -333,6 +333,8 @@ static void check_cmdline(int argc, char *argv[]) {
           }
         }
       }
+      else if (optchar=='t')                          /* -tek - enable Tek graphics */
+        matrixflags.tekenabled=1;
       else if (optchar=='i' && tolower(*(p+2))=='g')	/* -ignore  Ignore cosmetic errors */
         basicvars.runflags.flag_cosmetic = FALSE;
       else if (optchar=='s' && tolower(*(p+2))=='t')	/* -strict  Error on cosmetic errors */
