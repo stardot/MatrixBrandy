@@ -532,6 +532,9 @@ static void init_timer() {
 #ifdef USE_SDL
 int escape_thread(void *dummydata) {
   while (1) {
+    if (tmsg.bailout != -1) {
+      while(TRUE) sleep(10); /* Stop processing while threads are stopped */
+    }
     kbd_escpoll();
 #ifndef BRANDY_NOBREAKONCTRLPRTSC
     if ((kbd_inkey(-2) && kbd_inkey(-33))) {
