@@ -537,7 +537,10 @@ int escape_thread(void *dummydata) {
     }
     kbd_escpoll();
 #ifndef BRANDY_NOBREAKONCTRLPRTSC
-    if ((kbd_inkey(-2) && kbd_inkey(-33))) tmsg.bailout = 0;
+    if ((kbd_inkey(-2) && kbd_inkey(-33))) {
+      tmsg.bailout = 0;
+      while(TRUE) sleep(10);
+    }
 #endif
     usleep(10000);
   }
