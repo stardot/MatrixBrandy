@@ -9,6 +9,7 @@ PROCmain
 END
 
 DEFPROCmain
+MOUSE ON
 PROCbuf2scr:PROCplacecursor
 ON
 REPEAT
@@ -48,7 +49,7 @@ ENDPROC
 
 DEFPROCinit
 MODE 7
-title$="   Matrix Teletext Editor V0.04"
+title$="   Matrix Teletext Editor V0.05"
 SYS "Brandy_GetVideoDriver" TO ,,,,scr%%
 IF scr%% = 0 THEN ERROR 0, "This program requires an SDL build"
 DIM t%% 1000:FORp%=0TO999:t%%?p%=32:NEXTp%
