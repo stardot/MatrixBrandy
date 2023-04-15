@@ -124,6 +124,11 @@
 #include <sys/filio.h>
 #endif
 
+#ifdef USE_SDL
+#include "graphsdl.h"
+extern threadmsg tmsg;
+#endif
+
 #ifdef TARGET_RISCOS
 /* New keyboard routines */
 /* --------------------- */
@@ -1662,7 +1667,7 @@ int32 read_key(void) {
 
     while (matrixflags.videothreadbusy) usleep(1000);
     matrixflags.noupdate = 1;
-    if (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) {
+    if ((tmsg.bailout == -1) && (SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS))) {
       SDL_GetMouseState(&mx, &my);
       switch(ev.type) {
         case SDL_QUIT:
