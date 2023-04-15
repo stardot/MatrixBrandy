@@ -969,7 +969,7 @@ int32 kbd_inkey(int32 arg) {
     int mx, my;
     keystate = SDL_GetKeyState(NULL);
     mousestate = SDL_GetMouseState(&mx, &my);
-    while(SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS&(~SDL_KEYEVENTMASK))) {
+    if (tmsg.bailout == -1) while(SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS&(~SDL_KEYEVENTMASK))) {
       switch(ev.type) {
         case SDL_QUIT:
           exit_interpreter(EXIT_SUCCESS);
