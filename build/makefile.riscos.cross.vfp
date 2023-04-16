@@ -3,15 +3,16 @@
 CC = arm-unknown-riscos-gcc
 LD = arm-unknown-riscos-gcc
 STRIP = arm-unknown-riscos-strip
+ELFAIF = elf2aif
 ADDFLAGS = ${BRANDY_BUILD_FLAGS}
 
 include git.mk
 
 #CFLAGS = -g -DDEBUG -DNONET -Wall $(GITFLAGS) -mlibscl
 #CFLAGS = -g -DNONET -Wall $(GITFLAGS) -mlibscl
-CFLAGS = -O3 -DBRANDY_DEFAULT_SIZE=512 -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS) -mlibscl
+CFLAGS = -O3 -mfpu=vfp -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
-LDFLAGS += -mlibscl
+LDFLAGS += -mfpu=vfp
 
 LIBS =
 
@@ -24,7 +25,7 @@ OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o $(SRCDIR)/riscos.o \
 	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
 	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
 	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
-	$(SRCDIR)/assign.o $(SRCDIR)/mos_sys.o $(SRCDIR)/net.o
+	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
 
 SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/riscos.c \
 	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
@@ -33,10 +34,12 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/riscos.c \
 	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
 	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
 	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
-	$(SRCDIR)/assign.c $(SRCDIR)/mos_sys.c $(SRCDIR)/net.c
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
 Brandy,ff8:	$(OBJ)
-	$(LD) $(LDFLAGS) -o Brandy,ff8 $(OBJ) $(LIBS)
+	$(LD) $(LDFLAGS) -static -o Brandy.elf $(OBJ) $(LIBS)
+	$(STRIP) Brandy.elf
+	$(ELFAIF) Brandy.elf Brandy,ff8
 
 include depends.mk
 
@@ -44,6 +47,6 @@ include depends.mk
 	$(CC) $(CFLAGS) $< -c -o $@
 
 clean:
-	rm -f $(SRCDIR)/*.o Brandy,ff8
+	rm -f $(SRCDIR)/*.o Brandy,ff8 Brandy.elf
 
 all:	Brandy,ff8
