@@ -716,6 +716,9 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 #endif /* TARGET_UNIX | TARGET_MINGW */
 #endif /* __clang__ */
       break;
+    case SWI_Brandy_Strict:
+      basicvars.runflags.flag_cosmetic = inregs[0].i;
+      break;
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;
       break;

@@ -253,6 +253,9 @@ Brandy_xxx  (SWI numbers start &140000)
                                 the address of the symbol in R0 instead of
                                 the symbol name.
 
+&140016 Brandy_Strict           Enable/disable strict execution mode (as also
+                                set by command-line -strict/-ignore options).
+
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt
