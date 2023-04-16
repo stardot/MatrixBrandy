@@ -1433,6 +1433,9 @@ void exec_local(void) {
     check_ateol();
     push_data(basicvars.datacur);
     break;
+  case BASIC_TOKEN_EOL: /* No parameter given - Acorn does nothing */
+  case ':':             /* : character, end of statement */
+    if (!basicvars.runflags.flag_cosmetic) break;
   default:	/* Defining local variables */
     def_locvar();
   }

@@ -4,6 +4,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * 1.22.16 -
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'
   on compatible platforms. Equivalent to issuing SYS"Brandy_TekEnabled",1
+- BASIC: LOCAL with no parameters now does nothing (as per Acorn) instead
+  of reporting an error. This new behaviour is in place on a DEFAULT_IGNORE
+  build unless -strict is set, or if -ignore is set.
 
 * V1.22.15 - 21 March 2023
 - System: For SDL builds, move ESCAPE polling to its own thread.
