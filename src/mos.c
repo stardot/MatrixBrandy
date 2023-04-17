@@ -331,7 +331,6 @@ int32 mos_rdtime(void) {
 void mos_wrtime(int32 time) {
   startime = clock()-time;
 }
-
 /*
 ** 'mos_wrrtc' is called to handle assignments to the Basic
 ** pseudo variable 'TIME$'. This is used to set the computer's clock.
@@ -810,6 +809,22 @@ void mos_wrtime (int32 time) {
 }
 
 #endif
+
+/* OSWORD call to read the centisecond clock */
+static void osword01(int64 x) {
+  int32 *block;
+
+  block=(int32 *)(size_t)x;
+  *block=mos_rdtime();
+}
+
+/* OSWORD call to write the centisecond clock */
+static void osword02(int64 x) {
+  int32 *block;
+
+  block=(int32 *)(size_t)x;
+  mos_wrtime(*block);
+}
 
 /*
 ** 'mos_wrrtc' is called to handle assignments to the Basic
@@ -2511,6 +2526,12 @@ void mos_final(void) {
 
 static void mos_osword(int32 areg, int64 xreg) {
   switch (areg) {
+    case 1:
+      osword01(xreg);
+      break;
+    case 2:
+      osword02(xreg);
+      break;
     case 9:
 #ifdef USE_SDL
       osword09(xreg);
