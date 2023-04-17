@@ -1395,6 +1395,14 @@ void make_cmdtab(){
   add_cmd( "os",           HELP_MOS     );
 }
 
+/* Strip quotes around a file name */
+static void strip_quotes(char *buffer) {
+  if (buffer[0] == '"') {
+    memmove(buffer,buffer+1, strlen(buffer));
+    buffer[strlen(buffer)-1]='\0';
+  }
+}
+
 /*
  * *.(<directory>) or *cat (<directory>)
  * Catalogue directory
@@ -1910,6 +1918,7 @@ static void cmd_load(char *command){
   char chbuff[256], *ptr;
   FILE *filep;
 
+  memset(chbuff, 0, 256);
   while( (ch= *command)>0 && ch <=32)command++;
   len=255;
   for(i=0;i<256;i++){
@@ -1920,6 +1929,7 @@ static void cmd_load(char *command){
     }
   }
   chbuff[len] ='\0';
+  strip_quotes(chbuff);
   // fprintf(stderr,"load filename is \"%s\"\n",chbuff);
 
   ptr=&command[len];
@@ -1936,7 +1946,8 @@ static void cmd_load(char *command){
   }
 
   if ( (filep = fopen(chbuff,"rb")) == (FILE*)0){
-    fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
+    // fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
+    error(ERR_NOTFOUND, chbuff);
     return;
   }
   ptr=(char*)num;
@@ -1972,6 +1983,7 @@ static void cmd_save(char *command){
     }
   }
   chbuff[len] ='\0';
+  strip_quotes(chbuff);
   // fprintf(stderr,"save filename is \"%s\"\n",chbuff);
 
   ptr=&command[len];
