@@ -541,3 +541,14 @@ int32 sgnf(float64 f) {
     return(-1);
   }
 }
+
+/* Converts a \r or \n terminated string to a \0 terminated string */
+void string_zeroterm(char *buffer) {
+  int32 p, i;
+
+  p=strlen(buffer);
+  if(p==0) return;
+  for(i=0; i<p; i++) {
+    if ((buffer[i] == '\r') || (buffer[i] == '\n')) buffer[i]='\0';
+  }
+}

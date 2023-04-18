@@ -311,6 +311,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[0]=inregs[0].i;outregs[1]=inregs[1].i;
       outregs[2]=inregs[2].i;outregs[3]=inregs[3].i;
       outregs[4]=inregs[4].i;outregs[5]=inregs[5].i;
+      string_zeroterm((char *)(size_t)inregs[1].i);
       switch(inregs[0].i) {
         case 0: case 10:
           file_handle=fopen((char *)(size_t)inregs[1].i, "wb");
