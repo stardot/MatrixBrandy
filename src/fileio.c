@@ -872,7 +872,7 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
     break;
   case PRINT_INT64:
     *ip = 0;
-    for (n=56; n>=0; n-=8) *ip |= fileio_read(stream) << n;
+    for (n=56; n>=0; n-=8) *ip |= (int64)fileio_read(stream) << n;
     *isint = TRUE;
     break;
   case PRINT_FLOAT:
