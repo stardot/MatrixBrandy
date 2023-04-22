@@ -8,6 +8,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Strip quotes from filenames in *LOAD and *SAVE
 - System: Implemented OSWORDs 1 and 2
 - System: Fix file name bug in OSFILE.
+- System: Filename translation between RISC OS and Linux for OPENIN,
+  OPENOUT and OPENUP.
 - BASIC: LOCAL with no parameters now does nothing (as per Acorn) instead
   of reporting an error. This new behaviour is in place on a DEFAULT_IGNORE
   build unless -strict is set, or if -ignore is set.

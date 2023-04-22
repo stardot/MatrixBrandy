@@ -128,10 +128,24 @@ static int32 fileio_read(int32 handle) {
 int32 fileio_openin(char *name, int32 namelen) {
   int32 handle;
   char filename [FNAMESIZE];
+  char *tfilename;
   memmove(filename, name, namelen);
   filename[namelen] = NUL;		/* Get a null-terminated version of the file name */
   handle = _kernel_osfind(OPEN_INPUT, filename);
-  if (handle==_kernel_ERROR) report();
+  if (handle==_kernel_ERROR) {
+    if (matrixflags.translatefname == 0) {
+      report();
+    } else {
+      tfilename=translatefname(filename);
+      handle = _kernel_osfind(OPEN_INPUT, filename);
+      if (handle==_kernel_ERROR) {
+        report();
+      } else {
+        /* We had to translate so set flags to always translate on save */
+        matrixflags.translatefname = 1;
+      }
+    }
+  }
   return handle;
 }
 
@@ -141,9 +155,15 @@ int32 fileio_openin(char *name, int32 namelen) {
 int32 fileio_openout(char *name, int32 namelen) {
   int32 handle;
   char filename [FNAMESIZE];
+  char *tfilename;
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
-  handle = _kernel_osfind(OPEN_OUTPUT, filename);
+  if(matrixflags.translatefname == 1) {
+    tfilename=translatefname(filename);
+    handle = _kernel_osfind(OPEN_OUTPUT, filename);
+  } else {
+    handle = _kernel_osfind(OPEN_OUTPUT, filename);
+  }
   if (handle==_kernel_ERROR) report();
   return handle;
 }
@@ -157,6 +177,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   int32 n;
 #endif
   char filename [FNAMESIZE];
+  char *tfilename;
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
 #ifndef NONET
@@ -174,7 +195,20 @@ int32 fileio_openup(char *name, int32 namelen) {
   } else {
 #endif
     handle = _kernel_osfind(OPEN_UPDATE, filename);
-    if (handle==_kernel_ERROR) report();
+    if (handle==_kernel_ERROR) {
+      if (matrixflags.translatefname == 0) {
+        report();
+      } else {
+        tfilename=translatefname(filename);
+        handle = _kernel_osfind(OPEN_INPUT, filename);
+        if (handle==_kernel_ERROR) {
+          report();
+        } else {
+          /* We had to translate so set flags to always translate on save */
+          matrixflags.translatefname = 1;
+        }
+      }
+    }
     return handle;
 #ifndef NONET
   }
@@ -604,21 +638,33 @@ int32 fileio_openin(char *name, int32 namelen) {
   FILE *thefile;
   int32 n;
   char filename [FNAMESIZE];
+  char filenameb[FNAMESIZE];
+  char *tfilename;
   if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
   thefile = fopen(filename, INMODE);
-#ifdef TARGET_RISCOS
-  if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
-#else
   if (thefile==NIL) {
-    strcat(filename, ".bbc"); /* Append a .bbc suffix and try again */
-    thefile = fopen(filename, INMODE);
-    if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+    strncpy(filenameb, filename, FNAMESIZE);
+    strcat(filenameb, ".bbc"); /* Append a .bbc suffix and try again */
+    thefile = fopen(filenameb, INMODE);
+    if (thefile==NIL) {
+      if (matrixflags.translatefname == 0) {
+        return 0;
+      } else {
+        tfilename=translatefname(filename);
+        thefile = fopen(tfilename, INMODE);
+        if (thefile==NIL) {
+          return 0; /* Could not open file - Return null handle */
+        } else {
+          /* We had to translate so set flags to always translate on save */
+          matrixflags.translatefname = 1;
+        }
+      }
+    }
   }
-#endif
   fileinfo[n].stream = thefile;
   fileinfo[n].filetype = OPENIN;
   fileinfo[n].eofstatus = OKAY;
@@ -637,12 +683,18 @@ int32 fileio_openout(char *name, int32 namelen) {
   FILE *thefile;
   int32 n;
   char filename [FNAMESIZE];
+  char *tfilename;
   if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
-  thefile = fopen(filename, OUTMODE);
+  if(matrixflags.translatefname == 1) {
+    tfilename=translatefname(filename);
+    thefile = fopen(tfilename, OUTMODE);
+  } else {
+    thefile = fopen(filename, OUTMODE);
+  }
   if (thefile==NIL) error(ERR_OPENWRITE, filename);
   fileinfo[n].stream = thefile;
   fileinfo[n].filetype = OPENOUT;
@@ -659,6 +711,8 @@ int32 fileio_openup(char *name, int32 namelen) {
   FILE *thefile;
   int32 n;
   char filename [FNAMESIZE];
+  char filenameb[FNAMESIZE];
+  char *tfilename;
 
   if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
@@ -680,15 +734,25 @@ int32 fileio_openup(char *name, int32 namelen) {
   } else {
 #endif
     thefile = fopen(filename, UPMODE);
-#ifdef TARGET_RISCOS
-    if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
-#else
     if (thefile==NIL) {
-      strcat(filename, ".bbc"); /* Append a .bbc suffix and try again */
-      thefile = fopen(filename, INMODE);
-      if (thefile==NIL) return 0;		/* Could not open file - Return null handle */
+      strncpy(filenameb, filename, FNAMESIZE);
+      strcat(filenameb, ".bbc"); /* Append a .bbc suffix and try again */
+      thefile = fopen(filenameb, UPMODE);
+      if (thefile==NIL) {
+        if (matrixflags.translatefname == 0) {
+          return 0;
+        } else {
+          tfilename=translatefname(filename);
+          thefile = fopen(tfilename, UPMODE);
+          if (thefile==NIL) {
+            return 0; /* Could not open file - Return null handle */
+          } else {
+            /* We had to translate so set flags to always translate on save */
+            matrixflags.translatefname = 1;
+          }
+        }
+      }
     }
-#endif
     fileinfo[n].stream = thefile;
     fileinfo[n].filetype = OPENUP;
     fileinfo[n].eofstatus = OKAY;

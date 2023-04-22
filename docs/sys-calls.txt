@@ -256,6 +256,18 @@ Brandy_xxx  (SWI numbers start &140000)
 &140016 Brandy_Strict           Enable/disable strict execution mode (as also
                                 set by command-line -strict/-ignore options).
 
+&140017 Brandy_TranslateFNames  Enable/disable transparent translation of
+                                filenames between Linux and RISC OS formats.
+                                R0=0: No translation happens.
+                                R0=1: Autodetect on read, translate on write
+                                      (OPENUP follows read behaviour)
+                                R0=2: Autodetect on read, no translation on
+                                      write, but if translation required on
+                                      read this value is changed to 1.
+                                Any other value is ignored.
+                                Return: R0 contains old value.
+                                Default value: 2
+
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt

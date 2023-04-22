@@ -55,7 +55,7 @@
 #define STRUSESET   0x01000000		/* STR$ uses @% to format string */
 #define COMMADPT 0x800000		/* Use ',' instead of '.' as the decimal point */
 
-#define FNAMESIZE 256			/* Maximum length of file names */
+#define FNAMESIZE FILENAME_MAX    /* Maximum length of file names */
 #define INPUTLEN 1024			/* Size of terminal input buffer */
 
 #define PRESERVED 8			/* Number of bytes at start of program saved for OLD */
@@ -590,13 +590,14 @@ typedef struct {
   uint32 int_uses_float;      /* Does INT() use floats? */
   uint32 legacyintmaths;      /* Legacy INT maths (BASIC I-V compatible) */
   uint32 cascadeiftweak;      /* Handle cascaded IFs the way BBCSDL does */
+  uint32 tekspeed;            /* Emulated bit rate of Tek terminal (0=no slowdown) */
+  uint32 osbyte4val;          /* OSBYTE 4 value, default = 0 */
+  int32 printer_ignore;       /* Printer ignore character, default = 10 */
+  uint8 translatefname;       /* Translate filename? */
   boolean hex64;              /* Decode hex in 64-bit? */
   boolean bitshift64;         /* Do bit shifts work in 64-bit space? */
   boolean pseudovarsunsigned; /* Unsigned pseudovars on 32-bit */
   boolean tekenabled;         /* Tektronix enabled in text mode (default: no) */
-  uint32 tekspeed;            /* Emulated bit rate of Tek terminal (0=no slowdown) */
-  uint32 osbyte4val;          /* OSBYTE 4 value, default = 0 */
-  int32 printer_ignore;       /* Printer ignore character, default = 10 */
   boolean networking;         /* TRUE if networking is available */
 #ifdef USE_SDL
   byte *modescreen_ptr;       /* Mode screen pointer to pixels memory */

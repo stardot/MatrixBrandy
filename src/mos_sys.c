@@ -720,6 +720,11 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_Strict:
       basicvars.runflags.flag_cosmetic = inregs[0].i;
       break;
+    case SWI_Brandy_TranslateFNames:
+      outregs[0]=matrixflags.translatefname;
+      if (inregs[0].i >= 0 && inregs[0].i <= 2) matrixflags.translatefname = inregs[0].i;
+      break;
+// Raspberry Pi GPIO stuff below
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;
       break;

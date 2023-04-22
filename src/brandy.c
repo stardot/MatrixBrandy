@@ -201,27 +201,28 @@ static void init1(void) {
   liblist = liblast = NIL;		/* List of libraries to load when interpreter starts */
   worksize = 0;				/* Use default workspace size */
 
-  matrixflags.doexec = NULL;		/* We're not doing a *EXEC to begin with */
-  matrixflags.failovermode = 255;	/* Report Bad Mode on unavailable screen mode */
-  matrixflags.int_uses_float = 0;	/* Does INT() use floats? Default no = RISC OS and BBC behaviour */
-  matrixflags.legacyintmaths = 0;	/* Enable legacy integer maths? Default no = BASIC VI behaviour */
-  matrixflags.cascadeiftweak = 1; /* Handle cascaded IFs BBCSDL-style? Default no = ARM BBC BASIC behaviour */
-  matrixflags.hex64 = 0;		/* Decode hex as 64-bit? Default no = BASIC VI behaviour */
-  matrixflags.bitshift64 = 0;		/* Bit shifts operate in 64-bit space? Default no = BASIC VI behaviour */
-  matrixflags.pseudovarsunsigned = 0;	/* Are memory pseudovariables unsigned on 32-bit? */
-  matrixflags.tekenabled = 0;		/* Tektronix enabled in text mode (default: no) */
+  matrixflags.doexec = NULL;        /* We're not doing a *EXEC to begin with */
+  matrixflags.failovermode = 255;   /* Report Bad Mode on unavailable screen mode */
+  matrixflags.int_uses_float = 0;   /* Does INT() use floats? Default no = RISC OS and BBC behaviour */
+  matrixflags.legacyintmaths = 0;   /* Enable legacy integer maths? Default no = BASIC VI behaviour */
+  matrixflags.cascadeiftweak = 1;   /* Handle cascaded IFs BBCSDL-style? Default no = ARM BBC BASIC behaviour */
+  matrixflags.hex64 = 0;            /* Decode hex as 64-bit? Default no = BASIC VI behaviour */
+  matrixflags.bitshift64 = 0;       /* Bit shifts operate in 64-bit space? Default no = BASIC VI behaviour */
+  matrixflags.pseudovarsunsigned = 0; /* Are memory pseudovariables unsigned on 32-bit? */
+  matrixflags.tekenabled = 0;       /* Tektronix enabled in text mode (default: no) */
   matrixflags.tekspeed = 0;
-  matrixflags.osbyte4val = 0;		/* Default OSBYTE 4 value */
+  matrixflags.osbyte4val = 0;       /* Default OSBYTE 4 value */
 #if (defined(TARGET_UNIX) & !defined(USE_SDL)) | defined(TARGET_MACOSX)
-  matrixflags.delcandelete = 1;		/* DEL character can delete? */
+  matrixflags.delcandelete = 1;     /* DEL character can delete? */
 #else
-  matrixflags.delcandelete = 0;		/* DEL character can delete? */
+  matrixflags.delcandelete = 0;     /* DEL character can delete? */
 #endif
 #ifndef TARGET_RISCOS
-  matrixflags.dospool = NULL;		/* By default, not doing a *SPOOL */
+  matrixflags.dospool = NULL;       /* By default, not doing a *SPOOL */
 #endif
-  matrixflags.printer = NULL;		/* By default, printer is closed */
-  matrixflags.printer_ignore = 13;	/* By default, ignore carriage return characters */
+  matrixflags.printer = NULL;       /* By default, printer is closed */
+  matrixflags.printer_ignore = 13;  /* By default, ignore carriage return characters */
+  matrixflags.translatefname = 2;   /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
 
 /*
  * Add dummy first parameter for Basic program command line.

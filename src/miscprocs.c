@@ -52,8 +52,6 @@ int64 llabs(int64 i) {
 }
 #endif
 
-/* #define DEBUG */
-
 /*
 ** 'isidstart' returns TRUE if the character passed to it can appear at
 ** the start of an identifier
@@ -551,4 +549,34 @@ void string_zeroterm(char *buffer) {
   for(i=0; i<p; i++) {
     if ((buffer[i] == '\r') || (buffer[i] == '\n')) buffer[i]='\0';
   }
+}
+
+static char fnbuf[FILENAME_MAX+4];
+
+static char _chrflip(char c) {
+  if(c=='.') c='/';
+    else if (c=='/') c='.';
+  return(c);
+}
+
+/* On RISC OS, translates a Linux-style filename to RISC OS format,
+ * on other platforms, translates a RISC OS-style filename to Linux.
+ * (Windows can directly handle a Linux-format file name courtesy of
+ * the MinGW C libraries. */
+char *translatefname(char *fn) {
+  int i=0, p=0;
+  
+  memset(fnbuf, 0, FILENAME_MAX+4);
+  p=strlen(fn);
+  if (p>FILENAME_MAX) p=FILENAME_MAX;
+  for(i=0;i<p;i++) fnbuf[i]=_chrflip(fn[i]);
+#ifdef TARGET_RISCOS
+  if (fnbuf[0]=='.') {
+    memmove(fnbuf+1, fnbuf, FILENAME_MAX);
+    fnbuf[0]='$';
+  }
+#else
+  if (fnbuf[0]=='$') memmove(fnbuf, fnbuf+1, FILENAME_MAX);
+#endif
+  return(fnbuf);
 }

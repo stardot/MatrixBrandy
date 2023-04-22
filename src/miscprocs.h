@@ -71,6 +71,7 @@ extern void decimaltocomma(char *, int32);
 extern int32 sgni(int64);
 extern int32 sgnf(float64);
 extern void string_zeroterm(char *);
+extern char *translatefname(char *);
 
 #ifdef USE_SDL
 extern Uint8 mode7frame[25][40];
