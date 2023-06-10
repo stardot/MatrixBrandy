@@ -1435,7 +1435,7 @@ void exec_local(void) {
     break;
   case BASIC_TOKEN_EOL: /* No parameter given - Acorn does nothing */
   case ':':             /* : character, end of statement */
-    if (!basicvars.runflags.flag_cosmetic) break;
+    if (!basicvars.runflags.flag_cosmetic && (basicvars.procstack != NIL)) break;
   default:	/* Defining local variables */
     def_locvar();
   }

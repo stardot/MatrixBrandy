@@ -2588,6 +2588,13 @@ details will be restored automatically. They are:
 So RESTORE ERROR can be omitted but it is probably best to include
 it.
 
+Note: LOCAL with no parameters is allowed by all Acorn BASICs, however
+this does nothing and is indicative of a mistake in the program.
+Matrix Brandy replicates this behaviour in case this occurs in existing
+programs, but setting the strict option (starting with -strict, compiling
+withoug -DDEFAULT_IGNORE, running SYS"Brandy_Strict",1) makes this report
+"Syntax error" in line with Richard Russell's BASICs.
+
 MODE
 Syntax: a) MODE <expression>
 	b) MODE <x expression>, <y expression>, <depth>, <rate>
