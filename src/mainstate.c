@@ -2384,7 +2384,7 @@ void exec_run(void) {
 #endif /* DEBUG */
   basicvars.current++;		/* Skip RUN token */
   basicvars.rundepth++;
-  if (basicvars.rundepth > MAXRUNDEPTH) error(ERR_NOROOM);
+  if (basicvars.rundepth > MAXRUNDEPTH) error(ERR_RUNLIMIT);
   bp = NIL;
   if (!ateol[*basicvars.current]) {	/* RUN <filename> or RUN <linenumber> found */
     stackitem topitem;
