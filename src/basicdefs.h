@@ -459,55 +459,55 @@ typedef struct cmdarg {		/* Command line argument structure */
 ** could deal with several Basic programs at a time
 */
 typedef struct {
-  byte *workspace;			/* Address of start of Basic's memory */
-  size_t worksize;			/* Size of Basic's memory */
-  byte *memory;				/* Set to 0, effectively a way of accessing arbitrary memory. Used by some indirections */
-  size_t *opstop;			/* Basic operator stack pointer */
-  size_t *opstlimit;			/* Pointer to end of operator stack */
-  byte *page;				/* The program starts here */
-  byte *start;				/* Pointer to the first line of the program */
-  byte *top;				/* Address of top of source code */
-  byte *lomem;				/* Address of start of variables and data */
-  byte *vartop;				/* Address of top of variables and data */
-  stack_pointer stacklimit;		/* Point beyond which stack dares not tread */
-  stack_pointer stacktop;		/* Basic stack pointer (full, descending stack) */
-  stack_pointer safestack;		/* Value Basic stack pointer is set to after an error */
-  byte *himem;				/* Address of top of basic stack */
-  byte *end;				/* Address of top of address space */
-  byte *slotend;			/* Address of end of wimp slot under RISC OS */
-  byte *thisline;			/* Start of current line being executed */
-  byte *current;			/* Current pointer into Basic program */
-  byte *lastvartop;			/* Used to note the address of the top of the Basic heap */
-  char *stringwork;			/* Pointer to string workspace */
-  sigjmp_buf restart;			/* For trapping errors */
-  int32 error_line;			/* Line number of last error */
-  int32 error_number;			/* Number of last error */
-  errorblock error_handler;		/* 'ON ERROR' error handler details */
-  sigjmp_buf error_restart;		/* For restarting the interpreter when an 'ON ERROR' is executed */
-  sigjmp_buf *local_restart;		/* For restarting the interpreter when an 'ON ERROR LOCAL' is executed */
-  int32 errorislocal;			/* Flag for LOCAL ERROR */
-  fnprocinfo *procstack;		/* Pointer to return block of current PROC/FN */
-  gosubinfo *gosubstack;		/* Pointer to return block of current GOSUB subroutine */
-  byte *datacur;			/* Pointer to position in DATA statement */
-  library *liblist;			/* Pointer to list of libraries loaded via LIBRARY */
-  library *installist;			/* Pointer to list of libraries loaded via INSTALL */
-  char *loadpath;			/* List of directories to search for program and libraries */
+  byte *workspace;            /* Address of start of Basic's memory */
+  size_t worksize;            /* Size of Basic's memory */
+  byte *memory;               /* Set to 0, effectively a way of accessing arbitrary memory. Used by some indirections */
+  size_t *opstop;             /* Basic operator stack pointer */
+  size_t *opstlimit;          /* Pointer to end of operator stack */
+  byte *page;                 /* The program starts here */
+  byte *start;                /* Pointer to the first line of the program */
+  byte *top;                  /* Address of top of source code */
+  byte *lomem;                /* Address of start of variables and data */
+  byte *vartop;               /* Address of top of variables and data */
+  stack_pointer stacklimit;   /* Point beyond which stack dares not tread */
+  stack_pointer stacktop;     /* Basic stack pointer (full, descending stack) */
+  stack_pointer safestack;    /* Value Basic stack pointer is set to after an error */
+  byte *himem;                /* Address of top of basic stack */
+  byte *end;                  /* Address of top of address space */
+  byte *slotend;              /* Address of end of wimp slot under RISC OS */
+  byte *thisline;             /* Start of current line being executed */
+  byte *current;              /* Current pointer into Basic program */
+  byte *lastvartop;           /* Used to note the address of the top of the Basic heap */
+  char *stringwork;           /* Pointer to string workspace */
+  sigjmp_buf restart;         /* For trapping errors */
+  int32 error_line;           /* Line number of last error */
+  int32 error_number;         /* Number of last error */
+  errorblock error_handler;   /* 'ON ERROR' error handler details */
+  sigjmp_buf error_restart;   /* For restarting the interpreter when an 'ON ERROR' is executed */
+  sigjmp_buf *local_restart;  /* For restarting the interpreter when an 'ON ERROR LOCAL' is executed */
+  int32 errorislocal;         /* Flag for LOCAL ERROR */
+  fnprocinfo *procstack;      /* Pointer to return block of current PROC/FN */
+  gosubinfo *gosubstack;      /* Pointer to return block of current GOSUB subroutine */
+  byte *datacur;              /* Pointer to position in DATA statement */
+  library *liblist;           /* Pointer to list of libraries loaded via LIBRARY */
+  library *installist;        /* Pointer to list of libraries loaded via INSTALL */
+  char *loadpath;             /* List of directories to search for program and libraries */
   struct {
-    unsigned int running:1;		/* TRUE if program is running */
-    unsigned int loadngo:1;		/* TRUE if program should be loaded and run immediately */
-    unsigned int quitatend:1;		/* TRUE if interpreter should be exited at end of program */
-    unsigned int outofdata:1;		/* TRUE if program has run out of DATA statements */
-    unsigned int has_offsets:1;		/* TRUE if program contains embedded offsets */
-    unsigned int has_variables:1;	/* TRUE if any variables have been created */
-    unsigned int make_array:1;		/* TRUE if missing arrays should be created */
-    unsigned int closefiles:1;		/* TRUE if any open files are closed at the end of the run */
-    unsigned int inredir:1;		/* TRUE if input is being taken from a file */
-    unsigned int outredir:1;		/* TRUE if output is being redirected */
-    unsigned int flag_cosmetic:1;	/* TRUE if all unsupported features flagged as errors */
-    unsigned int ignore_starcmd:1;	/* TRUE if built-in '*' commands are ignored */
-    unsigned int startfullscreen:1;	/* TRUE if we start in fullscreen in SDL mode */
-    unsigned int swsurface:1;		/* TRUE if we want a software surface */
-  } runflags;				/* Various runtime flags */
+    unsigned int running:1;       /* TRUE if program is running */
+    unsigned int loadngo:1;       /* TRUE if program should be loaded and run immediately */
+    unsigned int quitatend:1;     /* TRUE if interpreter should be exited at end of program */
+    unsigned int outofdata:1;     /* TRUE if program has run out of DATA statements */
+    unsigned int has_offsets:1;   /* TRUE if program contains embedded offsets */
+    unsigned int has_variables:1; /* TRUE if any variables have been created */
+    unsigned int make_array:1;    /* TRUE if missing arrays should be created */
+    unsigned int closefiles:1;    /* TRUE if any open files are closed at the end of the run */
+    unsigned int inredir:1;       /* TRUE if input is being taken from a file */
+    unsigned int outredir:1;      /* TRUE if output is being redirected */
+    unsigned int flag_cosmetic:1; /* TRUE if all unsupported features flagged as errors */
+    unsigned int ignore_starcmd:1;/* TRUE if built-in '*' commands are ignored */
+    unsigned int startfullscreen:1; /* TRUE if we start in fullscreen in SDL mode */
+    unsigned int swsurface:1; /* TRUE if we want a software surface */
+  } runflags;                 /* Various runtime flags */
   struct {
     unsigned int enabled:1;   /* TRUE if any trace options are enabled */
     unsigned int lines:1;     /* TRUE if line numbers are being traced */
@@ -517,58 +517,59 @@ typedef struct {
     unsigned int backtrace:1; /* TRUE if a stack backtrace is wanted after an error */
     unsigned int console:1;   /* TRUE if outputting to host console */
   } traces;                   /* Trace options */
-  int tracehandle;			/* Handle of file for output from TRACE */
+  int tracehandle;            /* Handle of file for output from TRACE */
   struct {
-    unsigned int space:1;		/* Insert a space before the listed line */
-    unsigned int indent:1;		/* Indent statements according to structure */
-    unsigned int split:1;		/* Split lines at ':' when listing them */
-    unsigned int noline:1;		/* Do not print a line number */
-    unsigned int lower:1;		/* List keywords in lower case */
-    unsigned int showpage:1;		/* Show 20 lines then pause before continuing */
-    unsigned int expand:1;		/* Add extra spaces to lines when listing them */
-  } list_flags, listo_copy, edit_flags;	/* LISTO options */
+    unsigned int space:1;     /* Insert a space before the listed line */
+    unsigned int indent:1;    /* Indent statements according to structure */
+    unsigned int split:1;     /* Split lines at ':' when listing them */
+    unsigned int noline:1;    /* Do not print a line number */
+    unsigned int lower:1;     /* List keywords in lower case */
+    unsigned int showpage:1;  /* Show 20 lines then pause before continuing */
+    unsigned int expand:1;    /* Add extra spaces to lines when listing them */
+  } list_flags, listo_copy, edit_flags; /* LISTO options */
   struct {
-    unsigned int debug:1;		/* Show interpreter debugging information */
-    unsigned int tokens:1;		/* Show interpreter token debugging information */
-    unsigned int variables:1;		/* Show interpreter debugging info for variables */
-    unsigned int strings:1;		/* Show allocation/release of memory for strings */
-    unsigned int stats:1;		/* Show string heap statistics */
-    unsigned int stack:1;		/* Show important stack push/pop info */
-    unsigned int allstack:1;		/* Show detailed stack push/pop info */
-    unsigned int functions:1;		/* Show functions entered (incomplete) */
-  } debug_flags;			/* Interpreter debugging options */
+    unsigned int debug:1;     /* Show interpreter debugging information */
+    unsigned int tokens:1;    /* Show interpreter token debugging information */
+    unsigned int variables:1; /* Show interpreter debugging info for variables */
+    unsigned int strings:1;   /* Show allocation/release of memory for strings */
+    unsigned int stats:1;     /* Show string heap statistics */
+    unsigned int stack:1;     /* Show important stack push/pop info */
+    unsigned int allstack:1;  /* Show detailed stack push/pop info */
+    unsigned int functions:1; /* Show functions entered (incomplete) */
+  } debug_flags;              /* Interpreter debugging options */
   struct {
-    unsigned int badprogram:1;		/* TRUE if program is invalid */
-    unsigned int trapexcp:1;		/* TRUE if exceptions are trapped by interpreter */
-    unsigned int validsaved:1;		/* TRUE if 'savedstart' contains something valid */
-    unsigned int validedit:1;		/* TRUE if 'edit_flags' contains something valid */
-    unsigned int usedmmap:1;		/* TRUE if we used mmap to allocate memory */
+    unsigned int badprogram:1;  /* TRUE if program is invalid */
+    unsigned int trapexcp:1;  /* TRUE if exceptions are trapped by interpreter */
+    unsigned int validsaved:1;  /* TRUE if 'savedstart' contains something valid */
+    unsigned int validedit:1; /* TRUE if 'edit_flags' contains something valid */
+    unsigned int usedmmap:1;  /* TRUE if we used mmap to allocate memory */
   } misc_flags;
-  byte savedstart[PRESERVED];		/* Save area for start of program when 'NEW' issued */
-  int32 curcount;			/* Number of entries on savedcur[] stack*/
-  byte *savedcur[MAXCURCOUNT];		/* Stack of saved values of 'current' for EVAL and READ */
-  boolean escape;			/* TRUE if the 'escape' key has been pressed */
-  boolean escape_enabled;		/* TRUE if the 'escape' key is enabled */
-  int32 retcode;			/* Return code from last OSCLI command */
-  int32 argcount;			/* Number of Basic program command line arguments */
-  int32 printcount;			/* Chars printed this line (used by PRINT) */
-  int32 printwidth;			/* Width of line (used by PRINT) */
-  byte *lastsearch;			/* Place last proc/fn search reached */
-  int32 linecount;			/* Used when reading a Basic program or library into memory */
-  variable staticvars[STDVARS];		/* Static integer variables @%-Z% */
-  variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions */
-  int64 centiseconds;			/* Centisecond timer, populated by sub-thread */
-  int clocktype;			/* Type of clock used in centisecond timer */
-  int64 monotonictimebase;		/* Baseline for OS_ReadMonotonicTime */
-  size_t memdump_lastaddr;		/* Last address used by LISTB/LISTW */
+  byte savedstart[PRESERVED]; /* Save area for start of program when 'NEW' issued */
+  int32 curcount;             /* Number of entries on savedcur[] stack*/
+  byte *savedcur[MAXCURCOUNT];  /* Stack of saved values of 'current' for EVAL and READ */
+  boolean escape;             /* TRUE if the 'escape' key has been pressed */
+  boolean escape_enabled;     /* TRUE if the 'escape' key is enabled */
+  int32 retcode;              /* Return code from last OSCLI command */
+  int32 argcount;             /* Number of Basic program command line arguments */
+  int32 printcount;           /* Chars printed this line (used by PRINT) */
+  int32 printwidth;           /* Width of line (used by PRINT) */
+  int32 rundepth;             /* Record depth of RUN recursion */
+  byte *lastsearch;           /* Place last proc/fn search reached */
+  int32 linecount;            /* Used when reading a Basic program or library into memory */
+  variable staticvars[STDVARS];   /* Static integer variables @%-Z% */
+  variable *varlists[VARLISTS];   /* Pointers to lists of variables, procedures and functions */
+  int64 centiseconds;         /* Centisecond timer, populated by sub-thread */
+  int clocktype;              /* Type of clock used in centisecond timer */
+  int64 monotonictimebase;    /* Baseline for OS_ReadMonotonicTime */
+  size_t memdump_lastaddr;    /* Last address used by LISTB/LISTW */
 #ifdef USE_SDL
-  SDL_Thread *csec_thread;	/* Holder for centisecond timer thread */
-  SDL_Thread *escape_thread;	/* Holder for escape poller thread */
-  SDL_Thread *interp_thread;	/* Holder for centisecond timer thread */
+  SDL_Thread *csec_thread;    /* Holder for centisecond timer thread */
+  SDL_Thread *escape_thread;  /* Holder for escape poller thread */
+  SDL_Thread *interp_thread;  /* Holder for centisecond timer thread */
 #endif  
-  char program[FNAMESIZE];		/* Name of program loaded */
-  char filename[FNAMESIZE];		/* Name of last file read */
-  cmdarg *arglist;			/* Pointer to list of Basic program command line arguments */
+  char program[FNAMESIZE];    /* Name of program loaded */
+  char filename[FNAMESIZE];   /* Name of last file read */
+  cmdarg *arglist;            /* Pointer to list of Basic program command line arguments */
 } workspace;
 
 extern workspace basicvars;		/* Interpreter variables for the Basic program */
@@ -615,7 +616,7 @@ extern matrixbits matrixflags;
 
 typedef union {
   double f;                   /* Data store for float */
-  size_t i;               /* Data store for integer or pointer */
+  size_t i;                   /* Data store for integer or pointer */
 } sysparm;
 
 #ifdef USE_SDL

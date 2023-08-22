@@ -403,6 +403,7 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 */
 
 #define MAXSTRING 65536
+#define MAXRUNDEPTH 256
 
 #ifdef USE_SDL
 #define MODE7FB 0x7C00

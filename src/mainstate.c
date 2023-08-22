@@ -2383,6 +2383,8 @@ void exec_run(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_run\n");
 #endif /* DEBUG */
   basicvars.current++;		/* Skip RUN token */
+  basicvars.rundepth++;
+  if (basicvars.rundepth > MAXRUNDEPTH) error(ERR_NOROOM);
   bp = NIL;
   if (!ateol[*basicvars.current]) {	/* RUN <filename> or RUN <linenumber> found */
     stackitem topitem;
@@ -2416,6 +2418,7 @@ void exec_run(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exiting function mainstate.c:exec_run via run_program()\n");
 #endif /* DEBUG */
   run_program(bp);
+  basicvars.rundepth--;
 }
 
 /*

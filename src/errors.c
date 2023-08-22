@@ -766,6 +766,7 @@ static void handle_error(errortype severity) {
     basicvars.current = NIL;
     basicvars.procstack = NIL;
     basicvars.gosubstack = NIL;
+    basicvars.rundepth = 0;
     siglongjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
   }
 }
