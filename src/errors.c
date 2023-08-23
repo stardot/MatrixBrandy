@@ -768,6 +768,7 @@ static void handle_error(errortype severity) {
     basicvars.procstack = NIL;
     basicvars.gosubstack = NIL;
     basicvars.recdepth = 0;
+    clear_stack();              /* Clear the stack on an unhandled error */
     siglongjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
   }
 }
