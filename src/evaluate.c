@@ -1355,10 +1355,12 @@ static void do_function(void) {
   byte *tp = NULL;
   fnprocdef *dp = NULL;
   variable *vp = NULL;
-  if (kbd_escpoll()) error(ERR_ESCAPE);
+  //if (kbd_escpoll()) error(ERR_ESCAPE);
 #ifdef TARGET_DJGPP
   if (stackavail()<DJGPPLIMIT) error(ERR_STACKFULL);
 #endif
+  basicvars.recdepth++;
+  if (basicvars.recdepth > MAXRECDEPTH) error(ERR_RECLIMIT);
   vp = GET_ADDRESS(basicvars.current, variable *);
   dp = vp->varentry.varfnproc;
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer to function */
@@ -1368,7 +1370,6 @@ static void do_function(void) {
   if (*basicvars.current == '(') push_parameters(dp, vp->varname);
 
 /* Save everything */
-
   push_fn(vp->varname, dp->parmcount);
   tp = basicvars.current;
 
@@ -1381,9 +1382,10 @@ static void do_function(void) {
     if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
   }
-  if (sigsetjmp(*basicvars.local_restart, 1) == 0)
+  if (sigsetjmp(*basicvars.local_restart, 1) == 0) {
     exec_fnstatements(dp->fnprocaddr);
-  else {
+    basicvars.recdepth--;
+  } else {
 /*
 ** Restart here after an error in the function or something
 ** called from it is trapped by ON ERROR LOCAL
@@ -1394,6 +1396,7 @@ static void do_function(void) {
 
 /* Restore stuff after the call has ended */
 
+  basicvars.recdepth--;
   basicvars.current = tp;	/* Note that 'basicvars.current' is preserved over the function call in 'tp' */
 }
 
