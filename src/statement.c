@@ -245,7 +245,7 @@ void end_run(void) {
   siglongjmp(basicvars.restart, 1);	/* Restart at the command line */
 }
 
-static void next_line(void) {
+void next_line(void) {
   byte *lp;
   lp = basicvars.current+1;		/* Skip NUL and point at start of next line */
   if (AT_PROGEND(lp)) end_run();	/* Have reached end of program */

@@ -4547,6 +4547,12 @@ void expression(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
 #endif
+  if (*basicvars.current == '\\') {
+    /* Try to handle a BBCSDL long line */
+    while (!isateol(basicvars.current)) basicvars.current++;
+    next_line();
+    basicvars.current++;
+  }
   (*factor_table[*basicvars.current])();	/* Get first factor in the expression */
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)basicvars.current);
