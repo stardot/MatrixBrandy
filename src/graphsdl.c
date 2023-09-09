@@ -2349,7 +2349,7 @@ static void vdu_graphwind(void) {
     top = temp;
   }
 /* Ensure clipping region is entirely within the screen area */
-  if (right < 0 || top < 0 || left >= ds.xgraphunits || bottom >= ds.ygraphunits) return;
+  if (right < 0 || bottom < 0 || left >= ds.xgraphunits || top >= ds.ygraphunits) return;
   ds.gwinleft = left;
   ds.gwinright = right;
   ds.gwintop = top;
