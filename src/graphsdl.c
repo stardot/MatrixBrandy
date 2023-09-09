@@ -180,9 +180,12 @@ static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 threadmsg tmsg;
 
+/* The "virtual screen" below is the size of the display in uniquely addressable pixels,
+   for example MODE 0 is 640x256, MODE 2 is 160x256 and MODE 27 is 640x480 - see scrcommon.h */
+
 static struct {
   int32 vscrwidth;			/* Width of virtual screen in pixels */
-  int32 vscrheight;			/* Height of virtual ds.vscrheight in pixels */
+  int32 vscrheight;			/* Height of virtual screen in pixels */
   int32 screenwidth;			/* RISC OS width of current screen mode in pixels */
   int32 screenheight;			/* RISC OS height of current screen mode in pixels */
   int32 xgraphunits;			/* Screen width in RISC OS graphics units */
