@@ -2110,12 +2110,12 @@ static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uin
   if (colourdepth == 256) colour = colour << COL256SHIFT;
   for (yloop=top;yloop<=bottom; yloop++) {
     if (ds.clipping) {
-      roy=modetable[screenmode].ygraphunits - ((yloop+1) * modetable[screenmode].yscale * 2);
+      roy=ds.ygraphunits-(yloop+1)*ds.ygupp; 
       if ((roy < ds.gwinbottom) || (roy > ds.gwintop)) continue;
     }
     for (xloop=left; xloop<=right; xloop++) {
       if (ds.clipping) {
-        rox=xloop * modetable[screenmode].xscale * 2;
+        rox=xloop*ds.xgupp;
         if ((rox < ds.gwinleft) || (rox > ds.gwinright)) continue;
       }
       pxoffset = xloop + yloop*ds.vscrwidth;
