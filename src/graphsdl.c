@@ -2101,60 +2101,13 @@ static void vdu_return(void) {
 
 #ifndef BRANDY_MODE7ONLY
 static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uint32 colour, int32 action) {
-  int32 xloop, yloop, pxoffset, rox = 0, roy = 0;
-  Uint32 prevcolour, a, altcolour = 0;
+  int32 xloop, yloop;
 
   if (action == 5) return;
 
-  colour=emulate_colourfn((colour >> 16) & 0xFF, (colour >> 8) & 0xFF, (colour & 0xFF));
-  if (colourdepth == 256) colour = colour << COL256SHIFT;
   for (yloop=top;yloop<=bottom; yloop++) {
-    if (ds.clipping) {
-      roy=ds.ygraphunits-(yloop+1)*ds.ygupp; 
-      if ((roy < ds.gwinbottom) || (roy > ds.gwintop)) continue;
-    }
     for (xloop=left; xloop<=right; xloop++) {
-      if (ds.clipping) {
-        rox=xloop*ds.xgupp;
-        if ((rox < ds.gwinleft) || (rox > ds.gwinright)) continue;
-      }
-      pxoffset = xloop + yloop*ds.vscrwidth;
-      if (pxoffset < 0) continue;
-      prevcolour=SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + pxoffset));
-      prevcolour=emulate_colourfn((prevcolour >> 16) & 0xFF, (prevcolour >> 8) & 0xFF, (prevcolour & 0xFF));
-      switch (action) {
-        case 0:
-          altcolour=colour;
-          break;
-        case 1:
-          altcolour=(prevcolour | colour);
-          break;
-        case 2:
-          altcolour=(prevcolour & colour);
-          break;
-        case 3:
-          altcolour=(prevcolour ^ colour);
-          break;
-        case 4:
-          altcolour=(prevcolour ^ (colourdepth-1));
-          break;
-        case 6:
-          altcolour=(prevcolour & ((~colour) & (colourdepth-1)));
-          break;
-        case 7:
-          altcolour=(prevcolour | ((~colour) & (colourdepth-1)));
-          break;
-        default:
-          altcolour=colour;
-      }
-      if (colourdepth == COL24BIT) {
-        altcolour = altcolour & 0xFFFFFF;
-      } else {
-        a=altcolour;
-        altcolour=altcolour*3;
-        altcolour=SDL_MapRGB(sdl_fontbuf->format, palette[altcolour+0], palette[altcolour+1], palette[altcolour+2]) + (a << 24);
-      }
-      if (pxoffset >= 0)*((Uint32*)screenbank[ds.writebank]->pixels + pxoffset) = SWAPENDIAN(altcolour);
+      plot_pixel(screenbank[ds.writebank], xloop, yloop, colour, action);
     }
   }
 
