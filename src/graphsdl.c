@@ -1697,14 +1697,7 @@ static void vdu5_cursordown(void) {
 */
 static void plot_char(int32 ch) {
   int32 y, topx, topy, line, r;
-  SDL_Rect clip_rect;
-  if (ds.clipping) {
-    clip_rect.x = GXTOPX(ds.gwinleft);
-    clip_rect.y = GYTOPY(ds.gwintop);
-    clip_rect.w = ds.gwinright - ds.gwinleft +1;
-    clip_rect.h = ds.gwinbottom - ds.gwintop +1;
-    SDL_SetClipRect(screenbank[ds.writebank], &clip_rect);
-  }
+
   topx = GXTOPX(ds.xlast);		/* X and Y coordinates are those of the */
   topy = GYTOPY(ds.ylast);	/* top left-hand corner of the character */
   place_rect.x = topx;
@@ -1733,9 +1726,6 @@ static void plot_char(int32 ch) {
      (((vdu2316byte & 4) == 4) && (ds.ylast > ds.gwintop)))) {	/* But position is outside the graphics window */
     ds.ylast = gtextyhome();
     vdu5_cursordown();
-  }
-  if (ds.clipping) {
-    SDL_SetClipRect(screenbank[ds.writebank], NULL);
   }
 }
 
