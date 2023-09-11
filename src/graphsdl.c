@@ -2956,9 +2956,20 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
   if ((x < 0) || (x >= ds.screenwidth) || (y < 0) || (y >= ds.screenheight)) return;
 
   if (ds.clipping) {
-    rox = (offset % ds.screenwidth)*ds.xgupp;
-    roy = ds.ygraphunits - ds.ygupp - (offset / ds.vscrwidth)*ds.ygupp;
+    rox = x * ds.xgupp;
+    roy = ds.ygraphunits - (y+1)*ds.ygupp;
+#ifdef DEBUG
+    if (basicvars.debug_flags.vdu) {
+      fprintf(stderr, "plot_pixel [VDU24]: x=%d, y=%d, rox=%d, roy=%d\n", x, y, rox, roy);
+      fprintf(stderr, "                    gwinleft=%d, gwinright=%d, gwintop=%d, gwinbottom=%d\n", ds.gwinleft, ds.gwinright, ds.gwintop, ds.gwinbottom);
+    }
+#endif
     if ((rox < ds.gwinleft) || (rox > ds.gwinright) || (roy < ds.gwinbottom) || (roy > ds.gwintop)) return;
+#ifdef DEBUG
+    if (basicvars.debug_flags.vdu) {
+      fprintf(stderr, "                    Pixel will be plotted.\n");
+    }
+#endif
   }
   if (ds.plot_inverse ==1) {
     action=3;
@@ -4754,12 +4765,12 @@ void get_sdl_mouse(size_t values[]) {
   drain_mouse_expired();
   if (mousebuffer != NULL) {
     int mx, my;
-    mx=(mousebuffer->x *2);
+    mx=(mousebuffer->x * (ds.xgupp / ds.xscale));
     if (mx < 0) mx = 0;
     if (mx >= ds.xgraphunits) mx = (ds.xgraphunits - 1);
     mx -= ds.xorigin;
 
-    my=(2*(ds.vscrheight - mousebuffer->y));
+    my=((ds.vscrheight - mousebuffer->y) * (ds.ygupp / ds.yscale));
     if (my < 0) my = 0;
     if (my >= ds.ygraphunits) my = (ds.ygraphunits - 1);
     my -= ds.yorigin;
@@ -4804,12 +4815,13 @@ void get_sdl_mouse(size_t values[]) {
         break;
     }
   }
-  x=(x*2);
+
+  x=(x * (ds.xgupp / ds.xscale));
   if (x < 0) x = 0;
   if (x >= ds.xgraphunits) x = (ds.xgraphunits - 1);
   x -= ds.xorigin;
 
-  y=(2*(ds.vscrheight-y));
+  y=((ds.vscrheight-y) * (ds.ygupp / ds.yscale));
   if (y < 0) y = 0;
   if (y >= ds.ygraphunits) y = (ds.ygraphunits - 1);
   y -= ds.yorigin;
