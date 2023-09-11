@@ -2292,8 +2292,7 @@ static void vdu_graphwind(void) {
   if (bottom > top) return;
 
 /* If any edge is off screen, do nothing */
-  if (left < 0 || top < 0 || right < 0 || bottom < 0) return;
-  if (left >= ds.xgraphunits || bottom >= ds.ygraphunits || right >= ds.xgraphunits || top >= ds.ygraphunits) return;
+  if (left < 0 || bottom < 0 || right >= ds.xgraphunits || top >= ds.ygraphunits) return;
 #ifdef DEBUG
   if (basicvars.debug_flags.vdu) fprintf(stderr, "VDU24: Graphics window set\n");
 #endif
