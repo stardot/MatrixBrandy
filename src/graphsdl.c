@@ -2281,27 +2281,20 @@ static void vdu_graphwind(void) {
   right += ds.xorigin;
   top += ds.yorigin;
   bottom += ds.yorigin;
-  if (left > right) {	/* Ensure left < right */
-    int32 temp = left;
-    left = right;
-    right = temp;
-  }
-  if (bottom > top) {	/* Ensure bottom < top */
-    int32 temp = bottom;
-    bottom = top;
-    top = temp;
-  }
-/* Ensure clipping region is entirely within the screen area */
 #ifdef DEBUG
   if (basicvars.debug_flags.vdu) {
     fprintf(stderr, "VDU24: left=%d, right=%d, top=%d, bottom=%d\n", left, right, top, bottom);
     fprintf(stderr, "VDU24: xgraphunits=%d, ygraphunits=%d\n", ds.xgraphunits, ds.ygraphunits);
   }
 #endif
-  if (right < 0 || top < 0 || left >= ds.xgraphunits || bottom >= ds.ygraphunits) return;
+  /* If window dimensions are negative, do nothing */
+  if (left > right) return;
+  if (bottom > top) return;
+
+/* Ensure clipping region is entirely within the screen area */
+  if (right < 0 || bottom < 0 || left >= ds.xgraphunits || top >= ds.ygraphunits) return;
 #ifdef DEBUG
   if (basicvars.debug_flags.vdu) fprintf(stderr, "VDU24: Graphics window set\n");
-
 #endif
   ds.gwinleft = left;
   ds.gwinright = right;
