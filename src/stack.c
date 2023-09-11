@@ -449,7 +449,11 @@ void *alloc_stackmem(size_t size) {
   basicvars.stacktop.locarraysp->itemtype = STACK_LOCARRAY;
   basicvars.stacktop.locarraysp->arraysize = size;
 #ifdef DEBUG
+#  ifdef MATRIX64BIT
+  if (basicvars.debug_flags.stack) fprintf(stderr, "Allocate memory on stack at %p, size=%ld\n", p, size);
+#  else
   if (basicvars.debug_flags.stack) fprintf(stderr, "Allocate memory on stack at %p, size=%d\n", p, size);
+#  endif
 #endif
   return base;
 }

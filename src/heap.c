@@ -120,12 +120,20 @@ boolean init_workspace(size_t heapsize) {
   heaporig = heapsize;
   basicvars.misc_flags.usedmmap = 1;
 #ifdef DEBUG
+#  ifdef MATRIX64BIT
+  fprintf(stderr, "heap.c:init_workspace: Requested heapsize is %ld (&%lX)\n", heapsize, heapsize);
+#  else
   fprintf(stderr, "heap.c:init_workspace: Requested heapsize is %d (&%X)\n", heapsize, heapsize);
+#  endif
 #endif
   base = mymap(heapsize);
   if (base != NULL) {
 #ifdef DEBUG
+#  ifdef MATRIX64BIT
+    fprintf(stderr, "heap.c:init_workspace: Allocating at %p, size &%lX\n", base, heapsize);
+#  else
     fprintf(stderr, "heap.c:init_workspace: Allocating at %p, size &%X\n", base, heapsize);
+#  endif
 #endif
     wp = mmap64(base, heapsize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0) ;
 #ifdef DEBUG
