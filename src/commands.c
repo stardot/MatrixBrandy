@@ -233,11 +233,12 @@ static void list_if(void) {
       }
     } while(statelen>=targetlen && memcmp(sp, tp, targetlen) != 0);
     if (statelen>=targetlen) {  /* Can only be true if the string was found */
+#ifdef DEBUG
       if (basicvars.debug_flags.tokens)
         emulate_printf("%08p  %s\r\n", p, basicvars.stringwork);
-      else {
+      else
+#endif
         emulate_printf("%s\r\n", basicvars.stringwork);
-      }
     }
     p+=GET_LINELEN(p);
   }
@@ -264,6 +265,7 @@ static void set_listopt(void) {
   listopts = get_number();
   check_ateol();
   set_listoption(listopts);
+#ifdef DEBUG
 /* Internal debugging options */
   basicvars.debug_flags.debug = (listopts & DEBUG_DEBUG) != 0;
   basicvars.debug_flags.tokens = (listopts & DEBUG_TOKENS) != 0;
@@ -273,6 +275,8 @@ static void set_listopt(void) {
   basicvars.debug_flags.stack = (listopts & DEBUG_STACK) != 0;
   basicvars.debug_flags.allstack = (listopts & DEBUG_ALLSTACK) != 0;
   basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
+  basicvars.debug_flags.vdu = (listopts & DEBUG_VDU) != 0;
+#endif
 }
 
 /*
@@ -349,11 +353,12 @@ static void list_program(void) {
   more = TRUE;
   while (more && !AT_PROGEND(p) && get_lineno(p)<=highline) {
     expand(p, basicvars.stringwork);
+#ifdef DEBUG
     if (basicvars.debug_flags.tokens)
       emulate_printf("%p  %s\r\n", p, basicvars.stringwork);
-    else {
+    else
+#endif
       emulate_printf("%s\r\n", basicvars.stringwork);
-    }
     p+=GET_LINELEN(p);
     if (basicvars.list_flags.showpage) {
       count++;
@@ -1107,7 +1112,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "LISTO")) {
     emulate_printf("LISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
 #ifdef DEBUG
-    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)");
+    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)\r\n16: Show VDU debugging (very incomplete) (&10000)\r\n");
 #endif
   } else if (!strcmp(cmd, "LN")) {
     emulate_printf("This function gives the natural logarithm (base e) of a number(<factor>).");

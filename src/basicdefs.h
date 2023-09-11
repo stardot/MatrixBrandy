@@ -73,14 +73,15 @@
 
 /* 'LISTO' options for debugging the interpreter */
 
-#define DEBUG_DEBUG 0x100		/* Show debugging output */
-#define DEBUG_TOKENS 0x200		/* Show tokenised lines on input plus addresses on listings */
-#define DEBUG_VARIABLES 0x400		/* List addresses of variables when created + on LVAR */
-#define DEBUG_STRINGS 0x800		/* Show allocation/release of memory for strings */
-#define DEBUG_STATS 0x1000		/* Show string heap statistics */
-#define DEBUG_STACK 0x2000		/* Show structures pushed and popped from stack */
-#define DEBUG_ALLSTACK 0x4000		/* Show in detail items pushed and popped from stack */
-#define DEBUG_FUNCTIONS 0x8000		/* Show which functions are called - very incomplete */
+#define DEBUG_DEBUG 0x100       /* Show debugging output */
+#define DEBUG_TOKENS 0x200      /* Show tokenised lines on input plus addresses on listings */
+#define DEBUG_VARIABLES 0x400   /* List addresses of variables when created + on LVAR */
+#define DEBUG_STRINGS 0x800     /* Show allocation/release of memory for strings */
+#define DEBUG_STATS 0x1000      /* Show string heap statistics */
+#define DEBUG_STACK 0x2000      /* Show structures pushed and popped from stack */
+#define DEBUG_ALLSTACK 0x4000   /* Show in detail items pushed and popped from stack */
+#define DEBUG_FUNCTIONS 0x8000  /* Show which functions are called - very incomplete */
+#define DEBUG_VDU 0x10000       /* Ghow debugging related to VDU drivers */
 
 /* Variable type flags */
 
@@ -527,6 +528,7 @@ typedef struct {
     unsigned int showpage:1;  /* Show 20 lines then pause before continuing */
     unsigned int expand:1;    /* Add extra spaces to lines when listing them */
   } list_flags, listo_copy, edit_flags; /* LISTO options */
+#ifdef DEBUG
   struct {
     unsigned int debug:1;     /* Show interpreter debugging information */
     unsigned int tokens:1;    /* Show interpreter token debugging information */
@@ -536,7 +538,9 @@ typedef struct {
     unsigned int stack:1;     /* Show important stack push/pop info */
     unsigned int allstack:1;  /* Show detailed stack push/pop info */
     unsigned int functions:1; /* Show functions entered (incomplete) */
+    unsigned int vdu:1;       /* Show VDU debugging */
   } debug_flags;              /* Interpreter debugging options */
+#endif
   struct {
     unsigned int badprogram:1;  /* TRUE if program is invalid */
     unsigned int trapexcp:1;  /* TRUE if exceptions are trapped by interpreter */

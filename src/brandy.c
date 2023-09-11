@@ -170,6 +170,7 @@ static void init1(void) {
   basicvars.list_flags.lower = FALSE;
   basicvars.list_flags.expand = FALSE;
 
+#ifdef DEBUG
   basicvars.debug_flags.debug = FALSE;	/* Set interpreter debug options */
   basicvars.debug_flags.tokens = FALSE;
   basicvars.debug_flags.variables = FALSE;
@@ -177,6 +178,8 @@ static void init1(void) {
   basicvars.debug_flags.stats = FALSE;
   basicvars.debug_flags.stack = FALSE;
   basicvars.debug_flags.allstack = FALSE;
+  basicvars.debug_flags.vdu = FALSE;
+#endif
   basicvars.errorislocal = 0;
 
   basicvars.runflags.inredir = FALSE;           /* Input is being taken from the keyboard */

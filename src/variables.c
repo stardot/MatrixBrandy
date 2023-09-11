@@ -160,40 +160,46 @@ static void list_varlist(char which, library *lp) {
         done++;
         switch (vp->varflags) {
         case VAR_INTWORD:
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varinteger);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varinteger);
-          }
           break;
         case VAR_UINT8:
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varu8int);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varu8int);
-          }
           break;
         case VAR_INTLONG:
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %lld", vp, vp->varname, vp->varentry.var64int);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s = %lld", vp->varname, vp->varentry.var64int);
-          }
           break;
         case VAR_FLOAT:
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = %g", vp, vp->varname, vp->varentry.varfloat);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s = %g", vp->varname, vp->varentry.varfloat);
-          }
           break;
         case VAR_STRINGDOL: {
           int count;
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s = \"", vp, vp->varname);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s = \"", vp->varname);
-          }
+
           if (vp->varentry.varstring.stringlen<=MAXSUBSTR)
             count = vp->varentry.varstring.stringlen;
           else {
@@ -212,11 +218,12 @@ static void list_varlist(char which, library *lp) {
           int i;
           char temp2[20];
           basicarray *ap;
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s", vp, vp->varname);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s", vp->varname);
-          }
           if (vp->varentry.vararray==NIL) {	/* Array bounds are undefined */
             temp[len] = ')';
             temp[len+1] = asc_NUL;
@@ -243,11 +250,12 @@ static void list_varlist(char which, library *lp) {
           else {
             p = "FN";
           }
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  %s%s", vp, p, vp->varname+1);
-          else {
+          else
+#endif
             len = sprintf(temp, "%s%s", p, vp->varname+1);
-          }
           fp = vp->varentry.varfnproc->parmlist;
           if (fp!=NIL) {
             strcat(temp, "(");
@@ -288,11 +296,12 @@ static void list_varlist(char which, library *lp) {
           else {
             p = "FN";
           }
+#ifdef DEBUG
           if (basicvars.debug_flags.variables)
             len = sprintf(temp, "%p  [line %d] %s%s", vp, get_lineno(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
-          else {
+          else
+#endif
             len = sprintf(temp, "[line %d] %s%s", get_lineno(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
-          }
           break;
         }
         default:	/* Bad type of variable flag */

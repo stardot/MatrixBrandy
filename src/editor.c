@@ -767,9 +767,10 @@ void read_basic(char *name) {
   basicvars.top+=length;
   basicvars.misc_flags.badprogram = FALSE;
   adjust_heaplimits();
-  if (basicvars.debug_flags.debug) {
+#ifdef DEBUG
+  if (basicvars.debug_flags.debug)
     fprintf(stderr, "Program is loaded at page=&%p,  top=&%p\n", basicvars.page, basicvars.top);
-  }
+#endif
 }
 
 #ifdef BRANDYAPP
@@ -831,8 +832,10 @@ static void read_bbclib(FILE *libfile, char *name, boolean onheap, int32 ftype) 
     if (installbase==NIL) error(ERR_LIBSIZE, name);
     memmove(installbase, base, size);
     base = installbase;
-    if (basicvars.debug_flags.debug) fprintf(stderr, "Loaded library '%s' at %p, size = %d\n",
-     name, base, size);
+#ifdef DEBUG
+    if (basicvars.debug_flags.debug)
+      fprintf(stderr, "Loaded library '%s' at %p, size = %d\n", name, base, size);
+#endif
   }
   link_library(name, base, size, onheap);
 }
@@ -861,8 +864,10 @@ static void read_textlib(FILE *libfile, char *name, boolean onheap) {
     if (installbase==NIL) error(ERR_LIBSIZE, name);
     memmove(installbase, base, size);
     base = installbase;
-    if (basicvars.debug_flags.debug) fprintf(stderr, "Loaded library '%s' at %p, size = %d\n",
-     name, base, size);
+#ifdef DEBUG
+    if (basicvars.debug_flags.debug)
+      fprintf(stderr, "Loaded library '%s' at %p, size = %d\n", name, base, size);
+#endif
   }
   link_library(name, base, size, onheap);
 }
