@@ -1699,120 +1699,119 @@ static void cmd_help(char *command)
     case HELP_BASIC:
 // Need to think about making this neat but informative
 #ifdef BRANDY_GITCOMMIT
-	emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+      emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
-	// Try to get attributions correct, as per license.
-	emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
-	emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
+      // Try to get attributions correct, as per license.
+      emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
+      emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
 #ifdef BRANDY_PATCHDATE
-	emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
-	emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4]==' ' ? '0' : mos_patchdate[4],
-	mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
-	// NB: Adjust spaces in above to align version and date strings correctly
+      emulate_printf("  Patch %s compiled at %s on ", BRANDY_PATCHDATE, __TIME__);
+      emulate_printf("%c%c %c%c%c %s\r\n", mos_patchdate[4]==' ' ? '0' : mos_patchdate[4],
+      mos_patchdate[5], mos_patchdate[0], mos_patchdate[1], mos_patchdate[2], &mos_patchdate[7]);
+      // NB: Adjust spaces in above to align version and date strings correctly
 #endif
-    break;
+      break;
     case HELP_HOST:
     case HELP_MOS:
-	emulate_printf("  CD      <dir>\r\n");
-	emulate_printf("  EXEC    (<filename>)\r\n");
-	emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
-	emulate_printf("  HELP    (<text>)\r\n");
-	emulate_printf("  KEY     <num> <string>\r\n");
-	emulate_printf("  LOAD    <filename> <load addr>\r\n");
-	emulate_printf("  POINTER (<0|1>)\r\n");
-	emulate_printf("  QUIT\r\n");
-	emulate_printf("  SAVE    <filename> <start addr> <end addr>|+<length>\r\n");
-//	emulate_printf("  SAVE    <filename> <start addr> <end addr>\r\n");
-//	emulate_printf("  or SAVE <filename> <start addr> +<length>\r\n");
-	emulate_printf("  SHOW    (<num>)\r\n");
-	emulate_printf("  SPOOL   (<filename>)\r\n");
-	emulate_printf("  SPOOLON (<filename>)\r\n");
-    break;
+      emulate_printf("  CD      <dir>\r\n");
+      emulate_printf("  EXEC    (<filename>)\r\n");
+      emulate_printf("  FX      <num>(,<num>(,<num>))\r\n");
+      emulate_printf("  HELP    (<text>)\r\n");
+      emulate_printf("  KEY     <num> <string>\r\n");
+      emulate_printf("  LOAD    <filename> <load addr>\r\n");
+      emulate_printf("  POINTER (<0|1>)\r\n");
+      emulate_printf("  QUIT\r\n");
+      emulate_printf("  SAVE    <filename> <start addr> <end addr>|+<length>\r\n");
+      emulate_printf("  SHOW    (<num>)\r\n");
+      emulate_printf("  SPOOL   (<filename>)\r\n");
+      emulate_printf("  SPOOLON (<filename>)\r\n");
+      break;
     case HELP_MATRIX:
+
 #ifdef USE_SDL
-	emulate_printf("  FullScreen (<ON|OFF|1|0>)\r\n");
-	emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> (<xeig> (<yeig>))\r\n");
-	emulate_printf("  Refresh    (<On|Off|OnError>)\r\n");
-	emulate_printf("  ScreenLoad <filename.bmp>\r\n");
-	emulate_printf("  ScreenSave <filename.bmp>\r\n");
+      emulate_printf("  FullScreen (<ON|OFF|1|0>)\r\n");
+      emulate_printf("  NewMode    <mode> <xres> <yres> <colours> <xscale> <yscale> (<xeig> (<yeig>))\r\n");
+      emulate_printf("  Refresh    (<On|Off|OnError>)\r\n");
+      emulate_printf("  ScreenLoad <filename.bmp>\r\n");
+      emulate_printf("  ScreenSave <filename.bmp>\r\n");
 #endif /* USE_SDL */
-	emulate_printf("  WinTitle   <window title>\r\n");
-    break;
+      emulate_printf("  WinTitle   <window title>\r\n");
+      break;
     case HELP_MEMINFO:
       show_meminfo();
       emulate_printf("\r\n");
     break;
 #ifdef USE_SDL
     case HELP_SOUND:
-	emulate_printf("  ChannelVoice <channel> <voice index|voice name>\r\n");
-	emulate_printf("  Voices\r\n");
-	emulate_printf("  Volume       <n>\r\n");
-    break;
+      emulate_printf("  ChannelVoice <channel> <voice index|voice name>\r\n");
+      emulate_printf("  Voices\r\n");
+      emulate_printf("  Volume       <n>\r\n");
+      break;
 #endif
     case CMD_WINTITLE:
-	emulate_printf("Syntax: *WinTitle <window title>\r\n");
-	emulate_printf("  This command sets the text on the SDL or xterm window title bar.\r\n");
-    break;
+      emulate_printf("Syntax: *WinTitle <window title>\r\n");
+      emulate_printf("  This command sets the text on the SDL or xterm window title bar.\r\n");
+      break;
 #ifdef USE_SDL
     case CMD_FULLSCREEN:
-	emulate_printf("Syntax: *FullScreen (<On|Off|1|0>)\r\n");
-	emulate_printf("  This controls  fullscreen mode  within  SDL. On or 1 switches to fullscreen,\r\n");
-	emulate_printf("  0 or Off restores the windowws mode, and with no parameter given,\r\n");
-	emulate_printf("  toggles fullscreen mode.\r\n");
+      emulate_printf("Syntax: *FullScreen (<On|Off|1|0>)\r\n");
+      emulate_printf("  This controls  fullscreen mode  within  SDL. On or 1 switches to fullscreen,\r\n");
+      emulate_printf("  0 or Off restores the windowws mode, and with no parameter given,\r\n");
+      emulate_printf("  toggles fullscreen mode.\r\n");
 #ifdef CYGWINBUILD
-	emulate_printf("\r\n  Please note drawing on a fullscreen surface on the Windows build is known to\r\n");
-	emulate_printf("  be glitchy, at least on some systems, due to an SDL bug.\r\n  MODE 7 seems to mostly work.\r\n");
+      emulate_printf("\r\n  Please note drawing on a fullscreen surface on the Windows build is known to\r\n");
+      emulate_printf("  be glitchy, at least on some systems, due to an SDL bug.\r\n  MODE 7 seems to mostly work.\r\n");
 #endif
-    break;
+      break;
     case CMD_NEWMODE:
-	emulate_printf("Syntax: *NewMode <mode> <xres> <yres> <colours> <xsc> <ysc> (<xeig> (<yeig>))\r\n");
-	emulate_printf("  This defines a new mode. The parameters are:\r\n");
-	emulate_printf("  mode:    Mode number, range 64-126\r\n");
-	emulate_printf("  xres:    X resolution in pixels, minimum 8.\r\n");
-	emulate_printf("  yres:    Y resolution in pixels, minimum 8.\r\n");
-	emulate_printf("  colours: Colour depth, valid values 2, 4, 16, 256 or 16777216.\r\n");
-	emulate_printf("  xsc:     X scaling (e.g. Mode 1 uses 2, Mode 0 uses 1)\r\n");
-	emulate_printf("  ysc:     Y scaling (e.g. Mode 0 uses 2, Mode 18 uses 1)\r\n");
-	emulate_printf("  xeig:    X eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
-	emulate_printf("  yeig:    Y eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
-    break;
+      emulate_printf("Syntax: *NewMode <mode> <xres> <yres> <colours> <xsc> <ysc> (<xeig> (<yeig>))\r\n");
+      emulate_printf("  This defines a new mode. The parameters are:\r\n");
+      emulate_printf("  mode:    Mode number, range 64-126\r\n");
+      emulate_printf("  xres:    X resolution in pixels, minimum 8.\r\n");
+      emulate_printf("  yres:    Y resolution in pixels, minimum 8.\r\n");
+      emulate_printf("  colours: Colour depth, valid values 2, 4, 16, 256 or 16777216.\r\n");
+      emulate_printf("  xsc:     X scaling (e.g. Mode 1 uses 2, Mode 0 uses 1)\r\n");
+      emulate_printf("  ysc:     Y scaling (e.g. Mode 0 uses 2, Mode 18 uses 1)\r\n");
+      emulate_printf("  xeig:    X eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
+      emulate_printf("  yeig:    Y eigen value. OS units per pixel = 1<<xeig, default 1\r\n");
+      break;
     case CMD_REFRESH:
-	emulate_printf("Syntax: *Refresh (<On|Off|OnError>)\r\n");
-	emulate_printf("  This sets the SDL refresh mode. Default is on.\r\n");
-	emulate_printf("  On:      Normal mode, display is updated after any change.\r\n");
-	emulate_printf("  Off:     Updates are suspended.\r\n");
-	emulate_printf("  OnError: Updates are suspended, and re-enabled on an error condition.\r\n");
-	emulate_printf("  If no parameter is given, force an immediate display refresh.\r\n");
-    break;
+      emulate_printf("Syntax: *Refresh (<On|Off|OnError>)\r\n");
+      emulate_printf("  This sets the SDL refresh mode. Default is on.\r\n");
+      emulate_printf("  On:      Normal mode, display is updated after any change.\r\n");
+      emulate_printf("  Off:     Updates are suspended.\r\n");
+      emulate_printf("  OnError: Updates are suspended, and re-enabled on an error condition.\r\n");
+      emulate_printf("  If no parameter is given, force an immediate display refresh.\r\n");
+      break;
     case CMD_SCREENSAVE:
-	emulate_printf("Syntax: *ScreenSave <filename>\r\n");
-	emulate_printf("  This saves out the current screen as a .bmp (Windows bitmap) file.\r\n");
-	emulate_printf("  This works in all screen modes, including 3, 6 and 7.\r\n");
-    break;
+      emulate_printf("Syntax: *ScreenSave <filename>\r\n");
+      emulate_printf("  This saves out the current screen as a .bmp (Windows bitmap) file.\r\n");
+      emulate_printf("  This works in all screen modes, including 3, 6 and 7.\r\n");
+      break;
     case CMD_SCREENLOAD:
-	emulate_printf("Syntax: *ScreenLoad <filename>\r\n  This loads a .bmp into the display window.\r\n");
-    break;
+      emulate_printf("Syntax: *ScreenLoad <filename>\r\n  This loads a .bmp into the display window.\r\n");
+      break;
     case CMD_VOLUME:
-	emulate_printf("Syntax: *Volume <n>\r\n  This sets the audio channel loudness; range 1-127.\r\n");
-    break;
+      emulate_printf("Syntax: *Volume <n>\r\n  This sets the audio channel loudness; range 1-127.\r\n");
+      break;
     case CMD_CHANNELVOICE:
-	emulate_printf("Syntax: *ChannelVoice <channel> <voice index|voice name>\r\n  This attaches a Voice to a Sound Channel.\r\n");
-    break;
+      emulate_printf("Syntax: *ChannelVoice <channel> <voice index|voice name>\r\n  This attaches a Voice to a Sound Channel.\r\n");
+      break;
     case CMD_VOICES:
-	emulate_printf("Syntax: *Voices\r\n  This lists the available voices and channel allocation.\r\n");
-    break;
+      emulate_printf("Syntax: *Voices\r\n  This lists the available voices and channel allocation.\r\n");
+      break;
 #endif /* USE_SDL */
     default:
-	if (*command == '.' || *command == '\0') {
-	    emulate_printf("  BASIC\r\n  MOS\r\n");
+      if (*command == '.' || *command == '\0') {
+        emulate_printf("  BASIC\r\n  MOS\r\n");
 #if defined(USE_SDL) | defined(TARGET_UNIX)
-	    emulate_printf("  MATRIX\r\n");
+        emulate_printf("  MATRIX\r\n");
 #endif
 #ifdef USE_SDL
-	    emulate_printf("  SOUND\r\n");
+        emulate_printf("  SOUND\r\n");
 #endif
-	    emulate_printf("  MEMINFO\r\n");
-	}
+        emulate_printf("  MEMINFO\r\n");
+      }
   }
 }
 
