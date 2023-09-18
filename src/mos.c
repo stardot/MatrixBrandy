@@ -202,7 +202,6 @@ static void cmd_brandyinfo() {
   emulate_printf("\r\n");
 }
 
-
 /* =================================================================== */
 /* ======= Emulation functions common to all operating systems ======= */
 /* =================================================================== */
@@ -643,6 +642,10 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (respfile==NIL) {	/* Command output goes to normal place */
     if (!strcasecmp(command, "brandyinfo")) {
       cmd_brandyinfo();
+    } else if ( (!strncasecmp(command, "refresh", 7)) ||
+                (!strncasecmp(command, "fullscreen", 10)) ||
+                (!strncasecmp(command, "wintitle", 8)) ) {
+      /* Do nothing - Matrix Brandy specific commands for other platforms */
     } else {
       basicvars.retcode = _kernel_oscli(command);
       if (basicvars.retcode<0) error(ERR_CMDFAIL, _kernel_last_oserror()->errmess);
@@ -750,9 +753,9 @@ void mos_final(void) {
 
 #else /* not TARGET_RISCOS */
 
-/* ====================================================================== */
-/* ================== Non-RISC OS versions of functions ================== */
-/* ====================================================================== */
+/* ====================================================================== *
+ * ================== Non-RISC OS versions of functions ================= *
+ * ====================================================================== */
 
 #if (defined(TARGET_WIN32) | defined(TARGET_AMIGA)) && !defined(TARGET_MINGW)
 
@@ -1137,7 +1140,7 @@ void mos_waitdelay(int32 time) {
   Delay(time*2);		/* Delay() takes the time in 1/50 s */
 }
 
-#else
+#else /* not DJGPP, WIN32 or AMIGA */
 
 /*
 ** 'mos_waitdelay' emulate the Basic statement 'WAIT <time>'
@@ -1158,8 +1161,8 @@ void mos_waitdelay(int32 time) {
     usleep(2000);
   }
 }
-#endif
-#endif
+#endif /* DJGPP, WIN32 or AMIGA cascade */
+#endif /* ! TARGET_RISCOS */
 
 
 /* ======================================

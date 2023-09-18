@@ -137,7 +137,7 @@ int32 fileio_openin(char *name, int32 namelen) {
       report();
     } else {
       tfilename=translatefname(filename);
-      handle = _kernel_osfind(OPEN_INPUT, filename);
+      handle = _kernel_osfind(OPEN_INPUT, tfilename);
       if (handle==_kernel_ERROR) {
         report();
       } else {
@@ -160,7 +160,7 @@ int32 fileio_openout(char *name, int32 namelen) {
   filename[namelen] = NUL;
   if(matrixflags.translatefname == 1) {
     tfilename=translatefname(filename);
-    handle = _kernel_osfind(OPEN_OUTPUT, filename);
+    handle = _kernel_osfind(OPEN_OUTPUT, tfilename);
   } else {
     handle = _kernel_osfind(OPEN_OUTPUT, filename);
   }
@@ -200,7 +200,7 @@ int32 fileio_openup(char *name, int32 namelen) {
         report();
       } else {
         tfilename=translatefname(filename);
-        handle = _kernel_osfind(OPEN_INPUT, filename);
+        handle = _kernel_osfind(OPEN_INPUT, tfilename);
         if (handle==_kernel_ERROR) {
           report();
         } else {
