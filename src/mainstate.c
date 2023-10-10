@@ -2053,15 +2053,18 @@ static void find_data(void) {
 */
 static void read_numeric(lvalue destination) {
   byte *dp;
-  int32 n;
+  int32 n, numparen;
   char text[MAXSTATELEN];
   byte readexpr[MAXSTATELEN];
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:read_numeric\n");
 #endif /* DEBUG */
   n = 0;
+  numparen = 0; /* Keep track of number of parentheses */
   dp = skip(basicvars.datacur);
-  while (*dp != asc_NUL && *dp != ',') {	/* Copy value to be read */
+  while (*dp != asc_NUL && (*dp != ',' || numparen > 0)) {	/* Copy value to be read */
+    if ('(' == *dp) numparen++;
+    if (')' == *dp) numparen--;
     text[n] = *dp;
     dp++;
     n++;
