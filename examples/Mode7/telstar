@@ -5,7 +5,7 @@
    50REM interface is a local extension, as is the screen memory access and
    60REM the *WinTitle command.
    70:
-   80VER$="Viewdata client version 20230124"
+   80VER$="Viewdata client version 20231022"
    90:
   100IF INKEY(-256) <> &4D THEN PRINT "This program works on Matrix Brandy for RISC OS or SDL only.":END
   110SYS"Brandy_Platform" TO ,,,sdl%,,leg%
@@ -24,7 +24,7 @@
   240X%=OPENUP(FNwelcome):VDU28,0,23,39,0,31
   250S$=MID$(S$,1+INSTR(S$,":"))
   260PROCstatusbar(CHR$132+"* "+S$)
-  270IF sdl% THEN OSCLI"WinTitle Matrix Network Viewdata/Teletext Client: Connected"
+  270OSCLI"WinTitle Matrix Network Viewdata/Teletext Client: Connected"
   280REM Send Telnet init data if required
   290IF telnet%=1 THEN BPUT#X%,&FF,&FD,&03 ELSE VDU23,18,1,2|:BPUT#X%,13
   300REPEAT
@@ -56,7 +56,7 @@
   560IF I% > 0 THEN BPUT#X%,I%
   570UNTIL M%=-2
   580CLOSE#X%
-  590IF sdl% THEN PROCstatusbar(CHR$129+"Disconnected  "+CHR$156): *WinTitle Matrix Network Viewdata/Teletext Client: Disconnected
+  590PROCstatusbar(CHR$129+"Disconnected  "+CHR$156): OSCLI"WinTitle Matrix Network Viewdata/Teletext Client: Disconnected"
   600VDU26:PRINTTAB(18,24)CHR$(128+RND(7));"Press any key...";: A=GET:RUN
   610CLOSE#X%:PRINT TAB(0,24);: ON: OSCLI"FX229":END
   620:
@@ -162,7 +162,7 @@
  1620=S$
  1630:
  1640DEFPROCwelcomescreen:CLS:VDU26
- 1650IF sdl% THEN *WinTitle Matrix Network Viewdata/Teletext Client
+ 1650OSCLI"WinTitle Matrix Network Viewdata/Teletext Client"
  1660PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1670PRINT "  ";CHR$(132);CHR$(157);CHR$(135);CHR$(141);"Matrix Network Viewdata Client ";CHR$(156)
  1680PRINT

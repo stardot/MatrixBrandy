@@ -12,10 +12,17 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   OPENOUT and OPENUP.
 - MOS: *Refresh, *WinTitle and *FullScreen are now recognised on RISC OS
   builds, but do nothing. (Previously, they raised a "Not Found" error.)
+  This is to allow programs written targeting other platforms a better
+  chance to run correctly under RISC OS without further modification.
 - BASIC: LOCAL with no parameters now does nothing (as per Acorn) instead
   of reporting an error. This new behaviour is in place on a DEFAULT_IGNORE
-  build unless -strict is set, or if -ignore is set.
+  build unless -strict is set, or if -ignore is set.  This can also be
+  toggled at runtime with SYS"Brandy_Strict".
+- BASIC: If Strict option is set, warnings are handled as fatal errors if
+  a program is running.
 - BASIC: Limit the recursion depth of RUN.
+- BASIC: Don't choke if a numeric DATA element contains a comma (e.g.
+  multi-dimensional array member or FN call)
 - Graphics: Fixed multiple problems with VDU24, RECTANGLE FILL, MOUSE
   and the plot_pixel() primitive, primarily to do with the oddball MODE 22.
   Thanks to Michael Fairbank for identifying and assisting with fixing this.

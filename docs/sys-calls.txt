@@ -255,6 +255,8 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &140016 Brandy_Strict           Enable/disable strict execution mode (as also
                                 set by command-line -strict/-ignore options).
+                                Default: Disabled if built with DEFAULT_IGNORE
+                                otherwise enabled.
 
 &140017 Brandy_TranslateFNames  Enable/disable transparent translation of
                                 filenames between Linux and RISC OS formats.

@@ -830,7 +830,9 @@ void error(int32 errnumber, ...) {
       basicvars.error_line = get_lineno(badline);
     }
   }
-  if (errortable[errnumber].severity<=WARNING)  /* Error message is just a warning */
+  if (errortable[errnumber].severity<=WARNING &&   /* Error message is just a warning */
+    /* But handle as an error if running in Strict mode and program running */
+    (!basicvars.runflags.flag_cosmetic || !basicvars.runflags.running))
     print_details(FALSE);       /* Print message with no backtrace */
   else {
     handle_error(errortable[errnumber].severity);
