@@ -180,6 +180,8 @@ static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
 					 * First line is [1] */
 threadmsg tmsg;
 
+char titlestring[256];
+
 /* The "virtual screen" below is the size of the display in uniquely addressable pixels,
    for example MODE 0 is 640x256, MODE 2 is 160x256 and MODE 27 is 640x480 - see scrcommon.h */
 
@@ -4845,7 +4847,9 @@ void sdl_mouse_onoff(int state) {
 
 void set_wintitle(char *title) {
   /* This is picked up by the video update thread */
-  tmsg.titlepointer = title;
+  memset(titlestring, 0, 256);
+  strncpy(titlestring, title, 255);
+  tmsg.titlepointer = titlestring;
 }
 
 void fullscreenmode(int onoff) {

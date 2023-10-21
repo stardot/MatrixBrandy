@@ -1487,11 +1487,10 @@ static void cmd_cat(char *command) {
 /* Sets the window title. */
 static void cmd_wintitle(char *command) {
   while (*command == ' ') command++;	// Skip spaces
-  if (strlen(command) == 0) {
+  if (strlen(command) == 0)
     emulate_printf("Syntax: WinTitle <window title>\r\n");	// This should be an error
-  } else {
+  else
     set_wintitle(command);
-  }
   return;
 }
 

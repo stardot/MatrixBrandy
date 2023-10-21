@@ -1807,7 +1807,7 @@ void exec_on(void) {
 
 /*
 ** 'exec_oscli' issues an OS command.
-** The interpreter supports and extended 'OSCLI ... TO' version of
+** The interpreter supports an extended 'OSCLI ... TO' version of
 ** the statement which allows command responses to be read
 */
 void exec_oscli(void) {
