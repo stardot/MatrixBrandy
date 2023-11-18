@@ -346,6 +346,7 @@ void show_help(void) {
   printf("                 Suffix with K, M or G to specify size in KiB, MiB or GiB.\n");
 #ifdef USE_SDL
   printf("  -fullscreen    Start Brandy in fullscreen mode\n");
+  printf("  -nofull        Never use fullscreen mode\n");
   printf("  -swsurface     Use a software SDL surface\n");
 #endif
 #if !defined(TARGET_RISCOS) && !defined(TARGET_MINGW) && !defined(USE_SDL)

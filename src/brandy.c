@@ -318,6 +318,9 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='f') {		/* -fullscreen */
         basicvars.runflags.startfullscreen=TRUE;
       }
+      else if (optchar=='n') {    /* -nofull */
+        matrixflags.neverfullscreen=TRUE;
+      }
       else if (optchar=='s' && tolower(*(p+2))=='w') {
         basicvars.runflags.swsurface=TRUE;
       }

@@ -614,6 +614,7 @@ typedef struct {
   boolean videothreadbusy;    /* True when thread is doing stuff */
   boolean cursorbusy;         /* TRUE when cursor is being worked on */
   boolean alwaysfullscreen;   /* TRUE on framebuffer driver */
+  boolean neverfullscreen;    /* TRUE if -nofullscreen given on CLI */
 #endif
 } matrixbits;
 extern matrixbits matrixflags;

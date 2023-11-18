@@ -3974,7 +3974,7 @@ boolean init_screen(void) {
   
   reset_sysfont(0);
   if (basicvars.runflags.swsurface) matrixflags.sdl_flags = SDL_SWSURFACE | SDL_ASYNCBLIT;
-  if (basicvars.runflags.startfullscreen) matrixflags.sdl_flags |= SDL_FULLSCREEN;
+  if (!matrixflags.neverfullscreen && basicvars.runflags.startfullscreen) matrixflags.sdl_flags |= SDL_FULLSCREEN;
   matrixflags.surface = SDL_SetVideoMode(640, 512, 32, matrixflags.sdl_flags); /* MODE 0 */
   if (!matrixflags.surface) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
@@ -4853,18 +4853,19 @@ void set_wintitle(char *title) {
 }
 
 void fullscreenmode(int onoff) {
-  if (onoff == 1) {
-    matrixflags.sdl_flags |= SDL_FULLSCREEN;
-  } else if (onoff == 2) {
-    matrixflags.sdl_flags ^= SDL_FULLSCREEN;
-  } else {
-    matrixflags.sdl_flags &= ~SDL_FULLSCREEN;
+  if (!matrixflags.neverfullscreen) {
+    if (onoff == 1) {
+      matrixflags.sdl_flags |= SDL_FULLSCREEN;
+    } else if (onoff == 2) {
+      matrixflags.sdl_flags ^= SDL_FULLSCREEN;
+    } else {
+      matrixflags.sdl_flags &= ~SDL_FULLSCREEN;
+    }
+    SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
+    matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
+    SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
   }
-  SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
-  matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
-  SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
   tmsg.modechange = -1;
-
 }
 
 void setupnewmode(int32 mode, int32 xres, int32 yres, int32 cols, int32 mxscale, int32 myscale, int32 xeig, int32 yeig) {
