@@ -6,7 +6,8 @@ License: GPLv2+
 Group: Development/Tools
 Source: http://brandy.matrixnetwork.co.uk/releases/%{name}-%{version}.tar.gz
 URL: http://brandy.matrixnetwork.co.uk/
-BuildRequires: SDL-devel
+# Dirty hack to ensure we have SDL-devel or sdl12-compat-devel
+BuildRequires: /usr/include/SDL/SDL.h
 
 %define debug_package %{nil}
 
