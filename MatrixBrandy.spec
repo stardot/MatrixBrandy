@@ -1,7 +1,7 @@
 Summary: A cross-platform BBC BASIC interpreter
 Name: brandy
 Version: 1.22.15
-Release: 1%{extraverdata}.matrix%{?dist}
+Release: %{extraverdata}.matrix%{?dist}
 License: GPLv2+
 Group: Development/Tools
 Source: http://brandy.matrixnetwork.co.uk/releases/MatrixBrandy-%{version}.tar.gz
