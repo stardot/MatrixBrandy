@@ -862,7 +862,14 @@ static void toggle_cursor(void) {
         (ds.displaybank != ds.writebank)                            /* *FX112 / 113 pointing at different banks */
   ||
         (matrixflags.cursorbusy)                                    /* Have we flagged the cursor as being busy? */
+  ||
+        (cursorstate == HIDDEN)
   ) return;
+
+  if ((tmsg.crtc6845r10 & 96) == 32) {                              /* After VDU 23;8202;0;0;0; */
+    cursorstate = HIDDEN;
+    return;
+  }
 
   if (screenmode==7) {
     mxppc=M7XPPC; myppc=M7YPPC;
