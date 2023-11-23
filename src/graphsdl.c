@@ -779,7 +779,6 @@ static void vdu_23command(void) {
   switch (vduqueue[0]) {	/* First byte in VDU queue gives the command type */
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
-      tmsg.crtc6845r10 = vduqueue[2];
       if ((vduqueue[2] & 96) == 32) {
         hide_cursor();
         cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
@@ -788,6 +787,7 @@ static void vdu_23command(void) {
         toggle_cursor();
         cursorstate = ONSCREEN;
       }
+      tmsg.crtc6845r10 = vduqueue[2];
     }
     break;
   case 1:	/* Control the appear of the text cursor */
