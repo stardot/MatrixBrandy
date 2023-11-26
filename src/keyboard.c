@@ -518,7 +518,7 @@ static char histbuffer[HISTSIZE];   /* Command history buffer				*/
 static int32 histlength[MAXHIST];   /* Table of sizes of entries in history buffer	*/
 
 static int nokeyboard=0;
-static int fx44x=0;
+static int kbd_vikeys=0;
 
 static boolean waitkey(int wait);		/* Forward reference	*/
 static int32 pop_key(void);			/* Forward reference	*/
@@ -1483,8 +1483,8 @@ int64 i;
 }
 
 // Should be called kbd_something
-void osbyte44(int x) {
-  fx44x=x;
+void kbd_setvikeys(int x) {
+  kbd_vikeys=x;
 }
 
 // Called by kbd_inkey()
@@ -2097,7 +2097,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       }
       break;
     case CTRL_P:        /* Move backwards one entry in the history list */
-      if (fx44x)
+      if (kbd_vikeys)
 	recall_histline(buffer, -1);
 #ifdef USE_SDL
       else
@@ -2105,7 +2105,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 #endif
       break;
     case CTRL_N:        /* Move forwards one entry in the history list */
-      if (fx44x)
+      if (kbd_vikeys)
         recall_histline(buffer, 1);
 #ifdef USE_SDL
       else

@@ -5007,7 +5007,7 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
 #endif
 }
 
-int32 osbyte42(int x) {
+int32 osbyte163_2(int x) {
   int fullscreen=0, ref=(x & 3), fsc=((x & 12) >> 2);
   int outx;
   

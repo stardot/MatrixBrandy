@@ -16,6 +16,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   builds, but do nothing. (Previously, they raised a "Not Found" error.)
   This is to allow programs written targeting other platforms a better
   chance to run correctly under RISC OS without further modification.
+- MOS: OSBYTEs 42-44 deprecated, use 163,2-4 instead.
 - BASIC: LOCAL with no parameters now does nothing (as per Acorn) instead
   of reporting an error. This new behaviour is in place on a DEFAULT_IGNORE
   build unless -strict is set, or if -ignore is set.  This can also be

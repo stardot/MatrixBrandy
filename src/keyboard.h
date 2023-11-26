@@ -35,7 +35,7 @@ typedef enum {READ_OK, READ_ESC, READ_EOF} readstate;
 extern int32 read_key(void);
 extern void set_escint(int i);
 extern void set_escmul(int i);
-extern void osbyte44(int x);
+extern void kbd_setvikeys(int x);
 extern readstate emulate_readline(char [], int32, int32);
 extern void purge_keys(void);
 #ifdef TARGET_RISCOS

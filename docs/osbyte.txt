@@ -14,67 +14,73 @@ bits.
 
 Supported OSBYTE calls
 ----------------------
-A=0:	X=0:  return the MOS version as an error with ERR=247.
-	X<>0: Return the host OS version in the X register (as per the 'use' doc)
-A=6:	Sets the default printer ignore character, default is 13.
-A=20:	Resets the system font (SDL build only)
-A=25:	Resets parts of the system font (SDL build only)
-	X=0 or 16 resets the teletext font (16 ONLY does the teletext font)
-	after being changed with OSWORD 140.
-A=42:	Get or set various states [Brandy only]
-	If NO bits set: return state in X register.
-	If ALL bits set: Analogue of Linux's "stty sane" - enables Refresh,
-		issues a VDU 6 and sets both video bank controls to 0.
-	Bits 0 and 1 control or contain the *REFRESH state:
-	  00: No operation.
-	  01: Set with *REFRESH OFF
-	  10: Set with *REFRESH ON
-	  11: Set with *REFRESH ONERROR
-	  Returned values: 01, 10 or 11.
-	Bits 2 and 3 control or contain the Full Screen state:
-	  00: No operation.
-	  01: Full Screen Off.
-	  10: Full Screen On.
-	  11: Full Screen Toggle.
-	  Returned values: 00 (off) or 10 (on).
-	Bit 4: If set, do immediate display refresh, equivalent to *REFRESH
-	  Value not returned.
-A=43:	Perform a VDU X to the controlling Linux terminal. [Brandy only]
-A=44:	X=1: CTRL-N and CTRL-P do line editing (default). [Brandy only]
-	X=0: CTRL-N and CTRL-P just send their codes.
-		   Arrow keys still do line editing.
+A=0:    X=0:  return the MOS version as an error with ERR=247.
+        X<>0: Return the host OS version in the X register (as per the 'use' doc)
+A=6:    Sets the default printer ignore character, default is 13.
+A=20:   Resets the system font (SDL build only)
+A=25:   Resets parts of the system font (SDL build only)
+        X=0 or 16 resets the teletext font (16 ONLY does the teletext font)
+        after being changed with OSWORD 140.
+A=42:   (Deprecated, see A=163 X=2)
+A=43:   (Deprecated, see A=163 X=3)
+A=44:   (Deprecated, see A=163 X=4)
 
-A=106	Select mouse pointer. Due to SDL limitations, this simply turns the
-	pointer on or off, and unlinking does nothing.
-A=112:	Selects which video bank the VDU drivers access. 4 available.
-A=113:	Selects which video bank is drawn to the display window.
+A=106:  Select mouse pointer. Due to SDL limitations, this simply turns the
+        pointer on or off, and unlinking does nothing.
+A=112:  Selects which video bank the VDU drivers access. 4 available.
+A=113:  Selects which video bank is drawn to the display window.
 A=128:  ADVAL. As with BASIC ADVAL, only some subfuntions supported.
-A=129:	INKEY. As with BASIC INKEY, scanning for range of keys not supported.
-A=130:	High word of user memory.
-A=131:	Bottom of user memory.
-A=132:	Top of user memory
-A=134:	Return text cursor position in X and Y. Identical to 165.
-A=135:	Return screen mode and character under cursor or 0 if unreadable.
-A=160:	Read VDU variable (equivalent to VDU(X%))
-A=163:	Application Support - all these are local to Brandy
-	X=1: Get or set refresh state (as per *REFRESH)
-		Y=0: Equivalent to *REFRESH OFF
-		Y=1: Equivalent to *REFRESH ON
-		Y=2: Equivalent to *REFRESH ONERROR
-		Y=255: Query the state, will return 0, 1 or 2 in Y register.
-	X=127: Analogue of Linux's "stty sane" - enables Refresh, issues a
-	       VDU 6 and sets both video bank controls to 0.
-A=165:	Return text cursor position in X and Y. Identical to 134.
+A=129:  INKEY. As with BASIC INKEY, scanning for range of keys not supported.
+A=130:  High word of user memory.
+A=131:  Bottom of user memory.
+A=132:  Top of user memory
+A=134:  Return text cursor position in X and Y. Identical to 165.
+A=135:  Return screen mode and character under cursor or 0 if unreadable.
+A=160:  Read VDU variable (equivalent to VDU(X%))
+A=163:  Application Support - X < 128 are local to Brandy
+        X=1: Get or set refresh state (as per *REFRESH)
+                Y=0: Equivalent to *REFRESH OFF
+                Y=1: Equivalent to *REFRESH ON
+                Y=2: Equivalent to *REFRESH ONERROR
+                Y=255: Query the state, will return 0, 1 or 2 in Y register.
+        X=2: Get or set various states [Brandy only]
+                If NO bits set: return state in Y register.
+                If ALL bits set: Analogue of Linux's "stty sane" - enables 
+                    Refresh, issues a VDU 6 and sets both video bank controls
+                    to 0.
+                Bits 0 and 1 control or contain the *REFRESH state:
+                  00: No operation.
+                  01: Set with *REFRESH OFF
+                  10: Set with *REFRESH ON
+                  11: Set with *REFRESH ONERROR
+                  Returned values: 01, 10 or 11.
+                Bits 2 and 3 control or contain the Full Screen state:
+                  00: No operation.
+                  01: Full Screen Off.
+                  10: Full Screen On.
+                  11: Full Screen Toggle.
+                  Returned values: 00 (off) or 10 (on).
+                Bit 4: If set, do immediate display refresh, equivalent
+                  to *REFRESH
+                  Value not returned.
+        X=3:    Perform a VDU X to the controlling Linux terminal.
+        X=4:    Y=1: CTRL-N and CTRL-P do line editing (default).
+                Y=0: CTRL-N and CTRL-P just send their codes.
+                        Arrow keys still do line editing.
+        X=127: Analogue of Linux's "stty sane" - enables Refresh, issues a
+               VDU 6 and sets both video bank controls to 0.
+        X=242: Set the line drawing dot pattern style
+A=165:  Return text cursor position in X and Y. Identical to 134.
 
-A=200:	Set Escape key and Reset effects - only Escape key effect supported.
-A=210:	Sound disabled if X is non-zero.
-A=220:	Set TAB character
-A=220:	Set ESCAPE character
-A=229:	Enable or disable ESCAPE, disabled if X non-zero.
-A=230:	Define Escape effects.
-A=250:	Read and write video bank set with OSBYTE 112, returns bank set with
-	OSBYTE 113 in Y
-A=251:	Read and write video bank set with OSBYTE 113.
+A=200:  Set Escape key and Reset effects - only Escape key effect supported.
+A=210:  Sound disabled if X is non-zero.
+A=220:  Set TAB character
+A=220:  Set ESCAPE character
+A=229:  Enable or disable ESCAPE, disabled if X non-zero.
+A=230:  Define Escape effects.
+A=250:  Read and write video bank set with OSBYTE 112, returns bank set with
+        OSBYTE 113 in Y
+A=251:  Read and write video bank set with OSBYTE 113.
 
 OSBYTEs 166-255 read and write OSBYTE system variables with new=(old AND Y) EOR X,
 but only those listed have any effect.

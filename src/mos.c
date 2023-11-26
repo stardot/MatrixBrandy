@@ -2618,9 +2618,9 @@ static void mos_osword(int32 areg, int64 xreg) {
 * OSBYTE &27  39
 * OSBYTE &28  40 
 * OSBYTE &29  41 
-* OSBYTE &2A  42 Brandy local - Get/set *REFRESH state
-* OSBYTE &2B  43 Brandy local - output X to Linux controlling terminal
-* OSBYTE &2C  44 Brandy local - Enable/disable CTRL-N/CTRL-P for line editing.
+* OSBYTE &2A  42 (Deprecated, see 163,2)
+* OSBYTE &2B  43 (Deprecated, see 163,3)
+* OSBYTE &2C  44 (Deprecatedm see 163,4)
 * OSBYTE &2D  45
 * OSBYTE &2E  46
 * OSBYTE &2F  47
@@ -2739,7 +2739,11 @@ static void mos_osword(int32 areg, int64 xreg) {
 * OSBYTE &A0 160 Read VDU Variable
 * OSBYTE &A1 161 Read CMOS RAM
 * OSBYTE &A2 162 Write CMOS RAM
-* OSBYTE &A3 163 Reserved for applications software
+* OSBYTE &A3 163 Reserved for applications software:
+             163,1
+             163,2 Get/set *REFRESH state
+             163,3 Output Y to Linux controlling terminal
+             163,4 Enable/disable CTRL-N/CTRL-P for line editing
 * OSBYTE &A4 164 Check Processor Type
 * OSBYTE &A5 165 Read output Cursor Position
 * OSBYTE &A6 166 Read Start of MOS variables
@@ -2883,7 +2887,7 @@ switch (areg) {
 		fflush(stdout);
 		break;
 	case 44:
-		osbyte44(xreg);
+		kbd_setvikeys(xreg);
 		break;
 
 #ifdef USE_SDL
@@ -2905,7 +2909,7 @@ switch (areg) {
 		  return(0x19 + (xreg << 8));
 		}
 	case 42:			// OSBYTE 42 - local to Brandy
-		return osbyte42(xreg);
+		return osbyte163_2(xreg);
 		break;
 	case 106:			// OSBYTE 106 - select pointer
 		sdl_mouse_onoff(xreg & 0x7);
@@ -2967,14 +2971,19 @@ switch (areg) {
 		    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
 		    else star_refresh(yreg);
 		  }
-		}
-		if (xreg==127) {	// Analogue to 'stty sane'
+		} else if (xreg==2) {
+      return osbyte163_2(yreg);
+    } else if (xreg==3) {
+      printf("%c", yreg);
+      fflush(stdout);
+    } else if (xreg==4) {
+      kbd_setvikeys(yreg);
+    } else if (xreg==127) {	// Analogue to 'stty sane'
 		  star_refresh(1);
 		  osbyte112(1);
 		  osbyte113(1);
 		  emulate_vdu(6);
-		}
-		if (xreg==242) { // GXR and dot pattern
+		} else if (xreg==242) { // GXR and dot pattern
 		  return (osbyte163_242(yreg) << 8);
 		}
 		break;
