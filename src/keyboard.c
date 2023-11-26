@@ -518,7 +518,7 @@ static char histbuffer[HISTSIZE];   /* Command history buffer				*/
 static int32 histlength[MAXHIST];   /* Table of sizes of entries in history buffer	*/
 
 static int nokeyboard=0;
-static int fx44x=1;
+static int fx44x=0;
 
 static boolean waitkey(int wait);		/* Forward reference	*/
 static int32 pop_key(void);			/* Forward reference	*/
@@ -2106,10 +2106,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       break;
     case CTRL_N:        /* Move forwards one entry in the history list */
       if (fx44x)
-	recall_histline(buffer, 1);
+        recall_histline(buffer, 1);
 #ifdef USE_SDL
       else
-	emulate_vdu(14);
+        emulate_vdu(14);
 #endif
       break;
     case CTRL_O:
