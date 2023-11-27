@@ -29,6 +29,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - Graphics: Fixed multiple problems with VDU24, RECTANGLE FILL, MOUSE
   and the plot_pixel() primitive, primarily to do with the oddball MODE 22.
   Thanks to Michael Fairbank for identifying and assisting with fixing this.
+- Graphics: Fixed a cursor placement bug for VDU31 (PRINT TAB(x,y)) in VDU 5
+  mode.
 
 * V1.22.15 - 21 March 2023
 - System: For SDL builds, move ESCAPE polling to its own thread.

@@ -2413,7 +2413,7 @@ static void vdu_movetext(void) {
   int32 column, row;
   if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Text is going to the graphics cursor */
     ds.xlast = ds.gwinleft+vduqueue[0]*XPPC*ds.xgupp;
-    ds.ylast = ds.gwintop-vduqueue[1]*YPPC*ds.ygupp+1;
+    ds.ylast = ds.gwintop-vduqueue[1]*YPPC*ds.ygupp;
   }
   else {	/* Text is going to the text cursor */
     column = vduqueue[0] + twinleft;
