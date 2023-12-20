@@ -89,6 +89,22 @@ void clear_varlists(void) {
   }
 }
 
+static void remove_variable(variable *vptoremove, variable *newvp) {
+  int n;
+  variable *vp;
+  if (basicvars.varlists[vptoremove->varhash & VARMASK] == vptoremove) {
+    basicvars.varlists[vptoremove->varhash & VARMASK] = newvp;
+  } else {
+    for (n=0; n<VARLISTS; n++) {
+      vp = basicvars.varlists[n];
+      while (vp!=NIL) {
+        if (vp->varflink == vptoremove) vp->varflink=newvp;
+        vp=vp->varflink;
+      }
+    }
+  }
+}
+
 void clear_offheaparrays() {
   variable *vp;
   int n;
@@ -102,7 +118,7 @@ void clear_offheaparrays() {
               free(vp->varentry.vararray->arraystart.arraybase);
               free(vp->varentry.vararray);
               vp->varentry.vararray=NULL;
-              basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+              remove_variable(vp, vp->varflink);
               if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
             }
           }
@@ -133,7 +149,7 @@ void exec_clear_himem(void) {
         free(vp->varentry.vararray->arraystart.arraybase);
         free(vp->varentry.vararray);
         vp->varentry.vararray=NULL;
-        basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+        remove_variable(vp, vp->varflink);
         if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
         break;
       default: error(ERR_OFFHEAPARRAY);
@@ -532,7 +548,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
       if (ap==NIL) {
         char tmpvarname[256];
         strncpy(tmpvarname, vp->varname, 255);
-        basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+        remove_variable(vp, vp->varflink);
         error(ERR_BADDIM, tmpvarname);	/* There is not enough memory available for the descriptor */
       }
       ap->arraystart.arraybase = allocmem(size*elemsize, 0);	/* Grab memory for array proper */
@@ -540,7 +556,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   }
   if (ap->arraystart.arraybase==NIL) {
     if (!islocal) {
-      basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+      remove_variable(vp, vp->varflink);
       if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
     }
     error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
