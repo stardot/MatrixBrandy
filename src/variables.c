@@ -90,7 +90,6 @@ void clear_varlists(void) {
 }
 
 void clear_offheaparrays() {
-  /* Initially, let's just dump the arrays on screen. */
   variable *vp;
   int n;
   for (n=0; n<VARLISTS; n++) {
@@ -103,6 +102,8 @@ void clear_offheaparrays() {
               free(vp->varentry.vararray->arraystart.arraybase);
               free(vp->varentry.vararray);
               vp->varentry.vararray=NULL;
+              basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+              if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
             }
           }
           break;
@@ -132,6 +133,8 @@ void exec_clear_himem(void) {
         free(vp->varentry.vararray->arraystart.arraybase);
         free(vp->varentry.vararray);
         vp->varentry.vararray=NULL;
+        basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+        if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
         break;
       default: error(ERR_OFFHEAPARRAY);
     }
@@ -526,11 +529,22 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
       ap->arraystart.arraybase = malloc(size*elemsize);	/* Grab memory for array proper */
     } else {
       ap = allocmem(sizeof(basicarray), 0);		/* Grab memory for array descriptor */
-      if (ap==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory available for the descriptor */
+      if (ap==NIL) {
+        char tmpvarname[256];
+        strncpy(tmpvarname, vp->varname, 255);
+        basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+        error(ERR_BADDIM, tmpvarname);	/* There is not enough memory available for the descriptor */
+      }
       ap->arraystart.arraybase = allocmem(size*elemsize, 0);	/* Grab memory for array proper */
     }
   }
-  if (ap->arraystart.arraybase==NIL) error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
+  if (ap->arraystart.arraybase==NIL) {
+    if (!islocal) {
+      basicvars.varlists[vp->varhash & VARMASK] = vp->varflink;
+      if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
+    }
+    error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
+  }
   ap->dimcount = dimcount;
   ap->arrsize = size;
   ap->offheap = offheap;
