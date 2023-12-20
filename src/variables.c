@@ -90,19 +90,18 @@ void clear_varlists(void) {
 }
 
 static void remove_variable(variable *vptoremove, variable *newvp) {
-  int n;
   variable *vp;
+
   if (basicvars.varlists[vptoremove->varhash & VARMASK] == vptoremove) {
     basicvars.varlists[vptoremove->varhash & VARMASK] = newvp;
   } else {
-    for (n=0; n<VARLISTS; n++) {
-      vp = basicvars.varlists[n];
-      while (vp!=NIL) {
-        if (vp->varflink == vptoremove) vp->varflink=newvp;
-        vp=vp->varflink;
-      }
+    vp = basicvars.varlists[vptoremove->varhash & VARMASK];
+    while (vp!=NIL) {
+      if (vp->varflink == vptoremove) vp->varflink=newvp;
+      vp=vp->varflink;
     }
   }
+  if(returnable(vptoremove, sizeof(variable))) freemem(vptoremove, sizeof(variable));
 }
 
 void clear_offheaparrays() {
@@ -119,7 +118,6 @@ void clear_offheaparrays() {
               free(vp->varentry.vararray);
               vp->varentry.vararray=NULL;
               remove_variable(vp, vp->varflink);
-              if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
             }
           }
           break;
@@ -150,7 +148,6 @@ void exec_clear_himem(void) {
         free(vp->varentry.vararray);
         vp->varentry.vararray=NULL;
         remove_variable(vp, vp->varflink);
-        if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
         break;
       default: error(ERR_OFFHEAPARRAY);
     }
@@ -555,10 +552,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
     }
   }
   if (ap->arraystart.arraybase==NIL) {
-    if (!islocal) {
-      remove_variable(vp, vp->varflink);
-      if(returnable(vp, sizeof(variable))) freemem(vp, sizeof(variable));
-    }
+    if (!islocal) remove_variable(vp, vp->varflink);
     error(ERR_BADDIM, vp->varname);	/* There is not enough memory */
   }
   ap->dimcount = dimcount;
