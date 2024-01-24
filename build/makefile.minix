@@ -1,4 +1,4 @@
-# Makefile for brandy in text mode under NetBSD and Linux
+# Makefile for brandy in text mode under Minix3
 
 CC = clang
 LD = clang
@@ -9,7 +9,7 @@ include build/git.mk
 
 #CFLAGS = -g -DDEBUG -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 #CFLAGS = -g -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
-CFLAGS = -Oz -I/usr/include/SDL -I/usr/pkg/include -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) -DBRANDY_DEFAULT_SIZE=512 $(ADDFLAGS)
+CFLAGS = -O3 -fPIE -I/usr/local/include/SDL -I/usr/pkg/include -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS) -Wno-char-subscripts -Wno-tautological-compare
 
 LDFLAGS = -L/usr/pkg/lib
 
@@ -46,15 +46,19 @@ SIMPLETEXTSRC = $(SRCDIR)/simpletext.c
 all:	tbrandy sbrandy
 
 tbrandy:	$(OBJ) $(TEXTONLYOBJ)
+	@echo ""
+	@echo "Build flags: $(CFLAGS)"
 	$(LD) $(LDFLAGS) -o tbrandy $(OBJ) $(TEXTONLYOBJ) $(LIBS)
 
 sbrandy:	$(OBJ) $(SIMPLETEXTOBJ)
+	@echo ""
 	$(LD) $(LDFLAGS) -o sbrandy $(OBJ) $(SIMPLETEXTOBJ) $(LIBS)
 
 include build/depends.mk
 
 .c.o:
-	$(CC) $(CFLAGS) $< -c -o $@
+	@echo -n "$@ "
+	@$(CC) $(CFLAGS) $< -c -o $@
 
 trecompile:
 	$(CC) $(CFLAGS) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
