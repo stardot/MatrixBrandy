@@ -231,7 +231,7 @@ void find_cursor(void) {
     // set_esc_key(_POSIX_VDISABLE); /* Disable INTR */
     printf("\033[6n");  /* ANSI/VTxxx sequence to find the position of the cursor */
     fflush(stdout);
-    ch = read_key();    /* Sequence expected back is ' ESC[<no>;<no>R' */
+    ch = kbd_inkey(50);    /* Sequence expected back is ' ESC[<no>;<no>R' */
     if (ch!='\033') return;
     ch = read_key();
     if (ch!='[') return;

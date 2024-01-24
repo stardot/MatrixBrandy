@@ -12,6 +12,9 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   OPENOUT and OPENUP.
 - System: Added "-nofull" command line option, to disable switching into
   full-screen mode (for questionable hardware, e.g. Poulsbo chipsets)
+- System: Do not hang on text build startup when console doesn't handle
+  the ANSI sequence to report the cursor location (e.g. Minix3 console),
+  instead time out after 0.5 seconds.
 - MOS: *Refresh, *WinTitle and *FullScreen are now recognised on RISC OS
   builds, but do nothing. (Previously, they raised a "Not Found" error.)
   This is to allow programs written targeting other platforms a better
