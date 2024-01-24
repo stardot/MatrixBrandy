@@ -2477,6 +2477,6 @@ void set_wintitle(char *title) {
 #if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x500
   SetConsoleTitleA(title);
 #elif defined(TARGET_UNIX)
-  printf("\x1B]0;%s\x07", title);		// This is an xterm escape sequence, recognised by most terminals on Linux
+  printf("\x1B]0;%s\x1B\x5C", title);		// This is an xterm escape sequence, recognised by most terminals on Linux
 #endif
 }
