@@ -2474,9 +2474,11 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
 }
 
 void set_wintitle(char *title) {
+#ifndef TARGET_MINIX
 #if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x500
   SetConsoleTitleA(title);
 #elif defined(TARGET_UNIX)
   printf("\x1B]0;%s\x1B\x5C", title);		// This is an xterm escape sequence, recognised by most terminals on Linux
 #endif
+#endif /* TARGET_MINIX */
 }

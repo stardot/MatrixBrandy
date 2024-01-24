@@ -525,7 +525,9 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
 }
 
 void set_wintitle(char *title) {
+#ifndef TARGET_MINIX
 #ifdef TARGET_UNIX
   printf("\x1B]0;%s\x1B\x5C", title);               // This is an xterm escape sence, recognised by most terminals on Linux
 #endif
+#endif /* TARGET_MINIX */
 }
