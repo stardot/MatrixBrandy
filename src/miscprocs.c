@@ -496,6 +496,14 @@ int64 TOINT64(float64 fltmp) {
   return (int64)fltmp;
 }
 
+size_t TONATIVEADDR(float64 fltmp) {
+#ifdef MATRIX64BIT
+  return TOINT64(fltmp);
+#else
+  return TOINT(fltmp);
+#endif /* MATRIX64BIT */
+}
+
 /* This function reduces a 64-bit int to 32-bit int, with range checking.
 ** The first, commented out line is strict range checking, the second one allows the 32nd bit to be set,
 ** to allow negative 32-bit ints to be entered as hex.
