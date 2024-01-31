@@ -381,7 +381,7 @@ static void do_floatindvar(lvalue *destination) {
   }
   basicvars.current++;	/* Skip the operator */
   factor();		/* Evaluate the RH operand */
-  destination->address.offset = TOINT(*fp)+pop_anynum32();
+  destination->address.offset = TOINT64(*fp)+pop_anynum32();
 }
 
 /*
