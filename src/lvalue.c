@@ -307,7 +307,7 @@ static void do_elementvar(lvalue *destination) {
     case VAR_INTWORD: offset = descriptor->arraystart.intbase[element]; break;
     case VAR_UINT8:   offset = descriptor->arraystart.uint8base[element]; break;
     case VAR_INTLONG: offset = descriptor->arraystart.int64base[element]; break;
-    case VAR_FLOAT:   offset = TOINT(descriptor->arraystart.floatbase[element]); break;
+    case VAR_FLOAT:   offset = TOINT64(descriptor->arraystart.floatbase[element]); break;
     default: error(ERR_VARNUM);
   }
 /* Now deal with the indirection operator */
