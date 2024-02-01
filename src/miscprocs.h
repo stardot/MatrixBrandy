@@ -66,6 +66,7 @@ extern FILE *secure_tmpnam(char []);
 extern int32 TOINT(float64);
 extern int32 INT64TO32(int64);
 extern int64 TOINT64(float64);
+extern float64 TOFLOAT(int64);
 extern size_t TONATIVEADDR(float64);
 extern void set_fpu(void);
 extern void decimaltocomma(char *, int32);

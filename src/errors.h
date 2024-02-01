@@ -60,7 +60,7 @@ typedef enum {
     ERR_INDEXCO,        /* Wrong number of array dimension */
     ERR_DIMRANGE,       /* Array dimension number is out of range */
     ERR_NODIMS,         /* Array dimensions not defined */
-    ERR_ADDRESS,        /* Addressing exception */
+    ERR_ADDRESS,        /* Address out of range for variable type */
     WARN_BADTOKEN,      /* Bad token value entered */
     WARN_BADHEX,        /* Bad hexadecimal constant */
     WARN_BADBIN,        /* Bad binary constant */
@@ -88,6 +88,7 @@ typedef enum {
     ERR_RANGE,          /* General number out of range error */
     ERR_ONRANGE,        /* 'ON' index is out of range */
     ERR_ARITHMETIC,     /* Floating point exception */
+    ERR_PRECISION,      /* Precision lost in float conversion */
     ERR_STRINGLEN,      /* String is too long */
     ERR_BADOPER,        /* Unrecognisable operand */
     ERR_TYPENUM,        /* Type mismatch: number wanted */

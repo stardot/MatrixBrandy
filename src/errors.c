@@ -472,6 +472,7 @@ static detail errortable [] = {
 /* ERR_RANGE */		{NONFATAL, NOPARM,  20, "Number is out of range"},
 /* ERR_ONRANGE */	{NONFATAL, INTEGER, 40, "'ON' statement index value of %d is out of range"},
 /* ERR_ARITHMETIC */	{NONFATAL, NOPARM,  20, "Floating point exception"},
+/* ERR_PRECISION */   {NONFATAL, NOPARM,  20, "Precision lost in floating-point conversion"},
 /* ERR_STRINGLEN */	{NONFATAL, NOPARM,  19, "Character string is too long"},
 /* ERR_BADOPER */	{NONFATAL, NOPARM,   0, "Unrecognisable operand"},
 /* ERR_TYPENUM */	{NONFATAL, NOPARM,   6, "Type mismatch: number wanted"},
