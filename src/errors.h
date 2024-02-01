@@ -2,7 +2,7 @@
 ** This file is part of the Matrix Brandy Basic VI Interpreter.
 ** Copyright (C) 2000-2014 David Daniels
 ** Copyright (C) 2014 Jonathan Harston
-** Copyright (C) 2018-2021 Michael McConnell and contributors
+** Copyright (C) 2018-2024 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -178,37 +178,37 @@ typedef enum {
     ERR_BADVARPROCNAME, /* Bad variable or procedure/function name */
     ERR_BADPROCFNNAME,  /* Bad procedure or function name found at line X */
 // From JGH's Banana Brandy fork
-    ERR_BADCOMMAND,	/* 254, Bad command */
-    ERR_BADSTRING,	/* 253, Bad string */
-    ERR_BADNUMBER,	/* 252, Bad number */
-    ERR_BADKEY,		/* 251, Bad key */
-    ERR_KEYINUSE,	/* 250, Key in use */
-    ERR_MOSVERSION,	/* 247, MOS x,yz */
-    ERR_BADSYNTAX,	/* 220, Bad syntax */
+    ERR_BADCOMMAND,     /* 254, Bad command */
+    ERR_BADSTRING,      /* 253, Bad string */
+    ERR_BADNUMBER,      /* 252, Bad number */
+    ERR_BADKEY,         /* 251, Bad key */
+    ERR_KEYINUSE,       /* 250, Key in use */
+    ERR_MOSVERSION,     /* 247, MOS x,yz */
+    ERR_BADSYNTAX,      /* 220, Bad syntax */
 // Network errors
     ERR_NET_CONNREFUSED,/* 165, Connection refused */
-    ERR_NET_NOTFOUND,	/* 213, Host not found */
-    ERR_NET_MAXSOCKETS,	/* 192, Maximum number of sockets already open */
-    ERR_NET_NOTSUPP,	/* 157, Network operation not supported */
-    ERR_NO_RPI_GPIO,	/* 510, Raspberry Pi GPIO not available */
+    ERR_NET_NOTFOUND,   /* 213, Host not found */
+    ERR_NET_MAXSOCKETS, /* 192, Maximum number of sockets already open */
+    ERR_NET_NOTSUPP,    /* 157, Network operation not supported */
+    ERR_NO_RPI_GPIO,    /* 510, Raspberry Pi GPIO not available */
 // Dynamic Linker errors
-    ERR_DL_NODL,	/* 0, dlopen() and friends not available */
-    ERR_DL_NOSYM,	/* 0, Symbol not found */
+    ERR_DL_NODL,        /* 0, dlopen() and friends not available */
+    ERR_DL_NOSYM,       /* 0, Symbol not found */
 // Misc errors
-    ERR_BAD_OSFILE,	/* 1026, Bad OSFile call */
-    ERR_FILELOCKED,	/* 67779, This item is locked */
-    ERR_DIRNOTEMPTY,	/* 104884, Directory not empty */
-    ERR_NODIR,		/* 104885, Unable to create directory */
-    HIGHERROR		/* Leave last, dummy error */
+    ERR_BAD_OSFILE,     /* 1026, Bad OSFile call */
+    ERR_FILELOCKED,     /* 67779, This item is locked */
+    ERR_DIRNOTEMPTY,    /* 104884, Directory not empty */
+    ERR_NODIR,          /* 104885, Unable to create directory */
+    HIGHERROR           /* Leave last, dummy error */
 } errnum;
 
 /* Other interpreter errors */
 
-#define CMD_NOFILE	1	/* No file name supplied after option */
-#define CMD_NOSIZE	2	/* No workspace size supplied after option */
-#define CMD_FILESUPP	3	/* File name already supplied */
-#define CMD_NOMEMORY	4	/* Not enough memory to run the interpreter */
-#define CMD_INITFAIL	5	/* Interpreter initialisation failed */
+#define CMD_NOFILE    1	/* No file name supplied after option */
+#define CMD_NOSIZE    2	/* No workspace size supplied after option */
+#define CMD_FILESUPP  3	/* File name already supplied */
+#define CMD_NOMEMORY  4	/* Not enough memory to run the interpreter */
+#define CMD_INITFAIL  5	/* Interpreter initialisation failed */
 
 extern void init_errors(void);
 extern void watch_signals(void);

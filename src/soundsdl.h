@@ -1,3 +1,9 @@
+/*
+** This file is part of the Brandy Basic VI Interpreter.
+** soundsdl.h by David Hawes.
+**
+*/
+
 #ifndef SOUND_SDL_H_INC
 
 #define SOUND_SDL_H_INC

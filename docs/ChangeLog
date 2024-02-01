@@ -31,6 +31,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   multi-dimensional array member or FN call)
 - BASIC: Clear variable stubs if a DIM fails, and after CLEAR HIMEM.
 - BASIC: Indirection with floats containing addresses > 32 bits now work.
+- BASIC: Print a warning if a conversion from int64 to float loses precision.
 - Graphics: Fixed multiple problems with VDU24, RECTANGLE FILL, MOUSE
   and the plot_pixel() primitive, primarily to do with the oddball MODE 22.
   Thanks to Michael Fairbank for identifying and assisting with fixing this.

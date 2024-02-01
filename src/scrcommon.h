@@ -1,7 +1,7 @@
 /*
 ** This file is part of the Matrix Brandy Basic VI Interpreter.
 ** Copyright (C) 2000-2014 David Daniels
-** Copyright (C) 2018-2021 Michael McConnell and contributors
+** Copyright (C) 2018-2024 Michael McConnell and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -63,16 +63,16 @@ typedef enum {NOCURSOR, HIDDEN, SUSPENDED, ONSCREEN} curstate;
 typedef enum {SCROLL_UP, SCROLL_DOWN} updown;
 
 typedef struct {
-  int32 xres;			/* RISC OS screen width in pixels */
-  int32 yres;			/* RISC OS screen height in pixels */
-  int32 coldepth;		/* Number of colours */
-  int32 xgraphunits;		/* Screen width in RISC OS graphics units */
-  int32 ygraphunits;		/* Screen height in RISC OS graphics units */
-  int32 xtext;			/* Screen width in characters */
-  int32 ytext;			/* Screen height in characters */
-  int32 xscale;			/* X direction scale factor for points */
-  int32 yscale;			/* Y direction scale factor for points */
-  boolean graphics;		/* TRUE if this mode supports graphics */
+  int32 xres;           /* RISC OS screen width in pixels */
+  int32 yres;           /* RISC OS screen height in pixels */
+  int32 coldepth;       /* Number of colours */
+  int32 xgraphunits;    /* Screen width in RISC OS graphics units */
+  int32 ygraphunits;    /* Screen height in RISC OS graphics units */
+  int32 xtext;          /* Screen width in characters */
+  int32 ytext;          /* Screen height in characters */
+  int32 xscale;         /* X direction scale factor for points */
+  int32 yscale;         /* Y direction scale factor for points */
+  boolean graphics;     /* TRUE if this mode supports graphics */
 } modetails;
 
 /*
@@ -150,36 +150,36 @@ static modetails modetable [127] = {
 /* 63 */  {0, 0,   2, 0,  0, 0, 0, 1, 1,  FALSE},
 /* Third party modes start here */ 
 /* These next 5 modes use the same coordinate system as Tektronix */
-/* 64 */  {1024, 780,   2, 2048,  1560, 128, 97, 1, 1,  TRUE},
-/* 65 */  {1024, 780,   4, 2048,  1560, 128, 97, 1, 1,  TRUE},
-/* 66 */  {1024, 780,  16, 2048,  1560, 128, 97, 1, 1,  TRUE},
-/* 67 */  {1024, 780, 256, 2048,  1560, 128, 97, 1, 1,  TRUE},
+/* 64 */  {1024, 780,        2, 2048,  1560, 128, 97, 1, 1,  TRUE},
+/* 65 */  {1024, 780,        4, 2048,  1560, 128, 97, 1, 1,  TRUE},
+/* 66 */  {1024, 780,       16, 2048,  1560, 128, 97, 1, 1,  TRUE},
+/* 67 */  {1024, 780,      256, 2048,  1560, 128, 97, 1, 1,  TRUE},
 /* 68 */  {1024, 780, COL24BIT, 2048,  1560, 128, 97, 1, 1,  TRUE},
-/* 69 */  {1024, 576,   2, 2048,  1152, 128, 72, 1, 1,  TRUE},
-/* 70 */  {1024, 576,   4, 2048,  1152, 128, 72, 1, 1,  TRUE},
-/* 71 */  {1024, 576,  16, 2048,  1152, 128, 72, 1, 1,  TRUE},
-/* 72 */  {1024, 576, 256, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 69 */  {1024, 576,        2, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 70 */  {1024, 576,        4, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 71 */  {1024, 576,       16, 2048,  1152, 128, 72, 1, 1,  TRUE},
+/* 72 */  {1024, 576,      256, 2048,  1152, 128, 72, 1, 1,  TRUE},
 /* 73 */  {1024, 576, COL24BIT, 2048,  1152, 128, 72, 1, 1,  TRUE},
 /* Some modes good for full-screen use */
-/* 74 */  {1360, 384,   2, 2720,  1536, 170, 48, 1, 2, TRUE},
-/* 75 */  {1360, 384,   4, 2720,  1536, 170, 48, 1, 2, TRUE},
-/* 76 */  {1360, 384,  16, 2720,  1536, 170, 48, 1, 2, TRUE},
-/* 77 */  {1360, 384, 256, 2720,  1536, 170, 48, 1, 2, TRUE},
+/* 74 */  {1360, 384,        2, 2720,  1536, 170, 48, 1, 2, TRUE},
+/* 75 */  {1360, 384,        4, 2720,  1536, 170, 48, 1, 2, TRUE},
+/* 76 */  {1360, 384,       16, 2720,  1536, 170, 48, 1, 2, TRUE},
+/* 77 */  {1360, 384,      256, 2720,  1536, 170, 48, 1, 2, TRUE},
 /* 78 */  {1360, 384, COL24BIT, 2720,  1536, 170, 36, 1, 2, TRUE},
-/* 79 */  {1360, 768,   2, 2720,  1536, 170, 96, 1, 1, TRUE},
-/* 80 */  {1360, 768,   4, 2720,  1536, 170, 96, 1, 1, TRUE},
-/* 81 */  {1360, 768,  16, 2720,  1536, 170, 96, 1, 1, TRUE},
-/* 82 */  {1360, 768, 256, 2720,  1536, 170, 96, 1, 1, TRUE},
+/* 79 */  {1360, 768,        2, 2720,  1536, 170, 96, 1, 1, TRUE},
+/* 80 */  {1360, 768,        4, 2720,  1536, 170, 96, 1, 1, TRUE},
+/* 81 */  {1360, 768,       16, 2720,  1536, 170, 96, 1, 1, TRUE},
+/* 82 */  {1360, 768,      256, 2720,  1536, 170, 96, 1, 1, TRUE},
 /* 83 */  {1360, 768, COL24BIT, 2720,  1536, 170, 96, 1, 1, TRUE},
-/* 84 */  {1920, 540,   2, 2720,  1536, 240, 67, 1, 2, TRUE},
-/* 85 */  {1920, 540,   4, 2720,  1536, 240, 67, 1, 2, TRUE},
-/* 86 */  {1920, 540,  16, 2720,  1536, 240, 67, 1, 2, TRUE},
-/* 87 */  {1920, 540, 256, 2720,  1536, 240, 67, 1, 2, TRUE},
+/* 84 */  {1920, 540,        2, 2720,  1536, 240, 67, 1, 2, TRUE},
+/* 85 */  {1920, 540,        4, 2720,  1536, 240, 67, 1, 2, TRUE},
+/* 86 */  {1920, 540,       16, 2720,  1536, 240, 67, 1, 2, TRUE},
+/* 87 */  {1920, 540,      256, 2720,  1536, 240, 67, 1, 2, TRUE},
 /* 88 */  {1920, 540, COL24BIT, 2720,  1536, 240, 67, 1, 2, TRUE},
-/* 89 */  {1920,1080,   2, 3840,  2160, 240,135, 1, 1, TRUE},
-/* 90 */  {1920,1080,   4, 3840,  2160, 240,135, 1, 1, TRUE},
-/* 91 */  {1920,1080,  16, 3840,  2160, 240,135, 1, 1, TRUE},
-/* 92 */  {1920,1080, 256, 3840,  2160, 240,135, 1, 1, TRUE},
+/* 89 */  {1920,1080,        2, 3840,  2160, 240,135, 1, 1, TRUE},
+/* 90 */  {1920,1080,        4, 3840,  2160, 240,135, 1, 1, TRUE},
+/* 91 */  {1920,1080,       16, 3840,  2160, 240,135, 1, 1, TRUE},
+/* 92 */  {1920,1080,      256, 3840,  2160, 240,135, 1, 1, TRUE},
 /* 93 */  {1920,1080, COL24BIT, 3840,  2160, 240,135, 1, 1, TRUE},
 
 #endif /* BRANDY_MODE7ONLY */
@@ -195,15 +195,15 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 };
 #endif
 
-#define MODEMASK 0x7F		/* Mode numbers are in the range 0..127 */
-#define HIGHMODE 126		/* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
-				/* Modes 54..63 are undefined. User modes are 64-127, mostly undefined. */
-#define USERMODE 127		/* Pretend mode used before specific mode given */
-#define COL256MASK 0x3F		/* Mask to extract colour number in 256 colour modes */
-#define COL256SHIFT 2		/* Shift to move colour number to make room for tint */
-#define TEXTCOLMASK 0x0F	/* Mask to limit logical colour number when not in full screen mode */
+#define MODEMASK 0x7F     /* Mode numbers are in the range 0..127 */
+#define HIGHMODE 126      /* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
+        /* Modes 54..63 are undefined. User modes are 64-127, mostly undefined. */
+#define USERMODE 127      /* Pretend mode used before specific mode given */
+#define COL256MASK 0x3F   /* Mask to extract colour number in 256 colour modes */
+#define COL256SHIFT 2     /* Shift to move colour number to make room for tint */
+#define TEXTCOLMASK 0x0F  /* Mask to limit logical colour number when not in full screen mode */
 
-#define DEL 0x7F		/* ASCII code for the 'delete' character */
+#define DEL 0x7F          /* ASCII code for the 'delete' character */
 
 /* Command values to set 'tint' options and so on used in VDU 23,17 */
 
@@ -213,10 +213,10 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 #define TINT_BACKGRAPH 3
 #define EXCH_TEXTCOLS 5
 
-#define MAXTINT 3		/* Highest value for TINT */
-#define TINTMASK 0xC0		/* Mask to extract TINT value */
-#define TINTSHIFT 6		/* Shift to move TINT value to least significant bits of byte */
-#define C256_REDBIT 0x02	/* Mask for most sig bit of red component in 256 colour colour number */
+#define MAXTINT 3           /* Highest value for TINT */
+#define TINTMASK 0xC0       /* Mask to extract TINT value */
+#define TINTSHIFT 6	        /* Shift to move TINT value to least significant bits of byte */
+#define C256_REDBIT 0x02    /* Mask for most sig bit of red component in 256 colour colour number */
 #define C256_GREENBIT 0x08
 #define C256_BLUEBIT 0x20
 
@@ -226,34 +226,34 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 
 
 static int32
-  vducmd,			/* Current VDU command */
-  vdunext,			/* Index of next entry in VDU queue */
-  vduneeded,			/* Number of bytes needed for current VDU command */
-  screenmode;			/* Current screen mode */
+  vducmd,             /* Current VDU command */
+  vdunext,            /* Index of next entry in VDU queue */
+  vduneeded,          /* Number of bytes needed for current VDU command */
+  screenmode;         /* Current screen mode */
 #ifndef SIMPLETEXT_BUILD
 static int32
-  colourdepth,			/* Number of colours allowed in current screen mode */
+  colourdepth,        /* Number of colours allowed in current screen mode */
 #ifndef BRANDY_MODE7ONLY
-  colourmask,			/* Mask to isolate logical colour number */
-  text_foretint,		/* Tint value added to foreground text colour in 256 colour modes */
-  text_backtint,		/* Tint value added to background text colour in 256 colour modes */
+  colourmask,         /* Mask to isolate logical colour number */
+  text_foretint,      /* Tint value added to foreground text colour in 256 colour modes */
+  text_backtint,      /* Tint value added to background text colour in 256 colour modes */
 #endif
-  text_forecol,			/* Current text foreground logical colour number */
-  text_backcol,			/* Current text background logical colour number */
-  text_physforecol,		/* Current text foreground physical colour number */
-  text_physbackcol,		/* Current text background physical colour number */
+  text_forecol,       /* Current text foreground logical colour number */
+  text_backcol,       /* Current text background logical colour number */
+  text_physforecol,   /* Current text foreground physical colour number */
+  text_physbackcol,   /* Current text background physical colour number */
 #ifndef USE_SDL
-  realwidth,			/* Width of the real screen in characters */
-  realheight,			/* Height of the real screen in characters */
+  realwidth,          /* Width of the real screen in characters */
+  realheight,         /* Height of the real screen in characters */
 #endif
-  textwidth,			/* Width of current screen mode in characters */
-  textheight,			/* Height of current screen mode in characters */
-  twinleft,			/* Column number of left-hand side of text window */
-  twinright,			/* Column number of right-hand side of text window */
-  twintop,			/* Row number of top of text window */
-  twinbottom,			/* Row number of bottom of text window */
-  xtext,			/* Text cursor X coordinate (real on-screen location) */
-  ytext;			/* Text cursor Y coordinate (real on-screen location) */
+  textwidth,          /* Width of current screen mode in characters */
+  textheight,         /* Height of current screen mode in characters */
+  twinleft,           /* Column number of left-hand side of text window */
+  twinright,          /* Column number of right-hand side of text window */
+  twintop,            /* Row number of top of text window */
+  twinbottom,         /* Row number of bottom of text window */
+  xtext,              /* Text cursor X coordinate (real on-screen location) */
+  ytext;              /* Text cursor Y coordinate (real on-screen location) */
 
 static curstype cursmode;	/* Type of cursor being displayed in graphics mode */
 static curstate cursorstate;	/* Whether cursor is shown */
@@ -264,24 +264,24 @@ static byte vduqueue[MAXBYTES];	/* Queue to hold data for VDU commands */
 static unsigned int vduflags = 0;	/* VDU flags */
 
 /* VDU feature flags */
-#define VDU_FLAG_ENAPRINT	0x00000001	/* VDU 2 mode (enable printer) */
-#define VDU_FLAG_GRAPHICURS	0x00000002	/* VDU 5 mode (text at graphics cursor) */
-#define VDU_FLAG_ENAPAGE	0x00000004	/* VDU 14 mode (page scrolling mode) */
-#define VDU_FLAG_DISABLE	0x00000008	/* VDU 21 mode (disable VDU driver) */
-#define VDU_FLAG_ECHO		0x00000010	/* if character should be echoed on screen immediately */
-#define VDU_FLAG_TEXTWIN	0x00000020	/* if a text window has been defined */
+#define VDU_FLAG_ENAPRINT   0x00000001  /* VDU 2 mode (enable printer) */
+#define VDU_FLAG_GRAPHICURS 0x00000002  /* VDU 5 mode (text at graphics cursor) */
+#define VDU_FLAG_ENAPAGE    0x00000004  /* VDU 14 mode (page scrolling mode) */
+#define VDU_FLAG_DISABLE    0x00000008  /* VDU 21 mode (disable VDU driver) */
+#define VDU_FLAG_ECHO       0x00000010  /* if character should be echoed on screen immediately */
+#define VDU_FLAG_TEXTWIN    0x00000020  /* if a text window has been defined */
 /* Flags used by the Teletext emulation in graphsdl.c */
-#define MODE7_BANK		0x00001000	/* Bank switching for Mode 7 Flashing */
-#define MODE7_BLACK		0x00002000	/* RISC OS 5 - Allow teletext black codes */
-#define MODE7_REVEAL		0x00004000	/* RISC OS 5 - reveal content hidden by CONCEAL */
+#define MODE7_BANK          0x00001000  /* Bank switching for Mode 7 Flashing */
+#define MODE7_BLACK         0x00002000  /* RISC OS 5 - Allow teletext black codes */
+#define MODE7_REVEAL        0x00004000  /* RISC OS 5 - reveal content hidden by CONCEAL */
 
 /* The below flags are reset on a new line in MODE 7 */
-#define MODE7_GRAPHICS		0x00010000	/* Mode 7 using graphics characters */
-#define MODE7_SEPGRP		0x00020000	/* Separated graphics in Mode 7 */
-#define MODE7_SEPREAL		0x00040000	/* Separated graphics in Mode 7 */
-#define MODE7_HOLD		0x00080000	/* Hold Graphics flag */
-#define MODE7_CONCEAL		0x00100000	/* Conceal (for REVEAL) */
-#define MODE7_ALTCHARS		0x00200000	/* Use secondary character bank? */
+#define MODE7_GRAPHICS      0x00010000  /* Mode 7 using graphics characters */
+#define MODE7_SEPGRP        0x00020000  /* Separated graphics in Mode 7 */
+#define MODE7_SEPREAL       0x00040000  /* Separated graphics in Mode 7 */
+#define MODE7_HOLD          0x00080000  /* Hold Graphics flag */
+#define MODE7_CONCEAL       0x00100000  /* Conceal (for REVEAL) */
+#define MODE7_ALTCHARS      0x00200000  /* Use secondary character bank? */
 
 /*
 ** The logical-to-physical table maps the RISC OS logical colours to

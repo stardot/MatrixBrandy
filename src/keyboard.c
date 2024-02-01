@@ -3,7 +3,7 @@
 ** Copyright (C) 2000-2014 David Daniels
 ** Copyright (C) 2006, 2007 Colin Tuckley
 ** Copyright (C) 2014 Jonathan Harston
-** Copyright (C) 2018-2021 Michael McConnell, Jonathan Harston and contributors
+** Copyright (C) 2018-2024 Michael McConnell, Jonathan Harston and contributors
 **
 ** Brandy is free software; you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
