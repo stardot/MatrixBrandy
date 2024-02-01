@@ -3843,10 +3843,9 @@ static void eval_vpow(void) {
 
 /*
 ** 'eval_vlsl' deals with the logical left shift operator when the right-hand
-** operand is a 32-bit or 64-bit integer value, or a floating point value.
+** operand is a numeric value.
 */
 static void eval_vlsl(void) {
-  stackitem lhitem;
   int32 rhint = 0;
   int64 lhint64 = 0;
 
@@ -3855,9 +3854,8 @@ static void eval_vlsl(void) {
 #endif
 
   rhint = pop_anynum32() % 256;
-
   while (rhint < 0) rhint += 256;
-  lhitem = GET_TOPITEM;	/* Branch according to type of left-hand operand */
+
   lhint64 = pop_anynum64();
   if (matrixflags.bitshift64) {
     if (rhint < 64) {
@@ -3919,8 +3917,8 @@ static void eval_vasr(void) {
 #endif
 
   rhint = pop_anynum32() % 256;
-
   while (rhint < 0) rhint += 256;
+
   push_int64(pop_anynum64() >> rhint);
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vasr at end of function\n");
