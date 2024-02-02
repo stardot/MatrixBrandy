@@ -1073,17 +1073,6 @@ int64 pop_anynum64(void) {
   return 0; /* Control never reaches here */
 }
 
-uint64 pop_anyunum64(void) {
-  switch(GET_TOPITEM) {
-    case STACK_INT: return (uint32)pop_int();
-    case STACK_UINT8: return pop_uint8();
-    case STACK_INT64: return pop_int64();
-    case STACK_FLOAT: return TOINT64(pop_float());
-    default: error(ERR_TYPENUM);
-  }
-  return 0; /* Control never reaches here */
-}
-
 float64 pop_anynumfp(void) {
   switch(GET_TOPITEM) {
     case STACK_INT: return TOFLOAT(pop_int());
