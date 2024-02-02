@@ -2033,6 +2033,9 @@ static void eval_ivminus(void) {
   stackitem lhitem, rhitem;
   int64 rhint = 0;
 
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_ivminus\n");
+#endif
   rhitem = GET_TOPITEM;
   rhint = pop_anyint();
   lhitem = GET_TOPITEM;
@@ -2042,9 +2045,18 @@ static void eval_ivminus(void) {
     } else {
       push_varyint(pop_anyint() - rhint);
     }
-  } else if (lhitem == STACK_FLOAT)
-    DECR_FLOAT(TOFLOAT(rhint));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
+  } else if (lhitem == STACK_FLOAT) {
+    /* Use long double space - doesn't help on ARM but doesn't hurt it */
+    long double fltmp = (long double)pop_float() - (long double)rhint;
+    if (fltmp == (int32)fltmp) {
+      push_int((int32)fltmp);
+    } else if (fltmp == (int64)fltmp) {
+      push_int64((int64)fltmp);
+    } else {
+      push_float((float64)fltmp);
+    }
+    //DECR_FLOAT(TOFLOAT(rhint));
+  } else if (lhitem == STACK_INTARRAY || lhitem == STACK_UINT8ARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<integer value> */
     basicarray *lharray;
     int32 n, count;
     lharray = pop_array();
@@ -2081,7 +2093,9 @@ static void eval_ivminus(void) {
       float64 *srce, *base = make_array(VAR_FLOAT, lharray);
       floatvalue = TOFLOAT(rhint);
       srce = lharray->arraystart.floatbase;
-      for (n = 0; n < count; n++) base[n] = srce[n] - floatvalue;
+      for (n = 0; n < count; n++) {
+        base[n] = (float64)((long double)srce[n] - (long double)floatvalue);
+      }
     }
   } else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
     basicarray lharray;
@@ -2094,6 +2108,9 @@ static void eval_ivminus(void) {
     for (n = 0; n < count; n++) base[n] -= floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+#ifdef DEBUG
+  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_ivminus\n");
+#endif
 }
 
 /*
@@ -2107,9 +2124,18 @@ static void eval_fvminus(void) {
   if (TOPITEMISINT) {	/* <int>-<float> */
     floatvalue = TOFLOAT(pop_anyint()) - floatvalue;
     push_float(floatvalue);
-  } else if (lhitem == STACK_FLOAT)
-    DECR_FLOAT(floatvalue);
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<float value> */
+  } else if (lhitem == STACK_FLOAT) {
+    /* Use long double space - doesn't help on ARM but doesn't hurt it */
+    long double fltmp = (long double)pop_float() - (long double)floatvalue;
+    if (fltmp == (int32)fltmp) {
+      push_int((int32)fltmp);
+    } else if (fltmp == (int64)fltmp) {
+      push_int64((int64)fltmp);
+    } else {
+      push_float((float64)fltmp);
+    }
+    // DECR_FLOAT(floatvalue);
+  } else if (lhitem == STACK_INTARRAY || lhitem == STACK_INT64ARRAY || lhitem == STACK_FLOATARRAY) {	/* <array>-<float value> */
     basicarray *lharray;
     float64 *base;
     int32 n, count;
