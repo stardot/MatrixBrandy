@@ -82,7 +82,8 @@ typedef unsigned char boolean;
 /* These macros hide type casts */
 
 #define CAST(x,y) ((y)(x))
-/* TOINT and TOFLOAT macro redefined as fuctions to allow range check, in miscprocs */
+/* TOINT macro redefined as fuction to allow range check, in miscprocs */
+#define TOFLOAT(x) ((float64)(x))
 #define TOSTRING(x) ((char *)(x))
 #define TOINTADDR(x) ((int32 *)(x))
 

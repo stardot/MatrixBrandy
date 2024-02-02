@@ -496,12 +496,6 @@ int64 TOINT64(float64 fltmp) {
   return (int64)fltmp;
 }
 
-float64 TOFLOAT(int64 intmp) {
-  float64 fltmp=(float64)intmp;
-  if (basicvars.runflags.flag_cosmetic && (int64)fltmp != intmp) error(WARN_PRECISION);
-  return (float64)intmp;
-}
-
 size_t TONATIVEADDR(float64 fltmp) {
 #ifdef MATRIX64BIT
   return TOINT64(fltmp);
