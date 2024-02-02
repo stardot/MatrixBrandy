@@ -392,8 +392,12 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #ifdef BRANDY_NODISPLAYOS
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
+#ifdef BRANDY_NIGHTLY
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ") " BRANDY_DATE "\r\n\nNightly development snapshot at git " BRANDY_GITCOMMIT " (" BRANDY_GITDATE ")"
+#else
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ") " BRANDY_DATE
-#endif
+#endif /* BRANDY_NIGHTLY */
+#endif /* BRANDY_NODISPLAYOS */
 
 /*
 ** MAXSTRING is the length of the longest string the interpreter
