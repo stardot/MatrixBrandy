@@ -498,7 +498,7 @@ int64 TOINT64(float64 fltmp) {
 
 float64 TOFLOAT(int64 intmp) {
   float64 fltmp=(float64)intmp;
-  if ((int64)fltmp != intmp) error(WARN_PRECISION);
+  if (basicvars.runflags.flag_cosmetic && (int64)fltmp != intmp) error(WARN_PRECISION);
   return (float64)intmp;
 }
 

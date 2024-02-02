@@ -1514,7 +1514,7 @@ void fn_trace(void) {
 */
 void fn_true(void) {
   basicvars.current++;
-  if (matrixflags.hex64)
+  if (matrixflags.hex64 || matrixflags.bitshift64)
     push_int64(BASTRUE);
   else
     push_int(BASTRUE);
