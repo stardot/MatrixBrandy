@@ -1455,7 +1455,10 @@ static void print_screen(void) {
           else
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_anynum32());
         } else {
-          size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
+          if (resultype == STACK_FLOAT)
+            size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
+          else
+            size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_anynum64());
         }
       } 
       else {	/* Left justify the value */
@@ -1465,7 +1468,10 @@ static void print_screen(void) {
           else
             size = sprintf(basicvars.stringwork, "%X", pop_anynum32());
         else {
-          size = sprintf(basicvars.stringwork, leftfmt, numdigits, pop_anynumfp());
+          if (resultype == STACK_FLOAT)
+            size = sprintf(basicvars.stringwork, leftfmt, numdigits, numdigits, pop_anynumfp());
+          else
+            size = sprintf(basicvars.stringwork, "%lld", pop_anynum64());
         }
       }
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, size);
