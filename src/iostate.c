@@ -1374,7 +1374,7 @@ static void print_screen(void) {
   fieldwidth = format & BYTEMASK;
   numdigits  = (format>>BYTESHIFT) & BYTEMASK;
   formattype = (format>>2*BYTESHIFT) & BYTEMASK;
-  if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
+  if (numdigits > 19 ) numdigits = 19; /* Maximum meaningful length */
   switch (formattype) {	/* Determine format of floating point values */
   case FORMAT_E:
     if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 17 digits if value is 0 */
@@ -1459,7 +1459,12 @@ static void print_screen(void) {
           if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F) {
             size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
           } else {
-            size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_anynum64());
+            int64 fromstack=pop_anynum64();
+            size = sprintf(basicvars.stringwork, "%lld", fromstack);
+            if (size > numdigits)
+              size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, TOFLOAT(fromstack));
+            else
+              size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, fromstack);
           }
         }
       } 
@@ -1470,10 +1475,14 @@ static void print_screen(void) {
           else
             size = sprintf(basicvars.stringwork, "%X", pop_anynum32());
         else {
-          if (resultype == STACK_FLOAT)
+          if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F)
             size = sprintf(basicvars.stringwork, leftfmt, numdigits, numdigits, pop_anynumfp());
-          else
-            size = sprintf(basicvars.stringwork, "%lld", pop_anynum64());
+          else {
+            int64 fromstack=pop_anynum64();
+            size = sprintf(basicvars.stringwork, "%lld", fromstack);
+            if (size > numdigits)
+              size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, TOFLOAT(fromstack));
+          }
         }
       }
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, size);
