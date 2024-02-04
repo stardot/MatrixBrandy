@@ -1360,7 +1360,7 @@ void exec_pointto(void) {
 static void print_screen(void) {
   stackitem resultype;
   boolean hex, rightjust, newline;
-  int32 format, fieldwidth, numdigits, size;
+  int32 format, formattype, fieldwidth, numdigits, size;
   char *leftfmt, *rightfmt;
   char *bufptr;
 
@@ -1372,9 +1372,10 @@ static void print_screen(void) {
   newline = TRUE;
   format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
   fieldwidth = format & BYTEMASK;
-  numdigits = (format>>BYTESHIFT) & BYTEMASK;
+  numdigits  = (format>>BYTESHIFT) & BYTEMASK;
+  formattype = (format>>2*BYTESHIFT) & BYTEMASK;
   if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
-  switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
+  switch (formattype) {	/* Determine format of floating point values */
   case FORMAT_E:
     if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 17 digits if value is 0 */
     leftfmt = "%.*E"; rightfmt = "%*.*E";
@@ -1455,10 +1456,11 @@ static void print_screen(void) {
           else
             size = sprintf(basicvars.stringwork, "%*X", fieldwidth, pop_anynum32());
         } else {
-          if (resultype == STACK_FLOAT)
+          if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F) {
             size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
-          else
+          } else {
             size = sprintf(basicvars.stringwork, "%*lld", fieldwidth, pop_anynum64());
+          }
         }
       } 
       else {	/* Left justify the value */
@@ -1477,7 +1479,7 @@ static void print_screen(void) {
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, size);
       /* Hack to mangle the exponent format to BBC-style rather than C-style */
       bufptr = strchr(basicvars.stringwork,'E');
-      if(bufptr) {
+      if(!hex && bufptr) {
         bufptr++;
         if (*bufptr == '+') {
           if (rightjust && (size <= fieldwidth)) {
@@ -1490,7 +1492,7 @@ static void print_screen(void) {
         } else {
           if (!rightjust || (size > fieldwidth)) bufptr++;
         }
-        if (rightjust && (size <= fieldwidth)) bufptr++;
+        if (rightjust && (size <= fieldwidth) && basicvars.stringwork[size-4] != 'E') bufptr++;
         while (*bufptr == '0' && *(bufptr+1) != '\0') {
           if (rightjust && (size <= fieldwidth)) {
           memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
@@ -1499,6 +1501,18 @@ static void print_screen(void) {
           } else {
             memmove(bufptr, bufptr+1, size);
             size--;
+          }
+        }
+        /* Now, let's sort out the padding malarkey if right-justifying*/
+        if (rightjust) {
+          while (basicvars.stringwork[0] == ' ' && basicvars.stringwork[size-4] != 'E') {
+            memmove(basicvars.stringwork, basicvars.stringwork+1, size);
+            basicvars.stringwork[size-1]=' ';
+          }
+          while (basicvars.stringwork[size-4] != 'E') {
+            basicvars.stringwork[size]=' ';
+            basicvars.stringwork[size+1]='\0';
+            size++;
           }
         }
       }
