@@ -1376,7 +1376,7 @@ static void print_screen(void) {
   numdigits  = (format>>BYTESHIFT) & BYTEMASK;
   formattype = (format>>2*BYTESHIFT) & 0x03;
   /* Matrix Brandy extension - bits 5 and 6 of format byte set the padding size in E format */
-  eoff = (((format>>2*BYTESHIFT) & 0x60) >> 5) + 4;
+  eoff = (((format>>2*BYTESHIFT) & 0x30) >> 4) + 4;
   if (numdigits > 19 ) numdigits = 19; /* Maximum meaningful length */
   switch (formattype) {	/* Determine format of floating point values */
   case FORMAT_E:
@@ -1461,7 +1461,7 @@ static void print_screen(void) {
         } else {
           if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F) {
             size = sprintf(basicvars.stringwork, rightfmt, fieldwidth, numdigits, pop_anynumfp());
-          } else {
+          } else { /* One of the integer types */
             int64 fromstack=pop_anynum64();
             size = sprintf(basicvars.stringwork, "%lld", fromstack);
             if (size > numdigits)
@@ -1472,6 +1472,7 @@ static void print_screen(void) {
         }
       } 
       else {	/* Left justify the value */
+        fprintf(stderr, "C\n");
         if (hex)
           if (matrixflags.hex64)
             size = sprintf(basicvars.stringwork, "%llX", pop_anynum64());

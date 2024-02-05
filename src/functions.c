@@ -1267,6 +1267,7 @@ static void fn_sqr(void) {
 ** with a '~'
 */
 static void fn_str(void) {
+  stackitem resultype;
   boolean ishex;
   int32 length = 0;
   char *cp, *bufptr;
@@ -1274,7 +1275,8 @@ static void fn_str(void) {
   ishex = *basicvars.current == '~';
   if (ishex) basicvars.current++;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64 || GET_TOPITEM == STACK_FLOAT) {
+  resultype=GET_TOPITEM;
+  if (resultype == STACK_INT || resultype == STACK_UINT8 || resultype == STACK_INT64 || resultype == STACK_FLOAT) {
     if (ishex)
       if (matrixflags.hex64)
         length = sprintf(basicvars.stringwork, "%llX", pop_anynum64());
@@ -1298,8 +1300,16 @@ static void fn_str(void) {
       numdigits = (format>>BYTESHIFT) & BYTEMASK;
       if (numdigits == 0 && ((format>>2*BYTESHIFT) & BYTEMASK) != FORMAT_F) numdigits = DEFDIGITS;
       if (((format>>2*BYTESHIFT) & BYTEMASK) == FORMAT_E) numdigits--;
-      if (numdigits > 17 ) numdigits = 17; /* Maximum meaningful length */
-      length = sprintf(basicvars.stringwork, fmt, numdigits, pop_anynumfp());
+      if (numdigits > 19 ) numdigits = 19; /* Maximum meaningful length */
+      if (resultype == STACK_FLOAT) {
+        length = sprintf(basicvars.stringwork, fmt, numdigits, pop_anynumfp());
+      } else {
+        int64 fromstack=pop_anynum64();
+        length = sprintf(basicvars.stringwork, "%lld", fromstack);
+        if (length > numdigits) {
+          length = sprintf(basicvars.stringwork, fmt, numdigits, TOFLOAT(fromstack));
+        }
+      }
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, length);
       /* Hack to mangle the exponent format to BBC-style rather than C-style */
       bufptr = strchr(basicvars.stringwork,'E');
