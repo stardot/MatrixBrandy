@@ -1361,6 +1361,7 @@ static void print_screen(void) {
   stackitem resultype;
   boolean hex, rightjust, newline;
   int32 format, formattype, fieldwidth, numdigits, size;
+  int32 eoff=4;
   char *leftfmt, *rightfmt;
   char *bufptr;
 
@@ -1501,7 +1502,7 @@ static void print_screen(void) {
         } else {
           if (!rightjust || (size > fieldwidth)) bufptr++;
         }
-        if (rightjust && (size <= fieldwidth) && basicvars.stringwork[size-4] != 'E') bufptr++;
+        if (rightjust && (size <= fieldwidth) && basicvars.stringwork[size-eoff] != 'E') bufptr++;
         while (*bufptr == '0' && *(bufptr+1) != '\0') {
           if (rightjust && (size <= fieldwidth)) {
           memmove(basicvars.stringwork+1, basicvars.stringwork, (bufptr-basicvars.stringwork));
@@ -1513,12 +1514,12 @@ static void print_screen(void) {
           }
         }
         /* Now, let's sort out the padding malarkey if right-justifying*/
-        if (rightjust) {
-          while (basicvars.stringwork[0] == ' ' && basicvars.stringwork[size-4] != 'E') {
+        if (rightjust && formattype == FORMAT_E) {
+          while (basicvars.stringwork[0] == ' ' && basicvars.stringwork[size-eoff] != 'E' && basicvars.stringwork[size-eoff] != '-') {
             memmove(basicvars.stringwork, basicvars.stringwork+1, size);
             basicvars.stringwork[size-1]=' ';
           }
-          while (basicvars.stringwork[size-4] != 'E') {
+          while (basicvars.stringwork[size-eoff] != 'E' && basicvars.stringwork[size-eoff] != '-') {
             basicvars.stringwork[size]=' ';
             basicvars.stringwork[size+1]='\0';
             size++;
