@@ -1,7 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* 1.22.16 -
+* 1.23.0 -
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'
   on compatible platforms. Equivalent to issuing SYS"Brandy_TekEnabled",1
 - System: Strict mode can now be set programmatically with SYS"Brandy_Strict".
@@ -32,8 +32,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: Clear variable stubs if a DIM fails, and after CLEAR HIMEM.
 - BASIC: Indirection with floats containing addresses > 32 bits now work.
 - BASIC: Print a warning if a conversion from int64 to float loses precision.
-- Graphics: Fixed multiple problems with VDU24, RECTANGLE FILL, MOUSE
 - BASIC: Fix bugs in Exponent format number printing.
+- Graphics: Fixed multiple problems with VDU24, RECTANGLE FILL, MOUSE
   and the plot_pixel() primitive, primarily to do with the oddball MODE 22.
   Thanks to Michael Fairbank for identifying and assisting with fixing this.
 - Graphics: Fixed a cursor placement bug for VDU31 (PRINT TAB(x,y)) in VDU 5
