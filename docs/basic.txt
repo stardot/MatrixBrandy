@@ -3144,7 +3144,7 @@ byte-sized fields. They are laid out as follows:
 
 Byte    Range   Default Purpose
 SS      00-01   00      STR$ Format Control
-NN      00-C2   00      Format Selection
+NN      00-B2   00      Format Selection
 PP      00-11   09      Number of Digits Printed
 WW      00-0F   0A(10)  Zone and Print Field Width
 
@@ -3164,6 +3164,13 @@ are:
         2  Fixed precision format
         If bit &80 is set, then use a decimal comma instead of
         a decimal point.
+        Matrix Brandy has its own extension to this:
+        Bits &10 and &20 are used to control the right-justify padding in
+        Exponent format, the default (both 0) follows the traditional
+        formatting in BBC BASIC 1 to 5, &10 set gives an additional space
+        (matching Acorn ARM BBC BASIC VI), &20 gives two extra spaces, and
+        both together set gives 3 extra (perhaps useful if 128-bit floats
+        become a thing in the future).
 
 PP gives the number of digits to print. The range is 1 to
 255.  If 0 (and not format 2) then the maximum number of digits is used

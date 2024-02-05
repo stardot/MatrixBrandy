@@ -33,6 +33,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: Indirection with floats containing addresses > 32 bits now work.
 - BASIC: Print a warning if a conversion from int64 to float loses precision.
 - Graphics: Fixed multiple problems with VDU24, RECTANGLE FILL, MOUSE
+- BASIC: Fix bugs in Exponent format number printing.
   and the plot_pixel() primitive, primarily to do with the oddball MODE 22.
   Thanks to Michael Fairbank for identifying and assisting with fixing this.
 - Graphics: Fixed a cursor placement bug for VDU31 (PRINT TAB(x,y)) in VDU 5
