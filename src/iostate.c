@@ -1361,7 +1361,7 @@ static void print_screen(void) {
   stackitem resultype;
   boolean hex, rightjust, newline;
   int32 format, formattype, fieldwidth, numdigits, size;
-  int32 eoff=4;
+  int32 eoff;
   char *leftfmt, *rightfmt;
   char *bufptr;
 
@@ -1374,7 +1374,9 @@ static void print_screen(void) {
   format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
   fieldwidth = format & BYTEMASK;
   numdigits  = (format>>BYTESHIFT) & BYTEMASK;
-  formattype = (format>>2*BYTESHIFT) & BYTEMASK;
+  formattype = (format>>2*BYTESHIFT) & 0x03;
+  /* Matrix Brandy extension - bits 5 and 6 of format byte set the padding size in E format */
+  eoff = (((format>>2*BYTESHIFT) & 0x60) >> 5) + 4;
   if (numdigits > 19 ) numdigits = 19; /* Maximum meaningful length */
   switch (formattype) {	/* Determine format of floating point values */
   case FORMAT_E:
