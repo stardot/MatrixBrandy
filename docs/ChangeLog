@@ -1,7 +1,7 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-* 1.23.0 -
+* 1.23.0 - 06 February 2024
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'
   on compatible platforms. Equivalent to issuing SYS"Brandy_TekEnabled",1
 - System: Strict mode can now be set programmatically with SYS"Brandy_Strict".
