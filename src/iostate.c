@@ -1472,7 +1472,6 @@ static void print_screen(void) {
         }
       } 
       else {	/* Left justify the value */
-        fprintf(stderr, "C\n");
         if (hex)
           if (matrixflags.hex64)
             size = sprintf(basicvars.stringwork, "%llX", pop_anynum64());
