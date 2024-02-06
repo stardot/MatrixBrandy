@@ -392,11 +392,11 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #ifdef BRANDY_NODISPLAYOS
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_DATE ")"
 #else
-#ifdef BRANDY_NIGHTLY
-#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ") " BRANDY_DATE "\r\n\nDevelopment snapshot at git " BRANDY_GITCOMMIT " (" BRANDY_GITDATE ")"
-#else
+#ifdef BRANDY_RELEASE
 #define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ") " BRANDY_DATE
-#endif /* BRANDY_NIGHTLY */
+#else
+#define IDSTRING "Matrix Brandy BASIC VI version " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " (" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ") " BRANDY_DATE "\r\n\nDevelopment snapshot at git " BRANDY_GITCOMMIT " (" BRANDY_GITDATE ")"
+#endif /* BRANDY_RELEASE */
 #endif /* BRANDY_NODISPLAYOS */
 
 /*
