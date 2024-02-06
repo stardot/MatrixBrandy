@@ -184,8 +184,12 @@ static void show_meminfo() {
 static void cmd_brandyinfo() {
   emulate_printf("\r\n%s\r\n", IDSTRING);
 #ifdef BRANDY_GITCOMMIT
+#ifdef BRANDY_RELEASE
   emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
-#endif
+#else
+  emulate_printf("  Built from git branch %s)\r\n", BRANDY_GITBRANCH);
+#endif /* BRANDY_RELEASE */
+#endif /* BRANDY_GITCOMMIT */
   // Try to get attributions correct, as per license.
   emulate_printf("  Forked from Brandy Basic v1.20.1 (24 Sep 2014)\r\n");
   emulate_printf("  Merged Banana Brandy Basic v0.02 (05 Apr 2014)\r\n");
