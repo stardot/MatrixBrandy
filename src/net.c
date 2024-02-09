@@ -350,7 +350,7 @@ int32 net_bget(int handle) {
   if (bufptr[handle] >= bufendptr[handle]) return(-1);	/* No data available. EOF NOT set */
   value=netbuffer[handle][(bufptr[handle])];
   bufptr[handle]++;
-  return(value);
+  return(value & 0xFF);
 }
 
 boolean net_eof(int handle) {
