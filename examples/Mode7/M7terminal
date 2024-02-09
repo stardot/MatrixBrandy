@@ -1,0 +1,105 @@
+   10REM>M7terminal
+   20ON ERROR PRINT REPORT$: M%=INKEY(500): END
+   30SYS"OS_Byte",229,1: REM Disable ESCAPE
+   40*WinTitle Matrix Network MODE 7 Terminal
+   50MODE 7
+   60C%=0:D%=0:K%=0: DIM xmbuf%% 132, filebuf%% 32768
+   70conn$=FNaddr
+   80PRINT "Connecting..."
+   90H%=OPENUP(conn$)
+  100IF H%=0 THEN PRINT "Connection failed": M%=INKEY(500): END
+  110CLS
+  120REPEAT
+  130C%=BGET#H%
+  140IF C%=-2 THEN PRINT'"Connection terminated, press any key": M%=GET: END
+  150IF C%<>-1 VDU C%
+  160UNTIL C%=-1
+  170K%=INKEY(5)
+  180IF K%>=32 AND K%<128 BPUT#H%,K%
+  190IF K%=8 OR K%=11 OR K%=13 OR K%=17 OR K%=19 THEN BPUT#H%,K%
+  200IF K%=4 THEN PROCclose
+  210IF K%=18 PROCrecv_xmodem
+  220GOTO 120
+  230DEFPROCclose
+  240IF H%=0 THEN PRINT:GOTO 290
+  250BPUT#H%,13:BPUT#H%,13
+  260FOR N%=1TO40:BPUT#H%,ASC("Q"):NEXT
+  270CLOSE#H%
+  280PRINT'"Connection closed": WAIT 300
+  290END
+  300ENDPROC
+  310:
+  320DEFFNaddr
+  330OFF
+  340VDU32,157,132,141:PRINT" Matrix Network MODE 7 Terminal    ";:VDU156:PRINT
+  350VDU32,157,132,141:PRINT" Matrix Network MODE 7 Terminal    ";:VDU156:PRINT
+  360VDU132,157,135:PRINT"    V0.000002  (09 Feb 2024)        ";:VDU156:PRINT'
+  370PRINT" This is a client for";CHR$134;"MODE 7";CHR$(135)"bulletin"
+  380PRINT" board systems. This is";CHR$129;"not";CHR$135;"suitable"
+  390PRINT" for Viewdata servers. To connect to"
+  400PRINT" those please use the";CHR$131;"Telstar";CHR$135;"client"'" instead."'
+  410VDU131:PRINT "1: BeeBS"
+  420PRINT
+  430VDU130:PRINT "9: Enter address":PRINT
+  440VDU129:PRINT "0: Exit terminal"'
+  450VDU130:PRINT "Within the session, press";CHR$133;"CTRL-R";CHR$130;"to"
+  460VDU130:PRINT "start an Xmodem (CP/M) file download."
+  470K%=GET
+  480IF K%=49 addr$="beebs.ddns.net:6502":GOTO520
+  490IF K%=57 ON: INPUTLINE"Address>"addr$:GOTO520
+  500IF K%=48 OR K%=27 THEN ON:CLS:END
+  510GOTO470
+  520REM Jump out
+  530CLS:ON
+  540="ip0:"+addr$
+  550:
+  560DEFPROCrecv_xmodem
+  570LOCAL d%,blks%
+  580blks%=0:break%=0
+  590BPUT#H%,21: REM NAK to initiate the transfer
+  600d%=FNgetchr
+  610IF d%=4 THEN PRINT "Received EOT": GOTO 700: REM EOT received
+  620IF d%<>1 THEN PRINT "Got unexpected byte &";~d%: GOTO 590: REM Expected SOH
+  630REM Received SOH, let's get the packet, 131 bytes.
+  640PRINT "Reading block... ";
+  650FOR p%=0 TO 130:xmbuf%%?p%=FNgetchr: IF INKEY(-113) break%=TRUE
+  660NEXT
+  670IFbreak% GOTO 810
+  680IF FNchksum THEN blks%=?xmbuf%%: PROCstore: BPUT#H%,6 ELSE BPUT#H%,21
+  690GOTO 600
+  700REM EOT received, do end of file transfer handling
+  710BPUT#H%,21: REM Send a NAK
+  720d%=FNgetchr
+  730IF d%<>4 THEN GOTO 830
+  740BPUT#H%,6
+  750PRINT "File completed in ";blks%;" 128-byte blocks."
+  760INPUTLINE "Filename to save as >"fn$
+  770fh%=OPENOUT(fn$)
+  780FOR p%=0 TO (128*blks%)-1: BPUT#fh%, filebuf%%?p%: NEXT
+  790CLOSE#fh%
+  800GOTO850
+  810REM Break out, abort transfer
+  820PRINT"Escape - ";
+  830PRINT"Breaking out, aborting"
+  840BPUT#H%,24: REM CAN
+  850ENDPROC
+  860:
+  870DEFFNgetchr
+  880LOCAL c%
+  890REPEAT c%=BGET#H%: UNTIL c%<>-1
+  900IF c%=-2 THEN PRINT'"Connection terminated, transfer failed": END
+  910=c%
+  920:
+  930DEFFNchksum: REM Returns TRUE if checksum passes
+  940IF (?xmbuf%% + xmbuf%%?1) <> 255 THEN PRINT "";?xmbuf%%;" header FAILED":=FALSE
+  950sum%=0
+  960FOR p%=2 TO 129:sum%+=xmbuf%%?p%:NEXT
+  970sum% AND=&FF
+  980PRINT "";?xmbuf%%;
+  990IF sum% = xmbuf%%?130 THEN PRINT " OK";:VDU13:=TRUE ELSE PRINT " FAILED": =FALSE
+ 1000:
+ 1010DEFPROCstore
+ 1020LOCAL b%
+ 1030b%=(?xmbuf%%)-1
+ 1040FOR p%=0 TO 127:filebuf%%?((128*b%)+p%)=xmbuf%%?(p%+2):NEXT
+ 1050ENDPROC
