@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <setjmp.h>
 #ifdef USE_SDL
 #include <unistd.h>
 #endif
@@ -448,6 +449,11 @@ static void exec_statements(byte *lp) {
 */
 void run_program(byte *lp) {
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  if (basicvars.runflags.running) {
+    siglongjmp(basicvars.run_restart,1);
+  } else {
+    sigsetjmp(basicvars.run_restart, 1);
+  }
   clear_error();
   if (basicvars.runflags.has_offsets) clear_varptrs();
   if (basicvars.runflags.has_variables) clear_varlists();

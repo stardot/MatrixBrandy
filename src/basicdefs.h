@@ -484,6 +484,7 @@ typedef struct {
   int32 error_line;           /* Line number of last error */
   int32 error_number;         /* Number of last error */
   errorblock error_handler;   /* 'ON ERROR' error handler details */
+  sigjmp_buf run_restart;     /* For restarting the interpreter when a 'RUN' is executed recursively */
   sigjmp_buf error_restart;   /* For restarting the interpreter when an 'ON ERROR' is executed */
   sigjmp_buf *local_restart;  /* For restarting the interpreter when an 'ON ERROR LOCAL' is executed */
   int32 errorislocal;         /* Flag for LOCAL ERROR */
