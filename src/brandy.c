@@ -30,16 +30,15 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#ifdef USE_SDL
-#include <SDL.h>
-#else
 #ifndef TARGET_RISCOS
 #include <pthread.h>
 #endif
-#endif /* USE_SDL */
 #ifndef TARGET_MINGW
 #include <sys/mman.h>
 #endif
+#ifdef USE_SDL
+#include <SDL.h>
+#endif /* USE_SDL */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -77,12 +76,13 @@ static void init1(void);
 static void init2(void);
 static void gpio_init(void);
 #ifdef USE_SDL
-static int run_interpreter(void *);
-static int escape_thread(void *);
-#else
-static void run_interpreter(void);
-#endif
+static void *escape_thread(void *);
 static void init_timer(void);
+#endif
+static void *run_interpreter(void *);
+#ifndef TARGET_RISCOS
+static void *timer_thread(void *);
+#endif
 static void init_clock(void);
 
 static char inputline[INPUTLEN];	/* Last line read */
@@ -103,9 +103,10 @@ static char *loadfile;			/* Pointer to name of file to load when interpreter sta
 ** (in statement.c) is invoked. 'exec_quit' handles the 'QUIT' command
 */
 
+#ifdef TARGET_RISCOS
+/* Cut-down version without threads, as we use the OS for graphics and timer */
 int main(int argc, char *argv[]) {
   init1();
-  init_timer();	/* Initialise the timer thread */
 #ifndef NONET
   brandynet_init();
 #endif
@@ -116,16 +117,63 @@ int main(int argc, char *argv[]) {
   check_cmdline(argc, argv);
   init2();
   gpio_init();
+  run_interpreter(0);
+  return EXIT_FAILURE;
+}
+
+#else
+int main(int argc, char *argv[]) {
 #ifdef USE_SDL
+  pthread_t escape_thread_id;
+#endif
+  pthread_t interp_thread_id;
+  pthread_attr_t threadattrs, *threadattrp;
+  init1();
+#ifndef NONET
+  brandynet_init();
+#endif
+#ifdef BRANDYAPP
+  basicvars.runflags.quitatend = TRUE;
+  basicvars.runflags.loadngo = TRUE;
+#endif
+  check_cmdline(argc, argv);
+  init2();
+  gpio_init();
+  /* Populate threadattrs to tweak stack size */
+  if (pthread_attr_init(&threadattrs)) {
+    /* If that didn't work, carry on without it. */
+    threadattrp = NULL;
+  } else {
+    int32 stacksize = (basicvars.worksize);
+    if (stacksize < 1024*1024) stacksize=1024*1024;
+    basicvars.maxrecdepth = (basicvars.worksize / 512);
+    threadattrp = &threadattrs;
+    if (pthread_attr_setstacksize(threadattrp, stacksize)) {
+      fprintf(stderr, "Unable to override stack size\n");
+    }
+  }
+#ifdef USE_SDL
+  init_timer();	/* Initialise the timer thread */
   tmsg.bailout = -1;
-  basicvars.escape_thread = SDL_CreateThread(escape_thread,NULL);
-  basicvars.interp_thread = SDL_CreateThread(run_interpreter,NULL);
+  if (pthread_create(&escape_thread_id, NULL, &escape_thread, NULL)) {
+    fprintf(stderr, "Unable to create Escape handler thread.\n");
+    exit(1);
+  }
+  if (pthread_create(&interp_thread_id, threadattrp, &run_interpreter, NULL)) {
+    fprintf(stderr, "Unable to create Interpreter thread\n");
+    exit(1);
+  }
   videoupdatethread();
 #else
-  run_interpreter();
+  if (pthread_create(&interp_thread_id, threadattrp, &run_interpreter, NULL)) {
+    fprintf(stderr, "Unable to create Interpreter thread\n");
+    exit(1);
+  }
+  timer_thread(0);
 #endif
   return EXIT_FAILURE;
 }
+#endif /* TARGET_RISCOS */
 
 #ifdef TARGET_MINGW
 int WinMain(void) {
@@ -200,6 +248,7 @@ static void init1(void) {
   basicvars.argcount = 0;
   basicvars.recdepth = 0;
   basicvars.arglist = NIL;		/* List of command line arguments */
+  basicvars.maxrecdepth = MAXRECDEPTH;
   arglast = NIL;			/* End of list of command line arguments */
 
   liblist = liblast = NIL;		/* List of libraries to load when interpreter starts */
@@ -493,11 +542,7 @@ void init_clock() {
 }
 
 #ifndef TARGET_RISCOS
-#ifdef USE_SDL
-static int timer_thread(void *data) {
-#else
 static void *timer_thread(void *data) {
-#endif
   //struct timeval tv;
   struct timespec tv;
   while(1) {
@@ -513,32 +558,23 @@ static void *timer_thread(void *data) {
   }
   return 0;
 }
-#endif /* !TARGET_RISCOS */
 
+#ifdef USE_SDL
 /* This function starts a timer thread */
 static void init_timer() {
-#ifndef TARGET_RISCOS
-#ifdef USE_SDL
-  basicvars.csec_thread = NULL;
-  basicvars.csec_thread = SDL_CreateThread(timer_thread,NULL);
-  if (basicvars.csec_thread == NULL) {
-    fprintf(stderr, "Timer thread failed to start\n");
-    exit(1);
-  }
-  //basicvars.video_thread = SDL_CreateThread(videoupdatethread,NULL);
-#else
   pthread_t timer_thread_id;
   int err = pthread_create(&timer_thread_id,NULL,&timer_thread,NULL);
   if(err) {
     fprintf(stderr,"Unable to create timer thread\n");
     exit(1);
   }
-#endif /* USE_SDL */
-#endif /* TARGET_RISCOS */
 }
+#endif /* USE_SDL */
+#endif /* !TARGET_RISCOS */
+
 
 #ifdef USE_SDL
-int escape_thread(void *dummydata) {
+static void *escape_thread(void *dummydata) {
   while (1) {
     kbd_escpoll();
 #ifndef BRANDY_NOBREAKONCTRLPRTSC
@@ -549,7 +585,7 @@ int escape_thread(void *dummydata) {
 #endif
     usleep(10000);
   }
-  return(0); /* Dummy, execution never reaches here */
+  return(0); /* Control never reaches here */
 }
 #endif
 
@@ -559,11 +595,7 @@ int escape_thread(void *dummydata) {
 ** here in the event of an error by means of a 'siglongjmp' to
 ** 'basicvars.restart'
 */
-#ifdef USE_SDL
-int run_interpreter(void *dummydata) {
-#else
-static void run_interpreter(void) {
-#endif
+static void *run_interpreter(void *dummydata) {
   if (sigsetjmp(basicvars.restart, 1)==0) {
     if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
     init_errors();	/* Set up the signal handlers */
@@ -589,9 +621,7 @@ static void run_interpreter(void) {
     tokenize(inputline, thisline, HASLINE, TRUE);
     interpret_line();
   }
-#ifdef USE_SDL
-  return 0;
-#endif
+  return(0); /* Control never reaches here */
 }
 
 /*

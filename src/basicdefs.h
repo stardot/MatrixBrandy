@@ -567,11 +567,7 @@ typedef struct {
   int clocktype;              /* Type of clock used in centisecond timer */
   int64 monotonictimebase;    /* Baseline for OS_ReadMonotonicTime */
   size_t memdump_lastaddr;    /* Last address used by LISTB/LISTW */
-#ifdef USE_SDL
-  SDL_Thread *csec_thread;    /* Holder for centisecond timer thread */
-  SDL_Thread *escape_thread;  /* Holder for escape poller thread */
-  SDL_Thread *interp_thread;  /* Holder for centisecond timer thread */
-#endif  
+  int32 maxrecdepth;          /* Maximum FN recursion depth */
   char program[FNAMESIZE];    /* Name of program loaded */
   char filename[FNAMESIZE];   /* Name of last file read */
   cmdarg *arglist;            /* Pointer to list of Basic program command line arguments */
