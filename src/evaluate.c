@@ -1361,7 +1361,7 @@ static void do_function(void) {
   if (stackavail()<DJGPPLIMIT) error(ERR_STACKFULL);
 #endif
   basicvars.recdepth++;
-  if (basicvars.recdepth > MAXRECDEPTH) error(ERR_RECLIMIT);
+  if (basicvars.recdepth > MAXRECDEPTH) error(ERR_STACKFULL);
   vp = GET_ADDRESS(basicvars.current, variable *);
   dp = vp->varentry.varfnproc;
   basicvars.current+=LOFFSIZE+1;	/* Skip pointer to function */

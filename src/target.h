@@ -143,6 +143,15 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 
 #define OSVERSION 0x4D
 
+#if defined(__LP64__) || defined(__WIN64__)
+#define MATRIX64BIT 1
+#define FMT_SZX "%llX"
+#define FMT_SZD "%llu"
+#else
+#define FMT_SZX "%X"
+#define FMT_SZD "%u"
+#endif /* LP64 */
+
 #ifdef __riscos
 #define TARGET_RISCOS
 #define BRANDY_OS "RISC OS"
@@ -221,6 +230,7 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#define MAXRECDEPTH 12288
 #endif
 
 #ifdef __midipix__
@@ -302,6 +312,11 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
 #define NOTEKGFX 1
+#ifdef MATRIX64BIT
+#define MAXRECDEPTH 3072
+#else
+#define MAXRECDEPTH 8192
+#endif
 #endif
 
 #if defined(__LCC__) & defined(WIN32)
@@ -407,7 +422,10 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 */
 
 #define MAXSTRING 65536
-#define MAXRECDEPTH 512
+
+#ifndef MAXRECDEPTH
+#define MAXRECDEPTH 28672
+#endif
 
 #ifdef USE_SDL
 #define MODE7FB 0x7C00
@@ -435,15 +453,6 @@ typedef jmp_buf sigjmp_buf;
 /* FIXME: Implement this properly! */
 #define usleep(x)
 #endif
-
-#if defined(__LP64__) || defined(__WIN64__)
-#define MATRIX64BIT 1
-#define FMT_SZX "%llX"
-#define FMT_SZD "%llu"
-#else
-#define FMT_SZX "%X"
-#define FMT_SZD "%u"
-#endif /* LP64 */
 
 #ifdef TARGET_RISCOS
 #define MAXSYSPARMS 10		/* Maximum number of parameters allowed in a 'SYS' statement */

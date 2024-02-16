@@ -118,7 +118,6 @@ typedef enum {
     ERR_LOCAL,          /* LOCAL found outside a PROC or FN */
     ERR_DATA,           /* Out of data */
     ERR_NOROOM,         /* Out of memory */
-    ERR_RECLIMIT,       /* Exceeded interpreter recursion depth */
     ERR_WHENCOUNT,      /* Too many WHEN clauses in CASE statement */
     ERR_SYSCOUNT,       /* Too many parameters found in a SYS statement */
     ERR_STACKFULL,      /* Arithmetic stack overflow */

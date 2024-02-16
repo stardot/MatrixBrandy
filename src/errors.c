@@ -502,7 +502,6 @@ static detail errortable [] = {
 /* ERR_LOCAL */         {NONFATAL, NOPARM,  12, "LOCAL found outside a PROC or FN"},
 /* ERR_DATA */          {NONFATAL, NOPARM,  42, "There are no more 'DATA' statements to read"},
 /* ERR_NOROOM */        {FATAL,    NOPARM,   0, "The interpreter has run out of memory"},
-/* ERR_RECLIMIT */      {FATAL,    NOPARM,   0, "Exceeded interpreter recursion depth"},
 /* ERR_WHENCOUNT */     {NONFATAL, NOPARM,  47, "'CASE' statement has too many 'WHEN' clauses"},
 /* ERR_SYSCOUNT */      {NONFATAL, NOPARM,  51, "'SYS' statement has too many parameters"},
 /* ERR_STACKFULL */     {FATAL,    NOPARM,   0, "Arithmetic stack overflow"},
