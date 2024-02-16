@@ -4,6 +4,10 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 * 1.23.1 - 
 - Networking: BGET# was broken on x86-32 and x86-64 (but not ARM), returning
   negative numbers if bit 7 was set.
+- RUN recursion limit removed, it's now implemented with a setjmp/longjmp.
+- Fine tune the recursion limit for FN for Linux, Minix and Windows. This
+  is done via observation and hard-coding the limit as trying to get the
+  available stack size in a remotely portabe fashion is not possible.
 
 * 1.23.0 - 06 February 2024
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'
