@@ -312,11 +312,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
 #define NOTEKGFX 1
-#ifdef MATRIX64BIT
+/* This is overridden if pthreads behaves itself */
 #define MAXRECDEPTH 3072
-#else
-#define MAXRECDEPTH 8192
-#endif
 #endif
 
 #if defined(__LCC__) & defined(WIN32)
