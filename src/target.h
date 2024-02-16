@@ -230,7 +230,6 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
-#define MAXRECDEPTH 12288
 #endif
 
 #ifdef __midipix__
