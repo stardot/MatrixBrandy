@@ -422,7 +422,7 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define MAXSTRING 65536
 
 #ifndef MAXRECDEPTH
-#define MAXRECDEPTH 524288
+#define MAXRECDEPTH 4096
 #endif
 
 #ifdef USE_SDL

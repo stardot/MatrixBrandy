@@ -18,7 +18,7 @@ CFLAGS = -O3 $(shell sdl-config --cflags)  -DUSE_SDL -DDEFAULT_IGNORE -DBRANDYAP
 
 LDFLAGS +=
 
-LIBS = -lm $(shell sdl-config --libs) -ldl -lrt -lX11
+LIBS = -lm $(shell sdl-config --libs) -ldl -pthread -lrt -lX11
 
 SRCDIR = src
 
