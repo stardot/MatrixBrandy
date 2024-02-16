@@ -170,6 +170,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DIR_SEPS ".:"
 #define DIR_SEP  '.'
 #define NOTEKGFX 1
+/* It scales itself, but this gets close to maxing out the WimpSlot */
+#define MAXRECDEPTH 119808
 #endif
 
 #ifdef __NetBSD__

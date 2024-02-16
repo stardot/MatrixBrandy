@@ -177,7 +177,10 @@ void brandynet_init() {
 int brandynet_connect(char *dest, char type) {
 #if defined(TARGET_RISCOS) | defined(MINIX_OLDNET)
   char *host, *port;
-  int n, mysocket, portnum, result, flags;
+  int n, mysocket, portnum, result;
+#ifndef __TARGET_SCL__
+  int flags;
+#endif
   struct sockaddr_in netdest;
   struct hostent *he = NULL;
   struct in_addr *inaddr = NULL;
