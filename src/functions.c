@@ -74,10 +74,10 @@
  */
 
 #ifndef PI
-#define PI 3.14159265358979323846
+#define PI       3.141592653589793238462643383279502884L
 #endif
 
-#define RADCONV 57.2957795130823229	/* Used when converting degrees -> radians and vice versa */
+#define RADCONV 57.29577951308232286	/* Used when converting degrees -> radians and vice versa */
 #define TIMEFORMAT "%a,%d %b %Y.%H:%M:%S"  /* Date format used by 'TIME$' */
 
 /* RISC OS BASIC V uses &B0A, BASIC VI uses &110A. RTR BASICs use &90A */

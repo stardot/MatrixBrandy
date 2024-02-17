@@ -2,12 +2,12 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 * 1.23.1 - 
+- System: Rework the threading model to use pthreads even under SDL, this allows
+  a custom thread size to be set, so the recursion limit is now a factor
+  of the stack and workspace size.
 - Networking: BGET# was broken on x86-32 and x86-64 (but not ARM), returning
   negative numbers if bit 7 was set.
 - RUN recursion limit removed, it's now implemented with a setjmp/longjmp.
-- Rework the threading model to use pthreads even under SDL, this allows
-  a custom thread size to be set, so the recursion limit is now a factor
-  of the stack and workspace size.
 
 * 1.23.0 - 06 February 2024
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'

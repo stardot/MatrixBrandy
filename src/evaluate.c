@@ -45,8 +45,8 @@
 #include "keyboard.h"
 
 #ifdef TARGET_RISCOS
-extern long double powl(long double x, long double y);
-extern long double fabsl(long double x);
+extern float80 powl(long double x, long double y);
+extern float80 fabsl(long double x);
 #endif
 
 /* #define DEBUG */
@@ -67,12 +67,11 @@ extern long double fabsl(long double x);
 #define DJGPPLIMIT 75000		/* Minimum amount of C stack allowed in DJGPP version of program */
 #endif
 
-#define RADCONV 57.2957795130823229	/* Used when converting degrees -> radians and vice versa */
 #define TIMEFORMAT "%a,%d %b %Y.%H:%M:%S"  /* Date format used by 'TIME$' */
 
 #define OPSTACKMARK 0			/* 'Operator' used as sentinel at the base of the operator stack */
 
-static long double floatvalue;		/* Temporary for holding floating point values */
+static float80 floatvalue;		/* Temporary for holding floating point values */
 /*
 ** Notes:
 ** 1) 'floatvalue' is used to hold floating point values in a number of the
@@ -2046,8 +2045,8 @@ static void eval_ivminus(void) {
       push_varyint(pop_anyint() - rhint);
     }
   } else if (lhitem == STACK_FLOAT) {
-    /* Use long double space - doesn't help on ARM but doesn't hurt it */
-    long double fltmp = (long double)pop_float() - (long double)rhint;
+    /* Use float80 space - doesn't help on ARM but doesn't hurt it */
+    float80 fltmp = (float80)pop_float() - (float80)rhint;
     if (fltmp == (int32)fltmp) {
       push_int((int32)fltmp);
     } else if (fltmp == (int64)fltmp) {
@@ -2094,7 +2093,7 @@ static void eval_ivminus(void) {
       floatvalue = TOFLOAT(rhint);
       srce = lharray->arraystart.floatbase;
       for (n = 0; n < count; n++) {
-        base[n] = (float64)((long double)srce[n] - (long double)floatvalue);
+        base[n] = (float64)((float80)srce[n] - (float80)floatvalue);
       }
     }
   } else if (lhitem == STACK_FATEMP) {	/* <float array>-<integer value> */
@@ -2125,8 +2124,8 @@ static void eval_fvminus(void) {
     floatvalue = TOFLOAT(pop_anyint()) - floatvalue;
     push_float(floatvalue);
   } else if (lhitem == STACK_FLOAT) {
-    /* Use long double space - doesn't help on ARM but doesn't hurt it */
-    long double fltmp = (long double)pop_float() - (long double)floatvalue;
+    /* Use float80 space - doesn't help on ARM but doesn't hurt it */
+    float80 fltmp = (float80)pop_float() - (float80)floatvalue;
     if (fltmp == (int32)fltmp) {
       push_int((int32)fltmp);
     } else if (fltmp == (int64)fltmp) {
@@ -2443,7 +2442,7 @@ static void eval_ivmul(void) {
     lhint = pop_anyint();
     intres=lhint*rhint;
     floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
-    if (fabs(floatres) > (long double)MAXINT64VAL)
+    if (fabs(floatres) > (float80)MAXINT64VAL)
       push_float(floatres);
     else
       push_varyint(intres);
@@ -3816,10 +3815,10 @@ static void eval_famod(void) {
  * (FPA build on RISC OS 3.71).
  * It is slightly more permissive than BASIC versions I to V.
  */
-static long double mpow(float64 lh, float64 rh) {
-  long double result;
+static float80 mpow(float64 lh, float64 rh) {
+  float80 result;
   set_fpu();
-  result=powl((long double)lh,(long double)rh);
+  result=powl((float80)lh,(float80)rh);
   if (isnan(result) || isinf(result)) error(ERR_ARITHMETIC);
   return result;
 }
@@ -3844,7 +3843,7 @@ static int64 ipow(int64 base, int64 exp) {
 static void eval_vpow(void) {
   int lhint, rhint;
   int64 resint;
-  long double lh, rh, result;
+  float80 lh, rh, result;
   float64 res64;
   rhint = TOPITEMISINT;
   rh = pop_anynumfp();

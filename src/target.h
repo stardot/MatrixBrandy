@@ -81,6 +81,7 @@ typedef unsigned char uint8;            /* Type for unsigned 8-bit integer varia
 typedef int int32;                      /* Type for 32-bit integer variables in Basic */
 typedef unsigned int uint32;            /* 32-bit unsigned integer */
 typedef double float64;                 /* Type for 64-bit floating point variables in Basic */
+typedef long double float80;            /* High precision float for internal intermediary calculations */
 typedef long long int int64;            /* Type for 64-bit integer variables */
 typedef unsigned long long int uint64;  /* 64-bit unsigned integer */
 typedef long int nativeint;             /* 32 or 64-bit depending on architecture */

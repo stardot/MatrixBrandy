@@ -1084,12 +1084,12 @@ float64 pop_anynumfp(void) {
   return 0; /* Control never reaches here */
 }
 
-long double pop_anynumld(void) {
+float80 pop_anynumld(void) {
   switch(GET_TOPITEM) {
-    case STACK_INT: return (long double)pop_int();
-    case STACK_UINT8: return (long double)pop_uint8();
-    case STACK_INT64: return (long double)pop_int64();
-    case STACK_FLOAT: return (long double)pop_float();
+    case STACK_INT:   return (float80)pop_int();
+    case STACK_UINT8: return (float80)pop_uint8();
+    case STACK_INT64: return (float80)pop_int64();
+    case STACK_FLOAT: return (float80)pop_float();
     default: error(ERR_TYPENUM);
   }
   return 0; /* Control never reaches here */
