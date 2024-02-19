@@ -290,9 +290,6 @@ void announce(void) {
   emulate_printf("\n%s\r\n\nStarting with " FMT_SZD " bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #endif /* BRANDY_BANNER_MINIMAL */
 #ifdef DEBUG
-#ifdef BRANDY_GITCOMMIT
-  emulate_printf("Git commit %s on branch %s (%s)\r\n\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
-#endif
   emulate_printf("Basicvars is at &" FMT_SZX ", tokenised line is at &" FMT_SZX "\r\nWorkspace is at &" FMT_SZX ", size is " FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
    &basicvars, &thisline, basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
 #endif /*DEBUG*/

@@ -183,7 +183,9 @@ void trace_branch(byte *from, byte *to) {
 ** that the interpreter is broken
 */
 void bad_token(void) {
+#ifdef DEBUG
   fprintf(stderr, "Bad token at %p, value=&%02x\n", basicvars.current, *basicvars.current);
+#endif
   error(ERR_BROKEN, __LINE__, "statement");
 }
 
@@ -341,7 +343,7 @@ static void (*statements[256])(void) = {
   bad_token, bad_token, bad_token, bad_token,				/* 34..37 */
   bad_token, bad_token, skip_colon, bad_syntax,				/* 38..3B */
   bad_syntax, exec_fnreturn, bad_syntax, exec_assignment,		/* 3C..3F */
-  bad_token, bad_token, bad_token, bad_token,				/* 40..43 */
+  bad_syntax, bad_token, bad_token, bad_token,				/* 40..43 */
   bad_token, bad_token, bad_token, bad_token,				/* 44..47 */
   bad_token, bad_token, bad_token, bad_token,				/* 48..4B */
   bad_token, bad_token, bad_token, bad_token,				/* 4C..4F */
