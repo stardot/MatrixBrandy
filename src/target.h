@@ -44,7 +44,7 @@
 ** workspace sizes in bytes. DEFAULTSIZE is the amount of memory
 ** acquired when the interpreter first starts up and MINSIZE
 ** is the minimum it can be changed to.
-** Default size is 1 megabyte. Override this by adding
+** Default size is 64 megabytes. Override this by adding
 ** -DBRANDY_DEFAULT_SIZE to your BRANDY_BUILD_FLAGS environment
 ** variable, as a value in kilobytes. Don't go below 16.
 */

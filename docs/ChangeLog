@@ -6,7 +6,8 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   a custom thread size to be set, so the recursion limit is now a factor
   of the stack and workspace size.
 - Networking: BGET# was broken on x86-32 and x86-64 (but not ARM), returning
-  negative numbers if bit 7 was set.
+  negative numbers if bit 7 was set. Thank you to BeeBS.ddns.net for their
+  help with tracking this down.
 - RUN recursion limit removed, it's now implemented with a setjmp/longjmp.
 
 * 1.23.0 - 06 February 2024
