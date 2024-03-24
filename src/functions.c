@@ -719,7 +719,7 @@ static void fn_eval(void) {
   save_current();		/* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();
-  if (*basicvars.current != asc_NUL) error(ERR_SYNTAX);
+  if (basicvars.runflags.flag_cosmetic && (*basicvars.current != asc_NUL)) error(ERR_SYNTAX);
   restore_current();
 }
 
