@@ -149,7 +149,12 @@ static SDL_Rect scroll_rect;
 #endif
 
 static Uint8 palette[768];		/* palette for screen */
-static Uint8 hardpalette[24];		/* palette for screen */
+static Uint8 hardpalette[48]		/* palette for screen */
+       = {0,0,0,    255,0,0,    0,255,0,    255,255,0,   /* Black, Red, Green, Yellow */
+          0,0,255,  255,0,255,  0,255,255,  255,255,255, /* Blue, Magenta, Cyan, White */
+          80,80,80, 160,0,0,    0,160,0,    160,160,0,   /* Dimmer versions of the above */
+          0,0,160,  160,0,160,  0,160,160,  160,160,160 };
+
 
 static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. Defaults to Scroll Protect On.*/
 
@@ -995,14 +1000,6 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 ** systems
 */
 static void init_palette(void) {
-  hardpalette[0] = hardpalette[1] = hardpalette[2] = 0;		    /* Black */
-  hardpalette[3] = 255; hardpalette[4] = hardpalette[5] = 0;	    /* Red */
-  hardpalette[6] = 0; hardpalette[7] = 255; hardpalette[8] = 0;	/* Green */
-  hardpalette[9] = hardpalette[10] = 255; hardpalette[11] = 0;	/* Yellow */
-  hardpalette[12] = hardpalette[13] = 0; hardpalette[14] = 255;	/* Blue */
-  hardpalette[15] = 255; hardpalette[16] = 0; hardpalette[17] = 255;	/* Magenta */
-  hardpalette[18] = 0; hardpalette[19] = hardpalette[20] = 255;	/* Cyan */
-  hardpalette[21] = hardpalette[22] = hardpalette[23] = 255;	    /* White */
   switch (colourdepth) {
 #ifndef BRANDY_MODE7ONLY
   case 2:	/* Two colour - Black and white only */
@@ -1016,33 +1013,11 @@ static void init_palette(void) {
     palette[9] =      palette[10] =      palette[11] = 255;	/* White */
     break;
   case 8:	/* Eight colour */
-    palette[0]  =      palette[1]  =      palette[2]  = 0;	/* Black */
-    palette[3]  = 255; palette[4]  =      palette[5]  = 0;	/* Red */
-    palette[6]  = 0;   palette[7]  = 255; palette[8]  = 0;	/* Green */
-    palette[9]  =      palette[10] = 255; palette[11] = 0;	/* Yellow */
-    palette[12] =      palette[13] = 0;   palette[14] = 255;	/* Blue */
-    palette[15] = 255; palette[16] = 0;   palette[17] = 255;	/* Magenta */
-    palette[18] = 0;   palette[19] =      palette[20] = 255;	/* Cyan */
-    palette[21] =      palette[22] =      palette[23] = 255;	/* White */
+    memcpy(palette, hardpalette, 24);
     break;
 #endif
   case 16:	/* Sixteen colour */
-    palette[0]  =      palette[1]  =      palette[2]  = 0;	/* Black */
-    palette[3]  = 255; palette[4]  =      palette[5]  = 0;	/* Red */
-    palette[6]  = 0;   palette[7]  = 255; palette[8]  = 0;	/* Green */
-    palette[9]  =      palette[10] = 255; palette[11] = 0;	/* Yellow */
-    palette[12] =      palette[13] = 0;   palette[14] = 255;	/* Blue */
-    palette[15] = 255; palette[16] = 0;   palette[17] = 255;	/* Magenta */
-    palette[18] = 0;   palette[19] =      palette[20] = 255;	/* Cyan */
-    palette[21] =      palette[22] =      palette[23] = 255;	/* White */
-    palette[24] =      palette[25] =      palette[26] = 80;	/* Dark grey */
-    palette[27] = 160; palette[28] =      palette[29] = 0;	/* Dark red */
-    palette[30] = 0;   palette[31] = 160; palette[32] = 0;	/* Dark green */
-    palette[33] =      palette[34] = 160; palette[35] = 0;	/* Khaki */
-    palette[36] =      palette[37] = 0;   palette[38] = 160;	/* Navy blue */
-    palette[39] = 160; palette[40] = 0;   palette[41] = 160;	/* Purple */
-    palette[42] = 0;   palette[43] =      palette[44] = 160;	/* Dark cyan */
-    palette[45] =      palette[46] =      palette[47] = 160;	/* Grey */
+    memcpy(palette, hardpalette, 48);
     break;
 #ifndef BRANDY_MODE7ONLY
   case 256:
