@@ -12,7 +12,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - BASIC: RUN recursion limit removed, it's now implemented with a
   setjmp/longjmp.
 - BASIC: EVAL stops at unexpected input without error (like Acorn BASIC),
-  unless Brict mode is set.
+  unless Strict mode is set.
 
 * 1.23.0 - 06 February 2024
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'
