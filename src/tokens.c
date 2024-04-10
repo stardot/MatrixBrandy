@@ -739,19 +739,19 @@ static void copy_variable(void) {
       lp++;
     }
   }
-  if (*lp == '%') {	/* Integer variable */
+  if (*lp == '%') {     /* Integer variable */
     store(*lp);
     lp++;
-    if (*lp == '%') {	/* %% for 64-bit int */
+    if (*lp == '%') {   /* %% for 64-bit int */
       store(*lp);
       lp++;
     }
   }
-  if (*lp == '&') {	/* Unsigned 8-bit int variable */
+  if (*lp == '&') {     /* Unsigned 8-bit int variable */
     store(*lp);
     lp++;
   }
-  if (*lp == '$') {	/* String variable */
+  if (*lp == '$') {     /* String variable */
     store(*lp);
     lp++;
   }
@@ -1450,38 +1450,38 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
 ** probably been corrupted
 */
 static int skiptable [] = {
-  0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,	/* 00..07 */
-  LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE,	/* 08..0F */
-  LOFFSIZE, 0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE,			/* 10..17 */
-  OFFSIZE+SIZESIZE, OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, -1, LOFFSIZE, LOFFSIZE,	/* 18..1F */
-   0,  0, -1,  0,  0,  0,  0,  0,					/* 20..27 */
-   0,  0,  0,  0,  0,  0,  0,  0,					/* 28..2F */
-  -1, -1, -1, -1, -1, -1, -1, -1,					/* 30..37 */
-  -1, -1,  0,  0,  0,  0,  0,  0,					/* 38..3F */
-   0, -1, -1, -1, -1, -1, -1, -1,					/* 40..47 */
-  -1, -1, -1, -1, -1, -1, -1, -1,					/* 48..4F */
-  -1, -1, -1, -1, -1, -1, -1, -1,					/* 50..57 */
-  -1, -1, -1,  0,  0,  0,  0,  0,					/* 58..5F */
-   0, -1, -1, -1, -1, -1, -1, -1,					/* 60..67 */
-  -1, -1, -1, -1, -1, -1, -1, -1,					/* 68..6F */
-  -1, -1, -1, -1, -1, -1, -1, -1,					/* 70..77 */
-  -1, -1, -1,  0,  0,  0,  0, -1,					/* 78..7F */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* 80..87 */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* 88..8F */
-  LOFFSIZE, LOFFSIZE, 0, 0, 0, 0, 0, 0,					/* 90..97 */ /* CASE */
-  0, OFFSIZE, 0, 0, 0, 0, 0, OFFSIZE,					/* 98..9F */ /* DATA, ELSE */
-  OFFSIZE, OFFSIZE, OFFSIZE, 0, 0, 0, 0, 0,				/* A0..A7 */ /* ELSE */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* A8..AF */
-  0, 0, 2*OFFSIZE, 2*OFFSIZE, 2*OFFSIZE, 0, 0, 0,			/* B0..B7 */ /* IF */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* B8..BF */
-  0, 0, 0, 0, 0, OFFSIZE, OFFSIZE, 0,					/* C0..C7 */ /* OTHERWISE */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* C8..CF */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* D0..D7 */
-  OFFSIZE, 0, 0, 0, 0, 0, 0, 0,						/* D8..DF */ /* *command */
-  0, 0, 0, 0, 0, 0, 0, 0,						/* E0..E7 */
-  0, OFFSIZE, OFFSIZE, OFFSIZE, OFFSIZE, 0, -1, -1,			/* E8..EF */ /* WHEN, WHILE */
-  -1, -1, -1, -1, -1, -1, -1, -1,					/* F0..F7 */
-  -1, -1, -1, -1, 1, 1, 1, 1						/* F8..FF */
+  0, LOFFSIZE, 1, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE,     /* 00..07 */
+  LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, LOFFSIZE, 1, LOFFSIZE,      /* 08..0F */
+  LOFFSIZE, 0, 0, SMALLSIZE, INTSIZE, 0, 0, FLOATSIZE,                  /* 10..17 */
+  OFFSIZE+SIZESIZE, OFFSIZE+SIZESIZE, INT64SIZE, -1, -1, -1, LOFFSIZE, LOFFSIZE,        /* 18..1F */
+   0,  0, -1,  0,  0,  0,  0,  0,                                       /* 20..27 */
+   0,  0,  0,  0,  0,  0,  0,  0,                                       /* 28..2F */
+  -1, -1, -1, -1, -1, -1, -1, -1,                                       /* 30..37 */
+  -1, -1,  0,  0,  0,  0,  0,  0,                                       /* 38..3F */
+   0, -1, -1, -1, -1, -1, -1, -1,                                       /* 40..47 */
+  -1, -1, -1, -1, -1, -1, -1, -1,                                       /* 48..4F */
+  -1, -1, -1, -1, -1, -1, -1, -1,                                       /* 50..57 */
+  -1, -1, -1,  0,  0,  0,  0,  0,                                       /* 58..5F */
+   0, -1, -1, -1, -1, -1, -1, -1,                                       /* 60..67 */
+  -1, -1, -1, -1, -1, -1, -1, -1,                                       /* 68..6F */
+  -1, -1, -1, -1, -1, -1, -1, -1,                                       /* 70..77 */
+  -1, -1, -1,  0,  0,  0,  0, -1,                                       /* 78..7F */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* 80..87 */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* 88..8F */
+  LOFFSIZE, LOFFSIZE, 0, 0, 0, 0, 0, 0,                                 /* 90..97 */ /* CASE */
+  0, OFFSIZE, 0, 0, 0, 0, 0, OFFSIZE,                                   /* 98..9F */ /* DATA, ELSE */
+  OFFSIZE, OFFSIZE, OFFSIZE, 0, 0, 0, 0, 0,                             /* A0..A7 */ /* ELSE */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* A8..AF */
+  0, 0, 2*OFFSIZE, 2*OFFSIZE, 2*OFFSIZE, 0, 0, 0,                       /* B0..B7 */ /* IF */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* B8..BF */
+  0, 0, 0, 0, 0, OFFSIZE, OFFSIZE, 0,                                   /* C0..C7 */ /* OTHERWISE */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* C8..CF */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* D0..D7 */
+  OFFSIZE, 0, 0, 0, 0, 0, 0, 0,                                         /* D8..DF */ /* *command */
+  0, 0, 0, 0, 0, 0, 0, 0,                                               /* E0..E7 */
+  0, OFFSIZE, OFFSIZE, OFFSIZE, OFFSIZE, 0, -1, -1,                     /* E8..EF */ /* WHEN, WHILE */
+  -1, -1, -1, -1, -1, -1, -1, -1,                                       /* F0..F7 */
+  -1, -1, -1, -1, 1, 1, 1, 1                                            /* F8..FF */
 };
 
 /*
@@ -2043,41 +2043,41 @@ void reset_linenums(byte *bp) {
 
 /* Legal range of values for each Acorn token type */
 
-#define ACORNONE_LOWEST		0x7Fu
-#define ACORNONE_HIGHEST	0xFFu
-#define RUSSELL_LOWEST		0x01u
-#define RUSSELL_HIGHEST		0x10u
+#define ACORNONE_LOWEST         0x7Fu
+#define ACORNONE_HIGHEST        0xFFu
+#define RUSSELL_LOWEST          0x01u
+#define RUSSELL_HIGHEST         0x10u
 
-#define ACORN_OTHER		0xC6u   /* Two byte tokens preceded by C6 (functions) */
-#define ACORN_COMMAND		0xC7u   /* Two byte tokens preceded by C7 (immediate commands) */
-#define ACORN_TWOBYTE		0xC8u   /* Two byte tokens preceded by C8 (commands) */
+#define ACORN_OTHER             0xC6u   /* Two byte tokens preceded by C6 (functions) */
+#define ACORN_COMMAND           0xC7u   /* Two byte tokens preceded by C7 (immediate commands) */
+#define ACORN_TWOBYTE           0xC8u   /* Two byte tokens preceded by C8 (commands) */
 
-#define ACORNTWO_LOWEST		0x8Eu
-#define ACORNTWO_HIGHEST	0xA6u
-#define ACORNCMD_LOWEST		0x8Eu
-#define ACORNCMD_HIGHEST	0x9Fu
-#define ACORNOTH_LOWEST		0x8Eu
-#define ACORNOTH_HIGHEST	0x96u
+#define ACORNTWO_LOWEST         0x8Eu
+#define ACORNTWO_HIGHEST        0xA6u
+#define ACORNCMD_LOWEST         0x8Eu
+#define ACORNCMD_HIGHEST        0x9Fu
+#define ACORNOTH_LOWEST         0x8Eu
+#define ACORNOTH_HIGHEST        0x96u
 
-#define ACORN_ENDLINE		0x0Du   /* Marks the end of a tokenised line */
-#define ACORN_LINENUM		0x8Du   /* Token that preceeds a line number */
+#define ACORN_ENDLINE           0x0Du   /* Marks the end of a tokenised line */
+#define ACORN_LINENUM           0x8Du   /* Token that preceeds a line number */
 
-#define ACORN_TIME1		0x91u
-#define ACORN_FN		0xA4u
-#define ACORN_TO		0xB8u
-#define ACORN_TIME2		0xD1u
-#define ACORN_DATA		0xDCu
-#define ACORN_PROC		0xF2u
-#define ACORN_REM		0xF4u
-#define ACORN_TAB		0x8Au
-#define ACORN_INSTR		0xA7u
-#define ACORN_POINT		0xB0u
-#define ACORN_LEFT_DOL		0xC0u
-#define ACORN_MID_DOL		0xC1u
-#define ACORN_RIGHT_DOL		0xC2u
-#define ACORN_STRING_DOL	0xC4u
+#define ACORN_TIME1             0x91u
+#define ACORN_FN                0xA4u
+#define ACORN_TO                0xB8u
+#define ACORN_TIME2             0xD1u
+#define ACORN_DATA              0xDCu
+#define ACORN_PROC              0xF2u
+#define ACORN_REM               0xF4u
+#define ACORN_TAB               0x8Au
+#define ACORN_INSTR             0xA7u
+#define ACORN_POINT             0xB0u
+#define ACORN_LEFT_DOL          0xC0u
+#define ACORN_MID_DOL           0xC1u
+#define ACORN_RIGHT_DOL         0xC2u
+#define ACORN_STRING_DOL        0xC4u
 
-#define ACORNLEN		1024    /* Size of buffer to hold plain text version of line */
+#define ACORNLEN                1024    /* Size of buffer to hold plain text version of line */
 
 #define ACORN_START  3          /* Bytes occupied by line number and length byte at start of line */
 #define ACORN_LINESIZE 4        /* Size of line number token plus encoded line number */
@@ -2098,84 +2098,85 @@ static int32 expand_linenum(byte *p) {
 }
 
 static char *lowbyte_token [] = {
-  "CIRCLE", "ELLIPSE", "FILL", "MOUSE",         /* 0x01..0x04 */
-  "ORIGIN", "QUIT", "RECTANGLE", "SWAP",        /* 0x05..0x08 */
-  "SYS", "TINT", "WAIT", "INSTALL",             /* 0x09..0x0C */
-  NIL, "PRIVATE", "BY", "EXIT"                  /* 0x0D..0x10 */
+  "CIRCLE",    "ELLIPSE", "FILL",      "MOUSE",   /* 0x01..0x04 */
+  "ORIGIN",    "QUIT",    "RECTANGLE", "SWAP",    /* 0x05..0x08 */
+  "SYS",       "TINT",    "WAIT",      "INSTALL", /* 0x09..0x0C */
+   NIL,        "PRIVATE", "BY",        "EXIT"     /* 0x0D..0x10 */
 };
 
 static char *winbyte_token [] = {
-  "SUM", "WHILE", "CASE", "WHEN", "OF",         /* 0xC6..0xCA */
-  "ENDCASE", "OTHERWISE", "ENDIF", "ENDWHILE"   /* 0xCB..0xCE */
+  "SUM",     "WHILE",     "CASE",  "WHEN", "OF",  /* 0xC6..0xCA */
+  "ENDCASE", "OTHERWISE", "ENDIF", "ENDWHILE"     /* 0xCB..0xCE */
 };
 
 static char *bbcbyte_token [] = {
-  "AUTO", "DELETE", "LOAD", "LIST", "NEW",      /* 0xC6..0xCA */
-  "OLD", "RENUMBER", "SAVE", "EDIT"             /* 0xCB..0xCE */
+  "AUTO", "DELETE",   "LOAD", "LIST", "NEW",      /* 0xC6..0xCA */
+  "OLD",  "RENUMBER", "SAVE", "EDIT"              /* 0xCB..0xCE */
 };
 
 static char *onebyte_token [] = {
-  "OTHERWISE", "AND", "DIV", "EOR", "MOD",      /* 0x7F..0x83 */
-  "OR", "ERROR", "LINE", "OFF",                 /* 0x84..0x87 */
-  "STEP", "SPC", "TAB(", "ELSE",                /* 0x88..0x8B */
-  "THEN", NIL, "OPENIN", "PTR",
-  "PAGE", "TIME", "LOMEM", "HIMEM",             /* 0x90..0x93 */
-  "ABS", "ACS", "ADVAL", "ASC",
-  "ASN", "ATN", "BGET", "COS",                  /* 0x98..0x9B */
-  "COUNT", "DEG", "ERL", "ERR",
-  "EVAL", "EXP", "EXT", "FALSE",                /* 0xA0..0xA3 */
-  "FN", "GET", "INKEY", "INSTR(",
-  "INT", "LEN", "LN", "LOG",                    /* 0xA8..0xAB */
-  "NOT", "OPENUP", "OPENOUT", "PI",
-  "POINT(", "POS", "RAD", "RND",                /* 0xB0..0xB3 */
-  "SGN", "SIN", "SQR", "TAN",
-  "TO", "TRUE", "USR", "VAL",                   /* 0xB8..0xBB */
-  "VPOS", "CHR$", "GET$", "INKEY$",
-  "LEFT$(", "MID$(", "RIGHT$(", "STR$",         /* 0xC0..0xC3 */
-  "STRING$(", "EOF", NIL, NIL,
-  NIL, "WHEN", "OF", "ENDCASE",                 /* 0xC8..0xCB */
-  "ELSE", "ENDIF", "ENDWHILE", "PTR",
-  "PAGE", "TIME", "LOMEM", "HIMEM",             /* 0xD0..0xD3 */
-  "SOUND", "BPUT", "CALL", "CHAIN",
-  "CLEAR", "CLOSE", "CLG", "CLS",               /* 0xD8..0xDB */
-  "DATA", "DEF", "DIM", "DRAW",
-  "END", "ENDPROC", "ENVELOPE", "FOR",          /* 0xE0..0xE3 */
-  "GOSUB", "GOTO", "GCOL", "IF",
-  "INPUT", "LET", "LOCAL", "MODE",              /* 0xE8..0xEB */
-  "MOVE", "NEXT", "ON", "VDU",
-  "PLOT", "PRINT", "PROC", "READ",              /* 0xF0..0xF3 */
-  "REM", "REPEAT", "REPORT", "RESTORE",
-  "RETURN", "RUN", "STOP", "COLOUR",            /* 0xF8..0xFB */
-  "TRACE", "UNTIL", "WIDTH", "OSCLI"            /* 0xFC..0xFF */
+  "OTHERWISE",                                    /* 0x7F */
+  "AND",       "DIV",     "EOR",      "MOD",      /* 0x80..0x83 */
+  "OR",        "ERROR",   "LINE",     "OFF",      /* 0x84..0x87 */
+  "STEP",      "SPC",     "TAB(",     "ELSE",     /* 0x88..0x8B */
+  "THEN",       NIL,      "OPENIN",   "PTR",      /* 0x8C..0x8F */
+  "PAGE",      "TIME",    "LOMEM",    "HIMEM",    /* 0x90..0x93 */
+  "ABS",       "ACS",     "ADVAL",    "ASC",      /* 0x94..0x97 */
+  "ASN",       "ATN",     "BGET",     "COS",      /* 0x98..0x9B */
+  "COUNT",     "DEG",     "ERL",      "ERR",      /* 0x9C..0x9F */
+  "EVAL",      "EXP",     "EXT",      "FALSE",    /* 0xA0..0xA3 */
+  "FN",        "GET",     "INKEY",    "INSTR(",   /* 0xA4..0xA7 */
+  "INT",       "LEN",     "LN",       "LOG",      /* 0xA8..0xAB */
+  "NOT",       "OPENUP",  "OPENOUT",  "PI",       /* 0xAC..0xAF */
+  "POINT(",    "POS",     "RAD",      "RND",      /* 0xB0..0xB3 */
+  "SGN",       "SIN",     "SQR",      "TAN",      /* 0xB4..0xB7 */
+  "TO",        "TRUE",    "USR",      "VAL",      /* 0xB8..0xBB */
+  "VPOS",      "CHR$",    "GET$",     "INKEY$",   /* 0xBC..0xBF */
+  "LEFT$(",    "MID$(",   "RIGHT$(",  "STR$",     /* 0xC0..0xC3 */
+  "STRING$(",  "EOF",      NIL,        NIL,       /* 0xC4..0xC7 */
+  NIL,         "WHEN",    "OF",       "ENDCASE",  /* 0xC8..0xCB */
+  "ELSE",      "ENDIF",   "ENDWHILE", "PTR",      /* 0xCC..0xCF */
+  "PAGE",      "TIME",    "LOMEM",    "HIMEM",    /* 0xD0..0xD3 */
+  "SOUND",     "BPUT",    "CALL",     "CHAIN",    /* 0xD4..0xD7 */
+  "CLEAR",     "CLOSE",   "CLG",      "CLS",      /* 0xD8..0xDB */
+  "DATA",      "DEF",     "DIM",      "DRAW",     /* 0xDC..0xDF */
+  "END",       "ENDPROC", "ENVELOPE", "FOR",      /* 0xE0..0xE3 */
+  "GOSUB",     "GOTO",    "GCOL",     "IF",       /* 0xE4..0xE7 */
+  "INPUT",     "LET",     "LOCAL",    "MODE",     /* 0xE8..0xEB */
+  "MOVE",      "NEXT",    "ON",       "VDU",      /* 0xEC..0xEF */
+  "PLOT",      "PRINT",   "PROC",     "READ",     /* 0xF0..0xF3 */
+  "REM",       "REPEAT",  "REPORT",   "RESTORE",  /* 0xF4..0xF7 */
+  "RETURN",    "RUN",     "STOP",     "COLOUR",   /* 0xF8..0xFB */
+  "TRACE",     "UNTIL",   "WIDTH",    "OSCLI"     /* 0xFC..0xFF */
 };
 
 /* Basic statement types - Two byte tokens preceded by 0xC8 */
 
 static char *twobyte_token [] = {
-  "CASE", "CIRCLE", "FILL", "ORIGIN",           /* 0x8E..0x91 */
-  "POINT", "RECTANGLE", "SWAP", "WHILE",
-  "WAIT", "MOUSE", "QUIT", "SYS",               /* 0x96..0x99 */
-  "INSTALL", "LIBRARY", "TINT", "ELLIPSE",
-  "BEATS", "TEMPO", "VOICES", "VOICE",          /* 0x9E..0xA1 */
-  "STEREO", "OVERLAY", "MANDEL", "PRIVATE",     /* 0xA2..0xA6 */
-  "EXIT"
+  "CASE",      "CIRCLE",    "FILL",   "ORIGIN",   /* 0x8E..0x91 */
+  "POINT",     "RECTANGLE", "SWAP",   "WHILE",    /* 0x92..0x95 */
+  "WAIT",      "MOUSE",     "QUIT",   "SYS",      /* 0x96..0x99 */
+  "INSTALL",   "LIBRARY",   "TINT",   "ELLIPSE",  /* 0x9A..0x9D */
+  "BEATS",     "TEMPO",     "VOICES", "VOICE",    /* 0x9E..0xA1 */
+  "STEREO",    "OVERLAY",   "MANDEL", "PRIVATE",  /* 0xA2..0xA6 */
+  "EXIT"                                          /* A7 */
 };
 
 /* Basic commands - Two byte tokens preceded by 0xC7 */
 
 static char *command_token [] = {
-  "APPEND", "AUTO", "CRUNCH", "DELETE",         /* 0x8E..0x91 */
-  "EDIT", "HELP", "LIST", "LOAD",
-  "LVAR", "NEW", "OLD", "RENUMBER",             /* 0x96..0x99 */
-  "SAVE", "TEXTLOAD", "TEXTSAVE", "TWIN",
-  "TWINO", "INSTALL"                            /* 0x9E..0x9F */
+  "APPEND", "AUTO",     "CRUNCH",   "DELETE",     /* 0x8E..0x91 */
+  "EDIT",   "HELP",     "LIST",     "LOAD",       /* 0x92..0x95 */
+  "LVAR",   "NEW",      "OLD",      "RENUMBER",   /* 0x96..0x99 */
+  "SAVE",   "TEXTLOAD", "TEXTSAVE", "TWIN",       /* 0x9A..0x9D */
+  "TWINO",  "INSTALL"                             /* 0x9E..0x9F */
 };
 
 /* Basic functions - Two byte tokens preceded by 0xC6 */
 
 static char *other_token [] = {
-  "SUM", "BEAT", "ANSWER", "SFOPENIN",          /* 0x8E..0x91 */
-  "SFOPENOUT", "SFOPENUP", "SFNAME$", "MENU"    /* 0x92..0x96 */
+  "SUM",       "BEAT",     "ANSWER",  "SFOPENIN", /* 0x8E..0x91 */
+  "SFOPENOUT", "SFOPENUP", "SFNAME$", "MENU"      /* 0x92..0x96 */
 };
 
 /*
@@ -2183,9 +2184,9 @@ static char *other_token [] = {
  * space if expanding crunched code
  */
 static byte nospace [] = {
-  ACORN_FN, ACORN_PROC, ACORN_TO, ACORN_TIME1, ACORN_TIME2,
-  ACORN_TAB, ACORN_INSTR, ACORN_POINT, ACORN_LEFT_DOL, ACORN_MID_DOL,
-  ACORN_RIGHT_DOL, ACORN_STRING_DOL, 0
+  ACORN_FN,       ACORN_PROC,    ACORN_TO,        ACORN_TIME1,
+  ACORN_TIME2,    ACORN_TAB,     ACORN_INSTR,     ACORN_POINT,
+  ACORN_LEFT_DOL, ACORN_MID_DOL, ACORN_RIGHT_DOL, ACORN_STRING_DOL, 0
 };
 
 
@@ -2211,17 +2212,17 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   char line[ACORNLEN];
 
   cp = &line[0];
-  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));	  /* Start with two byte line number */
+  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));          /* Start with two byte line number */
   cp+=count;
-  tp+=ACORN_START;     					  /* Skip line number and length byte */
+  tp+=ACORN_START;                                        /* Skip line number and length byte */
   token = *tp;
   while (token != ACORN_ENDLINE) {
     if (token>RUSSELL_HIGHEST && token<ACORNONE_LOWEST) { /* Normal characters */
       *cp = token;
       cp++;
       tp++;
-      if (token == '\"') {      			  /* Got a character string */
-        do {    					  /* Copy string as far as next '"' or end of line */
+      if (token == '\"') {                                /* Got a character string */
+        do {                                              /* Copy string as far as next '"' or end of line */
           *cp = token = *tp;
           cp++;
           tp++;
@@ -2274,11 +2275,11 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               if (token2>ACORNCMD_HIGHEST) {
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C7      */
               } else {
-		if(token-ACORNCMD_LOWEST >= 18) {
-		  error(WARN_BADTOKEN);
-		} else {
-		  p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
-		}
+                if(token-ACORNCMD_LOWEST >= 18) {
+                  error(WARN_BADTOKEN);
+                } else {
+                  p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
+                }
                 tp++;
                 break;
               }
@@ -2286,11 +2287,11 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               if (token2>ACORNOTH_HIGHEST) {
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C6      */
               } else {
-		if (token-ACORNOTH_LOWEST >= 8) {
-		  error(WARN_BADTOKEN);
-		} else {
-		  p = other_token[token-ACORNOTH_LOWEST];
-		}
+                if (token-ACORNOTH_LOWEST >= 8) {
+                  error(WARN_BADTOKEN);
+                } else {
+                  p = other_token[token-ACORNOTH_LOWEST];
+                }
                 tp++;
                 break;
               }
