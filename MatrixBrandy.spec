@@ -49,7 +49,7 @@ cp -r examples/* %{buildroot}%{_datadir}/%{name}-%{version}/examples
 rm -rf %{buildroot}
 
 %files
-%doc COPYING READ.ME docs/ChangeLog docs/README docs/*.txt
+%doc READ.ME docs/ChangeLog docs/README docs/*.txt
 %{_bindir}/brandy
 %{_bindir}/sbrandy
 %{_bindir}/tbrandy
