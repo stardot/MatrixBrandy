@@ -2047,6 +2047,8 @@ void reset_linenums(byte *bp) {
 #define ACORNONE_HIGHEST        0xFFu
 #define RUSSELL_LOWEST          0x01u
 #define RUSSELL_HIGHEST         0x10u
+#define RUSSELL_OVERLAY_LOWEST  0xC6u
+#define RUSSELL_OVERLAY_HIGHEST 0xCEu
 
 #define ACORN_OTHER             0xC6u   /* Two byte tokens preceded by C6 (functions) */
 #define ACORN_COMMAND           0xC7u   /* Two byte tokens preceded by C7 (immediate commands) */
@@ -2253,10 +2255,10 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
         }
       } else if (token >= RUSSELL_LOWEST && token <= RUSSELL_HIGHEST) {    /* 01-10 */
         p = lowbyte_token[token-RUSSELL_LOWEST];
+      } else if (ftype == 2 && token >= RUSSELL_OVERLAY_LOWEST && token <= RUSSELL_OVERLAY_HIGHEST) {
+        p = winbyte_token[token-ACORN_OTHER];
       } else if (token < ACORN_OTHER || token > ACORN_TWOBYTE) {         /* 7F-C5, C9-FF */ 
         p = onebyte_token[token-ACORNONE_LOWEST];
-      } else if (ftype == 2) {
-        p = winbyte_token[token-ACORN_OTHER];
       } else {
         token2 = *(tp+1);
         if (token2 < ACORNTWO_LOWEST) {
