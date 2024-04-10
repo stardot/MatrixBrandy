@@ -15,6 +15,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
   setjmp/longjmp.
 - BASIC: EVAL stops at unexpected input without error (like Acorn BASIC),
   unless Strict mode is set.
+- BASIC: Implement BBCSDL's PLOT x,y syntax (assumes plot code 69).
 
 * 1.23.0 - 06 February 2024
 - System: Add '-tek' (or -t) option to enable Tek graphics for 'tbrandy'

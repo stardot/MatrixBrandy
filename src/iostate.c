@@ -1296,9 +1296,15 @@ void exec_plot(void) {
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate for 'plot' command */
-  if (*basicvars.current != ',') error(ERR_COMISS);
-  basicvars.current++;
-  y = eval_integer();           /* Get y coordinate for 'plot' command */
+  if (*basicvars.current != ',') {
+    /* Only two parameters, so assume code is 69 and shuffle parameters, as per BBCSDL */
+    y = x;
+    x = code;
+    code = 69;
+  } else {
+    basicvars.current++;
+    y = eval_integer();           /* Get y coordinate for 'plot' command */
+  }
   check_ateol();
   emulate_plot(code, x, y);
 }
