@@ -608,7 +608,7 @@ static char *find_libname(byte *p) {
 }
 
 static char *procfn(char *name) {
-  return *CAST(name, byte *)==BASIC_TOKEN_PROC ? "PROC" : "FN";
+  return *CAST(name, byte *)==BASTOKEN_PROC ? "PROC" : "FN";
 }
 
 /*

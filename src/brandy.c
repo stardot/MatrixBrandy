@@ -215,9 +215,9 @@ static void add_arg(char *p) {
 static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
-  init_clock(); /* Init to something sensible */
+  init_clock();                               /* Init to something sensible */
   basicvars.monotonictimebase = basicvars.centiseconds;
-  basicvars.list_flags.space = FALSE;   /* Set initial listing options */
+  basicvars.list_flags.space = FALSE;         /* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
   basicvars.list_flags.split = FALSE;
   basicvars.list_flags.noline = FALSE;
@@ -225,7 +225,7 @@ static void init1(void) {
   basicvars.list_flags.expand = FALSE;
 
 #ifdef DEBUG
-  basicvars.debug_flags.debug = FALSE;  /* Set interpreter debug options */
+  basicvars.debug_flags.debug = FALSE;        /* Set interpreter debug options */
   basicvars.debug_flags.tokens = FALSE;
   basicvars.debug_flags.variables = FALSE;
   basicvars.debug_flags.strings = FALSE;
@@ -236,12 +236,12 @@ static void init1(void) {
 #endif
   basicvars.errorislocal = 0;
 
-  basicvars.runflags.inredir = FALSE;           /* Input is being taken from the keyboard */
-  basicvars.runflags.outredir = FALSE;          /* Output is going to the screen */
-  basicvars.runflags.loadngo = FALSE;           /* Do not start running program immediately */
-  basicvars.runflags.quitatend = FALSE;         /* Do not exit from interpreter when program finishes */
-  basicvars.runflags.ignore_starcmd = FALSE;    /* Do not ignore built-in '*' commands */
-  basicvars.escape_enabled = TRUE;              /* Allow the Escape key to stop execution */
+  basicvars.runflags.inredir = FALSE;         /* Input is being taken from the keyboard */
+  basicvars.runflags.outredir = FALSE;        /* Output is going to the screen */
+  basicvars.runflags.loadngo = FALSE;         /* Do not start running program immediately */
+  basicvars.runflags.quitatend = FALSE;       /* Do not exit from interpreter when program finishes */
+  basicvars.runflags.ignore_starcmd = FALSE;  /* Do not ignore built-in '*' commands */
+  basicvars.escape_enabled = TRUE;            /* Allow the Escape key to stop execution */
 #ifdef DEFAULT_IGNORE
   basicvars.runflags.flag_cosmetic = FALSE;     /* Ignore all unsupported features */
 #else
@@ -253,35 +253,35 @@ static void init1(void) {
   basicvars.loadpath = NIL;
   basicvars.argcount = 0;
   basicvars.recdepth = 0;
-  basicvars.arglist = NIL;              /* List of command line arguments */
+  basicvars.arglist = NIL;            /* List of command line arguments */
   basicvars.maxrecdepth = MAXRECDEPTH;
-  arglast = NIL;                        /* End of list of command line arguments */
+  arglast = NIL;                      /* End of list of command line arguments */
 
-  liblist = liblast = NIL;              /* List of libraries to load when interpreter starts */
-  worksize = 0;                         /* Use default workspace size */
+  liblist = liblast = NIL;            /* List of libraries to load when interpreter starts */
+  worksize = 0;                       /* Use default workspace size */
 
-  matrixflags.doexec = NULL;        /* We're not doing a *EXEC to begin with */
-  matrixflags.failovermode = 255;   /* Report Bad Mode on unavailable screen mode */
-  matrixflags.int_uses_float = 0;   /* Does INT() use floats? Default no = RISC OS and BBC behaviour */
-  matrixflags.legacyintmaths = 0;   /* Enable legacy integer maths? Default no = BASIC VI behaviour */
-  matrixflags.cascadeiftweak = 1;   /* Handle cascaded IFs BBCSDL-style? Default no = ARM BBC BASIC behaviour */
-  matrixflags.hex64 = 0;            /* Decode hex as 64-bit? Default no = BASIC VI behaviour */
-  matrixflags.bitshift64 = 0;       /* Bit shifts operate in 64-bit space? Default no = BASIC VI behaviour */
+  matrixflags.doexec = NULL;          /* We're not doing a *EXEC to begin with */
+  matrixflags.failovermode = 255;     /* Report Bad Mode on unavailable screen mode */
+  matrixflags.int_uses_float = 0;     /* Does INT() use floats? Default no = RISC OS and BBC behaviour */
+  matrixflags.legacyintmaths = 0;     /* Enable legacy integer maths? Default no = BASIC VI behaviour */
+  matrixflags.cascadeiftweak = 1;     /* Handle cascaded IFs BBCSDL-style? Default no = ARM BBC BASIC behaviour */
+  matrixflags.hex64 = 0;              /* Decode hex as 64-bit? Default no = BASIC VI behaviour */
+  matrixflags.bitshift64 = 0;         /* Bit shifts operate in 64-bit space? Default no = BASIC VI behaviour */
   matrixflags.pseudovarsunsigned = 0; /* Are memory pseudovariables unsigned on 32-bit? */
-  matrixflags.tekenabled = 0;       /* Tektronix enabled in text mode (default: no) */
+  matrixflags.tekenabled = 0;         /* Tektronix enabled in text mode (default: no) */
   matrixflags.tekspeed = 0;
-  matrixflags.osbyte4val = 0;       /* Default OSBYTE 4 value */
+  matrixflags.osbyte4val = 0;         /* Default OSBYTE 4 value */
 #if (defined(TARGET_UNIX) & !defined(USE_SDL)) | defined(TARGET_MACOSX)
-  matrixflags.delcandelete = 1;     /* DEL character can delete? */
+  matrixflags.delcandelete = 1;       /* DEL character can delete? */
 #else
-  matrixflags.delcandelete = 0;     /* DEL character can delete? */
+  matrixflags.delcandelete = 0;       /* DEL character can delete? */
 #endif
 #ifndef TARGET_RISCOS
-  matrixflags.dospool = NULL;       /* By default, not doing a *SPOOL */
+  matrixflags.dospool = NULL;         /* By default, not doing a *SPOOL */
 #endif
-  matrixflags.printer = NULL;       /* By default, printer is closed */
-  matrixflags.printer_ignore = 13;  /* By default, ignore carriage return characters */
-  matrixflags.translatefname = 2;   /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
+  matrixflags.printer = NULL;         /* By default, printer is closed */
+  matrixflags.printer_ignore = 13;    /* By default, ignore carriage return characters */
+  matrixflags.translatefname = 2;     /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
 
 /*
  * Add dummy first parameter for Basic program command line.
@@ -294,11 +294,11 @@ static void gpio_init() {
 #ifdef TARGET_UNIX
   int fd;
 
-  matrixflags.gpio = 0;                         /* Initialise the flag to 0 (not enabled) */
-  matrixflags.gpiomem = (byte *)-1;             /* Initialise, will internally return &FFFFFFFF */
+  matrixflags.gpio = 0;               /* Initialise the flag to 0 (not enabled) */
+  matrixflags.gpiomem = (byte *)-1;   /* Initialise, will internally return &FFFFFFFF */
 
   fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
-  if (fd == -1) return;                         /* Couldn't open /dev/gpiomem - exit quietly */
+  if (fd == -1) return;               /* Couldn't open /dev/gpiomem - exit quietly */
 
   matrixflags.gpiomem=(byte *)mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
   close(fd);
@@ -310,8 +310,8 @@ static void gpio_init() {
   matrixflags.gpio = 1;
   matrixflags.gpiomemint=(uint32 *)matrixflags.gpiomem;
 #else
-  matrixflags.gpio = 0;                         /* Initialise the flag to 0 (not enabled) */
-  matrixflags.gpiomem = (byte *)-1;             /* Initialise, will internally return &FFFFFFFF */
+  matrixflags.gpio = 0;               /* Initialise the flag to 0 (not enabled) */
+  matrixflags.gpiomem = (byte *)-1;   /* Initialise, will internally return &FFFFFFFF */
 #endif
   return;
 }
@@ -321,11 +321,11 @@ static void gpio_init() {
 */
 static void init2(void) {
   if (!mos_init() || !kbd_init() || !init_screen()) {
-    cmderror(CMD_INITFAIL);     /* Initialisation failed */
-    exit_interpreter(EXIT_FAILURE);     /* End run */
+    cmderror(CMD_INITFAIL);           /* Initialisation failed */
+    exit_interpreter(EXIT_FAILURE);   /* End run */
   }
   if (!init_heap() || !init_workspace(worksize)) {
-    cmderror(CMD_NOMEMORY);     /* Not enough memory to run interpreter */
+    cmderror(CMD_NOMEMORY);           /* Not enough memory to run interpreter */
     kbd_quit();
     exit(EXIT_FAILURE);
   }
@@ -336,7 +336,7 @@ static void init2(void) {
   init_fileio();
   clear_program();
   basicvars.current = NIL;
-  basicvars.misc_flags.validsaved = FALSE;              /* Want this to be 'FALSE' when the interpreter first starts */
+  basicvars.misc_flags.validsaved = FALSE;  /* Want this to be 'FALSE' when the interpreter first starts */
   init_interpreter();
 }
 
@@ -373,7 +373,7 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='f') {          /* -fullscreen */
         basicvars.runflags.startfullscreen=TRUE;
       }
-      else if (optchar=='n') {    /* -nofull */
+      else if (optchar=='n') {          /* -nofull */
         matrixflags.neverfullscreen=TRUE;
       }
       else if (optchar=='s' && tolower(*(p+2))=='w') {
@@ -396,7 +396,7 @@ static void check_cmdline(int argc, char *argv[]) {
           }
         }
       }
-      else if (optchar=='t')                          /* -tek - enable Tek graphics */
+      else if (optchar=='t')                            /* -tek - enable Tek graphics */
         matrixflags.tekenabled=1;
       else if (optchar=='i' && tolower(*(p+2))=='g')    /* -ignore  Ignore cosmetic errors */
         basicvars.runflags.flag_cosmetic = FALSE;
@@ -406,7 +406,7 @@ static void check_cmdline(int argc, char *argv[]) {
         n++;
         if (n==argc)
           cmderror(CMD_NOFILE, p);      /* Filename missing */
-        else {          /* Add name to list of libraries to load */
+        else {                          /* Add name to list of libraries to load */
           struct loadlib *p = malloc(sizeof(struct loadlib));
           if (p==NIL)
             cmderror(CMD_NOMEMORY);
@@ -424,39 +424,39 @@ static void check_cmdline(int argc, char *argv[]) {
       }
       else if (optchar == 'n' && tolower(*(p+2))=='o')  /* -nostar  Ignore '*' commands */
         basicvars.runflags.ignore_starcmd = TRUE;
-      else if (optchar=='p') {          /* -path */
+      else if (optchar=='p') {              /* -path */
         n++;
         if (n==argc)
-          cmderror(CMD_NOFILE, p);      /* Directory list missing */
-        else {          /* Set up the path list */
-          if (basicvars.loadpath!=NIL) free(basicvars.loadpath);        /* Discard existing list */
-          basicvars.loadpath = malloc(strlen(argv[n])+1);       /* +1 for the NUL */
-          if (basicvars.loadpath==NIL) {        /* No memory available */
+          cmderror(CMD_NOFILE, p);          /* Directory list missing */
+        else {                              /* Set up the path list */
+          if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
+          basicvars.loadpath = malloc(strlen(argv[n])+1);         /* +1 for the NUL */
+          if (basicvars.loadpath==NIL) {    /* No memory available */
             cmderror(CMD_NOMEMORY);
             exit(EXIT_FAILURE);
           }
           strcpy(basicvars.loadpath, argv[n]);
         }
       }
-      else if (optchar=='s') {          /* -size */
+      else if (optchar=='s') {              /* -size */
         n++;
         if (n==argc)
-          cmderror(CMD_NOSIZE, p);              /* Workspace size missing */
+          cmderror(CMD_NOSIZE, p);          /* Workspace size missing */
         else {
           char *sp;
-          worksize = CAST(strtol(argv[n], &sp, 10), size_t);    /* Fetch workspace size (n.b. no error checking) */
-          if (tolower(*sp)=='k') {      /* Size is in kilobytes */
+          worksize = CAST(strtol(argv[n], &sp, 10), size_t);  /* Fetch workspace size (n.b. no error checking) */
+          if (tolower(*sp)=='k') {          /* Size is in kilobytes */
             worksize = worksize*1024;
-          } else if (tolower(*sp)=='m') {       /* Size is in megabytes */
+          } else if (tolower(*sp)=='m') {   /* Size is in megabytes */
             worksize = worksize*1024*1024;
-          } else if (tolower(*sp)=='g') {       /* Size is in gigabytes */
+          } else if (tolower(*sp)=='g') {   /* Size is in gigabytes */
             worksize = worksize*1024*1024*1024;
           }
         }
       }
-      else if (optchar=='!')            /* -! - Don't initialise signal handlers */
+      else if (optchar=='!')                /* -! - Don't initialise signal handlers */
         basicvars.misc_flags.trapexcp = FALSE;
-      else if (optchar=='-' && *(p+2) == 0)             /* -- - Pass all remaining options to the Basic program */
+      else if (optchar=='-' && *(p+2) == 0) /* -- - Pass all remaining options to the Basic program */
         had_double_dash = TRUE;
       else {
 /* Any unrecognised options are assumed to be for the Basic program */
@@ -465,12 +465,12 @@ static void check_cmdline(int argc, char *argv[]) {
 #endif /* BRANDYAPP */
     }
 #ifndef BRANDYAPP
-    else {      /* Name of file to run supplied */
+    else {                              /* Name of file to run supplied */
       if (loadfile==NIL) {
-        loadfile = p;   /* Make note of name of file to load */
+        loadfile = p;                   /* Make note of name of file to load */
         basicvars.runflags.quitatend = basicvars.runflags.loadngo = TRUE;
       }
-      else {    /* Assume anything else is for the Basic program */
+      else {                            /* Assume anything else is for the Basic program */
         add_arg(argv[n]);
       }
     }

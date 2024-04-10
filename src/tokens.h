@@ -46,10 +46,10 @@
 */
 
 #define LOW_HIGHEST             0x1Fu                   /* Highest token value in 0..0x1F block */
-#define BASIC_TOKEN_LOWEST      BASIC_TOKEN_AND         /* Lowest single byte token value */
-#define BASIC_TOKEN_HIGHEST     BASIC_TOKEN_WIDTH       /* Highest single byte token value */
-#define COMMAND_LOWEST          BASIC_TOKEN_APPEND      /* Lowest direct command token value */
-#define COMMAND_HIGHEST         BASIC_TOKEN_TWINO       /* Highest direct command token value */
+#define BASTOKEN_LOWEST      BASTOKEN_AND         /* Lowest single byte token value */
+#define BASTOKEN_HIGHEST     BASTOKEN_WIDTH       /* Highest single byte token value */
+#define COMMAND_LOWEST          BASTOKEN_APPEND      /* Lowest direct command token value */
+#define COMMAND_HIGHEST         BASTOKEN_TWINO       /* Highest direct command token value */
 
 #define TYPE_ONEBYTE            0u
 
@@ -59,43 +59,43 @@
 
 #define BADLINE_MARK            0xFDu           /* Marks a bad line */
 
-#define BASIC_TOKEN_NOWT        0u
+#define BASTOKEN_NOWT        0u
 
 /* Variables and constants */
 
-#define BASIC_TOKEN_EOL         0u              /* End of line */
+#define BASTOKEN_EOL         0u              /* End of line */
 
-#define BASIC_TOKEN_XVAR        0x01u           /* Reference to variable in source code */
-#define BASIC_TOKEN_STATICVAR   0x02u           /* Simple reference to a static variable */
-#define BASIC_TOKEN_UINT8VAR    0x03u           /* Simple reference to an unsigned 8-bit int variable */
-#define BASIC_TOKEN_INTVAR      0x04u           /* Simple reference to an integer variable */
-#define BASIC_TOKEN_INT64VAR    0x05u           /* Simple reference to a 64-bit int variable */
-#define BASIC_TOKEN_FLOATVAR    0x06u           /* Simple reference to a floating point variable */
-#define BASIC_TOKEN_STRINGVAR   0x07u           /* Simple reference to a string variable */
-#define BASIC_TOKEN_ARRAYVAR    0x08u           /* Array or array followed by an indirection operator */
-#define BASIC_TOKEN_ARRAYREF    0x09u           /* Reference to whole array */
-#define BASIC_TOKEN_ARRAYINDVAR 0x0Au           /* Array element followed by indirection operator */
-#define BASIC_TOKEN_INTINDVAR   0x0Bu           /* 32-bit integer variable followed by indirection operator */
-#define BASIC_TOKEN_INT64INDVAR 0x0Cu           /* 64-bit integer variable followed by indirection operator */
-#define BASIC_TOKEN_FLOATINDVAR 0x0Du           /* Floating point variable followed by indirection operator */
-#define BASIC_TOKEN_STATINDVAR  0x0Eu           /* Static variable followed by indirection operator */
+#define BASTOKEN_XVAR        0x01u           /* Reference to variable in source code */
+#define BASTOKEN_STATICVAR   0x02u           /* Simple reference to a static variable */
+#define BASTOKEN_UINT8VAR    0x03u           /* Simple reference to an unsigned 8-bit int variable */
+#define BASTOKEN_INTVAR      0x04u           /* Simple reference to an integer variable */
+#define BASTOKEN_INT64VAR    0x05u           /* Simple reference to a 64-bit int variable */
+#define BASTOKEN_FLOATVAR    0x06u           /* Simple reference to a floating point variable */
+#define BASTOKEN_STRINGVAR   0x07u           /* Simple reference to a string variable */
+#define BASTOKEN_ARRAYVAR    0x08u           /* Array or array followed by an indirection operator */
+#define BASTOKEN_ARRAYREF    0x09u           /* Reference to whole array */
+#define BASTOKEN_ARRAYINDVAR 0x0Au           /* Array element followed by indirection operator */
+#define BASTOKEN_INTINDVAR   0x0Bu           /* 32-bit integer variable followed by indirection operator */
+#define BASTOKEN_INT64INDVAR 0x0Cu           /* 64-bit integer variable followed by indirection operator */
+#define BASTOKEN_FLOATINDVAR 0x0Du           /* Floating point variable followed by indirection operator */
+#define BASTOKEN_STATINDVAR  0x0Eu           /* Static variable followed by indirection operator */
 
-#define BASIC_TOKEN_XFNPROCALL  0x0Fu           /* Reference to unknown PROC or FN */
-#define BASIC_TOKEN_FNPROCALL   0x10u           /* Reference to known PROC or FN */
+#define BASTOKEN_XFNPROCALL  0x0Fu           /* Reference to unknown PROC or FN */
+#define BASTOKEN_FNPROCALL   0x10u           /* Reference to known PROC or FN */
 
-#define BASIC_TOKEN_INTZERO     0x11u           /* Integer 0 */
-#define BASIC_TOKEN_INTONE      0x12u           /* Integer 1 */
-#define BASIC_TOKEN_SMALLINT    0x13u           /* Small integer constant in range 1..256 */
-#define BASIC_TOKEN_INTCON      0x14u           /* 32-bit integer constant */
-#define BASIC_TOKEN_FLOATZERO   0x15u           /* Floating point 0.0 */
-#define BASIC_TOKEN_FLOATONE    0x16u           /* Floating point 1.0 */
-#define BASIC_TOKEN_FLOATCON    0x17u           /* Floating point constant */
-#define BASIC_TOKEN_STRINGCON   0x18u           /* Ordinary string constant */
-#define BASIC_TOKEN_QSTRINGCON  0x19u           /* String constant with a '"' in it */
-#define BASIC_TOKEN_INT64CON    0x1Au           /* 64-bit integer constant */
+#define BASTOKEN_INTZERO     0x11u           /* Integer 0 */
+#define BASTOKEN_INTONE      0x12u           /* Integer 1 */
+#define BASTOKEN_SMALLINT    0x13u           /* Small integer constant in range 1..256 */
+#define BASTOKEN_INTCON      0x14u           /* 32-bit integer constant */
+#define BASTOKEN_FLOATZERO   0x15u           /* Floating point 0.0 */
+#define BASTOKEN_FLOATONE    0x16u           /* Floating point 1.0 */
+#define BASTOKEN_FLOATCON    0x17u           /* Floating point constant */
+#define BASTOKEN_STRINGCON   0x18u           /* Ordinary string constant */
+#define BASTOKEN_QSTRINGCON  0x19u           /* String constant with a '"' in it */
+#define BASTOKEN_INT64CON    0x1Au           /* 64-bit integer constant */
 
-#define BASIC_TOKEN_XLINENUM    0x1Eu           /* Unresolved line number reference */
-#define BASIC_TOKEN_LINENUM     0x1Fu           /* Resolved line number reference */
+#define BASTOKEN_XLINENUM    0x1Eu           /* Unresolved line number reference */
+#define BASTOKEN_LINENUM     0x1Fu           /* Resolved line number reference */
 
 /* Unused tokens */
 
@@ -105,119 +105,119 @@
 
 /* Operators */
 
-#define BASIC_TOKEN_AND         0x80u
-#define BASIC_TOKEN_ASR         0x81u   /* >> */
-#define BASIC_TOKEN_DIV         0x82u
-#define BASIC_TOKEN_EOR         0x83u
-#define BASIC_TOKEN_GE          0x84u   /* >= */
-#define BASIC_TOKEN_LE          0x85u   /* <= */
-#define BASIC_TOKEN_LSL         0x86u   /* << */
-#define BASIC_TOKEN_LSR         0x87u   /* >>> */
-#define BASIC_TOKEN_MINUSAB     0x88u   /* -= */
-#define BASIC_TOKEN_MOD         0x89u
-#define BASIC_TOKEN_NE          0x8Au   /* <> */
-#define BASIC_TOKEN_OR          0x8Bu
-#define BASIC_TOKEN_PLUSAB      0x8Cu   /* += */
+#define BASTOKEN_AND         0x80u
+#define BASTOKEN_ASR         0x81u   /* >> */
+#define BASTOKEN_DIV         0x82u
+#define BASTOKEN_EOR         0x83u
+#define BASTOKEN_GE          0x84u   /* >= */
+#define BASTOKEN_LE          0x85u   /* <= */
+#define BASTOKEN_LSL         0x86u   /* << */
+#define BASTOKEN_LSR         0x87u   /* >>> */
+#define BASTOKEN_MINUSAB     0x88u   /* -= */
+#define BASTOKEN_MOD         0x89u
+#define BASTOKEN_NE          0x8Au   /* <> */
+#define BASTOKEN_OR          0x8Bu
+#define BASTOKEN_PLUSAB      0x8Cu   /* += */
 
 /* Statements */
 
-#define BASIC_TOKEN_BEATS       0x8Du
-#define BASIC_TOKEN_BPUT        0x8Eu
-#define BASIC_TOKEN_CALL        0x8Fu
-#define BASIC_TOKEN_XCASE       0x90u
-#define BASIC_TOKEN_CASE        0x91u
-#define BASIC_TOKEN_CHAIN       0x92u
-#define BASIC_TOKEN_CIRCLE      0x93u
-#define BASIC_TOKEN_CLG         0x94u
-#define BASIC_TOKEN_CLEAR       0x95u
-#define BASIC_TOKEN_CLOSE       0x96u
-#define BASIC_TOKEN_CLS         0x97u
-#define BASIC_TOKEN_COLOUR      0x98u
-#define BASIC_TOKEN_DATA        0x99u
-#define BASIC_TOKEN_DEF         0x9Au
-#define BASIC_TOKEN_DIM         0x9Bu
-#define BASIC_TOKEN_DRAW        0x9Cu
-#define BASIC_TOKEN_DRAWBY      0x9Du   /* 'DRAWBY' has to follow 'DRAW */
-#define BASIC_TOKEN_ELLIPSE     0x9Eu
-#define BASIC_TOKEN_XELSE       0x9Fu
-#define BASIC_TOKEN_ELSE        0xA0u
-#define BASIC_TOKEN_XLHELSE     0xA1u
-#define BASIC_TOKEN_LHELSE      0xA2u
-#define BASIC_TOKEN_END         0xA3u
-#define BASIC_TOKEN_ENDCASE     0xA4u
-#define BASIC_TOKEN_ENDIF       0xA5u
-#define BASIC_TOKEN_ENDPROC     0xA6u
-#define BASIC_TOKEN_ENDWHILE    0xA7u
-#define BASIC_TOKEN_ENVELOPE    0xA8u
-#define BASIC_TOKEN_ERROR       0xA9u
-#define BASIC_TOKEN_FALSE       0xAAu
-#define BASIC_TOKEN_FILL        0xABu
-#define BASIC_TOKEN_FILLBY      0xACu
-#define BASIC_TOKEN_FN          0xADu
-#define BASIC_TOKEN_FOR         0xAEu
-#define BASIC_TOKEN_GCOL        0xAFu
-#define BASIC_TOKEN_GOSUB       0xB0u
-#define BASIC_TOKEN_GOTO        0xB1u
-#define BASIC_TOKEN_XIF         0xB2u
-#define BASIC_TOKEN_BLOCKIF     0xB3u
-#define BASIC_TOKEN_SINGLIF     0xB4u
-#define BASIC_TOKEN_INPUT       0xB5u
-#define BASIC_TOKEN_LET         0xB6u
-#define BASIC_TOKEN_LIBRARY     0xB7u
-#define BASIC_TOKEN_LINE        0xB8u
-#define BASIC_TOKEN_LOCAL       0xB9u
-#define BASIC_TOKEN_MODE        0xBAu
-#define BASIC_TOKEN_MOUSE       0xBBu
-#define BASIC_TOKEN_MOVE        0xBCu
-#define BASIC_TOKEN_MOVEBY      0xBDu   /* 'MOVEBY' has to follow 'MOVE' */
-#define BASIC_TOKEN_NEXT        0xBEu
-#define BASIC_TOKEN_NOT         0xBFu
-#define BASIC_TOKEN_OF          0xC0u
-#define BASIC_TOKEN_OFF         0xC1u
-#define BASIC_TOKEN_ON          0xC2u
-#define BASIC_TOKEN_ORIGIN      0xC3u
-#define BASIC_TOKEN_OSCLI       0xC4u
-#define BASIC_TOKEN_XOTHERWISE  0xC5u
-#define BASIC_TOKEN_OTHERWISE   0xC6u
-#define BASIC_TOKEN_OVERLAY     0xC7u
-#define BASIC_TOKEN_PLOT        0xC8u
-#define BASIC_TOKEN_POINT       0xC9u   /* POINT at a statement */
-#define BASIC_TOKEN_POINTBY     0xCAu   /* 'POINTBY' has to follow 'POINT' */
-#define BASIC_TOKEN_POINTTO     0xCBu
-#define BASIC_TOKEN_PRINT       0xCCu
-#define BASIC_TOKEN_PROC        0xCDu
-#define BASIC_TOKEN_QUIT        0xCEu
-#define BASIC_TOKEN_READ        0xCFu
-#define BASIC_TOKEN_RECTANGLE   0xD0u
-#define BASIC_TOKEN_REM         0xD1u
-#define BASIC_TOKEN_REPEAT      0xD2u
-#define BASIC_TOKEN_REPORT      0xD3u
-#define BASIC_TOKEN_RESTORE     0xD4u
-#define BASIC_TOKEN_RETURN      0xD5u
-#define BASIC_TOKEN_RUN         0xD6u
-#define BASIC_TOKEN_SOUND       0xD7u
-#define BASIC_TOKEN_STAR        0xD8u   /* '*' command */
-#define BASIC_TOKEN_STEP        0xD9u
-#define BASIC_TOKEN_STEREO      0xDAu
-#define BASIC_TOKEN_STOP        0xDBu
-#define BASIC_TOKEN_SWAP        0xDCu
-#define BASIC_TOKEN_SYS         0xDDu
-#define BASIC_TOKEN_TEMPO       0xDEu
-#define BASIC_TOKEN_THEN        0xDFu
-#define BASIC_TOKEN_TINT        0xE0u
-#define BASIC_TOKEN_TO          0xE1u
-#define BASIC_TOKEN_TRACE       0xE2u
-#define BASIC_TOKEN_TRUE        0xE3u
-#define BASIC_TOKEN_UNTIL       0xE4u
-#define BASIC_TOKEN_VDU         0xE5u
-#define BASIC_TOKEN_VOICE       0xE6u
-#define BASIC_TOKEN_VOICES      0xE7u
-#define BASIC_TOKEN_WAIT        0xE8u
-#define BASIC_TOKEN_XWHEN       0xE9u
-#define BASIC_TOKEN_WHEN        0xEAu
-#define BASIC_TOKEN_XWHILE      0xEBu
-#define BASIC_TOKEN_WHILE       0xECu
-#define BASIC_TOKEN_WIDTH       0xEDu
+#define BASTOKEN_BEATS       0x8Du
+#define BASTOKEN_BPUT        0x8Eu
+#define BASTOKEN_CALL        0x8Fu
+#define BASTOKEN_XCASE       0x90u
+#define BASTOKEN_CASE        0x91u
+#define BASTOKEN_CHAIN       0x92u
+#define BASTOKEN_CIRCLE      0x93u
+#define BASTOKEN_CLG         0x94u
+#define BASTOKEN_CLEAR       0x95u
+#define BASTOKEN_CLOSE       0x96u
+#define BASTOKEN_CLS         0x97u
+#define BASTOKEN_COLOUR      0x98u
+#define BASTOKEN_DATA        0x99u
+#define BASTOKEN_DEF         0x9Au
+#define BASTOKEN_DIM         0x9Bu
+#define BASTOKEN_DRAW        0x9Cu
+#define BASTOKEN_DRAWBY      0x9Du   /* 'DRAWBY' has to follow 'DRAW */
+#define BASTOKEN_ELLIPSE     0x9Eu
+#define BASTOKEN_XELSE       0x9Fu
+#define BASTOKEN_ELSE        0xA0u
+#define BASTOKEN_XLHELSE     0xA1u
+#define BASTOKEN_LHELSE      0xA2u
+#define BASTOKEN_END         0xA3u
+#define BASTOKEN_ENDCASE     0xA4u
+#define BASTOKEN_ENDIF       0xA5u
+#define BASTOKEN_ENDPROC     0xA6u
+#define BASTOKEN_ENDWHILE    0xA7u
+#define BASTOKEN_ENVELOPE    0xA8u
+#define BASTOKEN_ERROR       0xA9u
+#define BASTOKEN_FALSE       0xAAu
+#define BASTOKEN_FILL        0xABu
+#define BASTOKEN_FILLBY      0xACu
+#define BASTOKEN_FN          0xADu
+#define BASTOKEN_FOR         0xAEu
+#define BASTOKEN_GCOL        0xAFu
+#define BASTOKEN_GOSUB       0xB0u
+#define BASTOKEN_GOTO        0xB1u
+#define BASTOKEN_XIF         0xB2u
+#define BASTOKEN_BLOCKIF     0xB3u
+#define BASTOKEN_SINGLIF     0xB4u
+#define BASTOKEN_INPUT       0xB5u
+#define BASTOKEN_LET         0xB6u
+#define BASTOKEN_LIBRARY     0xB7u
+#define BASTOKEN_LINE        0xB8u
+#define BASTOKEN_LOCAL       0xB9u
+#define BASTOKEN_MODE        0xBAu
+#define BASTOKEN_MOUSE       0xBBu
+#define BASTOKEN_MOVE        0xBCu
+#define BASTOKEN_MOVEBY      0xBDu   /* 'MOVEBY' has to follow 'MOVE' */
+#define BASTOKEN_NEXT        0xBEu
+#define BASTOKEN_NOT         0xBFu
+#define BASTOKEN_OF          0xC0u
+#define BASTOKEN_OFF         0xC1u
+#define BASTOKEN_ON          0xC2u
+#define BASTOKEN_ORIGIN      0xC3u
+#define BASTOKEN_OSCLI       0xC4u
+#define BASTOKEN_XOTHERWISE  0xC5u
+#define BASTOKEN_OTHERWISE   0xC6u
+#define BASTOKEN_OVERLAY     0xC7u
+#define BASTOKEN_PLOT        0xC8u
+#define BASTOKEN_POINT       0xC9u   /* POINT at a statement */
+#define BASTOKEN_POINTBY     0xCAu   /* 'POINTBY' has to follow 'POINT' */
+#define BASTOKEN_POINTTO     0xCBu
+#define BASTOKEN_PRINT       0xCCu
+#define BASTOKEN_PROC        0xCDu
+#define BASTOKEN_QUIT        0xCEu
+#define BASTOKEN_READ        0xCFu
+#define BASTOKEN_RECTANGLE   0xD0u
+#define BASTOKEN_REM         0xD1u
+#define BASTOKEN_REPEAT      0xD2u
+#define BASTOKEN_REPORT      0xD3u
+#define BASTOKEN_RESTORE     0xD4u
+#define BASTOKEN_RETURN      0xD5u
+#define BASTOKEN_RUN         0xD6u
+#define BASTOKEN_SOUND       0xD7u
+#define BASTOKEN_STAR        0xD8u   /* '*' command */
+#define BASTOKEN_STEP        0xD9u
+#define BASTOKEN_STEREO      0xDAu
+#define BASTOKEN_STOP        0xDBu
+#define BASTOKEN_SWAP        0xDCu
+#define BASTOKEN_SYS         0xDDu
+#define BASTOKEN_TEMPO       0xDEu
+#define BASTOKEN_THEN        0xDFu
+#define BASTOKEN_TINT        0xE0u
+#define BASTOKEN_TO          0xE1u
+#define BASTOKEN_TRACE       0xE2u
+#define BASTOKEN_TRUE        0xE3u
+#define BASTOKEN_UNTIL       0xE4u
+#define BASTOKEN_VDU         0xE5u
+#define BASTOKEN_VOICE       0xE6u
+#define BASTOKEN_VOICES      0xE7u
+#define BASTOKEN_WAIT        0xE8u
+#define BASTOKEN_XWHEN       0xE9u
+#define BASTOKEN_WHEN        0xEAu
+#define BASTOKEN_XWHILE      0xEBu
+#define BASTOKEN_WHILE       0xECu
+#define BASTOKEN_WIDTH       0xEDu
 
 /* Unused tokens */
 
@@ -244,113 +244,113 @@
 ** in a program. This interpreter allows ones that are not going to
 ** hurt the program such as 'list' to be used.
 */
-#define BASIC_TOKEN_APPEND      0x01u
-#define BASIC_TOKEN_AUTO        0x02u
-#define BASIC_TOKEN_CRUNCH      0x03u
-#define BASIC_TOKEN_DELETE      0x04u
-#define BASIC_TOKEN_EDIT        0x05u
-#define BASIC_TOKEN_EDITO       0x06u
-#define BASIC_TOKEN_HELP        0x07u
-#define BASIC_TOKEN_INSTALL     0x08u
-#define BASIC_TOKEN_LIST        0x09u
-#define BASIC_TOKEN_LISTB       0x0Au
-#define BASIC_TOKEN_LISTIF      0x0Bu
-#define BASIC_TOKEN_LISTL       0x0Cu
-#define BASIC_TOKEN_LISTO       0x0Du
-#define BASIC_TOKEN_LISTW       0x0Eu
-#define BASIC_TOKEN_LOAD        0x0Fu
-#define BASIC_TOKEN_LVAR        0x10u
-#define BASIC_TOKEN_NEW         0x11u
-#define BASIC_TOKEN_OLD         0x12u
-#define BASIC_TOKEN_RENUMBER    0x13u
-#define BASIC_TOKEN_SAVE        0x14u
-#define BASIC_TOKEN_SAVEO       0x15u
-#define BASIC_TOKEN_TEXTLOAD    0x16u
-#define BASIC_TOKEN_TEXTSAVE    0x17u
-#define BASIC_TOKEN_TEXTSAVEO   0x18u
-#define BASIC_TOKEN_TWIN        0x19u
-#define BASIC_TOKEN_TWINO       0x1Au
+#define BASTOKEN_APPEND      0x01u
+#define BASTOKEN_AUTO        0x02u
+#define BASTOKEN_CRUNCH      0x03u
+#define BASTOKEN_DELETE      0x04u
+#define BASTOKEN_EDIT        0x05u
+#define BASTOKEN_EDITO       0x06u
+#define BASTOKEN_HELP        0x07u
+#define BASTOKEN_INSTALL     0x08u
+#define BASTOKEN_LIST        0x09u
+#define BASTOKEN_LISTB       0x0Au
+#define BASTOKEN_LISTIF      0x0Bu
+#define BASTOKEN_LISTL       0x0Cu
+#define BASTOKEN_LISTO       0x0Du
+#define BASTOKEN_LISTW       0x0Eu
+#define BASTOKEN_LOAD        0x0Fu
+#define BASTOKEN_LVAR        0x10u
+#define BASTOKEN_NEW         0x11u
+#define BASTOKEN_OLD         0x12u
+#define BASTOKEN_RENUMBER    0x13u
+#define BASTOKEN_SAVE        0x14u
+#define BASTOKEN_SAVEO       0x15u
+#define BASTOKEN_TEXTLOAD    0x16u
+#define BASTOKEN_TEXTSAVE    0x17u
+#define BASTOKEN_TEXTSAVEO   0x18u
+#define BASTOKEN_TWIN        0x19u
+#define BASTOKEN_TWINO       0x1Au
 
 /*
 ** Pseudo variables and functions that can appear on the left hand side
 ** of an expression. These are preceded by 0xFF in the tokenised code.
 */
-#define BASIC_TOKEN_HIMEM       0x01u
-#define BASIC_TOKEN_EXT         0x02u
-#define BASIC_TOKEN_FILEPATH    0x03u
-#define BASIC_TOKEN_LEFT        0x04u
-#define BASIC_TOKEN_LOMEM       0x05u
-#define BASIC_TOKEN_MID         0x06u
-#define BASIC_TOKEN_PAGE        0x07u
-#define BASIC_TOKEN_PTR         0x08u
-#define BASIC_TOKEN_RIGHT       0x09u
-#define BASIC_TOKEN_TIME        0x0Au
+#define BASTOKEN_HIMEM       0x01u
+#define BASTOKEN_EXT         0x02u
+#define BASTOKEN_FILEPATH    0x03u
+#define BASTOKEN_LEFT        0x04u
+#define BASTOKEN_LOMEM       0x05u
+#define BASTOKEN_MID         0x06u
+#define BASTOKEN_PAGE        0x07u
+#define BASTOKEN_PTR         0x08u
+#define BASTOKEN_RIGHT       0x09u
+#define BASTOKEN_TIME        0x0Au
 
 /*
 ** Functions.
 ** These are preceded with 0xFF in the tokenised code.
 */
-#define BASIC_TOKEN_ABS         0x10u
-#define BASIC_TOKEN_ACS         0x11u
-#define BASIC_TOKEN_ADVAL       0x12u
-#define BASIC_TOKEN_ARGC        0x13u
-#define BASIC_TOKEN_ARGVDOL     0x14u
-#define BASIC_TOKEN_ASC         0x15u
-#define BASIC_TOKEN_ASN         0x16u
-#define BASIC_TOKEN_ATN         0x17u
-#define BASIC_TOKEN_BEAT        0x18u
-#define BASIC_TOKEN_BGET        0x19u
-#define BASIC_TOKEN_CHR         0x1Au
-#define BASIC_TOKEN_COS         0x1Bu
-#define BASIC_TOKEN_COUNT       0x1Cu
-#define BASIC_TOKEN_DEG         0x1Du
-#define BASIC_TOKEN_EOF         0x1Eu
-#define BASIC_TOKEN_ERL         0x1Fu
-#define BASIC_TOKEN_ERR         0x20u
-#define BASIC_TOKEN_EVAL        0x21u
-#define BASIC_TOKEN_EXP         0x22u
-#define BASIC_TOKEN_GET         0x23u
-#define BASIC_TOKEN_GETDOL      0x24u
-#define BASIC_TOKEN_INKEY       0x25u
-#define BASIC_TOKEN_INKEYDOL    0x26u
-#define BASIC_TOKEN_INSTR       0x27u
-#define BASIC_TOKEN_INT         0x28u
-#define BASIC_TOKEN_LEN         0x29u
-#define BASIC_TOKEN_LISTOFN     0x2Au
-#define BASIC_TOKEN_LN          0x2Bu
-#define BASIC_TOKEN_LOG         0x2Cu
-#define BASIC_TOKEN_OPENIN      0x2Du
-#define BASIC_TOKEN_OPENOUT     0x2Eu
-#define BASIC_TOKEN_OPENUP      0x2Fu
-#define BASIC_TOKEN_PI          0x30u
-#define BASIC_TOKEN_POINTFN     0x31u   /* The function POINT( */
-#define BASIC_TOKEN_POS         0x32u
-#define BASIC_TOKEN_RAD         0x33u
-#define BASIC_TOKEN_REPORTDOL   0x34u   /* The function REPORT$ */
-#define BASIC_TOKEN_RETCODE     0x35u
-#define BASIC_TOKEN_RND         0x36u   /* The function RND (with no parameter) */
-#define BASIC_TOKEN_SGN         0x37u
-#define BASIC_TOKEN_SIN         0x38u
-#define BASIC_TOKEN_SQR         0x39u
-#define BASIC_TOKEN_STR         0x3Au
-#define BASIC_TOKEN_STRING      0x3Bu
-#define BASIC_TOKEN_SUM         0x3Cu
-#define BASIC_TOKEN_TAN         0x3Du
-#define BASIC_TOKEN_TEMPOFN     0x3Eu
-#define BASIC_TOKEN_USR         0x3Fu
-#define BASIC_TOKEN_VAL         0x40u
-#define BASIC_TOKEN_VERIFY      0x41u
-#define BASIC_TOKEN_VPOS        0x42u
-#define BASIC_TOKEN_SYSFN       0x43u   /* The function SYS( */
-#define BASIC_TOKEN_RNDPAR      0x44u   /* The function RND( */
-#define BASIC_TOKEN_XLATEDOL    0x45u   /* Must remain the last in the list */
+#define BASTOKEN_ABS         0x10u
+#define BASTOKEN_ACS         0x11u
+#define BASTOKEN_ADVAL       0x12u
+#define BASTOKEN_ARGC        0x13u
+#define BASTOKEN_ARGVDOL     0x14u
+#define BASTOKEN_ASC         0x15u
+#define BASTOKEN_ASN         0x16u
+#define BASTOKEN_ATN         0x17u
+#define BASTOKEN_BEAT        0x18u
+#define BASTOKEN_BGET        0x19u
+#define BASTOKEN_CHR         0x1Au
+#define BASTOKEN_COS         0x1Bu
+#define BASTOKEN_COUNT       0x1Cu
+#define BASTOKEN_DEG         0x1Du
+#define BASTOKEN_EOF         0x1Eu
+#define BASTOKEN_ERL         0x1Fu
+#define BASTOKEN_ERR         0x20u
+#define BASTOKEN_EVAL        0x21u
+#define BASTOKEN_EXP         0x22u
+#define BASTOKEN_GET         0x23u
+#define BASTOKEN_GETDOL      0x24u
+#define BASTOKEN_INKEY       0x25u
+#define BASTOKEN_INKEYDOL    0x26u
+#define BASTOKEN_INSTR       0x27u
+#define BASTOKEN_INT         0x28u
+#define BASTOKEN_LEN         0x29u
+#define BASTOKEN_LISTOFN     0x2Au
+#define BASTOKEN_LN          0x2Bu
+#define BASTOKEN_LOG         0x2Cu
+#define BASTOKEN_OPENIN      0x2Du
+#define BASTOKEN_OPENOUT     0x2Eu
+#define BASTOKEN_OPENUP      0x2Fu
+#define BASTOKEN_PI          0x30u
+#define BASTOKEN_POINTFN     0x31u   /* The function POINT( */
+#define BASTOKEN_POS         0x32u
+#define BASTOKEN_RAD         0x33u
+#define BASTOKEN_REPORTDOL   0x34u   /* The function REPORT$ */
+#define BASTOKEN_RETCODE     0x35u
+#define BASTOKEN_RND         0x36u   /* The function RND (with no parameter) */
+#define BASTOKEN_SGN         0x37u
+#define BASTOKEN_SIN         0x38u
+#define BASTOKEN_SQR         0x39u
+#define BASTOKEN_STR         0x3Au
+#define BASTOKEN_STRING      0x3Bu
+#define BASTOKEN_SUM         0x3Cu
+#define BASTOKEN_TAN         0x3Du
+#define BASTOKEN_TEMPOFN     0x3Eu
+#define BASTOKEN_USR         0x3Fu
+#define BASTOKEN_VAL         0x40u
+#define BASTOKEN_VERIFY      0x41u
+#define BASTOKEN_VPOS        0x42u
+#define BASTOKEN_SYSFN       0x43u   /* The function SYS( */
+#define BASTOKEN_RNDPAR      0x44u   /* The function RND( */
+#define BASTOKEN_XLATEDOL    0x45u   /* Must remain the last in the list */
 
 /*
 ** Print functions preceded with 0xFE
 ** These can only appear in 'INPUT' and 'PRINT' statements
 */
-#define BASIC_TOKEN_SPC 0x01u
-#define BASIC_TOKEN_TAB 0x02u
+#define BASTOKEN_SPC 0x01u
+#define BASTOKEN_TAB 0x02u
 
 extern byte thisline[];                 /* tokenised version of command line */
 

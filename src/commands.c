@@ -321,7 +321,7 @@ static void show_memory(void) {
   get_pair(&lowaddr, &highaddr, basicvars.memdump_lastaddr, basicvars.memdump_lastaddr+0x40);
   check_ateol();
   if (highaddr == lowaddr) highaddr = lowaddr+0x40;
-  if (which == BASIC_TOKEN_LISTB)
+  if (which == BASTOKEN_LISTB)
     show_byte(lowaddr, highaddr);
   else {
     show_word(lowaddr, highaddr);
@@ -864,61 +864,61 @@ static void exec_auto(void) {
 void exec_command(void) {
   basicvars.current++;  /* Point at command type token */
   switch (*basicvars.current) {
-  case BASIC_TOKEN_NEW:
+  case BASTOKEN_NEW:
     exec_new();
     break;
-  case BASIC_TOKEN_OLD:
+  case BASTOKEN_OLD:
     exec_old();
     break;
-  case BASIC_TOKEN_LOAD: case BASIC_TOKEN_TEXTLOAD:
+  case BASTOKEN_LOAD: case BASTOKEN_TEXTLOAD:
     load_program();
     break;
-  case BASIC_TOKEN_SAVE: case BASIC_TOKEN_TEXTSAVE:
+  case BASTOKEN_SAVE: case BASTOKEN_TEXTSAVE:
     save_program();
     break;
-  case BASIC_TOKEN_SAVEO: case BASIC_TOKEN_TEXTSAVEO:
+  case BASTOKEN_SAVEO: case BASTOKEN_TEXTSAVEO:
     saveo_program();
     break;
-  case BASIC_TOKEN_INSTALL:
+  case BASTOKEN_INSTALL:
     install_library();
     break;
-  case BASIC_TOKEN_LIST:
+  case BASTOKEN_LIST:
     list_program();
     break;
-  case BASIC_TOKEN_LISTB: case BASIC_TOKEN_LISTW:
+  case BASTOKEN_LISTB: case BASTOKEN_LISTW:
     show_memory();
     break;
-  case BASIC_TOKEN_LISTL:
+  case BASTOKEN_LISTL:
     list_hexline();
     break;
-  case BASIC_TOKEN_LISTIF:
+  case BASTOKEN_LISTIF:
     list_if();
     break;
-  case BASIC_TOKEN_LISTO:
+  case BASTOKEN_LISTO:
     set_listopt();
     break;
-  case BASIC_TOKEN_LVAR:
+  case BASTOKEN_LVAR:
     list_vars();
     break;
-  case BASIC_TOKEN_RENUMBER:
+  case BASTOKEN_RENUMBER:
     renumber();
     break;
-  case BASIC_TOKEN_DELETE:
+  case BASTOKEN_DELETE:
     delete();
     break;
-  case BASIC_TOKEN_HELP:
+  case BASTOKEN_HELP:
     print_help();
     break;
-  case BASIC_TOKEN_EDIT: case BASIC_TOKEN_TWIN:
+  case BASTOKEN_EDIT: case BASTOKEN_TWIN:
     exec_editor();
     break;
-  case BASIC_TOKEN_EDITO: case BASIC_TOKEN_TWINO:
+  case BASTOKEN_EDITO: case BASTOKEN_TWINO:
     exec_edito();
     break;
-  case BASIC_TOKEN_CRUNCH:
+  case BASTOKEN_CRUNCH:
     exec_crunch();
     break;
-  case BASIC_TOKEN_AUTO:
+  case BASTOKEN_AUTO:
     exec_auto();
     break;
   default:

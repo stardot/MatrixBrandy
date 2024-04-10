@@ -132,7 +132,7 @@ void trace_line(int32 lineno) {
 */
 void trace_proc(char *np, boolean entering) {
   int32 len;
-  char *what = *CAST(np, byte *) == BASIC_TOKEN_PROC ? "PROC" : "FN";
+  char *what = *CAST(np, byte *) == BASTOKEN_PROC ? "PROC" : "FN";
   np++;
   if (entering) /* Entering procedure or function */
     len = sprintf(basicvars.stringwork, "==>%s%s ", what, np);

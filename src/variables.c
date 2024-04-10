@@ -171,8 +171,8 @@ static void list_varlist(char which, library *lp) {
       vp = lp->varlists[n];
     }
     while (vp!=NIL) {
-      if (*vp->varname == which || ((*CAST(vp->varname, byte*) == BASIC_TOKEN_PROC
-       || *CAST(vp->varname, byte *) == BASIC_TOKEN_FN) && *(vp->varname+1) == which)) {        /* Found a match */
+      if (*vp->varname == which || ((*CAST(vp->varname, byte*) == BASTOKEN_PROC
+       || *CAST(vp->varname, byte *) == BASTOKEN_FN) && *(vp->varname+1) == which)) {        /* Found a match */
         done++;
         switch (vp->varflags) {
         case VAR_INTWORD:
@@ -307,7 +307,7 @@ static void list_varlist(char which, library *lp) {
         }
         case VAR_MARKER: {
           char *p;
-          if (*CAST(vp->varname, byte *)==BASIC_TOKEN_PROC)
+          if (*CAST(vp->varname, byte *)==BASTOKEN_PROC)
             p = "PROC";
           else {
             p = "FN";
@@ -737,13 +737,13 @@ static void scan_parmlist(variable *vp) {
   what = *vp->varname;          /* Note whether this is a PROC or FN */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Fill in details for PROC/FN '%s%s' at %p, vp=%p\n",
-   (what==BASIC_TOKEN_PROC ? "PROC" : "FN"), vp->varname+1, basicvars.current, vp);
+   (what==BASTOKEN_PROC ? "PROC" : "FN"), vp->varname+1, basicvars.current, vp);
 #endif
   basicvars.current+=1+LOFFSIZE;        /* Find parameters (if any) */
   if (*basicvars.current=='(') {        /* Procedure or function has a parameter list */
     do {
       basicvars.current++;      /* Skip '(' or ',' and point at a parameter */
-      isreturn = *basicvars.current==BASIC_TOKEN_RETURN;
+      isreturn = *basicvars.current==BASTOKEN_RETURN;
       if (isreturn) basicvars.current++;
       fp = allocmem(sizeof(formparm), 1);       /* Create new parameter list entry */
       get_lvalue(&(fp->parameter));
@@ -773,7 +773,7 @@ static void scan_parmlist(variable *vp) {
   dp->simple = count==1 && formlist->parameter.typeinfo==VAR_INTWORD;
   dp->parmlist = formlist;
   vp->varentry.varfnproc = dp;
-  if (what==BASIC_TOKEN_PROC)
+  if (what==BASTOKEN_PROC)
     vp->varflags = VAR_PROC;
   else {
     vp->varflags = VAR_FUNCTION;
@@ -794,7 +794,7 @@ static void add_libvars(byte *tp, library *lp) {
   save_current();
   basicvars.current = tp;       /* Point current at this line for error messages */
   tp+=2;        /* Skip 'LIBRARY' and 'lOCAL' tokens */
-  while (*tp==BASIC_TOKEN_XVAR) {
+  while (*tp==BASTOKEN_XVAR) {
     base = get_srcaddr(tp);
     ep = skip_name(base);       /* Find byte after name */
     namelen = ep-base;
@@ -832,7 +832,7 @@ static void add_libarray(byte *tp, library *lp) {
   basicvars.current = tp;
   do {
     basicvars.current++;                /*Skip DIM token or ',' */
-    if (*basicvars.current!=BASIC_TOKEN_XVAR) error(ERR_SYNTAX);        /* Array name wanted */
+    if (*basicvars.current!=BASTOKEN_XVAR) error(ERR_SYNTAX);        /* Array name wanted */
     base = get_srcaddr(basicvars.current);
     ep = skip_name(base);       /* Find byte after name */
     namelen = ep-base;
@@ -904,7 +904,7 @@ static void scan_library(library *lp) {
   foundproc = FALSE;
   while (!AT_PROGEND(bp)) {
     tp = FIND_EXEC(bp);
-    if (*tp==BASIC_TOKEN_DEF && *(tp+1)==BASIC_TOKEN_XFNPROCALL) {      /* Found DEF PROC or DEF FN */
+    if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found DEF PROC or DEF FN */
       foundproc = TRUE;
       fpp = add_procfn(bp, tp);
       if (fpplast==NIL) /* First PROC or FN found in library */
@@ -914,9 +914,9 @@ static void scan_library(library *lp) {
       }
       fpplast = fpp;
     }
-    else if (!foundproc && *tp==BASIC_TOKEN_LIBRARY && *(tp+1)==BASIC_TOKEN_LOCAL)      /* LIBRARY LOCAL */
+    else if (!foundproc && *tp==BASTOKEN_LIBRARY && *(tp+1)==BASTOKEN_LOCAL)      /* LIBRARY LOCAL */
       add_libvars(tp, lp);
-    else if (!foundproc && *tp==BASIC_TOKEN_DIM) {
+    else if (!foundproc && *tp==BASTOKEN_DIM) {
       add_libarray(tp, lp);
     }
     bp+=get_linelen(bp);
@@ -955,7 +955,7 @@ static variable *search_library(library *lp, char *name) {
   scan_parmlist(vp);                    /* Deal with parameter list */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created PROC/FN '%s%s' in library '%s' at %p\n",
-   (*CAST(name, byte *)==BASIC_TOKEN_PROC ? "PROC" : "FN"), name+1, lp->libname, vp);
+   (*CAST(name, byte *)==BASTOKEN_PROC ? "PROC" : "FN"), name+1, lp->libname, vp);
 #endif
   return vp;
 }
@@ -990,7 +990,7 @@ static variable *mark_procfn(byte *pp) {
   basicvars.runflags.has_variables = TRUE;      /* Say program now has some variables */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created PROC/FN '%s%s' at %p\n",
-   (*base==BASIC_TOKEN_PROC ? "PROC" : "FN"), vp->varname+1, vp);
+   (*base==BASTOKEN_PROC ? "PROC" : "FN"), vp->varname+1, vp);
 #endif
   return vp;
 }
@@ -1013,7 +1013,7 @@ static variable *scan_fnproc(char *name) {
   while (!AT_PROGEND(bp)) {
     tp = FIND_EXEC(bp);
     bp+=get_linelen(bp);        /* This is updated here so that 'lastsearch' is set correctly below */
-    if (*tp==BASIC_TOKEN_DEF && *(tp+1)==BASIC_TOKEN_XFNPROCALL) {      /* Found 'DEF PROC' or 'DEF FN' */
+    if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found 'DEF PROC' or 'DEF FN' */
       vp = mark_procfn(tp+1); /* Must be a previously unseen entry */
       if (vp->varhash==namehash && strcmp(name, vp->varname)==0) break; /* Found it */
       vp = NIL; /* Reset 'vp' as this proc/fn is not the one needed */
@@ -1037,7 +1037,7 @@ static variable *scan_fnproc(char *name) {
     } while (lp!=NIL);
   }
   if (vp==NIL) {        /* Procedure/function not found */
-    if (*CAST(name, byte *)==BASIC_TOKEN_PROC)  /* First byte of name is a 'PROC' or 'FN' token */
+    if (*CAST(name, byte *)==BASTOKEN_PROC)  /* First byte of name is a 'PROC' or 'FN' token */
       error(ERR_PROCMISS, name+1);
     else {
       error(ERR_FNMISS, name+1);

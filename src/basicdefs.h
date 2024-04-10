@@ -543,37 +543,37 @@ typedef struct {
   } debug_flags;              /* Interpreter debugging options */
 #endif
   struct {
-    unsigned int badprogram:1;  /* TRUE if program is invalid */
-    unsigned int trapexcp:1;  /* TRUE if exceptions are trapped by interpreter */
-    unsigned int validsaved:1;  /* TRUE if 'savedstart' contains something valid */
-    unsigned int validedit:1; /* TRUE if 'edit_flags' contains something valid */
-    unsigned int usedmmap:1;  /* TRUE if we used mmap to allocate memory */
+    unsigned int badprogram:1;    /* TRUE if program is invalid */
+    unsigned int trapexcp:1;      /* TRUE if exceptions are trapped by interpreter */
+    unsigned int validsaved:1;    /* TRUE if 'savedstart' contains something valid */
+    unsigned int validedit:1;     /* TRUE if 'edit_flags' contains something valid */
+    unsigned int usedmmap:1;      /* TRUE if we used mmap to allocate memory */
   } misc_flags;
-  byte savedstart[PRESERVED]; /* Save area for start of program when 'NEW' issued */
-  int32 curcount;             /* Number of entries on savedcur[] stack*/
-  byte *savedcur[MAXCURCOUNT];  /* Stack of saved values of 'current' for EVAL and READ */
-  boolean escape;             /* TRUE if the 'escape' key has been pressed */
-  boolean escape_enabled;     /* TRUE if the 'escape' key is enabled */
-  int32 retcode;              /* Return code from last OSCLI command */
-  int32 argcount;             /* Number of Basic program command line arguments */
-  int32 printcount;           /* Chars printed this line (used by PRINT) */
-  int32 printwidth;           /* Width of line (used by PRINT) */
-  int32 recdepth;             /* Record depth of RUN recursion */
-  byte *lastsearch;           /* Place last proc/fn search reached */
-  int32 linecount;            /* Used when reading a Basic program or library into memory */
+  byte savedstart[PRESERVED];     /* Save area for start of program when 'NEW' issued */
+  int32 curcount;                 /* Number of entries on savedcur[] stack*/
+  byte *savedcur[MAXCURCOUNT];    /* Stack of saved values of 'current' for EVAL and READ */
+  boolean escape;                 /* TRUE if the 'escape' key has been pressed */
+  boolean escape_enabled;         /* TRUE if the 'escape' key is enabled */
+  int32 retcode;                  /* Return code from last OSCLI command */
+  int32 argcount;                 /* Number of Basic program command line arguments */
+  int32 printcount;               /* Chars printed this line (used by PRINT) */
+  int32 printwidth;               /* Width of line (used by PRINT) */
+  int32 recdepth;                 /* Record depth of RUN recursion */
+  byte *lastsearch;               /* Place last proc/fn search reached */
+  int32 linecount;                /* Used when reading a Basic program or library into memory */
   variable staticvars[STDVARS];   /* Static integer variables @%-Z% */
   variable *varlists[VARLISTS];   /* Pointers to lists of variables, procedures and functions */
-  int64 centiseconds;         /* Centisecond timer, populated by sub-thread */
-  int clocktype;              /* Type of clock used in centisecond timer */
-  int64 monotonictimebase;    /* Baseline for OS_ReadMonotonicTime */
-  size_t memdump_lastaddr;    /* Last address used by LISTB/LISTW */
-  int32 maxrecdepth;          /* Maximum FN recursion depth */
-  char program[FNAMESIZE];    /* Name of program loaded */
-  char filename[FNAMESIZE];   /* Name of last file read */
-  cmdarg *arglist;            /* Pointer to list of Basic program command line arguments */
+  int64 centiseconds;             /* Centisecond timer, populated by sub-thread */
+  int clocktype;                  /* Type of clock used in centisecond timer */
+  int64 monotonictimebase;        /* Baseline for OS_ReadMonotonicTime */
+  size_t memdump_lastaddr;        /* Last address used by LISTB/LISTW */
+  int32 maxrecdepth;              /* Maximum FN recursion depth */
+  char program[FNAMESIZE];        /* Name of program loaded */
+  char filename[FNAMESIZE];       /* Name of last file read */
+  cmdarg *arglist;                /* Pointer to list of Basic program command line arguments */
 } workspace;
 
-extern workspace basicvars;             /* Interpreter variables for the Basic program */
+extern workspace basicvars;   /* Interpreter variables for the Basic program */
 
 /* Flags used by Matrix Brandy extensions, that need to be available in more than one place */
 typedef struct {

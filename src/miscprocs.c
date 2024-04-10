@@ -209,17 +209,17 @@ char *tocstring(char *cp, int32 len) {
   if (len==0) return "";
   if (len>=MAXNAMELEN) len = MAXNAMELEN-1;
   switch (*CAST(cp, byte *)) {
-  case BASIC_TOKEN_PROC:
+  case BASTOKEN_PROC:
     strcpy(cstring, "PROC");
     n = 4;
     cp++;
     break;
-  case BASIC_TOKEN_FN:
+  case BASTOKEN_FN:
     strcpy(cstring, "FN");
     n = 2;
     cp++;
     break;
-  case BASIC_TOKEN_STATICVAR: case BASIC_TOKEN_STATINDVAR:
+  case BASTOKEN_STATICVAR: case BASTOKEN_STATINDVAR:
     cstring[0] = *(cp+1)+'@';
     cstring[1] = '%';
     cstring[2] = asc_NUL;

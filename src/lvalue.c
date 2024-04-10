@@ -120,18 +120,18 @@ static void fix_address(lvalue *destination) {
   if (!isarray && (*np=='?' || *np=='!')) {     /* Variable is followed by an indirection operator */
     switch (vp->varflags) {
     case VAR_INTWORD:           /* Op follows a 32-bit integer variable */
-      *basicvars.current = BASIC_TOKEN_INTINDVAR;
+      *basicvars.current = BASTOKEN_INTINDVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
       break;
     case VAR_UINT8:
       error(ERR_UNSUITABLEVAR);
       break;
     case VAR_INTLONG:           /* Op follows a 64-bit integer variable */
-      *basicvars.current = BASIC_TOKEN_INT64INDVAR;
+      *basicvars.current = BASTOKEN_INT64INDVAR;
       set_address(basicvars.current, &vp->varentry.var64int);
       break;
     case VAR_FLOAT:             /* Op follows a floating point variable */
-      *basicvars.current = BASIC_TOKEN_FLOATINDVAR;
+      *basicvars.current = BASTOKEN_FLOATINDVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
     default:
@@ -141,30 +141,30 @@ static void fix_address(lvalue *destination) {
   else {        /* Simple variable reference or any type of array reference */
     switch (vp->varflags) {
     case VAR_INTWORD:           /* Simple reference to integer variable */
-      *basicvars.current = BASIC_TOKEN_INTVAR;
+      *basicvars.current = BASTOKEN_INTVAR;
       set_address(basicvars.current, &vp->varentry.varinteger);
     break;
     case VAR_UINT8:             /* Simple reference to integer variable */
-      *basicvars.current = BASIC_TOKEN_UINT8VAR;
+      *basicvars.current = BASTOKEN_UINT8VAR;
       set_address(basicvars.current, &vp->varentry.varu8int);
     break;
     case VAR_INTLONG:           /* Simple reference to integer variable */
-      *basicvars.current = BASIC_TOKEN_INT64VAR;
+      *basicvars.current = BASTOKEN_INT64VAR;
       set_address(basicvars.current, &vp->varentry.var64int);
     break;
     case VAR_FLOAT:             /* Simple reference to floating point variable */
-      *basicvars.current = BASIC_TOKEN_FLOATVAR;
+      *basicvars.current = BASTOKEN_FLOATVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
     case VAR_STRINGDOL: /* Simple reference to string variable */
-      *basicvars.current = BASIC_TOKEN_STRINGVAR;
+      *basicvars.current = BASTOKEN_STRINGVAR;
       set_address(basicvars.current, &vp->varentry.varstring);
       break;
     default:                    /* Array or array reference with indirection operator */
       if (*np==')')             /* Reference to an entire array */
-        *basicvars.current = BASIC_TOKEN_ARRAYVAR;
+        *basicvars.current = BASTOKEN_ARRAYVAR;
       else {    /* Reference to array element */
-        *basicvars.current = BASIC_TOKEN_ARRAYREF;
+        *basicvars.current = BASTOKEN_ARRAYREF;
       }
       set_address(basicvars.current, vp);
     }

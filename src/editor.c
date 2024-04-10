@@ -125,7 +125,7 @@ static byte startmark [STARTMARKSIZE] = {0xC5, 0xC7, 0xC1, 0xD7};
 ** with or to allow programs that drop off the end of their code to
 ** end gracefully
 */
-static byte endline [8] = {0, 0, 8, 0, 6, 0, BASIC_TOKEN_END, asc_NUL};
+static byte endline [8] = {0, 0, 8, 0, 6, 0, BASTOKEN_END, asc_NUL};
 
 void mark_end(byte *p) {
   memcpy(p, endline, 8);        /* Place an 'END' token at the end of the program */
