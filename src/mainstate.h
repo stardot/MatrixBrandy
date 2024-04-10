@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the functions that handle all the Basic
-**	statement types apart from assignments and I/O statements
+**      This file defines the functions that handle all the Basic
+**      statement types apart from assignments and I/O statements
 */
 
 #ifndef __mainstate_h

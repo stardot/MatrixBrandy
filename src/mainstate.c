@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains the bulk of the Basic interpreter itself
+**      This file contains the bulk of the Basic interpreter itself
 **
 ** 20-Mar-2014 JGH: DEF correctly executed as a REM - skips to next line
 **
@@ -52,7 +52,7 @@
 #include "keyboard.h"
 #include "mos_sys.h"
 
-#define MAXWHENS 500		/* maximum number of WHENs allowed per CASE statement */
+#define MAXWHENS 500            /* maximum number of WHENs allowed per CASE statement */
 
 /* Replacement for memmove where we dedupe pairs of double quotes */
 static int memcpydedupe(char *dest, const unsigned char *src, size_t len, char dedupe) {
@@ -97,9 +97,9 @@ void exec_oscmd(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_oscmd\n");
 #endif /* DEBUG */
-  p = CAST(get_srcaddr(basicvars.current), char *);	/* Get the address of the command text */
-  mos_oscli(p, FALSE, NULL);		/* Run command but do not capture output */
-  basicvars.current+=1+SIZESIZE;	/* Skip the '*' and the offset after it */
+  p = CAST(get_srcaddr(basicvars.current), char *);     /* Get the address of the command text */
+  mos_oscli(p, FALSE, NULL);            /* Run command but do not capture output */
+  basicvars.current+=1+SIZESIZE;        /* Skip the '*' and the offset after it */
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_oscmd\n");
 #endif /* DEBUG */
@@ -145,11 +145,11 @@ void exec_case(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_case\n");
 #endif /* DEBUG */
   here = basicvars.current;
-  cp = GET_ADDRESS(basicvars.current, casetable *);	/* Fetch address of 'CASE' table */
-  basicvars.current+=1+LOFFSIZE;		/* Skip 'CASE' token and pointer */
+  cp = GET_ADDRESS(basicvars.current, casetable *);     /* Fetch address of 'CASE' table */
+  basicvars.current+=1+LOFFSIZE;                /* Skip 'CASE' token and pointer */
   expression();
   casetype = GET_TOPITEM;
-  switch (casetype) {	/* Check the type of the 'CASE' expression */
+  switch (casetype) {   /* Check the type of the 'CASE' expression */
   case STACK_INT:    intcase = pop_int(); break;
   case STACK_UINT8:  uint8case = pop_uint8(); break;
   case STACK_INT64:  int64case = pop_int64(); break;
@@ -163,39 +163,39 @@ void exec_case(void) {
 */
   found = FALSE;
   for (n=0; n<cp->whencount; n++) {
-    basicvars.current = cp->whentable[n].whenexpr;	/* Point at the WHEN expression */
+    basicvars.current = cp->whentable[n].whenexpr;      /* Point at the WHEN expression */
     if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(basicvars.current)));
     while (TRUE) {
       expression();
       whentype = GET_TOPITEM;
-      if (casetype == STACK_INT) {	/* Go by type of 'case' expression */
-        switch(whentype) {		/* Then by type of 'WHEN' expression */
+      if (casetype == STACK_INT) {      /* Go by type of 'case' expression */
+        switch(whentype) {              /* Then by type of 'WHEN' expression */
           case STACK_INT: case STACK_UINT8: case STACK_INT64:
             found = pop_anyint() == intcase; break;
           case STACK_FLOAT: found = pop_float() == TOFLOAT(intcase); break;
           default: error(ERR_TYPENUM);
         }
       }
-      else if (casetype == STACK_UINT8) {	/* Go by type of 'case' expression */
-        switch(whentype) {		/* Then by type of 'WHEN' expression */
+      else if (casetype == STACK_UINT8) {       /* Go by type of 'case' expression */
+        switch(whentype) {              /* Then by type of 'WHEN' expression */
           case STACK_INT: case STACK_UINT8: case STACK_INT64:
             found = pop_anyint() == uint8case; break;
           case STACK_FLOAT: found = pop_float() == TOFLOAT(uint8case); break;
           default: error(ERR_TYPENUM);
         }
       }
-      else if (casetype == STACK_INT64) {	/* Go by type of 'case' expression */
-        switch(whentype) {		/* Then by type of 'WHEN' expression */
+      else if (casetype == STACK_INT64) {       /* Go by type of 'case' expression */
+        switch(whentype) {              /* Then by type of 'WHEN' expression */
           case STACK_INT: case STACK_UINT8: case STACK_INT64:
             found = pop_anyint() == int64case; break;
           case STACK_FLOAT: found = pop_float() == TOFLOAT(int64case); break;
           default: error(ERR_TYPENUM);
         }
       }
-      else if (casetype == STACK_FLOAT) {		/* 'case' expression is a floating point value */
+      else if (casetype == STACK_FLOAT) {               /* 'case' expression is a floating point value */
         found = pop_anynumfp() == floatcase;
       }
-      else {	/* This leaves just strings */
+      else {    /* This leaves just strings */
         if (whentype != STACK_STRING && whentype != STACK_STRTEMP) error(ERR_TYPESTR);
         whenstring = pop_string();
         if (whenstring.stringlen != casestring.stringlen)
@@ -207,21 +207,21 @@ void exec_case(void) {
         }
         if (whentype == STACK_STRTEMP) free_string(whenstring);
       }
-      if (found || *basicvars.current == ':' || *basicvars.current == asc_NUL) break;	/* Found a match or end of WHEN expression list so escape from loop */
-      if (*basicvars.current == ',')	/* No match - Another value follows for this CASE */
+      if (found || *basicvars.current == ':' || *basicvars.current == asc_NUL) break;   /* Found a match or end of WHEN expression list so escape from loop */
+      if (*basicvars.current == ',')    /* No match - Another value follows for this CASE */
         basicvars.current++;
       else {
         error(ERR_SYNTAX);
       }
     }
-    if (found) break;	/* Match found - Escape from outer loop */
+    if (found) break;   /* Match found - Escape from outer loop */
   }
   if (casetype == STACK_STRTEMP) free_string(casestring);
-  if (found) {	/* Case value matched */
+  if (found) {  /* Case value matched */
     if (basicvars.traces.branches) trace_branch(here, cp->whentable[n].whenaddr);
     basicvars.current = cp->whentable[n].whenaddr;
   }
-  else {	/* Case value not matched - Use 'OTHERWISE' entry */
+  else {        /* Case value not matched - Use 'OTHERWISE' entry */
     if (basicvars.traces.branches) trace_branch(here, cp->defaultaddr);
     basicvars.current = cp->defaultaddr;
   }
@@ -246,27 +246,27 @@ void exec_xcase(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_xcase\n");
 #endif /* DEBUG */
   lp = basicvars.current;
-  do {	/* Find the end of the current line */
+  do {  /* Find the end of the current line */
     tp = lp;
     lp = skip_token(lp);
   } while (*lp != asc_NUL);
-  if (*tp != BASIC_TOKEN_OF) error(ERR_OFMISS);		/* Last item on line must be 'OF' */
-  lp++;		/* Point at the start of the line after the 'CASE' */
+  if (*tp != BASIC_TOKEN_OF) error(ERR_OFMISS);         /* Last item on line must be 'OF' */
+  lp++;         /* Point at the start of the line after the 'CASE' */
   whencount = 0;
   defaultaddr = NIL;
   depth = 1;
   while (depth>0) {
-    if (AT_PROGEND(lp)) error(ERR_ENDCASE);	/* No ENDCASE found for this CASE */
-    tp = FIND_EXEC(lp);		/* Find the first executable token */
+    if (AT_PROGEND(lp)) error(ERR_ENDCASE);     /* No ENDCASE found for this CASE */
+    tp = FIND_EXEC(lp);         /* Find the first executable token */
     switch (*tp) {
-    case BASIC_TOKEN_XWHEN: case BASIC_TOKEN_WHEN:	/* Have found a 'WHEN' */
-      tp+=(1+OFFSIZE);	/* Skip token and the offset after it */
-      if (depth == 1) {	/* Only want WHENs from CASE at this level */
+    case BASIC_TOKEN_XWHEN: case BASIC_TOKEN_WHEN:      /* Have found a 'WHEN' */
+      tp+=(1+OFFSIZE);  /* Skip token and the offset after it */
+      if (depth == 1) { /* Only want WHENs from CASE at this level */
         if (whencount == MAXWHENS) error(ERR_WHENCOUNT);
         whentable[whencount].whenexpr = tp;
-        while (*tp != asc_NUL && *tp != ':') tp = skip_token(tp);	/* Find code after ':' */
+        while (*tp != asc_NUL && *tp != ':') tp = skip_token(tp);       /* Find code after ':' */
         if (*tp == ':') tp++;
-        if (*tp == asc_NUL) {	/* At end of line - Skip to next line */
+        if (*tp == asc_NUL) {   /* At end of line - Skip to next line */
           tp++;
           tp = FIND_EXEC(tp);
         }
@@ -274,19 +274,19 @@ void exec_xcase(void) {
         whencount++;
       }
       break;
-    case BASIC_TOKEN_XOTHERWISE: case BASIC_TOKEN_OTHERWISE:	/* Have found an 'OTHERWISE' */
+    case BASIC_TOKEN_XOTHERWISE: case BASIC_TOKEN_OTHERWISE:    /* Have found an 'OTHERWISE' */
       if (depth == 1) {
-        tp+=(1+OFFSIZE);	/* Skip token and the offset after it */
+        tp+=(1+OFFSIZE);        /* Skip token and the offset after it */
         if (*tp == ':') tp++;
-        if (*tp == asc_NUL) {	/* 'OTHERWISE' is at end of line */
-          tp++;	/* Move to start of next line */
+        if (*tp == asc_NUL) {   /* 'OTHERWISE' is at end of line */
+          tp++; /* Move to start of next line */
           if (AT_PROGEND(tp)) error(ERR_ENDCASE);
           tp = FIND_EXEC(tp);
         }
         defaultaddr = tp;
       }
       break;
-    case BASIC_TOKEN_ENDCASE:	/* Have reached the end of the statement */
+    case BASIC_TOKEN_ENDCASE:   /* Have reached the end of the statement */
       depth--;
       if (depth == 0 && defaultaddr == NIL) defaultaddr = tp+1;
       break;
@@ -300,13 +300,13 @@ void exec_xcase(void) {
     }
   }
 /* Create 'CASE' table */
-  cp = allocmem(sizeof(casetable)+whencount*sizeof(whenvalue), 1);	/* Hacksville, Tennessee */
+  cp = allocmem(sizeof(casetable)+whencount*sizeof(whenvalue), 1);      /* Hacksville, Tennessee */
   cp->whencount = whencount;
   cp->defaultaddr = defaultaddr;
   for (n=0; n<whencount; n++) cp->whentable[n] = whentable[n];
   *basicvars.current = BASIC_TOKEN_CASE;
   set_address(basicvars.current, cp);
-  exec_case();	/* Now go and process the CASE statement */
+  exec_case();  /* Now go and process the CASE statement */
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_xcase\n");
 #endif /* DEBUG */
@@ -348,7 +348,7 @@ void exec_clear(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_clear\n");
 #endif /* DEBUG */
-  basicvars.current++;	/* Move past token */
+  basicvars.current++;  /* Move past token */
   if ((*basicvars.current == 0xFF) && (*(basicvars.current+1) == BASIC_TOKEN_HIMEM)) {
     basicvars.current+=2;
     exec_clear_himem();
@@ -427,17 +427,17 @@ static void define_byte_array(variable *vp, boolean offheap) {
     }
   }
   islocal = *basicvars.current == BASIC_TOKEN_LOCAL;
-  if (islocal) {	/* Allocating block on stack */
-    if (basicvars.procstack == NIL) error(ERR_LOCAL);	/* LOCAL found outside a PROC or FN */
+  if (islocal) {        /* Allocating block on stack */
+    if (basicvars.procstack == NIL) error(ERR_LOCAL);   /* LOCAL found outside a PROC or FN */
     basicvars.current++;
     highindex = eval_int64();
-    if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
-    ep = alloc_stackmem(highindex + 1);			/* Allocate memory on the stack */
-    if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
+    if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);     /* Dimension is out of range */
+    ep = alloc_stackmem(highindex + 1);                 /* Allocate memory on the stack */
+    if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);  /* Not enough memory left */
   }
-  else {	/* Allocating block from heap or malloc*/
+  else {        /* Allocating block from heap or malloc*/
     highindex = eval_int64();
-    if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);	/* Dimension is out of range */
+    if (highindex < -1) error(ERR_NEGBYTEDIM, vp->varname);     /* Dimension is out of range */
     if (offheap) {
       ep = (byte *)(size_t)offset;
       if (highindex == -1) {
@@ -454,7 +454,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
 #endif
       }
     } else {
-      if (highindex == -1) {	/* Treat size of -1 as special case, although it does not have to be */
+      if (highindex == -1) {    /* Treat size of -1 as special case, although it does not have to be */
         ep = basicvars.vartop;
 #ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) error(ERR_ADDRESS);
@@ -464,7 +464,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
         if ((vp->varflags == VAR_INTWORD) && ((int64)(basicvars.stacklimit.bytesp+highindex+1) > 0xFFFFFFFFll)) error(ERR_ADDRESS);
 #endif
         ep = allocmem(highindex+1, 0);
-        if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);	/* Not enough memory left */
+        if (ep == NIL) error(ERR_BADBYTEDIM, vp->varname);      /* Not enough memory left */
       }
     }
   }
@@ -488,15 +488,15 @@ static void define_byte_array(variable *vp, boolean offheap) {
 void exec_dim(void) {
   byte *base, *ep;
   variable *vp;
-  boolean offheap = 0;		/* TRUE if allocating a block of memory off the heap */
-  boolean blockdef;		/* TRUE if we are allocating a block of memory and not creating an array */
+  boolean offheap = 0;          /* TRUE if allocating a block of memory off the heap */
+  boolean blockdef;             /* TRUE if we are allocating a block of memory and not creating an array */
 
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_dim\n");
 #endif
   do {
-    boolean islocal = FALSE;	/* TRUE if we are defining a local array on the stack */
-    basicvars.current++;	/* Skip 'DIM' token or ',' */
+    boolean islocal = FALSE;    /* TRUE if we are defining a local array on the stack */
+    basicvars.current++;        /* Skip 'DIM' token or ',' */
     /* Is the next token HIMEM? If so we're doing an off-heap memory block */
     if ((*basicvars.current == 0xFF) && (*(basicvars.current+1) == BASIC_TOKEN_HIMEM)) {
       offheap = TRUE;
@@ -504,37 +504,37 @@ void exec_dim(void) {
     }
 /* Must always have a variable name next */
     if (*basicvars.current != BASIC_TOKEN_STATICVAR && *basicvars.current != BASIC_TOKEN_XVAR) error(ERR_NAMEMISS);
-    if (*basicvars.current == BASIC_TOKEN_STATICVAR) {	/* Found a static variable */
+    if (*basicvars.current == BASIC_TOKEN_STATICVAR) {  /* Found a static variable */
       vp = &basicvars.staticvars[*(basicvars.current+1)];
       base = basicvars.current;
       basicvars.current+=2;
-      blockdef = TRUE;	/* Can only be defining a block of memory */
+      blockdef = TRUE;  /* Can only be defining a block of memory */
     }
-    else {	/* Found dynamic variable or array name */
-      base = get_srcaddr(basicvars.current);	/* Point 'base' at start of array name */
-      ep = skip_name(base);			/* Point ep at byte after name */
-      basicvars.current+=1+LOFFSIZE;		/* Skip the pointer to the name */
+    else {      /* Found dynamic variable or array name */
+      base = get_srcaddr(basicvars.current);    /* Point 'base' at start of array name */
+      ep = skip_name(base);                     /* Point ep at byte after name */
+      basicvars.current+=1+LOFFSIZE;            /* Skip the pointer to the name */
       blockdef = *(ep-1) != '(' && *(ep-1) != '[';
       vp = find_variable(base, ep-base);
-      if (blockdef) {	/* Defining a block of memory (byte array) */
-        if (vp == NIL) {		/* Variable does not exist */
-          if (*basicvars.current == '!')	/* Variable name followed by indirection operator */
+      if (blockdef) {   /* Defining a block of memory (byte array) */
+        if (vp == NIL) {                /* Variable does not exist */
+          if (*basicvars.current == '!')        /* Variable name followed by indirection operator */
             error(ERR_VARMISS, tocstring(CAST(base, char *), ep-base));
-          else {	/* Reference to variable only - Create the variable */
+          else {        /* Reference to variable only - Create the variable */
             vp = create_variable(base, ep-base, NIL);
           }
         }
       }
-      else if (vp == NIL)	/* Defining an array - Array does not exist yet */
+      else if (vp == NIL)       /* Defining an array - Array does not exist yet */
         vp = create_variable(base, ep-base, NIL);
-      else {	/* Array name exists */
-        if (vp->varentry.vararray != NIL) error(ERR_DUPLDIM, vp->varname);	/* Array aleady defined */
-        islocal = TRUE;	/* Name exists but definition does not. Assume a local array */
+      else {    /* Array name exists */
+        if (vp->varentry.vararray != NIL) error(ERR_DUPLDIM, vp->varname);      /* Array aleady defined */
+        islocal = TRUE; /* Name exists but definition does not. Assume a local array */
       }
     }
-    if (blockdef)	/* Defining a block of memory */
+    if (blockdef)       /* Defining a block of memory */
       define_byte_array(vp, offheap);
-    else {	/* Defining a normal array */
+    else {      /* Defining a normal array */
       define_array(vp, islocal, offheap);
     }
   } while (*basicvars.current == ',');
@@ -574,7 +574,7 @@ void exec_elsewhen(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_elsewhen\n");
 #endif /* DEBUG */
-  p = basicvars.current+1;	/* Point at offset */
+  p = basicvars.current+1;      /* Point at offset */
   p = GET_DEST(p);
   if (basicvars.traces.enabled) {
     if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(p)));
@@ -596,11 +596,11 @@ void exec_xelse(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_xelse\n");
 #endif /* DEBUG */
   *basicvars.current = BASIC_TOKEN_ELSE;
-  p = basicvars.current+1+OFFSIZE;	/* Start at the token after the offset */
+  p = basicvars.current+1+OFFSIZE;      /* Start at the token after the offset */
   do
     p = skip_token(p);
   while (*p != asc_NUL);
-  p++;	/* Point at start of next line */
+  p++;  /* Point at start of next line */
   set_dest(basicvars.current+1, FIND_EXEC(p));
   exec_elsewhen();
 #ifdef DEBUG
@@ -623,25 +623,25 @@ void exec_xlhelse(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_xlhelse\n");
 #endif /* DEBUG */
-  lp = find_linestart(basicvars.current);	/* Find the start of the line with the 'ELSE' */
-  lp2 = basicvars.current;	/* Ensure the code won't find an ENDIF first thing */
+  lp = find_linestart(basicvars.current);       /* Find the start of the line with the 'ELSE' */
+  lp2 = basicvars.current;      /* Ensure the code won't find an ENDIF first thing */
   depth = 1;
-  do {	/* Look for the matching ENDIF */
+  do {  /* Look for the matching ENDIF */
     if (*lp2 == BASIC_TOKEN_ENDIF) depth--;
-    if (start_blockif(lp2)) depth++;	/* Scan line to see if another block 'IF' starts in it */
+    if (start_blockif(lp2)) depth++;    /* Scan line to see if another block 'IF' starts in it */
     if (depth == 0) break;
     lp+=GET_LINELEN(lp);
-    if (AT_PROGEND(lp)) error(ERR_ENDIF);	/* No ENDIF found */
+    if (AT_PROGEND(lp)) error(ERR_ENDIF);       /* No ENDIF found */
     lp2 = FIND_EXEC(lp);
   } while (TRUE);
-  lp2++;	/* Skip the ENDIF token */
-  if (*lp2 == asc_NUL) {	/* There is nothing else on the line after the ENDIF */
-    lp2++;	/* Move to start of next line */
+  lp2++;        /* Skip the ENDIF token */
+  if (*lp2 == asc_NUL) {        /* There is nothing else on the line after the ENDIF */
+    lp2++;      /* Move to start of next line */
     if (basicvars.traces.lines) trace_line(get_lineno(lp2));
-    lp2 = FIND_EXEC(lp2);	/* Find the first executable token */
+    lp2 = FIND_EXEC(lp2);       /* Find the first executable token */
   }
   *basicvars.current = BASIC_TOKEN_LHELSE;
-  set_dest(basicvars.current+1, lp2);	/* Set destination of branch */
+  set_dest(basicvars.current+1, lp2);   /* Set destination of branch */
   exec_elsewhen();
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_xlhelse\n");
@@ -664,8 +664,8 @@ void exec_end(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_end\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip END token */
-  if (*basicvars.current == '=') {	/* Have got 'END=' version */
+  basicvars.current++;          /* Skip END token */
+  if (*basicvars.current == '=') {      /* Have got 'END=' version */
     int32 newend = 0;
     basicvars.current++;
     expression();
@@ -673,7 +673,7 @@ void exec_end(void) {
     newend = pop_anynum32();
     mos_setend(newend);
   }
-  else {	/* Normal 'END' statement */
+  else {        /* Normal 'END' statement */
     check_ateol();
     end_run();
   }
@@ -693,11 +693,11 @@ void exec_endifcase(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_endifcase\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip token */
+  basicvars.current++;          /* Skip token */
   if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  if (*basicvars.current == ':') basicvars.current++;	/* Skip ':' */
-  if (*basicvars.current == asc_NUL) {	/* Token is at end of line */
-    basicvars.current++;		/* Move to start of next line */
+  if (*basicvars.current == ':') basicvars.current++;   /* Skip ':' */
+  if (*basicvars.current == asc_NUL) {  /* Token is at end of line */
+    basicvars.current++;                /* Move to start of next line */
     if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
   }
@@ -709,7 +709,7 @@ void exec_endifcase(void) {
 /*
 ** 'exec_endproc' deals with returns from procedures.
 ** The stack layout at this point should be:
-**	<stuff to chuck away> <local vars> <return block> <arguments>
+**      <stuff to chuck away> <local vars> <return block> <arguments>
 ** Everything here has to be discarded.
 */
 void exec_endproc(void) {
@@ -720,12 +720,12 @@ void exec_endproc(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_endproc\n");
 #endif /* DEBUG */
   basicvars.errorislocal = 0;
-  if (basicvars.procstack == NIL) error(ERR_ENDPROC);	/* ENDPROC found outside a PROC */
+  if (basicvars.procstack == NIL) error(ERR_ENDPROC);   /* ENDPROC found outside a PROC */
   item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
-  if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);	/* Throw away unwanted entries on Basic stack */
-  returnblock = pop_proc();	/* Fetch return address and so forth */
-  if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had parameters - Restore old values */
+  if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);       /* Throw away unwanted entries on Basic stack */
+  returnblock = pop_proc();     /* Fetch return address and so forth */
+  if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had parameters - Restore old values */
   if (basicvars.traces.enabled) {
     if (basicvars.traces.procs) trace_proc(returnblock.fnprocname, FALSE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, returnblock.retaddr);
@@ -759,19 +759,19 @@ void exec_fnreturn(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_fnreturn\n");
 #endif /* DEBUG */
   basicvars.errorislocal = 0;
-  if (basicvars.procstack == NIL) error(ERR_FNRETURN);	/* '=<expr>' found outside a FN */
+  if (basicvars.procstack == NIL) error(ERR_FNRETURN);  /* '=<expr>' found outside a FN */
   basicvars.current++;
   expression();
   resultype = GET_TOPITEM;
-  if (resultype == STACK_INT)	/* Pop result from stack and ensure type is legal */
+  if (resultype == STACK_INT)   /* Pop result from stack and ensure type is legal */
     intresult = pop_int();
-  else if (resultype == STACK_UINT8)	/* Pop result from stack and ensure type is legal */
+  else if (resultype == STACK_UINT8)    /* Pop result from stack and ensure type is legal */
     uint8result = pop_uint8();
   else if (resultype == STACK_INT64)
     int64result = pop_int64();
   else if (resultype == STACK_FLOAT)
     fpresult = pop_float();
-  else if (resultype == STACK_STRING) {	/* Have to make a copy of the string for safety */
+  else if (resultype == STACK_STRING) { /* Have to make a copy of the string for safety */
     stresult = pop_string();
     sp = alloc_string(stresult.stringlen);
     if (stresult.stringlen != 0) memmove(sp, stresult.stringaddr, stresult.stringlen);
@@ -785,13 +785,13 @@ void exec_fnreturn(void) {
   }
   item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
-  empty_stack(STACK_FN);	/* Throw away unwanted entries on Basic stack */
-  returnblock = pop_fn();	/* Fetch return address and so forth */
-  if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);	/* Procedure had arguments - restore old values */
-  if (resultype == STACK_INT) {	/* Lastly, put the result back on the stack */
+  empty_stack(STACK_FN);        /* Throw away unwanted entries on Basic stack */
+  returnblock = pop_fn();       /* Fetch return address and so forth */
+  if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had arguments - restore old values */
+  if (resultype == STACK_INT) { /* Lastly, put the result back on the stack */
     push_int(intresult);
   }
-  else if (resultype == STACK_UINT8) {	/* Lastly, put the result back on the stack */
+  else if (resultype == STACK_UINT8) {  /* Lastly, put the result back on the stack */
     push_uint8(uint8result);
   }
   else if (resultype == STACK_INT64) {
@@ -841,26 +841,26 @@ void exec_endwhile(void) {
 #endif /* DEBUG */
   tp = basicvars.current+1;
   if (!ateol[*tp]) error(ERR_SYNTAX);
-  if (GET_TOPITEM == STACK_WHILE) 	/* WHILE control block is top of stack */
+  if (GET_TOPITEM == STACK_WHILE)       /* WHILE control block is top of stack */
     wp = basicvars.stacktop.whilesp;
-  else {	/* Discard contents of stack as far as WHILE block */
+  else {        /* Discard contents of stack as far as WHILE block */
     wp = get_while();
   }
-  if (wp == NIL) error(ERR_NOTWHILE);	/* Not in a WHILE loop */
+  if (wp == NIL) error(ERR_NOTWHILE);   /* Not in a WHILE loop */
   basicvars.current = wp->whilexpr;
   expression();
   result = pop_anynum64();
-  if (result != BASFALSE) {	/* Condition still true - Continue with loop */
+  if (result != BASFALSE) {     /* Condition still true - Continue with loop */
     if (basicvars.traces.branches) trace_branch(tp, wp->whileaddr);
     basicvars.current = wp->whileaddr;
   }
-  else {	/* Escape from loop - Remove WHILE control block from stack */
+  else {        /* Escape from loop - Remove WHILE control block from stack */
     pop_while();
-    if (*tp == ':') tp++;		/* Continue at next token after ENDWHILE */
+    if (*tp == ':') tp++;               /* Continue at next token after ENDWHILE */
     if (*tp == asc_NUL) {
-      tp++;		/* Move to the start of the next line */
+      tp++;             /* Move to the start of the next line */
       if (basicvars.traces.lines) trace_line(get_lineno(tp));
-      tp = FIND_EXEC(tp);	/* Skip to start of the executable tokens */
+      tp = FIND_EXEC(tp);       /* Skip to start of the executable tokens */
     }
     basicvars.current = tp;
   }
@@ -882,9 +882,9 @@ void exec_error(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_error\n");
 #endif /* DEBUG */
-  basicvars.current++;	/* Skip the ERROR token*/
+  basicvars.current++;  /* Skip the ERROR token*/
   errnumber = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);	/* Comma missing */
+  if (*basicvars.current != ',') error(ERR_COMISS);     /* Comma missing */
   basicvars.current++;
   expression();
   check_ateol();
@@ -893,7 +893,7 @@ void exec_error(void) {
   descriptor = pop_string();
   errtext = tocstring(descriptor.stringaddr, descriptor.stringlen);
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
-  show_error(errnumber, errtext);	/* Report the error */
+  show_error(errnumber, errtext);       /* Report the error */
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_error\n");
 #endif /* DEBUG */
@@ -912,20 +912,20 @@ void exec_for(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_for\n");
 #endif /* DEBUG */
-  basicvars.current++;	/* Skip the 'FOR' token */
+  basicvars.current++;  /* Skip the 'FOR' token */
   get_lvalue(&forvar);
-  if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);	/* Numeric variable required */
+  if ((forvar.typeinfo & VAR_ARRAY) != 0) error(ERR_VARNUM);    /* Numeric variable required */
   switch(forvar.typeinfo & TYPEMASK) {
     case VAR_INTWORD: case VAR_INTLONG: case VAR_UINT8: isinteger=1; break;
     case VAR_FLOAT: isinteger=0; break;
     default: error(ERR_VARNUM);
   }
-  if (*basicvars.current != '=') error(ERR_EQMISS);	/* '=' is missing */
+  if (*basicvars.current != '=') error(ERR_EQMISS);     /* '=' is missing */
   basicvars.current++;
-  expression();		/* Get the control variable's initial value */
+  expression();         /* Get the control variable's initial value */
   if (*basicvars.current != BASIC_TOKEN_TO) error(ERR_TOMISS);
   basicvars.current++;
-  switch (forvar.typeinfo) {	/* Assign control variable's initial value */
+  switch (forvar.typeinfo) {    /* Assign control variable's initial value */
   case VAR_UINT8: forvar.typeinfo = VAR_INTWORD;
   case VAR_INTWORD:
     *forvar.address.intaddr = pop_anynum32();
@@ -946,36 +946,36 @@ void exec_for(void) {
     store_float(forvar.address.offset, pop_anynumfp());
     break;
   default:
-    error(ERR_BROKEN, __LINE__, "mainstate");		/* Bad variable type found */
+    error(ERR_BROKEN, __LINE__, "mainstate");           /* Bad variable type found */
   }
 
 /* Now evaluate the control variable's final value */
 
   expression();
-  if (isinteger) {	/* Loop is an integer loop */
+  if (isinteger) {      /* Loop is an integer loop */
     intlimit = pop_anynum64();
-  } else {	/* Loop is a floating point loop */
+  } else {      /* Loop is a floating point loop */
     floatlimit = pop_anynumfp();
   }
   if (*basicvars.current == BASIC_TOKEN_STEP) {
     basicvars.current++;
     expression();
-    if (isinteger) {	/* Loop is an integer loop */
+    if (isinteger) {    /* Loop is an integer loop */
       intstep=pop_anynum64();
       if (intstep == 0) error(ERR_SILLY);
-    } else {	/* Loop is a floating point loop */
+    } else {    /* Loop is a floating point loop */
       floatstep = pop_anynumfp();
       if (floatstep == 0.0) error(ERR_SILLY);
     }
   }
-  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);		/* Ensure there is nothing left on the line */
-  if (*basicvars.current == ':') basicvars.current++;	/* Find the start of the statements in the loop */
-  if (*basicvars.current == asc_NUL) {	/* Not on this line - Try the next */
+  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);            /* Ensure there is nothing left on the line */
+  if (*basicvars.current == ':') basicvars.current++;   /* Find the start of the statements in the loop */
+  if (*basicvars.current == asc_NUL) {  /* Not on this line - Try the next */
     basicvars.current++;
     if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
   }
-  if (isinteger) {	/* Finally, set up the loop control block on the stack and end */
+  if (isinteger) {      /* Finally, set up the loop control block on the stack and end */
     boolean simple = forvar.typeinfo == VAR_INTWORD && intstep == 1;
     switch(forvar.typeinfo) {
       case VAR_INTWORD: push_intfor(forvar, basicvars.current, intlimit, intstep, simple); break;
@@ -1004,9 +1004,9 @@ static byte *set_linedest(byte *tp) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:set_linedest\n");
 #endif /* DEBUG */
   line = get_linenum(tp);
-  dest = find_line(line);	/* Find the line refered to */
+  dest = find_line(line);       /* Find the line refered to */
   if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
-  dest = FIND_EXEC(dest);	/* Find the first executable token */
+  dest = FIND_EXEC(dest);       /* Find the first executable token */
   *tp = BASIC_TOKEN_LINENUM;
   set_address(tp, dest);
 #ifdef DEBUG
@@ -1023,21 +1023,21 @@ void exec_gosub(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_gosub\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Slip GOSUB token */
+  basicvars.current++;          /* Slip GOSUB token */
   if (*basicvars.current == BASIC_TOKEN_LINENUM) {
     dest = GET_ADDRESS(basicvars.current, byte *);
-    basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
+    basicvars.current+=1+LOFFSIZE;      /* Skip 'line number' token */
   }
-  else if (*basicvars.current == BASIC_TOKEN_XLINENUM) {	/* GOSUB destination not filled in yet */
+  else if (*basicvars.current == BASIC_TOKEN_XLINENUM) {        /* GOSUB destination not filled in yet */
     dest = set_linedest(basicvars.current);
-    basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
+    basicvars.current+=1+LOFFSIZE;      /* Skip 'line number' token */
   }
-  else {	/* Destination line number is given by an expression */
+  else {        /* Destination line number is given by an expression */
     int32 line = eval_integer();
-    if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
-    dest = find_line(line);	/* Find start of destination line */
+    if (line<0 || line>MAXLINENO) error(ERR_LINENO);    /* Line number is out of range */
+    dest = find_line(line);     /* Find start of destination line */
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
-    dest = FIND_EXEC(dest);		/* Move from start of line to first token */
+    dest = FIND_EXEC(dest);             /* Move from start of line to first token */
   }
   check_ateol();
   push_gosub();
@@ -1056,18 +1056,18 @@ void exec_goto(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_goto\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip 'GOTO' token */
+  basicvars.current++;          /* Skip 'GOTO' token */
   if (*basicvars.current == BASIC_TOKEN_LINENUM) {
     dest = GET_ADDRESS(basicvars.current, byte *);
-    basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
+    basicvars.current+=1+LOFFSIZE;      /* Skip 'line number' token */
   }
-  else if (*basicvars.current == BASIC_TOKEN_XLINENUM) {	/* GOTO destination not filled in yet */
+  else if (*basicvars.current == BASIC_TOKEN_XLINENUM) {        /* GOTO destination not filled in yet */
     dest = set_linedest(basicvars.current);
-    basicvars.current+=1+LOFFSIZE;	/* Skip 'line number' token */
+    basicvars.current+=1+LOFFSIZE;      /* Skip 'line number' token */
   }
-  else {	/* Destination line number is given by an expression */
+  else {        /* Destination line number is given by an expression */
     int32 line = eval_integer();
-    if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
+    if (line<0 || line>MAXLINENO) error(ERR_LINENO);    /* Line number is out of range */
     dest = find_line(line);
     if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
     dest = FIND_EXEC(dest);
@@ -1090,15 +1090,15 @@ void exec_blockif(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_blockif\n");
 #endif /* DEBUG */
-  dest = basicvars.current+1;		/* Point at the 'THEN' offset */
-  basicvars.current+=1+2*OFFSIZE;	/* Skip IF token and THEN and ELSE offsets */
+  dest = basicvars.current+1;           /* Point at the 'THEN' offset */
+  basicvars.current+=1+2*OFFSIZE;       /* Skip IF token and THEN and ELSE offsets */
   expression();
-  if (pop_anynum64() == BASFALSE) dest+=OFFSIZE;	/* Point at offset to 'ELSE' part */
-  if (basicvars.traces.enabled) {	/* Branch after dealing with debug info */
+  if (pop_anynum64() == BASFALSE) dest+=OFFSIZE;        /* Point at offset to 'ELSE' part */
+  if (basicvars.traces.enabled) {       /* Branch after dealing with debug info */
     if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(GET_DEST(dest))));
     if (basicvars.traces.branches) trace_branch(dest, GET_DEST(dest));
   }
-  basicvars.current = GET_DEST(dest);		/* Branch to the 'THEN' or 'ELSE' code */
+  basicvars.current = GET_DEST(dest);           /* Branch to the 'THEN' or 'ELSE' code */
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_blockif\n");
 #endif /* DEBUG */
@@ -1112,17 +1112,17 @@ void exec_singlif(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_singlif\n");
 #endif /* DEBUG */
-  here = dest = basicvars.current+1;	/* Point at the 'THEN' offset */
-  basicvars.current+=1+2*OFFSIZE;	/* Skip IF token and THEN and ELSE offsets */
+  here = dest = basicvars.current+1;    /* Point at the 'THEN' offset */
+  basicvars.current+=1+2*OFFSIZE;       /* Skip IF token and THEN and ELSE offsets */
   expression();
-  if (pop_anynum64() == BASFALSE) dest+=OFFSIZE;	/* Cond was false - Point at offset to 'ELSE' part */
-  dest = GET_DEST(dest);	/* Find code after the 'THEN' or 'ELSE' */
-  if (*dest == BASIC_TOKEN_LINENUM)	/* There is a line number there */
+  if (pop_anynum64() == BASFALSE) dest+=OFFSIZE;        /* Cond was false - Point at offset to 'ELSE' part */
+  dest = GET_DEST(dest);        /* Find code after the 'THEN' or 'ELSE' */
+  if (*dest == BASIC_TOKEN_LINENUM)     /* There is a line number there */
     dest = GET_ADDRESS(dest, byte *);
-  else if (*dest == BASIC_TOKEN_XLINENUM) {	/* Address of line is not filled in */
-    dest = set_linedest(dest);	/* Find line and fill in its address */
+  else if (*dest == BASIC_TOKEN_XLINENUM) {     /* Address of line is not filled in */
+    dest = set_linedest(dest);  /* Find line and fill in its address */
   }
-  if (basicvars.traces.enabled) {	/* Deal with any trace info needed */
+  if (basicvars.traces.enabled) {       /* Deal with any trace info needed */
     if (basicvars.traces.lines) {
       int32 destline = get_lineno(find_linestart(dest));
       if (get_lineno(here) != destline) trace_line(destline);
@@ -1149,24 +1149,24 @@ void exec_xif(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_xif\n");
 #endif /* DEBUG */
-  ifplace = basicvars.current; 		/* Set up a pointer to the 'IF' token */
-  thenplace = ifplace+1;		/* Set up addresses where offsets will be stored */
+  ifplace = basicvars.current;          /* Set up a pointer to the 'IF' token */
+  thenplace = ifplace+1;                /* Set up addresses where offsets will be stored */
   elseplace = ifplace+1+OFFSIZE;
   basicvars.current+=1+2*OFFSIZE;
   expression();
   result = pop_anynum64();
-  single = *basicvars.current != BASIC_TOKEN_THEN;	/* No 'THEN' = single line if */
+  single = *basicvars.current != BASIC_TOKEN_THEN;      /* No 'THEN' = single line if */
   if (*basicvars.current == BASIC_TOKEN_THEN) {
-    lp2 = basicvars.current+1;	/* Skip the 'THEN' and see if it is the last item on the line */
-    single = *lp2 != asc_NUL;		/* A 'null' here means that this is the start of a block 'IF' */
+    lp2 = basicvars.current+1;  /* Skip the 'THEN' and see if it is the last item on the line */
+    single = *lp2 != asc_NUL;           /* A 'null' here means that this is the start of a block 'IF' */
   }
-  if (single) {		/* Dealing with a single line 'IF' */
+  if (single) {         /* Dealing with a single line 'IF' */
     *ifplace = BASIC_TOKEN_SINGLIF;
-    if (*basicvars.current == BASIC_TOKEN_XELSE) {	/* Got 'IF <expression> ELSE ...' i.e. there is no 'THEN' part */
-      lp2 = basicvars.current+1+OFFSIZE;	/* Find the token after the 'ELSE' */
+    if (*basicvars.current == BASIC_TOKEN_XELSE) {      /* Got 'IF <expression> ELSE ...' i.e. there is no 'THEN' part */
+      lp2 = basicvars.current+1+OFFSIZE;        /* Find the token after the 'ELSE' */
       set_dest(elseplace, lp2);
-      while (*lp2 != asc_NUL) lp2 = skip_token(lp2);		/* Find next line for dummy 'THEN' part */
-      lp2++;	/* Move to the start of the next line */
+      while (*lp2 != asc_NUL) lp2 = skip_token(lp2);            /* Find next line for dummy 'THEN' part */
+      lp2++;    /* Move to the start of the next line */
       set_dest(thenplace, FIND_EXEC(lp2));
     }
     else {
@@ -1219,8 +1219,8 @@ void exec_xif(void) {
         /* End of Cascaded IF handler */
       } else {
         while (*lp2 != asc_NUL && *lp2 != BASIC_TOKEN_XELSE) lp2 = skip_token(lp2);
-        if (*lp2 == BASIC_TOKEN_XELSE) lp2+=1+OFFSIZE;	/* Find the token after the 'ELSE' */
-        if (*lp2 == asc_NUL) {	/* Find the first token on the next line */
+        if (*lp2 == BASIC_TOKEN_XELSE) lp2+=1+OFFSIZE;  /* Find the token after the 'ELSE' */
+        if (*lp2 == asc_NUL) {  /* Find the first token on the next line */
           lp2++;
           lp2 = FIND_EXEC(lp2);
         }
@@ -1228,7 +1228,7 @@ void exec_xif(void) {
       }
     }
   }
-  else {	/* Dealing with a block 'IF' */
+  else {        /* Dealing with a block 'IF' */
     *ifplace = BASIC_TOKEN_BLOCKIF;
 /*
 ** Now find the 'ELSE' or 'ENDIF' that matches this 'IF' to fill in the
@@ -1239,37 +1239,37 @@ void exec_xif(void) {
 **    flagged as an error. If it is false then it is a syntax error.
 **    If true the error is ignored.
 */
-    basicvars.current = lp2+1;		/* Move to the start of the next line */
+    basicvars.current = lp2+1;          /* Move to the start of the next line */
     set_dest(thenplace, FIND_EXEC(basicvars.current));
     depth = 1;
-    while (depth>0) {	/* Look for an ELSE or ENDIF */
+    while (depth>0) {   /* Look for an ELSE or ENDIF */
       if (AT_PROGEND(basicvars.current)) {
         if (result == BASFALSE)
-          error(ERR_ENDIF);	/* Result is 'false' but no ELSE or ENDIF found */
-        else {	/* Otherwise we pretend we have found the end of the block IF */
+          error(ERR_ENDIF);     /* Result is 'false' but no ELSE or ENDIF found */
+        else {  /* Otherwise we pretend we have found the end of the block IF */
           break;
         }
       }
-      lp2 = FIND_EXEC(basicvars.current);	/* Find the first executable token */
+      lp2 = FIND_EXEC(basicvars.current);       /* Find the first executable token */
       if (*lp2 == BASIC_TOKEN_ENDIF)
         depth--;
       else if (*lp2 == BASIC_TOKEN_XLHELSE) {
-        if (depth == 1) depth = 0;	/* ELSE can only decrement depth if at top level of nest */
+        if (depth == 1) depth = 0;      /* ELSE can only decrement depth if at top level of nest */
       }
-      else if (start_blockif(lp2)) {	/* There is a block IF nested here */
+      else if (start_blockif(lp2)) {    /* There is a block IF nested here */
         depth++;
       }
       if (depth>0) basicvars.current+=GET_LINELEN(basicvars.current);
     }
-    if (AT_PROGEND(basicvars.current))		/* No 'ELSE' or 'ENDIF' found */
-      lp2 = FIND_EXEC(basicvars.current);	/* Fake an address for the 'ELSE' code */
-    else {	/* ELSE or ENDIF found */
-      if (*lp2 == BASIC_TOKEN_XLHELSE)	/* Move past ELSE and offset */
+    if (AT_PROGEND(basicvars.current))          /* No 'ELSE' or 'ENDIF' found */
+      lp2 = FIND_EXEC(basicvars.current);       /* Fake an address for the 'ELSE' code */
+    else {      /* ELSE or ENDIF found */
+      if (*lp2 == BASIC_TOKEN_XLHELSE)  /* Move past ELSE and offset */
         lp2+=1+OFFSIZE;
-      else {	/* Move past ENDIF */
+      else {    /* Move past ENDIF */
         lp2++;
       }
-      if (*lp2 == asc_NUL) {	/* There is nothing else on the line - Skip to next line */
+      if (*lp2 == asc_NUL) {    /* There is nothing else on the line - Skip to next line */
         lp2++;
         lp2 = FIND_EXEC(lp2);
       }
@@ -1283,14 +1283,14 @@ void exec_xif(void) {
 ** functions
 */
   if (result != BASFALSE)
-    dest = GET_DEST(thenplace);	/* Result is 'true' - Go to 'THEN' code */
+    dest = GET_DEST(thenplace); /* Result is 'true' - Go to 'THEN' code */
   else {
     dest = GET_DEST(elseplace);
   }
   if (single) {
-    if (*dest == BASIC_TOKEN_XLINENUM)	/* Unresolved line number follows THEN or ELSE */
+    if (*dest == BASIC_TOKEN_XLINENUM)  /* Unresolved line number follows THEN or ELSE */
       dest = set_linedest(dest);
-    else if (*dest == BASIC_TOKEN_LINENUM) {	/* Resolved line number follows THEN or ELSE */
+    else if (*dest == BASIC_TOKEN_LINENUM) {    /* Resolved line number follows THEN or ELSE */
       dest = GET_ADDRESS(dest, byte *);
     }
   }
@@ -1317,19 +1317,19 @@ void exec_library(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_library\n");
 #endif /* DEBUG */
   basicvars.current++;
-  if (*basicvars.current == BASIC_TOKEN_LOCAL) error(ERR_NOLIBLOC);	/* 'LIBRARY LOCAL' not allowed */
+  if (*basicvars.current == BASIC_TOKEN_LOCAL) error(ERR_NOLIBLOC);     /* 'LIBRARY LOCAL' not allowed */
   do {
     stackitem stringtype;
-    expression();	/* Get a library name */
+    expression();       /* Get a library name */
     stringtype = GET_TOPITEM;
     if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
     name = pop_string();
-    if (name.stringlen>0) {	/* Ignore non-existant library names */
+    if (name.stringlen>0) {     /* Ignore non-existant library names */
       libname = tocstring(name.stringaddr, name.stringlen);
       if (stringtype == STACK_STRTEMP) free_string(name);
-      read_library(libname, LOAD_LIBRARY);	/* Save library on Basic heap */
+      read_library(libname, LOAD_LIBRARY);      /* Save library on Basic heap */
     }
-    if (*basicvars.current != ',') break;		/* Escape if there is nothing more to do */
+    if (*basicvars.current != ',') break;               /* Escape if there is nothing more to do */
     basicvars.current++;
   } while (TRUE);
   check_ateol();
@@ -1350,11 +1350,11 @@ static void def_locvar(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:def_locvar\n");
 #endif /* DEBUG */
-  if (basicvars.procstack == NIL) error(ERR_LOCAL);	/* LOCAL found outside a PROC or FN */
-  basicvars.runflags.make_array = TRUE;	/* Create arrays, do not flag errors if missing in 'get_lvalue' */
+  if (basicvars.procstack == NIL) error(ERR_LOCAL);     /* LOCAL found outside a PROC or FN */
+  basicvars.runflags.make_array = TRUE; /* Create arrays, do not flag errors if missing in 'get_lvalue' */
   do {
     get_lvalue(&locvar);
-    switch (locvar.typeinfo) {	/* Now to save the variable and set it to its new initial value */
+    switch (locvar.typeinfo) {  /* Now to save the variable and set it to its new initial value */
     case VAR_INTWORD:
       save_int(locvar, *locvar.address.intaddr);
       *locvar.address.intaddr = 0;
@@ -1374,7 +1374,7 @@ static void def_locvar(void) {
     case VAR_STRINGDOL:
       save_string(locvar, *locvar.address.straddr);
       locvar.address.straddr->stringlen = 0;
-      locvar.address.straddr->stringaddr = nullstring;	/* 'nullstring' is defined in variables */
+      locvar.address.straddr->stringaddr = nullstring;  /* 'nullstring' is defined in variables */
       break;
     case VAR_INTBYTEPTR:
       save_int(locvar, basicvars.memory[locvar.address.offset]);
@@ -1389,7 +1389,7 @@ static void def_locvar(void) {
       store_float(locvar.address.offset, 0.0);
       break;
     case VAR_DOLSTRPTR:
-      descriptor.stringlen = get_stringlen(locvar.address.offset)+1;	/* +1 for CR at end */
+      descriptor.stringlen = get_stringlen(locvar.address.offset)+1;    /* +1 for CR at end */
       descriptor.stringaddr = alloc_string(descriptor.stringlen);
       memmove(descriptor.stringaddr, &basicvars.memory[locvar.address.offset], descriptor.stringlen);
       save_string(locvar, descriptor);
@@ -1400,10 +1400,10 @@ static void def_locvar(void) {
       *locvar.address.arrayaddr = NIL;
       break;
     default:
-      error(ERR_BROKEN, __LINE__, "mainstate");	/* Just in case something gets clobbered */
+      error(ERR_BROKEN, __LINE__, "mainstate"); /* Just in case something gets clobbered */
     }
-    if (*basicvars.current != ',') break;	/* Escape if there is nothing more to do */
-    basicvars.current++;	/* Skip ',' token */
+    if (*basicvars.current != ',') break;       /* Escape if there is nothing more to do */
+    basicvars.current++;        /* Skip ',' token */
   } while(TRUE);
   basicvars.runflags.make_array = FALSE;
   check_ateol();
@@ -1420,15 +1420,15 @@ void exec_local(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_local\n");
 #endif /* DEBUG */
-  basicvars.current++;	/* Skip LOCAL token */
+  basicvars.current++;  /* Skip LOCAL token */
   switch (*basicvars.current) {
-  case BASIC_TOKEN_ERROR:	/* Got 'LOCAL ERROR' */
+  case BASIC_TOKEN_ERROR:       /* Got 'LOCAL ERROR' */
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
     push_error(basicvars.error_handler);
     basicvars.errorislocal = 1;
     break;
-  case BASIC_TOKEN_DATA:	/* Got 'LOCAL DATA' */
+  case BASIC_TOKEN_DATA:        /* Got 'LOCAL DATA' */
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
     push_data(basicvars.datacur);
@@ -1436,7 +1436,7 @@ void exec_local(void) {
   case BASIC_TOKEN_EOL: /* No parameter given - Acorn does nothing */
   case ':':             /* : character, end of statement */
     if (!basicvars.runflags.flag_cosmetic && (basicvars.procstack != NIL)) break;
-  default:	/* Defining local variables */
+  default:      /* Defining local variables */
     def_locvar();
   }
 #ifdef DEBUG
@@ -1454,10 +1454,10 @@ static stack_for *find_for(void)
 
   if (GET_TOPITEM == STACK_INTFOR || GET_TOPITEM == STACK_INT64FOR || GET_TOPITEM == STACK_FLOATFOR) /* FOR control block is top of stack */
     fp = basicvars.stacktop.forsp;
-  else {	/* Discard entries until FOR control block is found */
+  else {        /* Discard entries until FOR control block is found */
     fp = get_for();
   }
-  if (fp == NIL) error(ERR_NOTFOR);	/* Not in a FOR loop */
+  if (fp == NIL) error(ERR_NOTFOR);     /* Not in a FOR loop */
   return fp;
 }
   
@@ -1474,8 +1474,8 @@ void exec_next(void) {
 #endif /* DEBUG */
   do {
     fp = find_for();
-    basicvars.current++;	/* Skip NEXT token */
-    if (!ateol[*basicvars.current]) {	/* There is a control variable (or two) here */
+    basicvars.current++;        /* Skip NEXT token */
+    if (!ateol[*basicvars.current]) {   /* There is a control variable (or two) here */
       if (*basicvars.current != ',') {
         get_lvalue(&nextvar);
         while (nextvar.address.intaddr != fp->forvar.address.intaddr) {
@@ -1492,16 +1492,16 @@ void exec_next(void) {
 */
     if (fp->simplefor) {
       intvalue = *fp->forvar.address.intaddr+=1;
-      if (intvalue<=fp->fortype.intfor.intlimit) {	/* Continue with loop */
+      if (intvalue<=fp->fortype.intfor.intlimit) {      /* Continue with loop */
         if (basicvars.traces.branches) trace_branch(basicvars.current, fp->foraddr);
         basicvars.current = fp->foraddr;
         return;
       }
-      contloop = FALSE;	/* Escape from loop */
+      contloop = FALSE; /* Escape from loop */
     }
     else {
-      switch (fp->forvar.typeinfo) {	/* Right, let's bump up the 'FOR' variable */
-      case VAR_INTWORD:		/* 32-bit integer value */
+      switch (fp->forvar.typeinfo) {    /* Right, let's bump up the 'FOR' variable */
+      case VAR_INTWORD:         /* 32-bit integer value */
         intvalue = *fp->forvar.address.intaddr+fp->fortype.intfor.intstep;
         *fp->forvar.address.intaddr = intvalue;
         if (fp->fortype.intfor.intstep>0)
@@ -1510,7 +1510,7 @@ void exec_next(void) {
           contloop = intvalue>=fp->fortype.intfor.intlimit;
         }
         break;
-      case VAR_INTLONG:		/* 64-bit integer value */
+      case VAR_INTLONG:         /* 64-bit integer value */
         int64value = *fp->forvar.address.int64addr+fp->fortype.int64for.int64step;
         *fp->forvar.address.int64addr = int64value;
         if (fp->fortype.int64for.int64step>0)
@@ -1519,7 +1519,7 @@ void exec_next(void) {
           contloop = int64value>=fp->fortype.int64for.int64limit;
         }
         break;
-      case VAR_UINT8:		/* Unsigned 8-bit integer value */
+      case VAR_UINT8:           /* Unsigned 8-bit integer value */
         uint8value = *fp->forvar.address.uint8addr+fp->fortype.uint8for.uint8step;
         *fp->forvar.address.uint8addr = uint8value;
         if (fp->fortype.uint8for.uint8step>0)
@@ -1528,7 +1528,7 @@ void exec_next(void) {
           contloop = uint8value>=fp->fortype.uint8for.uint8limit;
         }
         break;
-      case VAR_FLOAT:		/* Word-aligned floating point value */
+      case VAR_FLOAT:           /* Word-aligned floating point value */
         floatvalue = *fp->forvar.address.floataddr+fp->fortype.floatfor.floatstep;
         *fp->forvar.address.floataddr = floatvalue;
         if (fp->fortype.floatfor.floatstep>0)
@@ -1537,7 +1537,7 @@ void exec_next(void) {
           contloop = floatvalue>=fp->fortype.floatfor.floatlimit;
         }
         break;
-      case VAR_INTBYTEPTR:	/* Pointer to a byte-aligned byte-sized integer */
+      case VAR_INTBYTEPTR:      /* Pointer to a byte-aligned byte-sized integer */
         intvalue = basicvars.memory[fp->forvar.address.offset]+fp->fortype.intfor.intstep;
         basicvars.memory[fp->forvar.address.offset] = intvalue;
         if (fp->fortype.intfor.intstep>0)
@@ -1546,7 +1546,7 @@ void exec_next(void) {
           contloop = intvalue>=fp->fortype.intfor.intlimit;
         }
         break;
-      case VAR_INTWORDPTR:	/* Pointer to a byte-aligned word-sized integer */
+      case VAR_INTWORDPTR:      /* Pointer to a byte-aligned word-sized integer */
         intvalue = get_integer(fp->forvar.address.offset)+fp->fortype.intfor.intstep;
         store_integer(fp->forvar.address.offset, intvalue);
         if (fp->fortype.intfor.intstep>0)
@@ -1555,7 +1555,7 @@ void exec_next(void) {
           contloop = intvalue>=fp->fortype.intfor.intlimit;
         }
         break;
-      case VAR_FLOATPTR:	/* Pointer to byte-aligned floating point value */
+      case VAR_FLOATPTR:        /* Pointer to byte-aligned floating point value */
         floatvalue = get_float(fp->forvar.address.offset)+fp->fortype.floatfor.floatstep;
         store_float(fp->forvar.address.offset, floatvalue);
         if (fp->fortype.floatfor.floatstep>0)
@@ -1568,12 +1568,12 @@ void exec_next(void) {
         error(ERR_BROKEN, __LINE__, "mainstate");
       }
     }
-    if (contloop) {	/* Continue with loop */
+    if (contloop) {     /* Continue with loop */
       if (basicvars.traces.branches) trace_branch(basicvars.current, fp->foraddr);
       basicvars.current = fp->foraddr;
       return;
     }
-    pop_for();	/* Loop has finished - Discard loop control block */
+    pop_for();  /* Loop has finished - Discard loop control block */
   } while (*basicvars.current == ',');
   check_ateol();
 #ifdef DEBUG
@@ -1588,14 +1588,14 @@ static void exec_onerror(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_onerror\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip ON token */
+  basicvars.current++;          /* Skip ON token */
   switch (*basicvars.current) {
-  case BASIC_TOKEN_OFF:	/* Got 'ON ERROR OFF' */
+  case BASIC_TOKEN_OFF: /* Got 'ON ERROR OFF' */
     clear_error();
     basicvars.current++;
     check_ateol();
     break;
-  case BASIC_TOKEN_LOCAL:	/* Got 'ON ERROR LOCAL' */
+  case BASIC_TOKEN_LOCAL:       /* Got 'ON ERROR LOCAL' */
     basicvars.current++;
     push_error(basicvars.error_handler);
     set_local_error();
@@ -1637,7 +1637,7 @@ static void find_else(byte *tp, int32 index) {
 */
     basicvars.current = tp+1+OFFSIZE;
   }
-  else {	/* No 'ELSE' clause found - Flag an 'ON' range error */
+  else {        /* No 'ELSE' clause found - Flag an 'ON' range error */
     error(ERR_ONRANGE, index);
   }
 #ifdef DEBUG
@@ -1671,12 +1671,12 @@ static byte *find_onentry(byte *tp, int32 wanted) {
         brackets--;
       }
     }
-    if (*tp == BASIC_TOKEN_XELSE) break;	/* Check this first to avoid clash with ATEOL */
+    if (*tp == BASIC_TOKEN_XELSE) break;        /* Check this first to avoid clash with ATEOL */
     if (ateol[*tp]) error(ERR_ONRANGE, wanted);
     count++;
     if (count == wanted) break;
     if (*tp != ',') error(ERR_COMISS);
-    tp++;	/* Skip the ',' */
+    tp++;       /* Skip the ',' */
   } while (TRUE);
   if (*tp == ',') tp++;
 #ifdef DEBUG
@@ -1699,32 +1699,32 @@ static void exec_onbranch(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_onbranch\n");
 #endif /* DEBUG */
   index = eval_integer();
-  if (index<1)	/* 'ON' index is out of range */
+  if (index<1)  /* 'ON' index is out of range */
     find_else(basicvars.current, index);
   else {
     byte onwhat = *basicvars.current;
     if (onwhat == BASIC_TOKEN_GOTO || onwhat == BASIC_TOKEN_GOSUB) {
       byte *dest;
-      basicvars.current++;	/* Skip the 'GOTO' or 'GOSUB' token */
+      basicvars.current++;      /* Skip the 'GOTO' or 'GOSUB' token */
       if (index>1) basicvars.current = find_onentry(basicvars.current, index);
       if (*basicvars.current == BASIC_TOKEN_XELSE) {
-        basicvars.current+=1+OFFSIZE;	/* Find statement after 'ELSE' */
-        if (*basicvars.current == BASIC_TOKEN_XLINENUM) error(ERR_SYNTAX);	/* Line number is not allowed here */
+        basicvars.current+=1+OFFSIZE;   /* Find statement after 'ELSE' */
+        if (*basicvars.current == BASIC_TOKEN_XLINENUM) error(ERR_SYNTAX);      /* Line number is not allowed here */
       }
-      else {	/* Try to find a line number */
-        if (*basicvars.current == BASIC_TOKEN_LINENUM)		/* GOTO/GOSUB destination is known */
+      else {    /* Try to find a line number */
+        if (*basicvars.current == BASIC_TOKEN_LINENUM)          /* GOTO/GOSUB destination is known */
           dest = GET_ADDRESS(basicvars.current, byte *);
-        else if (*basicvars.current == BASIC_TOKEN_XLINENUM)	/* GOTO/GOSUB destination not filled in yet */
+        else if (*basicvars.current == BASIC_TOKEN_XLINENUM)    /* GOTO/GOSUB destination not filled in yet */
           dest = set_linedest(basicvars.current);
-        else {	/* Destination line number is given by an expression */
+        else {  /* Destination line number is given by an expression */
           int32 line = eval_integer();
-          if (line<0 || line>MAXLINENO) error(ERR_LINENO);	/* Line number is out of range */
+          if (line<0 || line>MAXLINENO) error(ERR_LINENO);      /* Line number is out of range */
           dest = find_line(line);
           if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
           dest = FIND_EXEC(dest);
         }
         if (basicvars.traces.branches) trace_branch(basicvars.current, dest);
-        if (onwhat == BASIC_TOKEN_GOSUB) {	/* Got 'ON ... GUSUB'. Find point to which to return */
+        if (onwhat == BASIC_TOKEN_GOSUB) {      /* Got 'ON ... GUSUB'. Find point to which to return */
           while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);
           if (*basicvars.current == ':') basicvars.current++;
           push_gosub();
@@ -1732,45 +1732,45 @@ static void exec_onbranch(void) {
         basicvars.current = dest;
       }
     }
-    else if (onwhat == BASIC_TOKEN_XFNPROCALL || onwhat == BASIC_TOKEN_FNPROCALL) {	/* Got 'ON ... PROC' */
+    else if (onwhat == BASIC_TOKEN_XFNPROCALL || onwhat == BASIC_TOKEN_FNPROCALL) {     /* Got 'ON ... PROC' */
      fnprocdef *dp = NULL;
       variable *pp = NULL;
       if (index>1) basicvars.current = find_onentry(basicvars.current, index);
-      if (*basicvars.current == BASIC_TOKEN_XELSE) {	/* Branch to statement after 'ELSE' */
-        basicvars.current+=1+OFFSIZE;		/* Find statement after 'ELSE' */
-        if (*basicvars.current == BASIC_TOKEN_XLINENUM) error(ERR_SYNTAX);	/* Line number is not allowed here */
+      if (*basicvars.current == BASIC_TOKEN_XELSE) {    /* Branch to statement after 'ELSE' */
+        basicvars.current+=1+OFFSIZE;           /* Find statement after 'ELSE' */
+        if (*basicvars.current == BASIC_TOKEN_XLINENUM) error(ERR_SYNTAX);      /* Line number is not allowed here */
       }
-      else {	/* Call one of the procedures */
-        if (*basicvars.current == BASIC_TOKEN_XFNPROCALL) {	/* Procedure call not seen before */
-          byte *ep, *base = get_srcaddr(basicvars.current);	/* Find the start of the procedure name */
+      else {    /* Call one of the procedures */
+        if (*basicvars.current == BASIC_TOKEN_XFNPROCALL) {     /* Procedure call not seen before */
+          byte *ep, *base = get_srcaddr(basicvars.current);     /* Find the start of the procedure name */
           ep = skip_name(base);
-          if (*(ep-1) == '(') ep--;	/* Do not include '(' of parameter list in name */
+          if (*(ep-1) == '(') ep--;     /* Do not include '(' of parameter list in name */
           pp = find_fnproc(base, ep-base);
           dp = pp->varentry.varfnproc;
           set_address(basicvars.current, pp);
           *basicvars.current = BASIC_TOKEN_FNPROCALL;
-          basicvars.current+=1+LOFFSIZE;		/* Skip pointer to procedure */
-          if (*basicvars.current != '(') {	/* PROC call has no parameters */
-            if (dp->parmlist != NIL) error(ERR_NOTENUFF, pp->varname);	/* But it should have */
+          basicvars.current+=1+LOFFSIZE;                /* Skip pointer to procedure */
+          if (*basicvars.current != '(') {      /* PROC call has no parameters */
+            if (dp->parmlist != NIL) error(ERR_NOTENUFF, pp->varname);  /* But it should have */
           }
-          else if (dp->parmlist == NIL) {		/* Got a '(' but PROC/FN has no parameters */
+          else if (dp->parmlist == NIL) {               /* Got a '(' but PROC/FN has no parameters */
             error(ERR_TOOMANY, pp->varname);
           }
         }
-        else if (*basicvars.current == BASIC_TOKEN_FNPROCALL) {	/* Known procedure */
+        else if (*basicvars.current == BASIC_TOKEN_FNPROCALL) { /* Known procedure */
           pp = GET_ADDRESS(basicvars.current, variable *);
           dp = pp->varentry.varfnproc;
-          basicvars.current+=1+LOFFSIZE;		/* Skip pointer to procedure */
+          basicvars.current+=1+LOFFSIZE;                /* Skip pointer to procedure */
         }
         else {
           error(ERR_SYNTAX);
         }
-        if (*basicvars.current == '(') push_parameters(dp, pp->varname);	/* Deal with parameters */
+        if (*basicvars.current == '(') push_parameters(dp, pp->varname);        /* Deal with parameters */
         if (basicvars.traces.enabled) {
           if (basicvars.traces.procs) trace_proc(pp->varname, TRUE);
           if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
         }
-        while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);	/* Find return address */
+        while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);   /* Find return address */
         if (*basicvars.current == ':') basicvars.current++;
         push_proc(pp->varname, dp->parmcount);
         basicvars.current = dp->fnprocaddr;
@@ -1792,10 +1792,10 @@ void exec_on(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_on\n");
 #endif /* DEBUG */
-  basicvars.current++;	/* Skip ON token */
-  if (*basicvars.current == BASIC_TOKEN_ERROR)	/* Dealing with 'ON ERROR' */
+  basicvars.current++;  /* Skip ON token */
+  if (*basicvars.current == BASIC_TOKEN_ERROR)  /* Dealing with 'ON ERROR' */
     exec_onerror();
-  else if (ateol[*basicvars.current])	/* Got just 'ON' */
+  else if (ateol[*basicvars.current])   /* Got just 'ON' */
     emulate_on();
   else {
     exec_onbranch();
@@ -1824,17 +1824,17 @@ void exec_oscli(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_oscli\n");
 #endif /* DEBUG */
-  basicvars.current++;	/* Hop over the OSCLI token */
+  basicvars.current++;  /* Hop over the OSCLI token */
   expression();
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   oscli_string=malloc(MAXSTRING);
   tofile = *basicvars.current == BASIC_TOKEN_TO;
-  if (tofile) {	/* Have got 'OSCLI <command> TO' */
+  if (tofile) { /* Have got 'OSCLI <command> TO' */
     basicvars.current++;
     get_lvalue(&response);
     if (response.typeinfo != VAR_STRARRAY) error(ERR_STRARRAY);
-    if (*basicvars.current == ',') {	/* Variable in which to store count of lines read */
+    if (*basicvars.current == ',') {    /* Variable in which to store count of lines read */
       basicvars.current++;
       get_lvalue(&linecount);
     }
@@ -1844,11 +1844,11 @@ void exec_oscli(void) {
   }
   check_ateol();
   descriptor = pop_string();
-  memmove(oscli_string, descriptor.stringaddr, descriptor.stringlen);	/* Copy string */
-  oscli_string[descriptor.stringlen] = asc_NUL;		/* Append a NUL keep OS_CLI happy */
+  memmove(oscli_string, descriptor.stringaddr, descriptor.stringlen);   /* Copy string */
+  oscli_string[descriptor.stringlen] = asc_NUL;         /* Append a NUL keep OS_CLI happy */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
 /* Issue command */
-  if (!tofile) {	/* Response not wanted - Run command and go home */
+  if (!tofile) {        /* Response not wanted - Run command and go home */
     mos_oscli(oscli_string, NIL, NULL);
     free(oscli_string);
 #ifdef DEBUG
@@ -1875,17 +1875,17 @@ void exec_oscli(void) {
   ap = *response.address.arrayaddr;
 /* Start by discarding the current contents of the array */
   descriptor.stringlen = 0;
-  descriptor.stringaddr = nullstring;	/* Found in variables.c */
+  descriptor.stringaddr = nullstring;   /* Found in variables.c */
   for (n=0; n<ap->arrsize; n++) {
     free_string(ap->arraystart.stringbase[n]);
     ap->arraystart.stringbase[n] = descriptor;
   }
-  count = 0;	/* Number of lines read */
-  while (!feof(respfile) && count+1<ap->arrsize) {	/* Read the command output */
+  count = 0;    /* Number of lines read */
+  while (!feof(respfile) && count+1<ap->arrsize) {      /* Read the command output */
     int length;
     char *p = fgets(basicvars.stringwork, MAXSTRING, respfile);
-    if (p == NIL) {	/* Either an error or EOF reached and no data read */
-      if (!ferror(respfile)) break;		/* End of file and no data read */
+    if (p == NIL) {     /* Either an error or EOF reached and no data read */
+      if (!ferror(respfile)) break;             /* End of file and no data read */
       fclose(respfile);
       remove(respname);
 #ifdef DEBUG
@@ -1896,10 +1896,10 @@ void exec_oscli(void) {
 /* Remove any CRs or LFs or trailing blanks in the line and copy it to the string array */
     if (p == NIL) break;
     p = basicvars.stringwork;
-    if (p[0] == '\r') p++;	/* Remove possible CR at the start of the line */
+    if (p[0] == '\r') p++;      /* Remove possible CR at the start of the line */
     length = strlen(p);
     while (length>0 && (p[length-1] == '\n' || p[length-1] == '\r' || p[length-1] == ' ')) length--;
-    if (length>0 || !feof(respfile)) {	/* Don't want an empty line at the end of the array */
+    if (length>0 || !feof(respfile)) {  /* Don't want an empty line at the end of the array */
       descriptor.stringlen = length;
       descriptor.stringaddr = alloc_string(length);
       if (length>0) memmove(descriptor.stringaddr, p, length);
@@ -1935,9 +1935,9 @@ void exec_proc(void) {
   vp = GET_ADDRESS(basicvars.current, variable *);
   if (strlen(vp->varname) > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
   dp = vp->varentry.varfnproc;
-  basicvars.current+=1+LOFFSIZE;		/* Skip pointer to procedure */
+  basicvars.current+=1+LOFFSIZE;                /* Skip pointer to procedure */
   if (*basicvars.current == '(') {
-    push_parameters(dp, vp->varname);	/* Deal with parameters */
+    push_parameters(dp, vp->varname);   /* Deal with parameters */
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   }
   push_proc(vp->varname, dp->parmcount);
@@ -1964,23 +1964,23 @@ void exec_xproc(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_xproc\n");
 #endif /* DEBUG */
   tp = basicvars.current;
-  base = get_srcaddr(tp);	/* Point at name of procedure */
-  if (*base != BASIC_TOKEN_PROC) error(ERR_NOTAPROC);	/* Ensure a procedure is being called */
-  tp = skip_name(base);		/* Skip name */
-  if (*(tp-1) == '(') tp--;	/* Do not include '(' of parameter list in name */
+  base = get_srcaddr(tp);       /* Point at name of procedure */
+  if (*base != BASIC_TOKEN_PROC) error(ERR_NOTAPROC);   /* Ensure a procedure is being called */
+  tp = skip_name(base);         /* Skip name */
+  if (*(tp-1) == '(') tp--;     /* Do not include '(' of parameter list in name */
   vp = find_fnproc(base, tp-base);
   dp = vp->varentry.varfnproc;
   *basicvars.current = BASIC_TOKEN_FNPROCALL;
   set_address(basicvars.current, vp);
   tp = basicvars.current+LOFFSIZE+1;
-  if (*tp != '(') {	/* PROC call has no parameters */
-    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname+1);	/* But it should have */
-    if (!ateol[*tp]) error(ERR_SYNTAX);		/* No parameters - Can check for end of statement here */
+  if (*tp != '(') {     /* PROC call has no parameters */
+    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname+1);        /* But it should have */
+    if (!ateol[*tp]) error(ERR_SYNTAX);         /* No parameters - Can check for end of statement here */
   }
-  else if (dp->parmlist == NIL) {		/* Got a '(' but PROC/FN has no parameters */
+  else if (dp->parmlist == NIL) {               /* Got a '(' but PROC/FN has no parameters */
     error(ERR_TOOMANY, vp->varname);
   }
-  exec_proc();		/* Call the procedure */
+  exec_proc();          /* Call the procedure */
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_xproc\n");
 #endif /* DEBUG */
@@ -1997,9 +1997,9 @@ void exec_quit(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_quit\n");
 #endif /* DEBUG */
   basicvars.current++;
-  if (isateol(basicvars.current))	/* QUIT is not followed by anything */
+  if (isateol(basicvars.current))       /* QUIT is not followed by anything */
     retcode = EXIT_SUCCESS;
-  else {	/* QUIT is followed by a return code */
+  else {        /* QUIT is followed by a return code */
     retcode = eval_integer();
     check_ateol();
   }
@@ -2019,13 +2019,13 @@ static void find_data(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:find_data\n");
 #endif /* DEBUG */
   dp = basicvars.datacur;
-  if (dp != NIL && (*dp == ',' || *dp == BASIC_TOKEN_DATA)) {	/* Skip to next field */
+  if (dp != NIL && (*dp == ',' || *dp == BASIC_TOKEN_DATA)) {   /* Skip to next field */
     basicvars.datacur++;
     return;
   }
-  if (dp == NIL)		/* First READ of all */
+  if (dp == NIL)                /* First READ of all */
     dp = basicvars.start;
-  else {	/* At end of line - Skip to next one */
+  else {        /* At end of line - Skip to next one */
 /* The 'end of the line' here is actually the end of the source */
 /* part of the line. This is followed by the DATA token and the */
 /* offset back to the start of the data itself. The code has to */
@@ -2034,7 +2034,7 @@ static void find_data(void) {
   }
 /* Look for the next 'DATA' statement */
   while (!AT_PROGEND(dp) && *FIND_EXEC(dp) != BASIC_TOKEN_DATA) dp+=GET_LINELEN(dp);
-  if (AT_PROGEND(dp)) error(ERR_DATA);	/* Have not found a DATA statement */
+  if (AT_PROGEND(dp)) error(ERR_DATA);  /* Have not found a DATA statement */
 /*
 ** The DATA token is followed by the offset to the start of the data
 ** in the source part of the line. Find address of data
@@ -2062,7 +2062,7 @@ static void read_numeric(lvalue destination) {
   n = 0;
   numparen = 0; /* Keep track of number of parentheses */
   dp = skip(basicvars.datacur);
-  while (*dp != asc_NUL && (*dp != ',' || numparen > 0)) {	/* Copy value to be read */
+  while (*dp != asc_NUL && (*dp != ',' || numparen > 0)) {      /* Copy value to be read */
     if ('(' == *dp) numparen++;
     if (')' == *dp) numparen--;
     text[n] = *dp;
@@ -2070,34 +2070,34 @@ static void read_numeric(lvalue destination) {
     n++;
   }
   text[n] = asc_NUL;
-  if (n == 0) error(ERR_BADEXPR);	/* Number string is empty */
+  if (n == 0) error(ERR_BADEXPR);       /* Number string is empty */
   basicvars.datacur = dp;
-  tokenize(text, readexpr, NOLINE, FALSE);	/* Tokenise the expression */
-//  tokenize(text, readexpr, NOLINE);	/* Tokenise the expression */
-  save_current();	/* Preserve our place in the program */
+  tokenize(text, readexpr, NOLINE, FALSE);      /* Tokenise the expression */
+//  tokenize(text, readexpr, NOLINE);   /* Tokenise the expression */
+  save_current();       /* Preserve our place in the program */
   basicvars.current = FIND_EXEC(&readexpr[0]);
   expression();
   restore_current();
-  switch (destination.typeinfo) {	/* Now save the value just read */
-  case VAR_INTWORD:	/* 32-bit integer variable */
+  switch (destination.typeinfo) {       /* Now save the value just read */
+  case VAR_INTWORD:     /* 32-bit integer variable */
     *destination.address.intaddr = pop_anynum32();
     break;
-  case VAR_UINT8:	/* Unsigned 8-bit integer variable */
+  case VAR_UINT8:       /* Unsigned 8-bit integer variable */
     *destination.address.uint8addr = pop_anynum32();
     break;
-  case VAR_INTLONG:	/* 64-bit integer variable */
+  case VAR_INTLONG:     /* 64-bit integer variable */
     *destination.address.int64addr = pop_anynum64();
     break;
-  case VAR_FLOAT:	/* Floating point variable */
+  case VAR_FLOAT:       /* Floating point variable */
     *destination.address.floataddr = pop_anynumfp();
     break;
-  case VAR_INTBYTEPTR:	/* Pointer to byte-sized integer */
+  case VAR_INTBYTEPTR:  /* Pointer to byte-sized integer */
     basicvars.memory[destination.address.offset] = pop_anynum32();
     break;
-  case VAR_INTWORDPTR:	/* Pointer to word-sized integer */
+  case VAR_INTWORDPTR:  /* Pointer to word-sized integer */
     store_integer(destination.address.offset, pop_anynum32());
     break;
-  case VAR_FLOATPTR:	/* Pointer to floating point variable */
+  case VAR_FLOATPTR:    /* Pointer to floating point variable */
     store_float(destination.address.offset, pop_anynumfp());
     break;
   default:
@@ -2120,33 +2120,33 @@ static void read_string(lvalue destination) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:read_string\n");
 #endif /* DEBUG */
   start = cp = skip(basicvars.datacur);
-  if (*cp == '\"') {	/* String is in quotes */
+  if (*cp == '\"') {    /* String is in quotes */
     start++;
     do {
       cp++;
       if (*cp == '\"' && *(cp+1) == '\"') cp+=2;
     } while (*cp != asc_NUL && *cp != '\"');
-    if (*cp != '\"') error(ERR_QUOTEMISS);	/* " missing */
+    if (*cp != '\"') error(ERR_QUOTEMISS);      /* " missing */
     length = cp-start;
-    do	/* Skip '"' and find next field */
+    do  /* Skip '"' and find next field */
       cp++;
     while (*cp != asc_NUL && *cp != ',');
   }
   else {
-    while (*cp != asc_NUL && *cp != ',') cp++;	/* Find end of string */
+    while (*cp != asc_NUL && *cp != ',') cp++;  /* Find end of string */
     length = cp-start;
   }
   basicvars.datacur = cp;
-  switch (destination.typeinfo) {	/* Now save the value just read */
-  case VAR_STRINGDOL:	/* String variable */
+  switch (destination.typeinfo) {       /* Now save the value just read */
+  case VAR_STRINGDOL:   /* String variable */
     if (destination.address.straddr->stringlen != length) {
-      free_string(*destination.address.straddr);	/* Dispose of old string */
+      free_string(*destination.address.straddr);        /* Dispose of old string */
       destination.address.straddr->stringlen = length;
       destination.address.straddr->stringaddr = alloc_string(length);
     }
     if (length != 0) shorten=memcpydedupe(destination.address.straddr->stringaddr, start, length, '"');
     break;
-  case VAR_DOLSTRPTR:	/* Pointer to '$<string>' */
+  case VAR_DOLSTRPTR:   /* Pointer to '$<string>' */
     if (length != 0) shorten=memcpydedupe((char *)&basicvars.memory[destination.address.offset], start, length, '"');
     basicvars.memory[destination.address.offset+length-shorten] = asc_CR;
     break;
@@ -2166,18 +2166,18 @@ void exec_read(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_read\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip READ */
-  if (ateol[*basicvars.current]) return;	/* Return if there is nothing to do */
-  if (basicvars.runflags.outofdata) error(ERR_DATA);	     /* Have run out of data statements */
+  basicvars.current++;          /* Skip READ */
+  if (ateol[*basicvars.current]) return;        /* Return if there is nothing to do */
+  if (basicvars.runflags.outofdata) error(ERR_DATA);         /* Have run out of data statements */
   while (TRUE) {
     get_lvalue(&destination);
     find_data();
-    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_UINT8)	/* Numeric value */
+    if ((destination.typeinfo & TYPEMASK)<=VAR_FLOAT || (destination.typeinfo & TYPEMASK)==VAR_UINT8)   /* Numeric value */
       read_numeric(destination);
-    else {	/* Character string */
+    else {      /* Character string */
       read_string(destination);
     }
-    if (*basicvars.current != ',') break;	/* Escape from loop if there is nothing left to do */
+    if (*basicvars.current != ',') break;       /* Escape from loop if there is nothing left to do */
     basicvars.current++;
   }
   check_ateol();
@@ -2193,10 +2193,10 @@ void exec_repeat(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_repeat\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip REPEAT token */
-  if (*basicvars.current == ':') basicvars.current++;	/* Found a ':' - Move past it */
-  if (*basicvars.current == asc_NUL) {	/* Nothing on line after REPEAT - Try next line */
-    basicvars.current++;	/* Move to start of next line */
+  basicvars.current++;          /* Skip REPEAT token */
+  if (*basicvars.current == ':') basicvars.current++;   /* Found a ':' - Move past it */
+  if (*basicvars.current == asc_NUL) {  /* Nothing on line after REPEAT - Try next line */
+    basicvars.current++;        /* Move to start of next line */
     if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
   }
@@ -2237,28 +2237,28 @@ static void restore_dataptr(void) {
 #endif /* DEBUG */
   basicvars.runflags.outofdata = FALSE;
   switch (*basicvars.current) {
-  case BASIC_TOKEN_XLINENUM:	/* RESTORE <line number> */
+  case BASIC_TOKEN_XLINENUM:    /* RESTORE <line number> */
 /*
 ** Note: set_linedest' returns a pointer to the first executable token on
 ** the line but we need a pointer to start of the line
 */
     dest = find_linestart(set_linedest(basicvars.current));
-    basicvars.current = skip_token(basicvars.current);	/* Skip 'line number' token */
+    basicvars.current = skip_token(basicvars.current);  /* Skip 'line number' token */
     check_ateol();
     break;
-  case BASIC_TOKEN_LINENUM:	/* RESTORE <line number> */
+  case BASIC_TOKEN_LINENUM:     /* RESTORE <line number> */
     dest = GET_ADDRESS(basicvars.current, byte *);
     dest = find_linestart(dest);
-    basicvars.current = skip_token(basicvars.current);	/* Skip 'line number' token */
+    basicvars.current = skip_token(basicvars.current);  /* Skip 'line number' token */
     check_ateol();
     break;
-  case '+':		/* Destination is given as an offset from the next line */
+  case '+':             /* Destination is given as an offset from the next line */
     basicvars.current++;
     line = eval_integer();
     check_ateol();
     p = basicvars.current;
-    while (*p != asc_NUL) p = skip_token(p);	/* Find the start of the next line */
-    p++;		/* Point at start of next line */
+    while (*p != asc_NUL) p = skip_token(p);    /* Find the start of the next line */
+    p++;                /* Point at start of next line */
 /*
 ** The line count is decrement by one as 'RESTORE +1' moves
 ** the data pointer to this line and we have just advanced to
@@ -2269,17 +2269,17 @@ static void restore_dataptr(void) {
       p+=GET_LINELEN(p);
       line--;
     }
-    if (AT_PROGEND(p)) {	/* Reached end of program and no DATA statements were found */
+    if (AT_PROGEND(p)) {        /* Reached end of program and no DATA statements were found */
       basicvars.runflags.outofdata = TRUE;
-      return;		/* Return as there is nothing more to do */
+      return;           /* Return as there is nothing more to do */
     }
     dest = p;
     break;
   default:
-    if (ateol[*basicvars.current])	/* RESTORE on its own */
-      dest = basicvars.start;	/* Start at beginning of program */
-    else {	/* RESTORE followed by an expression */
-      line = eval_integer();		/* Find number of line */
+    if (ateol[*basicvars.current])      /* RESTORE on its own */
+      dest = basicvars.start;   /* Start at beginning of program */
+    else {      /* RESTORE followed by an expression */
+      line = eval_integer();            /* Find number of line */
       check_ateol();
       dest = find_line(line);
       if (get_lineno(dest) != line) error(ERR_LINEMISS, line);
@@ -2293,7 +2293,7 @@ static void restore_dataptr(void) {
   while (!AT_PROGEND(dest) && *FIND_EXEC(dest) != BASIC_TOKEN_DATA) {
     dest+=GET_LINELEN(dest);
   }
-  if (AT_PROGEND(dest))		/* No DATA statement was found */
+  if (AT_PROGEND(dest))         /* No DATA statement was found */
     basicvars.runflags.outofdata = TRUE;
   else {
 /*
@@ -2319,32 +2319,32 @@ void exec_restore(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_restore\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip RESTORE token */
+  basicvars.current++;          /* Skip RESTORE token */
   switch (*basicvars.current) {
-  case BASIC_TOKEN_ERROR:	/* RESTORE ERROR */
+  case BASIC_TOKEN_ERROR:       /* RESTORE ERROR */
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
-    if (GET_TOPITEM != STACK_ERROR) error(ERR_ERRNOTOP);	/* Saved error block not on top of stack */
+    if (GET_TOPITEM != STACK_ERROR) error(ERR_ERRNOTOP);        /* Saved error block not on top of stack */
     basicvars.error_handler = pop_error();
     break;
-  case BASIC_TOKEN_LOCAL:	/* RESTORE LOCAL */
+  case BASIC_TOKEN_LOCAL:       /* RESTORE LOCAL */
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
-    if (basicvars.procstack == NIL) error(ERR_LOCAL);		/* LOCAL found outside a PROC/FN */
+    if (basicvars.procstack == NIL) error(ERR_LOCAL);           /* LOCAL found outside a PROC/FN */
     item = stack_unwindlocal();
     if (item == STACK_ERROR) {
       basicvars.error_handler = pop_error();
     }
     if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);
     break;
-  case BASIC_TOKEN_DATA:	/* RESTORE DATA */
+  case BASIC_TOKEN_DATA:        /* RESTORE DATA */
     basicvars.current = skip_token(basicvars.current);
     check_ateol();
-    if (GET_TOPITEM != STACK_DATA) error(ERR_DATANOTOP);	/* Saved DATA pointer not on top of stack */
+    if (GET_TOPITEM != STACK_DATA) error(ERR_DATANOTOP);        /* Saved DATA pointer not on top of stack */
     basicvars.datacur = pop_data();
  /* Note: this does not restore the 'out of data' flag */
     break;
-  default:	/* Move 'DATA' pointer */
+  default:      /* Move 'DATA' pointer */
     restore_dataptr();
   }
 #ifdef DEBUG
@@ -2360,10 +2360,10 @@ void exec_return(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_return\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip RETURN token */
+  basicvars.current++;          /* Skip RETURN token */
   check_ateol();
   if (basicvars.gosubstack == NIL) error(ERR_RETURN);
-  if (GET_TOPITEM != STACK_GOSUB) empty_stack(STACK_GOSUB);	/* Throw away unwanted entries on Basic stack */
+  if (GET_TOPITEM != STACK_GOSUB) empty_stack(STACK_GOSUB);     /* Throw away unwanted entries on Basic stack */
   returnblock = pop_gosub();
   if (basicvars.traces.branches) trace_branch(basicvars.current, returnblock.retaddr);
   basicvars.current = returnblock.retaddr;
@@ -2385,9 +2385,9 @@ void exec_run(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_run\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip RUN token */
+  basicvars.current++;          /* Skip RUN token */
   bp = NIL;
-  if (!ateol[*basicvars.current]) {	/* RUN <filename> or RUN <linenumber> found */
+  if (!ateol[*basicvars.current]) {     /* RUN <filename> or RUN <linenumber> found */
     stackitem topitem;
     expression();
     topitem = GET_TOPITEM;
@@ -2443,10 +2443,10 @@ void exec_swap(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_swap\n");
 #endif /* DEBUG */
-  basicvars.current++;		/* Skip SWAP token */
+  basicvars.current++;          /* Skip SWAP token */
   get_lvalue(&first);
   if (*basicvars.current != ',') error(ERR_COMISS);
-  basicvars.current++;		/* Skip ',' token */
+  basicvars.current++;          /* Skip ',' token */
   get_lvalue(&second);
   check_ateol();
   if ((first.typeinfo <= VAR_FLOAT || (first.typeinfo >= VAR_INTBYTEPTR && first.typeinfo <= VAR_FLOATPTR)) &&
@@ -2455,7 +2455,7 @@ void exec_swap(void) {
     int64 ival1 = 0, ival2 = 0;
     static float64 fval1, fval2;
     boolean isint = 0;
-    switch (first.typeinfo) {		/* Fetch first operand */
+    switch (first.typeinfo) {           /* Fetch first operand */
     case VAR_INTWORD:
       ival1 = *first.address.intaddr;
       isint = TRUE;
@@ -2494,17 +2494,17 @@ void exec_swap(void) {
     case VAR_INTWORD:
       ival2 = *second.address.intaddr;
       *second.address.intaddr = isint ? ival1 : TOINT(fval1);
-      isint = TRUE;	/* Now change type flag to type of second value */
+      isint = TRUE;     /* Now change type flag to type of second value */
       break;
     case VAR_UINT8:
       ival2 = *second.address.uint8addr;
       *second.address.uint8addr = isint ? ival1 : TOINT(fval1);
-      isint = TRUE;	/* Now change type flag to type of second value */
+      isint = TRUE;     /* Now change type flag to type of second value */
       break;
     case VAR_INTLONG:
       ival2 = *second.address.int64addr;
       *second.address.int64addr = isint ? ival1 : TOINT64(fval1);
-      isint = TRUE;	/* Now change type flag to type of second value */
+      isint = TRUE;     /* Now change type flag to type of second value */
       break;
     case VAR_FLOAT:
       fval2 = *second.address.floataddr;
@@ -2561,22 +2561,22 @@ void exec_swap(void) {
   else if (first.typeinfo == VAR_STRINGDOL || first.typeinfo == VAR_DOLSTRPTR) {
     basicstring stringtemp;
     if (second.typeinfo != VAR_STRINGDOL && second.typeinfo != VAR_DOLSTRPTR) error(ERR_NOSWAP);
-    if (first.typeinfo == VAR_STRINGDOL && second.typeinfo == VAR_STRINGDOL) {	/* Swap aaa$ and bbb$ */
+    if (first.typeinfo == VAR_STRINGDOL && second.typeinfo == VAR_STRINGDOL) {  /* Swap aaa$ and bbb$ */
       stringtemp = *first.address.straddr;
       *first.address.straddr = *second.address.straddr;
       *second.address.straddr = stringtemp;
     }
-    else if (first.typeinfo == VAR_DOLSTRPTR && second.typeinfo == VAR_DOLSTRPTR) {	/* Swap $aaa and $bbb */
+    else if (first.typeinfo == VAR_DOLSTRPTR && second.typeinfo == VAR_DOLSTRPTR) {     /* Swap $aaa and $bbb */
       int32 len1, len2;
-      len1 = get_stringlen(first.address.offset)+1;	/* +1 for CR at end of string */
+      len1 = get_stringlen(first.address.offset)+1;     /* +1 for CR at end of string */
       len2 = get_stringlen(second.address.offset)+1;
       memmove(basicvars.stringwork, &basicvars.memory[first.address.offset], len1);
       memmove(&basicvars.memory[first.address.offset], &basicvars.memory[second.address.offset], len2);
       memmove(&basicvars.memory[second.address.offset], basicvars.stringwork, len1);
     }
-    else {	/* Swap aaa$ and $bbb or $aaa and bbb$ */
+    else {      /* Swap aaa$ and $bbb or $aaa and bbb$ */
       int len;
-      if (first.typeinfo == VAR_DOLSTRPTR) {	/* Turn it into aaa$ and $bbb */
+      if (first.typeinfo == VAR_DOLSTRPTR) {    /* Turn it into aaa$ and $bbb */
         lvalue temp = first;
         first = second;
         second = temp;
@@ -2586,7 +2586,7 @@ void exec_swap(void) {
       stringtemp.stringaddr = alloc_string(len);
       if (len>0) memmove(stringtemp.stringaddr, &basicvars.memory[second.address.offset], len);
 /* Copy 'aaa$' string to address of other string and turn it into a '$xxx' type string */
-      len = first.address.straddr->stringlen;	/* Get length of first string */
+      len = first.address.straddr->stringlen;   /* Get length of first string */
       if (len>0) memmove(&basicvars.memory[second.address.offset], first.address.straddr->stringaddr, len);
       basicvars.memory[second.address.offset+len] = asc_CR;
       free_string(*first.address.straddr);
@@ -2612,7 +2612,7 @@ void exec_swap(void) {
     var1->varentry.vararray->parent=var2->varentry.vararray->parent;
     var2->varentry.vararray->parent=vartmp;
   }
-  else {	/* Cannot swap these operands */
+  else {        /* Cannot swap these operands */
     error(ERR_NOSWAP);
   }
 #ifdef DEBUG
@@ -2639,9 +2639,9 @@ void exec_sys(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_sys\n");
 #endif /* DEBUG */
   basicvars.current++;
-  expression();		/* Fetch the SWI name or number */
+  expression();         /* Fetch the SWI name or number */
   parmtype = GET_TOPITEM;
-  switch (parmtype) {	/* Untangle the SWI number */
+  switch (parmtype) {   /* Untangle the SWI number */
   case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
     swino = pop_anynum32();
     break;
@@ -2666,7 +2666,7 @@ void exec_sys(void) {
   if (*basicvars.current == ',') basicvars.current++;
 /* Now gather the parameters for the SWI call */
   while (!ateol[*basicvars.current] && *basicvars.current != BASIC_TOKEN_TO) {
-    if (*basicvars.current != ',') {	/* Parameter position is not empty */
+    if (*basicvars.current != ',') {    /* Parameter position is not empty */
       expression();
       parmtype = GET_TOPITEM;
       switch (parmtype) {
@@ -2706,7 +2706,7 @@ void exec_sys(void) {
         break;
       }
       default:
-        error(ERR_VARNUMSTR);	/* Parameter must be an integer or string value */
+        error(ERR_VARNUMSTR);   /* Parameter must be an integer or string value */
       }
     } else {
       ip++;
@@ -2714,35 +2714,35 @@ void exec_sys(void) {
     parmcount++;;
     if (parmcount>=MAXSYSPARMS) error(ERR_SYSCOUNT);
     if (*basicvars.current == ',')
-      basicvars.current++;	/* Point at start of next parameter */
+      basicvars.current++;      /* Point at start of next parameter */
     else if (!ateol[*basicvars.current] && *basicvars.current != BASIC_TOKEN_TO) {
       error(ERR_SYNTAX);
     }
   }
 /* Make the SWI call */
   mos_sys(swino, inregs, outregs, &flags);
-  for (n=0; n<MAXSYSPARMS; n++) {	/* Discard any temporary strings used */
+  for (n=0; n<MAXSYSPARMS; n++) {       /* Discard any temporary strings used */
     if (tempdesc[n].stringaddr != NIL) free_string(tempdesc[n]);
   }
-  if (ateol[*basicvars.current]) return;	/* Not returning any parameters so just go home */
+  if (ateol[*basicvars.current]) return;        /* Not returning any parameters so just go home */
   basicvars.current++;
   parmcount = 0;
 /* Copy SWI values returned to the return parameters */
   while (!ateol[*basicvars.current] && *basicvars.current != ';') {
-    if (*basicvars.current != ',') {	/* Want this return value */
+    if (*basicvars.current != ',') {    /* Want this return value */
       get_lvalue(&destination);
       store_value(destination, outregs[parmcount], STRINGOK);
     }
     parmcount++;
     if (parmcount>=MAXSYSPARMS) error(ERR_SYSCOUNT);
-    if (*basicvars.current == ',')	/* There is another parameter to follow - Move to its start */
+    if (*basicvars.current == ',')      /* There is another parameter to follow - Move to its start */
       basicvars.current++;
     else if (!ateol[*basicvars.current] && *basicvars.current != ';') {
       error(ERR_SYNTAX);
     }
   }
-  if (*basicvars.current == ';') {	/* Want flags as well */
-    basicvars.current++;	/* Skip ';' token */
+  if (*basicvars.current == ';') {      /* Want flags as well */
+    basicvars.current++;        /* Skip ';' token */
     get_lvalue(&destination);
     store_value(destination, flags, NOSTRING);
   }
@@ -2759,8 +2759,8 @@ void exec_trace(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_trace\n");
 #endif /* DEBUG */
-  basicvars.current++;			/* Skip TRACE token */
-  if (*basicvars.current == BASIC_TOKEN_ON) {		/* Line number trace */
+  basicvars.current++;                  /* Skip TRACE token */
+  if (*basicvars.current == BASIC_TOKEN_ON) {           /* Line number trace */
     basicvars.traces.enabled = TRUE;
     basicvars.traces.lines = TRUE;
   }
@@ -2772,7 +2772,7 @@ void exec_trace(void) {
       basicvars.traces.console = TRUE;
     }
   }
-  else if (*basicvars.current == BASIC_TOKEN_OFF) {	/* Turn off any active traces */
+  else if (*basicvars.current == BASIC_TOKEN_OFF) {     /* Turn off any active traces */
     basicvars.traces.enabled = FALSE;
     basicvars.traces.lines = FALSE;
     basicvars.traces.procs = FALSE;
@@ -2780,7 +2780,7 @@ void exec_trace(void) {
     basicvars.traces.branches = FALSE;
     basicvars.traces.console = FALSE;
   }
-  else if (*basicvars.current == BASIC_TOKEN_TO) {	/* Got 'TRACE TO <file>' */
+  else if (*basicvars.current == BASIC_TOKEN_TO) {      /* Got 'TRACE TO <file>' */
     stackitem stringtype;
     basicstring descriptor;
     basicvars.current++;
@@ -2791,7 +2791,7 @@ void exec_trace(void) {
     descriptor = pop_string();
     basicvars.tracehandle = fileio_openout(descriptor.stringaddr, descriptor.stringlen);
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
-    return;	/* As this code calls 'check_ateol' */
+    return;     /* As this code calls 'check_ateol' */
   }
   else if (*basicvars.current == BASIC_TOKEN_CLOSE) {
     if (basicvars.tracehandle != 0) {
@@ -2799,24 +2799,24 @@ void exec_trace(void) {
       basicvars.tracehandle = 0;
     }
   }
-  else if (ateol[*basicvars.current])		/* Got 'TRACE' on its own */
+  else if (ateol[*basicvars.current])           /* Got 'TRACE' on its own */
     error(ERR_BADTRACE);
-  else {	/* TRACE <something> [ON|OFF] */
+  else {        /* TRACE <something> [ON|OFF] */
     boolean yes;
     byte option = *(basicvars.current+1);
     if (!ateol[option] && option != BASIC_TOKEN_ON && option != BASIC_TOKEN_OFF) error(ERR_BADTRACE);
     yes = option != BASIC_TOKEN_OFF;
     switch (*basicvars.current) {
-    case BASIC_TOKEN_PROC: case BASIC_TOKEN_FN:	/* PROC call/return trace */
+    case BASIC_TOKEN_PROC: case BASIC_TOKEN_FN: /* PROC call/return trace */
       basicvars.traces.procs = yes;
       break;
-    case BASIC_TOKEN_GOTO:	/* Branch trace */
+    case BASIC_TOKEN_GOTO:      /* Branch trace */
       basicvars.traces.branches = yes;
       break;
-    case BASIC_TOKEN_STEP:	/* Execute one statement at a time */
+    case BASIC_TOKEN_STEP:      /* Execute one statement at a time */
       basicvars.traces.pause = yes;
       break;
-    case BASIC_TOKEN_RETURN:	/* Stack backtrace */
+    case BASIC_TOKEN_RETURN:    /* Stack backtrace */
       basicvars.traces.backtrace = yes;
       break;
     default:
@@ -2825,7 +2825,7 @@ void exec_trace(void) {
     basicvars.traces.enabled = basicvars.traces.procs || basicvars.traces.branches;
     if (!ateol[option]) basicvars.current++;
   }
-  basicvars.current++;		/* Skip TRACE option token */
+  basicvars.current++;          /* Skip TRACE option token */
   check_ateol();
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_trace\n");
@@ -2842,21 +2842,21 @@ void exec_until(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_until\n");
 #endif /* DEBUG */
-  if (GET_TOPITEM == STACK_REPEAT)	/* REPEAT control block is top of stack */
+  if (GET_TOPITEM == STACK_REPEAT)      /* REPEAT control block is top of stack */
     rp = basicvars.stacktop.repeatsp;
-  else {	/* Discard stack entries as far as REPEAT control block */
+  else {        /* Discard stack entries as far as REPEAT control block */
     rp = get_repeat();
   }
-  if (rp == NIL) error(ERR_NOTREPEAT);	/* Not in a REPEAT loop */
-  here = basicvars.current;	/* Note position of UNTIL for trace purposes */
+  if (rp == NIL) error(ERR_NOTREPEAT);  /* Not in a REPEAT loop */
+  here = basicvars.current;     /* Note position of UNTIL for trace purposes */
   basicvars.current++;
   expression();
   result = pop_anynum64();
-  if (result == BASFALSE) {	/* Condition still false - Continue with loop */
+  if (result == BASFALSE) {     /* Condition still false - Continue with loop */
     if (basicvars.traces.branches) trace_branch(here, rp->repeataddr);
     basicvars.current = rp->repeataddr;
   }
-  else {	/* Escape from loop - Remove REPEAT control block from stack */
+  else {        /* Escape from loop - Remove REPEAT control block from stack */
     pop_repeat();
     if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
   }
@@ -2873,9 +2873,9 @@ void exec_wait(void) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_wait\n");
 #endif /* DEBUG */
   basicvars.current++;
-  if (ateol[*basicvars.current])	/* Normal 'WAIT' statement */
+  if (ateol[*basicvars.current])        /* Normal 'WAIT' statement */
     emulate_wait();
-  else {	/* WAIT <time to wait> */
+  else {        /* WAIT <time to wait> */
     int32 delay = eval_integer();
     check_ateol();
     mos_waitdelay(delay);
@@ -2898,31 +2898,31 @@ void exec_xwhen(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_xwhen\n");
 #endif /* DEBUG */
-  lp = basicvars.current+1+OFFSIZE;	/* Skip token and offset */
+  lp = basicvars.current+1+OFFSIZE;     /* Skip token and offset */
   while (*lp != asc_NUL) lp = skip_token(lp);
-  lp++;		/* Point at the start of the line after the 'WHEN' or 'OTHERWISE' */
+  lp++;         /* Point at the start of the line after the 'WHEN' or 'OTHERWISE' */
   depth = 1;
   do {
-    if (AT_PROGEND(lp)) error(ERR_ENDCASE);	/* No ENDCASE found for this CASE */
+    if (AT_PROGEND(lp)) error(ERR_ENDCASE);     /* No ENDCASE found for this CASE */
     lp2 = FIND_EXEC(lp);
-    if (*lp2 == BASIC_TOKEN_ENDCASE) {	/* Have reached the end of a CASE statement */
+    if (*lp2 == BASIC_TOKEN_ENDCASE) {  /* Have reached the end of a CASE statement */
       depth--;
       if (depth == 0) break;
     }
-    else {	/* Check for a nested CASE statement */
+    else {      /* Check for a nested CASE statement */
       while (*lp2 != asc_NUL && *lp2 != BASIC_TOKEN_XCASE && *lp2 != BASIC_TOKEN_CASE) lp2 = skip_token(lp2);
-      if (*lp2 != asc_NUL) depth++;	/* Have found one of the CASE tokens - Got a nested 'CASE' */
+      if (*lp2 != asc_NUL) depth++;     /* Have found one of the CASE tokens - Got a nested 'CASE' */
     }
     lp+=GET_LINELEN(lp);
   } while (TRUE);
-  lp2++;	/* Skip 'ENDCASE' token */
+  lp2++;        /* Skip 'ENDCASE' token */
   if (*lp2 == ':') lp2++;
-  if (*lp2 == asc_NUL) {	/* 'ENDCASE' is at end of line */
-    lp2++;	/* Move to start of next line */
+  if (*lp2 == asc_NUL) {        /* 'ENDCASE' is at end of line */
+    lp2++;      /* Move to start of next line */
     lp2 = FIND_EXEC(lp2);
   }
   set_dest(basicvars.current+1, lp2);
-  exec_elsewhen();	/* Now go and branch to the ENDCASE */
+  exec_elsewhen();      /* Now go and branch to the ENDCASE */
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function mainstate.c:exec_xwhen\n");
 #endif /* DEBUG */
@@ -2955,49 +2955,49 @@ void exec_while(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function mainstate.c:exec_while\n");
 #endif /* DEBUG */
-  here = basicvars.current;	/* Keep a pointer to the 'WHILE' token */
-  basicvars.current+=OFFSIZE+1;	/* Skip 'WHILE' and 'ENDWHILE' branch offset */
+  here = basicvars.current;     /* Keep a pointer to the 'WHILE' token */
+  basicvars.current+=OFFSIZE+1; /* Skip 'WHILE' and 'ENDWHILE' branch offset */
   expr = basicvars.current;
   expression();
   result = pop_anynum64();
-  if (result != BASFALSE) {	/* If result is not false, enter the loop */
-    if (*basicvars.current == ':') basicvars.current++;	/* Loop body found on same line as WHILE statement */
-    if (*basicvars.current == asc_NUL) {	/* Loop body starts on next line */
+  if (result != BASFALSE) {     /* If result is not false, enter the loop */
+    if (*basicvars.current == ':') basicvars.current++; /* Loop body found on same line as WHILE statement */
+    if (*basicvars.current == asc_NUL) {        /* Loop body starts on next line */
       basicvars.current++;
       if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
-      basicvars.current = FIND_EXEC(basicvars.current);	/* Move to first token on next line */
+      basicvars.current = FIND_EXEC(basicvars.current); /* Move to first token on next line */
     }
     push_while(expr);
   }
-  else {	/* Initial 'WHILE' expression value is 'FALSE', so skip loop altogether */
-    if (*here == BASIC_TOKEN_WHILE) {	/* Branch destination has been filled in */
+  else {        /* Initial 'WHILE' expression value is 'FALSE', so skip loop altogether */
+    if (*here == BASIC_TOKEN_WHILE) {   /* Branch destination has been filled in */
       here++;
       basicvars.current = GET_DEST(here);
       if (basicvars.traces.branches) trace_branch(here, basicvars.current);
     }
-    else {	/* Have to look for the 'ENDWHILE'. 'basicvars.current' points at token after expression here */
+    else {      /* Have to look for the 'ENDWHILE'. 'basicvars.current' points at token after expression here */
       int32 depth = 1;
       while (depth>0) {
-        if (*basicvars.current == asc_NUL) {	/* At the end of a line */
+        if (*basicvars.current == asc_NUL) {    /* At the end of a line */
           basicvars.current++;
-          if (AT_PROGEND(basicvars.current)) error(ERR_ENDWHILE);	/* No 'ENDWHILE' found */
+          if (AT_PROGEND(basicvars.current)) error(ERR_ENDWHILE);       /* No 'ENDWHILE' found */
           basicvars.current = FIND_EXEC(basicvars.current);
         }
         if (*basicvars.current == BASIC_TOKEN_ENDWHILE)
           depth--;
-        else if (*basicvars.current == BASIC_TOKEN_WHILE || *basicvars.current == BASIC_TOKEN_XWHILE) {	/* Found a nested loop */
+        else if (*basicvars.current == BASIC_TOKEN_WHILE || *basicvars.current == BASIC_TOKEN_XWHILE) { /* Found a nested loop */
           depth++;
         }
         if (depth>0) basicvars.current=skip_token(basicvars.current);
       }
-      basicvars.current++;	/* Skip the ENDWHILE token */
-      if (*basicvars.current == ':') basicvars.current++;	/* Skip a ':' after the ENDWHILE */
-      if (*basicvars.current == asc_NUL) {	/* There is nothing else on the line - Skip to next line */
+      basicvars.current++;      /* Skip the ENDWHILE token */
+      if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the ENDWHILE */
+      if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */
         basicvars.current++;
-	if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
+        if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
         basicvars.current = FIND_EXEC(basicvars.current);
       }
-      set_dest(here+1, basicvars.current);	/* Save the address for latet */
+      set_dest(here+1, basicvars.current);      /* Save the address for latet */
       *here = BASIC_TOKEN_WHILE;
       if (basicvars.traces.branches) trace_branch(here, basicvars.current);
     }

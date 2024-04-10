@@ -18,8 +18,8 @@
 ** the Free Software Foundation, 59 Temple Place - Suite 330,
 ** Boston, MA 02111-1307, USA.
 **
-**	This file defines the main constants and structures used
-**	throughout the interpreter
+**      This file defines the main constants and structures used
+**      throughout the interpreter
 */
 
 #ifndef __basicdefs_h
@@ -33,43 +33,43 @@
 #include "common.h"
 #include "target.h"
 
-#define OPSTACKSIZE 20			/* Size of operator stack */
+#define OPSTACKSIZE 20                  /* Size of operator stack */
 
-#define STDVARS 27			/* Number of built-in variables (@% to Z%) */
-#define VARLISTS 64			/* Number of lists of variables (must be power of two) */
+#define STDVARS 27                      /* Number of built-in variables (@% to Z%) */
+#define VARLISTS 64                     /* Number of lists of variables (must be power of two) */
 
-#define DEFWIDTH 0			/* Default value for 'WIDTH' */
+#define DEFWIDTH 0                      /* Default value for 'WIDTH' */
 
-#define ATPERCENT 0			/* Index of '@%' in builtin variables array */
-#define STDFORMAT 0x90A			/* Default number format */
+#define ATPERCENT 0                     /* Index of '@%' in builtin variables array */
+#define STDFORMAT 0x90A                 /* Default number format */
 /* RISC OS BASIC V (1.65+) defaults to 11, BASIC VI defaults to 17.
  * The Beeb and RISC OS BASIC V (up to 1.64) uses 10. */
-#define DEFDIGITS 17			/* Default no. of digits to print if format says 0 */
-#define FORMAT_G 0			/* General (and default) format */
-#define FORMAT_E 1			/* Exponent format */
-#define FORMAT_F 2			/* Floating point format */
+#define DEFDIGITS 17                    /* Default no. of digits to print if format says 0 */
+#define FORMAT_G 0                      /* General (and default) format */
+#define FORMAT_E 1                      /* Exponent format */
+#define FORMAT_F 2                      /* Floating point format */
 /* The docs say set just bit 24 to enable, however in practice if the
 ** entire top byte is non-zero, then STR$ uses @% to format the string.
 */
-#define STRUSECHK   0xFF000000		/* STR$ uses @% to format string */
-#define STRUSESET   0x01000000		/* STR$ uses @% to format string */
-#define COMMADPT 0x800000		/* Use ',' instead of '.' as the decimal point */
+#define STRUSECHK   0xFF000000          /* STR$ uses @% to format string */
+#define STRUSESET   0x01000000          /* STR$ uses @% to format string */
+#define COMMADPT 0x800000               /* Use ',' instead of '.' as the decimal point */
 
 #define FNAMESIZE FILENAME_MAX    /* Maximum length of file names */
-#define INPUTLEN 1024			/* Size of terminal input buffer */
+#define INPUTLEN 1024                   /* Size of terminal input buffer */
 
-#define PRESERVED 8			/* Number of bytes at start of program saved for OLD */
-#define MAXCURCOUNT 10			/* Maximum no. of entries on 'saved current' stack */
+#define PRESERVED 8                     /* Number of bytes at start of program saved for OLD */
+#define MAXCURCOUNT 10                  /* Maximum no. of entries on 'saved current' stack */
 
 /* 'LISTO' options */
 
-#define LIST_SPACE 1			/* Print space after line number */
-#define LIST_INDENT 2			/* Indent structures */
-#define LIST_SPLIT 4			/* Split lines at ':' */
-#define LIST_NOLINE 8			/* Do not print line numbers */
-#define LIST_LOWER 0x10			/* List keywords in lower case */
-#define LIST_PAGE 0x20			/* List 20 lines at a time */
-#define LIST_EXPAND 0x40		/* Add extra spaces when expanding line */
+#define LIST_SPACE 1                    /* Print space after line number */
+#define LIST_INDENT 2                   /* Indent structures */
+#define LIST_SPLIT 4                    /* Split lines at ':' */
+#define LIST_NOLINE 8                   /* Do not print line numbers */
+#define LIST_LOWER 0x10                 /* List keywords in lower case */
+#define LIST_PAGE 0x20                  /* List 20 lines at a time */
+#define LIST_EXPAND 0x40                /* Add extra spaces when expanding line */
 
 /* 'LISTO' options for debugging the interpreter */
 
@@ -85,45 +85,45 @@
 
 /* Variable type flags */
 
-#define VAR_INTBYTE 1				/* One-byte integer */
-#define VAR_INTWORD 2				/* Four-byte integer */
-#define VAR_FLOAT 3				/* Eight byte floating point */
-#define VAR_STRINGDOL 4				/* String ('string$' type) */
-#define VAR_DOLSTRING 5				/* String ('$string' type) */
-#define VAR_INTLONG 6				/* 64-bit integer */
-#define VAR_UINT8 7				/* Unsigned 8-bit integer */
-#define VAR_ARRAY 0x08				/* Array */
-#define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)	/* Integer array */
-#define VAR_UINT8ARRAY (VAR_UINT8+VAR_ARRAY)	/* Integer array */
-#define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)	/* Integer array */
-#define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)	/* Floating point array */
-#define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)	/* String array */
-#define VAR_POINTER 0x10			/* Pointer */
-#define VAR_INTBYTEPTR (VAR_INTBYTE+VAR_POINTER)	/* Pointer to 1 byte integer */
-#define VAR_INTWORDPTR (VAR_INTWORD+VAR_POINTER)	/* Pointer to 4 byte integer */
-#define VAR_INT64PTR (VAR_INTLONG+VAR_POINTER)		/* Pointer to 8 byte integer */
-#define VAR_FLOATPTR (VAR_FLOAT+VAR_POINTER)		/* Pointer to floating point */
-#define VAR_DOLSTRPTR (VAR_DOLSTRING+VAR_POINTER)	/* Pointer to string */
-#define VAR_PROC 0x20				/* Entry is for a procedure */
-#define VAR_FUNCTION 0x40			/* Entry is for a function */
-#define VAR_MARKER 0x80				/* Entry marks location of a proc/fn */
+#define VAR_INTBYTE 1                           /* One-byte integer */
+#define VAR_INTWORD 2                           /* Four-byte integer */
+#define VAR_FLOAT 3                             /* Eight byte floating point */
+#define VAR_STRINGDOL 4                         /* String ('string$' type) */
+#define VAR_DOLSTRING 5                         /* String ('$string' type) */
+#define VAR_INTLONG 6                           /* 64-bit integer */
+#define VAR_UINT8 7                             /* Unsigned 8-bit integer */
+#define VAR_ARRAY 0x08                          /* Array */
+#define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)    /* Integer array */
+#define VAR_UINT8ARRAY (VAR_UINT8+VAR_ARRAY)    /* Integer array */
+#define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)  /* Integer array */
+#define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)    /* Floating point array */
+#define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)  /* String array */
+#define VAR_POINTER 0x10                        /* Pointer */
+#define VAR_INTBYTEPTR (VAR_INTBYTE+VAR_POINTER)        /* Pointer to 1 byte integer */
+#define VAR_INTWORDPTR (VAR_INTWORD+VAR_POINTER)        /* Pointer to 4 byte integer */
+#define VAR_INT64PTR (VAR_INTLONG+VAR_POINTER)          /* Pointer to 8 byte integer */
+#define VAR_FLOATPTR (VAR_FLOAT+VAR_POINTER)            /* Pointer to floating point */
+#define VAR_DOLSTRPTR (VAR_DOLSTRING+VAR_POINTER)       /* Pointer to string */
+#define VAR_PROC 0x20                           /* Entry is for a procedure */
+#define VAR_FUNCTION 0x40                       /* Entry is for a function */
+#define VAR_MARKER 0x80                         /* Entry marks location of a proc/fn */
 
-#define VAR_FIXED 0x100			/* Marks variable as a constant */
-#define VAR_RETURN 0x200		/* Marks variable as a 'return' variable */
+#define VAR_FIXED 0x100                 /* Marks variable as a constant */
+#define VAR_RETURN 0x200                /* Marks variable as a 'return' variable */
 
-#define TYPEMASK 0x07			/* Mask to extract type of item */
-#define TYPECHECKMASK 0x0F		/* Mask for type checking PROC/FN parameters */
-#define PARMTYPEMASK 0x1F		/* Mask to extract PROC/FN parameter type */
+#define TYPEMASK 0x07                   /* Mask to extract type of item */
+#define TYPECHECKMASK 0x0F              /* Mask for type checking PROC/FN parameters */
+#define PARMTYPEMASK 0x1F               /* Mask to extract PROC/FN parameter type */
 
 /* Values used to mark type of value in file create with 'PRINT#' */
 
-#define PRINT_INT 0x40			/* Marks value in file as binary integer */
-#define PRINT_UINT8 0x50		/* Marks value in file as binary integer */
-#define PRINT_INT64 0x60		/* Marks value in file as binary 64-bit integer */
-#define PRINT_FLOAT5 0x80		/* Marks value in file as five byte binary floating point */
-#define PRINT_FLOAT 0x88		/* Marks value in file as binary floating point */
-#define PRINT_SHORTSTR 0x00		/* Marks value in file as a short string */
-#define PRINT_LONGSTR 0x01		/* Marks value in file as a long string */
+#define PRINT_INT 0x40                  /* Marks value in file as binary integer */
+#define PRINT_UINT8 0x50                /* Marks value in file as binary integer */
+#define PRINT_INT64 0x60                /* Marks value in file as binary 64-bit integer */
+#define PRINT_FLOAT5 0x80               /* Marks value in file as five byte binary floating point */
+#define PRINT_FLOAT 0x88                /* Marks value in file as binary floating point */
+#define PRINT_SHORTSTR 0x00             /* Marks value in file as a short string */
+#define PRINT_LONGSTR 0x01              /* Marks value in file as a long string */
 
 /* Values used to represent 'true' and 'false' in Basic programs */
 
@@ -140,96 +140,96 @@
 /* 'basicstring' defines the layout of a string descriptor */
 
 typedef struct {
-  int32 stringlen;			/* Length of string */
-  char *stringaddr;			/* Pointer to string */
+  int32 stringlen;                      /* Length of string */
+  char *stringaddr;                     /* Pointer to string */
 } basicstring;
 
 /* 'basicarray' gives the layout of an array descriptor */
 
 typedef struct {
-  int32 dimcount;			/* Number of array dimensions */
-  int32 arrsize;			/* Total number of elements in array */
+  int32 dimcount;                       /* Number of array dimensions */
+  int32 arrsize;                        /* Total number of elements in array */
   union {
-    uint8 *uint8base;			/* Pointer to start of uint8 elements */
-    int32 *intbase;			/* Pointer to start of integer elements */
-    int64 *int64base;			/* Pointer to start of 64-bit integer elements */
-    float64 *floatbase;			/* Pointer to start of floating point elements */
-    basicstring *stringbase;		/* Pointer to start of string elements */
-    void *arraybase;			/* Pointer to start of array */
-  } arraystart;				/* Pointer to start of array */
+    uint8 *uint8base;                   /* Pointer to start of uint8 elements */
+    int32 *intbase;                     /* Pointer to start of integer elements */
+    int64 *int64base;                   /* Pointer to start of 64-bit integer elements */
+    float64 *floatbase;                 /* Pointer to start of floating point elements */
+    basicstring *stringbase;            /* Pointer to start of string elements */
+    void *arraybase;                    /* Pointer to start of array */
+  } arraystart;                         /* Pointer to start of array */
 #ifndef MATRIX64BIT
-  void *dummy1;				/* Padding on 32-bit */
+  void *dummy1;                         /* Padding on 32-bit */
 #endif
-  int32 dimsize[MAXDIMS];		/* Sizes of the array dimemsions */
-  boolean offheap;			/* TRUE if off heap */
-  void *parent;				/* Address of parent variable record */
+  int32 dimsize[MAXDIMS];               /* Sizes of the array dimemsions */
+  boolean offheap;                      /* TRUE if off heap */
+  void *parent;                         /* Address of parent variable record */
 #ifndef MATRIX64BIT
-  void *dummy2;				/* Padding on 32-bit */
+  void *dummy2;                         /* Padding on 32-bit */
 #endif
 } basicarray;
 
 typedef union {
-  char *charaddr;			/* Pointer to a character */
-  uint8 *uint8addr;			/* Pointer to an unsigned 8-bit integer */
-  int32 *intaddr;			/* Pointer to Basic integer value */
-  int64 *int64addr;			/* Pointer to 64-bit integer value */
-  float64 *floataddr;			/* Pointer to Basic floating point value */
-  basicstring *straddr;			/* Pointer to Basic string descriptor */
-  basicarray **arrayaddr;		/* Pointer to pointer to Basic array descriptor */
-  size_t offset;			/* Byte offset in workspace for indirection operators */
+  char *charaddr;                       /* Pointer to a character */
+  uint8 *uint8addr;                     /* Pointer to an unsigned 8-bit integer */
+  int32 *intaddr;                       /* Pointer to Basic integer value */
+  int64 *int64addr;                     /* Pointer to 64-bit integer value */
+  float64 *floataddr;                   /* Pointer to Basic floating point value */
+  basicstring *straddr;                 /* Pointer to Basic string descriptor */
+  basicarray **arrayaddr;               /* Pointer to pointer to Basic array descriptor */
+  size_t offset;                        /* Byte offset in workspace for indirection operators */
 } pointers;
 
 /* 'lvalue' refers to an item when a writable address is needed rather than its value */
 
 typedef struct {
-  int32 typeinfo;			/* Type of item referenced */
-  pointers address;			/* Address of item */
+  int32 typeinfo;                       /* Type of item referenced */
+  pointers address;                     /* Address of item */
 } lvalue;
 
 typedef struct {
-  byte *whenexpr;			/* Pointer to an expression after a 'WHEN' */
-  byte *whenaddr;			/* Pointer to the code for that 'WHEN' */
+  byte *whenexpr;                       /* Pointer to an expression after a 'WHEN' */
+  byte *whenaddr;                       /* Pointer to the code for that 'WHEN' */
 } whenvalue;
 
 typedef struct {
-  int32 whencount;			/* Number of 'WHEN' cases in table */
-  byte *defaultaddr;			/* Address of 'OTHERWISE' code */
-  whenvalue whentable[1];		/* First entry in table of WHEN cases */
+  int32 whencount;                      /* Number of 'WHEN' cases in table */
+  byte *defaultaddr;                    /* Address of 'OTHERWISE' code */
+  whenvalue whentable[1];               /* First entry in table of WHEN cases */
 } casetable;
 
 /* 'formparm' is used to refer to a formal parameter of a function or a procedure */
 
 typedef struct formparm {
-  struct formparm *nextparm;		/* Next parameter */
-  lvalue parameter;			/* Parameter's details */
+  struct formparm *nextparm;            /* Next parameter */
+  lvalue parameter;                     /* Parameter's details */
 } formparm;
 
 /* 'fnprocdef' gives details of a procedure's or function's formal parameters */
 
 typedef struct {
-  byte *fnprocaddr;			/* Address of start of PROC/FN */
-  int32 parmcount;			/* Number of parameters */
-  boolean simple;			/* PROC/FN has only one integer parameter */
-  formparm *parmlist;			/* Pointer to first parameter */
+  byte *fnprocaddr;                     /* Address of start of PROC/FN */
+  int32 parmcount;                      /* Number of parameters */
+  boolean simple;                       /* PROC/FN has only one integer parameter */
+  formparm *parmlist;                   /* Pointer to first parameter */
 } fnprocdef;
 
 /* 'variable' is the main structure used to define a variable */
 
 typedef struct variable {
-  struct variable *varflink;		/* Next variable in chain */
-  int32 varflags;			/* Type flags */
-  char *varname;			/* Pointer to variable's name */
-  int32 varhash;			/* Hash value for symbol's name */
-  struct library *varowner;		/* Library in which var was defined or NIL */
+  struct variable *varflink;            /* Next variable in chain */
+  int32 varflags;                       /* Type flags */
+  char *varname;                        /* Pointer to variable's name */
+  int32 varhash;                        /* Hash value for symbol's name */
+  struct library *varowner;             /* Library in which var was defined or NIL */
   union {
-    uint8 varu8int;		/* Value if an unsigned 8-bit integer */
-    int32 varinteger;			/* Value if a 32-bit integer */
-    int64 var64int;			/* Value if a 64-bit integer */
-    float64 varfloat;			/* Value if floating point */
-    basicstring varstring;		/* Descriptor if a string */
-    basicarray *vararray;		/* Pointer to array's dope vector */
-    fnprocdef *varfnproc;		/* Pointer to proc/fn definition */
-    byte *varmarker;			/* Pointer to proc/fn def marked earlier */
+    uint8 varu8int;             /* Value if an unsigned 8-bit integer */
+    int32 varinteger;                   /* Value if a 32-bit integer */
+    int64 var64int;                     /* Value if a 64-bit integer */
+    float64 varfloat;                   /* Value if floating point */
+    basicstring varstring;              /* Descriptor if a string */
+    basicarray *vararray;               /* Pointer to array's dope vector */
+    fnprocdef *varfnproc;               /* Pointer to proc/fn definition */
+    byte *varmarker;                    /* Pointer to proc/fn def marked earlier */
   } varentry;
 } variable;
 
@@ -237,45 +237,45 @@ typedef struct variable {
 /* a procedure or function is called */
 
 typedef struct fnprocinfo {
-  struct fnprocinfo *lastcall;		/* Pointer to last PROC/FN return block */
-  byte *retaddr;			/* Return address in program */
-  int32 parmcount;			/* Number of parameters on stack for call */
-  char *fnprocname;			/* Pointer to FN's or PROC's name */
+  struct fnprocinfo *lastcall;          /* Pointer to last PROC/FN return block */
+  byte *retaddr;                        /* Return address in program */
+  int32 parmcount;                      /* Number of parameters on stack for call */
+  char *fnprocname;                     /* Pointer to FN's or PROC's name */
 } fnprocinfo;
 
 /* 'gosubinfo' contains the information saved on the Basic stack */
 /* when a subroutine is called */
 
 typedef struct gosubinfo {
-  struct gosubinfo *lastcall;		/* Pointer to last GOSUB return block */
-  byte *retaddr;			/* Return address is program */
+  struct gosubinfo *lastcall;           /* Pointer to last GOSUB return block */
+  byte *retaddr;                        /* Return address is program */
 } gosubinfo;
 
 typedef struct {
-  boolean islocal;			/* TRUE if this is a 'ON ERROR LOCAL' error block */
-  byte *current;			/* Value of 'current' when restarting after an error */
-  byte *stacktop;			/* Value of the Basic stack pointer when restarting */
+  boolean islocal;                      /* TRUE if this is a 'ON ERROR LOCAL' error block */
+  byte *current;                        /* Value of 'current' when restarting after an error */
+  byte *stacktop;                       /* Value of the Basic stack pointer when restarting */
 } errorblock;
 
 /* 'libfnproc' entries are set up for each procedure or function in a library */
 
 typedef struct libfnproc {
-  struct libfnproc *fpflink;		/* Pointer to next PROC/FN entry */
-  byte *fpline;				/* Pointer to start of line containing DEF PROC/FN */
-  int32 fphash;				/* Hash value of PROC/FN's name */
-  byte *fpname;				/* Pointer to PROC/FN's name in source line */
-  byte *fpmarker;			/* Pointer to XFNPROCALL token in executable line */
+  struct libfnproc *fpflink;            /* Pointer to next PROC/FN entry */
+  byte *fpline;                         /* Pointer to start of line containing DEF PROC/FN */
+  int32 fphash;                         /* Hash value of PROC/FN's name */
+  byte *fpname;                         /* Pointer to PROC/FN's name in source line */
+  byte *fpmarker;                       /* Pointer to XFNPROCALL token in executable line */
 } libfnproc;
 
 /* 'library' entries describe libraries loaded */
 
 typedef struct library {
-  struct library *libflink;		/* Next library in list */
-  char *libname;			/* Library name */
-  byte *libstart;			/* Pointer to start of library in memory */
-  int32 libsize;			/* Size of library */
-  libfnproc *libfplist;			/* Pointer to list of procedures and functions in library */
-  variable *varlists[VARLISTS];		/* Pointers to lists of variables, procedures and functions in library */
+  struct library *libflink;             /* Next library in list */
+  char *libname;                        /* Library name */
+  byte *libstart;                       /* Pointer to start of library in memory */
+  int32 libsize;                        /* Size of library */
+  libfnproc *libfplist;                 /* Pointer to list of procedures and functions in library */
+  variable *varlists[VARLISTS];         /* Pointers to lists of variables, procedures and functions in library */
 } library;
 
 /* Following are the types describing items found on the Basic stack.
@@ -284,128 +284,128 @@ typedef struct library {
 */
 typedef enum {
   STACK_UNKNOWN,
-  STACK_LVALUE,     STACK_UINT8,       STACK_INT,        STACK_INT64,		/* 04 */
-  STACK_FLOAT,      STACK_STRING,      STACK_STRTEMP,    STACK_INTARRAY,	/* 08 */
-  STACK_IATEMP,     STACK_UINT8ARRAY,  STACK_U8ATEMP,    STACK_INT64ARRAY,	/* 0C */
-  STACK_I64ATEMP,   STACK_FLOATARRAY,  STACK_FATEMP,     STACK_STRARRAY,	/* 10 */
-  STACK_SATEMP,     STACK_LOCARRAY,    STACK_LOCSTRING,  STACK_GOSUB,		/* 14 */
-  STACK_PROC,       STACK_FN,          STACK_LOCAL,      STACK_RETPARM,		/* 18 */
-  STACK_WHILE,      STACK_REPEAT,      STACK_INTFOR,     STACK_INT64FOR,	/* 1C */
-  STACK_FLOATFOR,   STACK_ERROR,       STACK_DATA,       STACK_OPSTACK,		/* 20 */
-  STACK_RESTART,    STACK_HIGHEST						/* 22 */
+  STACK_LVALUE,     STACK_UINT8,       STACK_INT,        STACK_INT64,           /* 04 */
+  STACK_FLOAT,      STACK_STRING,      STACK_STRTEMP,    STACK_INTARRAY,        /* 08 */
+  STACK_IATEMP,     STACK_UINT8ARRAY,  STACK_U8ATEMP,    STACK_INT64ARRAY,      /* 0C */
+  STACK_I64ATEMP,   STACK_FLOATARRAY,  STACK_FATEMP,     STACK_STRARRAY,        /* 10 */
+  STACK_SATEMP,     STACK_LOCARRAY,    STACK_LOCSTRING,  STACK_GOSUB,           /* 14 */
+  STACK_PROC,       STACK_FN,          STACK_LOCAL,      STACK_RETPARM,         /* 18 */
+  STACK_WHILE,      STACK_REPEAT,      STACK_INTFOR,     STACK_INT64FOR,        /* 1C */
+  STACK_FLOATFOR,   STACK_ERROR,       STACK_DATA,       STACK_OPSTACK,         /* 20 */
+  STACK_RESTART,    STACK_HIGHEST                                               /* 22 */
 } stackitem;
 
-typedef struct {		/* Operator stack */
-  stackitem itemtype;		/* Type of item */
-  size_t opstack[OPSTACKSIZE];	/* Operator stack */
+typedef struct {                /* Operator stack */
+  stackitem itemtype;           /* Type of item */
+  size_t opstack[OPSTACKSIZE];  /* Operator stack */
 } stack_opstack;
 
-typedef struct {		/* longjmp environment block for ON ERROR LOCAL */
-  stackitem itemtype;		/* Type of item */
-  sigjmp_buf restart;		/* Environment block */
+typedef struct {                /* longjmp environment block for ON ERROR LOCAL */
+  stackitem itemtype;           /* Type of item */
+  sigjmp_buf restart;           /* Environment block */
 } stack_restart;
 
-typedef struct {		/* Unsigned 8-bit integer value */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  uint8 uint8value;	/* Value of integer */
+typedef struct {                /* Unsigned 8-bit integer value */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  uint8 uint8value;     /* Value of integer */
 } stack_uint8;
 
-typedef struct {		/* 32-bit integer value */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  int32 intvalue;		/* Value of integer */
+typedef struct {                /* 32-bit integer value */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  int32 intvalue;               /* Value of integer */
 } stack_int;
 
-typedef struct {		/* 64-bit integer value */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  int64 int64value;		/* Value of integer */
+typedef struct {                /* 64-bit integer value */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  int64 int64value;             /* Value of integer */
 } stack_int64;
 
-typedef struct {		/* FLoating point value */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  float64 floatvalue;		/* Floating point integer */
+typedef struct {                /* FLoating point value */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  float64 floatvalue;           /* Floating point integer */
 } stack_float;
 
-typedef struct {		/* String descriptor */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  basicstring descriptor;	/* String descriptor */
+typedef struct {                /* String descriptor */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  basicstring descriptor;       /* String descriptor */
 } stack_string;
 
-typedef struct {		/* Array descriptor */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  basicarray *descriptor;	/* Pointer to array descriptor */
+typedef struct {                /* Array descriptor */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  basicarray *descriptor;       /* Pointer to array descriptor */
 } stack_array;
 
-typedef struct {		/* Temporary array descriptor */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  basicarray descriptor;	/* Temporary array's descriptor */
+typedef struct {                /* Temporary array descriptor */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  basicarray descriptor;        /* Temporary array's descriptor */
 } stack_arraytemp;
 
-typedef struct {		/* Local array definition */
-  stackitem itemtype;		/* Type of item pushed on to stack */
-  int32 arraysize;		/* Size of the array in bytes */
+typedef struct {                /* Local array definition */
+  stackitem itemtype;           /* Type of item pushed on to stack */
+  int32 arraysize;              /* Size of the array in bytes */
 } stack_locarray;
 
-typedef struct {		/* PROC return block */
+typedef struct {                /* PROC return block */
   stackitem itemtype;
-  fnprocinfo fnprocblock;	/* PROC return information */
+  fnprocinfo fnprocblock;       /* PROC return information */
 } stack_proc;
 
-typedef struct {		/* Function return block */
+typedef struct {                /* Function return block */
   stackitem itemtype;
-  fnprocinfo fnprocblock;	/* Function return information */
-  size_t *lastopstop;		/* Saved value of Basic operator stack pointer */
-  size_t *lastopstlimit;		/* Saved pointer to end of operator stack */
-  sigjmp_buf *lastrestart;		/* Last function statement restart block for longjmp */
+  fnprocinfo fnprocblock;       /* Function return information */
+  size_t *lastopstop;           /* Saved value of Basic operator stack pointer */
+  size_t *lastopstlimit;                /* Saved pointer to end of operator stack */
+  sigjmp_buf *lastrestart;              /* Last function statement restart block for longjmp */
 } stack_fn;
 
-typedef struct {		/* GOSUB return block */
+typedef struct {                /* GOSUB return block */
   stackitem itemtype;
-  gosubinfo gosublock;		/* GOSUB return information */
+  gosubinfo gosublock;          /* GOSUB return information */
 } stack_gosub;
 
-typedef struct {		/* Saved local variable */
+typedef struct {                /* Saved local variable */
   stackitem itemtype;
-  lvalue savedetails;		/* Details of item saved */
+  lvalue savedetails;           /* Details of item saved */
   union {
-    uint8 saveduint8;		/* Saved 8-bit unsigned integer value */
-    int32 savedint;		/* Saved 32-bit integer value */
-    int64 savedint64;		/* Saved 64-bit integer value */
-    float64 savedfloat;		/* Saved floating point value */
-    basicstring savedstring;	/* Saved string descriptor */
-    basicarray *savedarray;	/* Saved pointer to array descriptor */
+    uint8 saveduint8;           /* Saved 8-bit unsigned integer value */
+    int32 savedint;             /* Saved 32-bit integer value */
+    int64 savedint64;           /* Saved 64-bit integer value */
+    float64 savedfloat;         /* Saved floating point value */
+    basicstring savedstring;    /* Saved string descriptor */
+    basicarray *savedarray;     /* Saved pointer to array descriptor */
   } value;
 } stack_local;
 
-typedef struct {		/* Saved RETURN-type local variable */
+typedef struct {                /* Saved RETURN-type local variable */
   stackitem itemtype;
-  lvalue savedetails;		/* Details of item saved */
-  lvalue retdetails;		/* Details of where to save returned value */
+  lvalue savedetails;           /* Details of item saved */
+  lvalue retdetails;            /* Details of where to save returned value */
   union {
-    uint8 saveduint8;		/* Saved 8-bit unsigned integer value */
-    int32 savedint;		/* Saved 32-bit integer value */
-    int64 savedint64;		/* Saved 64-bit integer value */
-    float64 savedfloat;		/* Saved floating point value */
-    basicstring savedstring;	/* Saved string descriptor */
-    basicarray *savedarray;	/* Saved pointer to array descriptor */
+    uint8 saveduint8;           /* Saved 8-bit unsigned integer value */
+    int32 savedint;             /* Saved 32-bit integer value */
+    int64 savedint64;           /* Saved 64-bit integer value */
+    float64 savedfloat;         /* Saved floating point value */
+    basicstring savedstring;    /* Saved string descriptor */
+    basicarray *savedarray;     /* Saved pointer to array descriptor */
   } value;
 } stack_retparm;
 
-typedef struct {		/* WHILE loop control block */
+typedef struct {                /* WHILE loop control block */
   stackitem itemtype;
-  byte *whilexpr;		/* Pointer to expression in WHILE statement */
-  byte *whileaddr;		/* Value of 'current' for first statement */
+  byte *whilexpr;               /* Pointer to expression in WHILE statement */
+  byte *whileaddr;              /* Value of 'current' for first statement */
 } stack_while;
 
-typedef struct {		/* REPEAT loop control block */
+typedef struct {                /* REPEAT loop control block */
   stackitem itemtype;
-  byte *repeataddr;		/* Value of 'current' for first statement in loop */
+  byte *repeataddr;             /* Value of 'current' for first statement in loop */
 } stack_repeat;
 
-typedef struct {		/* FOR loop control block */
+typedef struct {                /* FOR loop control block */
   stackitem itemtype;
-  boolean simplefor;		/* TRUE if an integer variable and incr is +1 */
-  lvalue forvar;		/* Details of the 'FOR' loop control variable */
-  byte *foraddr;		/* Pointer to first statement in 'FOR' loop */
+  boolean simplefor;            /* TRUE if an integer variable and incr is +1 */
+  lvalue forvar;                /* Details of the 'FOR' loop control variable */
+  byte *foraddr;                /* Pointer to first statement in 'FOR' loop */
   union {
     struct {int32 intlimit, intstep;} intfor;
     struct {uint8 uint8limit, uint8step;} uint8for;
@@ -414,17 +414,17 @@ typedef struct {		/* FOR loop control block */
   } fortype;
 } stack_for;
 
-typedef struct {		/* 'LOCAL DATA' control block */
+typedef struct {                /* 'LOCAL DATA' control block */
   stackitem itemtype;
-  byte *address;		/* Saved 'DATA' pointer */
+  byte *address;                /* Saved 'DATA' pointer */
 } stack_data;
 
-typedef struct {		/* 'LOCAL ERROR' control block */
+typedef struct {                /* 'LOCAL ERROR' control block */
   stackitem itemtype;
-  errorblock handler;		/* Preserved error handler detail block */
+  errorblock handler;           /* Preserved error handler detail block */
 } stack_error;
 
-typedef union {		/* This type represents everything that goes on the stack */
+typedef union {         /* This type represents everything that goes on the stack */
   stack_uint8 *uint8sp;
   stack_int *intsp;
   stack_int64 *int64sp;
@@ -448,7 +448,7 @@ typedef union {		/* This type represents everything that goes on the stack */
   byte *bytesp;
 } stack_pointer;
 
-typedef struct cmdarg {		/* Command line argument structure */
+typedef struct cmdarg {         /* Command line argument structure */
   char *argvalue;
   struct cmdarg *nextarg;
 } cmdarg;
@@ -573,7 +573,7 @@ typedef struct {
   cmdarg *arglist;            /* Pointer to list of Basic program command line arguments */
 } workspace;
 
-extern workspace basicvars;		/* Interpreter variables for the Basic program */
+extern workspace basicvars;             /* Interpreter variables for the Basic program */
 
 /* Flags used by Matrix Brandy extensions, that need to be available in more than one place */
 typedef struct {

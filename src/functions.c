@@ -19,12 +19,12 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains all of the built-in Basic functions
+**      This file contains all of the built-in Basic functions
 */
 /*
 ** Changed by Crispian Daniels on August 12th 2002.
-**	Changed 'fn_rnd' to use a pseudo-random generator equivalent
-**	to the BASIC II implementation.
+**      Changed 'fn_rnd' to use a pseudo-random generator equivalent
+**      to the BASIC II implementation.
 **
 ** 05-Apr-2014 JGH: Seperated BEAT from BEATS, they do different things.
 */
@@ -77,15 +77,15 @@
 #define PI       3.141592653589793238462643383279502884L
 #endif
 
-#define RADCONV 57.29577951308232286	/* Used when converting degrees -> radians and vice versa */
+#define RADCONV 57.29577951308232286    /* Used when converting degrees -> radians and vice versa */
 #define TIMEFORMAT "%a,%d %b %Y.%H:%M:%S"  /* Date format used by 'TIME$' */
 
 /* RISC OS BASIC V uses &B0A, BASIC VI uses &110A. RTR BASICs use &90A */
-#define STRFORMAT 0x110A			/* Default format used by function STR$ */
+#define STRFORMAT 0x110A                        /* Default format used by function STR$ */
 
-static int32 lastrandom;		/* 32-bit pseudo-random number generator value */
-static int32 randomoverflow;		/* 1-bit overflow from pseudo-random number generator */
-static float64 floatvalue;		/* Temporary for holding floating point values */
+static int32 lastrandom;                /* 32-bit pseudo-random number generator value */
+static int32 randomoverflow;            /* 1-bit overflow from pseudo-random number generator */
+static float64 floatvalue;              /* Temporary for holding floating point values */
 
 /*
 ** 'bad_token' is called to report a bad token value. This could mean
@@ -153,26 +153,26 @@ static void fn_left(void) {
   basicstring descriptor;
   int32 length;
   char *cp;
-  expression();		/* Fetch the string */
+  expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
-  if (*basicvars.current == ',') {	/* Function call is of the form LEFT(<string>,<value>) */
+  if (*basicvars.current == ',') {      /* Function call is of the form LEFT(<string>,<value>) */
     basicvars.current++;
     length = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);	/* ')' missing */
+    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
     basicvars.current++;
     if (length<0)
-      return;	/* Do nothing if required length is negative, that is, return whole string */
-    else if (length == 0) {		/* Don't want anything from the string */
+      return;   /* Do nothing if required length is negative, that is, return whole string */
+    else if (length == 0) {             /* Don't want anything from the string */
       descriptor = pop_string();
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
-      cp = alloc_string(0);		/* Allocate a null string */
+      cp = alloc_string(0);             /* Allocate a null string */
       push_strtemp(0, cp);
     }
     else {
       descriptor = pop_string();
-      if (length>=descriptor.stringlen)	/* Substring length exceeds that of original string */
-        push_string(descriptor);	/* So put the old string back on the stack */
+      if (length>=descriptor.stringlen) /* Substring length exceeds that of original string */
+        push_string(descriptor);        /* So put the old string back on the stack */
       else {
         cp = alloc_string(length);
         memcpy(cp, descriptor.stringaddr, length);
@@ -181,17 +181,17 @@ static void fn_left(void) {
       }
     }
   }
-  else {	/* Return original string with the last character sawn off */
-    if (*basicvars.current != ')') error(ERR_RPMISS);	/* ')' missing */
-    basicvars.current++;	/* Skip past the ')' */
+  else {        /* Return original string with the last character sawn off */
+    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
+    basicvars.current++;        /* Skip past the ')' */
     descriptor = pop_string();
     length = descriptor.stringlen-1;
     if (length<=0) {
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
-      cp = alloc_string(0);		/* Allocate a null string */
+      cp = alloc_string(0);             /* Allocate a null string */
       push_strtemp(0, cp);
     }
-    else {	/* Create a new string of the required length */
+    else {      /* Create a new string of the required length */
       cp = alloc_string(length);
       memmove(cp, descriptor.stringaddr, length);
       push_strtemp(length, cp);
@@ -221,32 +221,32 @@ static void fn_mid(void) {
   basicstring descriptor;
   int32 start, length;
   char *cp;
-  expression();		/* Fetch the string */
+  expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
   start = eval_integer();
-  if (*basicvars.current == ',') {	/* Call of the form 'MID$(<string>,<expr>,<expr>) */
+  if (*basicvars.current == ',') {      /* Call of the form 'MID$(<string>,<expr>,<expr>) */
     basicvars.current++;
     length = eval_integer();
-    if (length<0) length = MAXSTRING;	/* -ve length = use remainder of string */
+    if (length<0) length = MAXSTRING;   /* -ve length = use remainder of string */
   }
-  else {	/* Length not given - Use remainder of string */
+  else {        /* Length not given - Use remainder of string */
     length = MAXSTRING;
   }
-  if (*basicvars.current != ')') error(ERR_RPMISS);	/* ')' missing */
+  if (*basicvars.current != ')') error(ERR_RPMISS);     /* ')' missing */
   basicvars.current++;
   descriptor = pop_string();
-  if (length == 0 || start<0 || start>descriptor.stringlen) {	/* Don't want anything from the string */
+  if (length == 0 || start<0 || start>descriptor.stringlen) {   /* Don't want anything from the string */
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
-    cp = alloc_string(0);		/* Allocate a null string */
+    cp = alloc_string(0);               /* Allocate a null string */
     push_strtemp(0, cp);
   }
-  else {	/* Want only some of the original string */
-    if (start>0) start-=1;	/* Turn start position into an offset from zero */
-    if (start == 0 && length>=descriptor.stringlen)	/* Substring is entire string */
-      push_string(descriptor);	/* So put the old string back on the stack */
+  else {        /* Want only some of the original string */
+    if (start>0) start-=1;      /* Turn start position into an offset from zero */
+    if (start == 0 && length>=descriptor.stringlen)     /* Substring is entire string */
+      push_string(descriptor);  /* So put the old string back on the stack */
     else {
       if (start+length>descriptor.stringlen) length = descriptor.stringlen-start;
       cp = alloc_string(length);
@@ -293,7 +293,7 @@ static void fn_ptr(void) {
         break;
       case STACK_STRING:
         strdesc=pop_string();
-	push_int64((int64)(size_t)strdesc.stringaddr);
+        push_int64((int64)(size_t)strdesc.stringaddr);
         break;
       default:
         error(ERR_UNSUITABLEVAR);
@@ -312,24 +312,24 @@ static void fn_right(void) {
   basicstring descriptor;
   int32 length;
   char *cp;
-  expression();		/* Fetch the string */
+  expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
-  if (*basicvars.current == ',') {	/* Function call is of the form RIGHT$(<string>,<value>) */
+  if (*basicvars.current == ',') {      /* Function call is of the form RIGHT$(<string>,<value>) */
     basicvars.current++;
     length = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);	/* ')' missing */
+    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
     basicvars.current++;
-    if (length<=0) {	/* Do not want anything from string */
+    if (length<=0) {    /* Do not want anything from string */
       descriptor = pop_string();
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
-      cp = alloc_string(0);		/* Allocate a null string */
+      cp = alloc_string(0);             /* Allocate a null string */
       push_strtemp(0, cp);
     }
     else {
       descriptor = pop_string();
-      if (length>=descriptor.stringlen)	/* Substring length exceeds that of original string */
-        push_string(descriptor);	/* So put the old string back on the stack */
+      if (length>=descriptor.stringlen) /* Substring length exceeds that of original string */
+        push_string(descriptor);        /* So put the old string back on the stack */
       else {
         cp = alloc_string(length);
         memcpy(cp, descriptor.stringaddr+descriptor.stringlen-length, length);
@@ -338,13 +338,13 @@ static void fn_right(void) {
       }
     }
   }
-  else {	/* Return only the last character */
-    if (*basicvars.current != ')') error(ERR_RPMISS);	/* ')' missing */
-    basicvars.current++;	/* Skip past the ')' */
+  else {        /* Return only the last character */
+    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
+    basicvars.current++;        /* Skip past the ')' */
     descriptor = pop_string();
     if (descriptor.stringlen == 0)
-      push_string(descriptor);	/* String length is zero - Just put null string back on stack */
-    else {	/* Create a new single character string */
+      push_string(descriptor);  /* String length is zero - Just put null string back on stack */
+    else {      /* Create a new single character string */
       cp = alloc_string(1);
       *cp = *(descriptor.stringaddr+descriptor.stringlen-1);
       push_strtemp(1, cp);
@@ -438,7 +438,7 @@ static void fn_argvdol(void) {
   int32 number, length;
   cmdarg *ap;
   char *cp;
-  number = eval_intfactor();	/* Fetch number of argument to push on to stack */
+  number = eval_intfactor();    /* Fetch number of argument to push on to stack */
   if (number<0 || number>basicvars.argcount) error(ERR_RANGE);
   ap = basicvars.arglist;
   while (number > 0) {
@@ -462,14 +462,14 @@ static void fn_asc(void) {
   topitem = GET_TOPITEM;
   if (topitem == STACK_STRING || topitem == STACK_STRTEMP) {
     descriptor = pop_string();
-    if (descriptor.stringlen == 0)	/* Null string returns -1 with ASC */
+    if (descriptor.stringlen == 0)      /* Null string returns -1 with ASC */
       push_int(-1);
     else {
       push_int(*descriptor.stringaddr & BYTEMASK);
       if (topitem == STACK_STRTEMP) free_string(descriptor);
     }
   }
-  else error(ERR_TYPESTR);	/* String wanted */
+  else error(ERR_TYPESTR);      /* String wanted */
 }
 
 /*
@@ -556,7 +556,7 @@ static void fn_chr(void) {
 void fn_colour(void) {
   int32 red, green, blue;
   basicvars.current++;
-  if (*basicvars.current != '(') error(ERR_SYNTAX);	/* COLOUR must be followed by a '(' */
+  if (*basicvars.current != '(') error(ERR_SYNTAX);     /* COLOUR must be followed by a '(' */
   basicvars.current++;
   red = eval_integer();
   if (*basicvars.current != ',') error(ERR_SYNTAX);
@@ -594,24 +594,24 @@ static void fn_count(void) {
 */
 static variable *get_arrayname(void) {
   variable *vp = NULL;
-  if (*basicvars.current == BASIC_TOKEN_ARRAYVAR)	/* Known reference */
+  if (*basicvars.current == BASIC_TOKEN_ARRAYVAR)       /* Known reference */
     vp = GET_ADDRESS(basicvars.current, variable *);
-  else if (*basicvars.current == BASIC_TOKEN_XVAR) {	/* Reference not seen before */
+  else if (*basicvars.current == BASIC_TOKEN_XVAR) {    /* Reference not seen before */
     byte *base, *ep;
-    base = get_srcaddr(basicvars.current);	/* Find address of array's name */
+    base = get_srcaddr(basicvars.current);      /* Find address of array's name */
     ep = skip_name(base);
     vp = find_variable(base, ep-base);
     if (vp == NIL) error(ERR_ARRAYMISS, tocstring(CAST(base, char *), ep-base));
-    if ((vp->varflags & VAR_ARRAY) == 0) error(ERR_VARARRAY);	/* Not an array */
-    if (*(basicvars.current+LOFFSIZE+1) != ')') error(ERR_RPMISS);	/* Array name must be suppled as 'array()' */
+    if ((vp->varflags & VAR_ARRAY) == 0) error(ERR_VARARRAY);   /* Not an array */
+    if (*(basicvars.current+LOFFSIZE+1) != ')') error(ERR_RPMISS);      /* Array name must be suppled as 'array()' */
     *basicvars.current = BASIC_TOKEN_ARRAYVAR;
     set_address(basicvars.current, vp);
   }
-  else {	/* Not an array name */
-    error(ERR_VARARRAY);	/* Name not found */
+  else {        /* Not an array name */
+    error(ERR_VARARRAY);        /* Name not found */
   }
-  if (vp->varentry.vararray == NIL) error(ERR_NODIMS, vp->varname);	/* Array has not been dimensioned */
-  basicvars.current+=LOFFSIZE+2;	/* Skip pointer to array and ')' */
+  if (vp->varentry.vararray == NIL) error(ERR_NODIMS, vp->varname);     /* Array has not been dimensioned */
+  basicvars.current+=LOFFSIZE+2;        /* Skip pointer to array and ')' */
   return vp;
 }
 
@@ -624,19 +624,19 @@ void fn_dim(void) {
   variable *vp;
   int32 dimension;
   basicvars.current++;
-  if (*basicvars.current != '(') error(ERR_SYNTAX);	/* DIM must be followed by a '(' */
+  if (*basicvars.current != '(') error(ERR_SYNTAX);     /* DIM must be followed by a '(' */
   basicvars.current++;
   vp = get_arrayname();
   switch (*basicvars.current) {
-  case ',':	/* Got 'array(),<x>) - Return upper bound of dimension <x> */
+  case ',':     /* Got 'array(),<x>) - Return upper bound of dimension <x> */
     basicvars.current++;
-    dimension = eval_integer();		/* Get dimension number */
+    dimension = eval_integer();         /* Get dimension number */
     if (*basicvars.current != ')') error(ERR_RPMISS);
-    basicvars.current++; 	/* Skip the trailing ')' */
+    basicvars.current++;        /* Skip the trailing ')' */
     if (dimension<1 || dimension>vp->varentry.vararray->dimcount) error(ERR_DIMRANGE);
     push_int(vp->varentry.vararray->dimsize[dimension-1]-1);
     break;
-  case ')':	/* Got 'array())' - Return the number of dimensions */
+  case ')':     /* Got 'array())' - Return the number of dimensions */
     push_int(vp->varentry.vararray->dimcount);
     basicvars.current++;
     break;
@@ -712,11 +712,11 @@ static void fn_eval(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   descriptor = pop_string();
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
-  basicvars.stringwork[descriptor.stringlen] = asc_NUL;	/* Now have a null-terminated version of string */
+  basicvars.stringwork[descriptor.stringlen] = asc_NUL; /* Now have a null-terminated version of string */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
-  tokenize(basicvars.stringwork, evalexpr, NOLINE, FALSE);	/* 'tokenise' leaves its results in 'thisline' */
-//  tokenize(basicvars.stringwork, evalexpr, NOLINE);	/* 'tokenise' leaves its results in 'thisline' */
-  save_current();		/* Save pointer to current position in expression */
+  tokenize(basicvars.stringwork, evalexpr, NOLINE, FALSE);      /* 'tokenise' leaves its results in 'thisline' */
+//  tokenize(basicvars.stringwork, evalexpr, NOLINE);   /* 'tokenise' leaves its results in 'thisline' */
+  save_current();               /* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();
   if (basicvars.runflags.flag_cosmetic && (*basicvars.current != asc_NUL)) error(ERR_SYNTAX);
@@ -745,7 +745,7 @@ void fn_false(void) {
 */
 static void fn_get(void) {
   int ch;
-  if (*basicvars.current == '(') {	/* Have encountered the 'GET(x,y)' version */
+  if (*basicvars.current == '(') {      /* Have encountered the 'GET(x,y)' version */
     int32 x, y;
     basicvars.current++;
     x = eval_integer();
@@ -771,7 +771,7 @@ static void fn_getdol(void) {
   char *cp;
   int ch;
   int32 handle, count;
-  if (*basicvars.current == '(') {	/* Have encountered the 'GET$(x,y)' version */
+  if (*basicvars.current == '(') {      /* Have encountered the 'GET$(x,y)' version */
     int32 x, y;
     basicvars.current++;
     x = eval_integer();
@@ -783,7 +783,7 @@ static void fn_getdol(void) {
     cp = alloc_string(1);
     *cp = get_character_at_pos(x, y);
     push_strtemp(1, cp);
-  } else if (*basicvars.current == '#') {	/* Have encountered the 'GET$#' version */
+  } else if (*basicvars.current == '#') {       /* Have encountered the 'GET$#' version */
     basicvars.current++;
     handle = eval_intfactor();
     count = fileio_getdol(handle, basicvars.stringwork);
@@ -791,7 +791,7 @@ static void fn_getdol(void) {
     memcpy(cp, basicvars.stringwork, count);
     push_strtemp(count, cp);
   }
-  else {	/* Normal 'GET$' - Return character read as a string */
+  else {        /* Normal 'GET$' - Return character read as a string */
     cp = alloc_string(1);
     do {
       ch=kbd_get() & 0xFF;
@@ -845,7 +845,7 @@ static void fn_instr(void) {
   int32 start, count;
   char first;
   expression();
-  if (*basicvars.current != ',') error(ERR_COMISS);	/* ',' missing */
+  if (*basicvars.current != ',') error(ERR_COMISS);     /* ',' missing */
   basicvars.current++;
   haytype = GET_TOPITEM;
   if (haytype != STACK_STRING && haytype != STACK_STRTEMP) error(ERR_TYPESTR);
@@ -854,12 +854,12 @@ static void fn_instr(void) {
   needtype = GET_TOPITEM;
   if (needtype != STACK_STRING && needtype != STACK_STRTEMP) error(ERR_TYPESTR);
   needle = pop_string();
-  if (*basicvars.current == ',') {	/* Starting position given */
+  if (*basicvars.current == ',') {      /* Starting position given */
     basicvars.current++;
     start = eval_integer();
     if (start<1) start = 1;
   }
-  else {	/* Set starting position to one */
+  else {        /* Set starting position to one */
     start = 1;
   }
   if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -874,9 +874,9 @@ static void fn_instr(void) {
 ** string
 */
   if (needle.stringlen>haystack.stringlen-start+1)
-    push_int(0);	/* Always returns zero if search string is longer than main string */
-  else if (needle.stringlen == 0) {	/* Search string length is zero */
-    if (haystack.stringlen == 0)	/* Both string are the null string */
+    push_int(0);        /* Always returns zero if search string is longer than main string */
+  else if (needle.stringlen == 0) {     /* Search string length is zero */
+    if (haystack.stringlen == 0)        /* Both string are the null string */
       push_int(1);
     else if (start<3)
       push_int(start);
@@ -884,26 +884,26 @@ static void fn_instr(void) {
       push_int(0);
     }
   }
-  else {	/* Will have to search string */
-    hp = haystack.stringaddr+start-1;	/* Start searching from this address */
+  else {        /* Will have to search string */
+    hp = haystack.stringaddr+start-1;   /* Start searching from this address */
     first = *needle.stringaddr;
-    count = haystack.stringaddr+haystack.stringlen-hp;	/* Count of chars in original string to check */
-    if (needle.stringlen == 1) {		/* Looking for a single character */
+    count = haystack.stringaddr+haystack.stringlen-hp;  /* Count of chars in original string to check */
+    if (needle.stringlen == 1) {                /* Looking for a single character */
       p = memchr(hp, first, count);
-      if (p == NIL)	/* Did not find the character */
+      if (p == NIL)     /* Did not find the character */
         push_int(0);
-      else {	/* Found character - Place its offset (from 1) on stack */
+      else {    /* Found character - Place its offset (from 1) on stack */
         push_int(p-haystack.stringaddr+1);
       }
     }
-    else {	/* Looking for more than one character */
+    else {      /* Looking for more than one character */
       do {
-        p = memchr(hp, first, count);	/* Look for first char in string */
+        p = memchr(hp, first, count);   /* Look for first char in string */
         if (p == NIL)
-          count = 0;	/* Character not found */
-        else {	/* Found an occurence of the first search char in the original string */
+          count = 0;    /* Character not found */
+        else {  /* Found an occurence of the first search char in the original string */
           count-=(p-hp);
-          if (count<needle.stringlen)	/* Chars left to search is less that search string length */
+          if (count<needle.stringlen)   /* Chars left to search is less that search string length */
             count = 0;
           else {
             if (memcmp(p, needle.stringaddr, needle.stringlen) == 0) break;
@@ -912,9 +912,9 @@ static void fn_instr(void) {
           }
         }
       } while (count>0);
-      if (count == 0)	/* Search string not found */
+      if (count == 0)   /* Search string not found */
         push_int(0);
-      else {		/* Push offset (from 1) at which string was found on to stack */
+      else {            /* Push offset (from 1) at which string was found on to stack */
         push_int(p-haystack.stringaddr+1);
       }
     }
@@ -971,8 +971,8 @@ static void fn_len(void) {
 */
 static void fn_listofn(void) {
   push_int(basicvars.list_flags.space | basicvars.list_flags.indent<<1
-  	| basicvars.list_flags.split<<2 | basicvars.list_flags.noline<<3
-  	| basicvars.list_flags.lower<<4 | basicvars.list_flags.showpage<<5);
+        | basicvars.list_flags.split<<2 | basicvars.list_flags.noline<<3
+        | basicvars.list_flags.lower<<4 | basicvars.list_flags.showpage<<5);
 }
 
 /*
@@ -1004,8 +1004,8 @@ void fn_mod(void) {
   static float64 fpsum;
   int32 n, elements;
   variable *vp;
-  basicvars.current++;		/* Skip MOD token */
-  if(*basicvars.current == '(') {	/* One level of parentheses is allowed */
+  basicvars.current++;          /* Skip MOD token */
+  if(*basicvars.current == '(') {       /* One level of parentheses is allowed */
     basicvars.current++;
     vp = get_arrayname();
     if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -1016,21 +1016,21 @@ void fn_mod(void) {
   }
   elements = vp->varentry.vararray->arrsize;
   switch (vp->varflags) {
-  case VAR_INTARRAY: {	/* Calculate the modulus of an integer array */
+  case VAR_INTARRAY: {  /* Calculate the modulus of an integer array */
     int32 *p = vp->varentry.vararray->arraystart.intbase;
     fpsum = 0;
     for (n=0; n<elements; n++) fpsum+=TOFLOAT(p[n])*TOFLOAT(p[n]);
     push_float(sqrt(fpsum));
     break;
   }
-  case VAR_INT64ARRAY: {	/* Calculate the modulus of an integer array */
+  case VAR_INT64ARRAY: {        /* Calculate the modulus of an integer array */
     int64 *p = vp->varentry.vararray->arraystart.int64base;
     fpsum = 0;
     for (n=0; n<elements; n++) fpsum+=TOFLOAT(p[n])*TOFLOAT(p[n]);
     push_float(sqrt(fpsum));
     break;
   }
-  case VAR_FLOATARRAY: {	/* Calculate the modulus of a floating point array */
+  case VAR_FLOATARRAY: {        /* Calculate the modulus of a floating point array */
     float64 *p = vp->varentry.vararray->arraystart.floatbase;
     fpsum = 0;
     for (n=0; n<elements; n++) fpsum+=p[n]*p[n];
@@ -1038,9 +1038,9 @@ void fn_mod(void) {
     break;
   }
   case VAR_STRARRAY:
-    error(ERR_NUMARRAY);	/* Numeric array wanted */
+    error(ERR_NUMARRAY);        /* Numeric array wanted */
     break;
-  default:	/* Bad 'varflags' value found */
+  default:      /* Bad 'varflags' value found */
     error(ERR_BROKEN, __LINE__, "expressions");
   }
 }
@@ -1060,7 +1060,7 @@ void fn_mode(void) {
 ** 'not' of its argument on to the stack
 */
 void fn_not(void) {
-  basicvars.current++;		/* Skip NOT token */
+  basicvars.current++;          /* Skip NOT token */
   (*factor_table[*basicvars.current])();
   push_varyint(~pop_anynum64());
 }
@@ -1215,13 +1215,13 @@ static void fn_rndpar(void) {
   value = eval_integer();
   if (*basicvars.current != ')') error(ERR_RPMISS);
   basicvars.current++;
-  if (value<0) {	/* Negative value = reseed random number generator */
+  if (value<0) {        /* Negative value = reseed random number generator */
     lastrandom = value;
     randomoverflow = 0;
     push_int(value);
-  } else if (value == 0) {	/* Return last result */
+  } else if (value == 0) {      /* Return last result */
     push_float(randomfraction());
-  } else if (value == 1) {	/* Return value in range 0 to 0.9999999999 */
+  } else if (value == 1) {      /* Return value in range 0 to 0.9999999999 */
     nextrandom();
     push_float(randomfraction());
   } else {
@@ -1286,15 +1286,15 @@ static void fn_str(void) {
       int32 format, numdigits;
       char *fmt;
       format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
-      if ((format & STRUSECHK) == 0) format = STRFORMAT;	/* Use predefined format, not @% */
-      switch ((format>>2*BYTESHIFT) & BYTEMASK) {	/* Determine format of floating point values */
+      if ((format & STRUSECHK) == 0) format = STRFORMAT;        /* Use predefined format, not @% */
+      switch ((format>>2*BYTESHIFT) & BYTEMASK) {       /* Determine format of floating point values */
       case FORMAT_E:
        fmt = "%.*E";
         break;
       case FORMAT_F:
         fmt = "%.*F";
         break;
-      default:	/* Assume anything else will be general format */
+      default:  /* Assume anything else will be general format */
         fmt = "%.*G";
       }
       numdigits = (format>>BYTESHIFT) & BYTEMASK;
@@ -1351,13 +1351,13 @@ static void fn_string(void) {
   basicvars.current++;
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
-  if (count == 1) return;	/* Leave things as they are if repeat count is 1 */
+  if (count == 1) return;       /* Leave things as they are if repeat count is 1 */
   descriptor = pop_string();
   if (count<=0)
     newlen = 0;
   else  {
     newlen = count*descriptor.stringlen;
-    if (newlen>MAXSTRING) error(ERR_STRINGLEN);	/* New string is too long */
+    if (newlen>MAXSTRING) error(ERR_STRINGLEN); /* New string is too long */
   }
   base = cp = alloc_string(newlen);
   while (count>0) {
@@ -1381,8 +1381,8 @@ static void fn_sum(void) {
   variable *vp;
   boolean sumlen;
   sumlen = *basicvars.current == TYPE_FUNCTION && *(basicvars.current+1) == BASIC_TOKEN_LEN;
-  if (sumlen) basicvars.current+=2;	/* Skip the 'LEN' token */
-  if(*basicvars.current == '(') {	/* One level of parentheses is allowed */
+  if (sumlen) basicvars.current+=2;     /* Skip the 'LEN' token */
+  if(*basicvars.current == '(') {       /* One level of parentheses is allowed */
     basicvars.current++;
     vp = get_arrayname();
     if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -1392,18 +1392,18 @@ static void fn_sum(void) {
     vp = get_arrayname();
   }
   elements = vp->varentry.vararray->arrsize;
-  if (sumlen) {		/* Got 'SUM LEN' */
+  if (sumlen) {         /* Got 'SUM LEN' */
     int32 length;
     basicstring *p;
-    if (vp->varflags != VAR_STRARRAY) error(ERR_TYPESTR);	/* Array is not a string array */
+    if (vp->varflags != VAR_STRARRAY) error(ERR_TYPESTR);       /* Array is not a string array */
     p = vp->varentry.vararray->arraystart.stringbase;
     length = 0;
-    for (n=0; n<elements; n++) length+=p[n].stringlen;	/* Find length of all strings in array */
+    for (n=0; n<elements; n++) length+=p[n].stringlen;  /* Find length of all strings in array */
     push_int(length);
   }
-  else {	/* Got 'SUM' */
+  else {        /* Got 'SUM' */
     switch (vp->varflags) {
-    case VAR_INTARRAY: {	/* Calculate sum of elements in an integer array */
+    case VAR_INTARRAY: {        /* Calculate sum of elements in an integer array */
       int32 intsum, *p;
       p = vp->varentry.vararray->arraystart.intbase;
       intsum = 0;
@@ -1411,7 +1411,7 @@ static void fn_sum(void) {
       push_int(intsum);
       break;
     }
-    case VAR_INT64ARRAY: {	/* Calculate sum of elements in an integer array */
+    case VAR_INT64ARRAY: {      /* Calculate sum of elements in an integer array */
       int64 intsum, *p;
       p = vp->varentry.vararray->arraystart.int64base;
       intsum = 0;
@@ -1419,7 +1419,7 @@ static void fn_sum(void) {
       push_int(intsum);
       break;
     }
-    case VAR_FLOATARRAY: {	/* Calculate sum of elements in a floating point array */
+    case VAR_FLOATARRAY: {      /* Calculate sum of elements in a floating point array */
       float64 fpsum, *p;
       fpsum = 0;
       p = vp->varentry.vararray->arraystart.floatbase;
@@ -1427,19 +1427,19 @@ static void fn_sum(void) {
       push_float(fpsum);
       break;
     }
-    case VAR_STRARRAY: {	/* Concatenate all strings in a string array */
+    case VAR_STRARRAY: {        /* Concatenate all strings in a string array */
       int32 length, strlen;
       char *cp, *cp2;
       basicstring *p;
       p = vp->varentry.vararray->arraystart.stringbase;
       length = 0;
-      for (n=0; n<elements; n++) length+=p[n].stringlen;	/* Find length of result string */
-      if (length>MAXSTRING) error(ERR_STRINGLEN);		/* String is too long */
-      cp = cp2 = alloc_string(length);	/* Grab enough memory to hold the result string */
+      for (n=0; n<elements; n++) length+=p[n].stringlen;        /* Find length of result string */
+      if (length>MAXSTRING) error(ERR_STRINGLEN);               /* String is too long */
+      cp = cp2 = alloc_string(length);  /* Grab enough memory to hold the result string */
       if (length>0) {
-        for (n=0; n<elements; n++) {	/* Concatenate strings */
+        for (n=0; n<elements; n++) {    /* Concatenate strings */
           strlen = p[n].stringlen;
-          if (strlen>0) {	/* Ignore zero-length strings */
+          if (strlen>0) {       /* Ignore zero-length strings */
             memmove(cp2, p[n].stringaddr, strlen);
             cp2+=strlen;
           }
@@ -1448,7 +1448,7 @@ static void fn_sum(void) {
       push_strtemp(length, cp);
       break;
     }
-    default:	/* Bad 'varflags' value found */
+    default:    /* Bad 'varflags' value found */
       error(ERR_BROKEN, __LINE__, "expressions");
     }
   }
@@ -1497,10 +1497,10 @@ void fn_tint(void) {
 */
 void fn_top(void) {
   byte *p;
-  basicvars.current++;		/* Skip the 'TO' token */
-  if (*basicvars.current != BASIC_TOKEN_XVAR) error(ERR_SYNTAX);	/* 'TO' is not followed by a variable name */
-  p = get_srcaddr(basicvars.current);		/* Find the address of the variable */
-  if (*p != 'P') error(ERR_SYNTAX);		/* But it does not start with the letter 'P' */
+  basicvars.current++;          /* Skip the 'TO' token */
+  if (*basicvars.current != BASIC_TOKEN_XVAR) error(ERR_SYNTAX);        /* 'TO' is not followed by a variable name */
+  p = get_srcaddr(basicvars.current);           /* Find the address of the variable */
+  if (*p != 'P') error(ERR_SYNTAX);             /* But it does not start with the letter 'P' */
   basicvars.current+=LOFFSIZE + 1;
   if (matrixflags.pseudovarsunsigned) {
     push_int64(resize32((size_t)basicvars.top));
@@ -1561,14 +1561,14 @@ static void fn_val(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   descriptor = pop_string();
   if (descriptor.stringlen == 0)
-    push_int(0);	/* Nothing to do */
+    push_int(0);        /* Nothing to do */
   else {
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
     basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
     cp = todecimal(basicvars.stringwork, &isint, &intvalue, &int64value, &fpvalue);
-    if (cp == NIL) {	/* Error found when converting number */
-      error(intvalue);	/* 'intvalue' is used to return the precise error */
+    if (cp == NIL) {    /* Error found when converting number */
+      error(intvalue);  /* 'intvalue' is used to return the precise error */
     }
     if (isint)
       if (intvalue == int64value)
@@ -1591,7 +1591,7 @@ static void fn_val(void) {
 void fn_vdu(void) {
   int variable;
   basicvars.current++;
-  variable = eval_intfactor();	/* Number of VDU variable */
+  variable = eval_intfactor();  /* Number of VDU variable */
   push_int64(emulate_vdufn(variable));
 }
 
@@ -1613,12 +1613,12 @@ static void fn_verify(void) {
   veritype = GET_TOPITEM;
   if (veritype != STACK_STRING && veritype != STACK_STRTEMP) error(ERR_TYPESTR);
   verify = pop_string();
-  if (*basicvars.current == ',') {	/* Start position supplied */
+  if (*basicvars.current == ',') {      /* Start position supplied */
     basicvars.current++;
     start = eval_integer();
     if (start<1) start = 1;
   }
-  else {	/* Set starting position to one */
+  else {        /* Set starting position to one */
     start = 1;
   }
   if (*basicvars.current != ')') error(ERR_RPMISS);
@@ -1643,13 +1643,13 @@ static void fn_verify(void) {
 /* Build a table of the characters present in the verify string */
   memset(present, FALSE, sizeof(present));
   for (n=0; n<verify.stringlen; n++) present[CAST(verify.stringaddr[n], byte)] = TRUE;
-  start--;	/* Convert start index to offset in string */
+  start--;      /* Convert start index to offset in string */
 /* Now ensure that all characters in string are in the verify string */
   while (start<string.stringlen && present[CAST(string.stringaddr[start], byte)]) start++;
-  if (start == string.stringlen)	/* All characters are present and correct */
+  if (start == string.stringlen)        /* All characters are present and correct */
     push_int(0);
-  else {	/* Character found that is not in the verify string */
-    push_int(start+1);	/* Push its index on to the stack */
+  else {        /* Character found that is not in the verify string */
+    push_int(start+1);  /* Push its index on to the stack */
   }
   if (veritype == STACK_STRTEMP) free_string(verify);
   if (stringtype == STACK_STRTEMP) free_string(string);
@@ -1667,7 +1667,7 @@ static void fn_vpos(void) {
 ** 'fn_width' pushes the current value of 'WIDTH' on to the Basic stack
 */
 void fn_width(void) {
-  basicvars.current++;	/* Skip WIDTH token */
+  basicvars.current++;  /* Skip WIDTH token */
   push_int(basicvars.printwidth);
 }
 
@@ -1692,23 +1692,23 @@ static void fn_xlatedol(void) {
     basicvars.current++;
     expression();
     if (*basicvars.current != ')') error(ERR_RPMISS);
-    basicvars.current++;	/* Skip the ')' */
+    basicvars.current++;        /* Skip the ')' */
     transtype = GET_TOPITEM;
     if (transtype == STACK_STRING || transtype == STACK_STRTEMP)
       transtring = pop_string();
     else if (transtype == STACK_STRARRAY) {
       transarray = pop_array();
-      if (transarray->dimcount != 1) error(ERR_NOTONEDIM);	/* Must be a 1-D array */
+      if (transarray->dimcount != 1) error(ERR_NOTONEDIM);      /* Must be a 1-D array */
     }
     else {
       error(ERR_TYPESTR);
     }
 /* If the string or table length is zero then there is nothing to do */
     if (string.stringlen == 0 || (transtype != STACK_STRARRAY && transtring.stringlen == 0)) {
-      push_string(string);	/* Put the old string back on the stack */
+      push_string(string);      /* Put the old string back on the stack */
       return;
     }
-    if (stringtype == STACK_STRING) {	/* Have to make a copy of the string to modify */
+    if (stringtype == STACK_STRING) {   /* Have to make a copy of the string to modify */
       cp = alloc_string(string.stringlen);
       memmove(cp, string.stringaddr, string.stringlen);
     }
@@ -1724,17 +1724,17 @@ static void fn_xlatedol(void) {
 ** original string with an ASCII code in the range 0 to 99 are
 ** changed.
 */
-    if (transtype == STACK_STRARRAY) {		/* Translate table is an array */
+    if (transtype == STACK_STRARRAY) {          /* Translate table is an array */
       int32 highcode = transarray->dimsize[0];
       basicstring *arraybase = transarray->arraystart.stringbase;
       for (n=0; n<string.stringlen; n++) {
-        ch = CAST(cp[n], byte);		/* Must work with unsigned characters */
+        ch = CAST(cp[n], byte);         /* Must work with unsigned characters */
         if (ch<highcode && arraybase[ch].stringlen>0) cp[n] = arraybase[ch].stringaddr[0];
       }
     }
     else {
       for (n=0; n<string.stringlen; n++) {
-        ch = CAST(cp[n], byte);		/* Must work with unsigned characters */
+        ch = CAST(cp[n], byte);         /* Must work with unsigned characters */
         if (ch<transtring.stringlen) cp[n] = transtring.stringaddr[ch];
       }
        if (transtype == STACK_STRTEMP) free_string(transtring);
@@ -1742,15 +1742,15 @@ static void fn_xlatedol(void) {
     push_strtemp(string.stringlen, cp);
   }
   else if (*basicvars.current != ')')
-    error(ERR_RPMISS);	/* Must have a ')' next */
+    error(ERR_RPMISS);  /* Must have a ')' next */
   else {
 /* Translate string to lower case */
-    basicvars.current++;	/* Skip the ')' */
-    if (string.stringlen == 0) {	/* String length is zero */
-      push_string(string);	/* So put the old string back on the stack */
+    basicvars.current++;        /* Skip the ')' */
+    if (string.stringlen == 0) {        /* String length is zero */
+      push_string(string);      /* So put the old string back on the stack */
       return;
     }
-    if (stringtype == STACK_STRING) {	/* Have to make a copy of the string to modify */
+    if (stringtype == STACK_STRING) {   /* Have to make a copy of the string to modify */
       cp = alloc_string(string.stringlen);
       memmove(cp, string.stringaddr, string.stringlen);
     }
@@ -1792,7 +1792,7 @@ static void fn_sysfn(void) {
     error(ERR_TYPESTR);
   }
   if (*basicvars.current != ')')  error(ERR_RPMISS);
-  basicvars.current++;	/* Skip the ')' */
+  basicvars.current++;  /* Skip the ')' */
 }
 
 /*
@@ -1800,24 +1800,24 @@ static void fn_sysfn(void) {
 ** with it
 */
 static void (*function_table[])(void) = {
-  bad_token, fn_himem, fn_ext, fn_filepath,		/* 00..03 */
-  fn_left, fn_lomem, fn_mid, fn_page,			/* 04..07 */
-  fn_ptr, fn_right, fn_time, bad_token,			/* 08..0B */
-  bad_token, bad_token, bad_token, bad_token,		/* 0C..0F */
-  fn_abs, fn_acs, fn_adval, fn_argc,			/* 10..13 */
-  fn_argvdol, fn_asc, fn_asn, fn_atn, 			/* 14..17 */
-  fn_beat, fn_bget, fn_chr, fn_cos,			/* 18..1B */
-  fn_count, fn_deg, fn_eof, fn_erl,			/* 1C..1F */
-  fn_err, fn_eval, fn_exp, fn_get,			/* 20..23 */
-  fn_getdol, fn_inkey, fn_inkeydol, fn_instr,		/* 24..27 */
-  fn_int, fn_len, fn_listofn, fn_ln,			/* 28..2B */
-  fn_log, fn_openin, fn_openout, fn_openup, 		/* 2C..2F */
-  fn_pi, fn_pointfn, fn_pos, fn_rad,			/* 30..33 */
-  fn_reportdol, fn_retcode, fn_rnd, fn_sgn, 		/* 34..37 */
-  fn_sin, fn_sqr, fn_str, fn_string,  			/* 38..3B */
-  fn_sum, fn_tan, fn_tempofn, fn_usr, 			/* 3C..3F */
-  fn_val, fn_verify, fn_vpos, fn_sysfn,			/* 40..43 */
-  fn_rndpar, fn_xlatedol				/* 44..45 */
+  bad_token, fn_himem, fn_ext, fn_filepath,             /* 00..03 */
+  fn_left, fn_lomem, fn_mid, fn_page,                   /* 04..07 */
+  fn_ptr, fn_right, fn_time, bad_token,                 /* 08..0B */
+  bad_token, bad_token, bad_token, bad_token,           /* 0C..0F */
+  fn_abs, fn_acs, fn_adval, fn_argc,                    /* 10..13 */
+  fn_argvdol, fn_asc, fn_asn, fn_atn,                   /* 14..17 */
+  fn_beat, fn_bget, fn_chr, fn_cos,                     /* 18..1B */
+  fn_count, fn_deg, fn_eof, fn_erl,                     /* 1C..1F */
+  fn_err, fn_eval, fn_exp, fn_get,                      /* 20..23 */
+  fn_getdol, fn_inkey, fn_inkeydol, fn_instr,           /* 24..27 */
+  fn_int, fn_len, fn_listofn, fn_ln,                    /* 28..2B */
+  fn_log, fn_openin, fn_openout, fn_openup,             /* 2C..2F */
+  fn_pi, fn_pointfn, fn_pos, fn_rad,                    /* 30..33 */
+  fn_reportdol, fn_retcode, fn_rnd, fn_sgn,             /* 34..37 */
+  fn_sin, fn_sqr, fn_str, fn_string,                    /* 38..3B */
+  fn_sum, fn_tan, fn_tempofn, fn_usr,                   /* 3C..3F */
+  fn_val, fn_verify, fn_vpos, fn_sysfn,                 /* 40..43 */
+  fn_rndpar, fn_xlatedol                                /* 44..45 */
 };
 
 /*
@@ -1826,7 +1826,7 @@ static void (*function_table[])(void) = {
 void exec_function(void) {
   byte token = *(basicvars.current+1);
   basicvars.current+=2;
-  if (token>BASIC_TOKEN_XLATEDOL) bad_token();	/* Function token is out of range */
+  if (token>BASIC_TOKEN_XLATEDOL) bad_token();  /* Function token is out of range */
   (*function_table[token])();
 }
 

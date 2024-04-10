@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the keyboard handling routines
+**      This file defines the keyboard handling routines
 */
 
 #ifndef __keyboard_h

@@ -19,11 +19,11 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains the VDU driver emulation for the interpreter.
-**	The RISC OS version of the program also calls functions in here
-**	but they are just wrappers for calling the real VDU driver. The
-**	actions of the VDU driver are emulated under other operating
-**	systems
+**      This file contains the VDU driver emulation for the interpreter.
+**      The RISC OS version of the program also calls functions in here
+**      but they are just wrappers for calling the real VDU driver. The
+**      actions of the VDU driver are emulated under other operating
+**      systems
 **
 */
 
@@ -47,26 +47,26 @@
 
 /* OS_Word and OS_Byte calls used */
 
-#define CONTROL_MOUSE 21	/* OS_Word call number to control the mouse pointer */
+#define CONTROL_MOUSE 21        /* OS_Word call number to control the mouse pointer */
 
-#define WAIT_VSYNC 19 		/* OS_Byte call number to wait for vertical sync */
-#define SELECT_MOUSE 106	/* OS_Byte call number to select a mouse pointer */
-#define READ_TEXTCURSOR 134	/* OS_Byte call number to read the text cursor position */
-#define READ_CHARCURSOR 135	/* OS_Byte call number to read character at cursor and screen mode */
+#define WAIT_VSYNC 19           /* OS_Byte call number to wait for vertical sync */
+#define SELECT_MOUSE 106        /* OS_Byte call number to select a mouse pointer */
+#define READ_TEXTCURSOR 134     /* OS_Byte call number to read the text cursor position */
+#define READ_CHARCURSOR 135     /* OS_Byte call number to read character at cursor and screen mode */
 
-static boolean riscos31;		/* TRUE if running under RISC OS 3.1 */
+static boolean riscos31;                /* TRUE if running under RISC OS 3.1 */
 
 /* RISC OS 3.5 and later mode descriptor */
 
 typedef struct {
-  int flags;		/* Mode descriptor flags */
-  int xres, yres;	/* X and Y resolutions in pixels */
-  int pixdepth;		/* Pixel depth */
-  int rate;		/* Frame rate */
+  int flags;            /* Mode descriptor flags */
+  int xres, yres;       /* X and Y resolutions in pixels */
+  int pixdepth;         /* Pixel depth */
+  int rate;             /* Frame rate */
   struct {
-    int index;		/* Mode variable index */
-    int value;		/* Mode variable value */
-  } vars [10];		/* Mode variables */
+    int index;          /* Mode variable index */
+    int value;          /* Mode variable value */
+  } vars [10];          /* Mode variables */
 } mode_desc;
 
 /*
@@ -194,7 +194,7 @@ static void make_grey_palette(int levels) {
 */
 static void set_mode31(int32 xres, int32 yres, int32 bpp) {
   int n, coldepth;
-  switch (bpp) {	/* Find number of colours */
+  switch (bpp) {        /* Find number of colours */
   case 1: coldepth = 2; break;
   case 2: coldepth = 4; break;
   case 4: coldepth = 16; break;
@@ -234,7 +234,7 @@ static void set_modedesc(int32 xres, int32 yres, int32 bpp, int32 rate) {
   case 15: case 16: mode.pixdepth = 4; break;
   case 24: case 32: mode.pixdepth = 5; break;
   default:
-    error(ERR_BADMODE);		/* Bad number of bits per pixel */
+    error(ERR_BADMODE);         /* Bad number of bits per pixel */
   }
   mode.rate = rate;
 /*
@@ -249,15 +249,15 @@ static void set_modedesc(int32 xres, int32 yres, int32 bpp, int32 rate) {
 ** and NColour have to be set to 128 and 255 respectively).
 */
   if (bpp == 8) {
-    mode.vars[0].index = 0;		/* ModeFlags value */
+    mode.vars[0].index = 0;             /* ModeFlags value */
     mode.vars[0].value = 128;
-    mode.vars[1].index = 3;		/* NColour */
+    mode.vars[1].index = 3;             /* NColour */
     mode.vars[1].value = 255;
     mode.vars[2].index = -1;
   } else {
-    mode.vars[0].index = -1;		/* No mode variables needed in most cases */
+    mode.vars[0].index = -1;            /* No mode variables needed in most cases */
   }
-  regs.r[0] = 0;	/* Use OS_ScreenMode 0 - set screen mode */
+  regs.r[0] = 0;        /* Use OS_ScreenMode 0 - set screen mode */
   regs.r[1] = (int) &mode;
   oserror = _kernel_swi(OS_ScreenMode, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
@@ -287,7 +287,7 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
   boolean greyscale;
   mode_desc mode;
 
-  if (greys > 256) error(ERR_BADMODE);		/* Cannot have more than 256 level greyscale */
+  if (greys > 256) error(ERR_BADMODE);          /* Cannot have more than 256 level greyscale */
   greyscale = colours == 0;
   if (greyscale) colours = greys;
 
@@ -309,28 +309,28 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
   else if (colours == 16*1024*1024)
     mode.pixdepth = 5;
   else {
-    error(ERR_BADMODESC);		/* Bad number of bits per pixel */
+    error(ERR_BADMODESC);               /* Bad number of bits per pixel */
   }
   mode.rate = rate;
 
 /* Set up the mode variables needed */
 
-  mode.vars[0].index = 4;		/* XEigFactor */
+  mode.vars[0].index = 4;               /* XEigFactor */
   mode.vars[0].value = xeig;
-  mode.vars[1].index = 5;		/* YEigFactor */
+  mode.vars[1].index = 5;               /* YEigFactor */
   mode.vars[1].value = yeig;
   mode.vars[2].index = -1;
 
 /* Need to have full access to 256 colour palette for 256 level grey scale */
 
   if (colours == 256 && greyscale) {
-    mode.vars[2].index = 0;		/* ModeFlags value */
+    mode.vars[2].index = 0;             /* ModeFlags value */
     mode.vars[2].value = 128;
-    mode.vars[3].index = 3;		/* NColour */
+    mode.vars[3].index = 3;             /* NColour */
     mode.vars[3].value = 255;
     mode.vars[4].index = -1;
   }
-  regs.r[0] = 0;	/* Use OS_ScreenMode 0 - set screen mode */
+  regs.r[0] = 0;        /* Use OS_ScreenMode 0 - set screen mode */
   regs.r[1] = (int) &mode;
   oserror = _kernel_swi(OS_ScreenMode, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
@@ -352,10 +352,10 @@ int32 emulate_modefn(void) {
 
 /* RISC OS 3.5 or later */
 
-  regs.r[0] = 1;	/* Return mode specifier for the current screen mode */
+  regs.r[0] = 1;        /* Return mode specifier for the current screen mode */
   oserror = _kernel_swi(OS_ScreenMode, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
-  return regs.r[1];	/* Mode specifier is returned in R1 */
+  return regs.r[1];     /* Mode specifier is returned in R1 */
 }
 
 /*
@@ -384,7 +384,7 @@ int32 emulate_pointfn(int32 x, int32 y) {
   regs.r[1] = y;
   oserror = _kernel_swi(OS_ReadPoint, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
-  return regs.r[2];	    /* OS_ReadPoint returns the colour number in R2 */
+  return regs.r[2];         /* OS_ReadPoint returns the colour number in R2 */
 }
 
 /*
@@ -398,7 +398,7 @@ int32 emulate_tintfn(int32 x, int32 y) {
   regs.r[1] = y;
   oserror = _kernel_swi(OS_ReadPoint, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
-  return regs.r[3];	    /* OS_ReadPoint returns the tint number in R3 */
+  return regs.r[3];         /* OS_ReadPoint returns the tint number in R3 */
 }
 
 /*
@@ -408,7 +408,7 @@ int32 emulate_tintfn(int32 x, int32 y) {
 */
 void emulate_pointto(int32 x, int32 y) {
   struct {byte call_number, x_lsb, x_msb, y_lsb, y_msb;} osword_parms;
-  osword_parms.call_number = 5;		/* OS_Word 21 call 5 sets the pointer position */
+  osword_parms.call_number = 5;         /* OS_Word 21 call 5 sets the pointer position */
   osword_parms.x_lsb = x & BYTEMASK;
   osword_parms.x_msb = x >> BYTESHIFT;
   osword_parms.y_lsb = y & BYTEMASK;
@@ -420,7 +420,7 @@ void emulate_pointto(int32 x, int32 y) {
 ** 'emulate_wait' deals with the Basic 'WAIT' statement
 */
 void emulate_wait(void) {
-  (void) _kernel_osbyte(WAIT_VSYNC, 0, 0);	/* Use OS_Byte 19 (wait for vertical sync) */
+  (void) _kernel_osbyte(WAIT_VSYNC, 0, 0);      /* Use OS_Byte 19 (wait for vertical sync) */
 }
 
 /*
@@ -476,10 +476,10 @@ void emulate_on(void) {
 */
 void emulate_tint(int32 action, int32 tint) {
   int32 n;
-  emulate_vdu(VDU_COMMAND);		/* Use VDU 23,17 */
+  emulate_vdu(VDU_COMMAND);             /* Use VDU 23,17 */
   emulate_vdu(17);
-  emulate_vdu(action);	/* Says which colour to modify */
-  if (tint <= MAXTINT) tint = tint << TINTSHIFT;	/* Assume value is in the wrong place */
+  emulate_vdu(action);  /* Says which colour to modify */
+  if (tint <= MAXTINT) tint = tint << TINTSHIFT;        /* Assume value is in the wrong place */
   emulate_vdu(tint);
   for (n = 1; n <= 7; n++) emulate_vdu(0);
 }
@@ -526,7 +526,7 @@ void emulate_gcolnum(int32 action, int32 background, int32 colnum) {
   regs.r[0] = colnum;
   regs.r[3] = 0;
   regs.r[4] = action;
-  if (background) regs.r[3] = 128;	/* Set background colour */
+  if (background) regs.r[3] = 128;      /* Set background colour */
   oserror = _kernel_swi(ColourTrans_SetColour, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
 }
@@ -547,7 +547,7 @@ void emulate_colourtint(int32 colour, int32 tint) {
 void emulate_mapcolour(int32 colour, int32 physcolour) {
   emulate_vdu(VDU_LOGCOL);
   emulate_vdu(colour);
-  emulate_vdu(physcolour);	/* Set logical logical colour to given physical colour */
+  emulate_vdu(physcolour);      /* Set logical logical colour to given physical colour */
   emulate_vdu(0);
   emulate_vdu(0);
   emulate_vdu(0);
@@ -562,7 +562,7 @@ int32 emulate_setcolour(int32 background, int32 red, int32 green, int32 blue) {
   _kernel_swi_regs regs;
   regs.r[0] = (blue << 24) + (green << 16) + (red << 8);
   regs.r[3] = 0;
-  if (background) regs.r[3] = 128;	/* Set background colour */
+  if (background) regs.r[3] = 128;      /* Set background colour */
   oserror = _kernel_swi(ColourTrans_SetTextColour, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
   return emulate_colourfn(red, green, blue);
@@ -581,9 +581,9 @@ void emulate_setcolnum(int32 background, int32 colnum) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   regs.r[0] = colnum;
-  regs.r[3] = 512;		/* Set text colour */
+  regs.r[3] = 512;              /* Set text colour */
   regs.r[4] = 0;
-  if (background) regs.r[3] = 128;	/* Set background colour */
+  if (background) regs.r[3] = 128;      /* Set background colour */
   oserror = _kernel_swi(ColourTrans_SetColour, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
 }
@@ -595,7 +595,7 @@ void emulate_setcolnum(int32 background, int32 colnum) {
 void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
   emulate_vdu(VDU_LOGCOL);
   emulate_vdu(colour);
-  emulate_vdu(16);	/* Set both flash palettes for logical colour to given colour */
+  emulate_vdu(16);      /* Set both flash palettes for logical colour to given colour */
   emulate_vdu(red);
   emulate_vdu(green);
   emulate_vdu(blue);
@@ -699,8 +699,8 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
     shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
   }
 
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);        /* Move to centre of ellipse */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);      /* Find a point on the circumference */
   if (isfilled)
     emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   else {
@@ -709,9 +709,9 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
 }
 
 void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
-  emulate_plot(DRAW_SOLIDLINE + MOVE_ABSOLUTE, x, y);	   /* Move to centre of circle */
+  emulate_plot(DRAW_SOLIDLINE + MOVE_ABSOLUTE, x, y);      /* Move to centre of circle */
   if (isfilled)
-    emulate_plot(FILL_CIRCLE + DRAW_ABSOLUTE, x - radius, y);	/* Plot to a point on the circumference */
+    emulate_plot(FILL_CIRCLE + DRAW_ABSOLUTE, x - radius, y);   /* Plot to a point on the circumference */
   else {
     emulate_plot(PLOT_CIRCLE + DRAW_ABSOLUTE, x - radius, y);
   }
@@ -741,7 +741,7 @@ void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isf
 void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, int32 y2, boolean ismove) {
   emulate_plot(DRAW_SOLIDLINE + MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE + MOVE_RELATIVE, width, height);
-  if (ismove)	/* Move the area just marked */
+  if (ismove)   /* Move the area just marked */
     emulate_plot(MOVE_RECTANGLE, x2, y2);
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
@@ -790,7 +790,7 @@ boolean init_screen(void) {
   regs.r[1] = 0;
   regs.r[2] = 255;
   _kernel_swi(OS_Byte, &regs, &regs);
-  riscos31 = regs.r[1] < 0xA5;		/* OS Version is returned in R1 */
+  riscos31 = regs.r[1] < 0xA5;          /* OS Version is returned in R1 */
   return TRUE;
 }
 

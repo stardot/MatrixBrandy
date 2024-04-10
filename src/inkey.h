@@ -18,7 +18,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the keyboard lookup codes.
+**      This file defines the keyboard lookup codes.
 **
 ** These are RISC OS key scan codes, INKEY = (scan+1) * -1
 **                             also: INKEY = scan EOR -1

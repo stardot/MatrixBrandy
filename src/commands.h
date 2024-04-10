@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the 'immediate' command functions
+**      This file defines the 'immediate' command functions
 */
 
 #ifndef __commands_h

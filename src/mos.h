@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Functions that emulate the OS-specific parts of Basic live here
+**      Functions that emulate the OS-specific parts of Basic live here
 */
 
 #ifndef __mos_h
@@ -79,6 +79,6 @@ extern byte *sysvar;
 #define sv_VideoVDU       250
 #define sv_VideoDisplay   251
 
-#define XBIT 0x20000		/* Mask for 'X' bit in SWI numbers */
+#define XBIT 0x20000            /* Mask for 'X' bit in SWI numbers */
 
 #endif

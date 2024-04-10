@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains various functions that are used to manipulate the
-**	Basic stack
+**      This file contains various functions that are used to manipulate the
+**      Basic stack
 */
 
 #include <string.h>
@@ -61,15 +61,15 @@ static void restore(int32 parmcount);
 ** basic stack
 */
 static int32 entrysize [] = {
-  0,			0,    ALIGNSIZE(stack_uint8),     ALIGNSIZE(stack_int),       ALIGNSIZE(stack_int64),		/* 04 */
-  ALIGNSIZE(stack_float),     ALIGNSIZE(stack_string),    ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),		/* 08 */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),		/* 0C */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),		/* 10 */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_gosub),		/* 14 */
-  ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),        ALIGNSIZE(stack_local),     ALIGNSIZE(stack_retparm),		/* 18 */
-  ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),    ALIGNSIZE(stack_for),       ALIGNSIZE(stack_for),		/* 1C */
-  ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),     ALIGNSIZE(stack_data),      ALIGNSIZE(stack_opstack),		/* 20 */
-  ALIGNSIZE(stack_restart)												/* 21 */
+  0,                    0,    ALIGNSIZE(stack_uint8),     ALIGNSIZE(stack_int),       ALIGNSIZE(stack_int64),           /* 04 */
+  ALIGNSIZE(stack_float),     ALIGNSIZE(stack_string),    ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),           /* 08 */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 0C */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 10 */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_gosub),           /* 14 */
+  ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),        ALIGNSIZE(stack_local),     ALIGNSIZE(stack_retparm),         /* 18 */
+  ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),    ALIGNSIZE(stack_for),       ALIGNSIZE(stack_for),             /* 1C */
+  ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),     ALIGNSIZE(stack_data),      ALIGNSIZE(stack_opstack),         /* 20 */
+  ALIGNSIZE(stack_restart)                                                                                              /* 21 */
 };
 
 /*
@@ -90,40 +90,40 @@ static char entry [64];
 
 static char *entryname(stackitem what) {
   switch (what) {
-    case STACK_UNKNOWN:		return "<unknown>";
-    case STACK_LVALUE:		return "lvalue";
-    case STACK_UINT8:		return "uint8";
-    case STACK_INT:		return "integer";
-    case STACK_INT64:		return "int64";
-    case STACK_FLOAT:		return "floating point";
-    case STACK_STRING:		return "string";
-    case STACK_STRTEMP:		return "temporary string";
-    case STACK_INTARRAY:	return "ineger array";
-    case STACK_IATEMP:		return "temp integer array";
-    case STACK_UINT8ARRAY:	return "uint8 array";
-    case STACK_U8ATEMP:		return "temp uint8 array";
-    case STACK_INT64ARRAY:	return "int64 array";
-    case STACK_I64ATEMP:	return "temp int64 array";
-    case STACK_FLOATARRAY:	return "floating point array";
-    case STACK_FATEMP:		return "temp floating point array";
-    case STACK_STRARRAY:	return "string array";
-    case STACK_SATEMP:		return "temp string array";
-    case STACK_LOCARRAY:	return "local array";
-    case STACK_LOCSTRING:	return "local string array";
-    case STACK_GOSUB:		return "GOSUB";
-    case STACK_PROC:		return "PROC";
-    case STACK_FN:		return "FN";
-    case STACK_LOCAL:		return "local variable";
-    case STACK_RETPARM:		return "return parameter";
-    case STACK_WHILE:		return "WHILE";
-    case STACK_REPEAT:		return "REPEAT";
-    case STACK_INTFOR:		return "integer FOR";
-    case STACK_INT64FOR:	return "int64 FOR";
-    case STACK_FLOATFOR:	return "floating point FOR";
-    case STACK_ERROR:		return "ON ERROR";
-    case STACK_DATA:		return "DATA";
-    case STACK_OPSTACK:		return "operator stack";
-    case STACK_RESTART:		return "siglongjmp block";
+    case STACK_UNKNOWN:         return "<unknown>";
+    case STACK_LVALUE:          return "lvalue";
+    case STACK_UINT8:           return "uint8";
+    case STACK_INT:             return "integer";
+    case STACK_INT64:           return "int64";
+    case STACK_FLOAT:           return "floating point";
+    case STACK_STRING:          return "string";
+    case STACK_STRTEMP:         return "temporary string";
+    case STACK_INTARRAY:        return "ineger array";
+    case STACK_IATEMP:          return "temp integer array";
+    case STACK_UINT8ARRAY:      return "uint8 array";
+    case STACK_U8ATEMP:         return "temp uint8 array";
+    case STACK_INT64ARRAY:      return "int64 array";
+    case STACK_I64ATEMP:        return "temp int64 array";
+    case STACK_FLOATARRAY:      return "floating point array";
+    case STACK_FATEMP:          return "temp floating point array";
+    case STACK_STRARRAY:        return "string array";
+    case STACK_SATEMP:          return "temp string array";
+    case STACK_LOCARRAY:        return "local array";
+    case STACK_LOCSTRING:       return "local string array";
+    case STACK_GOSUB:           return "GOSUB";
+    case STACK_PROC:            return "PROC";
+    case STACK_FN:              return "FN";
+    case STACK_LOCAL:           return "local variable";
+    case STACK_RETPARM:         return "return parameter";
+    case STACK_WHILE:           return "WHILE";
+    case STACK_REPEAT:          return "REPEAT";
+    case STACK_INTFOR:          return "integer FOR";
+    case STACK_INT64FOR:        return "int64 FOR";
+    case STACK_FLOATFOR:        return "floating point FOR";
+    case STACK_ERROR:           return "ON ERROR";
+    case STACK_DATA:            return "DATA";
+    case STACK_OPSTACK:         return "operator stack";
+    case STACK_RESTART:         return "siglongjmp block";
     default:
     sprintf(entry, "** Bad type %X **", what);
     return entry;
@@ -341,12 +341,12 @@ void push_dolstring(int32 strlength, char *strtext) {
 #endif
 }
 
-static stackitem arraytype [] = {	/* Variable type -> array type */
+static stackitem arraytype [] = {       /* Variable type -> array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_INTARRAY, STACK_FLOATARRAY,
   STACK_STRARRAY, STACK_UNKNOWN, STACK_INT64ARRAY, STACK_UINT8ARRAY
 };
 
-static stackitem arraytemptype [] = {	/* Variable type -> temporary array type */
+static stackitem arraytemptype [] = {   /* Variable type -> temporary array type */
   STACK_UNKNOWN, STACK_UNKNOWN, STACK_IATEMP, STACK_FATEMP,
   STACK_SATEMP, STACK_UNKNOWN, STACK_I64ATEMP, STACK_U8ATEMP
 };
@@ -444,8 +444,8 @@ void *alloc_stackmem(size_t size) {
   size = ALIGN(size);
   base = basicvars.stacktop.bytesp-size;
   p = base-ALIGNSIZE(stack_locarray);
-  if (p<basicvars.stacklimit.bytesp) return NIL;	/* Bail out if there is no room */
-  basicvars.stacktop.bytesp = p;	/* Reset the stack pointer */
+  if (p<basicvars.stacklimit.bytesp) return NIL;        /* Bail out if there is no room */
+  basicvars.stacktop.bytesp = p;        /* Reset the stack pointer */
   basicvars.stacktop.locarraysp->itemtype = STACK_LOCARRAY;
   basicvars.stacktop.locarraysp->arraysize = size;
 #ifdef DEBUG
@@ -793,52 +793,52 @@ static void restore_retparm(int32 parmcount) {
   int32 vartype = 0, intvalue = 0;
   float64 floatvalue = 0.0;
   basicstring stringvalue = {0, NULL};
-  p = basicvars.stacktop.retparmsp;	/* Not needed, but the code is unreadable otherwise */
+  p = basicvars.stacktop.retparmsp;     /* Not needed, but the code is unreadable otherwise */
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Restoring RETURN variable at %p from %p, return dest=%p\n",
    p->savedetails.address.intaddr, p, p->retdetails.address.intaddr);
 #endif
   basicvars.stacktop.retparmsp++;
-  switch (p->savedetails.typeinfo & PARMTYPEMASK) {	/* Fetch value from local variable and restore local var */
-  case VAR_INTWORD:	/* Integer variable */
-    intvalue = *p->savedetails.address.intaddr;		/* Fetch current value of local variable */
-    *p->savedetails.address.intaddr = p->value.savedint;	/* Restore local variable to its old value */
+  switch (p->savedetails.typeinfo & PARMTYPEMASK) {     /* Fetch value from local variable and restore local var */
+  case VAR_INTWORD:     /* Integer variable */
+    intvalue = *p->savedetails.address.intaddr;         /* Fetch current value of local variable */
+    *p->savedetails.address.intaddr = p->value.savedint;        /* Restore local variable to its old value */
     vartype = VAR_INTWORD;
     break;
-  case VAR_FLOAT:	/* Floating point variable */
+  case VAR_FLOAT:       /* Floating point variable */
     floatvalue = *p->savedetails.address.floataddr;
     *p->savedetails.address.floataddr = p->value.savedfloat;
     vartype = VAR_FLOAT;
     break;
-  case VAR_STRINGDOL:	/* String variable */
+  case VAR_STRINGDOL:   /* String variable */
     stringvalue = *p->savedetails.address.straddr;
     *p->savedetails.address.straddr = p->value.savedstring;
     vartype = VAR_STRINGDOL;
     break;
-  case VAR_INTBYTEPTR:	/* Indirect byte integer variable */
+  case VAR_INTBYTEPTR:  /* Indirect byte integer variable */
     intvalue = basicvars.memory[p->savedetails.address.offset];
     basicvars.memory[p->savedetails.address.offset] = p->value.savedint;
     vartype = VAR_INTWORD;
     break;
-  case VAR_INTWORDPTR:	/* Indirect word integer variable */
+  case VAR_INTWORDPTR:  /* Indirect word integer variable */
     intvalue = get_integer(p->savedetails.address.offset);
     store_integer(p->savedetails.address.offset, p->value.savedint);
     vartype = VAR_INTWORD;
     break;
-  case VAR_FLOATPTR:		/* Indirect floating point variable */
+  case VAR_FLOATPTR:            /* Indirect floating point variable */
     floatvalue = get_float(p->savedetails.address.offset);
     store_float(p->savedetails.address.offset, p->value.savedfloat);
     vartype = VAR_FLOAT;
     break;
-  case VAR_DOLSTRPTR:		/* Indirect string variable */
+  case VAR_DOLSTRPTR:           /* Indirect string variable */
     intvalue = stringvalue.stringlen = get_stringlen(p->savedetails.address.offset);
     stringvalue.stringaddr = alloc_string(intvalue);
     if (intvalue>0) memmove(stringvalue.stringaddr, &basicvars.memory[p->savedetails.address.offset], intvalue);
     memmove(&basicvars.memory[p->savedetails.address.offset], p->value.savedstring.stringaddr, p->value.savedstring.stringlen);
-    free_string(p->value.savedstring);		/* Discard saved copy of original '$ string' */
+    free_string(p->value.savedstring);          /* Discard saved copy of original '$ string' */
     vartype = VAR_DOLSTRPTR;
     break;
-  case VAR_INTARRAY: case VAR_INT64ARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:	/* Array - Do nothing */
+  case VAR_INTARRAY: case VAR_INT64ARRAY: case VAR_UINT8ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:  /* Array - Do nothing */
     break;
   default:
 #ifdef DEBUG
@@ -850,10 +850,10 @@ static void restore_retparm(int32 parmcount) {
 /* Now restore the next parameter */
 
   parmcount--;
-  if (parmcount>0) {	/* There are still some parameters to do */
+  if (parmcount>0) {    /* There are still some parameters to do */
     if (basicvars.stacktop.intsp->itemtype==STACK_LOCAL)
       restore(parmcount);
-    else {	/* Must be a return parameter */
+    else {      /* Must be a return parameter */
       restore_retparm(parmcount);
     }
   }
@@ -882,12 +882,12 @@ static void restore_retparm(int32 parmcount) {
     break;
   case VAR_DOLSTRPTR:
     if (stringvalue.stringlen>0) memmove(&basicvars.memory[p->retdetails.address.offset], stringvalue.stringaddr, stringvalue.stringlen);
-    if (vartype==VAR_STRINGDOL) {	/* Local var was a normal string variable */
-      basicvars.memory[p->retdetails.address.offset+stringvalue.stringlen] = asc_CR;	/* So add a 'CR' at the end of the string */
+    if (vartype==VAR_STRINGDOL) {       /* Local var was a normal string variable */
+      basicvars.memory[p->retdetails.address.offset+stringvalue.stringlen] = asc_CR;    /* So add a 'CR' at the end of the string */
     }
     free_string(stringvalue);
     break;
-  case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:	/* 'RETURN' dest is array - Do nothing */
+  case VAR_INTARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY:    /* 'RETURN' dest is array - Do nothing */
     break;
   default:
     error(ERR_BROKEN, __LINE__, "stack");
@@ -906,7 +906,7 @@ static void restore(int32 parmcount) {
 #ifdef DEBUG
     if (basicvars.debug_flags.stack) fprintf(stderr, "Restoring variable at %p from %p\n", p->savedetails.address.intaddr, p);
 #endif
-    if (p->savedetails.typeinfo==VAR_INTWORD)	/* Deal with most common case first */
+    if (p->savedetails.typeinfo==VAR_INTWORD)   /* Deal with most common case first */
       *p->savedetails.address.intaddr = p->value.savedint;
     else {
       switch (p->savedetails.typeinfo & PARMTYPEMASK) {
@@ -1215,35 +1215,35 @@ static void discard(stackitem item, boolean restorevars) {
     temp = pop_string();
     free_string(temp);
     break;
-  case STACK_LOCAL: 	/* Restore local variable to its old value */
+  case STACK_LOCAL:     /* Restore local variable to its old value */
     if (restorevars) {
       restore(1);
     } else {
       dummyrestore(1);
     }
     break;
-  case STACK_RETPARM:	/* Deal with a 'return' parameter and restore local parameter */
+  case STACK_RETPARM:   /* Deal with a 'return' parameter and restore local parameter */
     restore_retparm(1);
     break;
-  case STACK_GOSUB:	/* Clear 'GOSUB' block from stack */
+  case STACK_GOSUB:     /* Clear 'GOSUB' block from stack */
     (void) pop_gosub();
     break;
-  case STACK_PROC:	/* Clear 'PROC' block */
+  case STACK_PROC:      /* Clear 'PROC' block */
     (void) pop_proc();
     break;
-  case STACK_FN:	/* Clear 'FN' block */
+  case STACK_FN:        /* Clear 'FN' block */
     (void) pop_fn();
     break;
-  case STACK_ERROR:	/* Restore old Basic error handler */
+  case STACK_ERROR:     /* Restore old Basic error handler */
     basicvars.error_handler = pop_error();
     break;
-  case STACK_DATA:	/* Restore old Basic data pointer */
+  case STACK_DATA:      /* Restore old Basic data pointer */
     basicvars.datacur = pop_data();
     break;
-  case STACK_LOCARRAY:	/* Local numeric array */
+  case STACK_LOCARRAY:  /* Local numeric array */
     basicvars.stacktop.bytesp+=entrysize[STACK_LOCARRAY]+basicvars.stacktop.locarraysp->arraysize;
     break;
-  case STACK_LOCSTRING:	/* Local string array */
+  case STACK_LOCSTRING: /* Local string array */
     discard_strings(basicvars.stacktop.bytesp+entrysize[STACK_LOCARRAY], basicvars.stacktop.locarraysp->arraysize);
     basicvars.stacktop.bytesp+=entrysize[STACK_LOCARRAY]+basicvars.stacktop.locarraysp->arraysize;
     break;

@@ -18,8 +18,8 @@
 ** the Free Software Foundation, 59 Temple Place - Suite 330,
 ** Boston, MA 02111-1307, USA.
 **
-**	This module contains the functions used to edit a program
-**	as well as ones to read and write programs and libraries
+**      This module contains the functions used to edit a program
+**      as well as ones to read and write programs and libraries
 **
 ** 05-Apr-2014 JGH: Can load Russell format BASIC programs.
 **
@@ -53,12 +53,12 @@
 #endif
 
 #define MARKERSIZE 4
-#define ENDMARKSIZE 8		/* Size of the sentinel value at the end of the program */
+#define ENDMARKSIZE 8           /* Size of the sentinel value at the end of the program */
 
-#define ACORN_ENDMARK 0xffu	/* Marker denoting end of Acorn Basic file */
+#define ACORN_ENDMARK 0xffu     /* Marker denoting end of Acorn Basic file */
 
-static byte *last_added;	/* Address of last line added to program */
-static boolean needsnumbers;	/* TRUE if a program need to be renumbered */
+static byte *last_added;        /* Address of last line added to program */
+static boolean needsnumbers;    /* TRUE if a program need to be renumbered */
 
 #ifdef BRANDYAPP
 extern const char *_binary_app_start;
@@ -71,10 +71,10 @@ typedef enum {TEXTFILE, BBCFILE, Z80FILE} filetype;
 /*
 ** The layout of a program in memory is as follows:
 **
-**	<start marker>
-**	<lines>
-**	<end marker>
-**	<heap>
+**      <start marker>
+**      <lines>
+**      <end marker>
+**      <heap>
 **
 ** <start marker> is the value 0xD7C1C7C5. This is used to decide whether the
 ** interpreter has been presented with a tokenised program or not. 'page'
@@ -91,11 +91,11 @@ typedef enum {TEXTFILE, BBCFILE, Z80FILE} filetype;
 **
 ** The format of each line of Basic is:
 **
-**	<line number>
-**	<length>
-**	<tokenised source>
-**	<tokenised executable line>
-**	<NUL>
+**      <line number>
+**      <length>
+**      <tokenised source>
+**      <tokenised executable line>
+**      <NUL>
 **
 ** <line number> and <length> are both two bytes long. Valid line numbers
 ** are in the range 0 to 65279 (0xFEFF). The length of a line can be up to
@@ -128,7 +128,7 @@ static byte startmark [STARTMARKSIZE] = {0xC5, 0xC7, 0xC1, 0xD7};
 static byte endline [8] = {0, 0, 8, 0, 6, 0, BASIC_TOKEN_END, asc_NUL};
 
 void mark_end(byte *p) {
-  memcpy(p, endline, 8);	/* Place an 'END' token at the end of the program */
+  memcpy(p, endline, 8);        /* Place an 'END' token at the end of the program */
   save_lineno(p, ENDLINENO);
 }
 
@@ -238,7 +238,7 @@ static void clear_refs(void) {
       clear_linerefs(bp);
       bp+=get_linelen(bp);
     }
-    lp = basicvars.installist;	/* Now clear the pointers in any installed libraries */
+    lp = basicvars.installist;  /* Now clear the pointers in any installed libraries */
     while (lp!=NIL) {
       bp = lp->libstart;
       while (!AT_PROGEND(bp)) {
@@ -269,22 +269,22 @@ static void insert_line(byte *line) {
     bp = basicvars.start;
   }
   prev = NIL;
-  while (newline>=get_lineno(bp)) {	/* Work out where line goes */
+  while (newline>=get_lineno(bp)) {     /* Work out where line goes */
     prev = bp;
     bp+=get_linelen(bp);
   }
-  if (prev!=NIL && newline==get_lineno(prev)) {	/* Replacing a line */
+  if (prev!=NIL && newline==get_lineno(prev)) { /* Replacing a line */
     lendiff = newlength-get_linelen(prev);
-    if (lendiff!=0) {	/* Old and new lines are not the same length */
-      if (basicvars.top+lendiff>=basicvars.himem) error(ERR_NOROOM);	/* No room for line */
+    if (lendiff!=0) {   /* Old and new lines are not the same length */
+      if (basicvars.top+lendiff>=basicvars.himem) error(ERR_NOROOM);    /* No room for line */
       memmove(prev+newlength, bp, basicvars.top-bp+ENDMARKSIZE);
       basicvars.top+=lendiff;
     }
     memmove(prev, line, newlength);
     last_added = prev;
   }
-  else {	/* Adding a line */
-    if (basicvars.top+newlength>=basicvars.himem) error(ERR_NOROOM);	/* No room for line */
+  else {        /* Adding a line */
+    if (basicvars.top+newlength>=basicvars.himem) error(ERR_NOROOM);    /* No room for line */
     memmove(bp+newlength, bp, basicvars.top-bp+ENDMARKSIZE);
     memmove(bp, line, newlength);
     basicvars.top+=newlength;
@@ -301,7 +301,7 @@ static void delete_line(int32 line) {
   int32 length;
   byte *p;
   p = find_line(line);
-  if (get_lineno(p)==line) {	/* Need an exact match. Cannot delete just anything... */
+  if (get_lineno(p)==line) {    /* Need an exact match. Cannot delete just anything... */
     length = get_linelen(p);
     memmove(p, p+length, basicvars.top-p-length+ENDMARKSIZE);
     basicvars.top-=length;
@@ -319,7 +319,7 @@ void delete_range(int32 low, int32 high) {
   byte *lowline, *highline;
   if (low>high) return;
   lowline = find_line(low);
-  if (get_lineno(lowline)==ENDLINENO) return;	/* No lines are in the range to delete */
+  if (get_lineno(lowline)==ENDLINENO) return;   /* No lines are in the range to delete */
   clear_refs();
   highline = find_line(high);
   if (get_lineno(highline)==high) highline+=get_linelen(highline);
@@ -355,8 +355,8 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
       bp+=get_linelen(bp);
     }
     ok = AT_PROGEND(bp);
-    if (!ok) {	/* Oops... Did not stop at end of program */
-      if (step!=1) { 	   /* Try to fix line numbers */
+    if (!ok) {  /* Oops... Did not stop at end of program */
+      if (step!=1) {       /* Try to fix line numbers */
         start = 1;
         bp = progstart;
         while (!AT_PROGEND(bp) && start<=MAXLINENO) {
@@ -403,13 +403,13 @@ static FILE *open_file(char *name) {
     strcpy(basicvars.filename, name); /* Reset */
     do {
       dest = basicvars.filename;
-      if (*srce!=',') {		/* Not got a null directory name */
+      if (*srce!=',') {         /* Not got a null directory name */
         while (*srce!=asc_NUL && *srce!=',') {
           *dest = *srce;
           dest++;
           srce++;
         }
-        if (*(srce-1)!=DIR_SEP) {	/* No separator after directory name */
+        if (*(srce-1)!=DIR_SEP) {       /* No separator after directory name */
           *dest = DIR_SEP;
           dest++;
         }
@@ -417,16 +417,16 @@ static FILE *open_file(char *name) {
       *dest = asc_NUL;
       strcat(basicvars.filename, name);
       handle = fopen(basicvars.filename, "rb");
-      if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
+      if (handle!=NIL || *srce==asc_NUL) break; /* File found or end of directory list reached */
 #ifndef TARGET_RISCOS
       /* Add a .bbc suffix and try again */
       strcat(basicvars.filename, ".bbc");
       handle = fopen(basicvars.filename, "rb");
-      if (handle!=NIL || *srce==asc_NUL) break;	/* File found or end of directory list reached */
+      if (handle!=NIL || *srce==asc_NUL) break; /* File found or end of directory list reached */
 #endif
       srce++;
     } while (TRUE);
-    return handle;	/* Return file handle or NIL if file not found */
+    return handle;      /* Return file handle or NIL if file not found */
   }
 }
 
@@ -447,37 +447,37 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
   int length, count, zerolines = 0;
   byte line[INPUTLEN], *filebase;
   byte tokenline[MAXSTATELEN];
-  basicvars.linecount = 0;	/* Number of line being read from file */
+  basicvars.linecount = 0;      /* Number of line being read from file */
   filebase = base;
 
-  if (ftype == BBCFILE) count=fgetc(bbcfile);	/* Skip initial CR */
+  if (ftype == BBCFILE) count=fgetc(bbcfile);   /* Skip initial CR */
   do {
     if (ftype == BBCFILE) {
-      line[0] = fgetc(bbcfile);			/* High order byte of line number */
-      if (line[0]==ACORN_ENDMARK) break;	/* Found 0xFF marking end of program so end */
-      line[1] = fgetc(bbcfile);			/* Low order byte of line number */
-      line[2] = length = fgetc(bbcfile);	/* Line length */
+      line[0] = fgetc(bbcfile);                 /* High order byte of line number */
+      if (line[0]==ACORN_ENDMARK) break;        /* Found 0xFF marking end of program so end */
+      line[1] = fgetc(bbcfile);                 /* Low order byte of line number */
+      line[2] = length = fgetc(bbcfile);        /* Line length */
     } else {
-      line[2] = length = fgetc(bbcfile);	/* Line length */
-      if (line[2]==0) break;			/* Found 0x00 at end of file so end */
-      line[1] = fgetc(bbcfile);			/* Low order byte of line number */
-      line[0] = fgetc(bbcfile);			/* High order byte of line number */
+      line[2] = length = fgetc(bbcfile);        /* Line length */
+      if (line[2]==0) break;                    /* Found 0x00 at end of file so end */
+      line[1] = fgetc(bbcfile);                 /* Low order byte of line number */
+      line[0] = fgetc(bbcfile);                 /* High order byte of line number */
     }
     count = fread(&line[3], sizeof(byte), length - 3, bbcfile);
-    if (count != length - 3) {			/* Incorrect number of bytes read */
+    if (count != length - 3) {                  /* Incorrect number of bytes read */
       fclose(bbcfile);
       bbcfile = NULL;
       error(ERR_READFAIL, basicvars.filename);
     }
     basicvars.linecount++;
     length = reformat(line, tokenline, ftype);
-    if (length > 0) {				/* Line length is not zero so include line */
+    if (length > 0) {                           /* Line length is not zero so include line */
       if (base + length >= limit) {
         if (bbcfile) {
-	  fclose(bbcfile);
-	  bbcfile = NULL;
-	}
-	error(ERR_NOROOM);
+          fclose(bbcfile);
+          bbcfile = NULL;
+        }
+        error(ERR_NOROOM);
       }
       memmove(base, tokenline, length);
       if (get_lineno(tokenline) == 0) zerolines++;
@@ -534,11 +534,11 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 #endif
   }
   else {
-    textfile = freopen(basicvars.filename, "r", textfile);	/* Close and reopen the file as a text file */
+    textfile = freopen(basicvars.filename, "r", textfile);      /* Close and reopen the file as a text file */
     if (textfile==NIL) error(ERR_FILEIO, basicvars.filename);
   }
-  needsnumbers = FALSE;		/* This will be set by tokenise_line() above */
-  basicvars.linecount = 0;	/* Number of line being read from file */
+  needsnumbers = FALSE;         /* This will be set by tokenise_line() above */
+  basicvars.linecount = 0;      /* Number of line being read from file */
   filebase = base;
 #ifdef HAVE_ZLIB_H
   if (gzipped)
@@ -546,7 +546,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   else
 #endif
   result = fgets(basicvars.stringwork, INPUTLEN, textfile);
-    if (result!=NIL && basicvars.stringwork[0]=='#') {	/* Ignore first line if it starts with a '#' */
+    if (result!=NIL && basicvars.stringwork[0]=='#') {  /* Ignore first line if it starts with a '#' */
     basicvars.runflags.quitatend=basicvars.runflags.loadngo;
 #ifdef HAVE_ZLIB_H
     if (gzipped)
@@ -568,12 +568,12 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
 //    tokenize(basicvars.stringwork, tokenline, HASLINE);
     if (get_lineno(tokenline)==NOLINENO) {
-      save_lineno(tokenline, 0);	/* Otherwise renumber goes a bit funny */
+      save_lineno(tokenline, 0);        /* Otherwise renumber goes a bit funny */
       needsnumbers = TRUE;
     }
     length = get_linelen(tokenline);
-    if (length>0) {	/* Line length is not zero so include line */
-      if (base+length>=limit) {	/* No room left */
+    if (length>0) {     /* Line length is not zero so include line */
+      if (base+length>=limit) { /* No room left */
 #ifdef HAVE_ZLIB_H
         if (gzipped)
           gzclose (gzipfile);
@@ -602,7 +602,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   basicvars.linecount = 0;
   if (base+ENDMARKSIZE>=limit) error(ERR_NOROOM);
   mark_end(base);
-  if (needsnumbers) {		/* Line numbers are missing */
+  if (needsnumbers) {           /* Line numbers are missing */
     if (!basicvars.runflags.loadngo) emulate_printf("Line numbers added to program\r\n");
     renumber_program(filebase, 1, 1);
   }
@@ -647,11 +647,11 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
   blockread (tokenline, 1, 3);
   matrixflags.scrunge = (tokenline[0] == 0x23 && tokenline[1] == 0xFA && tokenline[2] == 0xC8);
   blockptr = 0;  /* Close and reopen the file as a text file */
-  needsnumbers = FALSE;		/* This will be set by tokenise_line() above */
-  basicvars.linecount = 0;	/* Number of line being read from file */
+  needsnumbers = FALSE;         /* This will be set by tokenise_line() above */
+  basicvars.linecount = 0;      /* Number of line being read from file */
   filebase = base;
   result = blockgets(basicvars.stringwork, INPUTLEN); // result = fgets(basicvars.stringwork, INPUTLEN, textfile);
-  if (result!=NIL && basicvars.stringwork[0]=='#') {	/* Ignore first line if it starts with a '#' */
+  if (result!=NIL && basicvars.stringwork[0]=='#') {    /* Ignore first line if it starts with a '#' */
   result = blockgets(basicvars.stringwork, INPUTLEN); // result = fgets(basicvars.stringwork, INPUTLEN, textfile);
   }
   while (result!=NIL) {
@@ -665,12 +665,12 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
     basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
     if (get_lineno(tokenline)==NOLINENO) {
-      save_lineno(tokenline, 0);	/* Otherwise renumber goes a bit funny */
+      save_lineno(tokenline, 0);        /* Otherwise renumber goes a bit funny */
       needsnumbers = TRUE;
     }
     length = get_linelen(tokenline);
-    if (length>0) {	/* Line length is not zero so include line */
-      if (base+length>=limit) {	/* No room left */
+    if (length>0) {     /* Line length is not zero so include line */
+      if (base+length>=limit) { /* No room left */
         error(ERR_NOROOM);
       }
       memmove(base, tokenline, length);
@@ -681,7 +681,7 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
   basicvars.linecount = 0;
   if (base+ENDMARKSIZE>=limit) error(ERR_NOROOM);
   mark_end(base);
-  if (needsnumbers) {		/* Line numbers are missing */
+  if (needsnumbers) {           /* Line numbers are missing */
     renumber_program(filebase, 1, 1);
   }
   return ALIGN(base-filebase+ENDMARKSIZE);
@@ -708,8 +708,8 @@ static filetype identify(FILE *thisfile, char *name) {
   int32 ptr=0,flag=1;
 
   count = fread(basicvars.stringwork, sizeof(byte), 260, thisfile);
-  fseek(thisfile, 0, SEEK_SET);				/* Rewind to start */
-  if (count < 2) return TEXTFILE;			/* Too short to be tokenised */
+  fseek(thisfile, 0, SEEK_SET);                         /* Rewind to start */
+  if (count < 2) return TEXTFILE;                       /* Too short to be tokenised */
 
   /* Try to identify some pathological cases. Read entire buffer (up to count)
    * and if everything, excluding strings in quotes, is 10, 13 or 32-126 then
@@ -729,16 +729,16 @@ static filetype identify(FILE *thisfile, char *name) {
   }
   if (flag) return TEXTFILE;
 
-  if (basicvars.stringwork[0] == asc_CR)			/* Simple check for Acorn format */
+  if (basicvars.stringwork[0] == asc_CR)                        /* Simple check for Acorn format */
     if ((unsigned char)basicvars.stringwork[3] > 3)
       if (basicvars.stringwork[(unsigned char)basicvars.stringwork[3]] == asc_CR)
         return BBCFILE;
 
-  if ((unsigned char)basicvars.stringwork[0] > 3)	/* Simple check for Russell format */
+  if ((unsigned char)basicvars.stringwork[0] > 3)       /* Simple check for Russell format */
     if (basicvars.stringwork[(unsigned char)basicvars.stringwork[0]-1] == asc_CR)
       return Z80FILE;
 
-  return TEXTFILE;					/* Everything else is text */
+  return TEXTFILE;                                      /* Everything else is text */
 
 }
 
@@ -756,11 +756,11 @@ void read_basic(char *name) {
   loadfile = open_file(name);
   if (loadfile==NIL) error(ERR_NOTFOUND, name);
   last_added = NIL;
-  if ((ftype=identify(loadfile, name)) != TEXTFILE) {	/* Tokenised BBC BASIC file */
+  if ((ftype=identify(loadfile, name)) != TEXTFILE) {   /* Tokenised BBC BASIC file */
     clear_program();
     length = read_bbcfile(loadfile, basicvars.top, basicvars.himem, ftype);
   }
-  else {						/* Plain text */
+  else {                                                /* Plain text */
     clear_program();
     length = read_textfile(loadfile, basicvars.top, basicvars.himem, basicvars.runflags.loadngo);
   }
@@ -792,15 +792,15 @@ void read_basic_block() {
 static void link_library(char *name, byte *base, int32 size, boolean onheap) {
   library *lp;
   int n;
-  if (onheap) {		/* Library is held on Basic heap */
-    lp = allocmem(sizeof(library), 1);	/* Add library to list */
-    lp->libname = allocmem(strlen(name)+1, 1);	/* +1 for NULL at end */
+  if (onheap) {         /* Library is held on Basic heap */
+    lp = allocmem(sizeof(library), 1);  /* Add library to list */
+    lp->libname = allocmem(strlen(name)+1, 1);  /* +1 for NULL at end */
     lp->libflink = basicvars.liblist;
     basicvars.liblist = lp;
   }
-  else {	/* Library is held in permanent memory */
+  else {        /* Library is held in permanent memory */
     lp = malloc(sizeof(library));
-    if (lp==NIL) error(ERR_LIBSIZE, name);	/* Run out of memory */
+    if (lp==NIL) error(ERR_LIBSIZE, name);      /* Run out of memory */
     lp->libname = malloc(strlen(name)+1);
     lp->libflink = basicvars.installist;
     basicvars.installist = lp;
@@ -822,11 +822,11 @@ static void read_bbclib(FILE *libfile, char *name, boolean onheap, int32 ftype) 
   byte *base;
   base = basicvars.vartop;
   size = read_bbcfile(libfile, base, basicvars.stacktop.bytesp, ftype);
-  if (onheap) {	/* Adjust heap pointers as library is on the heap */
+  if (onheap) { /* Adjust heap pointers as library is on the heap */
     basicvars.vartop = basicvars.vartop+size;
     basicvars.stacklimit.bytesp = basicvars.vartop+STACKBUFFER;
   }
-  else {	/* Library being loaded via 'INSTALL' - Move to permanent memory */
+  else {        /* Library being loaded via 'INSTALL' - Move to permanent memory */
     byte *installbase;
     installbase = malloc(size);
     if (installbase==NIL) error(ERR_LIBSIZE, name);
@@ -858,7 +858,7 @@ static void read_textlib(FILE *libfile, char *name, boolean onheap) {
     basicvars.vartop+=size;
     basicvars.stacklimit.bytesp = basicvars.vartop+STACKBUFFER;
   }
-  else {	/* Library being loaded via 'INSTALL' - Move to permanent memory */
+  else {        /* Library being loaded via 'INSTALL' - Move to permanent memory */
     byte *installbase;
     installbase = malloc(size);
     if (installbase==NIL) error(ERR_LIBSIZE, name);
@@ -886,21 +886,21 @@ void read_library(char *name, boolean onheap) {
   int32 ftype;
 
   if (strlen(name) > (FNAMESIZE - 1)) error(ERR_INVALIDFNAME);
-  if (onheap)	/* Check if library has already been loaded */
+  if (onheap)   /* Check if library has already been loaded */
     lp = basicvars.liblist;
   else {
     lp = basicvars.installist;
   }
   while (lp != NIL && strcmp(lp->libname, name) != 0) lp = lp->libflink;
-  if (lp != NIL) {	/* Library has already been loaded */
+  if (lp != NIL) {      /* Library has already been loaded */
     error(WARN_LIBLOADED, name);
     return;
   }
   libfile = open_file(name);
-  if (libfile == NIL) error(ERR_NOLIB, name);		/* Cannot find library */
-  if ((ftype=identify(libfile, name)) != TEXTFILE)	/* Reading a BBC BASIC tokenised library */
+  if (libfile == NIL) error(ERR_NOLIB, name);           /* Cannot find library */
+  if ((ftype=identify(libfile, name)) != TEXTFILE)      /* Reading a BBC BASIC tokenised library */
     read_bbclib(libfile, name, onheap, ftype);
-  else {						/* Reading a library in plain text form */
+  else {                                                /* Reading a library in plain text form */
     read_textlib(libfile, name, onheap);
   }
 }
@@ -927,7 +927,7 @@ void write_text(char *name, FILE *fhandle) {
     expand(bp, basicvars.stringwork);
     x = fputs(basicvars.stringwork, savefile);
     if (x!=EOF) x = fputc('\n', savefile);
-    if (x==EOF) {	/* Error occured writing to file */
+    if (x==EOF) {       /* Error occured writing to file */
       fclose(savefile);
       error(ERR_WRITEFAIL, name);
     }
@@ -949,8 +949,8 @@ void write_text(char *name, FILE *fhandle) {
 void edit_line(void) {
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   clear_refs();
-  basicvars.misc_flags.validsaved = FALSE;	/* If program is edited mark save area contents as bad */
-  if (isempty(thisline))			/* Empty line = delete line */
+  basicvars.misc_flags.validsaved = FALSE;      /* If program is edited mark save area contents as bad */
+  if (isempty(thisline))                        /* Empty line = delete line */
     delete_line(get_lineno(thisline));
   else {
     insert_line(thisline);

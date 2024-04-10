@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Functions in the main interpreter module
+**      Functions in the main interpreter module
 */
 
 #ifndef __statement_h

@@ -294,8 +294,8 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       }
       break;
     case SWI_OS_Write0: /* This is extended in Brandy - normally all args apart
-			   from R0 are ignored; in Brandy, if R1 and R2 are set
-			   to 42, the text is output to the controlling terminal. */
+                           from R0 are ignored; in Brandy, if R1 and R2 are set
+                           to 42, the text is output to the controlling terminal. */
       outregs[0]=inregs[0].i+1+strlen((char *)(size_t)inregs[0].i);
       if ((inregs[1].i==42) && (inregs[2].i==42)) {
         fprintf(stderr,"%s\r\n", (char *)(size_t)inregs[0].i);
@@ -399,7 +399,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 // R4=b31-b24=reserved, b23-b16=reserved, b15-b8=reserved, b7-b0=echochar
 //
       inregs[4].i=(inregs[4].i & 0x00FFFFFF) | (inregs[0].i & 0xFF000000);
-      inregs[0].i=(inregs[0].i & 0x00FFFFFF);	/* Move flags to R4			*/
+      inregs[0].i=(inregs[0].i & 0x00FFFFFF);   /* Move flags to R4                     */
     case SWI_OS_ReadLine32:
 // R0=address
 // R1=length (buffer size-1)
@@ -410,8 +410,8 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       *outstring='\0';
 //                       addr   length        lochar           hichar                     flags  echo
       a=kbd_readline(outstring, inregs[1].i+1, (inregs[2].i<<8) | (inregs[3].i<<16) | (inregs[4].i & 0xFF0000FF));
-      outregs[1]=a;				/* Returned length			*/
-						/* Should also set Carry if Escape	*/
+      outregs[1]=a;                             /* Returned length                      */
+                                                /* Should also set Carry if Escape      */
       outregs[0]=(size_t)outstring;
       break;
     case SWI_OS_GetEnv:
@@ -465,9 +465,9 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_OS_Plot:
       emulate_plot(inregs[0].i, inregs[1].i, inregs[2].i);
       break;
-    case SWI_OS_WriteN:	/* This is extended in Brandy - normally only R0 and R1
-			   are acted upon; in Brandy, if R2 is set to 42, the
-			   characters are output to the controlling terminal. */
+    case SWI_OS_WriteN: /* This is extended in Brandy - normally only R0 and R1
+                           are acted upon; in Brandy, if R2 is set to 42, the
+                           characters are output to the controlling terminal. */
       outregs[0]=inregs[0].i;
       if (inregs[2].i==42) {
         for (a=0; a<inregs[1].i; a++) fprintf(stderr,"%c", *((byte *)(size_t)inregs[0].i+a));
@@ -480,12 +480,12 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[0]=inregs[0].i;
       outregs[1]=inregs[1].i;
       switch (inregs[0].i) {
-        case 0: 	emulate_mode(inregs[1].i);break;
-        case 1: 	outregs[1]=emulate_modefn();break;
-        case 7: 	outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
-        case 8: 	osbyte113(inregs[1].i);break;
-        case 9: 	osbyte112(inregs[1].i);break;
-        case 10:	screencopy(inregs[1].i, inregs[2].i);break;
+        case 0:         emulate_mode(inregs[1].i);break;
+        case 1:         outregs[1]=emulate_modefn();break;
+        case 7:         outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
+        case 8:         osbyte113(inregs[1].i);break;
+        case 9:         osbyte112(inregs[1].i);break;
+        case 10:        screencopy(inregs[1].i, inregs[2].i);break;
       }
 #endif
       break;
@@ -569,12 +569,12 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 #ifdef USE_SDL
       /* R0=0 to read into R2 from offset R1, R0 nonzero to write R2 into offset R1 */
       if (inregs[1].i < matrixflags.modescreen_sz) {
-	if (inregs[0].i==0) {
-	  outregs[2]=*(uint32 *)(matrixflags.modescreen_ptr+(inregs[1].i*4));
-	} else {
-	  *(uint32 *)(matrixflags.modescreen_ptr+(inregs[1].i*4))=inregs[2].i;
-	  refresh_location(inregs[1].i);
-	}
+        if (inregs[0].i==0) {
+          outregs[2]=*(uint32 *)(matrixflags.modescreen_ptr+(inregs[1].i*4));
+        } else {
+          *(uint32 *)(matrixflags.modescreen_ptr+(inregs[1].i*4))=inregs[2].i;
+          refresh_location(inregs[1].i);
+        }
       }
 #endif
       break;
@@ -734,26 +734,26 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[2]=0;
       outregs[3]=0;
       if (NULL == file_handle) {
-	strncpy(outstring, "No machine type detected",25);
+        strncpy(outstring, "No machine type detected",25);
       } else {
-	if(fgets(outstring, 65534, file_handle))
-	  ;
-	fclose(file_handle);
-	file_handle=fopen("/proc/device-tree/system/linux,revision","r");
-	if (NULL != file_handle) {
-	  outregs[2]=(fgetc(file_handle) << 24);
-	  outregs[2]+=(fgetc(file_handle) << 16);
-	  outregs[2]+=(fgetc(file_handle) << 8);
-	  outregs[2]+=fgetc(file_handle);
-	  if (outregs[2] < 256) {
-	    outregs[0]=mossys_getboardfrommodel(outregs[2]);
-	    outregs[3]=gpio2rpi(outregs[0]);
-	  } else {
-	    outregs[3]=((outregs[2] & 0xFF0) >> 4);
-	    outregs[0]=rpi2gpio(outregs[3]);
-	  }
-	  fclose(file_handle);
-	}
+        if(fgets(outstring, 65534, file_handle))
+          ;
+        fclose(file_handle);
+        file_handle=fopen("/proc/device-tree/system/linux,revision","r");
+        if (NULL != file_handle) {
+          outregs[2]=(fgetc(file_handle) << 24);
+          outregs[2]+=(fgetc(file_handle) << 16);
+          outregs[2]+=(fgetc(file_handle) << 8);
+          outregs[2]+=fgetc(file_handle);
+          if (outregs[2] < 256) {
+            outregs[0]=mossys_getboardfrommodel(outregs[2]);
+            outregs[3]=gpio2rpi(outregs[0]);
+          } else {
+            outregs[3]=((outregs[2] & 0xFF0) >> 4);
+            outregs[0]=rpi2gpio(outregs[3]);
+          }
+          fclose(file_handle);
+        }
       }
       outregs[1]=(size_t)outstring;
       break;

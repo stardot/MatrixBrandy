@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains definitions for functions that deal
-**	with the built-in Basic functions
+**      This file contains definitions for functions that deal
+**      with the built-in Basic functions
 */
 
 #ifndef __functions_h

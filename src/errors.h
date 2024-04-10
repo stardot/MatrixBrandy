@@ -20,7 +20,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Error messages and error handling
+**      Error messages and error handling
 **
 ** 05-Mar-2014 JGH: Added MOS/OSCLI errors (merged from his Banana Brandy fork)
 */
@@ -203,11 +203,11 @@ typedef enum {
 
 /* Other interpreter errors */
 
-#define CMD_NOFILE    1	/* No file name supplied after option */
-#define CMD_NOSIZE    2	/* No workspace size supplied after option */
-#define CMD_FILESUPP  3	/* File name already supplied */
-#define CMD_NOMEMORY  4	/* Not enough memory to run the interpreter */
-#define CMD_INITFAIL  5	/* Interpreter initialisation failed */
+#define CMD_NOFILE    1 /* No file name supplied after option */
+#define CMD_NOSIZE    2 /* No workspace size supplied after option */
+#define CMD_FILESUPP  3 /* File name already supplied */
+#define CMD_NOMEMORY  4 /* Not enough memory to run the interpreter */
+#define CMD_INITFAIL  5 /* Interpreter initialisation failed */
 
 extern void init_errors(void);
 extern void watch_signals(void);

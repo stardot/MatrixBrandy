@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains the main interpreter command loop
+**      This file contains the main interpreter command loop
 */
 
 #include "target.h"
@@ -67,8 +67,8 @@ extern threadmsg tmsg;
 
 /* #define DEBUG */
 
-workspace basicvars;		/* This contains all the important interpreter variables */
-matrixbits matrixflags;		/* This contains flags used by Matrix Brandy extensions */
+workspace basicvars;            /* This contains all the important interpreter variables */
+matrixbits matrixflags;         /* This contains flags used by Matrix Brandy extensions */
 
 /* Forward references */
 
@@ -85,16 +85,16 @@ static void *timer_thread(void *);
 #endif
 static void init_clock(void);
 
-static char inputline[INPUTLEN];	/* Last line read */
-static size_t worksize;			/* Initial workspace size */
+static char inputline[INPUTLEN];        /* Last line read */
+static size_t worksize;                 /* Initial workspace size */
 
-static cmdarg *arglast;			/* Pointer to end of command line argument list */
+static cmdarg *arglast;                 /* Pointer to end of command line argument list */
 
 static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 
 static void check_cmdline(int, char *[]);
 #ifndef BRANDYAPP
-static char *loadfile;			/* Pointer to name of file to load when interpreter starts */
+static char *loadfile;                  /* Pointer to name of file to load when interpreter starts */
 #endif
 
 /*
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
     }
   }
 #ifdef USE_SDL
-  init_timer();	/* Initialise the timer thread */
+  init_timer(); /* Initialise the timer thread */
   tmsg.bailout = -1;
   if (pthread_create(&escape_thread_id, NULL, &escape_thread, NULL)) {
     fprintf(stderr, "Unable to create Escape handler thread.\n");
@@ -215,9 +215,9 @@ static void add_arg(char *p) {
 static void init1(void) {
   basicvars.installist = NIL;
   basicvars.retcode = 0;
-  init_clock();	/* Init to something sensible */
+  init_clock(); /* Init to something sensible */
   basicvars.monotonictimebase = basicvars.centiseconds;
-  basicvars.list_flags.space = FALSE;	/* Set initial listing options */
+  basicvars.list_flags.space = FALSE;   /* Set initial listing options */
   basicvars.list_flags.indent = FALSE;
   basicvars.list_flags.split = FALSE;
   basicvars.list_flags.noline = FALSE;
@@ -225,7 +225,7 @@ static void init1(void) {
   basicvars.list_flags.expand = FALSE;
 
 #ifdef DEBUG
-  basicvars.debug_flags.debug = FALSE;	/* Set interpreter debug options */
+  basicvars.debug_flags.debug = FALSE;  /* Set interpreter debug options */
   basicvars.debug_flags.tokens = FALSE;
   basicvars.debug_flags.variables = FALSE;
   basicvars.debug_flags.strings = FALSE;
@@ -238,27 +238,27 @@ static void init1(void) {
 
   basicvars.runflags.inredir = FALSE;           /* Input is being taken from the keyboard */
   basicvars.runflags.outredir = FALSE;          /* Output is going to the screen */
-  basicvars.runflags.loadngo = FALSE;		/* Do not start running program immediately */
-  basicvars.runflags.quitatend = FALSE;		/* Do not exit from interpreter when program finishes */
-  basicvars.runflags.ignore_starcmd = FALSE;	/* Do not ignore built-in '*' commands */
-  basicvars.escape_enabled = TRUE;		/* Allow the Escape key to stop execution */
+  basicvars.runflags.loadngo = FALSE;           /* Do not start running program immediately */
+  basicvars.runflags.quitatend = FALSE;         /* Do not exit from interpreter when program finishes */
+  basicvars.runflags.ignore_starcmd = FALSE;    /* Do not ignore built-in '*' commands */
+  basicvars.escape_enabled = TRUE;              /* Allow the Escape key to stop execution */
 #ifdef DEFAULT_IGNORE
-  basicvars.runflags.flag_cosmetic = FALSE;	/* Ignore all unsupported features */
+  basicvars.runflags.flag_cosmetic = FALSE;     /* Ignore all unsupported features */
 #else
-  basicvars.runflags.flag_cosmetic = TRUE;	/* Unsupported features generate errors */
+  basicvars.runflags.flag_cosmetic = TRUE;      /* Unsupported features generate errors */
 #endif
-  basicvars.misc_flags.trapexcp = TRUE;		/* Trap exceptions */
-  basicvars.misc_flags.validedit = FALSE;	/* Contents of edit_flags are not valid */
+  basicvars.misc_flags.trapexcp = TRUE;         /* Trap exceptions */
+  basicvars.misc_flags.validedit = FALSE;       /* Contents of edit_flags are not valid */
 
   basicvars.loadpath = NIL;
   basicvars.argcount = 0;
   basicvars.recdepth = 0;
-  basicvars.arglist = NIL;		/* List of command line arguments */
+  basicvars.arglist = NIL;              /* List of command line arguments */
   basicvars.maxrecdepth = MAXRECDEPTH;
-  arglast = NIL;			/* End of list of command line arguments */
+  arglast = NIL;                        /* End of list of command line arguments */
 
-  liblist = liblast = NIL;		/* List of libraries to load when interpreter starts */
-  worksize = 0;				/* Use default workspace size */
+  liblist = liblast = NIL;              /* List of libraries to load when interpreter starts */
+  worksize = 0;                         /* Use default workspace size */
 
   matrixflags.doexec = NULL;        /* We're not doing a *EXEC to begin with */
   matrixflags.failovermode = 255;   /* Report Bad Mode on unavailable screen mode */
@@ -294,11 +294,11 @@ static void gpio_init() {
 #ifdef TARGET_UNIX
   int fd;
 
-  matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
-  matrixflags.gpiomem = (byte *)-1;		/* Initialise, will internally return &FFFFFFFF */
+  matrixflags.gpio = 0;                         /* Initialise the flag to 0 (not enabled) */
+  matrixflags.gpiomem = (byte *)-1;             /* Initialise, will internally return &FFFFFFFF */
 
   fd=open("/dev/gpiomem", O_RDWR | O_SYNC);
-  if (fd == -1) return;				/* Couldn't open /dev/gpiomem - exit quietly */
+  if (fd == -1) return;                         /* Couldn't open /dev/gpiomem - exit quietly */
 
   matrixflags.gpiomem=(byte *)mmap(NULL, 0x1000, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
   close(fd);
@@ -310,8 +310,8 @@ static void gpio_init() {
   matrixflags.gpio = 1;
   matrixflags.gpiomemint=(uint32 *)matrixflags.gpiomem;
 #else
-  matrixflags.gpio = 0;				/* Initialise the flag to 0 (not enabled) */
-  matrixflags.gpiomem = (byte *)-1;		/* Initialise, will internally return &FFFFFFFF */
+  matrixflags.gpio = 0;                         /* Initialise the flag to 0 (not enabled) */
+  matrixflags.gpiomem = (byte *)-1;             /* Initialise, will internally return &FFFFFFFF */
 #endif
   return;
 }
@@ -321,11 +321,11 @@ static void gpio_init() {
 */
 static void init2(void) {
   if (!mos_init() || !kbd_init() || !init_screen()) {
-    cmderror(CMD_INITFAIL);	/* Initialisation failed */
-    exit_interpreter(EXIT_FAILURE);	/* End run */
+    cmderror(CMD_INITFAIL);     /* Initialisation failed */
+    exit_interpreter(EXIT_FAILURE);     /* End run */
   }
   if (!init_heap() || !init_workspace(worksize)) {
-    cmderror(CMD_NOMEMORY);	/* Not enough memory to run interpreter */
+    cmderror(CMD_NOMEMORY);     /* Not enough memory to run interpreter */
     kbd_quit();
     exit(EXIT_FAILURE);
   }
@@ -336,7 +336,7 @@ static void init2(void) {
   init_fileio();
   clear_program();
   basicvars.current = NIL;
-  basicvars.misc_flags.validsaved = FALSE;		/* Want this to be 'FALSE' when the interpreter first starts */
+  basicvars.misc_flags.validsaved = FALSE;              /* Want this to be 'FALSE' when the interpreter first starts */
   init_interpreter();
 }
 
@@ -355,22 +355,22 @@ static void check_cmdline(int argc, char *argv[]) {
   n = 1;
   while (n<argc) {
     p = argv[n];
-    if (*p=='-' && !had_double_dash) {	/* Got an option */
-      optchar = tolower(*(p+1));	/* Get first character of option name */
-      if (optchar=='h') {		/* -help */
+    if (*p=='-' && !had_double_dash) {  /* Got an option */
+      optchar = tolower(*(p+1));        /* Get first character of option name */
+      if (optchar=='h') {               /* -help */
         show_help();
         exit(0);
       }
       else if (optchar == 'v') {
 #ifdef BRANDY_GITCOMMIT
-	printf("%s\n  Git commit %s on branch %s (%s)\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
+        printf("%s\n  Git commit %s on branch %s (%s)\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #else
-	printf("%s\n", IDSTRING);
+        printf("%s\n", IDSTRING);
 #endif
         exit(0);
       }
 #ifdef USE_SDL
-      else if (optchar=='f') {		/* -fullscreen */
+      else if (optchar=='f') {          /* -fullscreen */
         basicvars.runflags.startfullscreen=TRUE;
       }
       else if (optchar=='n') {    /* -nofull */
@@ -381,32 +381,32 @@ static void check_cmdline(int argc, char *argv[]) {
       }
 #endif
 #ifndef BRANDYAPP
-      else if (optchar == 'c' || optchar == 'q' || (optchar == 'l' && tolower(*(p+2)) == 'o')) {	/* -chain, -quit or -load */
+      else if (optchar == 'c' || optchar == 'q' || (optchar == 'l' && tolower(*(p+2)) == 'o')) {        /* -chain, -quit or -load */
         n++;
         if (n==argc)
-          cmderror(CMD_NOFILE, p);	/* Filename missing */
+          cmderror(CMD_NOFILE, p);      /* Filename missing */
         else if (loadfile!=NIL)
-          cmderror(CMD_FILESUPP);	/* Filename already supplied */
+          cmderror(CMD_FILESUPP);       /* Filename already supplied */
         else {
           loadfile = argv[n];
-          if (optchar=='c')		/* -chain */
+          if (optchar=='c')             /* -chain */
             basicvars.runflags.loadngo = TRUE;
-          else if (optchar=='q') {	/* -quit */
+          else if (optchar=='q') {      /* -quit */
             basicvars.runflags.quitatend = basicvars.runflags.loadngo = TRUE;
           }
         }
       }
       else if (optchar=='t')                          /* -tek - enable Tek graphics */
         matrixflags.tekenabled=1;
-      else if (optchar=='i' && tolower(*(p+2))=='g')	/* -ignore  Ignore cosmetic errors */
+      else if (optchar=='i' && tolower(*(p+2))=='g')    /* -ignore  Ignore cosmetic errors */
         basicvars.runflags.flag_cosmetic = FALSE;
-      else if (optchar=='s' && tolower(*(p+2))=='t')	/* -strict  Error on cosmetic errors */
+      else if (optchar=='s' && tolower(*(p+2))=='t')    /* -strict  Error on cosmetic errors */
         basicvars.runflags.flag_cosmetic = TRUE;
-      else if (optchar=='l' && tolower(*(p+2))=='i') {	/* -lib */
+      else if (optchar=='l' && tolower(*(p+2))=='i') {  /* -lib */
         n++;
         if (n==argc)
-          cmderror(CMD_NOFILE, p);	/* Filename missing */
-        else {		/* Add name to list of libraries to load */
+          cmderror(CMD_NOFILE, p);      /* Filename missing */
+        else {          /* Add name to list of libraries to load */
           struct loadlib *p = malloc(sizeof(struct loadlib));
           if (p==NIL)
             cmderror(CMD_NOMEMORY);
@@ -422,41 +422,41 @@ static void check_cmdline(int argc, char *argv[]) {
           }
         }
       }
-      else if (optchar == 'n' && tolower(*(p+2))=='o')	/* -nostar  Ignore '*' commands */
+      else if (optchar == 'n' && tolower(*(p+2))=='o')  /* -nostar  Ignore '*' commands */
         basicvars.runflags.ignore_starcmd = TRUE;
-      else if (optchar=='p') {		/* -path */
+      else if (optchar=='p') {          /* -path */
         n++;
         if (n==argc)
-          cmderror(CMD_NOFILE, p);	/* Directory list missing */
-        else {		/* Set up the path list */
-          if (basicvars.loadpath!=NIL) free(basicvars.loadpath);	/* Discard existing list */
-          basicvars.loadpath = malloc(strlen(argv[n])+1);	/* +1 for the NUL */
-          if (basicvars.loadpath==NIL) {	/* No memory available */
+          cmderror(CMD_NOFILE, p);      /* Directory list missing */
+        else {          /* Set up the path list */
+          if (basicvars.loadpath!=NIL) free(basicvars.loadpath);        /* Discard existing list */
+          basicvars.loadpath = malloc(strlen(argv[n])+1);       /* +1 for the NUL */
+          if (basicvars.loadpath==NIL) {        /* No memory available */
             cmderror(CMD_NOMEMORY);
             exit(EXIT_FAILURE);
           }
           strcpy(basicvars.loadpath, argv[n]);
         }
       }
-      else if (optchar=='s') {		/* -size */
+      else if (optchar=='s') {          /* -size */
         n++;
         if (n==argc)
-          cmderror(CMD_NOSIZE, p);		/* Workspace size missing */
+          cmderror(CMD_NOSIZE, p);              /* Workspace size missing */
         else {
           char *sp;
-          worksize = CAST(strtol(argv[n], &sp, 10), size_t);	/* Fetch workspace size (n.b. no error checking) */
-          if (tolower(*sp)=='k') {	/* Size is in kilobytes */
+          worksize = CAST(strtol(argv[n], &sp, 10), size_t);    /* Fetch workspace size (n.b. no error checking) */
+          if (tolower(*sp)=='k') {      /* Size is in kilobytes */
             worksize = worksize*1024;
-          } else if (tolower(*sp)=='m') {	/* Size is in megabytes */
+          } else if (tolower(*sp)=='m') {       /* Size is in megabytes */
             worksize = worksize*1024*1024;
-          } else if (tolower(*sp)=='g') {	/* Size is in gigabytes */
+          } else if (tolower(*sp)=='g') {       /* Size is in gigabytes */
             worksize = worksize*1024*1024*1024;
           }
         }
       }
-      else if (optchar=='!')		/* -! - Don't initialise signal handlers */
+      else if (optchar=='!')            /* -! - Don't initialise signal handlers */
         basicvars.misc_flags.trapexcp = FALSE;
-      else if (optchar=='-' && *(p+2) == 0)		/* -- - Pass all remaining options to the Basic program */
+      else if (optchar=='-' && *(p+2) == 0)             /* -- - Pass all remaining options to the Basic program */
         had_double_dash = TRUE;
       else {
 /* Any unrecognised options are assumed to be for the Basic program */
@@ -465,12 +465,12 @@ static void check_cmdline(int argc, char *argv[]) {
 #endif /* BRANDYAPP */
     }
 #ifndef BRANDYAPP
-    else {	/* Name of file to run supplied */
+    else {      /* Name of file to run supplied */
       if (loadfile==NIL) {
-        loadfile = p;	/* Make note of name of file to load */
+        loadfile = p;   /* Make note of name of file to load */
         basicvars.runflags.quitatend = basicvars.runflags.loadngo = TRUE;
       }
-      else {	/* Assume anything else is for the Basic program */
+      else {    /* Assume anything else is for the Basic program */
         add_arg(argv[n]);
       }
     }
@@ -493,7 +493,7 @@ static void read_command(void) {
   boolean ok;
   if (!basicvars.runflags.inredir) emulate_vdu('>');
   ok = read_line(inputline, INPUTLEN);
-  if (!ok) exit_interpreter(EXIT_SUCCESS);	/* EOF hit - Tidy up and end run */
+  if (!ok) exit_interpreter(EXIT_SUCCESS);      /* EOF hit - Tidy up and end run */
 }
 
 /*
@@ -518,7 +518,7 @@ static void interpret_line(void) {
 static void load_libraries(void) {
   struct loadlib *p = liblist;
   do {
-    read_library(p->name, INSTALL_LIBRARY);	/* Read library and install it */
+    read_library(p->name, INSTALL_LIBRARY);     /* Read library and install it */
     p = p->next;
   } while (p!=NIL);
 }
@@ -603,21 +603,21 @@ static void *escape_thread(void *dummydata) {
 */
 static void *run_interpreter(void *dummydata) {
   if (sigsetjmp(basicvars.restart, 1)==0) {
-    if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();	/* Say who we are */
-    init_errors();	/* Set up the signal handlers */
+    if (!basicvars.runflags.loadngo && !basicvars.runflags.outredir) announce();        /* Say who we are */
+    init_errors();      /* Set up the signal handlers */
 #ifdef BRANDYAPP
     read_basic_block();
     run_program(basicvars.start);
 #else
     if (liblist!=NIL) load_libraries();
-    if (loadfile!=NIL) {	/*  Name of program to load was given on command line */
+    if (loadfile!=NIL) {        /*  Name of program to load was given on command line */
       read_basic(loadfile);
       init_expressions();
       memset(basicvars.program, 0, FNAMESIZE);
       if (strlen(loadfile) < FNAMESIZE ) {
-        strncpy(basicvars.program, loadfile, FNAMESIZE-1);	/* Save the name of the file */
+        strncpy(basicvars.program, loadfile, FNAMESIZE-1);      /* Save the name of the file */
       }
-      if (basicvars.runflags.loadngo) run_program(basicvars.start);	/* Start program execution */
+      if (basicvars.runflags.loadngo) run_program(basicvars.start);     /* Start program execution */
     }
 #endif
   }

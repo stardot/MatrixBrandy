@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file declares the file I/O routines for the interpreter
+**      This file declares the file I/O routines for the interpreter
 */
 
 #ifndef __fileio_h

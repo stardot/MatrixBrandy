@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines functions that convert numbers between
-**	character and binary format
+**      This file defines functions that convert numbers between
+**      character and binary format
 */
 
 #ifndef __conversions_h

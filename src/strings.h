@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the functions and so forth associated with
-**	memory manangement for strings
+**      This file defines the functions and so forth associated with
+**      memory manangement for strings
 */
 
 #ifndef __strings_h

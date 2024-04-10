@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Types and constants used throughout the interpreter
+**      Types and constants used throughout the interpreter
 */
 
 #ifndef __common_h
@@ -49,22 +49,22 @@
 #define TINYFLOATVAL 2.2250738585072014E-308
 #define MAXEXPONENT 308
 
-#define MAXSTATELEN 1024	/* Maximum length of a tokenised line of Basic */
-#define MINSTATELEN 7		/* Minimum legal length of a tokenised line */
-#define MAXLINENO 65279		/* Highest line number allowed */
-#define ENDLINENO 0xFF00	/* Line number value used to mark end of program */
-#define INTSIZE 4		/* Size of a 32-bit integer in bytes */
-#define INT64SIZE 8		/* Size of a 64-bit integer in bytes */
-#define SMALLSIZE 1		/* Size of a small integer */
-#define FLOATSIZE 8		/* Size of a floating point value */
-#define STRINGSIZE 8		/* Size of a string descriptor block */
-#define LOFFSIZE 4		/* Size of a long offset embedded in the code */
-#define OFFSIZE 2		/* Size of a short offset embedded in the code */
-#define LINESIZE 2		/* Size of a line number */
-#define LENGTHSIZE 2		/* Size of the line length */
-#define SIZESIZE 2		/* Size of string size embedded in the code */
-#define MAXDIMS 10		/* Maximum number of array dimensions allowed */
-#define MAXNAMELEN 256		/* Size of buffers used to hold variable names */
+#define MAXSTATELEN 1024        /* Maximum length of a tokenised line of Basic */
+#define MINSTATELEN 7           /* Minimum legal length of a tokenised line */
+#define MAXLINENO 65279         /* Highest line number allowed */
+#define ENDLINENO 0xFF00        /* Line number value used to mark end of program */
+#define INTSIZE 4               /* Size of a 32-bit integer in bytes */
+#define INT64SIZE 8             /* Size of a 64-bit integer in bytes */
+#define SMALLSIZE 1             /* Size of a small integer */
+#define FLOATSIZE 8             /* Size of a floating point value */
+#define STRINGSIZE 8            /* Size of a string descriptor block */
+#define LOFFSIZE 4              /* Size of a long offset embedded in the code */
+#define OFFSIZE 2               /* Size of a short offset embedded in the code */
+#define LINESIZE 2              /* Size of a line number */
+#define LENGTHSIZE 2            /* Size of the line length */
+#define SIZESIZE 2              /* Size of string size embedded in the code */
+#define MAXDIMS 10              /* Maximum number of array dimensions allowed */
+#define MAXNAMELEN 256          /* Size of buffers used to hold variable names */
 
 #define asc_CR 0xD
 #define asc_LF 0xA

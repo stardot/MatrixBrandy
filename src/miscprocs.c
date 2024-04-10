@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This module contains a selection of miscellaneous functions
+**      This module contains a selection of miscellaneous functions
 **
 ** 06-Jan-2019 JGH: secure_tmpnam() tweeked.
 **
@@ -232,7 +232,7 @@ char *tocstring(char *cp, int32 len) {
     cp++;
     n++;
   }
-  if (n==MAXNAMELEN) {	/* Put ellipsis at end of name if it has been truncated */
+  if (n==MAXNAMELEN) {  /* Put ellipsis at end of name if it has been truncated */
     cstring[n] = cstring[n+1] = cstring [n+2] = '.';
     n+=3;
   }
@@ -247,9 +247,9 @@ char *tocstring(char *cp, int32 len) {
 */
 library *find_library(byte *wanted) {
   library *lp;
-  lp = basicvars.liblist;	/* Check if it is in a library */
+  lp = basicvars.liblist;       /* Check if it is in a library */
   while (lp!=NIL && (wanted<lp->libstart || wanted>=lp->libstart+lp->libsize)) lp = lp->libflink;
-  if (lp==NIL) {	/* Not found. Check installed libraries */
+  if (lp==NIL) {        /* Not found. Check installed libraries */
     lp = basicvars.installist;
     while (lp!=NIL && (wanted<lp->libstart || wanted>=lp->libstart+lp->libsize)) lp = lp->libflink;
   }
@@ -272,12 +272,12 @@ byte *find_linestart(byte *wanted) {
   byte *p, *last;
   library *lp;
   p = NIL;
-  if (wanted>=basicvars.page && wanted<basicvars.top)	/* Address is in loaded program */
+  if (wanted>=basicvars.page && wanted<basicvars.top)   /* Address is in loaded program */
     p = basicvars.start;
   else {
-    lp = find_library(wanted);	/* Check if it is in a library */
-    if (lp==NIL) return NIL;	/* Could not find where address points */
-    p = lp->libstart;	/* 'wanted' points into a library */
+    lp = find_library(wanted);  /* Check if it is in a library */
+    if (lp==NIL) return NIL;    /* Could not find where address points */
+    p = lp->libstart;   /* 'wanted' points into a library */
   }
   last = p;
   while (p<=wanted) {
@@ -304,17 +304,17 @@ byte *find_linestart(byte *wanted) {
 byte *find_line(int32 lineno) {
   byte *p, *cp;
   library *lp;
-  if (basicvars.runflags.running) {	/* Running program => search program or library */
-    cp = basicvars.current;	/* This is just to reduce the amount of typing */
-    if (cp>=basicvars.page && cp<basicvars.top)		/* Check program for line */
+  if (basicvars.runflags.running) {     /* Running program => search program or library */
+    cp = basicvars.current;     /* This is just to reduce the amount of typing */
+    if (cp>=basicvars.page && cp<basicvars.top)         /* Check program for line */
       p = basicvars.start;
-    else {	/* Check libraries */
+    else {      /* Check libraries */
       lp = find_library(cp);
-      if (lp==NIL) error(ERR_BROKEN, __LINE__, "misc");	/* Could not find line number anywhere */
+      if (lp==NIL) error(ERR_BROKEN, __LINE__, "misc"); /* Could not find line number anywhere */
       p = lp->libstart;
     }
   }
-  else {	/* Not running a program - Line can only be in the program in memory */
+  else {        /* Not running a program - Line can only be in the program in memory */
     p = basicvars.start;
   }
   while (get_lineno(p)<lineno) p+=get_linelen(p);
@@ -406,7 +406,7 @@ void show_word(size_t low, size_t high) {
 static void strip(char line[]) {
   int32 n;
   n = strlen(line);
-  if (n!=0) {	/* Delete trailing rubbish */
+  if (n!=0) {   /* Delete trailing rubbish */
     do
       n--;
     while (n>=0 && isspace(line[n]));
@@ -429,9 +429,9 @@ boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = asc_NUL;
   result = kbd_readline(line, linelen, 0);
-  result = READ_OK;	/* temp'y bodge */
+  result = READ_OK;     /* temp'y bodge */
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
-  if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
+  if (result==READ_EOF) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
 }
@@ -449,9 +449,9 @@ boolean read_line(char line[], int32 linelen) {
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
   result = kbd_readline(line, linelen,0);
-  result = READ_OK;	/* temp'y bodge */
+  result = READ_OK;     /* temp'y bodge */
   if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
-  if (result==READ_EOF) return FALSE;		/* Read failed - Hit EOF */
+  if (result==READ_EOF) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
 }

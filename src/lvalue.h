@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines functions for dealing with lvalues
+**      This file defines functions for dealing with lvalues
 */
 
 #ifndef __lvalue_h

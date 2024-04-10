@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Miscellaneous functions
+**      Miscellaneous functions
 */
 
 #ifndef __miscprocs_h

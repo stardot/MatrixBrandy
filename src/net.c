@@ -79,13 +79,13 @@ static int neteof[MAXNETSOCKETS];
 #ifdef __TARGET_SCL__
 /* SharedCLibrary is missing inet_aton(). Here'a an implementation */
 in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
-	uint32 quads[4];
-	in_addr_t ipaddr = 0;
-	const char *c;
-	char *endptr;
-	int atend = 0, n = 0;
+        uint32 quads[4];
+        in_addr_t ipaddr = 0;
+        const char *c;
+        char *endptr;
+        int atend = 0, n = 0;
 
-	c = (const char *)cp;
+        c = (const char *)cp;
   while (!atend) {
     uint32 l;
 
@@ -282,7 +282,7 @@ int brandynet_connect(char *dest, char type) {
   port++;
 
   ret=getaddrinfo(host, port, &hints, &addrdata);
-  free(host);				/* Don't need this any more */
+  free(host);                           /* Don't need this any more */
 
   if(ret) {
 #ifdef DEBUG
@@ -300,7 +300,7 @@ int brandynet_connect(char *dest, char type) {
     close(mysocket);
   }
 
-  freeaddrinfo(addrdata);		/* Don't need this any more either */
+  freeaddrinfo(addrdata);               /* Don't need this any more either */
 
   if (!rp) {
     error(ERR_NET_CONNREFUSED);
@@ -350,9 +350,9 @@ int32 net_bget(int handle) {
   if (neteof[handle]) return(-2);
   if (bufptr[handle] >= bufendptr[handle]) {
     retval=net_get_something(handle);
-    if (retval) return(-2);				/* EOF */
+    if (retval) return(-2);                             /* EOF */
   }
-  if (bufptr[handle] >= bufendptr[handle]) return(-1);	/* No data available. EOF NOT set */
+  if (bufptr[handle] >= bufendptr[handle]) return(-1);  /* No data available. EOF NOT set */
   value=netbuffer[handle][(bufptr[handle])];
   bufptr[handle]++;
   return(value & 0xFF);

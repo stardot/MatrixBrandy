@@ -19,7 +19,7 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains the file I/O routines for the interpreter
+**      This file contains the file I/O routines for the interpreter
 */
 
 /*
@@ -51,19 +51,19 @@ typedef enum {CLOSED, OPENIN, OPENUP, OPENOUT, NETWORK} filestate;
 typedef enum {OKAY, PENDING, ATEOF} eofstate;
 
 typedef struct {
-  FILE *stream;			/* 'C' file handle for the file */
-  filestate filetype;		/* Way in which file has been opened */
-  eofstate eofstatus;		/* Current end-of-file status */
-  boolean lastwaswrite;		/* TRUE if the last operation on a file was a write */
-  int nethandle;		/* network handle */
+  FILE *stream;                 /* 'C' file handle for the file */
+  filestate filetype;           /* Way in which file has been opened */
+  eofstate eofstatus;           /* Current end-of-file status */
+  boolean lastwaswrite;         /* TRUE if the last operation on a file was a write */
+  int nethandle;                /* network handle */
 } fileblock;
 
 #ifdef TARGET_RISCOS
-#define MAXFILES 4		/* Maximum number of files that can be open simultaneously - only tracks networking on RISC OS */
-#define FIRSTHANDLE 4		/* Number of first handle */
+#define MAXFILES 4              /* Maximum number of files that can be open simultaneously - only tracks networking on RISC OS */
+#define FIRSTHANDLE 4           /* Number of first handle */
 #else
-#define MAXFILES 25		/* Maximum number of files that can be open simultaneously */
-#define FIRSTHANDLE 254		/* Number of first handle */
+#define MAXFILES 25             /* Maximum number of files that can be open simultaneously */
+#define FIRSTHANDLE 254         /* Number of first handle */
 #endif
 
 static fileblock fileinfo [MAXFILES+1];
@@ -117,7 +117,7 @@ static void report(void) {
 static int32 fileio_read(int32 handle) {
   int32 value;
   value = _kernel_osbget(handle);
-  if (value==_kernel_ERROR) report();	/* Function returned -2 = SWI call failed */
+  if (value==_kernel_ERROR) report();   /* Function returned -2 = SWI call failed */
   if (value==-1) error(ERR_CANTREAD);
   return value;
 }
@@ -130,7 +130,7 @@ int32 fileio_openin(char *name, int32 namelen) {
   char filename [FNAMESIZE];
   char *tfilename;
   memmove(filename, name, namelen);
-  filename[namelen] = NUL;		/* Get a null-terminated version of the file name */
+  filename[namelen] = NUL;              /* Get a null-terminated version of the file name */
   handle = _kernel_osfind(OPEN_INPUT, filename);
   if (handle==_kernel_ERROR) {
     if (matrixflags.translatefname == 0) {
@@ -183,7 +183,7 @@ int32 fileio_openup(char *name, int32 namelen) {
 #ifndef NONET
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (strncmp(filename, "ip0:", 4)==0 || strncmp(filename, "ip4:", 4)==0 || strncmp(filename, "ip6:", 4)==0) {
-    for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);	/* Find an unused handle */
+    for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);   /* Find an unused handle */
     handle=brandynet_connect(filename+4, filename[2]);
     if (handle == -1) return 0;
     fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
@@ -242,13 +242,13 @@ static void close_file(int32 handle) {
 
 void fileio_close(int32 handle) {
   int32 n;
-  if (handle==0) {	/* Close all open files */
+  if (handle==0) {      /* Close all open files */
     for (n=FIRSTHANDLE; n>0; n--) {
       if (fileinfo[n].filetype!=CLOSED) close_file(n);
     }
     close_file(handle);
   }
-  else {	/* close one file */
+  else {        /* close one file */
     close_file(handle);
   }
 }
@@ -298,8 +298,8 @@ int32 fileio_getdol(int32 handle, char *buffer) {
   length = 0;
   do {
     ch = fileio_bget(handle);
-    if (ch==_kernel_ERROR) report();	/* Function returned -2 = SWI call failed */
-    if (ch==-1 || ch==LF) break;	/* At end of file or reached end of line */
+    if (ch==_kernel_ERROR) report();    /* Function returned -2 = SWI call failed */
+    if (ch==-1 || ch==LF) break;        /* At end of file or reached end of line */
     buffer[length] = ch;
     length++;
   } while (TRUE);
@@ -348,7 +348,7 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
     memmove(fp, temp, sizeof(float64));
     *isint = FALSE;
     break;
-  case PRINT_FLOAT5: {		/* Acorn 5-byte floating point format */
+  case PRINT_FLOAT5: {          /* Acorn 5-byte floating point format */
 /*
 ** Acorn's five byte format consists of a four byte mantissa and
 ** a one byte exponent. The mantissa, x, is in little endian format
@@ -392,12 +392,12 @@ int32 fileio_getstring(int32 handle, char *p) {
   int32 marker = 0, length = 0, n = 0;
   marker = fileio_read(handle);
   switch (marker) {
-  case PRINT_SHORTSTR:	/* Reading short string in 'Acorn' format */
+  case PRINT_SHORTSTR:  /* Reading short string in 'Acorn' format */
     length = fileio_read(handle);
     for (n=1; n<=length; n++) p[length-n] = fileio_read(handle);
     break;
-  case PRINT_LONGSTR:	/* Reading long string */
-    length = 0;		/* Start by reading the string length (four bytes, little endian) */
+  case PRINT_LONGSTR:   /* Reading long string */
+    length = 0;         /* Start by reading the string length (four bytes, little endian) */
     for (n=0; n<sizeof(int32); n++) length+=fileio_read(handle)<<(n*BYTESHIFT);
     for (n=0; n<length; n++) p[n] = fileio_read(handle);
     break;
@@ -440,13 +440,13 @@ void fileio_bputstr(int32 handle, char *string, int32 length) {
 #endif
     _kernel_oserror *oserror;
     _kernel_swi_regs regs;
-    regs.r[0] = 2;	/* OS_GBPB 2 = write to file at current file pointer position */
+    regs.r[0] = 2;      /* OS_GBPB 2 = write to file at current file pointer position */
     regs.r[1] = handle;
     regs.r[2] = TOINT((int)string);
     regs.r[3] = length;
     oserror = _kernel_swi(OS_GBPB, &regs, &regs);
     if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
-    if (regs.r[3]!=0) error(ERR_CANTWRITE);	/* Not all the data was written to the file */
+    if (regs.r[3]!=0) error(ERR_CANTWRITE);     /* Not all the data was written to the file */
 #ifndef NONET
   }
 #endif
@@ -500,15 +500,15 @@ void fileio_printfloat(int32 handle, float64 value) {
 */
 void fileio_printstring(int32 handle, char *string, int32 length) {
   int32 n, temp;
-  if (length<SHORT_STRING) {	/* Write string in Acorn format */
+  if (length<SHORT_STRING) {    /* Write string in Acorn format */
     fileio_bput(handle, PRINT_SHORTSTR);
     fileio_bput(handle, length);
     if (length>0) for (n=length-1; n>=0; n--) fileio_bput(handle, string[n]);
   }
-  else {	/* Long string - Use interpreter's extended format */
+  else {        /* Long string - Use interpreter's extended format */
     fileio_bput(handle, PRINT_LONGSTR);
     temp = length;
-    for (n=0; n<sizeof(int32); n++) {	/* Write four byte length to file */
+    for (n=0; n<sizeof(int32); n++) {   /* Write four byte length to file */
       fileio_bput(handle, temp & BYTEMASK);
       temp = temp>>BYTESHIFT;
     }
@@ -523,7 +523,7 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 int32 fileio_getptr(int32 handle) {
   int32 pointer;
   if (handle == 0) return 0;
-  pointer = _kernel_osargs(0, handle, 0);	/* OS_Args 0 = read file pointer */
+  pointer = _kernel_osargs(0, handle, 0);       /* OS_Args 0 = read file pointer */
   if (pointer==_kernel_ERROR) report();
   return pointer;
 }
@@ -534,7 +534,7 @@ int32 fileio_getptr(int32 handle) {
 */
 void fileio_setptr(int32 handle, int32 newoffset) {
   int32 result;
-  result = _kernel_osargs(1, handle, newoffset);	/* OS_Args 1 = set file pointer */
+  result = _kernel_osargs(1, handle, newoffset);        /* OS_Args 1 = set file pointer */
   if (result==_kernel_ERROR) report();
 }
 
@@ -543,7 +543,7 @@ void fileio_setptr(int32 handle, int32 newoffset) {
 */
 int32 fileio_getext(int32 handle) {
   int32 extent;
-  extent = _kernel_osargs(2, handle, 0);	/* OS_Args 2 = read file's extent (size) */
+  extent = _kernel_osargs(2, handle, 0);        /* OS_Args 2 = read file's extent (size) */
   if (extent==_kernel_ERROR) report();
   return extent;
 }
@@ -554,7 +554,7 @@ int32 fileio_getext(int32 handle) {
 */
 void fileio_setext(int32 handle, int32 newsize) {
   int32 result;
-  result = _kernel_osargs(3, handle, newsize);	/* OS_Args 3 = alter file's extent (size) */
+  result = _kernel_osargs(3, handle, newsize);  /* OS_Args 3 = alter file's extent (size) */
   if (result==_kernel_ERROR) report();
 }
 
@@ -564,7 +564,7 @@ void fileio_setext(int32 handle, int32 newsize) {
 */
 int32 fileio_eof(int32 handle) {
   int32 result;
-  result = _kernel_osargs(5, handle, 0);	/* OS_Args 5 = Check end-of-file status */
+  result = _kernel_osargs(5, handle, 0);        /* OS_Args 5 = Check end-of-file status */
   if (result==_kernel_ERROR) report();
   return result==0 ? FALSE : TRUE;
 }
@@ -641,7 +641,7 @@ int32 fileio_openin(char *name, int32 namelen) {
   char filenameb[FNAMESIZE];
   char *tfilename;
   if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
-  for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
+  for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);        /* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
@@ -685,7 +685,7 @@ int32 fileio_openout(char *name, int32 namelen) {
   char filename [FNAMESIZE];
   char *tfilename;
   if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
-  for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
+  for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);        /* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
@@ -715,7 +715,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   char *tfilename;
 
   if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
-  for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);	/* Find an unused handle */
+  for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);        /* Find an unused handle */
   if (n>=MAXFILES) error(ERR_MAXHANDLE);
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
@@ -791,12 +791,12 @@ static void close_file(int32 handle) {
 */
 void fileio_close(int32 handle) {
   int32 n;
-  if (handle==0) {	/* Close all open files */
+  if (handle==0) {      /* Close all open files */
     for (n=0; n<MAXFILES; n++) {
       if (fileinfo[n].filetype!=CLOSED) close_file(n);
     }
   }
-  else {	/* close one file */
+  else {        /* close one file */
     n = map_handle(handle);
     if (fileinfo[n].filetype!=CLOSED) close_file(n);
   }
@@ -818,29 +818,29 @@ int32 fileio_bget(int32 handle) {
     ch=net_bget(fileinfo[handle].nethandle);
     if (ch == -2) {
       if (fileinfo[handle].eofstatus == PENDING) {
-	fileinfo[handle].eofstatus = ATEOF;
-	error(ERR_HITEOF);
+        fileinfo[handle].eofstatus = ATEOF;
+        error(ERR_HITEOF);
       } else {
-	fileinfo[handle].eofstatus = PENDING;
+        fileinfo[handle].eofstatus = PENDING;
       }
     }
   } else {
 #endif
-    if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
+    if (fileinfo[handle].eofstatus!=OKAY) {     /* If EOF is pending, flag an error */
       fileinfo[handle].eofstatus = ATEOF;
       error(ERR_HITEOF);
     }
-    else if (fileinfo[handle].filetype==OPENOUT) {	/* If file is open for output, read one char */
+    else if (fileinfo[handle].filetype==OPENOUT) {      /* If file is open for output, read one char */
       ch = asc_NUL;
       fileinfo[handle].eofstatus = PENDING;
     }
-    if (fileinfo[handle].lastwaswrite) {		/* Ensure everything has been written to disk first */
+    if (fileinfo[handle].lastwaswrite) {                /* Ensure everything has been written to disk first */
       fflush(fileinfo[handle].stream);
       fileinfo[handle].lastwaswrite = FALSE;
     }
-    ch = fgetc(fileinfo[handle].stream);	/* Read a character */
+    ch = fgetc(fileinfo[handle].stream);        /* Read a character */
     if (ch==EOF) {
-      fileinfo[handle].eofstatus = PENDING;	/* If call returns 'EOF' set 'PENDING EOF' flag */
+      fileinfo[handle].eofstatus = PENDING;     /* If call returns 'EOF' set 'PENDING EOF' flag */
       ch = 0;
     }
     fileinfo[handle].lastwaswrite = FALSE;
@@ -865,21 +865,21 @@ int32 fileio_getdol(int32 handle, char *buffer) {
 
   if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
-  if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending or EOF, flag an error */
+  if (fileinfo[handle].eofstatus!=OKAY) {       /* If EOF is pending or EOF, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
     error(ERR_HITEOF);
   }
-  if (fileinfo[handle].lastwaswrite) {		/* Ensure everything has been written to disk first */
+  if (fileinfo[handle].lastwaswrite) {          /* Ensure everything has been written to disk first */
     fflush(fileinfo[handle].stream);
     fileinfo[handle].lastwaswrite = FALSE;
   }
   p = fgets(buffer, MAXSTRING, fileinfo[handle].stream);
-  if (p==NIL) error(ERR_CANTREAD);	/* Read failed utterly */
+  if (p==NIL) error(ERR_CANTREAD);      /* Read failed utterly */
   length = strlen(buffer);
-  p = buffer+length-1;	/* Point at line end character */
-  if (*p==asc_LF) {	/* Got a 'linefeed' at the end of the line */
+  p = buffer+length-1;  /* Point at line end character */
+  if (*p==asc_LF) {     /* Got a 'linefeed' at the end of the line */
     length--;
-    if (length>0 && *(p-1)==asc_CR) length--;	/* Got a 'carriage return-linefeed' pair */
+    if (length>0 && *(p-1)==asc_CR) length--;   /* Got a 'carriage return-linefeed' pair */
   }
   return length;
 }
@@ -914,11 +914,11 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
   memset(temp,0,sizeof(float64));
   if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
-  if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
+  if (fileinfo[handle].eofstatus!=OKAY) {       /* If EOF is pending, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
     error(ERR_HITEOF);
   }
-  if (fileinfo[handle].lastwaswrite) {	/* Ensure everything has been written to disk first */
+  if (fileinfo[handle].lastwaswrite) {  /* Ensure everything has been written to disk first */
     fflush(fileinfo[handle].stream);
     fileinfo[handle].lastwaswrite = FALSE;
   }
@@ -993,23 +993,23 @@ int32 fileio_getstring(int32 handle, char *p) {
 
   if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
-  if (fileinfo[handle].eofstatus!=OKAY) {	/* If EOF is pending, flag an error */
+  if (fileinfo[handle].eofstatus!=OKAY) {       /* If EOF is pending, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
     error(ERR_HITEOF);
   }
-  if (fileinfo[handle].lastwaswrite) {		/* Ensure everything has been written to disk first */
+  if (fileinfo[handle].lastwaswrite) {          /* Ensure everything has been written to disk first */
     fflush(fileinfo[handle].stream);
     fileinfo[handle].lastwaswrite = FALSE;
   }
   stream = fileinfo[handle].stream;
   marker = fileio_read(stream);
   switch (marker) {
-  case PRINT_SHORTSTR:	/* Reading short string in 'Acorn' format */
+  case PRINT_SHORTSTR:  /* Reading short string in 'Acorn' format */
     length = fileio_read(stream);
     for (n=1; n<=length; n++) p[length-n] = fileio_read(stream);
     break;
-  case PRINT_LONGSTR:	/* Reading long string */
-    length = 0;		/* Start by reading the string length (four bytes, little endian) */
+  case PRINT_LONGSTR:   /* Reading long string */
+    length = 0;         /* Start by reading the string length (four bytes, little endian) */
     for (n=0; n<sizeof(int32); n++) length+=fileio_read(stream)<<(n*BYTESHIFT);
     for (n=0; n<length; n++) p[n] = fileio_read(stream);
     break;
@@ -1172,15 +1172,15 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
   if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
-  if (length<SHORT_STRING) {	/* Write string in Acorn format */
+  if (length<SHORT_STRING) {    /* Write string in Acorn format */
     fileio_write(stream, PRINT_SHORTSTR);
     fileio_write(stream, length);
     if (length>0) for (n=length-1; n>=0; n--) fileio_write(stream, string[n]);
   }
-  else {	/* Long string - Use interpreter's extended format */
+  else {        /* Long string - Use interpreter's extended format */
     fileio_write(stream, PRINT_LONGSTR);
     temp = length;
-    for (n=0; n<sizeof(int32); n++) {	/* Write four byte length to file */
+    for (n=0; n<sizeof(int32); n++) {   /* Write four byte length to file */
       fileio_write(stream, temp & BYTEMASK);
       temp = temp>>BYTESHIFT;
     }
@@ -1199,7 +1199,7 @@ void fileio_setptr(int32 handle, int32 newoffset) {
   if (handle==0) error(ERR_BADHANDLE);
   handle = map_handle(handle);
   result = fseek(fileinfo[handle].stream, newoffset, SEEK_SET);
-  if (result==-1) error(ERR_SETPTRFAIL);	/* File pointer cannot be set */
+  if (result==-1) error(ERR_SETPTRFAIL);        /* File pointer cannot be set */
   fileinfo[handle].eofstatus = OKAY;
 }
 
@@ -1212,7 +1212,7 @@ int32 fileio_getptr(int32 handle) {
   if (handle==0) return 0; /* This is what happens on RISC OS 3.71 */
   handle = map_handle(handle);
   result = TOINT(ftell(fileinfo[handle].stream));
-  if (result==-1) error(ERR_GETPTRFAIL);	/* File pointer cannot be read */
+  if (result==-1) error(ERR_GETPTRFAIL);        /* File pointer cannot be read */
   return result;
 }
 
@@ -1227,10 +1227,10 @@ int32 fileio_getext(int32 handle) {
   handle = map_handle(handle);
   stream = fileinfo[handle].stream;
   position = ftell(stream);
-  if (position==-1) error(ERR_GETEXTFAIL);	/* Cannot find size of file */
-  fseek(stream, 0, SEEK_END);			/* Find the end of the file */
+  if (position==-1) error(ERR_GETEXTFAIL);      /* Cannot find size of file */
+  fseek(stream, 0, SEEK_END);                   /* Find the end of the file */
   length = ftell(stream);
-  fseek(stream, position, SEEK_SET);	/* Restore file to its original file pointer position */
+  fseek(stream, position, SEEK_SET);    /* Restore file to its original file pointer position */
   return TOINT(length);
 }
 
@@ -1268,7 +1268,7 @@ int32 fileio_eof(int32 handle) {
   stream = fileinfo[handle].stream;
   position = ftell(stream);
   if (position==-1) return feof(stream) ? TRUE : FALSE;
-  fseek(stream, 0, SEEK_END);	/* Find the end of the file */
+  fseek(stream, 0, SEEK_END);   /* Find the end of the file */
   ateof = ftell(stream)==position;
   fseek(stream, position, SEEK_SET);
   return ateof;
@@ -1313,14 +1313,14 @@ static void find_floatformat(void) {
   } value;
   value.temp1 = 1.0;
   if (value.temp2[3]==0x3f)
-    double_type = XMIXED_ENDIAN;	/* ARM old format */
+    double_type = XMIXED_ENDIAN;        /* ARM old format */
   else if (value.temp2[7]==0x3f)
-    double_type = XLITTLE_ENDIAN;	/* X86 */
+    double_type = XLITTLE_ENDIAN;       /* X86 */
   else if (value.temp2[0]==0x3f)
     double_type = XBIG_ENDIAN;
   else if (value.temp2[4]==0x3f)
     double_type = XBIG_MIXED_ENDIAN;
-  else {	/* Unknown format */
+  else {        /* Unknown format */
     double_type = XLITTLE_ENDIAN;
     error(WARN_FUNNYFLOAT);
   }

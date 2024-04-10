@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains the definitions of functions concerned with
-**	manipulating the Basic stack
+**      This file contains the definitions of functions concerned with
+**      manipulating the Basic stack
 */
 
 #ifndef __stack_h
@@ -120,20 +120,20 @@ extern void debug_show_stackitemtype(int32);
 #define TOPITEMISNUM ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64) || (basicvars.stacktop.intsp->itemtype == STACK_FLOAT))
 
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
-		basicvars.stacktop.intsp->itemtype = STACK_INT; \
-		basicvars.stacktop.intsp->intvalue = (x);
+                basicvars.stacktop.intsp->itemtype = STACK_INT; \
+                basicvars.stacktop.intsp->intvalue = (x);
 #define PUSH_UINT8(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_uint8)); \
-		basicvars.stacktop.uint8sp->itemtype = STACK_UINT8; \
-		basicvars.stacktop.uint8sp->uint8value = (x);
+                basicvars.stacktop.uint8sp->itemtype = STACK_UINT8; \
+                basicvars.stacktop.uint8sp->uint8value = (x);
 #define PUSH_INT64(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int64)); \
-		basicvars.stacktop.int64sp->itemtype = STACK_INT64; \
-		basicvars.stacktop.int64sp->int64value = (x);
+                basicvars.stacktop.int64sp->itemtype = STACK_INT64; \
+                basicvars.stacktop.int64sp->int64value = (x);
 #define PUSH_FLOAT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_float)); \
-		basicvars.stacktop.floatsp->itemtype = STACK_FLOAT; \
-		basicvars.stacktop.floatsp->floatvalue = (x);
+                basicvars.stacktop.floatsp->itemtype = STACK_FLOAT; \
+                basicvars.stacktop.floatsp->floatvalue = (x);
 #define PUSH_STRING(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_string)); \
-		basicvars.stacktop.stringsp->itemtype = STACK_STRING; \
-		basicvars.stacktop.stringsp->descriptor = (x);
+                basicvars.stacktop.stringsp->itemtype = STACK_STRING; \
+                basicvars.stacktop.stringsp->descriptor = (x);
 #define INCR_INT(x) basicvars.stacktop.intsp->intvalue+=(x)
 #define INCR_FLOAT(x) basicvars.stacktop.floatsp->floatvalue+=(x)
 #define DECR_INT(x) basicvars.stacktop.intsp->intvalue-=(x)
@@ -164,41 +164,41 @@ extern void debug_show_stackitemtype(int32);
 #define ABS_INT64 basicvars.stacktop.int64sp->int64value = llabs(basicvars.stacktop.int64sp->int64value)
 #define ABS_FLOAT basicvars.stacktop.floatsp->floatvalue = fabs(basicvars.stacktop.floatsp->floatvalue)
 #define CPEQ_INT(x) basicvars.stacktop.intsp->intvalue = \
-		   (basicvars.stacktop.intsp->intvalue==(x) ? BASTRUE : BASFALSE)
+                   (basicvars.stacktop.intsp->intvalue==(x) ? BASTRUE : BASFALSE)
 #define CPEQ_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
-		     (basicvars.stacktop.uint8sp->uint8value==(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.uint8sp->uint8value==(x) ? BASTRUE : BASFALSE)
 #define CPEQ_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		     (basicvars.stacktop.int64sp->int64value==(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.int64sp->int64value==(x) ? BASTRUE : BASFALSE)
 #define CPNE_INT(x) basicvars.stacktop.intsp->intvalue = \
-		   (basicvars.stacktop.intsp->intvalue!=(x) ? BASTRUE : BASFALSE)
+                   (basicvars.stacktop.intsp->intvalue!=(x) ? BASTRUE : BASFALSE)
 #define CPNE_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
-		     (basicvars.stacktop.uint8sp->uint8value!=(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.uint8sp->uint8value!=(x) ? BASTRUE : BASFALSE)
 #define CPNE_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		     (basicvars.stacktop.int64sp->int64value!=(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.int64sp->int64value!=(x) ? BASTRUE : BASFALSE)
 #define CPGT_INT(x) basicvars.stacktop.intsp->intvalue = \
-		   (basicvars.stacktop.intsp->intvalue>(x) ? BASTRUE : BASFALSE)
+                   (basicvars.stacktop.intsp->intvalue>(x) ? BASTRUE : BASFALSE)
 #define CPGT_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
-		     (basicvars.stacktop.uint8sp->uint8value>(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.uint8sp->uint8value>(x) ? BASTRUE : BASFALSE)
 #define CPGT_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		     (basicvars.stacktop.int64sp->int64value>(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.int64sp->int64value>(x) ? BASTRUE : BASFALSE)
 #define CPLT_INT(x) basicvars.stacktop.intsp->intvalue = \
-		   (basicvars.stacktop.intsp->intvalue<(x) ? BASTRUE : BASFALSE)
+                   (basicvars.stacktop.intsp->intvalue<(x) ? BASTRUE : BASFALSE)
 #define CPLT_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
-		     (basicvars.stacktop.uint8sp->uint8value<(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.uint8sp->uint8value<(x) ? BASTRUE : BASFALSE)
 #define CPLT_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		     (basicvars.stacktop.int64sp->int64value<(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.int64sp->int64value<(x) ? BASTRUE : BASFALSE)
 #define CPGE_INT(x) basicvars.stacktop.intsp->intvalue = \
-		   (basicvars.stacktop.intsp->intvalue>=(x) ? BASTRUE : BASFALSE)
+                   (basicvars.stacktop.intsp->intvalue>=(x) ? BASTRUE : BASFALSE)
 #define CPGE_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
-		     (basicvars.stacktop.uint8sp->uint8value>=(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.uint8sp->uint8value>=(x) ? BASTRUE : BASFALSE)
 #define CPGE_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		     (basicvars.stacktop.int64sp->int64value>=(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.int64sp->int64value>=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT(x) basicvars.stacktop.intsp->intvalue = \
-		   (basicvars.stacktop.intsp->intvalue<=(x) ? BASTRUE : BASFALSE)
+                   (basicvars.stacktop.intsp->intvalue<=(x) ? BASTRUE : BASFALSE)
 #define CPLE_UINT8(x) basicvars.stacktop.uint8sp->uint8value = \
-		     (basicvars.stacktop.uint8sp->uint8value<=(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.uint8sp->uint8value<=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT64(x) basicvars.stacktop.int64sp->int64value = \
-		     (basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
+                     (basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
 
 /*
 ** If the debug version of the code is being used, replace some

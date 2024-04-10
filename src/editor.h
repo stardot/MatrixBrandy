@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines functions associated with the editing of Basic
-**	programs as well as loading them from and saving them to disk
+**      This file defines functions associated with the editing of Basic
+**      programs as well as loading them from and saving them to disk
 */
 
 #ifndef __editor_h

@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Functions that emulate the OS-specific screen output of the
-**	interpreter live here
+**      Functions that emulate the OS-specific screen output of the
+**      interpreter live here
 */
 
 #ifndef __screen_h
@@ -30,141 +30,141 @@
 
 /* RISC OS 'plot' codes for graphics */
 
-#define ABSCOORD_MASK	4	/* Mask to check relative/absolute coordinate bit */
-#define PLOT_COLMASK	3	/* Mask to extract colour type to use */
+#define ABSCOORD_MASK   4       /* Mask to check relative/absolute coordinate bit */
+#define PLOT_COLMASK    3       /* Mask to extract colour type to use */
 
-#define PLOT_MOVEONLY	0	/* Move graphics cursor only */
-#define PLOT_FOREGROUND	1	/* Use graphics foreground colour */
-#define PLOT_INVERSE	2	/* Use logical inverse colour */
-#define PLOT_BACKGROUND	3	/* Use graphics background colour */
+#define PLOT_MOVEONLY   0       /* Move graphics cursor only */
+#define PLOT_FOREGROUND 1       /* Use graphics foreground colour */
+#define PLOT_INVERSE    2       /* Use logical inverse colour */
+#define PLOT_BACKGROUND 3       /* Use graphics background colour */
 
-#define MOVE_RELATIVE	0	/* Move cursor relative to last graphics position */
-#define DRAW_RELATIVE	1	/* Draw line relative to last graphics position */
-#define MOVE_ABSOLUTE	4	/* Move cursor to actual coordinate given */
-#define DRAW_ABSOLUTE	5	/* Draw line to actual coordinate given */
+#define MOVE_RELATIVE   0       /* Move cursor relative to last graphics position */
+#define DRAW_RELATIVE   1       /* Draw line relative to last graphics position */
+#define MOVE_ABSOLUTE   4       /* Move cursor to actual coordinate given */
+#define DRAW_ABSOLUTE   5       /* Draw line to actual coordinate given */
 
-#define DRAW_STYLEMASK	0x38	/* Used for PLOT modes 0-63 */
+#define DRAW_STYLEMASK  0x38    /* Used for PLOT modes 0-63 */
 
-#define DRAW_SOLIDLINE	0x00    /* Draw a solid line including both end points, bit 0x08 skips final point */
-#define DRAW_DOTLINE	0x10      /* Draw a dotted line including both end points, bit 0x08 skips final point */
-#define DRAW_SOLIDLINE2	0x20    /* Draw a solid line excluding start point, bit 0x08 skips final point */
-#define DRAW_DOTLINE2	0x30      /* Draw a dotted line excluding start point, bit 0x08 skips final point */
-#define PLOT_POINT	0x40        /* Plot a single point */
-#define FILL_TRIANGLE	0x50      /* Plot a filled triangle */
-#define FILL_RECTANGLE	0x60    /* Plot a filled rectangle */
+#define DRAW_SOLIDLINE  0x00    /* Draw a solid line including both end points, bit 0x08 skips final point */
+#define DRAW_DOTLINE    0x10      /* Draw a dotted line including both end points, bit 0x08 skips final point */
+#define DRAW_SOLIDLINE2 0x20    /* Draw a solid line excluding start point, bit 0x08 skips final point */
+#define DRAW_DOTLINE2   0x30      /* Draw a dotted line excluding start point, bit 0x08 skips final point */
+#define PLOT_POINT      0x40        /* Plot a single point */
+#define FILL_TRIANGLE   0x50      /* Plot a filled triangle */
+#define FILL_RECTANGLE  0x60    /* Plot a filled rectangle */
 #define FILL_PARALLELOGRAM 0x70 /* Plot a filled parallelogram */
 #define FLOOD_BACKGROUND 0x80   /* Flood fill as far as background colour */
-#define PLOT_CIRCLE	0x90        /* Plot a circle outline */
-#define FILL_CIRCLE	0x98        /* Plot a filled circle */
+#define PLOT_CIRCLE     0x90        /* Plot a circle outline */
+#define FILL_CIRCLE     0x98        /* Plot a filled circle */
 #define PLOT_ARC 0xA0           /* Plot a circular arc */
 #define PLOT_SEGMENT 0xA8       /* Plot a segment */
 #define PLOT_SECTOR 0xB0        /* Plot a sector */
-#define SHIFT_RECTANGLE	0xB8    /* Move or copy rectangle */
-#define MOVE_RECTANGLE	0xBD    /* Move rectangle absolute */
-#define COPY_RECTANGLE	0xBE    /* Copy rectangle absolute */
-#define PLOT_ELLIPSE	0xC0      /* Plot an ellipse outline */
-#define FILL_ELLIPSE	0xC8      /* Plot a filled ellipse */
-#define GRAPHOP_MASK	0xF8      /* Mask to extract graphics operation */
-#define GRAPHHOW_MASK	0x07      /* Mask to extract details of operation */
+#define SHIFT_RECTANGLE 0xB8    /* Move or copy rectangle */
+#define MOVE_RECTANGLE  0xBD    /* Move rectangle absolute */
+#define COPY_RECTANGLE  0xBE    /* Copy rectangle absolute */
+#define PLOT_ELLIPSE    0xC0      /* Plot an ellipse outline */
+#define FILL_ELLIPSE    0xC8      /* Plot a filled ellipse */
+#define GRAPHOP_MASK    0xF8      /* Mask to extract graphics operation */
+#define GRAPHHOW_MASK   0x07      /* Mask to extract details of operation */
 
 /* RISC OS plot action codes (set by VDU 18) */
 
-#define OVERWRITE_POINT 0	/* Overwrite point on screen */
-#define OR_POINT	1	/* OR with point */
-#define AND_POINT	2	/* AND with point */
-#define EOR_POINT	3	/* Exclusive OR with point */
-#define INVERT_POINT	4	/* Invert colour on screen */
-#define LEAVE_POINT	5	/* Leave point untouched */
-#define ANDNOT_POINT	6	/* AND point with NOT graphics foreground colour */
-#define ORNOT_POINT	7	/* OR point with NOT graphics foreground colour */
+#define OVERWRITE_POINT 0       /* Overwrite point on screen */
+#define OR_POINT        1       /* OR with point */
+#define AND_POINT       2       /* AND with point */
+#define EOR_POINT       3       /* Exclusive OR with point */
+#define INVERT_POINT    4       /* Invert colour on screen */
+#define LEAVE_POINT     5       /* Leave point untouched */
+#define ANDNOT_POINT    6       /* AND point with NOT graphics foreground colour */
+#define ORNOT_POINT     7       /* OR point with NOT graphics foreground colour */
 
 /* RISC OS 'VDU' control codes */
 
-#define VDU_NULL	0	/* Do nothing */
-#define VDU_PRINT	1	/* Send next character to printer */
-#define VDU_ENAPRINT	2	/* Enable printer */
-#define VDU_DISPRINT	3	/* Disable printer */
-#define VDU_TEXTCURS	4	/* Write text at text cursor position */
-#define VDU_GRAPHICURS	5	/* Write text at graphics position */
-#define VDU_ENABLE	6	/* Enable VDU driver */
-#define VDU_BEEP	7	/* Generate 'bell' sound */
-#define VDU_CURBACK	8	/* Move cursor back one position */
-#define VDU_CURFORWARD	9	/* Move cursor forwards one position */
-#define VDU_CURDOWN	10	/* Move cursor down one line */
-#define VDU_CURUP	11	/* Move cursor up one line */
-#define VDU_CLEARTEXT	12	/* Clear text window */
-#define VDU_RETURN	13	/* Move cursor to start of line */
-#define VDU_ENAPAGE	14	/* Enable 'page' mode */
-#define VDU_DISPAGE	15	/* Disable 'page' mode */
-#define VDU_CLEARGRAPH	16	/* Clear graphics window */
-#define VDU_TEXTCOL	17	/* Define text colour to use */
-#define VDU_GRAPHCOL	18	/* Define graphics colour and plot action */
-#define VDU_LOGCOL	19	/* Define logical colour */
-#define VDU_RESTCOL	20	/* Restore logical colours to default values */
-#define VDU_DISABLE	21	/* Disable VDU driver */
-#define VDU_SCRMODE	22	/* Select screen mode */
-#define VDU_COMMAND	23	/* Multitudenous VDU commands */
-#define VDU_DEFGRAPH	24	/* Define graphics window */
-#define VDU_PLOT	25	/* PLOT command */
-#define VDU_RESTWIND	26	/* Restore default windows */
-#define VDU_ESCAPE	27	/* Does nothing */
-#define VDU_DEFTEXT	28	/* Define text window */
-#define VDU_ORIGIN	29	/* Define graphics origin */
-#define VDU_HOMETEXT	30	/* Send text cursor to home position */
-#define VDU_MOVETEXT	31	/* Move text cursor */
+#define VDU_NULL        0       /* Do nothing */
+#define VDU_PRINT       1       /* Send next character to printer */
+#define VDU_ENAPRINT    2       /* Enable printer */
+#define VDU_DISPRINT    3       /* Disable printer */
+#define VDU_TEXTCURS    4       /* Write text at text cursor position */
+#define VDU_GRAPHICURS  5       /* Write text at graphics position */
+#define VDU_ENABLE      6       /* Enable VDU driver */
+#define VDU_BEEP        7       /* Generate 'bell' sound */
+#define VDU_CURBACK     8       /* Move cursor back one position */
+#define VDU_CURFORWARD  9       /* Move cursor forwards one position */
+#define VDU_CURDOWN     10      /* Move cursor down one line */
+#define VDU_CURUP       11      /* Move cursor up one line */
+#define VDU_CLEARTEXT   12      /* Clear text window */
+#define VDU_RETURN      13      /* Move cursor to start of line */
+#define VDU_ENAPAGE     14      /* Enable 'page' mode */
+#define VDU_DISPAGE     15      /* Disable 'page' mode */
+#define VDU_CLEARGRAPH  16      /* Clear graphics window */
+#define VDU_TEXTCOL     17      /* Define text colour to use */
+#define VDU_GRAPHCOL    18      /* Define graphics colour and plot action */
+#define VDU_LOGCOL      19      /* Define logical colour */
+#define VDU_RESTCOL     20      /* Restore logical colours to default values */
+#define VDU_DISABLE     21      /* Disable VDU driver */
+#define VDU_SCRMODE     22      /* Select screen mode */
+#define VDU_COMMAND     23      /* Multitudenous VDU commands */
+#define VDU_DEFGRAPH    24      /* Define graphics window */
+#define VDU_PLOT        25      /* PLOT command */
+#define VDU_RESTWIND    26      /* Restore default windows */
+#define VDU_ESCAPE      27      /* Does nothing */
+#define VDU_DEFTEXT     28      /* Define text window */
+#define VDU_ORIGIN      29      /* Define graphics origin */
+#define VDU_HOMETEXT    30      /* Send text cursor to home position */
+#define VDU_MOVETEXT    31      /* Move text cursor */
 
 /* RISC OS physical colour numbers (modes up to 16 colours) */
 
-#define VDU_BLACK	0
-#define VDU_RED		1
-#define VDU_GREEN	2
-#define VDU_YELLOW	3
-#define VDU_BLUE	4
-#define VDU_MAGENTA	5
-#define VDU_CYAN	6
-#define VDU_WHITE	7
-#define FLASH_BLAWHITE	8
-#define FLASH_REDCYAN	9
-#define FLASH_GREENMAG	10
-#define FLASH_YELBLUE	11
-#define FLASH_BLUEYEL	12
-#define FLASH_MAGREEN	13
-#define FLASH_CYANRED	14
-#define FLASH_WHITEBLA	15
+#define VDU_BLACK       0
+#define VDU_RED         1
+#define VDU_GREEN       2
+#define VDU_YELLOW      3
+#define VDU_BLUE        4
+#define VDU_MAGENTA     5
+#define VDU_CYAN        6
+#define VDU_WHITE       7
+#define FLASH_BLAWHITE  8
+#define FLASH_REDCYAN   9
+#define FLASH_GREENMAG  10
+#define FLASH_YELBLUE   11
+#define FLASH_BLUEYEL   12
+#define FLASH_MAGREEN   13
+#define FLASH_CYANRED   14
+#define FLASH_WHITEBLA  15
 
 /* Teletext control codes - includes those not supported by BBC Micro / Risc OS */
-#define TELETEXT_ALPHA_BLACK		128
-#define TELETEXT_ALPHA_RED		129
-#define TELETEXT_ALPHA_GREEN		130
-#define TELETEXT_ALPHA_YELLOW		131
-#define TELETEXT_ALPHA_BLUE		132
-#define TELETEXT_ALPHA_MAGENTA		133
-#define TELETEXT_ALPHA_CYAN		134
-#define TELETEXT_ALPHA_WHITE		135
-#define TELETEXT_FLASH_ON		136
-#define TELETEXT_FLASH_OFF		137
-#define TELETEXT_END_BOX		138
-#define TELETEXT_START_BOX		139
-#define TELETEXT_SIZE_NORMAL		140
-#define TELETEXT_SIZE_DOUBLEHEIGHT	141
-#define TELETEXT_SIZE_DOUBLEWIDTH	142
-#define TELETEXT_SIZE_DOUBLESIZE	143
-#define TELETEXT_GRAPHICS_BLACK		144
-#define TELETEXT_GRAPHICS_RED		145
-#define TELETEXT_GRAPHICS_GREEN		146
-#define TELETEXT_GRAPHICS_YELLOW	147
-#define TELETEXT_GRAPHICS_BLUE		148
-#define TELETEXT_GRAPHICS_MAGENTA	149
-#define TELETEXT_GRAPHICS_CYAN		150
-#define TELETEXT_GRAPHICS_WHITE		151
-#define TELETEXT_CONCEAL		152
-#define TELETEXT_GRAPHICS_CONTIGUOUS	153
-#define TELETEXT_GRAPHICS_SEPARATE	154
-#define TELETEXT_ESCAPE			155
-#define TELETEXT_BACKGROUND_BLACK	156
-#define TELETEXT_BACKGROUND_SET		157
-#define TELETEXT_GRAPHICS_HOLD		158
-#define TELETEXT_GRAPHICS_RELEASE	159
+#define TELETEXT_ALPHA_BLACK            128
+#define TELETEXT_ALPHA_RED              129
+#define TELETEXT_ALPHA_GREEN            130
+#define TELETEXT_ALPHA_YELLOW           131
+#define TELETEXT_ALPHA_BLUE             132
+#define TELETEXT_ALPHA_MAGENTA          133
+#define TELETEXT_ALPHA_CYAN             134
+#define TELETEXT_ALPHA_WHITE            135
+#define TELETEXT_FLASH_ON               136
+#define TELETEXT_FLASH_OFF              137
+#define TELETEXT_END_BOX                138
+#define TELETEXT_START_BOX              139
+#define TELETEXT_SIZE_NORMAL            140
+#define TELETEXT_SIZE_DOUBLEHEIGHT      141
+#define TELETEXT_SIZE_DOUBLEWIDTH       142
+#define TELETEXT_SIZE_DOUBLESIZE        143
+#define TELETEXT_GRAPHICS_BLACK         144
+#define TELETEXT_GRAPHICS_RED           145
+#define TELETEXT_GRAPHICS_GREEN         146
+#define TELETEXT_GRAPHICS_YELLOW        147
+#define TELETEXT_GRAPHICS_BLUE          148
+#define TELETEXT_GRAPHICS_MAGENTA       149
+#define TELETEXT_GRAPHICS_CYAN          150
+#define TELETEXT_GRAPHICS_WHITE         151
+#define TELETEXT_CONCEAL                152
+#define TELETEXT_GRAPHICS_CONTIGUOUS    153
+#define TELETEXT_GRAPHICS_SEPARATE      154
+#define TELETEXT_ESCAPE                 155
+#define TELETEXT_BACKGROUND_BLACK       156
+#define TELETEXT_BACKGROUND_SET         157
+#define TELETEXT_GRAPHICS_HOLD          158
+#define TELETEXT_GRAPHICS_RELEASE       159
 
 extern void emulate_tab(int32, int32);
 extern void echo_on(void);

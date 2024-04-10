@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the functions and so forth associated with memory
-**	manangement
+**      This file defines the functions and so forth associated with memory
+**      manangement
 */
 
 #ifndef __heap_h
@@ -28,7 +28,7 @@
 
 #include "common.h"
 
-#define STACKBUFFER 256		/* Minimum space allowed between Basic's stack and variables */
+#define STACKBUFFER 256         /* Minimum space allowed between Basic's stack and variables */
 
 extern boolean init_heap(void);
 extern void release_heap(void);

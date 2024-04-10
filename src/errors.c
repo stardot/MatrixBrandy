@@ -67,8 +67,8 @@
 */
 
 #define COPYRIGHT "Matrix Brandy " BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL " is free software;  you can redistribute it and/or modify\r\n" \
-	"it under the  terms of the  GNU General Public License as published by the Free\r\n" \
-	"Software  Foundation.   See  the  file  COPYING for further details.\r\n"
+        "it under the  terms of the  GNU General Public License as published by the Free\r\n" \
+        "Software  Foundation.   See  the  file  COPYING for further details.\r\n"
 
 #define MAXCALLDEPTH 10      /* Maximum no. of entries printed in PROC/FN traceback */
 
@@ -143,7 +143,7 @@ static void handle_signal(int signo) {
 #ifdef TARGET_MINGW
     (void) signal(SIGCONT, handle_signal);
 #endif
-//    kbd_init();		// shouldn't be re-init'ing kbd in middle of a signal
+//    kbd_init();               // shouldn't be re-init'ing kbd in middle of a signal
     return;
 #endif
   default:
@@ -418,7 +418,7 @@ static detail errortable [] = {
 /* ERR_NOGRAPHICS */    {FATAL,    NOPARM,   0, "This version of the interpreter does not support graphics"},
 /* ERR_NOVDUCMDS */     {FATAL,    NOPARM,   0, "VDU commands cannot be used as output is not to a screen"},
 /* ERR_SYNTAX */        {NONFATAL, NOPARM,  16, "Syntax error"},
-/* ERR_SILLY */	        {NONFATAL, NOPARM,   0, "Silly!"},
+/* ERR_SILLY */         {NONFATAL, NOPARM,   0, "Silly!"},
 /* ERR_BADPROG */       {NONFATAL, NOPARM,   0, "Bad program"},
 /* ERR_ESCAPE */        {NONFATAL, NOPARM,  17, "Escape"},
 /* ERR_STOP */          {FATAL,    NOPARM,   0, "STOP"},
@@ -576,10 +576,10 @@ static detail errortable [] = {
 /* ERR_BADSYNTAX */     {NONFATAL, STRING, 220, "Syntax: %s"},
 //
 // Network errors
-/* ERR_NET_CONNREFUSED*/{NONFATAL, NOPARM, 165, "Connection refused"},			// 'No reply'
-/* ERR_NET_NOTFOUND */  {NONFATAL, NOPARM, 213, "Host not found"},			// 'Disk not present'
+/* ERR_NET_CONNREFUSED*/{NONFATAL, NOPARM, 165, "Connection refused"},                  // 'No reply'
+/* ERR_NET_NOTFOUND */  {NONFATAL, NOPARM, 213, "Host not found"},                      // 'Disk not present'
 /* ERR_NET_MAXSOCKETS */{NONFATAL, NOPARM, 192, "The maximum allowed number of sockets is already open"},
-/* ERR_NET_NOTSUPP */   {NONFATAL, NOPARM, 157, "Network operation not supported"},	// 'Unsupported operation'
+/* ERR_NET_NOTSUPP */   {NONFATAL, NOPARM, 157, "Network operation not supported"},     // 'Unsupported operation'
 /* ERR_NO_RPI_GPIO */   {NONFATAL, NOPARM, 510, "Raspberry Pi GPIO not available"},
 //
 // Dynamic Linker errors
@@ -808,10 +808,10 @@ void error(int32 errnumber, ...) {
     errnumber = ERR_BROKEN;
   }
 
-  if (errnumber == ERR_ESCAPE) kbd_escack();				/* Acknowledge and process Escape effects */
+  if (errnumber == ERR_ESCAPE) kbd_escack();                            /* Acknowledge and process Escape effects */
 
 #ifdef USE_SDL
-  if (2 == get_refreshmode()) star_refresh(1);	/* Re-enable Refresh if stopped using *Refresh OnError */
+  if (2 == get_refreshmode()) star_refresh(1);  /* Re-enable Refresh if stopped using *Refresh OnError */
 #endif
   va_start(parms, errnumber);
   vsprintf(errortext, errortable[errnumber].msgtext, parms);

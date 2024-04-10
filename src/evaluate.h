@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains definitions for the interpreter's expression
-**	evaluation code
+**      This file contains definitions for the interpreter's expression
+**      evaluation code
 */
 
 #ifndef __expressions_h

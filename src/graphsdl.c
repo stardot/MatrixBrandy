@@ -22,10 +22,10 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains the VDU driver emulation for the interpreter
-**	used when graphics output is possible. It uses the SDL 1.2 graphics library.
+**      This file contains the VDU driver emulation for the interpreter
+**      used when graphics output is possible. It uses the SDL 1.2 graphics library.
 **
-**	MODE 7 implementation by Michael McConnell.
+**      MODE 7 implementation by Michael McConnell.
 **
 */
 #include <stdio.h>
@@ -63,10 +63,10 @@
 **  It is used by versions of the interpreter where graphics are
 **  supported as well as text output using the SDL library.
 **  The four versions of the VDU driver code are in:
-**	riscos.c
-**	graphsdl.c
-**	textonly.c
-**	simpletext.c
+**      riscos.c
+**      graphsdl.c
+**      textonly.c
+**      simpletext.c
 **
 **  Graphics support for operating systems other than RISC OS is
 **  provided using the platform-independent library 'SDL'.
@@ -148,15 +148,15 @@ static SDL_Rect font_rect, place_rect, line_rect, scale_rect;
 static SDL_Rect scroll_rect;
 #endif
 
-static Uint8 palette[768];		/* palette for screen */
-static Uint8 hardpalette[48]		/* palette for screen */
+static Uint8 palette[768];              /* palette for screen */
+static Uint8 hardpalette[48]            /* palette for screen */
        = {0,0,0,    255,0,0,    0,255,0,    255,255,0,   /* Black, Red, Green, Yellow */
           0,0,255,  255,0,255,  0,255,255,  255,255,255, /* Blue, Magenta, Cyan, White */
           80,80,80, 160,0,0,    0,160,0,    160,160,0,   /* Dimmer versions of the above */
           0,0,160,  160,0,160,  0,160,160,  160,160,160 };
 
 
-static Uint8 vdu2316byte = 1;		/* Byte set by VDU23,16. Defaults to Scroll Protect On.*/
+static Uint8 vdu2316byte = 1;           /* Byte set by VDU23,16. Defaults to Scroll Protect On.*/
 
 mousequeue *mousebuffer = NULL;
 uint32 mousequeuelength = 0;
@@ -178,11 +178,11 @@ static int  dot_pattern_index;
 #endif /* ! BRANDY_MODE7ONLY */
 
 /* Data stores for controlling MODE 7 operation */
-Uint8 mode7frame[26][40];		/* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
+Uint8 mode7frame[26][40];               /* Text frame buffer for Mode 7, akin to BBC screen memory at &7C00. Extra row just to be safe */
 Uint8 mode7cloneframe[26][40];
-static int64 mode7timer = 0;		/* Timer for bank switching */
-static Uint8 vdu141track[27];		/* Track use of Double Height in Mode 7 *
-					 * First line is [1] */
+static int64 mode7timer = 0;            /* Timer for bank switching */
+static Uint8 vdu141track[27];           /* Track use of Double Height in Mode 7 *
+                                         * First line is [1] */
 threadmsg tmsg;
 
 char titlestring[256];
@@ -191,51 +191,51 @@ char titlestring[256];
    for example MODE 0 is 640x256, MODE 2 is 160x256 and MODE 27 is 640x480 - see scrcommon.h */
 
 static struct {
-  int32 vscrwidth;			/* Width of virtual screen in pixels */
-  int32 vscrheight;			/* Height of virtual screen in pixels */
-  int32 screenwidth;			/* RISC OS width of current screen mode in pixels */
-  int32 screenheight;			/* RISC OS height of current screen mode in pixels */
-  int32 xgraphunits;			/* Screen width in RISC OS graphics units */
-  int32 ygraphunits;			/* Screen height in RISC OS graphics units */
-  int32 gwinleft;			/* Left coordinate of graphics window in RISC OS graphics units */
-  int32 gwinright;			/* Right coordinate of graphics window in RISC OS graphics units */
-  int32 gwintop;			/* Top coordinate of graphics window in RISC OS graphics units */
-  int32 gwinbottom;			/* Bottom coordinate of graphics window in RISC OS graphics units */
-  int32 xgupp;				/* RISC OS graphic units per pixel in X direction */
-  int32 ygupp;				/* RISC OS graphic units per pixel in Y direction */
-  int32 graph_fore_action;		/* Foreground graphics PLOT action */
-  int32 graph_back_action;		/* Background graphics PLOT action (ignored) */
-  int32 graph_forecol;			/* Current graphics foreground logical colour number */
-  int32 graph_backcol;			/* Current graphics background logical colour number */
-  int32 graph_forelog;			/* Current graphics foreground palette colour number */
-  int32 graph_backlog;			/* Current graphics background palette colour number */
-  int32 graph_physforecol;		/* Current graphics foreground physical colour number */
-  int32 graph_physbackcol;		/* Current graphics background physical colour number */
-  int32 graph_foretint;			/* Tint value added to foreground graphics colour in 256 colour modes */
-  int32 graph_backtint;			/* Tint value added to background graphics colour in 256 colour modes */
-  int32 plot_inverse;			/* PLOT in inverse colour? */
-  int32 xlast;				/* Graphics X coordinate of last point visited */
-  int32 ylast;				/* Graphics Y coordinate of last point visited */
-  int32 xlast2;				/* Graphics X coordinate of last-but-one point visited */
-  int32 ylast2;				/* Graphics Y coordinate of last-but-one point visited */
-  int32 xlast3;				/* Graphics X coordinate of last-but-two point visited */
-  int32 ylast3;				/* Graphics Y coordinate of last-but-two point visited */
-  int32 xorigin;			/* X coordinate of graphics origin */
-  int32 yorigin;			/* Y coordinate of graphics origin */
-  int32 xscale;				/* X direction scale factor */
-  int32 yscale;				/* Y direction scale factor */
-  int32 autorefresh;			/* Refresh screen on updates? */
-  uint32 tf_colour;			/* text foreground SDL rgb triple */
-  uint32 tb_colour;			/* text background SDL rgb triple */
-  uint32 gf_colour;			/* graphics foreground SDL rgb triple */
-  uint32 gb_colour;			/* graphics background SDL rgb triple */
-  uint32 displaybank;			/* Video bank to be displayed */
-  uint32 writebank;			/* Video bank to be written to */
-  uint32 xor_mask;			
-  int64 videorefresh;			/* Centisecond reference of when screen was last updated */
-  int32 videofreq;			/* How many centiseconds between screen updates? */
-  boolean scaled;			/* TRUE if screen mode is scaled to fit real screen */
-  boolean clipping;			/* TRUE if clipping region is not full screen of a RISC OS mode */
+  int32 vscrwidth;                      /* Width of virtual screen in pixels */
+  int32 vscrheight;                     /* Height of virtual screen in pixels */
+  int32 screenwidth;                    /* RISC OS width of current screen mode in pixels */
+  int32 screenheight;                   /* RISC OS height of current screen mode in pixels */
+  int32 xgraphunits;                    /* Screen width in RISC OS graphics units */
+  int32 ygraphunits;                    /* Screen height in RISC OS graphics units */
+  int32 gwinleft;                       /* Left coordinate of graphics window in RISC OS graphics units */
+  int32 gwinright;                      /* Right coordinate of graphics window in RISC OS graphics units */
+  int32 gwintop;                        /* Top coordinate of graphics window in RISC OS graphics units */
+  int32 gwinbottom;                     /* Bottom coordinate of graphics window in RISC OS graphics units */
+  int32 xgupp;                          /* RISC OS graphic units per pixel in X direction */
+  int32 ygupp;                          /* RISC OS graphic units per pixel in Y direction */
+  int32 graph_fore_action;              /* Foreground graphics PLOT action */
+  int32 graph_back_action;              /* Background graphics PLOT action (ignored) */
+  int32 graph_forecol;                  /* Current graphics foreground logical colour number */
+  int32 graph_backcol;                  /* Current graphics background logical colour number */
+  int32 graph_forelog;                  /* Current graphics foreground palette colour number */
+  int32 graph_backlog;                  /* Current graphics background palette colour number */
+  int32 graph_physforecol;              /* Current graphics foreground physical colour number */
+  int32 graph_physbackcol;              /* Current graphics background physical colour number */
+  int32 graph_foretint;                 /* Tint value added to foreground graphics colour in 256 colour modes */
+  int32 graph_backtint;                 /* Tint value added to background graphics colour in 256 colour modes */
+  int32 plot_inverse;                   /* PLOT in inverse colour? */
+  int32 xlast;                          /* Graphics X coordinate of last point visited */
+  int32 ylast;                          /* Graphics Y coordinate of last point visited */
+  int32 xlast2;                         /* Graphics X coordinate of last-but-one point visited */
+  int32 ylast2;                         /* Graphics Y coordinate of last-but-one point visited */
+  int32 xlast3;                         /* Graphics X coordinate of last-but-two point visited */
+  int32 ylast3;                         /* Graphics Y coordinate of last-but-two point visited */
+  int32 xorigin;                        /* X coordinate of graphics origin */
+  int32 yorigin;                        /* Y coordinate of graphics origin */
+  int32 xscale;                         /* X direction scale factor */
+  int32 yscale;                         /* Y direction scale factor */
+  int32 autorefresh;                    /* Refresh screen on updates? */
+  uint32 tf_colour;                     /* text foreground SDL rgb triple */
+  uint32 tb_colour;                     /* text background SDL rgb triple */
+  uint32 gf_colour;                     /* graphics foreground SDL rgb triple */
+  uint32 gb_colour;                     /* graphics background SDL rgb triple */
+  uint32 displaybank;                   /* Video bank to be displayed */
+  uint32 writebank;                     /* Video bank to be written to */
+  uint32 xor_mask;                      
+  int64 videorefresh;                   /* Centisecond reference of when screen was last updated */
+  int32 videofreq;                      /* How many centiseconds between screen updates? */
+  boolean scaled;                       /* TRUE if screen mode is scaled to fit real screen */
+  boolean clipping;                     /* TRUE if clipping region is not full screen of a RISC OS mode */
   
 } ds;
 
@@ -695,9 +695,9 @@ static void vdu_2316(void) {
 #ifndef BRANDY_MODE7ONLY
 static void vdu_2317(void) {
   int32 temp;
-  switch (vduqueue[1]) {	/* vduqueue[1] is the byte after the '17' and says what to change */
+  switch (vduqueue[1]) {        /* vduqueue[1] is the byte after the '17' and says what to change */
   case TINT_FORETEXT:
-    text_foretint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;	/* Third byte in queue is new TINT value */
+    text_foretint = (vduqueue[2] & TINTMASK)>>TINTSHIFT;        /* Third byte in queue is new TINT value */
     if (colourdepth==256) text_physforecol = (text_forecol<<COL256SHIFT)+text_foretint;
     if (colourdepth==COL24BIT) text_physforecol=tint24bit(text_forecol, text_foretint);
     break;
@@ -716,12 +716,12 @@ static void vdu_2317(void) {
     if (colourdepth==256) ds.graph_physbackcol = (ds.graph_backcol<<COL256SHIFT)+ds.graph_backtint;
     if (colourdepth==COL24BIT) ds.graph_physbackcol=tint24bit(ds.graph_backcol, ds.graph_backtint);
     break;
-  case EXCH_TEXTCOLS:	/* Exchange text foreground and background colours */
+  case EXCH_TEXTCOLS:   /* Exchange text foreground and background colours */
     temp = text_forecol; text_forecol = text_backcol; text_backcol = temp;
     temp = text_physforecol; text_physforecol = text_physbackcol; text_physbackcol = temp;
     temp = text_foretint; text_foretint = text_backtint; text_backtint = temp;
     break;
-  default:		/* Ignore bad value */
+  default:              /* Ignore bad value */
     break;
   }
   set_rgb();
@@ -781,12 +781,12 @@ static void vdu_23command(void) {
 #ifndef BRANDY_MODE7ONLY
   int codeval, n;
 #endif
-  switch (vduqueue[0]) {	/* First byte in VDU queue gives the command type */
+  switch (vduqueue[0]) {        /* First byte in VDU queue gives the command type */
   case 0:       /* More cursor stuff - this only handles VDU23;{8202,29194};0;0;0; */
     if (vduqueue[1] == 10) {
       if ((vduqueue[2] & 96) == 32) {
         hide_cursor();
-        cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
+        cursorstate = HIDDEN;   /* 0 = hide, 1 = show */
       } else {
         cursorstate = SUSPENDED;
         toggle_cursor();
@@ -795,10 +795,10 @@ static void vdu_23command(void) {
       tmsg.crtc6845r10 = vduqueue[2];
     }
     break;
-  case 1:	/* Control the appear of the text cursor */
+  case 1:       /* Control the appear of the text cursor */
     if (vduqueue[1] == 0) {
       hide_cursor();
-      cursorstate = HIDDEN;	/* 0 = hide, 1 = show */
+      cursorstate = HIDDEN;     /* 0 = hide, 1 = show */
     }
     if (vduqueue[1] == 1) cursorstate = ONSCREEN;
     else cursorstate = HIDDEN;
@@ -810,24 +810,24 @@ static void vdu_23command(void) {
     set_dot_pattern(vduqueue);
     break;
 #endif
-  case 7:	/* Scroll the screen or text window */
+  case 7:       /* Scroll the screen or text window */
     vdu_2307();
     break;
-  case 8:	/* Clear part of the text window */
+  case 8:       /* Clear part of the text window */
     break;
-  case 16:	/* Controls the movement of the cursor after printing */
+  case 16:      /* Controls the movement of the cursor after printing */
     vdu_2316();
     break;
 #ifndef BRANDY_MODE7ONLY
-  case 17:	/* Set the tint value for a colour in 256 colour modes, etc */
+  case 17:      /* Set the tint value for a colour in 256 colour modes, etc */
     vdu_2317();
     break;
 #endif
-  case 18:	/* RISC OS 5 set Teletext characteristics */
+  case 18:      /* RISC OS 5 set Teletext characteristics */
     vdu_2318();
     break;
 #ifndef BRANDY_MODE7ONLY
-  case 22:	/* BB4W/BBCSDL Custom Mode */
+  case 22:      /* BB4W/BBCSDL Custom Mode */
     vdu_2322();
     break;
   default:
@@ -929,8 +929,8 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
 ** RISC OS screen mode in pixels
 */
   if(screenmode == 7) return;
-  if (right < 0 || bottom < 0 || left >= ds.screenwidth || top >= ds.screenheight) return;	/* Is off screen completely */
-  if (left < 0) left = 0;				/* Clip the rectangle as necessary */
+  if (right < 0 || bottom < 0 || left >= ds.screenwidth || top >= ds.screenheight) return;      /* Is off screen completely */
+  if (left < 0) left = 0;                               /* Clip the rectangle as necessary */
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
@@ -951,8 +951,8 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       }
     }
   } else {
-    int32 dleft = left*ds.xscale;				/* Calculate pixel coordinates in the */
-    int32 dtop  = top*ds.yscale;				/* screen buffer of the rectangle */
+    int32 dleft = left*ds.xscale;                               /* Calculate pixel coordinates in the */
+    int32 dtop  = top*ds.yscale;                                /* screen buffer of the rectangle */
     int32 i, j, ii, jj;
 
     yy = dtop;
@@ -968,7 +968,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
         yy++;
       } 
     }
-    if ((screenmode == 3) || (screenmode == 6)) {	/* Paint on the black bars over the background */
+    if ((screenmode == 3) || (screenmode == 6)) {       /* Paint on the black bars over the background */
       int p;
       hide_cursor();
       for (p=0; p<25; p++) {
@@ -985,8 +985,8 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 }
 #endif
 
-#define COLOURSTEP 68		/* RGB colour value increment used in 256 colour modes */
-#define TINTSTEP 17		/* RGB colour value increment used for tints */
+#define COLOURSTEP 68           /* RGB colour value increment used in 256 colour modes */
+#define TINTSTEP 17             /* RGB colour value increment used for tints */
 
 /*
 ** 'init_palette' is called to initialise the palette used for the
@@ -1002,31 +1002,31 @@ static void blit_scaled(int32 left, int32 top, int32 right, int32 bottom) {
 static void init_palette(void) {
   switch (colourdepth) {
 #ifndef BRANDY_MODE7ONLY
-  case 2:	/* Two colour - Black and white only */
+  case 2:       /* Two colour - Black and white only */
     palette[0] = palette[1] = palette[2] = 0;
     palette[3] = palette[4] = palette[5] = 255;
     break;
-  case 4:	/* Four colour - Black, red, yellow and white */
-    palette[0] =      palette[1]  =      palette[2]  = 0;	/* Black */
-    palette[3] = 255; palette[4]  =      palette[5]  = 0;	/* Red */
-    palette[6] =      palette[7]  = 255; palette[8]  = 0;	/* Yellow */
-    palette[9] =      palette[10] =      palette[11] = 255;	/* White */
+  case 4:       /* Four colour - Black, red, yellow and white */
+    palette[0] =      palette[1]  =      palette[2]  = 0;       /* Black */
+    palette[3] = 255; palette[4]  =      palette[5]  = 0;       /* Red */
+    palette[6] =      palette[7]  = 255; palette[8]  = 0;       /* Yellow */
+    palette[9] =      palette[10] =      palette[11] = 255;     /* White */
     break;
-  case 8:	/* Eight colour */
+  case 8:       /* Eight colour */
     memcpy(palette, hardpalette, 24);
     break;
 #endif
-  case 16:	/* Sixteen colour */
+  case 16:      /* Sixteen colour */
     memcpy(palette, hardpalette, 48);
     break;
 #ifndef BRANDY_MODE7ONLY
   case 256:
-  case COL24BIT: {	/* >= 256 colour */
+  case COL24BIT: {      /* >= 256 colour */
     int red, green, blue, tint, colour;
 /*
 ** The colour number in 256 colour modes can be seen as a bit map as
 ** follows:
-**	bb gg rr tt
+**      bb gg rr tt
 ** where 'rr' is a two-bit red component, 'gg' is the green component,
 ** 'bb' is the blue component and 'tt' is the 'tint', a value that
 ** affects the brightness of the three component colours. The two-bit
@@ -1057,7 +1057,7 @@ static void init_palette(void) {
     break;
   }
 #endif
-  default:	/* 32K colour modes are not supported */
+  default:      /* 32K colour modes are not supported */
     error(ERR_UNSUPPORTED);
   }
 #ifndef BRANDY_MODE7ONLY
@@ -1084,7 +1084,7 @@ static void init_palette(void) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
-  palette[colour*3+0] = red;	/* The palette is not structured */
+  palette[colour*3+0] = red;    /* The palette is not structured */
   palette[colour*3+1] = green;
   palette[colour*3+2] = blue;
 }
@@ -1196,11 +1196,11 @@ static void scroll_up(int32 windowed) {
   }
   toggle_cursor();
   if (windowed) {
-    topwin = twintop*YPPC;				/* Y coordinate of top of text window */
-    dest = twintop*YPPC;				/* Move screen up to this point */
+    topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
+    dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
-    top = dest+YPPC;					/* Top of block to move starts here */
+    top = dest+YPPC;                                    /* Top of block to move starts here */
     scroll_rect.x = left;
     scroll_rect.y = YPPC * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
@@ -1270,7 +1270,7 @@ static void scroll_down(int32 windowed) {
   }
   toggle_cursor();
   if (windowed) {
-    topwin = twintop*YPPC;		/* Y coordinate of top of text window */
+    topwin = twintop*YPPC;              /* Y coordinate of top of text window */
     dest = (twintop)*YPPC;
     left = twinleft*XPPC;
     right = (twinright+1)*XPPC-1;
@@ -1344,11 +1344,11 @@ static void scroll_left(int32 windowed) {
   }
   toggle_cursor();
   if (windowed) {
-    topwin = twintop*YPPC;				/* Y coordinate of top of text window */
-    dest = twintop*YPPC;				/* Move screen up to this point */
+    topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
+    dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
-    top = dest+YPPC;					/* Top of block to move starts here */
+    top = dest+YPPC;                                    /* Top of block to move starts here */
     scroll_rect.x = (twinleft+1)*XPPC;
     scroll_rect.y = YPPC * (twintop);
     scroll_rect.w = XPPC * (twinright - twinleft);
@@ -1415,11 +1415,11 @@ static void scroll_right(int32 windowed) {
   }
   toggle_cursor();
   if (windowed) {
-    topwin = twintop*YPPC;				/* Y coordinate of top of text window */
-    dest = twintop*YPPC;				/* Move screen up to this point */
+    topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
+    dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
-    top = dest+YPPC;					/* Top of block to move starts here */
+    top = dest+YPPC;                                    /* Top of block to move starts here */
     scroll_rect.x = (twinleft)*XPPC;
     scroll_rect.y = YPPC * (twintop);
     scroll_rect.w = XPPC * (twinright - twinleft);
@@ -1464,9 +1464,9 @@ static void scroll_right(int32 windowed) {
 ** The screen is redrawn by this call
 */
 static void scroll(updown direction) {
-  if (direction == SCROLL_UP) {	/* Shifting screen up */
+  if (direction == SCROLL_UP) { /* Shifting screen up */
     scroll_up(vduflag(VDU_FLAG_TEXTWIN));
-  } else {	/* Shifting screen down */
+  } else {      /* Shifting screen down */
     scroll_down(vduflag(VDU_FLAG_TEXTWIN));
   }
 }
@@ -1576,19 +1576,19 @@ static void write_char(int32 ch) {
         matrixflags.vdu14lines=0;
       }
     }
-    if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
+    if (ytext > twinbottom) {   /* Text cursor was on the last line of the text window */
       if (vdu2316byte & 16) {
         ytext=textyhome();
       } else {
-        scroll(SCROLL_UP);	/* So scroll window up */
+        scroll(SCROLL_UP);      /* So scroll window up */
         ytext--;
       }
     }
-    if (ytext < twintop) {	/* Text cursor was on the first line of the text window */
+    if (ytext < twintop) {      /* Text cursor was on the first line of the text window */
       if (vdu2316byte & 16) {
         ytext=textyedge();
       } else {
-        scroll(SCROLL_DOWN);	/* So scroll window down */
+        scroll(SCROLL_DOWN);    /* So scroll window down */
         ytext++;
       }
     }
@@ -1613,19 +1613,19 @@ static void write_char(int32 ch) {
         matrixflags.vdu14lines=0;
       }
     }
-    if (ytext > twinbottom) {	/* Text cursor was on the last line of the text window */
+    if (ytext > twinbottom) {   /* Text cursor was on the last line of the text window */
       if (vdu2316byte & 16) {
         ytext=textyhome();
       } else {
-        scroll(SCROLL_UP);	/* So scroll window up */
+        scroll(SCROLL_UP);      /* So scroll window up */
         ytext--;
       }
     }
-    if (ytext < twintop) {	/* Text cursor was on the first line of the text window */
+    if (ytext < twintop) {      /* Text cursor was on the first line of the text window */
       if (vdu2316byte & 16) {
         ytext=textyedge();
       } else {
-        scroll(SCROLL_DOWN);	/* So scroll window down */
+        scroll(SCROLL_DOWN);    /* So scroll window down */
         ytext++;
       }
     }
@@ -1682,8 +1682,8 @@ static void vdu5_cursordown(void) {
 static void plot_char(int32 ch) {
   int32 y, topx, topy, line, r;
 
-  topx = GXTOPX(ds.xlast);		/* X and Y coordinates are those of the */
-  topy = GYTOPY(ds.ylast);	/* top left-hand corner of the character */
+  topx = GXTOPX(ds.xlast);              /* X and Y coordinates are those of the */
+  topy = GYTOPY(ds.ylast);      /* top left-hand corner of the character */
   place_rect.x = topx;
   place_rect.y = topy;
   for (y=0; y<YPPC; y++) {
@@ -1697,17 +1697,17 @@ static void plot_char(int32 ch) {
   blit_scaled(topx, topy, topx+XPPC-1, topy+YPPC-1);
 
   cursorstate = SUSPENDED; /* because we just overwrote it */
-  if (!(vdu2316byte & 8)) ds.xlast += XPPC*ds.xgupp * textxinc();	/* Move to next character position in X direction */
-  if ((vdu2316byte & 8)) ds.ylast -= YPPC*ds.ygupp * textyinc();	/* Move to next character position in X direction */
+  if (!(vdu2316byte & 8)) ds.xlast += XPPC*ds.xgupp * textxinc();       /* Move to next character position in X direction */
+  if ((vdu2316byte & 8)) ds.ylast -= YPPC*ds.ygupp * textyinc();        /* Move to next character position in X direction */
   if ((!(vdu2316byte & 64)) && (!(vdu2316byte & 8)) &&
     ((((vdu2316byte & 2) == 0) && (ds.xlast > ds.gwinright)) ||
-     (((vdu2316byte & 2) == 2) && (ds.xlast < ds.gwinleft)))) {	/* But position is outside the graphics window */
+     (((vdu2316byte & 2) == 2) && (ds.xlast < ds.gwinleft)))) { /* But position is outside the graphics window */
     ds.xlast = gtextxhome();
     vdu5_cursordown();
   }
   if ((!(vdu2316byte & 64)) && ((vdu2316byte & 8)) && 
     ((((vdu2316byte & 4) == 0) && (ds.ylast < ds.gwinbottom)) ||
-     (((vdu2316byte & 4) == 4) && (ds.ylast > ds.gwintop)))) {	/* But position is outside the graphics window */
+     (((vdu2316byte & 4) == 4) && (ds.ylast > ds.gwintop)))) {  /* But position is outside the graphics window */
     ds.ylast = gtextyhome();
     vdu5_cursordown();
   }
@@ -1715,8 +1715,8 @@ static void plot_char(int32 ch) {
 
 static void plot_space_opaque(void) {
   int32 topx, topy;
-  topx = GXTOPX(ds.xlast);		/* X and Y coordinates are those of the */
-  topy = GYTOPY(ds.ylast);	/* top left-hand corner of the character */
+  topx = GXTOPX(ds.xlast);              /* X and Y coordinates are those of the */
+  topy = GYTOPY(ds.ylast);      /* top left-hand corner of the character */
   place_rect.x = topx;
   place_rect.y = topy;
   SDL_FillRect(sdl_fontbuf, NULL, ds.gb_colour);
@@ -1736,7 +1736,7 @@ static void plot_space_opaque(void) {
 ** function has to allow for the text window.
 */
 static void move_cursor(int32 column, int32 row) {
-  hide_cursor();	/* Remove cursor */
+  hide_cursor();        /* Remove cursor */
   xtext = column;
   ytext = row;
   if (!(MOVFLAG & 4)) {
@@ -1749,7 +1749,7 @@ static void move_cursor(int32 column, int32 row) {
     else
       ytext = row;
   }
-  reveal_cursor();	/* Redraw cursor */
+  reveal_cursor();      /* Redraw cursor */
 }
 
 /*
@@ -1760,9 +1760,9 @@ static void move_cursor(int32 column, int32 row) {
 ** 'overwrite'.
 */
 void set_cursor(boolean underline) {
-  hide_cursor();	/* Remove old style cursor */
+  hide_cursor();        /* Remove old style cursor */
   cursmode = underline ? UNDERLINE : BLOCK;
-  reveal_cursor();	/* Draw new style cursor */
+  reveal_cursor();      /* Draw new style cursor */
 }
 
 /*
@@ -1777,12 +1777,12 @@ static void vdu_setpalette(void) {
   logcol = vduqueue[0] & colourmask;
   mode = vduqueue[1];
   pmode = mode % 16;
-  if (mode < 16 && colourdepth <= 16) {	/* Just change the RISC OS logical to physical colour mapping */
+  if (mode < 16 && colourdepth <= 16) { /* Just change the RISC OS logical to physical colour mapping */
     logtophys[logcol] = mode;
     palette[logcol*3+0] = hardpalette[pmode*3+0];
     palette[logcol*3+1] = hardpalette[pmode*3+1];
     palette[logcol*3+2] = hardpalette[pmode*3+2];
-  } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
+  } else if (mode == 16)        /* Change the palette entry for colour 'logcol' */
     change_palette(logcol, vduqueue[2], vduqueue[3], vduqueue[4]);
   set_rgb();
   /* Now, go through the framebuffer and change the pixels */
@@ -1804,19 +1804,19 @@ static void vdu_setpalette(void) {
 */
 static void move_down(void) {
   ytext+=textyinc();
-  if (ytext > twinbottom) {	/* Cursor was on last line in window - Scroll window up */
+  if (ytext > twinbottom) {     /* Cursor was on last line in window - Scroll window up */
     if (vdu2316byte & 16) {
       ytext=textyhome();
     } else {
-      scroll(SCROLL_UP);	/* So scroll window up */
+      scroll(SCROLL_UP);        /* So scroll window up */
       ytext--;
     }
   }
-  if (ytext < twintop) {	/* Cursor was on top line in window - Scroll window down */
+  if (ytext < twintop) {        /* Cursor was on top line in window - Scroll window down */
     if (vdu2316byte & 16) {
       ytext=textyedge();
     } else {
-      scroll(SCROLL_DOWN);	/* So scroll window down */
+      scroll(SCROLL_DOWN);      /* So scroll window down */
       ytext++;
     }
   }
@@ -1829,19 +1829,19 @@ static void move_down(void) {
 */
 static void move_up(void) {
   ytext-=textyinc();
-  if (ytext < twintop) {	/* Cursor was on top line in window - Scroll window down */
+  if (ytext < twintop) {        /* Cursor was on top line in window - Scroll window down */
     if (vdu2316byte & 16) {
       ytext=textyedge();
     } else {
-      scroll(SCROLL_DOWN);	/* So scroll window down */
+      scroll(SCROLL_DOWN);      /* So scroll window down */
       ytext++;
     }
   }
-  if (ytext > twinbottom) {	/* Cursor was on last line in window - Scroll window up */
+  if (ytext > twinbottom) {     /* Cursor was on last line in window - Scroll window up */
     if (vdu2316byte & 16) {
       ytext=textyhome();
     } else {
-      scroll(SCROLL_UP);	/* So scroll window up */
+      scroll(SCROLL_UP);        /* So scroll window up */
       ytext--;
     }
   }
@@ -1852,18 +1852,18 @@ static void move_up(void) {
 */
 static void move_curback(void) {
 #ifndef BRANDY_MODE7ONLY
-  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {   /* VDU 5 mode - Move graphics cursor back one character */
     if (MOVFLAG & 4) {
       ds.ylast += YPPC*ds.ygupp*textyinc();
       if ((MOVFLAG & 2) == 0) {
-        if (ds.ylast < ds.gwinbottom) {		/* Cursor is outside the graphics window */
-          ds.ylast = ds.gwintop-1;	/* Move back to right edge of previous line */
+        if (ds.ylast < ds.gwinbottom) {         /* Cursor is outside the graphics window */
+          ds.ylast = ds.gwintop-1;      /* Move back to right edge of previous line */
           ds.xlast += XPPC*ds.xgupp*textxinc();
           vdu5_cursorup();
         }
       } else {
-        if (ds.ylast > ds.gwintop) {		/* Cursor is outside the graphics window */
-          ds.ylast = ds.gwinbottom+YPPC*ds.ygupp;	/* Move back to right edge of previous line */
+        if (ds.ylast > ds.gwintop) {            /* Cursor is outside the graphics window */
+          ds.ylast = ds.gwinbottom+YPPC*ds.ygupp;       /* Move back to right edge of previous line */
           ds.xlast += XPPC*ds.xgupp*textxinc();
           vdu5_cursorup();
         }
@@ -1871,29 +1871,29 @@ static void move_curback(void) {
     } else {
       ds.xlast -= XPPC*ds.xgupp*textxinc();
       if ((MOVFLAG & 1) == 0) {
-        if (ds.xlast < ds.gwinleft) {		/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinright-XPPC*ds.xgupp+(2*ds.xscale);	/* Move back to right edge of previous line */
+        if (ds.xlast < ds.gwinleft) {           /* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+(2*ds.xscale);  /* Move back to right edge of previous line */
           ds.ylast += YPPC*ds.ygupp*textyinc();
           vdu5_cursorup();
         }
       } else {
-        if (ds.xlast > ds.gwinright) {		/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinleft;	/* Move back to right edge of previous line */
+        if (ds.xlast > ds.gwinright) {          /* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinleft;       /* Move back to right edge of previous line */
           ds.ylast += YPPC*ds.ygupp*textyinc();
           vdu5_cursorup();
         }
       }
     }
 
-  } else {	/* VDU4 mode */
+  } else {      /* VDU4 mode */
 #endif
-    hide_cursor();	/* Remove cursor */
+    hide_cursor();      /* Remove cursor */
     xtext-=textxinc();
-    if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at left-hand edge of text window so move up a line */
+    if ((xtext < twinleft) || (xtext > twinright)) {    /* Cursor is at left-hand edge of text window so move up a line */
       xtext = textxedge();
       move_up();
     }
-    reveal_cursor();	/* Redraw cursor */
+    reveal_cursor();    /* Redraw cursor */
 #ifndef BRANDY_MODE7ONLY
   }
 #endif
@@ -1903,39 +1903,39 @@ static void move_curback(void) {
 ** 'move_curforward' moves the cursor forwards one character on the screen (VDU 9)
 */
 static void move_curforward(void) {
-  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* VDU 5 mode - Move graphics cursor back one character */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {   /* VDU 5 mode - Move graphics cursor back one character */
     if (MOVFLAG & 4) {
       ds.ylast -= YPPC*ds.ygupp*textyinc();
       /* Wraparound is handled in plot_char() */
     } else {
       ds.xlast += XPPC*ds.xgupp*textxinc();
       if ((MOVFLAG & 1) == 0) {
-        if (ds.xlast > ds.gwinright) {	/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinleft;		/* Move to left side of window on next line */
+        if (ds.xlast > ds.gwinright) {  /* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinleft;               /* Move to left side of window on next line */
           ds.ylast -= YPPC*ds.ygupp*textyinc();
-          if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+          if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;  /* Moved below bottom of window - Wrap around to top */
         }
       } else {
-        if (ds.xlast < ds.gwinleft) {	/* Cursor is outside the graphics window */
-          ds.xlast = ds.gwinright-XPPC*ds.xgupp+(2*ds.xscale);		/* Move to left side of window on next line */
+        if (ds.xlast < ds.gwinleft) {   /* Cursor is outside the graphics window */
+          ds.xlast = ds.gwinright-XPPC*ds.xgupp+(2*ds.xscale);          /* Move to left side of window on next line */
           ds.ylast -= YPPC*ds.ygupp*textyinc();
-          if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;	/* Moved below bottom of window - Wrap around to top */
+          if (ds.ylast < ds.gwinbottom) ds.ylast = ds.gwintop;  /* Moved below bottom of window - Wrap around to top */
         }
       }
     }
-  } else {	/* VDU4 mode */
-    hide_cursor();	/* Remove cursor */
+  } else {      /* VDU4 mode */
+    hide_cursor();      /* Remove cursor */
     /* Do this check twice, as in scroll protect mode xtext may already be off the edge */
-    if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
+    if ((xtext < twinleft) || (xtext > twinright)) {    /* Cursor is at right-hand edge of text window so move down a line */
       xtext = textxhome();
       move_down();
     }
     xtext+=textxinc();
-    if ((xtext < twinleft) || (xtext > twinright)) {	/* Cursor is at right-hand edge of text window so move down a line */
+    if ((xtext < twinleft) || (xtext > twinright)) {    /* Cursor is at right-hand edge of text window so move down a line */
       xtext = textxhome();
       move_down();
     }
-    reveal_cursor();	/* Redraw cursor */
+    reveal_cursor();    /* Redraw cursor */
   }
 }
 
@@ -1957,9 +1957,9 @@ static void move_curdown(void) {
         matrixflags.vdu14lines=0;
       }
     }
-    hide_cursor();	/* Remove cursor */
+    hide_cursor();      /* Remove cursor */
     move_down();
-    reveal_cursor();	/* Redraw cursor */
+    reveal_cursor();    /* Redraw cursor */
 #ifndef BRANDY_MODE7ONLY
   }
 #endif
@@ -1984,9 +1984,9 @@ static void move_curup(void) {
         matrixflags.vdu14lines=0;
       }
     }
-    hide_cursor();	/* Remove cursor */
+    hide_cursor();      /* Remove cursor */
     move_up();
-    reveal_cursor();	/* Redraw cursor */
+    reveal_cursor();    /* Redraw cursor */
 #ifndef BRANDY_MODE7ONLY
   }
 #endif
@@ -2005,8 +2005,8 @@ static void vdu_cleartext(void) {
     mxppc=XPPC;
     myppc=YPPC;
   }
-  hide_cursor();	/* Remove cursor if it is being displayed */
-  if (vduflag(VDU_FLAG_TEXTWIN)) {	/* Text window defined that does not occupy the whole screen */
+  hide_cursor();        /* Remove cursor if it is being displayed */
+  if (vduflag(VDU_FLAG_TEXTWIN)) {      /* Text window defined that does not occupy the whole screen */
     if (screenmode == 7) {
       for (ly=twintop; ly <= twinbottom; ly++) {
         for (lx=twinleft; lx <=twinright; lx++) {
@@ -2029,7 +2029,7 @@ static void vdu_cleartext(void) {
     blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
 #endif
   }
-  else {	/* Text window is not being used */
+  else {        /* Text window is not being used */
     reset_mode7();
     left = twinleft*mxppc;
     right = twinright*mxppc+mxppc-1;
@@ -2044,7 +2044,7 @@ static void vdu_cleartext(void) {
     SDL_FillRect(screen3, NULL, ds.tb_colour);
     xtext = textxhome();
     ytext = textyhome();
-    reveal_cursor();	/* Redraw cursor */
+    reveal_cursor();    /* Redraw cursor */
   }
 }
 
@@ -2059,9 +2059,9 @@ static void vdu_return(void) {
       ds.xlast = gtextxhome();
     }
   } else {
-    hide_cursor();	/* Remove cursor */
+    hide_cursor();      /* Remove cursor */
     xtext = textxhome();
-    reveal_cursor();	/* Redraw cursor */
+    reveal_cursor();    /* Redraw cursor */
     if (screenmode == 7) {
       write_vduflag(MODE7_GRAPHICS,0);
       write_vduflag(MODE7_SEPGRP,0);
@@ -2093,14 +2093,14 @@ static void fill_rectangle(int32 left, int32 top, int32 right, int32 bottom, Uin
 */
 static void vdu_cleargraph(void) {
   if (istextonly()) return;
-  hide_cursor();	/* Remove cursor */
+  hide_cursor();        /* Remove cursor */
   if (ds.graph_back_action == 0 && !ds.clipping) {
     SDL_FillRect(screenbank[ds.writebank], NULL, ds.gb_colour);
   } else {
     fill_rectangle(GXTOPX(ds.gwinleft), GYTOPY(ds.gwintop), GXTOPX(ds.gwinright), GYTOPY(ds.gwinbottom), ds.gb_colour, ds.graph_back_action);
   }
   blit_scaled(GXTOPX(ds.gwinleft), GYTOPY(ds.gwintop), GXTOPX(ds.gwinright), GYTOPY(ds.gwinbottom));
-  if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();	/* Redraw cursor */
+  if (!vduflag(VDU_FLAG_GRAPHICURS)) reveal_cursor();   /* Redraw cursor */
 }
 
 /*
@@ -2113,7 +2113,7 @@ static void vdu_textcol(void) {
   int32 colnumber;
   if (screenmode == 7) return;
   colnumber = vduqueue[0];
-  if (colnumber < 128) {	/* Setting foreground colour */
+  if (colnumber < 128) {        /* Setting foreground colour */
     if (colourdepth == 256) {
       text_forecol = colnumber & COL256MASK;
       text_physforecol = (text_forecol << COL256SHIFT)+text_foretint;
@@ -2123,13 +2123,13 @@ static void vdu_textcol(void) {
       text_physforecol = text_forecol = colnumber & colourmask;
     }
   }
-  else {	/* Setting background colour */
+  else {        /* Setting background colour */
     if (colourdepth == 256) {
       text_backcol = colnumber & COL256MASK;
       text_physbackcol = (text_backcol << COL256SHIFT)+text_backtint;
     } else if (colourdepth == COL24BIT) {
       text_physbackcol = text_backcol = colour24bit(colnumber, text_backtint);
-    } else {	/* Operating in text mode */
+    } else {    /* Operating in text mode */
       text_physbackcol = text_backcol = colnumber & colourmask;
     }
   }
@@ -2157,7 +2157,7 @@ static void resetpixels(int32 numcols) {
 }
 
 static void reset_colours(void) {
-  switch (colourdepth) {	/* Initialise the text mode colours */
+  switch (colourdepth) {        /* Initialise the text mode colours */
   case 2:
     logtophys[0] = VDU_BLACK;
     logtophys[1] = VDU_WHITE;
@@ -2221,7 +2221,7 @@ static void reset_colours(void) {
 static void vdu_graphcol(void) {
   int32 colnumber;
   colnumber = vduqueue[1];
-  if (colnumber < 128) {	/* Setting foreground graphics colour */
+  if (colnumber < 128) {        /* Setting foreground graphics colour */
       ds.graph_fore_action = vduqueue[0];
       if (colourdepth == 256) {
         ds.graph_forecol = ds.graph_forelog = colnumber & COL256MASK;
@@ -2233,7 +2233,7 @@ static void vdu_graphcol(void) {
         ds.graph_physforecol = ds.graph_forecol = ds.graph_forelog = colnumber & colourmask;
       }
   }
-  else {	/* Setting background graphics colour */
+  else {        /* Setting background graphics colour */
     ds.graph_back_action = vduqueue[0];
     if (colourdepth == 256) {
       ds.graph_backcol = ds.graph_backlog = colnumber & COL256MASK;
@@ -2241,7 +2241,7 @@ static void vdu_graphcol(void) {
     } else if (colourdepth == COL24BIT) {
       ds.graph_backlog = colnumber & COL256MASK;
       ds.graph_physbackcol = ds.graph_backcol = colour24bit(colnumber, ds.graph_backtint);
-    } else {	/* Operating in text mode */
+    } else {    /* Operating in text mode */
       ds.graph_physbackcol = ds.graph_backcol = ds.graph_backlog = colnumber & colourmask;
     }
   }
@@ -2253,13 +2253,13 @@ static void vdu_graphcol(void) {
 */
 static void vdu_graphwind(void) {
   int32 left, right, top, bottom;
-  left = vduqueue[0]+vduqueue[1]*256;		/* Left-hand coordinate */
-  if (left > 0x7FFF) left = -(0x10000-left);	/* Coordinate is negative */
-  bottom = vduqueue[2]+vduqueue[3]*256;		/* Bottom coordinate */
+  left = vduqueue[0]+vduqueue[1]*256;           /* Left-hand coordinate */
+  if (left > 0x7FFF) left = -(0x10000-left);    /* Coordinate is negative */
+  bottom = vduqueue[2]+vduqueue[3]*256;         /* Bottom coordinate */
   if (bottom > 0x7FFF) bottom = -(0x10000-bottom);
-  right = vduqueue[4]+vduqueue[5]*256;		/* Right-hand coordinate */
+  right = vduqueue[4]+vduqueue[5]*256;          /* Right-hand coordinate */
   if (right > 0x7FFF) right = -(0x10000-right);
-  top = vduqueue[6]+vduqueue[7]*256;		/* Top coordinate */
+  top = vduqueue[6]+vduqueue[7]*256;            /* Top coordinate */
   if (top > 0x7FFF) top = -(0x10000-top);
   left += ds.xorigin;
   right += ds.xorigin;
@@ -2293,10 +2293,10 @@ static void vdu_graphwind(void) {
 static void vdu_plot(void) {
   int32 x, y;
   x = vduqueue[1]+vduqueue[2]*256;
-  if (x > 0x7FFF) x = -(0x10000-x);	/* X is negative */
+  if (x > 0x7FFF) x = -(0x10000-x);     /* X is negative */
   y = vduqueue[3]+vduqueue[4]*256;
-  if (y > 0x7FFF) y = -(0x10000-y);	/* Y is negative */
-  emulate_plot(vduqueue[0], x, y);	/* vduqueue[0] gives the plot code */
+  if (y > 0x7FFF) y = -(0x10000-y);     /* Y is negative */
+  emulate_plot(vduqueue[0], x, y);      /* vduqueue[0] gives the plot code */
 }
 #endif /* BRANDY_MODE7ONLY */
 
@@ -2313,9 +2313,9 @@ static void vdu_restwind(void) {
   ds.gwinright = ds.xgraphunits-1;
   ds.gwintop = ds.ygraphunits-1;
   ds.gwinbottom = 0;
-  hide_cursor();	/* Remove cursor */
+  hide_cursor();        /* Remove cursor */
   xtext = ytext = 0;
-  reveal_cursor();	/* Redraw cursor */
+  reveal_cursor();      /* Redraw cursor */
   write_vduflag(VDU_FLAG_TEXTWIN,0);
   twinleft = 0;
   twinright = textwidth-1;
@@ -2334,12 +2334,12 @@ static void vdu_textwind(void) {
   right = vduqueue[2];
   top = vduqueue[3];
   if ((left >= textwidth) || (right >= textwidth) || (top >= textheight) || (bottom >= textheight)) return; /* Ignore bad parameters */
-  if (left > right) {	/* Ensure right column number > left */
+  if (left > right) {   /* Ensure right column number > left */
     int32 temp = left;
     left = right;
     right = temp;
   }
-  if (bottom < top) {	/* Ensure bottom line number > top */
+  if (bottom < top) {   /* Ensure bottom line number > top */
     int32 temp = bottom;
     bottom = top;
     top = temp;
@@ -2350,7 +2350,7 @@ static void vdu_textwind(void) {
   twinbottom = bottom;
 /* Set flag to say if text window occupies only a part of the screen */
   write_vduflag(VDU_FLAG_TEXTWIN,(left > 0 || right < textwidth-1 || top > 0 || bottom < textheight-1));
-  move_cursor(twinleft, twintop);	/* Move text cursor to home position in new window */
+  move_cursor(twinleft, twintop);       /* Move text cursor to home position in new window */
 }
 
 /*
@@ -2371,11 +2371,11 @@ static void vdu_origin(void) {
 ** the text window (VDU 30)
 */
 static void vdu_hometext(void) {
-  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Send graphics cursor to top left-hand corner of graphics window */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {   /* Send graphics cursor to top left-hand corner of graphics window */
     ds.xlast = (gtextxhome()/(2*ds.xscale))*2*ds.xscale;
     ds.ylast = (gtextyhome()/(2*ds.yscale))*2*ds.yscale;
   }
-  else {	/* Send text cursor to the top left-hand corner of the text window */
+  else {        /* Send text cursor to the top left-hand corner of the text window */
     move_cursor(twinleft, twintop);
   }
 }
@@ -2386,14 +2386,14 @@ static void vdu_hometext(void) {
 */
 static void vdu_movetext(void) {
   int32 column, row;
-  if (vduflag(VDU_FLAG_GRAPHICURS)) {	/* Text is going to the graphics cursor */
+  if (vduflag(VDU_FLAG_GRAPHICURS)) {   /* Text is going to the graphics cursor */
     ds.xlast = ds.gwinleft+vduqueue[0]*XPPC*ds.xgupp;
     ds.ylast = ds.gwintop-vduqueue[1]*YPPC*ds.ygupp;
   }
-  else {	/* Text is going to the text cursor */
+  else {        /* Text is going to the text cursor */
     column = vduqueue[0] + twinleft;
     row = vduqueue[1] + twintop;
-    if (column > (twinright + SCROLLPROT) || row > twinbottom) return;	/* Ignore command if values are out of range */
+    if (column > (twinright + SCROLLPROT) || row > twinbottom) return;  /* Ignore command if values are out of range */
     move_cursor(column, row);
   }
 }
@@ -2410,15 +2410,15 @@ static void printer_char(void) {
 ** off' commands, are silently ignored.
 */
 void emulate_vdu(int32 charvalue) {
-  charvalue = charvalue & BYTEMASK;	/* Deal with any signed char type problems */
+  charvalue = charvalue & BYTEMASK;     /* Deal with any signed char type problems */
   if (matrixflags.dospool) fputc(charvalue, matrixflags.dospool);
   if (matrixflags.printer) printout_character(charvalue);
-  if (vduneeded == 0) {			/* VDU queue is empty */
+  if (vduneeded == 0) {                 /* VDU queue is empty */
     if (vduflag(VDU_FLAG_DISABLE)) {
       if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);
       return;
     }
-    if (charvalue >= ' ') {		/* Most common case - print something */
+    if (charvalue >= ' ') {             /* Most common case - print something */
       /* Handle Mode 7 */
 #ifndef BRANDY_MODE7ONLY
       if (screenmode == 7) {
@@ -2488,7 +2488,7 @@ void emulate_vdu(int32 charvalue) {
         return; /* End of MODE 7 block */
 #ifndef BRANDY_MODE7ONLY
       } else {
-        if (vduflag(VDU_FLAG_GRAPHICURS)) {			    /* Sending text output to graphics cursor */
+        if (vduflag(VDU_FLAG_GRAPHICURS)) {                         /* Sending text output to graphics cursor */
           if (charvalue == 127) {
             move_curback();
             plot_space_opaque();
@@ -2502,20 +2502,20 @@ void emulate_vdu(int32 charvalue) {
             move_curback();
           } else {
             write_char(charvalue);
-            reveal_cursor();	/* Redraw the cursor */
+            reveal_cursor();    /* Redraw the cursor */
           }
         }
       }
 #endif
       return;
     }
-    else {	/* Control character - Found start of new VDU command */
+    else {      /* Control character - Found start of new VDU command */
       vducmd = charvalue;
       vduneeded = vdubytes[charvalue];
       vdunext = 0;
     }
   }
-  else {	/* Add character to VDU queue for current command */
+  else {        /* Add character to VDU queue for current command */
     vduqueue[vdunext] = charvalue;
     vdunext++;
   }
@@ -2524,121 +2524,121 @@ void emulate_vdu(int32 charvalue) {
 
 /* There are now enough entries in the queue for the current command */
 
-  switch (vducmd) {	/* Emulate the various control codes */
-  case VDU_NULL:  	/* 0 - Do nothing */
+  switch (vducmd) {     /* Emulate the various control codes */
+  case VDU_NULL:        /* 0 - Do nothing */
     break;
-  case VDU_PRINT:	/* 1 - Send next character to the print stream */
+  case VDU_PRINT:       /* 1 - Send next character to the print stream */
     printer_char();
     break;
-  case VDU_ENAPRINT: 	/* 2 - Enable the sending of characters to the printer */
+  case VDU_ENAPRINT:    /* 2 - Enable the sending of characters to the printer */
     open_printer();
     break;
-  case VDU_DISPRINT:	/* 3 - Disable the sending of characters to the printer */
+  case VDU_DISPRINT:    /* 3 - Disable the sending of characters to the printer */
     close_printer();
     break;
-  case VDU_TEXTCURS:	/* 4 - Print text at text cursor */
+  case VDU_TEXTCURS:    /* 4 - Print text at text cursor */
     write_vduflag(VDU_FLAG_GRAPHICURS,0);
-    if (cursorstate == HIDDEN) {	/* Start displaying the cursor */
+    if (cursorstate == HIDDEN) {        /* Start displaying the cursor */
       cursorstate = SUSPENDED;
       toggle_cursor();
     }
     break;
-  case VDU_GRAPHICURS:	/* 5 - Print text at graphics cursor */
+  case VDU_GRAPHICURS:  /* 5 - Print text at graphics cursor */
     if (!istextonly()) {
-      toggle_cursor();	/* Remove the cursor if it is being displayed */
+      toggle_cursor();  /* Remove the cursor if it is being displayed */
       cursorstate = HIDDEN;
       write_vduflag(VDU_FLAG_GRAPHICURS,1);
     }
     break;
-  case VDU_ENABLE:	/* 6 - Enable the VDU driver */
+  case VDU_ENABLE:      /* 6 - Enable the VDU driver */
     write_vduflag(VDU_FLAG_DISABLE,0);
     break;
-  case VDU_BEEP:	/* 7 - Sound the bell */
+  case VDU_BEEP:        /* 7 - Sound the bell */
     putchar('\7');
     fflush(stdout);
     break;
-  case VDU_CURBACK:	/* 8 - Move cursor left one character */
+  case VDU_CURBACK:     /* 8 - Move cursor left one character */
     move_curback();
     break;
-  case VDU_CURFORWARD:	/* 9 - Move cursor right one character */
+  case VDU_CURFORWARD:  /* 9 - Move cursor right one character */
     move_curforward();
     break;
-  case VDU_CURDOWN:	/* 10 - Move cursor down one line (linefeed) */
+  case VDU_CURDOWN:     /* 10 - Move cursor down one line (linefeed) */
     move_curdown();
     break;
-  case VDU_CURUP:	/* 11 - Move cursor up one line */
+  case VDU_CURUP:       /* 11 - Move cursor up one line */
     move_curup();
     break;
-  case VDU_CLEARTEXT:	/* 12 - Clear text window (formfeed) */
+  case VDU_CLEARTEXT:   /* 12 - Clear text window (formfeed) */
 #ifndef BRANDY_MODE7ONLY
-    if (vduflag(VDU_FLAG_GRAPHICURS))	/* In VDU 5 mode, clear the graphics window */
+    if (vduflag(VDU_FLAG_GRAPHICURS))   /* In VDU 5 mode, clear the graphics window */
       vdu_cleargraph();
-    else		/* In text mode, clear the text window */
+    else                /* In text mode, clear the text window */
 #endif
       vdu_cleartext();
     vdu_hometext();
     break;
-  case VDU_RETURN:	/* 13 - Carriage return */
+  case VDU_RETURN:      /* 13 - Carriage return */
     vdu_return();
     break;
-  case VDU_ENAPAGE:	/* 14 - Enable page mode */
+  case VDU_ENAPAGE:     /* 14 - Enable page mode */
     write_vduflag(VDU_FLAG_ENAPAGE,1);
     break;
-  case VDU_DISPAGE:	/* 15 - Disable page mode */
+  case VDU_DISPAGE:     /* 15 - Disable page mode */
     write_vduflag(VDU_FLAG_ENAPAGE,0);
     break;
 #ifndef BRANDY_MODE7ONLY
-  case VDU_CLEARGRAPH:	/* 16 - Clear graphics window */
+  case VDU_CLEARGRAPH:  /* 16 - Clear graphics window */
     vdu_cleargraph();
     break;
-  case VDU_TEXTCOL:	/* 17 - Change current text colour */
+  case VDU_TEXTCOL:     /* 17 - Change current text colour */
     vdu_textcol();
     break;
-  case VDU_GRAPHCOL:	/* 18 - Change current graphics colour */
+  case VDU_GRAPHCOL:    /* 18 - Change current graphics colour */
     vdu_graphcol();
     break;
-  case VDU_LOGCOL:	/* 19 - Map logical colour to physical colour */
+  case VDU_LOGCOL:      /* 19 - Map logical colour to physical colour */
     vdu_setpalette();
     break;
-  case VDU_RESTCOL:	/* 20 - Restore logical colours to default values */
+  case VDU_RESTCOL:     /* 20 - Restore logical colours to default values */
     reset_colours();
     break;
 #endif
-  case VDU_DISABLE:	/* 21 - Disable the VDU driver */
+  case VDU_DISABLE:     /* 21 - Disable the VDU driver */
     write_vduflag(VDU_FLAG_DISABLE,1);
     break;
-  case VDU_SCRMODE:	/* 22 - Change screen mode */
+  case VDU_SCRMODE:     /* 22 - Change screen mode */
     emulate_mode(vduqueue[0]);
     break;
-  case VDU_COMMAND:	/* 23 - Assorted VDU commands */
+  case VDU_COMMAND:     /* 23 - Assorted VDU commands */
     vdu_23command();
     break;
 #ifndef BRANDY_MODE7ONLY
-  case VDU_DEFGRAPH:	/* 24 - Define graphics window */
+  case VDU_DEFGRAPH:    /* 24 - Define graphics window */
     vdu_graphwind();
     break;
-  case VDU_PLOT:	/* 25 - Issue graphics command */
+  case VDU_PLOT:        /* 25 - Issue graphics command */
     vdu_plot();
     break;
 #endif
-  case VDU_RESTWIND:	/* 26 - Restore default windows */
+  case VDU_RESTWIND:    /* 26 - Restore default windows */
     vdu_restwind();
     break;
-  case VDU_ESCAPE:	/* 27 - Do nothing (character is sent to output stream) */
+  case VDU_ESCAPE:      /* 27 - Do nothing (character is sent to output stream) */
 //    putch(vducmd);
     break;
-  case VDU_DEFTEXT:	/* 28 - Define text window */
+  case VDU_DEFTEXT:     /* 28 - Define text window */
     vdu_textwind();
     break;
 #ifndef BRANDY_MODE7ONLY
-  case VDU_ORIGIN:	/* 29 - Define graphics origin */
+  case VDU_ORIGIN:      /* 29 - Define graphics origin */
     vdu_origin();
     break;
 #endif
-  case VDU_HOMETEXT:	/* 30 - Send cursor to top left-hand corner of screen */
+  case VDU_HOMETEXT:    /* 30 - Send cursor to top left-hand corner of screen */
     vdu_hometext();
     break;
-  case VDU_MOVETEXT:	/* 31 - Send cursor to column x, row y on screen */
+  case VDU_MOVETEXT:    /* 31 - Send cursor to column x, row y on screen */
     vdu_movetext();
   }
 }
@@ -2649,7 +2649,7 @@ void emulate_vdu(int32 charvalue) {
 void emulate_vdustr(char string[], int32 length) {
   int32 n;
   if (length == 0) length = strlen(string);
-  for (n = 0; n < length-1; n++) emulate_vdu(string[n]);	/* Send the string to the VDU driver */
+  for (n = 0; n < length-1; n++) emulate_vdu(string[n]);        /* Send the string to the VDU driver */
   emulate_vdu(string[length-1]);        /* last char sent after echo turned back on */
 }
 
@@ -2724,9 +2724,9 @@ static void setup_mode(int32 mode) {
   int p;
 
   ds.videorefresh = 0;
-  mode = mode & MODEMASK;	/* Lose 'shadow mode' bit */
+  mode = mode & MODEMASK;       /* Lose 'shadow mode' bit */
   modecopy = mode;
-  if (mode > HIGHMODE) mode = modecopy = 0;	/* Out of range modes are mapped to MODE 0 */
+  if (mode > HIGHMODE) mode = modecopy = 0;     /* Out of range modes are mapped to MODE 0 */
   ox=ds.vscrwidth;
   oy=ds.vscrheight;
   /* Try to catch an undefined mode */
@@ -2785,21 +2785,21 @@ static void setup_mode(int32 mode) {
   textheight = modetable[mode].ytext;
   ds.xscale = modetable[mode].xscale;
   ds.yscale = modetable[mode].yscale;
-  ds.scaled = ds.yscale != 1 || ds.xscale != 1;	/* TRUE if graphics screen is scaled to fit real screen */
+  ds.scaled = ds.yscale != 1 || ds.xscale != 1; /* TRUE if graphics screen is scaled to fit real screen */
   write_vduflag(VDU_FLAG_GRAPHICURS,0);
   cursmode = UNDERLINE;
   cursorstate = SUSPENDED;      /* Cursor will be switched on later */
-  ds.clipping = FALSE;		/* A clipping region has not been defined for the screen mode */
-  ds.xgupp = ds.xgraphunits/ds.screenwidth;	/* Graphics units per pixel in X direction */
-  ds.ygupp = ds.ygraphunits/ds.screenheight;	/* Graphics units per pixel in Y direction */
+  ds.clipping = FALSE;          /* A clipping region has not been defined for the screen mode */
+  ds.xgupp = ds.xgraphunits/ds.screenwidth;     /* Graphics units per pixel in X direction */
+  ds.ygupp = ds.ygraphunits/ds.screenheight;    /* Graphics units per pixel in Y direction */
   ds.xorigin = ds.yorigin = 0;
   ds.xlast = ds.ylast = ds.xlast2 = ds.ylast2 = 0;
   ds.gwinleft = 0;
   ds.gwinright = ds.xgraphunits-1;
   ds.gwintop = ds.ygraphunits-1;
   ds.gwinbottom = 0;
-  write_vduflag(VDU_FLAG_TEXTWIN,0);		/* A text window has not been created yet */
-  twinleft = 0;			/* Set up initial text window to whole screen */
+  write_vduflag(VDU_FLAG_TEXTWIN,0);            /* A text window has not been created yet */
+  twinleft = 0;                 /* Set up initial text window to whole screen */
   twinright = textwidth-1;
   twintop = 0;
   twinbottom = textheight-1;
@@ -2908,7 +2908,7 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
     setupnewmode(n, xres, yres, coldepth, 1, 1, xeig, yeig);
   }
   emulate_mode(n);
-  if (colours == 0) {	/* Want a grey scale palette  - Reset all the colours */
+  if (colours == 0) {   /* Want a grey scale palette  - Reset all the colours */
     int32 step, intensity;
     step = 255/(greys-1);
     intensity = 0;
@@ -3030,7 +3030,7 @@ static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
 static void flood_fill(int32 x, int y, int colour, Uint32 action) {
   int32 pwinleft, pwinright, pwintop, pwinbottom;
   if (colour == ds.gb_colour) return;
-  pwinleft = GXTOPX(ds.gwinleft);		/* Calculate extent of graphics window in pixels */
+  pwinleft = GXTOPX(ds.gwinleft);               /* Calculate extent of graphics window in pixels */
   pwinright = GXTOPX(ds.gwinright);
   pwintop = GYTOPY(ds.gwintop);
   pwinbottom = GYTOPY(ds.gwinbottom);
@@ -3065,28 +3065,28 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   ds.ylast3 = ds.ylast2;
   ds.xlast2 = ds.xlast;
   ds.ylast2 = ds.ylast;
-  if ((code & ABSCOORD_MASK) != 0 ) {		/* Coordinate (x,y) is absolute */
-    ds.xlast = x+ds.xorigin;	/* These probably have to be treated as 16-bit values */
+  if ((code & ABSCOORD_MASK) != 0 ) {           /* Coordinate (x,y) is absolute */
+    ds.xlast = x+ds.xorigin;    /* These probably have to be treated as 16-bit values */
     ds.ylast = y+ds.yorigin;
   }
-  else {	/* Coordinate (x,y) is relative */
-    ds.xlast+=x;	/* These probably have to be treated as 16-bit values */
+  else {        /* Coordinate (x,y) is relative */
+    ds.xlast+=x;        /* These probably have to be treated as 16-bit values */
     ds.ylast+=y;
   }
-  if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) return;	/* Just moving graphics cursor, so finish here */
+  if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) return;   /* Just moving graphics cursor, so finish here */
   sx = GXTOPX(ds.xlast2);
   sy = GYTOPY(ds.ylast2);
   ex = GXTOPX(ds.xlast);
   ey = GYTOPY(ds.ylast);
-  if ((code & GRAPHOP_MASK) != SHIFT_RECTANGLE) {		/* Move and copy rectangle are a special case */
+  if ((code & GRAPHOP_MASK) != SHIFT_RECTANGLE) {               /* Move and copy rectangle are a special case */
     switch (code & PLOT_COLMASK) {
-    case PLOT_FOREGROUND:	/* Use graphics foreground colour */
+    case PLOT_FOREGROUND:       /* Use graphics foreground colour */
       colour = ds.gf_colour;
       break;
-    case PLOT_INVERSE:		/* Use logical inverse of colour at each point */
+    case PLOT_INVERSE:          /* Use logical inverse of colour at each point */
       ds.plot_inverse=1;
       break;
-    case PLOT_BACKGROUND:	/* Use graphics background colour */
+    case PLOT_BACKGROUND:       /* Use graphics background colour */
       colour = ds.gb_colour;
       action = ds.graph_back_action;
     }
@@ -3100,9 +3100,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case DRAW_SOLIDLINE2:
   case DRAW_SOLIDLINE2+8:
   case DRAW_DOTLINE2:
-  case DRAW_DOTLINE2+8: {	/* Draw line */
+  case DRAW_DOTLINE2+8: {       /* Draw line */
     int32 top, left;
-    left = sx;	/* Find top left-hand corner of rectangle containing line */
+    left = sx;  /* Find top left-hand corner of rectangle containing line */
     top = sy;
     if (ex < sx) left = ex;
     if (ey < sy) top = ey;
@@ -3112,14 +3112,14 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     reveal_cursor();
     break;
   }
-  case PLOT_POINT:	/* Plot a single point */
+  case PLOT_POINT:      /* Plot a single point */
     hide_cursor();
     if ((ex < 0) || (ex >= ds.screenwidth) || (ey < 0) || (ey >= ds.screenheight)) break;
     plot_pixel(screenbank[ds.writebank], ex, ey, colour, action);
     blit_scaled(ex, ey, ex, ey);
     reveal_cursor();
     break;
-  case FILL_TRIANGLE: {		/* Plot a filled triangle */
+  case FILL_TRIANGLE: {         /* Plot a filled triangle */
     int32 left, right, top, bottom;
     filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
@@ -3138,7 +3138,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     reveal_cursor();
     break;
   }
-  case FILL_RECTANGLE: {		/* Plot a filled rectangle */
+  case FILL_RECTANGLE: {                /* Plot a filled rectangle */
     int32 left, right, top, bottom;
     left = sx;
     top = sy;
@@ -3162,7 +3162,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     reveal_cursor();
     break;
   }
-  case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
+  case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
     int32 vx, vy, left, right, top, bottom;
     filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
     vx = ds.xlast3-ds.xlast2+ds.xlast;
@@ -3188,12 +3188,12 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     reveal_cursor();
     break;
   }
-  case FLOOD_BACKGROUND:	/* Flood fill background with graphics foreground colour */
+  case FLOOD_BACKGROUND:        /* Flood fill background with graphics foreground colour */
     flood_fill(ex, ey, colour, action);
     break;
-  case SHIFT_RECTANGLE: {	/* Move or copy a rectangle */
+  case SHIFT_RECTANGLE: {       /* Move or copy a rectangle */
     int32 destleft, destop, left, right, top, bottom;
-    if (ds.xlast3 < ds.xlast2) {	/* Figure out left and right hand extents of rectangle */
+    if (ds.xlast3 < ds.xlast2) {        /* Figure out left and right hand extents of rectangle */
       left = GXTOPX(ds.xlast3);
       right = GXTOPX(ds.xlast2);
     }
@@ -3201,7 +3201,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       left = GXTOPX(ds.xlast2);
       right = GXTOPX(ds.xlast3);
     }
-    if (ds.ylast3 > ds.ylast2) {	/* Figure out upper and lower extents of rectangle */
+    if (ds.ylast3 > ds.ylast2) {        /* Figure out upper and lower extents of rectangle */
       top = GYTOPY(ds.ylast3);
       bottom = GYTOPY(ds.ylast2);
     }
@@ -3209,8 +3209,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       top = GYTOPY(ds.ylast2);
       bottom = GYTOPY(ds.ylast3);
     }
-    destleft = GXTOPX(ds.xlast);		/* X coordinate of top left-hand corner of destination */
-    destop = GYTOPY(ds.ylast)-(bottom-top);	/* Y coordinate of top left-hand corner of destination */
+    destleft = GXTOPX(ds.xlast);                /* X coordinate of top left-hand corner of destination */
+    destop = GYTOPY(ds.ylast)-(bottom-top);     /* Y coordinate of top left-hand corner of destination */
     plot_rect.x = destleft;
     plot_rect.y = destop;
     temp_rect.x = left;
@@ -3222,13 +3222,13 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     hide_cursor();
     blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
     reveal_cursor();
-    if (code == MOVE_RECTANGLE) {	/* Move rectangle - Set original rectangle to the background colour */
+    if (code == MOVE_RECTANGLE) {       /* Move rectangle - Set original rectangle to the background colour */
       int32 destright, destbot;
       destright = destleft+right-left;
       destbot = destop+bottom-top;
 /* Check if source and destination rectangles overlap */
       if (((destleft >= left && destleft <= right) || (destright >= left && destright <= right)) &&
-       ((destop >= top && destop <= bottom) || (destbot >= top && destbot <= bottom))) {	/* Overlap found */
+       ((destop >= top && destop <= bottom) || (destbot >= top && destbot <= bottom))) {        /* Overlap found */
         int32 xdiff, ydiff;
 /*
 ** The area of the original rectangle that is not overlapped can be
@@ -3238,7 +3238,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 */
         xdiff = left-destleft;
         ydiff = top-destop;
-        if (ydiff > 0) {	/* Destination area is higher than the original area on screen */
+        if (ydiff > 0) {        /* Destination area is higher than the original area on screen */
           if (xdiff > 0) {
             plot_rect.x = destright+1;
             plot_rect.y = top;
@@ -3259,8 +3259,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
           plot_rect.h = bottom - (destbot+1) +1;
           SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
         }
-        else if (ydiff == 0) {	/* Destination area is on same level as original area */
-          if (xdiff > 0) {	/* Destination area lies to left of original area */
+        else if (ydiff == 0) {  /* Destination area is on same level as original area */
+          if (xdiff > 0) {      /* Destination area lies to left of original area */
             plot_rect.x = destright+1;
             plot_rect.y = top;
             plot_rect.w = right - (destright+1) +1;
@@ -3275,7 +3275,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
             SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
           }
         }
-        else {	/* Destination area is lower than original area on screen */
+        else {  /* Destination area is lower than original area on screen */
           if (xdiff > 0) {
             plot_rect.x = destright+1;
             plot_rect.y = destop;
@@ -3297,7 +3297,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
           SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
         }
       }
-      else {	/* No overlap - Simple case */
+      else {    /* No overlap - Simple case */
         plot_rect.x = left;
         plot_rect.y = top;
         plot_rect.w = right - left +1;
@@ -3310,8 +3310,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     break;
   }
-  case PLOT_CIRCLE:		/* Plot the outline of a circle */
-  case FILL_CIRCLE: {		/* Plot a filled circle */
+  case PLOT_CIRCLE:             /* Plot the outline of a circle */
+  case FILL_CIRCLE: {           /* Plot a filled circle */
     int32 xradius, yradius, xr;
 /*
 ** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
@@ -3340,8 +3340,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     reveal_cursor();
     break;
   }
-  case PLOT_ELLIPSE:		/* Draw an ellipse outline */
-  case FILL_ELLIPSE: {		/* Draw a filled ellipse */
+  case PLOT_ELLIPSE:            /* Draw an ellipse outline */
+  case FILL_ELLIPSE: {          /* Draw a filled ellipse */
     int32 semimajor, semiminor, shearx;
 /*
 ** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
@@ -3566,10 +3566,10 @@ void emulate_on(void) {
 void emulate_tint(int32 action, int32 tint) {
 #ifndef BRANDY_MODE7ONLY
   int32 n;
-  emulate_vdu(VDU_COMMAND);		/* Use VDU 23,17 */
+  emulate_vdu(VDU_COMMAND);             /* Use VDU 23,17 */
   emulate_vdu(17);
-  emulate_vdu(action);	/* Says which colour to modify */
-  //if (tint<=MAXTINT) tint = tint<<TINTSHIFT;	/* Assume value is in the wrong place */
+  emulate_vdu(action);  /* Says which colour to modify */
+  //if (tint<=MAXTINT) tint = tint<<TINTSHIFT;  /* Assume value is in the wrong place */
   emulate_vdu(tint);
   for (n=1; n<=7; n++) emulate_vdu(0);
 #endif
@@ -3641,7 +3641,7 @@ void emulate_mapcolour(int32 colour, int32 physcolour) {
 #ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_LOGCOL);
   emulate_vdu(colour);
-  emulate_vdu(physcolour);	/* Set logical logical colour to given physical colour */
+  emulate_vdu(physcolour);      /* Set logical logical colour to given physical colour */
   emulate_vdu(0);
   emulate_vdu(0);
   emulate_vdu(0);
@@ -3681,7 +3681,7 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 #ifndef BRANDY_MODE7ONLY
   emulate_vdu(VDU_LOGCOL);
   emulate_vdu(colour);
-  emulate_vdu(16);	/* Set both flash palettes for logical colour to given colour */
+  emulate_vdu(16);      /* Set both flash palettes for logical colour to given colour */
   emulate_vdu(red);
   emulate_vdu(green);
   emulate_vdu(blue);
@@ -3795,8 +3795,8 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
     shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
   }
 
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);        /* Move to centre of ellipse */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);      /* Find a point on the circumference */
   if (isfilled)
     emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   else {
@@ -3807,9 +3807,9 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
 
 void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
 #ifndef BRANDY_MODE7ONLY
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of circle */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);        /* Move to centre of circle */
   if (isfilled)
-    emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);	/* Plot to a point on the circumference */
+    emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);       /* Plot to a point on the circumference */
   else {
     emulate_plot(PLOT_CIRCLE+DRAW_ABSOLUTE, x-radius, y);
   }
@@ -3843,7 +3843,7 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
 #ifndef BRANDY_MODE7ONLY
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, width, height);
-  if (ismove)	/* Move the area just marked */
+  if (ismove)   /* Move the area just marked */
     emulate_plot(MOVE_RECTANGLE, x2, y2);
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
@@ -5123,12 +5123,12 @@ void osword0C(int64 x) {
   logcol = block[0] & colourmask;
   mode = block[1];
   pmode = mode % 16;
-  if (mode < 16 && colourdepth <= 16) {	/* Just change the RISC OS logical to physical colour mapping */
+  if (mode < 16 && colourdepth <= 16) { /* Just change the RISC OS logical to physical colour mapping */
     logtophys[logcol] = mode;
     palette[logcol*3+0] = hardpalette[pmode*3+0];
     palette[logcol*3+1] = hardpalette[pmode*3+1];
     palette[logcol*3+2] = hardpalette[pmode*3+2];
-  } else if (mode == 16)	/* Change the palette entry for colour 'logcol' */
+  } else if (mode == 16)        /* Change the palette entry for colour 'logcol' */
     change_palette(logcol, block[2], block[3], block[4]);
   set_rgb();
   /* Now, go through the framebuffer and change the pixels */
@@ -5241,22 +5241,22 @@ static int32 getmodeflags(int32 scrmode) {
 }
 static int32 mode_divider(int32 scrmode) {
   switch (modetable[scrmode].coldepth) {
-    case 2:	   return 32;
-    case 4:	   return 16;
-    case 16:	   return 8;
-    case 256:	   return 4;
+    case 2:        return 32;
+    case 4:        return 16;
+    case 16:       return 8;
+    case 256:      return 4;
     case COL15BIT: return 2;
-    default:	   return 1;
+    default:       return 1;
   }
 }
 static int32 log2bpp(int32 scrmode) {
   switch (modetable[scrmode].coldepth) {
-    case 2:	   return 0;
-    case 4:	   return 1;
-    case 16:	   return 2;
-    case 256:	   return 3;
+    case 2:        return 0;
+    case 4:        return 1;
+    case 16:       return 2;
+    case 256:      return 3;
     case COL15BIT: return 4;
-    default:	   return 5;
+    default:       return 5;
   }
 }
 /* Using values returned by RISC OS 3.7 */
@@ -5264,9 +5264,9 @@ size_t readmodevariable(int32 scrmode, int32 var) {
   int tmp=0;
   if (scrmode == -1) scrmode = screenmode;
   switch (var) {
-    case 0:	return (getmodeflags(scrmode));
-    case 1:	return (modetable[scrmode].xtext-1);
-    case 2:	return (modetable[scrmode].ytext-1);
+    case 0:     return (getmodeflags(scrmode));
+    case 1:     return (modetable[scrmode].xtext-1);
+    case 2:     return (modetable[scrmode].ytext-1);
     case 3:
       tmp=modetable[scrmode].coldepth;
 #ifndef BRANDY_MODE7ONLY
@@ -5275,51 +5275,51 @@ size_t readmodevariable(int32 scrmode, int32 var) {
       if (tmp==COL24BIT) tmp=0;
 #endif
       return tmp-1;
-    case 4:	return (modetable[scrmode].xscale);
-    case 5:	return (modetable[scrmode].yscale);
-    case 6:	return (modetable[scrmode].xres * 4 / mode_divider(scrmode));
-    case 7:	return (modetable[scrmode].xres * modetable[scrmode].yres * 4 / mode_divider(scrmode));
-    case 9:	/* Fall through to 10 */
-    case 10:	return (log2bpp(scrmode));
-    case 11:	return (modetable[scrmode].xres-1);
-    case 12:	return (modetable[scrmode].yres-1);
-    case 128: /* GWLCol */	return ds.gwinleft / ds.xgupp;
-    case 129: /* GWBRow */	return ds.gwinbottom / ds.ygupp;
-    case 130: /* GWRCol */	return ds.gwinright / ds.xgupp;
-    case 131: /* GWTRow */	return ds.gwintop / ds.ygupp;
-    case 132: /* TWLCol */	return twinleft;
-    case 133: /* TWBRow */	return twinbottom;
-    case 134: /* TWRCol */	return twinright;
-    case 135: /* TWTRow */	return twintop;
+    case 4:     return (modetable[scrmode].xscale);
+    case 5:     return (modetable[scrmode].yscale);
+    case 6:     return (modetable[scrmode].xres * 4 / mode_divider(scrmode));
+    case 7:     return (modetable[scrmode].xres * modetable[scrmode].yres * 4 / mode_divider(scrmode));
+    case 9:     /* Fall through to 10 */
+    case 10:    return (log2bpp(scrmode));
+    case 11:    return (modetable[scrmode].xres-1);
+    case 12:    return (modetable[scrmode].yres-1);
+    case 128: /* GWLCol */      return ds.gwinleft / ds.xgupp;
+    case 129: /* GWBRow */      return ds.gwinbottom / ds.ygupp;
+    case 130: /* GWRCol */      return ds.gwinright / ds.xgupp;
+    case 131: /* GWTRow */      return ds.gwintop / ds.ygupp;
+    case 132: /* TWLCol */      return twinleft;
+    case 133: /* TWBRow */      return twinbottom;
+    case 134: /* TWRCol */      return twinright;
+    case 135: /* TWTRow */      return twintop;
 #ifndef BRANDY_MODE7ONLY
-    case 136: /* OrgX */	return ds.xorigin;
-    case 137: /* OrgY */	return ds.yorigin;
+    case 136: /* OrgX */        return ds.xorigin;
+    case 137: /* OrgY */        return ds.yorigin;
     case 138: /* GCsX */  return (ds.xlast-ds.xorigin);
     case 139: /* GCsY */  return (ds.ylast-ds.yorigin);
-    case 140: /* OlderCsX */	return ds.xlast3/(2*ds.xscale);
-    case 141: /* OlderCsY */	return ds.ylast3/(2*ds.yscale);
-    case 142: /* OldCsX */	return ds.xlast2/(2*ds.xscale);
-    case 143: /* OldCsY */	return ds.ylast2/(2*ds.yscale);
-    case 144: /* GCsIX */	return ds.xlast/(2*ds.xscale);
-    case 145: /* GCsIY */	return ds.ylast/(2*ds.yscale);
-    case 146: /* NewPtX */	return ds.xlast/(2*ds.xscale);
-    case 147: /* NewPtY */	return ds.ylast/(2*ds.yscale);
+    case 140: /* OlderCsX */    return ds.xlast3/(2*ds.xscale);
+    case 141: /* OlderCsY */    return ds.ylast3/(2*ds.yscale);
+    case 142: /* OldCsX */      return ds.xlast2/(2*ds.xscale);
+    case 143: /* OldCsY */      return ds.ylast2/(2*ds.yscale);
+    case 144: /* GCsIX */       return ds.xlast/(2*ds.xscale);
+    case 145: /* GCsIY */       return ds.ylast/(2*ds.yscale);
+    case 146: /* NewPtX */      return ds.xlast/(2*ds.xscale);
+    case 147: /* NewPtY */      return ds.ylast/(2*ds.yscale);
     case 148: /* ScreenStart */
     case 149: /* DisplayStart */ return (size_t)matrixflags.modescreen_ptr;
     case 150: /* TotalScreenSize */ return matrixflags.modescreen_sz;
-    case 151: /* GPLFMD */	return ds.graph_fore_action;
-    case 152: /* GPLBMD */	return ds.graph_back_action;
-    case 153: /* GFCOL */	return ds.graph_forelog;
-    case 154: /* GBCOL */	return ds.graph_backlog;
-    case 155: /* TForeCol */	return text_forecol;
-    case 156: /* TBackCol */	return text_backcol;
-    case 157: /* GFTint */	return ds.graph_foretint << 6;
-    case 158: /* GBTint */	return ds.graph_backtint << 6;
-    case 159: /* TFTint */	return text_foretint << 6;
-    case 160: /* TBTint */	return text_backtint << 6;
+    case 151: /* GPLFMD */      return ds.graph_fore_action;
+    case 152: /* GPLBMD */      return ds.graph_back_action;
+    case 153: /* GFCOL */       return ds.graph_forelog;
+    case 154: /* GBCOL */       return ds.graph_backlog;
+    case 155: /* TForeCol */    return text_forecol;
+    case 156: /* TBackCol */    return text_backcol;
+    case 157: /* GFTint */      return ds.graph_foretint << 6;
+    case 158: /* GBTint */      return ds.graph_backtint << 6;
+    case 159: /* TFTint */      return text_foretint << 6;
+    case 160: /* TBTint */      return text_backtint << 6;
 #endif
-    case 161: /* MaxMode */	return HIGHMODE;
-    default:	return 0;
+    case 161: /* MaxMode */     return HIGHMODE;
+    default:    return 0;
   }
 }
 

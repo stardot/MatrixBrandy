@@ -140,11 +140,11 @@ extern threadmsg tmsg;
 /* Veneers, fill in later */
 boolean kbd_init() { return TRUE; }
 int     kbd_setfkey(int key, char *string, int length) {
-		return set_fn_string(key, string, length); }
+                return set_fn_string(key, string, length); }
 char   *kbd_getfkey(int key, int *len) {
-		return get_fn_string(key, len); }
+                return get_fn_string(key, len); }
 readstate kbd_readln(char buffer[], int32 length, int32 echochar) {
-		return emulate_readline(&buffer[0], length, echochar); }
+                return emulate_readline(&buffer[0], length, echochar); }
 
 
 /* kbd_inkey called to implement Basic INKEY and INKEY$ functions */
@@ -156,13 +156,13 @@ int32 kbd_inkey(int32 arg) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   if (arg == -256) return OSVERSION;
-  regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
+  regs.r[0] = 129;                              /* Use OS_Byte 129 for this             */
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
-  if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
-  if (regs.r[2] == 0)	return regs.r[1];	/* Character was read successfully	*/
-  else			return -1;		/* Timed out				*/
+  if (oserror != NIL)   error(ERR_CMDFAIL, oserror->errmess);
+  if (regs.r[2] == 0)   return regs.r[1];       /* Character was read successfully      */
+  else                  return -1;              /* Timed out                            */
 }
 int32 kbd_inkey256() {
 
@@ -171,13 +171,13 @@ int32 kbd_inkey256() {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   int32 arg = -256;
-  regs.r[0] = 129;				/* Use OS_Byte 129 for this		*/
+  regs.r[0] = 129;                              /* Use OS_Byte 129 for this             */
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
-  if (oserror != NIL)	error(ERR_CMDFAIL, oserror->errmess);
-  if (regs.r[2] == 0)	return regs.r[1];	/* Character was read successfully	*/
-  else			return -1;		/* Timed out				*/
+  if (oserror != NIL)   error(ERR_CMDFAIL, oserror->errmess);
+  if (regs.r[2] == 0)   return regs.r[1];       /* Character was read successfully      */
+  else                  return -1;              /* Timed out                            */
 }
 
 
@@ -214,13 +214,13 @@ int32 emulate_get(void) {
 int32 emulate_inkey(int32 arg) {
   _kernel_oserror *oserror;     /* Use OS_Byte 129 to obtain the info */
   _kernel_swi_regs regs;
-  regs.r[0] = 129;      	/* Use OS_Byte 129 for this */
+  regs.r[0] = 129;              /* Use OS_Byte 129 for this */
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
   if (arg >= 0) {               /* +ve argument = read keyboard with time limit */
-    if (regs.r[2] == 0) 	/* Character was read successfully */
+    if (regs.r[2] == 0)         /* Character was read successfully */
       return (regs.r[1]);
     else if (regs.r[2] == 0xFF) /* Timed out */
       return -1;
@@ -283,8 +283,8 @@ void kbd_quit() {
 
 int kbd_escack() {
   byte tmp=basicvars.escape;
-  basicvars.escape=FALSE;				/* Clear pending Escape		*/
-  return tmp ? -1 : 0;					/* Return previous Escape state	*/
+  basicvars.escape=FALSE;                               /* Clear pending Escape         */
+  return tmp ? -1 : 0;                                  /* Return previous Escape state */
 }
 
 int kbd_esctest() {
@@ -309,30 +309,30 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
   int32 carry;
 
 // RISC OS compiler doesn't like code before variable declaration, so have to duplicate
-  if (length<1) return 0;			/* Filter out impossible or daft calls	*/
-  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+  if (length<1) return 0;                       /* Filter out impossible or daft calls  */
+  chars=(chars & 0xFF) | 0x00FF2000;            /* temp'y force all allowable chars     */
 
   regs.r[0] = (int)(&buffer[0]);
-  regs.r[1] = length - 1;			/* Subtract one to allow for terminator	*/
-  regs.r[2] = (chars >> 8) & 0xFF;		/* Lowest acceptable character		*/
-  regs.r[3] = (chars >> 16) & 0xFF;		/* Highest acceptable character		*/
+  regs.r[1] = length - 1;                       /* Subtract one to allow for terminator */
+  regs.r[2] = (chars >> 8) & 0xFF;              /* Lowest acceptable character          */
+  regs.r[3] = (chars >> 16) & 0xFF;             /* Highest acceptable character         */
 
-  if (regs.r[0] & 0xFF000000) {			/* High memory				*/
-    regs.r[4] = chars & 0xFF0000FF;		/* R4=Echo character and flags		*/
-    oserror = _kernel_swi_c(0x00007D, &regs, &regs, &carry);	/* OS_ReadLine32	*/
-    /* If OS_ReadLine32 doesn't exist, we don't have high memory anyway, so safe	*/
+  if (regs.r[0] & 0xFF000000) {                 /* High memory                          */
+    regs.r[4] = chars & 0xFF0000FF;             /* R4=Echo character and flags          */
+    oserror = _kernel_swi_c(0x00007D, &regs, &regs, &carry);    /* OS_ReadLine32        */
+    /* If OS_ReadLine32 doesn't exist, we don't have high memory anyway, so safe        */
 
-  } else {					/* Low memory				*/
-    regs.r[0]=regs.r[0] | (chars & 0xFF000000);	/* R0=Flags and address			*/
-    regs.r[4]=chars & 0x000000FF;		/* R4=Echo character			*/
+  } else {                                      /* Low memory                           */
+    regs.r[0]=regs.r[0] | (chars & 0xFF000000); /* R0=Flags and address                 */
+    regs.r[4]=chars & 0x000000FF;               /* R4=Echo character                    */
     oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
   }
 
   if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
-  if (carry) buffer[0] = NUL;			/* Carry is set - 'Escape' was pressed	*/
-  else       buffer[regs.r[1]] = NUL;		/* Number of characters returned in R1	*/
+  if (carry) buffer[0] = NUL;                   /* Carry is set - 'Escape' was pressed  */
+  else       buffer[regs.r[1]] = NUL;           /* Number of characters returned in R1  */
 
-  return carry == 0 ? regs.r[1] : -1;		/* To do: -1=READ_ESC			*/
+  return carry == 0 ? regs.r[1] : -1;           /* To do: -1=READ_ESC                   */
 }
 
 
@@ -484,47 +484,47 @@ int64 esclast=0;
 #if (defined(USE_SDL) && !defined(TARGET_MINGW)) || !defined(USE_SDL)
 static int32 keyboard;          /* File descriptor for keyboard */
 #endif
-static int32 holdcount;		/* Number of characters held on stack			*/
-static int32 holdstack[8];	/* Hold stack - Characters waiting to be passed back via 'get' */
+static int32 holdcount;         /* Number of characters held on stack                   */
+static int32 holdstack[8];      /* Hold stack - Characters waiting to be passed back via 'get' */
 
-#define INKEYMAX 0x7FFF		/* Maximum wait time for INKEY				*/
-#define WAITTIME 10		/* Time to wait in centiseconds when dealing with ANSI key sequences */
+#define INKEYMAX 0x7FFF         /* Maximum wait time for INKEY                          */
+#define WAITTIME 10             /* Time to wait in centiseconds when dealing with ANSI key sequences */
 
 /* fn_string and fn_string_count are used when expanding a function key string.
 ** Effectively input switches to the string after a function key with a string
 ** associated with it is pressed.
 */
-static char *fn_string;		/* Non-NULL if taking chars from a function key string	*/
-static int fn_string_count;	/* Count of characters left in function key string	*/
+static char *fn_string;         /* Non-NULL if taking chars from a function key string  */
+static int fn_string_count;     /* Count of characters left in function key string      */
 
 /* function key strings */
-#define FN_KEY_COUNT 16		/* Number of function keys supported (0 to FN_KEY_COUNT-1) */
+#define FN_KEY_COUNT 16         /* Number of function keys supported (0 to FN_KEY_COUNT-1) */
 static struct {int length; char *text;} fn_key[FN_KEY_COUNT];
 
 /* Line editor history */
-#define HISTSIZE 1024		/* Size of command history buffer			*/
-#define MAXHIST 20		/* Maximum number of entries in history list		*/
+#define HISTSIZE 1024           /* Size of command history buffer                       */
+#define MAXHIST 20              /* Maximum number of entries in history list            */
 
 static int32
-  place,			/* Offset where next character will be added to buffer	*/
-  highplace,			/* Highest value of 'place' (= number of characters in buffer) */
-  histindex,			/* Index of next entry to fill in in history list	*/
-  highbuffer,			/* Index of first free character in 'histbuffer'	*/
-  recalline;			/* Index of last line recalled from history display	*/
+  place,                        /* Offset where next character will be added to buffer  */
+  highplace,                    /* Highest value of 'place' (= number of characters in buffer) */
+  histindex,                    /* Index of next entry to fill in in history list       */
+  highbuffer,                   /* Index of first free character in 'histbuffer'        */
+  recalline;                    /* Index of last line recalled from history display     */
 
-static boolean backgnd_escape=TRUE; /* Escape polled in the background			*/
-static boolean enable_insert;       /* TRUE if keyboard input code is in insert mode	*/
-static char histbuffer[HISTSIZE];   /* Command history buffer				*/
-static int32 histlength[MAXHIST];   /* Table of sizes of entries in history buffer	*/
+static boolean backgnd_escape=TRUE; /* Escape polled in the background                  */
+static boolean enable_insert;       /* TRUE if keyboard input code is in insert mode    */
+static char histbuffer[HISTSIZE];   /* Command history buffer                           */
+static int32 histlength[MAXHIST];   /* Table of sizes of entries in history buffer      */
 
 static int nokeyboard=0;
 static int kbd_vikeys=0;
 
-static boolean waitkey(int wait);		/* Forward reference	*/
-static int32 pop_key(void);			/* Forward reference	*/
-static int32 read_fn_string(void);		/* Forward reference	*/
-static int32 switch_fn_string(int32 key);	/* Forward reference	*/
-// static int32 decode_sequence(void);		/* Forward reference	*/
+static boolean waitkey(int wait);               /* Forward reference    */
+static int32 pop_key(void);                     /* Forward reference    */
+static int32 read_fn_string(void);              /* Forward reference    */
+static int32 switch_fn_string(int32 key);       /* Forward reference    */
+// static int32 decode_sequence(void);          /* Forward reference    */
 
 #if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
 static void reinitWinConsole() {
@@ -532,13 +532,13 @@ static void reinitWinConsole() {
   DWORD mode;
   hStdin = (HANDLE) _get_osfhandle(STDIN_FILENO);
   if (GetFileType(hStdin) == FILE_TYPE_CHAR) {
-	GetConsoleMode(hStdin, &mode);
-	mode |= (ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
-	SetConsoleMode(hStdin, mode);
-	_setmode(_fileno(stdin), O_TEXT);
-	mode &= ~(ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
-	SetConsoleMode(hStdin, mode);
-	_setmode(_fileno(stdin), O_BINARY);
+        GetConsoleMode(hStdin, &mode);
+        mode |= (ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
+        SetConsoleMode(hStdin, mode);
+        _setmode(_fileno(stdin), O_TEXT);
+        mode &= ~(ENABLE_LINE_INPUT|ENABLE_ECHO_INPUT);
+        SetConsoleMode(hStdin, mode);
+        _setmode(_fileno(stdin), O_BINARY);
   }
   return;
 }
@@ -576,15 +576,15 @@ boolean kbd_init() {
   // ----------
   struct termios tty;
 
-  keyboard = fileno(stdin);		/* Handle to keyboard */
-  if (tcgetattr(keyboard, &tty) == 0) return TRUE;		/* Keyboard being used */
-//  if (tcgetattr(fileno(stdin), &tty) == 0) return TRUE;	/* Keyboard being used */
+  keyboard = fileno(stdin);             /* Handle to keyboard */
+  if (tcgetattr(keyboard, &tty) == 0) return TRUE;              /* Keyboard being used */
+//  if (tcgetattr(fileno(stdin), &tty) == 0) return TRUE;       /* Keyboard being used */
 /* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
 ** a keyboard and so the program does simple reads from stdin rather than use the custom
 ** keyboard code. If the error is not ENOTTY then something has gone wrong so we abort
 ** the program
 */
-  if (errno != ENOTTY) return FALSE;    /* tcgetattr() returned an error we cannot handle	   */
+  if (errno != ENOTTY) return FALSE;    /* tcgetattr() returned an error we cannot handle          */
   basicvars.runflags.inredir = TRUE;    /* tcgetattr() returned ENOTTY - use C functions for input */
   return TRUE;
 #else /* !DOS */
@@ -607,35 +607,35 @@ boolean kbd_init() {
 
 /* Set up keyboard for unbuffered I/O */
   keyboard = fileno(stdin);
-  if (tcgetattr(keyboard, &tty) < 0) {		/* Could not obtain keyboard parameters	*/
-//  if (tcgetattr(fileno(stdin), &tty) < 0) {	/* Could not obtain keyboard parameters	*/
+  if (tcgetattr(keyboard, &tty) < 0) {          /* Could not obtain keyboard parameters */
+//  if (tcgetattr(fileno(stdin), &tty) < 0) {   /* Could not obtain keyboard parameters */
     nokeyboard=1;
 /* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
 ** a keyboard and so the program does simple reads from stdin rather than use the custom
 ** keyboard code.
 */
-#ifndef USE_SDL				/* if SDL the window can still poll for keyboard input	*/
-    if (errno != ENOTTY) return FALSE;  /* tcgetattr() returned an error we cannot handle	*/
-    basicvars.runflags.inredir = TRUE;	/* tcgetattr() returned ENOTTY - use C functions for input */
+#ifndef USE_SDL                         /* if SDL the window can still poll for keyboard input  */
+    if (errno != ENOTTY) return FALSE;  /* tcgetattr() returned an error we cannot handle       */
+    basicvars.runflags.inredir = TRUE;  /* tcgetattr() returned ENOTTY - use C functions for input */
 #endif
     return TRUE;
   }
 
 /* We are connected to a keyboard, so set it up for unbuffered input */
-  origtty = tty;			/* Preserve original settings for later	*/
+  origtty = tty;                        /* Preserve original settings for later */
 #ifdef TARGET_LINUX
-  tty.c_lflag &= ~(XCASE|ECHONL|NOFLSH); /* Case off, EchoNL off, Flush off	*/
+  tty.c_lflag &= ~(XCASE|ECHONL|NOFLSH); /* Case off, EchoNL off, Flush off     */
 #else
-  tty.c_lflag &= ~(ECHONL|NOFLSH);	 /* EchoNL off, Flush off		*/
+  tty.c_lflag &= ~(ECHONL|NOFLSH);       /* EchoNL off, Flush off               */
 #endif
-  tty.c_lflag &= ~(ICANON|ECHO);	/* Line editor off, Echo off		*/
-  tty.c_iflag &= ~(ICRNL|INLCR);	/* Raw LF and CR			*/
-  tty.c_cflag |= CREAD;			/* Enable reading			*/
-  tty.c_cc[VTIME] = 1;			/* 1cs timeout				*/
-  tty.c_cc[VMIN] = 1;			/* One character at a time		*/
+  tty.c_lflag &= ~(ICANON|ECHO);        /* Line editor off, Echo off            */
+  tty.c_iflag &= ~(ICRNL|INLCR);        /* Raw LF and CR                        */
+  tty.c_cflag |= CREAD;                 /* Enable reading                       */
+  tty.c_cc[VTIME] = 1;                  /* 1cs timeout                          */
+  tty.c_cc[VMIN] = 1;                   /* One character at a time              */
 //  tty.c_cc[VINTR] = 27; // doing this here stops get0() working and kills tbrandy
   if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
-					/* Could not set up keyboard in the way desired	*/
+                                        /* Could not set up keyboard in the way desired */
   return TRUE;
 #endif /* UNIX */
 
@@ -678,7 +678,7 @@ void kbd_quit() {
 int32 kbd_buffered() {
   int num=0;
 #ifdef TARGET_UNIX
-  ioctl(STDIN_FILENO, FIONREAD, &num);		/* Count bytes in keyboard buffer	*/
+  ioctl(STDIN_FILENO, FIONREAD, &num);          /* Count bytes in keyboard buffer       */
 #endif
   return num;
 }
@@ -687,11 +687,11 @@ int32 kbd_buffered() {
 /* --------------------------------------------------------------- */
 int32 kbd_pending() {
   if (matrixflags.doexec) {
-    if (!feof(matrixflags.doexec)) return TRUE;	/* Still bytes from exec file		*/
+    if (!feof(matrixflags.doexec)) return TRUE; /* Still bytes from exec file           */
     }
-  if (holdcount) return TRUE;			/* Pushed keypresses pending		*/
-  if (fn_string_count) return TRUE;		/* Soft key being expanded		*/
-  return kbd_buffered()!=0;			/* Test keyboard buffer			*/
+  if (holdcount) return TRUE;                   /* Pushed keypresses pending            */
+  if (fn_string_count) return TRUE;             /* Soft key being expanded              */
+  return kbd_buffered()!=0;                     /* Test keyboard buffer                 */
 }
 
 /* kbd_escpoll() - is there a pending Escape state */
@@ -708,41 +708,41 @@ int kbd_escpoll() {
 int64 tmp;
 #endif
 
-  if (backgnd_escape) {				/* Only poll when not doing key input	*/
-    if (kbd_esctest()) {			/* Only poll if Escapes are enabled	*/
+  if (backgnd_escape) {                         /* Only poll when not doing key input   */
+    if (kbd_esctest()) {                        /* Only poll if Escapes are enabled     */
 #ifdef USE_SDL
       tmp=basicvars.centiseconds;
       if (tmp > esclast) {
         esclast=tmp;
-        if (kbd_inkey(-113)) basicvars.escape=TRUE;	// Should check key character, not keycode
+        if (kbd_inkey(-113)) basicvars.escape=TRUE;     // Should check key character, not keycode
       }
 #else
 #ifdef TARGET_MINGW
-      if (GetAsyncKeyState(VK_ESCAPE)) {		// Should check key character, not keycode
-        while (GetAsyncKeyState(VK_ESCAPE));	/* Wait until key not pressed		*/
+      if (GetAsyncKeyState(VK_ESCAPE)) {                // Should check key character, not keycode
+        while (GetAsyncKeyState(VK_ESCAPE));    /* Wait until key not pressed           */
         basicvars.escape=TRUE;
       }
 #endif
 #endif
     }
   }
-  return basicvars.escape;			/* Return Escape state			*/
+  return basicvars.escape;                      /* Return Escape state                  */
 }
 
 /* kbd_esctest() - set Escape state if allowed */
 /* ------------------------------------------- */
 int kbd_esctest() {
-  if (sysvar[sv_EscapeAction]==0) {		/* Does Escape key generate Escapes?	*/
-    if ((sysvar[sv_EscapeBreak] & 1)==0) {	/* Do Escapes set Escape state?		*/
+  if (sysvar[sv_EscapeAction]==0) {             /* Does Escape key generate Escapes?    */
+    if ((sysvar[sv_EscapeBreak] & 1)==0) {      /* Do Escapes set Escape state?         */
       return TRUE;
     }
   }
   return FALSE;
 }
 
-void kbd_escchar(char a, char b) { return; }		// set Escape character
-void kbd_escset()   { basicvars.escape=TRUE; }		// set Escape state
-void kbd_escclr()   { basicvars.escape=FALSE; }		// clear Escape state
+void kbd_escchar(char a, char b) { return; }            // set Escape character
+void kbd_escset()   { basicvars.escape=TRUE; }          // set Escape state
+void kbd_escclr()   { basicvars.escape=FALSE; }         // clear Escape state
 
 /* kbd_escack() - acknowledge and clear Escape state */
 /* ------------------------------------------------- */
@@ -752,24 +752,24 @@ int kbd_escack() {
   tmp=sysvar[sv_EscapeEffect] ^ 0x0f;
   if (basicvars.escape == 0) tmp=tmp | (tmp >> 4);
   if (tmp & 1) {
-    if (matrixflags.doexec) {				/* Close EXEC file		*/
+    if (matrixflags.doexec) {                           /* Close EXEC file              */
       fclose(matrixflags.doexec);
       matrixflags.doexec=NULL;
     }
-    holdcount=0;					/* Cancel pending keypress  	*/
-    fn_string_count=0; fn_string = NIL;			/* Cancel soft key expansion	*/
+    holdcount=0;                                        /* Cancel pending keypress      */
+    fn_string_count=0; fn_string = NIL;                 /* Cancel soft key expansion    */
 #ifdef TARGET_MINGW
     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); /* Consume any queued characters */
 #endif
-    purge_keys();					/* Cancel pending keypresses	*/
+    purge_keys();                                       /* Cancel pending keypresses    */
 //  cancel VDU queue
 //  cancel sounds
   }
   if (tmp & 4) { }
   if (tmp & 8) { }
   tmp=basicvars.escape;
-  basicvars.escape=FALSE;				/* Clear pending Escape		*/
-  return tmp ? -1 : 0;					/* Return previous Escape state	*/
+  basicvars.escape=FALSE;                               /* Clear pending Escape         */
+  return tmp ? -1 : 0;                                  /* Return previous Escape state */
 }
 
 /* kbd_modkeys() - do a fast read of state of modifier keys */
@@ -786,11 +786,11 @@ int kbd_escack() {
  */
 int32 kbd_modkeys(int32 arg) {
 #ifdef USE_SDL
-  if (keystate==NULL) return 0;				/* Not yet been initialised	*/
-  if (keystate[SDLK_LSHIFT] || keystate[SDLK_RSHIFT])	/* Either SHIFT key		*/
+  if (keystate==NULL) return 0;                         /* Not yet been initialised     */
+  if (keystate[SDLK_LSHIFT] || keystate[SDLK_RSHIFT])   /* Either SHIFT key             */
     return 1; else return 0;
 #endif
-  return kbd_inkey(-1) & 0x01;				/* Just test SHIFT for now	*/
+  return kbd_inkey(-1) & 0x01;                          /* Just test SHIFT for now      */
 }
 
 
@@ -809,15 +809,15 @@ int GetAsyncKeyState(int key) {
 
   y=_bios_keybrd(_NKEYBRD_SHIFTSTATUS);
   switch (key) {
-    case VK_SHIFT:    y=(y & 0x003); break;	/* SHIFT	*/
-    case VK_CONTROL:  y=(y & 0x004); break;	/* CTRL		*/
-    case VK_MENU:     y=(y & 0x008); break;	/* ALT		*/
-    case VK_LSHIFT:   y=(y & 0x002); break;	/* Left SHIFT	*/
-    case VK_LCONTROL: y=(y & 0x100); break;	/* Left CTRL	*/
-    case VK_LMENU:    y=(y & 0x200); break;	/* Left ALT	*/
-    case VK_RSHIFT:   y=(y & 0x001); break;	/* Right SHIFT	*/
-    case VK_RCONTROL: y=(y & 0x400); break;	/* Right CTRL	*/
-    case VK_RMENU:    y=(y & 0x800); break;	/* Right ALT	*/
+    case VK_SHIFT:    y=(y & 0x003); break;     /* SHIFT        */
+    case VK_CONTROL:  y=(y & 0x004); break;     /* CTRL         */
+    case VK_MENU:     y=(y & 0x008); break;     /* ALT          */
+    case VK_LSHIFT:   y=(y & 0x002); break;     /* Left SHIFT   */
+    case VK_LCONTROL: y=(y & 0x100); break;     /* Left CTRL    */
+    case VK_LMENU:    y=(y & 0x200); break;     /* Left ALT     */
+    case VK_RSHIFT:   y=(y & 0x001); break;     /* Right SHIFT  */
+    case VK_RCONTROL: y=(y & 0x400); break;     /* Right CTRL   */
+    case VK_RMENU:    y=(y & 0x800); break;     /* Right ALT    */
     default: y=0;
   }
   return (y ? -1 : 0);
@@ -847,12 +847,12 @@ int GetAsyncKeyState(int key) {
  */
 //  kbd_fnkeyset(int key, int length, char *string) {
 int kbd_fnkeyset(int key, char *string, int length) {
-  if (fn_string_count)         return fn_string_count;	/* Key in use			*/
-  if (fn_key[key].text != NIL) free(fn_key[key].text);	/* Remove existing definition	*/
+  if (fn_string_count)         return fn_string_count;  /* Key in use                   */
+  if (fn_key[key].text != NIL) free(fn_key[key].text);  /* Remove existing definition   */
   fn_key[key].length = length;
-  fn_key[key].text   = malloc(length);			/* Get space for new definition	*/
+  fn_key[key].text   = malloc(length);                  /* Get space for new definition */
   if (fn_key[key].text != NIL) memcpy(fn_key[key].text, string, length);
-  return 0;						/* Ok				*/
+  return 0;                                             /* Ok                           */
 }
 
 
@@ -882,7 +882,7 @@ int32 kbd_isfnkey(int32 key) {
       if ((key >= 0x8B) && (key <= 0x8F)) return (key - 0x80);
     }
   }
-  return -1;						/* Not a function key		*/
+  return -1;                                            /* Not a function key           */
 }
 
 
@@ -940,7 +940,7 @@ static int32 read_fn_string(void) {
  * If unsupported: return 0 (except &FF00+n returns -1 if unsupported)
  */
 int32 kbd_inkey(int32 arg) {
-  arg = arg & 0xFFFF;				/* Argument is a 16-bit number		*/
+  arg = arg & 0xFFFF;                           /* Argument is a 16-bit number          */
 
   // Return host operating system
   // ----------------------------
@@ -949,17 +949,17 @@ int32 kbd_inkey(int32 arg) {
   // Timed wait for keypress
   // -----------------------
   if (arg < 0x8000) {
-    if (basicvars.runflags.inredir		/* Input redirected			*/
-      || matrixflags.doexec			/*  or *EXEC file active		*/
-      || fn_string_count) return kbd_get();	/*  or function key active		*/
-    if (holdcount > 0) return pop_key() & 0xFF;	/* Character waiting so return it	*/
-    if (waitkey(arg))  return kbd_get() & 0xFF;	/* Wait for keypress and return it	*/
-    else	       return -1;		/* Otherwise return -1 for nothing	*/
+    if (basicvars.runflags.inredir              /* Input redirected                     */
+      || matrixflags.doexec                     /*  or *EXEC file active                */
+      || fn_string_count) return kbd_get();     /*  or function key active              */
+    if (holdcount > 0) return pop_key() & 0xFF; /* Character waiting so return it       */
+    if (waitkey(arg))  return kbd_get() & 0xFF; /* Wait for keypress and return it      */
+    else               return -1;               /* Otherwise return -1 for nothing      */
 
   // Negative INKEY - scan for keypress
   // ----------------------------------
   } else {
-    arg = arg ^ 0xFFFF;				/* Convert to keyscan number		*/
+    arg = arg ^ 0xFFFF;                         /* Convert to keyscan number            */
 
 #ifdef USE_SDL
     SDL_Event ev;
@@ -992,17 +992,17 @@ int32 kbd_inkey(int32 arg) {
     }
     matrixflags.noupdate = 0;
 
-    if (arg <= 2) {				/* Test either modifier key		*/
+    if (arg <= 2) {                             /* Test either modifier key             */
       if (
-      (keystate[inkeylookup[arg + 3]])		/* left key  */
+      (keystate[inkeylookup[arg + 3]])          /* left key  */
       ||
-      (keystate[inkeylookup[arg + 6]])		/* right key */
+      (keystate[inkeylookup[arg + 6]])          /* right key */
       ) return -1;
       else
         return 0;
     }
 
-    if ((arg >= 9) && (arg <= 11)) {		/* Test mouse buttons			*/
+    if ((arg >= 9) && (arg <= 11)) {            /* Test mouse buttons                   */
       if ((arg ==  9) && (mousestate & 1)) return -1;
       if ((arg == 10) && (mousestate & 2)) return -1;
       if ((arg == 11) && (mousestate & 4)) return -1;
@@ -1016,100 +1016,100 @@ int32 kbd_inkey(int32 arg) {
     if (keystate[SDLK_SYSREQ]) keystate[SDLK_PRINT]=keystate[SDLK_SYSREQ];
 #endif
 
-    if (arg < 0x080) {				/* Test for single keypress, INKEY-key	*/
+    if (arg < 0x080) {                          /* Test for single keypress, INKEY-key  */
       switch (arg) {
 #ifdef TARGET_DOSWIN
-						/* Not visible from SDL keyscan		*/
-        case 32:  return (GetAsyncKeyState(0x2C)<0 ? -1 : 0);		/* F0/PRINT	*/
+                                                /* Not visible from SDL keyscan         */
+        case 32:  return (GetAsyncKeyState(0x2C)<0 ? -1 : 0);           /* F0/PRINT     */
         case 95:  return (GetAsyncKeyState(0xE2)<0 ||
-			  GetAsyncKeyState(0xC1)<0 ? -1 : 0);		/* Right \_	*/
+                          GetAsyncKeyState(0xC1)<0 ? -1 : 0);           /* Right \_     */
         case 109: return (GetAsyncKeyState(0x1D)<0 ||
-			  GetAsyncKeyState(0xEB)<0 ? -1 : 0);		/* NoConvert	*/
-        case 110: return (GetAsyncKeyState(0x1C)<0 ? -1 : 0);		/* Convert	*/
-				/* Kana is fiddly as it toggles between F0, F1, F2	*/
-        case 111: return (GetAsyncKeyState(0x15)<0 ? -1 : 0);		/* Kana		*/
+                          GetAsyncKeyState(0xEB)<0 ? -1 : 0);           /* NoConvert    */
+        case 110: return (GetAsyncKeyState(0x1C)<0 ? -1 : 0);           /* Convert      */
+                                /* Kana is fiddly as it toggles between F0, F1, F2      */
+        case 111: return (GetAsyncKeyState(0x15)<0 ? -1 : 0);           /* Kana         */
 
-						/* Exceptions from SDL keyscan		*/
+                                                /* Exceptions from SDL keyscan          */
         case 46:  return (keystate[0x5C] !=0 &&
-			  GetAsyncKeyState(0xDC) < 0  ? -1 : 0);	/* UKP/Y/etc	*/
+                          GetAsyncKeyState(0xDC) < 0  ? -1 : 0);        /* UKP/Y/etc    */
         case 90:  return (keystate[0x5C] !=0 &&
-			  GetAsyncKeyState(0xDC) == 0 ? -1 : 0);	/* #~  Keypad#	*/
+                          GetAsyncKeyState(0xDC) == 0 ? -1 : 0);        /* #~  Keypad#  */
 #endif
-						/* Translate SDL keyscan		*/
+                                                /* Translate SDL keyscan                */
         default:  return ((keystate[inkeylookup[arg]] != 0) ? -1 : 0);
       }
     }
 
-    if (arg < 0x100) return -1;			/* Scan range - unimplemented		*/
+    if (arg < 0x100) return -1;                 /* Scan range - unimplemented           */
 
 #ifdef TARGET_DOSWIN
-    if (arg < 0x200) {				/* Direct DOS keyscan, INKEY(&FE00+nn)	*/
-      if (GetAsyncKeyState(arg ^ 0x1ff)<0) return -1;	/* Key pressed			*/
-      else				   return 0;	/* Key not pressed		*/
+    if (arg < 0x200) {                          /* Direct DOS keyscan, INKEY(&FE00+nn)  */
+      if (GetAsyncKeyState(arg ^ 0x1ff)<0) return -1;   /* Key pressed                  */
+      else                                 return 0;    /* Key not pressed              */
     }
 #endif
 
-    if ((arg & 0xFE00) == 0x0200) {		/* Direct SDL keyscan, INKEY(&FC00+nn)	*/
+    if ((arg & 0xFE00) == 0x0200) {             /* Direct SDL keyscan, INKEY(&FC00+nn)  */
       return ((keystate[arg ^ 0x3FF] != 0) ? -1 : 0);
     }
 
-    return 0;					/* Anything else, return FALSE		*/
+    return 0;                                   /* Anything else, return FALSE          */
 
 #else /* !USE_SDL */
 
 #ifdef VK_SHIFT
     /* adapted from con_keyscan() from JGH 'console' library */
-    if (arg < 0x080) {				/* Test for single keypress, INKEY-key	*/
-#ifndef TARGET_DJGPP				/* DOS doesn't support GetKbdLayout	*/
-      if (((size_t)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {	/* BBC layout keyboard	*/
-	/* Note: as a console app, this is the ID from when the program started		*/
+    if (arg < 0x080) {                          /* Test for single keypress, INKEY-key  */
+#ifndef TARGET_DJGPP                            /* DOS doesn't support GetKbdLayout     */
+      if (((size_t)(GetKeyboardLayout(0)) & 0xFFFF)==0x0411) {  /* BBC layout keyboard  */
+        /* Note: as a console app, this is the ID from when the program started         */
         switch (arg) {
-          case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);	/* ^~        		*/
-          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);	/* UKP/Y/etc 		*/
-          case 72: return (GetAsyncKeyState(0xBA)<0 ? -1 : 0);	/* :         		*/
-          case 87: return (GetAsyncKeyState(0xBB)<0 ? -1 : 0);	/* ;         		*/
-          case 90:						/* #~ or Keypad#	*/
-          case 93:						/* =+        		*/
-          case 94:						/* Left \|   		*/
-          case 120:						/* \|        		*/
+          case 24: return (GetAsyncKeyState(0xDE)<0 ? -1 : 0);  /* ^~                   */
+          case 46: return (GetAsyncKeyState(0xDC)<0 ? -1 : 0);  /* UKP/Y/etc            */
+          case 72: return (GetAsyncKeyState(0xBA)<0 ? -1 : 0);  /* :                    */
+          case 87: return (GetAsyncKeyState(0xBB)<0 ? -1 : 0);  /* ;                    */
+          case 90:                                              /* #~ or Keypad#        */
+          case 93:                                              /* =+                   */
+          case 94:                                              /* Left \|              */
+          case 120:                                             /* \|                   */
             return 0;
         }
       }
 #endif /* !DJGPP */
-      arg=inkeylookup[arg];			/* Get translated keyscan code		*/
+      arg=inkeylookup[arg];                     /* Get translated keyscan code          */
       if (arg) {
-        if (GetAsyncKeyState(arg)<0) return -1; /* Translated key pressed		*/
-        else			     return 0;  /* Translated key not pressed		*/
+        if (GetAsyncKeyState(arg)<0) return -1; /* Translated key pressed               */
+        else                         return 0;  /* Translated key not pressed           */
       }
-      return 0;					/* No translated key to test		*/
+      return 0;                                 /* No translated key to test            */
     }
 
-    if (arg < 0x100) return -1;			/* Scan range - unimplemented		*/
+    if (arg < 0x100) return -1;                 /* Scan range - unimplemented           */
 
-    if (arg < 0x200) {				/* Direct DOS keyscan, INKEY(&FE00+nn)	*/
-      if (GetAsyncKeyState(arg ^ 0x1ff)<0) return -1;	/* Key pressed			*/
-      else				   return 0;	/* Key not pressed		*/
+    if (arg < 0x200) {                          /* Direct DOS keyscan, INKEY(&FE00+nn)  */
+      if (GetAsyncKeyState(arg ^ 0x1ff)<0) return -1;   /* Key pressed                  */
+      else                                 return 0;    /* Key not pressed              */
     }
 
-    return 0;					/* Anything else, return FALSE		*/
+    return 0;                                   /* Anything else, return FALSE          */
 #endif /* VK_SHIFT */
 
 #endif /* !USE_SDL */
 
 /* AMIGA, BEOS, non-SDL UNIX remaining */
-    if ((arg & 0xFF80)==0x0080) return -1;	/* Scan range - unimplemented		*/
+    if ((arg & 0xFF80)==0x0080) return -1;      /* Scan range - unimplemented           */
 
 #ifdef TARGET_AMIGA
 /* A KeyIO call with command KBD_READMATRIX reads the keyboard matrix to a 16-byte buffer,
  * one bit per keystate, similar to the SDL GetKeyState call.
  */
-    return 0;					/* For now, return NOT PRESSED		*/
+    return 0;                                   /* For now, return NOT PRESSED          */
 #endif
 #ifdef TARGET_BEOS
-    return 0;					/* For now, return NOT PRESSED		*/
+    return 0;                                   /* For now, return NOT PRESSED          */
 #endif
   }
-  return 0;					/* Everything else, return NOT PRESSED	*/
+  return 0;                                     /* Everything else, return NOT PRESSED  */
 }
 
 
@@ -1127,7 +1127,7 @@ int32 kbd_get(void) {
 //  int cooked;
 //  int raw=0;
 
-  if (matrixflags.doexec) {			/* Are we doing *EXEC?			*/
+  if (matrixflags.doexec) {                     /* Are we doing *EXEC?                  */
     if (kbd_escpoll()) error(ERR_ESCAPE);
     ch=fgetc(matrixflags.doexec);
     if (!feof(matrixflags.doexec)) return (ch & BYTEMASK);
@@ -1135,33 +1135,33 @@ int32 kbd_get(void) {
     matrixflags.doexec=NULL;
   }
 
-  if (basicvars.runflags.inredir) {		/* Input redirected at command line	*/
+  if (basicvars.runflags.inredir) {             /* Input redirected at command line     */
 #if defined(TARGET_UNIX) || defined(CYGWINBUILD)
     if ((ch=getchar()) != EOF) return ch;
 #else
     if ((ch=getch()) != EOF) return ch;
 #endif
-    else error(ERR_READFAIL);			/* I/O error occured on STDIN		*/
+    else error(ERR_READFAIL);                   /* I/O error occured on STDIN           */
   }
 
-  if (fn_string != NIL) return read_fn_string(); /* Function key active			*/
+  if (fn_string != NIL) return read_fn_string(); /* Function key active                 */
 
 // To do, allow *FX221-8 to specify special keypress expansion and *FX4 cursor key control
 // For the moment, &18n<A and &1Cn>9 are function keys, &18n>9 are cursor keys
 
-  backgnd_escape=FALSE;				/* We poll Escape during key input	*/
-  ch=kbd_get0();				/* Get a keypress from 'keyboard buffer'*/
+  backgnd_escape=FALSE;                         /* We poll Escape during key input      */
+  ch=kbd_get0();                                /* Get a keypress from 'keyboard buffer'*/
   backgnd_escape=TRUE;
 
 //  cooked=(sysvar[sv_KeyOptions]&192)==192;
 //  if (cooked) {
-    if (ch & 0x100) {				/* Translate special keys		*/
-      if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;	/* Swap to RISC OS ordering		*/
-      if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;	/* PGDN/PGUP */
-      if ((ch & 0x0CF) == 0xC9) ch=ch - 62;	/* END       */
-      if (ch == 0x1C8)          ch=30;		/* HOME      */
-      if (ch == 0x1C7)          ch=127;		/* DELETE    */
-      if ((ch & 0x0CF) == 0xC6) ch=ch + 7;	/* INSERT    */
+    if (ch & 0x100) {                           /* Translate special keys               */
+      if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;   /* Swap to RISC OS ordering             */
+      if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;   /* PGDN/PGUP */
+      if ((ch & 0x0CF) == 0xC9) ch=ch - 62;     /* END       */
+      if (ch == 0x1C8)          ch=30;          /* HOME      */
+      if (ch == 0x1C7)          ch=127;         /* DELETE    */
+      if ((ch & 0x0CF) == 0xC6) ch=ch + 7;      /* INSERT    */
       if (matrixflags.osbyte4val == 1) {
         if ((ch >= 0x18B) && (ch <= 0x18F)) ch -=0x104;
       }
@@ -1169,14 +1169,14 @@ int32 kbd_get(void) {
 //  }
 
 #if defined(TARGET_MINGW) || defined(USE_SDL)
-  while (kbd_escpoll()) basicvars.escape=FALSE;	/* Rather brute-force			*/
+  while (kbd_escpoll()) basicvars.escape=FALSE; /* Rather brute-force                   */
 #endif
   if (ch == sysvar[sv_EscapeChar]) {
-    if (kbd_esctest()) basicvars.escape=TRUE;	/* If not ASCII key, set Escape state	*/
+    if (kbd_esctest()) basicvars.escape=TRUE;   /* If not ASCII key, set Escape state   */
   }
-  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch;	/* Not a function key			*/
-  if (fn_key[fnkey].length == 0)     return ch;	/* Function key undefined		*/
-  return switch_fn_string(fnkey);		/* Switch and return first char		*/
+  if ((fnkey = kbd_isfnkey(ch)) < 0) return ch; /* Not a function key                   */
+  if (fn_key[fnkey].length == 0)     return ch; /* Function key undefined               */
+  return switch_fn_string(fnkey);               /* Switch and return first char         */
 }
 
 
@@ -1219,8 +1219,8 @@ int32 kbd_get(void) {
 ** library.
 ** -------------------------------------------------------------------- */
 int32 kbd_readline(char *buffer, int32 length, int32 chars) {
-  if (length<1) return 0;			/* Filter out impossible or daft calls	*/
-  chars=(chars & 0xFF) | 0x00FF2000;		/* temp'y force all allowable chars	*/
+  if (length<1) return 0;                       /* Filter out impossible or daft calls  */
+  chars=(chars & 0xFF) | 0x00FF2000;            /* temp'y force all allowable chars     */
 
 // Temp'y patch, copy keyboard sysvars into basicvars.*
 // basicvars.escape_enabled=!sysvar[sv_EscapeAction];
@@ -1253,29 +1253,29 @@ basicvars.escape=FALSE;
 ** function keys. It also uses zero for the 'alt' versions of the keys.
 */
 static byte dostable[] = {
-0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07, /* 00-07			*/
-0xc2,0xc3,0xc5,0x0b,0x0c,0x0d,0xc2,0xc3, /* sBS,sTAB,sRET,0C-0E,sTAB	*/
-0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17, /* 10-17			*/
-0x18,0x19,0x1a,0xc3,0x1c,0x1d,0x1e,0x1f, /* 18-1A,sESC,1C-1F		*/
-0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27, /* 20-27			*/
-0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f, /* 28-2F			*/
-0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37, /* 30-37			*/
-0x38,0x39,0x3a,0x81,0x82,0x83,0x84,0x85, /* 38-3A,F1-F5			*/
-0x86,0x87,0x88,0x89,0x8a,0x45,0x46,0xc8, /* F6-F10,45,46,Home		*/
-0xcf,0xcb,0x4a,0xcc,0x4c,0xcd,0x4e,0xc9, /* Up,PgUp,4A,<-,4C,->,4E,End	*/
-0xce,0xca,0xc6,0xc7,0x91,0x92,0x93,0x94, /* Down,PgDn,Ins,Del,sF1-sF4	*/
-0x95,0x96,0x97,0x98,0x99,0x9a,0xa1,0xa2, /* sF5-sF10,cF1,cF2		*/
-0xa3,0xa4,0xa5,0xa6,0xa7,0xa8,0xa9,0xaa, /* cF3-cF10			*/
-0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7,0xb8, /* aF1-aF8			*/
-0xb9,0xba,0xa0,0xcc,0xcd,0xc9,0xca,0xc8, /* aF9-aF10,cPrint,c<-,c->,cEnd,cPgDn,cHome	*/
-0xcb,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0x7f, /* cPgUp,79-7F					*/
-0x80,0x81,0x82,0x83,0xcb,0x8b,0x8c,0x9b, /* 80-83,cPgUp,F11-12,sF11			*/
-0x9c,0xab,0xac,0xbb,0xbc,0xcf,0x8e,0x8f, /* sF12,cF11-12,aF11-12,cUp,8E-8F		*/
-0x90,0xce,0xc6,0xc7,0xc3,0x95,0x96,0xc8, /* 90,cDown,cIns,cDel,cTab,95,96,aHome		*/
-0xcf,0xcb,0x9a,0xcc,0x9c,0xcd,0x9e,0xc9, /* aUp,aPgUp,9A,a<-,9C,a->,9E,aEnd		*/
-0xce,0xca,0xc6,0xc7,0xa4,0xc3,0xa6,0xa7, /* aDn,aPgDn,aIns,aDel,A4,aTab,A6-A7		*/
-0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xc2, /* A8-AE,WIDTH					*/
-0xc2,0xc2,0xf3,0xb3,0xb4,0xb5,0xb6,0xb7, /* sWIDTH,cWIDTH,aWIDTH			*/
+0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07, /* 00-07                       */
+0xc2,0xc3,0xc5,0x0b,0x0c,0x0d,0xc2,0xc3, /* sBS,sTAB,sRET,0C-0E,sTAB    */
+0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17, /* 10-17                       */
+0x18,0x19,0x1a,0xc3,0x1c,0x1d,0x1e,0x1f, /* 18-1A,sESC,1C-1F            */
+0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27, /* 20-27                       */
+0x28,0x29,0x2a,0x2b,0x2c,0x2d,0x2e,0x2f, /* 28-2F                       */
+0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37, /* 30-37                       */
+0x38,0x39,0x3a,0x81,0x82,0x83,0x84,0x85, /* 38-3A,F1-F5                 */
+0x86,0x87,0x88,0x89,0x8a,0x45,0x46,0xc8, /* F6-F10,45,46,Home           */
+0xcf,0xcb,0x4a,0xcc,0x4c,0xcd,0x4e,0xc9, /* Up,PgUp,4A,<-,4C,->,4E,End  */
+0xce,0xca,0xc6,0xc7,0x91,0x92,0x93,0x94, /* Down,PgDn,Ins,Del,sF1-sF4   */
+0x95,0x96,0x97,0x98,0x99,0x9a,0xa1,0xa2, /* sF5-sF10,cF1,cF2            */
+0xa3,0xa4,0xa5,0xa6,0xa7,0xa8,0xa9,0xaa, /* cF3-cF10                    */
+0xb1,0xb2,0xb3,0xb4,0xb5,0xb6,0xb7,0xb8, /* aF1-aF8                     */
+0xb9,0xba,0xa0,0xcc,0xcd,0xc9,0xca,0xc8, /* aF9-aF10,cPrint,c<-,c->,cEnd,cPgDn,cHome    */
+0xcb,0x79,0x7a,0x7b,0x7c,0x7d,0x7e,0x7f, /* cPgUp,79-7F                                 */
+0x80,0x81,0x82,0x83,0xcb,0x8b,0x8c,0x9b, /* 80-83,cPgUp,F11-12,sF11                     */
+0x9c,0xab,0xac,0xbb,0xbc,0xcf,0x8e,0x8f, /* sF12,cF11-12,aF11-12,cUp,8E-8F              */
+0x90,0xce,0xc6,0xc7,0xc3,0x95,0x96,0xc8, /* 90,cDown,cIns,cDel,cTab,95,96,aHome         */
+0xcf,0xcb,0x9a,0xcc,0x9c,0xcd,0x9e,0xc9, /* aUp,aPgUp,9A,a<-,9C,a->,9E,aEnd             */
+0xce,0xca,0xc6,0xc7,0xa4,0xc3,0xa6,0xa7, /* aDn,aPgDn,aIns,aDel,A4,aTab,A6-A7           */
+0xa8,0xa9,0xaa,0xab,0xac,0xad,0xae,0xc2, /* A8-AE,WIDTH                                 */
+0xc2,0xc2,0xf3,0xb3,0xb4,0xb5,0xb6,0xb7, /* sWIDTH,cWIDTH,aWIDTH                        */
 0xb8,0xb9,0xba,0xbb,0xbc,0xbd,0xbe,0xbf,
 0xc0,0xc1,0xc2,0xc3,0xc4,0xc5,0xc6,0xc7,
 0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,
@@ -1333,9 +1333,9 @@ int32 kbd_get0(void) {
 #else
   ch=getch();
 #endif /* CYGWINBUILD */
-  if (ch == NUL || ch == 0xE0) {		/* DOS escaped characters		*/
+  if (ch == NUL || ch == 0xE0) {                /* DOS escaped characters               */
     // When kbd_modkeys() returns all keys, change this to call it
-    s=(GetAsyncKeyState(VK_SHIFT)<0);		/* Check modifier keys			*/
+    s=(GetAsyncKeyState(VK_SHIFT)<0);           /* Check modifier keys                  */
     c=(GetAsyncKeyState(VK_CONTROL)<0);
     if((a=(GetAsyncKeyState(VK_MENU)<0))) c=0;
 #ifdef CYGWINBUILD
@@ -1343,64 +1343,64 @@ int32 kbd_get0(void) {
 #else
     ch=getch();
 #endif /* CYGWINBUILD */
-    if (ch == 0x29) return 0xAC;		/* Alt-top-left key			*/
-    if (ch == 0x86) if (c) ch=0x78;		/* Separate F12 and cPgUp		*/
-    ch=dostable[ch];				/* Translate escaped character		*/
-    if ((ch & 0xC0) == 0xC0) {			/* Non-function keys need extra help	*/
-      if (s) ch=ch ^ 0x10;			/* SHIFT pressed			*/
-      if (c) ch=ch ^ 0x20;			/* CTRL pressed				*/
-      if (a) ch=ch ^ 0x30;			/* ALT pressed				*/
+    if (ch == 0x29) return 0xAC;                /* Alt-top-left key                     */
+    if (ch == 0x86) if (c) ch=0x78;             /* Separate F12 and cPgUp               */
+    ch=dostable[ch];                            /* Translate escaped character          */
+    if ((ch & 0xC0) == 0xC0) {                  /* Non-function keys need extra help    */
+      if (s) ch=ch ^ 0x10;                      /* SHIFT pressed                        */
+      if (c) ch=ch ^ 0x20;                      /* CTRL pressed                         */
+      if (a) ch=ch ^ 0x30;                      /* ALT pressed                          */
     }
-    return ch | 0x100;				/* 0x100+nn - top-bit special keys	*/
+    return ch | 0x100;                          /* 0x100+nn - top-bit special keys      */
   }
-  return ch;					/* 0x00+nn - normal keypress		*/
+  return ch;                                    /* 0x00+nn - normal keypress            */
 #else /* not (DOSWIN and !USE_SDL) */
 
  #if defined(TARGET_UNIX) && !defined(USE_SDL)
   int key, mod;
 
   fflush(stdout);
-  read(STDIN_FILENO, &ch, 1);			/* Read without flushing		*/
+  read(STDIN_FILENO, &ch, 1);                   /* Read without flushing                */
   ch=ch & 0xFF;
-  if (ch != 27) return ch;			/* Not <esc>				*/
-  ioctl(STDIN_FILENO, FIONREAD, &key);		/* Count bytes in keyboard buffer	*/
-  if (key == 0) return ch;			/* Nothing pending			*/
+  if (ch != 27) return ch;                      /* Not <esc>                            */
+  ioctl(STDIN_FILENO, FIONREAD, &key);          /* Count bytes in keyboard buffer       */
+  if (key == 0) return ch;                      /* Nothing pending                      */
 
 /* ANSI key sequence is:
  *    <esc> [ (<num>) (;<num>) non-digit
- * or <esc> O non-digit				*/
+ * or <esc> O non-digit                         */
 
   key=0; mod=0;
-  ch=getchar();					/* Get next character			*/
-  if (ch=='O') mod=1;				/* Convert <esc>O to <esc>[1		*/
-  else if (ch != '[') return (ch | 0x100);	/* Not opening <esc>[ or <esc>O		*/
+  ch=getchar();                                 /* Get next character                   */
+  if (ch=='O') mod=1;                           /* Convert <esc>O to <esc>[1            */
+  else if (ch != '[') return (ch | 0x100);      /* Not opening <esc>[ or <esc>O         */
 
-  while ((ch=getchar())<'@') {			/* Parse through non-alphas		*/
-    if (ch>='0' && ch<='9') {			/* Digit, add to current num		*/
+  while ((ch=getchar())<'@') {                  /* Parse through non-alphas             */
+    if (ch>='0' && ch<='9') {                   /* Digit, add to current num            */
       mod=mod*10+(ch-'0');
       }
-    if (ch==';') {				/* Semicolon, step to next number	*/
+    if (ch==';') {                              /* Semicolon, step to next number       */
       key=mod; mod=0;
       }
     }
-  if (key==0) { key=mod; mod=1; }		/* Special cases			*/
-  if (ch>='A' && ch<='D') key=39-(ch-'A');	/* Cursor keys				*/
-  if (ch>='P' && ch<='S') key=11+(ch-'P');	/* f1 - f4				*/
-  if (ch=='F') key=4;				/* End					*/
-  if (ch=='H') key=1;				/* Home					*/
+  if (key==0) { key=mod; mod=1; }               /* Special cases                        */
+  if (ch>='A' && ch<='D') key=39-(ch-'A');      /* Cursor keys                          */
+  if (ch>='P' && ch<='S') key=11+(ch-'P');      /* f1 - f4                              */
+  if (ch=='F') key=4;                           /* End                                  */
+  if (ch=='H') key=1;                           /* Home                                 */
 
-  if (key > 39) return 0;			/* Out of range (should loop)		*/
-  ch=ansikey[key];				/* Translate keypress			*/
+  if (key > 39) return 0;                       /* Out of range (should loop)           */
+  ch=ansikey[key];                              /* Translate keypress                   */
 
-  mod=mod-1;					/* Convert modifiers to bitmap		*/
-  if (mod & 1) ch=ch ^ 0x10;			/* SHIFT pressed			*/
-  if (mod & 4) ch=ch ^ 0x20;			/* CTRL pressed				*/
-  if (mod & 2) ch=ch ^ 0x30;			/* ALT pressed				*/
+  mod=mod-1;                                    /* Convert modifiers to bitmap          */
+  if (mod & 1) ch=ch ^ 0x10;                    /* SHIFT pressed                        */
+  if (mod & 4) ch=ch ^ 0x20;                    /* CTRL pressed                         */
+  if (mod & 2) ch=ch ^ 0x30;                    /* ALT pressed                          */
   return (ch | 0x100);
 
  #else
-  if ((ch=read_key()) != 0)   return ch;	/* Fetch keypress or NULL		*/
-  if ((ch=read_key()) & 0x80) ch = ch | 0x100;	/* Fetch extended byte from keyboard	*/
+  if ((ch=read_key()) != 0)   return ch;        /* Fetch keypress or NULL               */
+  if ((ch=read_key()) & 0x80) ch = ch | 0x100;  /* Fetch extended byte from keyboard    */
   return ch;
  #endif
 #endif
@@ -1446,7 +1446,7 @@ void purge_keys(void) {
   while(SDL_PeepEvents(&ev, 1, SDL_GETEVENT, SDL_ALLEVENTS)) ;
 #else
 #endif
-  while (kbd_inkey(0)>-1);		/* Suck everything out of keyboard	*/
+  while (kbd_inkey(0)>-1);              /* Suck everything out of keyboard      */
 }
 
 void osbyte21(int32 xreg) {
@@ -1641,7 +1641,7 @@ int32 read_key(void) {
   uint32 ch = 0;
 
 #if defined(TARGET_BEOS) || defined(TARGET_AMIGA)
-  return getchar();				/* holding code */
+  return getchar();                             /* holding code */
 #endif
 
 #ifdef USE_SDL
@@ -1653,14 +1653,14 @@ int32 read_key(void) {
   int mx, my;
 
 #ifndef USE_SDL // but this is within USE_SDL
-  if ((read(keyboard, &ch, 1)) < 0) {		/* Read from keyboard stream		*/
+  if ((read(keyboard, &ch, 1)) < 0) {           /* Read from keyboard stream            */
 //    if(basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);       /* Assume CTRL-C has been pressed */
 //    error(ERR_BROKEN, __LINE__, "keyboard");
   }
   return ch;
 #endif
 
-  if (holdcount > 0) return pop_key();	// moved to here
+  if (holdcount > 0) return pop_key();  // moved to here
 
   while (ch == 0) {
 /*
@@ -1705,11 +1705,11 @@ int32 read_key(void) {
 // NB, use low-level codes, translate to RISC OS codes higher up.
 // GetKeyState() gets state for this keypress
 // GetAsyncKeyState() gets state right now this instant
-//               if (GetAsyncKeyState(0x1D)<0) {	/* NoConvert	*/
+//               if (GetAsyncKeyState(0x1D)<0) {        /* NoConvert    */
 //                 ch=0xC5;
 //                 break;
 //               }
-//               if (GetAsyncKeyState(0x1C)<0) {	 /* Convert	*/
+//               if (GetAsyncKeyState(0x1C)<0) {         /* Convert     */
 //                 ch=0xC6;
 //                 break;
 //               }
@@ -1802,7 +1802,7 @@ int32 read_key(void) {
   }
 #endif
   return ch;
-//  ch=decode_sequence();		/* Temp'y, stop compiler complaining */
+//  ch=decode_sequence();               /* Temp'y, stop compiler complaining */
 }
 
 #endif
@@ -2004,10 +2004,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 
   if (basicvars.runflags.inredir) {     /* There is no keyboard to read - Read from file stdin */
     char *p;
-    p = fgets(buffer, length, stdin);	/* Get all in one go */
-    if (p == NIL) {     		/* Call failed */
+    p = fgets(buffer, length, stdin);   /* Get all in one go */
+    if (p == NIL) {                     /* Call failed */
       if (ferror(stdin)) error(ERR_READFAIL);   /* I/O error occured on stdin */
-      buffer[0] = asc_NUL;          	/* End of file */
+      buffer[0] = asc_NUL;              /* End of file */
       return READ_EOF;
     }
     return READ_OK;
@@ -2021,30 +2021,30 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   highplace = strlen(buffer);
   if (highplace > 0) emulate_vdustr(buffer, highplace);
   place = highplace;
-  lastplace = length-2;         /* Index of last position that can be used in buffer	*/
+  lastplace = length-2;         /* Index of last position that can be used in buffer    */
   init_recall();
   do {
 //basicvars.escape=FALSE;
 //printf("$%02X",basicvars.escape);
-    ch = kbd_get();		/* Get 9-bit keypress or expanded function key		*/
+    ch = kbd_get();             /* Get 9-bit keypress or expanded function key          */
 //fprintf(stderr, "&%02X &%03X\n",basicvars.escape,ch);
     if ((ch & 0x100) || ((ch == DEL) & !matrixflags.delcandelete)) {
-      pendch=ch & 0xFF;		/* temp */
+      pendch=ch & 0xFF;         /* temp */
       ch = asc_NUL;
     }
 
     watch_signals();           /* Let asynchronous signals catch up */
 
 //    if (basicvars.escape) return READ_ESC;
-//	/* Check if the escape key has been pressed and bail out if it has */
+//      /* Check if the escape key has been pressed and bail out if it has */
 
 //  if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) {
 //    basicvars.escape=TRUE; // bodge
-    if (basicvars.escape) {	/* Will have been set within kbd_get()	*/
+    if (basicvars.escape) {     /* Will have been set within kbd_get()  */
       sysvar[sv_KeyOptions]=oldopt;
       return READ_ESC;
     }
-    switch (ch) {       	/* Normal keys */
+    switch (ch) {               /* Normal keys */
     case asc_CR: case asc_LF:   /* End of line */
       emulate_vdu('\r');
       emulate_vdu('\n');
@@ -2059,7 +2059,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
         shift_down(buffer, place);
       }
       break;
-    case DEL:			/* Can be optimised */
+    case DEL:                   /* Can be optimised */
       if (matrixflags.delcandelete) {
         if (place > 0) {
           emulate_vdu(DEL);
@@ -2098,10 +2098,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       break;
     case CTRL_P:        /* Move backwards one entry in the history list */
       if (kbd_vikeys)
-	recall_histline(buffer, -1);
+        recall_histline(buffer, -1);
 #ifdef USE_SDL
       else
-	emulate_vdu(16);
+        emulate_vdu(16);
 #endif
       break;
     case CTRL_N:        /* Move forwards one entry in the history list */

@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the functions handling Basic I/O, sound
-**	and graphics statements
+**      This file defines the functions handling Basic I/O, sound
+**      and graphics statements
 */
 
 #ifndef __iostate_h

@@ -21,7 +21,7 @@
 ** Fix for format problem in print_screen() was supplied by
 ** Mark de Wilde
 **
-**	This file contains the Basic I/O statements
+**      This file contains the Basic I/O statements
 */
 
 #include <stdio.h>
@@ -54,7 +54,7 @@ static void fn_spc(void) {
   int32 count;
   count = eval_intfactor();
   if (count > 0) {
-    count = count & BYTEMASK;	/* Basic V/VI only uses the low-order byte of the value */
+    count = count & BYTEMASK;   /* Basic V/VI only uses the low-order byte of the value */
     basicvars.printcount+=count;
 #if !defined(USE_SDL) && !defined(TARGET_RISCOS)
     echo_off();
@@ -77,19 +77,19 @@ static void fn_spc(void) {
 static void fn_tab(void) {
   int32 x, y;
   x = eval_integer();
-  if (*basicvars.current == ')') {	/* 'TAB(x)' form of function */
-    if (x > 0) {	/* Nothing happens is 'tab' count is less than 0 */
+  if (*basicvars.current == ')') {      /* 'TAB(x)' form of function */
+    if (x > 0) {        /* Nothing happens is 'tab' count is less than 0 */
       x = x & BYTEMASK;
-      if (x < basicvars.printcount) {	/* Tab position is to left of current cursor position */
+      if (x < basicvars.printcount) {   /* Tab position is to left of current cursor position */
         emulate_newline();
         basicvars.printcount = 0;
       }
-      x = x-basicvars.printcount;	/* figure out how many blanks to print */
+      x = x-basicvars.printcount;       /* figure out how many blanks to print */
       basicvars.printcount+=x;
 #if !defined(USE_SDL) && !defined(TARGET_RISCOS)
       echo_off();
 #endif
-      while (x > 0) {	/* Print enough blanks to reach tab position */
+      while (x > 0) {   /* Print enough blanks to reach tab position */
         emulate_vdu(' ');
         x--;
       }
@@ -98,16 +98,16 @@ static void fn_tab(void) {
 #endif
     }
   }
-  else if (*basicvars.current == ',') {	/* 'TAB(x,y)' form of function */
+  else if (*basicvars.current == ',') { /* 'TAB(x,y)' form of function */
     basicvars.current++;
     y = eval_integer();
     if (*basicvars.current != ')') error(ERR_RPMISS);
     emulate_tab(x, y);
   }
-  else {	/* Error - ',' or ')' needed */
+  else {        /* Error - ',' or ')' needed */
     error(ERR_CORPNEXT);
   }
-  basicvars.current++;	/* Skip the ')' */
+  basicvars.current++;  /* Skip the ')' */
 }
 
 /*
@@ -125,29 +125,29 @@ static char *input_number(lvalue destination, char *p) {
   if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:input_number\n");
 #endif
   p = tonumber(p, &isint, &intvalue, &int64value, &fpvalue);
-  if (p == NIL) return NIL;	/* 'tonumber' hit an error - return to caller */
-  while (*p != asc_NUL && *p != ',') p++;	/* Find the end of the field */
-  if (*p == ',') p++;		/* Move to start of next field */
+  if (p == NIL) return NIL;     /* 'tonumber' hit an error - return to caller */
+  while (*p != asc_NUL && *p != ',') p++;       /* Find the end of the field */
+  if (*p == ',') p++;           /* Move to start of next field */
   switch (destination.typeinfo) {
-  case VAR_INTWORD:	/* Normal integer variable */
+  case VAR_INTWORD:     /* Normal integer variable */
     *destination.address.intaddr = isint ? intvalue : TOINT(fpvalue);
     break;
-  case VAR_UINT8:	/* unsigned 8-bit integer variable */
+  case VAR_UINT8:       /* unsigned 8-bit integer variable */
     *destination.address.uint8addr = isint ? intvalue : TOINT(fpvalue);
     break;
-  case VAR_INTLONG:	/* 64-bit integer variable */
+  case VAR_INTLONG:     /* 64-bit integer variable */
     *destination.address.int64addr = isint ? int64value : TOINT64(fpvalue);
     break;
-  case VAR_FLOAT:	/* Normal floating point variable */
+  case VAR_FLOAT:       /* Normal floating point variable */
     *destination.address.floataddr = isint ? TOFLOAT(intvalue) : fpvalue;
     break;
-  case VAR_INTBYTEPTR:	/* Indirect reference to byte-sized integer */
+  case VAR_INTBYTEPTR:  /* Indirect reference to byte-sized integer */
     basicvars.memory[destination.address.offset] = isint ? intvalue : TOINT(fpvalue);
     break;
-  case VAR_INTWORDPTR:	/* Indirect reference to word-sized integer */
+  case VAR_INTWORDPTR:  /* Indirect reference to word-sized integer */
     store_integer(destination.address.offset, isint ? intvalue : TOINT(fpvalue));
     break;
-  case VAR_FLOATPTR:		/* Indirect reference to floating point value */
+  case VAR_FLOATPTR:            /* Indirect reference to floating point value */
     store_float(destination.address.offset, isint ? TOFLOAT(intvalue) : fpvalue);
     break;
   }
@@ -172,7 +172,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   boolean more;
   int32 index;
   index = 0;
-  if (inputall) {	/* Want everything up to the end of line */
+  if (inputall) {       /* Want everything up to the end of line */
     while (*p != asc_NUL) {
       if (index == MAXSTRING) error(ERR_STRINGLEN);
       tempstring[index] = *p;
@@ -180,15 +180,15 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
       p++;
     }
   }
-  else {	/* Only want text as far as next delimiter */
+  else {        /* Only want text as far as next delimiter */
     p = skip_blanks(p);
-    if (*p == '\"') {	/* Want string up to next double quote */
+    if (*p == '\"') {   /* Want string up to next double quote */
       p++;
       more = *p != asc_NUL;
       while (more) {
-        if (*p == '\"') {	/* Found a '"'. See if it is followed by another one */
+        if (*p == '\"') {       /* Found a '"'. See if it is followed by another one */
           p++;
-          more = *p == '\"';	/* Continue if '""' found else stop */
+          more = *p == '\"';    /* Continue if '""' found else stop */
         }
         if (more) {
           if (index == MAXSTRING) error(ERR_STRINGLEN);
@@ -199,7 +199,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
         }
       }
     }
-    else {	/* Normal string */
+    else {      /* Normal string */
       while (*p != asc_NUL && *p != ',') {
         if (index == MAXSTRING) error(ERR_STRINGLEN);
         tempstring[index] = *p;
@@ -210,14 +210,14 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
     while (*p != asc_NUL && *p != ',') p++;
     if (*p == ',') p++;
   }
-  if (destination.typeinfo == VAR_STRINGDOL) {	/* Normal string variable */
+  if (destination.typeinfo == VAR_STRINGDOL) {  /* Normal string variable */
     free_string(*destination.address.straddr);
     cp = alloc_string(index);
     memmove(cp, tempstring, index);
     destination.address.straddr->stringlen = index;
     destination.address.straddr->stringaddr = cp;
   }
-  else {	/* '$<addr>' variety of string */
+  else {        /* '$<addr>' variety of string */
     tempstring[index] = asc_CR;
     memmove(&basicvars.memory[destination.address.offset], tempstring, index+1);
   }
@@ -236,7 +236,7 @@ static void read_input(boolean inputline) {
   lvalue destination;
   boolean bad, prompted;
   int n, length;
-  do {	/* Loop around prompts and items to read */
+  do {  /* Loop around prompts and items to read */
     while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
     token = *basicvars.current;
     line [0] = asc_NUL;
@@ -245,65 +245,65 @@ static void read_input(boolean inputline) {
     while (token == BASIC_TOKEN_STRINGCON || token == BASIC_TOKEN_QSTRINGCON || token == '\'' || token == TYPE_PRINTFN) {
       prompted = TRUE;
       switch(token) {
-      case BASIC_TOKEN_STRINGCON:	/* Got a prompt string */
+      case BASIC_TOKEN_STRINGCON:       /* Got a prompt string */
         length =GET_SIZE(basicvars.current+1+OFFSIZE);
         if (length>0) emulate_vdustr(TOSTRING(get_srcaddr(basicvars.current)), length);
         basicvars.current = skip_token(basicvars.current);
         break;
-      case BASIC_TOKEN_QSTRINGCON:	/* Prompt string with '""' in it */
+      case BASIC_TOKEN_QSTRINGCON:      /* Prompt string with '""' in it */
         cp = TOSTRING(get_srcaddr(basicvars.current));
         length = GET_SIZE(basicvars.current+1+OFFSIZE);
         for (n=0; n<length; n++) {
           emulate_vdu(*cp);
-          if (*cp == '"') cp++;	/* Print only '"' when string contains '""' */
+          if (*cp == '"') cp++; /* Print only '"' when string contains '""' */
           cp++;
         }
         basicvars.current = skip_token(basicvars.current);
         break;
-      case '\'':		/* Got a "'" - Skip to new line */
+      case '\'':                /* Got a "'" - Skip to new line */
         emulate_newline();
         basicvars.current++;
         break;
-      case TYPE_PRINTFN:	/* 'SPC()' and 'TAB()' */
+      case TYPE_PRINTFN:        /* 'SPC()' and 'TAB()' */
         switch (*(basicvars.current+1)) {
         case BASIC_TOKEN_SPC:
-          basicvars.current+=2;		/* Skip two byte function token */
+          basicvars.current+=2;         /* Skip two byte function token */
           fn_spc();
           break;
         case BASIC_TOKEN_TAB:
-          basicvars.current+=2;		/* Skip two byte function token */
+          basicvars.current+=2;         /* Skip two byte function token */
           fn_tab();
           break;
         default:
           bad_token();
         }
       }
-      while (*basicvars.current == ',' || *basicvars.current == ';') {	/* An arbitrary number of these can appear here */
+      while (*basicvars.current == ',' || *basicvars.current == ';') {  /* An arbitrary number of these can appear here */
         prompted = FALSE;
         basicvars.current++;
       }
       token = *basicvars.current;
     }
-    cp = &line[0];	/* Point at start of input buffer */
-			/* This points at a NUL here */
+    cp = &line[0];      /* Point at start of input buffer */
+                        /* This points at a NUL here */
 /* Now go through all the variables listed and attempt to assign values to them */
     while (!ateol[*basicvars.current]
      && *basicvars.current != BASIC_TOKEN_STRINGCON && *basicvars.current != BASIC_TOKEN_QSTRINGCON
      && *basicvars.current != '\'' && *basicvars.current != TYPE_PRINTFN) {
       get_lvalue(&destination);
-      if (*cp == asc_NUL) {	 /* There be nowt left to read on the line */
+      if (*cp == asc_NUL) {      /* There be nowt left to read on the line */
         if (!prompted) emulate_vdu('?');
         prompted = FALSE;
         if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
         cp = &line[0];
       }
       switch (destination.typeinfo) {
-      case VAR_INTWORD: case VAR_UINT8: case VAR_INTLONG: case VAR_FLOAT:	/* Numeric items */
+      case VAR_INTWORD: case VAR_UINT8: case VAR_INTLONG: case VAR_FLOAT:       /* Numeric items */
       case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_FLOATPTR:
         do {
-          cp = input_number(destination, cp);	/* Try to read a number */
+          cp = input_number(destination, cp);   /* Try to read a number */
           bad = cp == NIL;
-          if (bad) {	/* Hit an error - Try again */
+          if (bad) {    /* Hit an error - Try again */
             emulate_vdu('?');
             if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
             cp = &line[0];
@@ -314,7 +314,7 @@ static void read_input(boolean inputline) {
         do {
           cp = input_string(destination, cp, inputline);
           bad = cp == NIL;
-          if (bad) {	/* Hit an error - Try again */
+          if (bad) {    /* Hit an error - Try again */
             emulate_vdu('?');
             if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
             cp = &line[0];
@@ -322,16 +322,16 @@ static void read_input(boolean inputline) {
         } while (bad);
         break;
       default:
-        error(ERR_VARNUMSTR);	/* Numeric or string variable required */
+        error(ERR_VARNUMSTR);   /* Numeric or string variable required */
       }
       while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
-      if (inputline) {	/* Signal that another line is required for 'INPUT LINE' */
+      if (inputline) {  /* Signal that another line is required for 'INPUT LINE' */
         line[0] = asc_NUL;
         cp = &line[0];
       }
     }
   } while (!ateol[*basicvars.current]);
-  basicvars.printcount = 0;	/* Line will have been ended by a newline */
+  basicvars.printcount = 0;     /* Line will have been ended by a newline */
 }
 
 /*
@@ -354,14 +354,14 @@ void exec_bput(void) {
   int32 handle;
   stackitem stringtype;
   basicstring descriptor;
-  basicvars.current++;		/* Skip BPUT token */
+  basicvars.current++;          /* Skip BPUT token */
   if (*basicvars.current != '#') error(ERR_HASHMISS);
   basicvars.current++;
-  handle = eval_intfactor();	/* Get the file handle */
+  handle = eval_intfactor();    /* Get the file handle */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
   do {
-    expression();		/* Now fetch the value to be written */
+    expression();               /* Now fetch the value to be written */
     switch (GET_TOPITEM) {
     case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
       fileio_bput(handle, pop_anynum32());
@@ -374,16 +374,16 @@ void exec_bput(void) {
       if (ateol[*basicvars.current]) fileio_bput(handle, '\n');
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
       break;
-    default:	/* Item is neither a number nor a string */
+    default:    /* Item is neither a number nor a string */
       error(ERR_VARNUMSTR);
     }
-    if (*basicvars.current == ',')	/* Anything more to come? */
-      basicvars.current++;		/* Yes */
+    if (*basicvars.current == ',')      /* Anything more to come? */
+      basicvars.current++;              /* Yes */
     else if (*basicvars.current == ';') {
       basicvars.current++;
-      if (ateol[*basicvars.current]) break;	/* Nothing after ';' - End of statement */
+      if (ateol[*basicvars.current]) break;     /* Nothing after ';' - End of statement */
     }
-    else if (ateol[*basicvars.current])		/* Anything else - Check for end of statement */
+    else if (ateol[*basicvars.current])         /* Anything else - Check for end of statement */
       break;
     else {
       error(ERR_SYNTAX);
@@ -397,16 +397,16 @@ void exec_bput(void) {
 void exec_circle(void) {
   int32 x, y, radius;
   boolean filled;
-  basicvars.current++;		/* Skip CIRCLE token */
+  basicvars.current++;          /* Skip CIRCLE token */
   filled = *basicvars.current == BASIC_TOKEN_FILL;
   if (filled) basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of centre */
+  x = eval_integer();           /* Get x coordinate of centre */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of centre */
+  y = eval_integer();           /* Get y coordinate of centre */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  radius = eval_integer();	/* Get radius of circle */
+  radius = eval_integer();      /* Get radius of circle */
   check_ateol();
   emulate_circle(x, y, radius, filled);
 }
@@ -425,10 +425,10 @@ void exec_clg(void) {
 */
 void exec_close(void) {
   int32 handle;
-  basicvars.current++;		/* Skip CLOSE token */
+  basicvars.current++;          /* Skip CLOSE token */
   if (*basicvars.current != '#') error(ERR_HASHMISS);
   basicvars.current++;
-  expression();	/* Get the file handle */
+  expression(); /* Get the file handle */
   check_ateol();
   handle = pop_anynum32();
   fileio_close(handle);
@@ -459,7 +459,7 @@ static void exec_colofon(void) {
 ** Bit 3: 1 = Change background
 */
   if (*basicvars.current == BASIC_TOKEN_OF) {
-    basicvars.current++;	/* Skip OF */
+    basicvars.current++;        /* Skip OF */
     form += 4;
     red = eval_integer();
     if (*basicvars.current == ',') {
@@ -471,7 +471,7 @@ static void exec_colofon(void) {
       blue = eval_integer();
     }
   }
-  if (*basicvars.current == BASIC_TOKEN_ON) {		/* COLOUR OF ... ON */
+  if (*basicvars.current == BASIC_TOKEN_ON) {           /* COLOUR OF ... ON */
     basicvars.current++;
     form += 8;
     backred = eval_integer();
@@ -485,15 +485,15 @@ static void exec_colofon(void) {
     }
   }
   check_ateol();
-  if ((form & 4) != 0) {	/* Set foreground colour */
-    if ((form & 1) != 0)	/*Set foreground RGB value */
+  if ((form & 4) != 0) {        /* Set foreground colour */
+    if ((form & 1) != 0)        /*Set foreground RGB value */
       emulate_setcolour(FALSE, red, green, blue);
     else {
       emulate_setcolnum(FALSE, red);
     }
   }
-  if ((form & 8) != 0) {	/* Set background colour */
-    if ((form & 2) != 0)	/*Set background RGB value */
+  if ((form & 8) != 0) {        /* Set background colour */
+    if ((form & 2) != 0)        /*Set background RGB value */
       emulate_setcolour(TRUE, backred, backgreen, backblue);
     else {
       emulate_setcolnum(TRUE, backred);
@@ -508,29 +508,29 @@ static void exec_colnum(void) {
   int32 colour, tint, parm2, parm3, parm4;
   colour = eval_integer();
   switch (*basicvars.current) {
-  case BASIC_TOKEN_TINT:		/* Got 'COLOUR ... TINT' */
+  case BASIC_TOKEN_TINT:                /* Got 'COLOUR ... TINT' */
     basicvars.current++;
     tint = eval_integer();
     check_ateol();
     emulate_colourtint(colour, tint);
     break;
-  case ',':	/* Got 'COLOUR <n>,...' */
+  case ',':     /* Got 'COLOUR <n>,...' */
     basicvars.current++;
-    parm2 = eval_integer();	/* Assume 'COLOUR <colour>,<physical colour>' */
+    parm2 = eval_integer();     /* Assume 'COLOUR <colour>,<physical colour>' */
     if (*basicvars.current != ',') {
       check_ateol();
       emulate_mapcolour(colour, parm2);
     }
-    else {	/* Have got at least three parameters */
+    else {      /* Have got at least three parameters */
       basicvars.current++;
-      parm3 = eval_integer();	/* Assume 'COLOUR <red>,<green>,<blue>' */
+      parm3 = eval_integer();   /* Assume 'COLOUR <red>,<green>,<blue>' */
       if (*basicvars.current != ',') {
         check_ateol();
         emulate_setcolour(FALSE, colour, parm2, parm3);
       }
       else {
         basicvars.current++;
-        parm4 = eval_integer();	/* Assume 'COLOUR <colour>,<red>,<green>,<blue> */
+        parm4 = eval_integer(); /* Assume 'COLOUR <colour>,<red>,<green>,<blue> */
         check_ateol();
         emulate_defcolour(colour, parm2, parm3, parm4);
       }
@@ -561,10 +561,10 @@ void exec_colour(void) {
 void exec_draw(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of end point */
+  x = eval_integer();           /* Get x coordinate of end point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of end point */
+  y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
   emulate_draw(x, y);
 }
@@ -575,10 +575,10 @@ void exec_draw(void) {
 void exec_drawby(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get relative x coordinate of end point */
+  x = eval_integer();           /* Get relative x coordinate of end point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get relative y coordinate of end point */
+  y = eval_integer();           /* Get relative y coordinate of end point */
   check_ateol();
   emulate_drawby(x, y);
 }
@@ -590,20 +590,20 @@ void exec_ellipse(void) {
   int32 x, y, majorlen, minorlen;
   static float64 angle;
   boolean isfilled;
-  basicvars.current++;		/* Skip ELLIPSE token */
+  basicvars.current++;          /* Skip ELLIPSE token */
   isfilled = *basicvars.current == BASIC_TOKEN_FILL;
   if (isfilled) basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of centre */
+  x = eval_integer();           /* Get x coordinate of centre */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of centre */
+  y = eval_integer();           /* Get y coordinate of centre */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  majorlen = eval_integer();	/* Get length of semi-major axis */
+  majorlen = eval_integer();    /* Get length of semi-major axis */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  minorlen = eval_integer();	/* Get length of semi-minor axis */
-  if (*basicvars.current == ',') {	/* Get angle at which ellipse is inclined */
+  minorlen = eval_integer();    /* Get length of semi-minor axis */
+  if (*basicvars.current == ',') {      /* Get angle at which ellipse is inclined */
     basicvars.current++;
     expression();
     angle = pop_anynumfp();
@@ -624,7 +624,7 @@ void exec_ellipse(void) {
 void exec_envelope(void) {
   int32 n;
   basicvars.current++;
-  for (n=1; n<14; n++) {	/* Do the first 13 parameters */
+  for (n=1; n<14; n++) {        /* Do the first 13 parameters */
     (void) eval_integer();
     if (*basicvars.current != ',') error(ERR_COMISS);
     basicvars.current++;
@@ -638,11 +638,11 @@ void exec_envelope(void) {
 */
 void exec_fill(void) {
   int32 x, y;
-  basicvars.current++;	/* Skip the FILL token */
-  x = eval_integer();		/* Get x coordinate of start of fill */
+  basicvars.current++;  /* Skip the FILL token */
+  x = eval_integer();           /* Get x coordinate of start of fill */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of start of fill */
+  y = eval_integer();           /* Get y coordinate of start of fill */
   check_ateol();
   emulate_fill(x, y);
 }
@@ -653,10 +653,10 @@ void exec_fill(void) {
 void exec_fillby(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get relative x coordinate of start of fill */
+  x = eval_integer();           /* Get relative x coordinate of start of fill */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get relative y coordinate of start of fill */
+  y = eval_integer();           /* Get relative y coordinate of start of fill */
   check_ateol();
   emulate_fillby(x, y);
 }
@@ -681,12 +681,12 @@ static void exec_gcolofon(void) {
     form += 4;
     basicvars.current++;
     red = eval_integer();
-    if (*basicvars.current == ',') {	/* Assume OF <red>, <green> */
+    if (*basicvars.current == ',') {    /* Assume OF <red>, <green> */
       basicvars.current++;
       green = eval_integer();
-      if (*basicvars.current == ',') {	/* Assume OF <red>, <green>, <blue> */
+      if (*basicvars.current == ',') {  /* Assume OF <red>, <green>, <blue> */
         basicvars.current++;
-        form += 1;	/* Set RGB flag */
+        form += 1;      /* Set RGB flag */
         blue = eval_integer();
         if (*basicvars.current == ',') { /* Got OF <action>, <red>, <green>, <blue> */
           basicvars.current++;
@@ -696,7 +696,7 @@ static void exec_gcolofon(void) {
           blue = eval_integer();
         }
       }
-      else {	/* Only got two parameters - Assume OF <action>, <colour> */
+      else {    /* Only got two parameters - Assume OF <action>, <colour> */
         action = red;
         red = green;
       }
@@ -707,12 +707,12 @@ static void exec_gcolofon(void) {
     form += 8;
     basicvars.current++;
     backred = eval_integer();
-    if (*basicvars.current == ',') {	/* Assume OF <red>, <green> */
+    if (*basicvars.current == ',') {    /* Assume OF <red>, <green> */
       basicvars.current++;
       backgreen = eval_integer();
-      if (*basicvars.current == ',') {	/* Assume OF <red>, <green>, <blue> */
+      if (*basicvars.current == ',') {  /* Assume OF <red>, <green>, <blue> */
         basicvars.current++;
-        form += 2;	/* Set RGB flag */
+        form += 2;      /* Set RGB flag */
         backblue = eval_integer();
         if (*basicvars.current == ',') { /* Got OF <action>, <red>, <green>, <blue> */
           basicvars.current++;
@@ -722,22 +722,22 @@ static void exec_gcolofon(void) {
           backblue = eval_integer();
         }
       }
-      else {	/* Only got two parameters - Assume OF <action>, <colour> */
+      else {    /* Only got two parameters - Assume OF <action>, <colour> */
         backact = backred;
         backred = backgreen;
       }
     }
   }
   check_ateol();
-  if ((form & 4) != 0) {	/* Set graphics foreground colour */
-    if ((form & 1) != 0)	/* Set foreground RGB colour */
+  if ((form & 4) != 0) {        /* Set graphics foreground colour */
+    if ((form & 1) != 0)        /* Set foreground RGB colour */
       emulate_gcolrgb(action, FALSE, red, green, blue);
     else {
       emulate_gcolnum(action, FALSE, red);
     }
   }
-  if ((form & 8) != 0) {	/* Set graphics background colour */
-    if ((form & 2) != 0)	/* Set foreground RGB colour */
+  if ((form & 8) != 0) {        /* Set graphics background colour */
+    if ((form & 2) != 0)        /* Set foreground RGB colour */
       emulate_gcolrgb(backact, TRUE, backred, backgreen, backblue);
     else {
       emulate_gcolnum(backact, TRUE, backred);
@@ -766,15 +766,15 @@ static void exec_gcolnum(void) {
     basicvars.current++;
     tint = eval_integer();
   }
-  else if (*basicvars.current == ',') {	/* > 2 parameters - Got GCOL <red>, <green>, <blue> */
+  else if (*basicvars.current == ',') { /* > 2 parameters - Got GCOL <red>, <green>, <blue> */
     gotrgb = TRUE;
     basicvars.current++;
     green = eval_integer();
-    if (*basicvars.current == ',') {	/* GCOL <action>, <red>, <green>, <blue> */
+    if (*basicvars.current == ',') {    /* GCOL <action>, <red>, <green>, <blue> */
       basicvars.current++;
       blue = eval_integer();
     }
-    else {	/* Only three values supplied. Form is GCOL <red>, <green>, <blue> */
+    else {      /* Only three values supplied. Form is GCOL <red>, <green>, <blue> */
       blue = green;
       green = colour;
       colour = action;
@@ -816,12 +816,12 @@ static void input_file(void) {
   char *cp;
   boolean isint;
   lvalue destination;
-  basicvars.current++;	/* Skip '#' token */
-  handle = eval_intfactor();	/* Find handle of file */
-  if (ateol[*basicvars.current]) return;	/* Nothing to do */
+  basicvars.current++;  /* Skip '#' token */
+  handle = eval_intfactor();    /* Find handle of file */
+  if (ateol[*basicvars.current]) return;        /* Nothing to do */
   if (*basicvars.current != ',') error(ERR_SYNTAX);
-  do {	/* Now read the values from the file */
-    basicvars.current++;	/* Skip the ',' token */
+  do {  /* Now read the values from the file */
+    basicvars.current++;        /* Skip the ',' token */
     get_lvalue(&destination);
     switch (destination.typeinfo & PARMTYPEMASK) {
     case VAR_INTWORD:
@@ -878,17 +878,17 @@ static void input_file(void) {
 ** but untested)
 */
 void exec_input(void) {
-  basicvars.current++;		/* Skip INPUT token */
+  basicvars.current++;          /* Skip INPUT token */
   switch (*basicvars.current) {
-  case BASIC_TOKEN_LINE:	/* Got 'INPUT LINE' - Read from keyboard */
-    basicvars.current++;	/* Skip LINE token */
-    read_input(TRUE);	/* TRUE = handling 'INPUT LINE' */
+  case BASIC_TOKEN_LINE:        /* Got 'INPUT LINE' - Read from keyboard */
+    basicvars.current++;        /* Skip LINE token */
+    read_input(TRUE);   /* TRUE = handling 'INPUT LINE' */
     break;
-  case '#':	/* Got 'INPUT#' - Read from file */
+  case '#':     /* Got 'INPUT#' - Read from file */
     input_file();
     break;
   default:
-    read_input(FALSE);	/* FALSE = handling 'INPUT' */
+    read_input(FALSE);  /* FALSE = handling 'INPUT' */
   }
 }
 
@@ -897,23 +897,23 @@ void exec_input(void) {
 ** varieties: 'LINE INPUT' and 'draw a line' LINE graphics command
 */
 void exec_line(void) {
-  basicvars.current++;	/* Skip LINE token */
-  if (*basicvars.current == BASIC_TOKEN_INPUT) {	/* Got 'LINE INPUT' - Read from keyboard */
-    basicvars.current++;	/* Skip INPUT token */
+  basicvars.current++;  /* Skip LINE token */
+  if (*basicvars.current == BASIC_TOKEN_INPUT) {        /* Got 'LINE INPUT' - Read from keyboard */
+    basicvars.current++;        /* Skip INPUT token */
     read_input(TRUE);
   }
-  else {	/* Graphics command version of 'LINE' */
+  else {        /* Graphics command version of 'LINE' */
     int32 x1, y1, x2, y2;
-    x1 = eval_integer();	/* Get first x coordinate */
+    x1 = eval_integer();        /* Get first x coordinate */
     if (*basicvars.current != ',') error(ERR_COMISS);
     basicvars.current++;
-    y1 = eval_integer();	/* Get first y coordinate */
+    y1 = eval_integer();        /* Get first y coordinate */
     if (*basicvars.current != ',') error(ERR_COMISS);
     basicvars.current++;
-    x2 = eval_integer();	/* Get second x coordinate */
+    x2 = eval_integer();        /* Get second x coordinate */
     if (*basicvars.current != ',') error(ERR_COMISS);
     basicvars.current++;
-    y2 = eval_integer();	/* Get second y coordinate */
+    y2 = eval_integer();        /* Get second y coordinate */
     check_ateol();
     emulate_line(x1, y1, x2, y2);
   }
@@ -927,24 +927,24 @@ void exec_line(void) {
  */
 static void exec_modenum(stackitem itemtype) {
   int xres, yres, bpp, rate;
-  rate = -1;		/* Use best rate */
-  bpp = 6;		/* 6 bpp - Marks old type RISC OS 256 colour mode */
+  rate = -1;            /* Use best rate */
+  bpp = 6;              /* 6 bpp - Marks old type RISC OS 256 colour mode */
   if (*basicvars.current == ',') {
     xres = pop_anynum32();
     basicvars.current++;
-    yres = eval_integer();	/* Y resolution */
+    yres = eval_integer();      /* Y resolution */
     if (*basicvars.current == ',') {
       basicvars.current++;
-      bpp = eval_integer();	/* Bits per pixel */
+      bpp = eval_integer();     /* Bits per pixel */
       if (*basicvars.current == ',') {
         basicvars.current++;
-        rate = eval_integer();	/* Frame rate */
+        rate = eval_integer();  /* Frame rate */
       }
     }
     check_ateol();
     emulate_newmode(xres, yres, bpp, rate);
   }
-  else {	/* MODE statement with mode number */
+  else {        /* MODE statement with mode number */
     check_ateol();
     emulate_mode(pop_anynum32());
   }
@@ -967,8 +967,8 @@ static void exec_modestr(stackitem itemtype) {
   cp = basicvars.stringwork;
 /* Parse the mode descriptor string */
   while (*cp == ' ' || *cp == ',') cp++;
-  if (*cp == asc_NUL) return;	/* There is nothing to do */
-  if (isdigit(*cp)) {	/* String contains a numeric mode number */
+  if (*cp == asc_NUL) return;   /* There is nothing to do */
+  if (isdigit(*cp)) {   /* String contains a numeric mode number */
     int32 mode = 0;
     do {
       mode = mode * 10 + *cp - '0';
@@ -976,17 +976,17 @@ static void exec_modestr(stackitem itemtype) {
     } while (isdigit(*cp));
     emulate_mode(mode);
   }
-  else {	/* Extract details from mode string */
+  else {        /* Extract details from mode string */
     int32 xres, yres, colours, greys, xeig, yeig, rate, value;
     char what;
-    xres = yres = 0;		/* Set up default values */
+    xres = yres = 0;            /* Set up default values */
     colours = greys = 0;
     xeig = yeig = 1;
-    rate = -1;		/* Use highest frame rate possible */
+    rate = -1;          /* Use highest frame rate possible */
     do {
       value = 0;
       switch (toupper(*cp)) {
-      case 'X': case 'Y': case 'G':	/* X and Y size and number of grey scale levels */
+      case 'X': case 'Y': case 'G':     /* X and Y size and number of grey scale levels */
         what = toupper(*cp);
         cp++;
         while (isdigit(*cp)) {
@@ -999,33 +999,33 @@ static void exec_modestr(stackitem itemtype) {
         else if (what == 'Y')
           yres = value;
         else {
-          if (colours > 0) error(ERR_BADMODESC);	/* Colour depth already given */
+          if (colours > 0) error(ERR_BADMODESC);        /* Colour depth already given */
           greys = value;
         }
         break;
-      case 'C':	/* Number of colours */
-        if (greys > 0) error(ERR_BADMODESC);	/* Grey scale already specified */
+      case 'C': /* Number of colours */
+        if (greys > 0) error(ERR_BADMODESC);    /* Grey scale already specified */
         cp++;
         while (isdigit(*cp)) {
           colours = colours * 10 + *cp - '0';
           cp++;
         }
         if (colours < 1) error(ERR_BADMODESC);
-        if (toupper(*cp) == 'K') {	/* 32K colours */
+        if (toupper(*cp) == 'K') {      /* 32K colours */
           if (colours != 32) error(ERR_BADMODESC);
           colours = 32 * 1024;
           cp++;
         }
-        else if (toupper(*cp) == 'M') {	/* 16M colours */
+        else if (toupper(*cp) == 'M') { /* 16M colours */
           if (colours != 16) error(ERR_BADMODESC);
           colours = 16 * 1024 * 1024;
           cp++;
         }
         break;
-      case 'F':	/* Frame rate */
+      case 'F': /* Frame rate */
         cp++;
-        if (*cp == '-' && *(cp+1) == '1')	/* Frame rate = -1 = use max available */
-          cp+=2;	/* -1 is the default value, so do nothing */
+        if (*cp == '-' && *(cp+1) == '1')       /* Frame rate = -1 = use max available */
+          cp+=2;        /* -1 is the default value, so do nothing */
         else {
           rate = 0;
           while (isdigit(*cp)) {
@@ -1035,10 +1035,10 @@ static void exec_modestr(stackitem itemtype) {
           if (rate < 1) error(ERR_BADMODESC);
         }
         break;
-      case 'E':	/* X and Y eigenvalues */
+      case 'E': /* X and Y eigenvalues */
         cp++;
         if (toupper(*cp) == 'X')
-          xeig = *(cp+1) - '0';	/* Allow only one digit for the eigenvalue */
+          xeig = *(cp+1) - '0'; /* Allow only one digit for the eigenvalue */
         else if (toupper(*cp) == 'Y')
           yeig = *(cp+1) - '0';
         else {
@@ -1084,9 +1084,9 @@ void exec_mode(void) {
 static void exec_mouse_on(void) {
   int32 pointer;
   basicvars.current++;
-  if (!ateol[*basicvars.current])	/* Pointer number specified */
+  if (!ateol[*basicvars.current])       /* Pointer number specified */
     pointer = eval_integer();
-  else {	/* Use default pointer */
+  else {        /* Use default pointer */
     pointer = 0;
   }
   check_ateol();
@@ -1127,11 +1127,11 @@ static void exec_mouse_step(void) {
   int32 x, y;
   basicvars.current++;
   x = eval_integer();
-  if (*basicvars.current == ',') {	/* 'y' multiplier supplied */
+  if (*basicvars.current == ',') {      /* 'y' multiplier supplied */
     basicvars.current++;
     y = eval_integer();
   }
-  else {	/* Use same multiplier for 'x' and 'y' */
+  else {        /* Use same multiplier for 'x' and 'y' */
     y = x;
   }
   check_ateol();
@@ -1184,21 +1184,21 @@ static void exec_mouse_rectangle(void) {
 static void exec_mouse_position(void) {
   size_t mousevalues[4];
   lvalue destination;
-  mos_mouse(mousevalues);		/* Note: this code does not check the type of the variable to receive the values */
+  mos_mouse(mousevalues);               /* Note: this code does not check the type of the variable to receive the values */
   get_lvalue(&destination);
   if (*basicvars.current != ',') error(ERR_COMISS);
-  store_value(destination, mousevalues[0], NOSTRING);	/* Mouse x coordinate */
-  basicvars.current++;	/* Skip ',' token */
+  store_value(destination, mousevalues[0], NOSTRING);   /* Mouse x coordinate */
+  basicvars.current++;  /* Skip ',' token */
   get_lvalue(&destination);
   if (*basicvars.current != ',') error(ERR_COMISS);
-  store_value(destination, mousevalues[1], NOSTRING);	/* Mouse y coordinate */
-  basicvars.current++;	/* Skip ',' token */
+  store_value(destination, mousevalues[1], NOSTRING);   /* Mouse y coordinate */
+  basicvars.current++;  /* Skip ',' token */
   get_lvalue(&destination);
-  store_value(destination, mousevalues[2], NOSTRING);	/* Mouse button state */
-  if (*basicvars.current == ',') {	/* Want timestamp as well */
-    basicvars.current++;	/* Skip ',' token */
+  store_value(destination, mousevalues[2], NOSTRING);   /* Mouse button state */
+  if (*basicvars.current == ',') {      /* Want timestamp as well */
+    basicvars.current++;        /* Skip ',' token */
     get_lvalue(&destination);
-    store_value(destination, mousevalues[3], NOSTRING);	/* Timestamp */
+    store_value(destination, mousevalues[3], NOSTRING); /* Timestamp */
   }
   check_ateol();
 }
@@ -1208,24 +1208,24 @@ static void exec_mouse_position(void) {
 ** 'exec_mouse' handles the Basic 'MOUSE' statement
 */
 void exec_mouse(void) {
-  basicvars.current++;		/* Skip MOUSE token */
+  basicvars.current++;          /* Skip MOUSE token */
   switch (*basicvars.current) {
-  case BASIC_TOKEN_ON:	/* MOUSE ON */
+  case BASIC_TOKEN_ON:  /* MOUSE ON */
     exec_mouse_on();
     break;
-  case BASIC_TOKEN_OFF:	/* MOUSE OFF */
+  case BASIC_TOKEN_OFF: /* MOUSE OFF */
     exec_mouse_off();
     break;
-  case BASIC_TOKEN_TO:	/* MOUSE TO */
+  case BASIC_TOKEN_TO:  /* MOUSE TO */
     exec_mouse_to();
     break;
-  case BASIC_TOKEN_STEP:	/* MOUSE STEP */
+  case BASIC_TOKEN_STEP:        /* MOUSE STEP */
     exec_mouse_step();
     break;
-  case BASIC_TOKEN_COLOUR:	/* MOUSE COLOUR */
+  case BASIC_TOKEN_COLOUR:      /* MOUSE COLOUR */
     exec_mouse_colour();
     break;
-  case BASIC_TOKEN_RECTANGLE:	/* MOUSE RECTANGLE */
+  case BASIC_TOKEN_RECTANGLE:   /* MOUSE RECTANGLE */
     exec_mouse_rectangle();
     break;
   default:
@@ -1239,10 +1239,10 @@ void exec_mouse(void) {
 void exec_move(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of end point */
+  x = eval_integer();           /* Get x coordinate of end point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of end point */
+  y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
   emulate_move(x, y);
 }
@@ -1253,10 +1253,10 @@ void exec_move(void) {
 void exec_moveby(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get relative x coordinate of end point */
+  x = eval_integer();           /* Get relative x coordinate of end point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get relative y coordinate of end point */
+  y = eval_integer();           /* Get relative y coordinate of end point */
   check_ateol();
   emulate_moveby(x, y);
 }
@@ -1278,10 +1278,10 @@ void exec_off(void) {
 void exec_origin(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of new origin */
+  x = eval_integer();           /* Get x coordinate of new origin */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of new origin */
+  y = eval_integer();           /* Get y coordinate of new origin */
   check_ateol();
   emulate_origin(x, y);
 }
@@ -1292,13 +1292,13 @@ void exec_origin(void) {
 void exec_plot(void) {
   int32 code, x, y;
   basicvars.current++;
-  code = eval_integer();	/* Get 'PLOT' code */
+  code = eval_integer();        /* Get 'PLOT' code */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  x = eval_integer();		/* Get x coordinate for 'plot' command */
+  x = eval_integer();           /* Get x coordinate for 'plot' command */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate for 'plot' command */
+  y = eval_integer();           /* Get y coordinate for 'plot' command */
   check_ateol();
   emulate_plot(code, x, y);
 }
@@ -1308,11 +1308,11 @@ void exec_plot(void) {
 */
 void exec_point(void) {
   int32 x, y;
-  basicvars.current++;		/* Skip POINT token */
-  x = eval_integer();		/* Get x coordinate of point */
+  basicvars.current++;          /* Skip POINT token */
+  x = eval_integer();           /* Get x coordinate of point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of point */
+  y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
   emulate_point(x, y);
 }
@@ -1323,10 +1323,10 @@ void exec_point(void) {
 void exec_pointby(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of point */
+  x = eval_integer();           /* Get x coordinate of point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of point */
+  y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
   emulate_pointby(x, y);
 }
@@ -1337,10 +1337,10 @@ void exec_pointby(void) {
 void exec_pointto(void) {
   int32 x, y;
   basicvars.current++;
-  x = eval_integer();		/* Get x coordinate of point */
+  x = eval_integer();           /* Get x coordinate of point */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y = eval_integer();		/* Get y coordinate of point */
+  y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
   emulate_pointto(x, y);
 }
@@ -1378,17 +1378,17 @@ static void print_screen(void) {
   /* Matrix Brandy extension - bits 5 and 6 of format byte set the padding size in E format */
   eoff = (((format>>2*BYTESHIFT) & 0x30) >> 4) + 4;
   if (numdigits > 19 ) numdigits = 19; /* Maximum meaningful length */
-  switch (formattype) {	/* Determine format of floating point values */
+  switch (formattype) { /* Determine format of floating point values */
   case FORMAT_E:
-    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 17 digits if value is 0 */
+    if (numdigits == 0) numdigits = DEFDIGITS;  /* Use default of 17 digits if value is 0 */
     leftfmt = "%.*E"; rightfmt = "%*.*E";
     if (numdigits > 1) numdigits--;
     break;
   case FORMAT_F:
     leftfmt = "%.*F"; rightfmt = "%*.*F";
     break;
-  default:	/* Assume anything else will be general format */
-    if (numdigits == 0) numdigits = DEFDIGITS;	/* Use default of 17 digits if value is 0 */
+  default:      /* Assume anything else will be general format */
+    if (numdigits == 0) numdigits = DEFDIGITS;  /* Use default of 17 digits if value is 0 */
     leftfmt = "%.*G"; rightfmt = "%*.*G";
     break;
   }
@@ -1396,14 +1396,14 @@ static void print_screen(void) {
     newline = TRUE;
     while (*basicvars.current == '~' || *basicvars.current == ',' || *basicvars.current == ';'
      || *basicvars.current == '\'' || *basicvars.current == TYPE_PRINTFN) {
-      if (*basicvars.current == TYPE_PRINTFN) {	/* Have to use an 'if' here as LCC generate bad code for a switch */
+      if (*basicvars.current == TYPE_PRINTFN) { /* Have to use an 'if' here as LCC generate bad code for a switch */
         newline = TRUE;
         if (*(basicvars.current+1) == BASIC_TOKEN_TAB) {
-          basicvars.current+=2;		/* Skip two byte function token */
+          basicvars.current+=2;         /* Skip two byte function token */
           fn_tab();
         }
         else if (*(basicvars.current+1) == BASIC_TOKEN_SPC) {
-          basicvars.current+=2;		/* Skip two byte function token */
+          basicvars.current+=2;         /* Skip two byte function token */
           fn_spc();
         }
         else {
@@ -1419,8 +1419,8 @@ static void print_screen(void) {
         case ',':
           hex = FALSE;
           rightjust = TRUE;
-          size = (fieldwidth ? basicvars.printcount%fieldwidth : 0);	/* Tab to next multiple of <fieldwidth> chars */
-          if (size != 0) {	/* Already at tab position */
+          size = (fieldwidth ? basicvars.printcount%fieldwidth : 0);    /* Tab to next multiple of <fieldwidth> chars */
+          if (size != 0) {      /* Already at tab position */
             do {
               emulate_vdu(' ');
               size++;
@@ -1432,7 +1432,7 @@ static void print_screen(void) {
         case ';':
           hex = FALSE;
           rightjust = FALSE;
-          newline = FALSE;	/* If ';' is last item on line do not skip to a new line */
+          newline = FALSE;      /* If ';' is last item on line do not skip to a new line */
           basicvars.current++;
           break;
         case '\'':
@@ -1452,7 +1452,7 @@ static void print_screen(void) {
     resultype = GET_TOPITEM;
     switch (resultype) {
     case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
-      if (rightjust) {	/* Value is printed right justified */
+      if (rightjust) {  /* Value is printed right justified */
         if (hex) {
           if (matrixflags.hex64)
             size = sprintf(basicvars.stringwork, "%*llX", fieldwidth, pop_anynum64());
@@ -1471,7 +1471,7 @@ static void print_screen(void) {
           }
         }
       } 
-      else {	/* Left justify the value */
+      else {    /* Left justify the value */
         if (hex)
           if (matrixflags.hex64)
             size = sprintf(basicvars.stringwork, "%llX", pop_anynum64());
@@ -1561,8 +1561,8 @@ static void print_file(void) {
   basicstring descriptor;
   int32 handle;
   boolean more;
-  basicvars.current++;	/* Skip '#' token */
-  handle = eval_intfactor();	/* Find handle of file */
+  basicvars.current++;  /* Skip '#' token */
+  handle = eval_intfactor();    /* Find handle of file */
   more = !ateol[*basicvars.current];
   while (more) {
     if (*basicvars.current != ',') error(ERR_SYNTAX);
@@ -1616,33 +1616,33 @@ void exec_print(void) {
 void exec_rectangle(void) {
   int32 x1, y1, width, height, x2, y2;
   boolean filled;
-  basicvars.current++;		/* Skip RECTANGLE token */
+  basicvars.current++;          /* Skip RECTANGLE token */
   filled = *basicvars.current == BASIC_TOKEN_FILL;
   if (filled) basicvars.current++;
-  x1 = eval_integer();		/* Get x coordinate of a corner */
+  x1 = eval_integer();          /* Get x coordinate of a corner */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  y1 = eval_integer();		/* Get y coordinate of a corner */
+  y1 = eval_integer();          /* Get y coordinate of a corner */
   if (*basicvars.current != ',') error(ERR_COMISS);
   basicvars.current++;
-  width = eval_integer();		/* Get width of rectangle */
-  if (*basicvars.current == ',') {	/* Height is specified */
+  width = eval_integer();               /* Get width of rectangle */
+  if (*basicvars.current == ',') {      /* Height is specified */
     basicvars.current++;
-    height = eval_integer();		/* Get height of rectangle */
+    height = eval_integer();            /* Get height of rectangle */
   }
-  else {	/* Height is not specified - Assume height = width */
+  else {        /* Height is not specified - Assume height = width */
     height = width;
   }
-  if (*basicvars.current == BASIC_TOKEN_TO) {	/* Got 'RECTANGLE ... TO' form of statement */
+  if (*basicvars.current == BASIC_TOKEN_TO) {   /* Got 'RECTANGLE ... TO' form of statement */
     basicvars.current++;
-    x2 = eval_integer();		/* Get destination x coordinate */
+    x2 = eval_integer();                /* Get destination x coordinate */
     if (*basicvars.current != ',') error(ERR_COMISS);
     basicvars.current++;
-    y2 = eval_integer();		/* Get destination y coordinate */
+    y2 = eval_integer();                /* Get destination y coordinate */
     check_ateol();
     emulate_moverect(x1, y1, width, height, x2, y2, filled);
   }
-  else {	/* Just draw a rectangle */
+  else {        /* Just draw a rectangle */
     check_ateol();
     emulate_drawrect(x1, y1, width, height, filled);
   }
@@ -1653,7 +1653,7 @@ void exec_rectangle(void) {
 */
 void exec_sound(void) {
   int32 channel, amplitude, pitch, duration, delay;
-  basicvars.current++;		/* Skip sound token */
+  basicvars.current++;          /* Skip sound token */
   switch (*basicvars.current) {
   case BASIC_TOKEN_ON:
     basicvars.current++;
@@ -1731,10 +1731,10 @@ void exec_tint(void) {
 */
 void exec_vdu(void) {
   int32 n, value;
-  basicvars.current++;		/* Skip VDU token */
+  basicvars.current++;          /* Skip VDU token */
   do {
     value = eval_integer();
-    if (*basicvars.current == ';') {	/* Send value as two bytes */
+    if (*basicvars.current == ';') {    /* Send value as two bytes */
       emulate_vdu(value);
       emulate_vdu(value>>BYTESHIFT);
       basicvars.current++;
@@ -1743,7 +1743,7 @@ void exec_vdu(void) {
       emulate_vdu(value);
       if (*basicvars.current == ',')
         basicvars.current++;
-      else if (*basicvars.current == '|') {	/* Got a '|' - Send nine nulls */
+      else if (*basicvars.current == '|') {     /* Got a '|' - Send nine nulls */
         for (n=1; n<=9; n++) emulate_vdu(0);
         basicvars.current++;
       }

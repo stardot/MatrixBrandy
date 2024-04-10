@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the functions and so forth associated with
-**	memory manangement for strings
+**      This file defines the functions and so forth associated with
+**      memory manangement for strings
 */
 
 #include <string.h>
@@ -54,56 +54,56 @@
 ** 1)  Search the bin for a string of the required size
 ** 2)  If the bin is empty acquire a block directly from the Basic heap.
 ** 3)  If that fails then search the free string list and use the first
-**	one that fits. The unused potion of the block is returned to
-**	either one of the bins or the free string list, depending on its
-**	size.
+**      one that fits. The unused potion of the block is returned to
+**      either one of the bins or the free string list, depending on its
+**      size.
 ** 4)  If nothing can be found in step 3), try to merge free blocks
-**	and start again from step 1).
+**      and start again from step 1).
 ** 5)  If there is still nothing available give up.
-**	(Actually it would be possible to check one more place to see
-**	if there is any memory left. The bins for longer string sizes
-**	could be checked but if steps 1) to 4) fail to produce anything
-**	it seems unlikely that this will.)
+**      (Actually it would be possible to check one more place to see
+**      if there is any memory left. The bins for longer string sizes
+**      could be checked but if steps 1) to 4) fail to produce anything
+**      it seems unlikely that this will.)
 **
 ** In this module, string lengths are referred to by the number of the bin
 ** that corresponds to that length.
 */
 
-#define SHORTLIMIT 256			/* Largest 'short' string */
-#define MEDLIMIT 2048			/* Largest 'medium' string */
+#define SHORTLIMIT 256                  /* Largest 'short' string */
+#define MEDLIMIT 2048                   /* Largest 'medium' string */
 
-#define SHORTGRAIN 8			/* Difference between each 'short' string length */
-#define MEDGRAIN 256			/* Difference between each 'medium' string length */
+#define SHORTGRAIN 8                    /* Difference between each 'short' string length */
+#define MEDGRAIN 256                    /* Difference between each 'medium' string length */
 
-#define SHORTBINS ((SHORTLIMIT/SHORTGRAIN)+1)	/* Number of bins for short strings (+1 as range is 0..256) */
-#define MEDSTART SHORTBINS		/* Index of first 'medium' bin entry */
-#define MEDBINS ((MEDLIMIT/MEDGRAIN)-1)	/* Number of bins for medium strings (-1 as range is 512..2048) */
-#define LONGSTART (SHORTBINS+MEDBINS)	/* Index of first 'long' bin entry */
-#define BINCOUNT 46			/* Number of bins */
+#define SHORTBINS ((SHORTLIMIT/SHORTGRAIN)+1)   /* Number of bins for short strings (+1 as range is 0..256) */
+#define MEDSTART SHORTBINS              /* Index of first 'medium' bin entry */
+#define MEDBINS ((MEDLIMIT/MEDGRAIN)-1) /* Number of bins for medium strings (-1 as range is 512..2048) */
+#define LONGSTART (SHORTBINS+MEDBINS)   /* Index of first 'long' bin entry */
+#define BINCOUNT 46                     /* Number of bins */
 
 typedef struct heapblock {
-  struct heapblock *blockflink;		/* Next block in list */
-  int32 blocksize;			/* Size of heap block (Use only in free list) */
+  struct heapblock *blockflink;         /* Next block in list */
+  int32 blocksize;                      /* Size of heap block (Use only in free list) */
 } heapblock;
 
 typedef struct {
-  heapblock *freestart;			/* Address of a free string */
-  int32 freesize;			/* Size of free string */
+  heapblock *freestart;                 /* Address of a free string */
+  int32 freesize;                       /* Size of free string */
 } freeblock;
 
 #ifdef DEBUG
-  static int32 allocated;		/* Number of bytes allocated */
-  static int32 created[BINCOUNT];	/* Number of times string of this size has been created */
-  static int32 reused[BINCOUNT];	/* Number of times strings in bins have been reused */
-  static int32 allocations[BINCOUNT];	/* Number of times string of this size has been allocated */
+  static int32 allocated;               /* Number of bytes allocated */
+  static int32 created[BINCOUNT];       /* Number of times string of this size has been created */
+  static int32 reused[BINCOUNT];        /* Number of times strings in bins have been reused */
+  static int32 allocations[BINCOUNT];   /* Number of times string of this size has been allocated */
 
 #endif
 
-static int32 freestrings;		/* Number of free strings in bins */
-static heapblock *binlists[BINCOUNT];	/* Free memory block bins */
-static heapblock *freelist;		/* List of free blocks not in bins */
+static int32 freestrings;               /* Number of free strings in bins */
+static heapblock *binlists[BINCOUNT];   /* Free memory block bins */
+static heapblock *freelist;             /* List of free blocks not in bins */
 
-static int32 binsizes[BINCOUNT] = {	/* Bin number -> string size */
+static int32 binsizes[BINCOUNT] = {     /* Bin number -> string size */
 /* short strings */
 0,   8,  16,  24,  32,  40,  48,  56,  64,  72,  80,  88,  96, 104, 112, 120, 128,
    136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256,
@@ -113,9 +113,9 @@ static int32 binsizes[BINCOUNT] = {	/* Bin number -> string size */
   3072, 4096, 8192, 16384, 32768, 65536
 };
 
-char emptystring;	/* All requests for zero bytes point here */
+char emptystring;       /* All requests for zero bytes point here */
 
-static boolean collect(void);	/* Forward reference */
+static boolean collect(void);   /* Forward reference */
 
 /*
 ** 'find_bin' returns the bin number used to hold strings of length
@@ -123,19 +123,19 @@ static boolean collect(void);	/* Forward reference */
 ** this one must ensure that the string length is in range
 */
 static int32 find_bin(int size) {
-  if (size<=SHORTLIMIT)		/* Size<=128 bytes (including zero) */
+  if (size<=SHORTLIMIT)         /* Size<=128 bytes (including zero) */
     return (size+SHORTGRAIN-1)/SHORTGRAIN;
   else if (size<=MEDLIMIT)
-    return (size+MEDGRAIN-1)/MEDGRAIN+MEDSTART-2;	/* -2 as there are no 0 and 128 byte medium strings */
-  else {	/* Search through larger size string bins */
+    return (size+MEDGRAIN-1)/MEDGRAIN+MEDSTART-2;       /* -2 as there are no 0 and 128 byte medium strings */
+  else {        /* Search through larger size string bins */
     int n = LONGSTART;
     do {
-      if (binsizes[n]>=size) return n;	/* Found wanted string bin size */
+      if (binsizes[n]>=size) return n;  /* Found wanted string bin size */
       n+=1;
     } while (n<BINCOUNT);
-    error(ERR_BROKEN, __LINE__, "strings");		/* Sanity check - String size is too long */
+    error(ERR_BROKEN, __LINE__, "strings");             /* Sanity check - String size is too long */
   }
-  return 0;	/* Should never be executed */
+  return 0;     /* Should never be executed */
 }
 
 /*
@@ -153,7 +153,7 @@ void *alloc_string(int32 size) {
   bin = find_bin(size);
   reclaimed = FALSE;
   do {
-    if (binlists[bin]!=NIL) {	/* Found something usable in a bin */
+    if (binlists[bin]!=NIL) {   /* Found something usable in a bin */
       p = binlists[bin];
       binlists[bin] = p->blockflink;
       freestrings-=1;
@@ -167,9 +167,9 @@ void *alloc_string(int32 size) {
 
 /* There was nothing in the bin. Try grabbing more memory from the heap */
 
-    size = binsizes[bin];  	/* Get string size for bin 'bin' */
+    size = binsizes[bin];       /* Get string size for bin 'bin' */
     p = allocmem(size, 0);
-    if (p!=NIL) {		/* Allocated block from heap successfully */
+    if (p!=NIL) {               /* Allocated block from heap successfully */
 #ifdef DEBUG
       allocated+=size;
       created[bin]+=1;
@@ -183,27 +183,27 @@ void *alloc_string(int32 size) {
 
     p = freelist;
     last = NIL;
-    while (p!=NIL && p->blocksize<size) {	/* Look for first block big enough */
+    while (p!=NIL && p->blocksize<size) {       /* Look for first block big enough */
       last = p;
       p = p->blockflink;
     }
-    if (p!=NIL) {	/* Found some memory that can be used */
-      unused = p->blocksize-size;	/* Find out how much of block will be left */
-      if (unused<=SHORTLIMIT) {		/* Remove entire block from the free list */
-        if (last==NIL)	/* Block was first in list */
+    if (p!=NIL) {       /* Found some memory that can be used */
+      unused = p->blocksize-size;       /* Find out how much of block will be left */
+      if (unused<=SHORTLIMIT) {         /* Remove entire block from the free list */
+        if (last==NIL)  /* Block was first in list */
           freelist = p->blockflink;
         else {
           last->blockflink = p->blockflink;
         }
         freestrings-=1;
-        if (unused>0) {	/* If anything is left from block, put it in a bin */
+        if (unused>0) { /* If anything is left from block, put it in a bin */
           basicstring descriptor;
           descriptor.stringaddr = CAST(p, char *)+size;
           descriptor.stringlen = unused;
           free_string(descriptor);
         }
       }
-      else {	/* Use part of block. Return unused portion to free list */
+      else {    /* Use part of block. Return unused portion to free list */
         heapblock *up;
         up = CAST(CAST(p, char *)+size, heapblock *);
         up->blockflink = p->blockflink;
@@ -229,10 +229,10 @@ void *alloc_string(int32 size) {
 ** available to meet the current request
 */
 
-    if (reclaimed || !collect()) error(ERR_NOROOM);	/* Fail if 'collect' does not achieve anything */
+    if (reclaimed || !collect()) error(ERR_NOROOM);     /* Fail if 'collect' does not achieve anything */
     reclaimed = TRUE;
   } while (TRUE);
-  return NIL;		/* Will never be executed */
+  return NIL;           /* Will never be executed */
 }
 
 /*
@@ -247,15 +247,15 @@ void free_string(basicstring descriptor) {
   if (basicvars.debug_flags.strings) fprintf(stderr, "strings.c: free_string(): Free string at %p, length %d bytes\n",
    descriptor.stringaddr, size);
 #endif
-  if (size==0) return;	/* Null string - Nothing to return */
+  if (size==0) return;  /* Null string - Nothing to return */
   hp = CAST(descriptor.stringaddr, heapblock *);
   bin = find_bin(size);
   hp2 = binlists[bin];
-  if (hp2==NIL || hp<hp2) {	/* New first element in list */
+  if (hp2==NIL || hp<hp2) {     /* New first element in list */
     hp->blockflink = hp2;
     binlists[bin] = hp;
   }
-  else {	/* Add block somewhere in the middle of the list */
+  else {        /* Add block somewhere in the middle of the list */
     heapblock *last;
     do {
       last = hp2;
@@ -264,7 +264,7 @@ void free_string(basicstring descriptor) {
     hp->blockflink = last->blockflink;
     last->blockflink = hp;
   }
-  freestrings+=1;	/* Bump up number of free strings */
+  freestrings+=1;       /* Bump up number of free strings */
 }
 
 /*
@@ -304,20 +304,20 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
   basicstring descriptor;
   oldbin = find_bin(oldlen);
   newbin = find_bin(newlen);
-  if (newbin==oldbin) return cp;	/* Can use same string */
-  if (newlen>oldlen) {		/* New string is longer than old one */
-    newcp = alloc_string(newlen);	/* Grab new block and copy old string to it */
+  if (newbin==oldbin) return cp;        /* Can use same string */
+  if (newlen>oldlen) {          /* New string is longer than old one */
+    newcp = alloc_string(newlen);       /* Grab new block and copy old string to it */
     if (oldlen!=0) {
       memmove(newcp, cp, oldlen);
-      descriptor.stringlen = oldlen;	/* Have to fake a descriptor for 'free_string' */
+      descriptor.stringlen = oldlen;    /* Have to fake a descriptor for 'free_string' */
       descriptor.stringaddr = cp;
       free_string(descriptor);
     }
     return newcp;
   }
-  else {	/* New string length is shorter than old */
-    if (newlen==0) {	/* New string is the null string */
-      descriptor.stringlen = oldlen;	/* Have to fake a descriptor for 'free_string' */
+  else {        /* New string length is shorter than old */
+    if (newlen==0) {    /* New string is the null string */
+      descriptor.stringlen = oldlen;    /* Have to fake a descriptor for 'free_string' */
       descriptor.stringaddr = cp;
       free_string(descriptor);
       return &emptystring;
@@ -330,16 +330,16 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
 ** truncated is when there is a bin of the size of the bit to be released.
 */
     sizediff = binsizes[oldbin]-binsizes[newbin];
-    if (binsizes[find_bin(sizediff)]==sizediff) {	/* Bit to be chopped off will go in a bin */
-      descriptor.stringlen = sizediff;	/* Have to fake a descriptor for 'free_string' */
+    if (binsizes[find_bin(sizediff)]==sizediff) {       /* Bit to be chopped off will go in a bin */
+      descriptor.stringlen = sizediff;  /* Have to fake a descriptor for 'free_string' */
       descriptor.stringaddr = cp+binsizes[newbin];
       free_string(descriptor);
       return cp;
     }
-    else {	/* Have to copy string */
+    else {      /* Have to copy string */
       newcp = alloc_string(newlen);
       memmove(newcp, cp, newlen);
-      descriptor.stringlen = oldlen;	/* Have to fake a descriptor for 'free_string' */
+      descriptor.stringlen = oldlen;    /* Have to fake a descriptor for 'free_string' */
       descriptor.stringaddr = cp;
       free_string(descriptor);
       return newcp;
@@ -394,23 +394,23 @@ static boolean collect(void) {
   int32 largest, count;
   fprintf(stderr, "strings.c: collect(): Trying to merge %d free strings\n", freestrings);
 #endif
-  if (freestrings==0) return FALSE;	/* Give up if there is no free memory */
+  if (freestrings==0) return FALSE;     /* Give up if there is no free memory */
 /*
 ** Start by creating an unsorted table of free blocks of memory held in
 ** the bins and on the free list. Sort the table into ascending order of
 ** address and then merge adjacent blocks
 */
   base = malloc(freestrings*sizeof(freeblock));
-  if (base==NIL) return FALSE;		/* Indicate call failed */
+  if (base==NIL) return FALSE;          /* Indicate call failed */
   next = 0;
-  p = freelist;	/* Copy details of strings on free list to table of free blocks */
+  p = freelist; /* Copy details of strings on free list to table of free blocks */
   while (p!=NIL) {
     base[next].freestart = p;
     base[next].freesize = p->blocksize;
     next++;
     p = p->blockflink;
   }
-  for (n=1; n<BINCOUNT; n++) {	/* Create unsorted table of free blocks */
+  for (n=1; n<BINCOUNT; n++) {  /* Create unsorted table of free blocks */
     p = binlists[n];
     binlists[n] = NIL;
     size = binsizes[n];
@@ -421,20 +421,20 @@ static boolean collect(void) {
       p = p->blockflink;
     }
   }
-  qsort(base, freestrings, sizeof(freeblock), compare);	/* Sort free blocks into address order */
+  qsort(base, freestrings, sizeof(freeblock), compare); /* Sort free blocks into address order */
   merged = FALSE;
   here = 0;
   next = 1;
 #ifdef DEBUG
   largest = count = 0;
 #endif
-  do {	/* Go through table and merge adjacent free blocks */
+  do {  /* Go through table and merge adjacent free blocks */
     size = base[here].freesize;
     while (next<freestrings &&
      CAST(CAST(base[here].freestart, char *)+size, heapblock *)==base[next].freestart) {
       base[here].freesize = size = size+base[next].freesize;
       base[next].freestart = NIL;
-      merged = TRUE;	/* Have managed to merge a couple of blocks */
+      merged = TRUE;    /* Have managed to merge a couple of blocks */
       next++;
 #ifdef DEBUG
       if (size>largest) largest = size;
@@ -457,8 +457,8 @@ static boolean collect(void) {
 ** the bins when requests for string memory are made
 */
   n = freestrings-1;
-  while (n>=0 && base[n].freestart==NIL) n--;	/* Find final block in table */
-  if (n>=0 && returnable(base[n].freestart, base[n].freesize)) {	/* Return block to Basic heap if possible */
+  while (n>=0 && base[n].freestart==NIL) n--;   /* Find final block in table */
+  if (n>=0 && returnable(base[n].freestart, base[n].freesize)) {        /* Return block to Basic heap if possible */
     freemem(base[n].freestart, base[n].freesize);
 #ifdef DEBUG
     allocated-=base[n].freesize;
@@ -468,14 +468,14 @@ static boolean collect(void) {
   }
   freestrings = 0;
   freelist = NIL;
-  while (n>=0) {	/* Add blocks either to a bin or the free string list depending on size */
-    if (base[n].freestart!=NIL) {	/* Want this entry */
+  while (n>=0) {        /* Add blocks either to a bin or the free string list depending on size */
+    if (base[n].freestart!=NIL) {       /* Want this entry */
       if (base[n].freesize<=MAXSTRING)
         size = find_bin(base[n].freesize);
       else {
         size = 0;
       }
-      if (size>0 && binsizes[size]==base[n].freesize) {	/* Block size matches that of a bin */
+      if (size>0 && binsizes[size]==base[n].freesize) { /* Block size matches that of a bin */
         base[n].freestart->blockflink = binlists[size];
         binlists[size] = base[n].freestart;
       }
@@ -526,9 +526,9 @@ void check_alloc(void) {
   heapblock *p;
   variable *vp;
   basicstring *sp;
-  if (allocated==0) return;	/* No strings were allocated */
+  if (allocated==0) return;     /* No strings were allocated */
   used = usedcount = free = freecount = 0;
-  for (n=1; n<BINCOUNT; n++) {	/* Find number of bytes in free lists */
+  for (n=1; n<BINCOUNT; n++) {  /* Find number of bytes in free lists */
     p = binlists[n];
     m = 0;
     while (p!=NIL) {
@@ -539,7 +539,7 @@ void check_alloc(void) {
     freecount+=m;
 /*    if (m!=0) fprintf(stderr, "Block size %5d: %d entries\n", binsizes[n], m); */
   }
-  for (n=0; n<VARLISTS; n++) {		/* Find number of bytes in use */
+  for (n=0; n<VARLISTS; n++) {          /* Find number of bytes in use */
     vp = basicvars.varlists[n];
     while (vp!=NIL) {
       if (vp->varflags==VAR_STRINGDOL) {

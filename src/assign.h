@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines functions that handle assignments
-**	in assign.c
+**      This file defines functions that handle assignments
+**      in assign.c
 */
 
 #ifndef __assign_h

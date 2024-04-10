@@ -19,10 +19,10 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	Target-specific declarations
+**      Target-specific declarations
 **
 ** 20th August 2002 Crispian Daniels:
-**	Included a Mac OS X target for conditional compilation.
+**      Included a Mac OS X target for conditional compilation.
 **
 ** 04-Dec-2018 JGH: Rearranged to make for easier human parsing.
 **
@@ -113,15 +113,15 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 **
 ** Name of editor invoked by Basic 'EDIT' command.
 ** EDITOR_VARIABLE is the name of an environment variable that can be
-**		read to find the name of the editor to use.
+**              read to find the name of the editor to use.
 ** DEFAULT_EDITOR is the name of the editor to use if there is no
-**		environment variable.
+**              environment variable.
 **
 ** Characters used to separate directories in names of files
-** DIR_SEPS	is a string containing all the characters that can be
-** 	    	be used to separate components of a file name (apart
-**		from the file name's extension).
-** DIR_SEP	gives the character to be used to separate directory names.
+** DIR_SEPS     is a string containing all the characters that can be
+**              be used to separate components of a file name (apart
+**              from the file name's extension).
+** DIR_SEP      gives the character to be used to separate directory names.
 */
 
 #if defined(__i386__)
@@ -454,9 +454,9 @@ typedef jmp_buf sigjmp_buf;
 #endif
 
 #ifdef TARGET_RISCOS
-#define MAXSYSPARMS 10		/* Maximum number of parameters allowed in a 'SYS' statement */
+#define MAXSYSPARMS 10          /* Maximum number of parameters allowed in a 'SYS' statement */
 #else
-#define MAXSYSPARMS 16		/* Maximum number of parameters allowed in a 'SYS' statement */
+#define MAXSYSPARMS 16          /* Maximum number of parameters allowed in a 'SYS' statement */
 #endif
 
 #endif

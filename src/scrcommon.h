@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains definitions of constants, types and
-**	variables used by all the VDU driver emulation files
+**      This file contains definitions of constants, types and
+**      variables used by all the VDU driver emulation files
 */
 
 #ifndef __scrcommon_h
@@ -28,24 +28,24 @@
 
 #include "common.h"
 
-#define MAXBYTES	9	/* VDU commands need at most nine bytes of data */
+#define MAXBYTES        9       /* VDU commands need at most nine bytes of data */
 
-#define COL24BIT 16777216	/* Colour depth for 24-bit (16 million) colours */
-#define COL15BIT 32768		/* Colour depth for 15-bit (32 thousand) colours */
+#define COL24BIT 16777216       /* Colour depth for 24-bit (16 million) colours */
+#define COL15BIT 32768          /* Colour depth for 15-bit (32 thousand) colours */
 
 /*
 ** Screen output modes of operation are as follows:
-** NOGRAPHICS	No graphics possible at all
-** TEXTONLY	RISC OS screen mode does not support graphics
-** TEXTMODE	Mode support graphics but output is to text mode screen
-** FULLSCREEN	All output is to a graphics screen
+** NOGRAPHICS   No graphics possible at all
+** TEXTONLY     RISC OS screen mode does not support graphics
+** TEXTMODE     Mode support graphics but output is to text mode screen
+** FULLSCREEN   All output is to a graphics screen
 */
 typedef enum {NOGRAPHICS, TEXTONLY, TEXTMODE, FULLSCREEN} graphics;
 
 /*
 ** Cursor type:
-** BLOCK	A block is used as the cursor
-** UNDERLINE	A _ is being used as the cursor
+** BLOCK        A block is used as the cursor
+** UNDERLINE    A _ is being used as the cursor
 ** 'curstate' is used to control whether the cursor should be drawn or
 ** not in graphics modes.
 */
@@ -53,10 +53,10 @@ typedef enum {BLOCK, UNDERLINE} curstype;
 
 /*
 ** Cursor display states:
-** NOCURSOR	Graphics text cursor is not being used (not in graphics mode)
-** HIDDEN	Graphics text cursor turned off by VDU 23,1,0
-** SUSPENDED	Graphics text cursor is not being displayed
-** ONSCREEN	Graphics text cursor is being displayed
+** NOCURSOR     Graphics text cursor is not being used (not in graphics mode)
+** HIDDEN       Graphics text cursor turned off by VDU 23,1,0
+** SUSPENDED    Graphics text cursor is not being displayed
+** ONSCREEN     Graphics text cursor is being displayed
 */
 typedef enum {NOCURSOR, HIDDEN, SUSPENDED, ONSCREEN} curstate;
 
@@ -187,7 +187,7 @@ static modetails modetable [127] = {
 #endif /* SIMPLETEXT_BUILD */
 
 #ifndef __riscos
-static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU command */
+static int32 vdubytes [] = {    /* Number of bytes of data needed for each VDU command */
   0, 1, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 1, 2, 5, 0, 0, 1, 9,
@@ -215,7 +215,7 @@ static int32 vdubytes [] = {	/* Number of bytes of data needed for each VDU comm
 
 #define MAXTINT 3           /* Highest value for TINT */
 #define TINTMASK 0xC0       /* Mask to extract TINT value */
-#define TINTSHIFT 6	        /* Shift to move TINT value to least significant bits of byte */
+#define TINTSHIFT 6             /* Shift to move TINT value to least significant bits of byte */
 #define C256_REDBIT 0x02    /* Mask for most sig bit of red component in 256 colour colour number */
 #define C256_GREENBIT 0x08
 #define C256_BLUEBIT 0x20
@@ -255,13 +255,13 @@ static int32
   xtext,              /* Text cursor X coordinate (real on-screen location) */
   ytext;              /* Text cursor Y coordinate (real on-screen location) */
 
-static curstype cursmode;	/* Type of cursor being displayed in graphics mode */
-static curstate cursorstate;	/* Whether cursor is shown */
+static curstype cursmode;       /* Type of cursor being displayed in graphics mode */
+static curstate cursorstate;    /* Whether cursor is shown */
 #endif /* SIMPLETEXT_BUILD */
 
-static byte vduqueue[MAXBYTES];	/* Queue to hold data for VDU commands */
+static byte vduqueue[MAXBYTES]; /* Queue to hold data for VDU commands */
 
-static unsigned int vduflags = 0;	/* VDU flags */
+static unsigned int vduflags = 0;       /* VDU flags */
 
 /* VDU feature flags */
 #define VDU_FLAG_ENAPRINT   0x00000001  /* VDU 2 mode (enable printer) */

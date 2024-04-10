@@ -19,9 +19,9 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file defines the functions and so forth associated with memory
-**	manangement. It also contains the code to deal with memory allocation
-**	for strings
+**      This file defines the functions and so forth associated with memory
+**      manangement. It also contains the code to deal with memory allocation
+**      for strings
 */
 
 /* Linux memory allocator based on Richard Russell's allocator
@@ -156,11 +156,11 @@ boolean init_workspace(size_t heapsize) {
   wp = malloc(heapsize);
 #endif
 
-  if (wp==NIL) heapsize = 0;			/* Could not obtain block of requested size */
+  if (wp==NIL) heapsize = 0;                    /* Could not obtain block of requested size */
   basicvars.worksize = heapsize;
   basicvars.workspace = wp;
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
-  basicvars.memory = 0;				/* Use as a byte array to access arbitrary points of memory */
+  basicvars.memory = 0;                         /* Use as a byte array to access arbitrary points of memory */
   basicvars.page = wp;
   basicvars.memdump_lastaddr = (size_t)wp;
 
@@ -201,7 +201,7 @@ void release_workspace(void) {
 */
 void release_heap(void) {
   library *lp, *lp2;
-  lp = basicvars.installist;	/* Free memory acquired for installed libraries */
+  lp = basicvars.installist;    /* Free memory acquired for installed libraries */
   while (lp!=NIL) {
     lp2 = lp->libflink;
     free(lp->libname);
@@ -225,7 +225,7 @@ void *allocmem(size_t size, boolean reporterror) {
   byte *newlimit;
   size = ALIGN(size);
   newlimit = basicvars.stacklimit.bytesp+size;
-  if (newlimit>=basicvars.stacktop.bytesp) {	/* Have run out of memory */
+  if (newlimit>=basicvars.stacktop.bytesp) {    /* Have run out of memory */
     if (reporterror) error(ERR_NOROOM);
     else return NIL;
   }

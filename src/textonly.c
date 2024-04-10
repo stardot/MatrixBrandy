@@ -181,15 +181,15 @@ static byte colourmap [] = {
 #ifndef NOTEKGFX
 /* Tektronix variables */
 static int32
-  xgupp = 2,			/* RISC OS graphic units per pixel in X direction */
-  ygupp = 2,			/* RISC OS graphic units per pixel in Y direction */
-  xlast,			/* Graphics X coordinate of last point visited */
-  ylast,			/* Graphics Y coordinate of last point visited */
-  xlast2,			/* Graphics X coordinate of last-but-one point visited */
-  ylast2,			/* Graphics Y coordinate of last-but-one point visited */
-  xorigin,			/* X coordinate of graphics origin */
-  yorigin,			/* Y coordinate of graphics origin */
-  graphicurs;			/* Text at graphics cursor */
+  xgupp = 2,                    /* RISC OS graphic units per pixel in X direction */
+  ygupp = 2,                    /* RISC OS graphic units per pixel in Y direction */
+  xlast,                        /* Graphics X coordinate of last point visited */
+  ylast,                        /* Graphics Y coordinate of last point visited */
+  xlast2,                       /* Graphics X coordinate of last-but-one point visited */
+  ylast2,                       /* Graphics Y coordinate of last-but-one point visited */
+  xorigin,                      /* X coordinate of graphics origin */
+  yorigin,                      /* Y coordinate of graphics origin */
+  graphicurs;                   /* Text at graphics cursor */
 #define MAX_XRES 16384
 #define MAX_YRES 16384
 #define FAST_2_MUL(x) ((x)<<1)
@@ -321,8 +321,8 @@ static void scroll_text(updown direction) {
 */
 static void textcolor(int32 colour) {
   printf("\033[");
-  if (colour & 8) printf("1;");		  /* bright     */
-  else            printf("11;");	  /* non-bright */
+  if (colour & 8) printf("1;");           /* bright     */
+  else            printf("11;");          /* non-bright */
   printf("%dm", colour+ANSI_FOREGROUND);  /* VTxxx/ANSI sequence to set the foreground colour */
 }
 
@@ -1196,10 +1196,10 @@ static void print_char(int32 charvalue) {
 static void vdu_plot(void) {
   int32 x, y;
   x = vduqueue[1]+vduqueue[2]*256;
-  if (x > 0x7FFF) x = -(0x10000-x);	/* X is negative */
+  if (x > 0x7FFF) x = -(0x10000-x);     /* X is negative */
   y = vduqueue[3]+vduqueue[4]*256;
-  if (y > 0x7FFF) y = -(0x10000-y);	/* Y is negative */
-  emulate_plot(vduqueue[0], x, y);	/* vduqueue[0] gives the plot code */
+  if (y > 0x7FFF) y = -(0x10000-y);     /* Y is negative */
+  emulate_plot(vduqueue[0], x, y);      /* vduqueue[0] gives the plot code */
 }
 
 /*
@@ -1666,8 +1666,8 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
         if (skip) {
           skip=0;
         } else {
-	  plot_pixel(x, y);
-	  if (style & 0x10) skip=1;
+          plot_pixel(x, y);
+          if (style & 0x10) skip=1;
         }
         if (d >= 0) {
           y += sy;
@@ -1682,8 +1682,8 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
         if (skip) {
           skip=0;
         } else {
-	  plot_pixel(x, y);
-	  if (style & 0x10) skip=1;
+          plot_pixel(x, y);
+          if (style & 0x10) skip=1;
         }
         if (d >= 0) {
           x += sx;
@@ -1858,23 +1858,23 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   ylast3 = ylast2;
   xlast2 = xlast;
   ylast2 = ylast;
-  if ((code & ABSCOORD_MASK) != 0 ) {		/* Coordinate (x,y) is absolute */
-    xlast = x+xorigin;	/* These probably have to be treated as 16-bit values */
+  if ((code & ABSCOORD_MASK) != 0 ) {           /* Coordinate (x,y) is absolute */
+    xlast = x+xorigin;  /* These probably have to be treated as 16-bit values */
     ylast = y+yorigin;
   }
-  else {	/* Coordinate (x,y) is relative */
-    xlast+=x;	/* These probably have to be treated as 16-bit values */
+  else {        /* Coordinate (x,y) is relative */
+    xlast+=x;   /* These probably have to be treated as 16-bit values */
     ylast+=y;
   }
   if ((code & PLOT_COLMASK) == PLOT_MOVEONLY) {
     tekexit();
-    return;	/* Just moving graphics cursor, so finish here */
+    return;     /* Just moving graphics cursor, so finish here */
   }
   sx = xlast2;
   sy = ylast2;
   ex = xlast;
   ey = ylast;
-  if ((code & GRAPHOP_MASK) != SHIFT_RECTANGLE) {		/* Move and copy rectangle are a special case */
+  if ((code & GRAPHOP_MASK) != SHIFT_RECTANGLE) {               /* Move and copy rectangle are a special case */
     /* Do nothing, not supported */
   }
   switch (code & GRAPHOP_MASK) {
@@ -1885,14 +1885,14 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case DRAW_SOLIDLINE2:
   case DRAW_SOLIDLINE2+8:
   case DRAW_DOTLINE2:
-  case DRAW_DOTLINE2+8: {	/* Draw line */
+  case DRAW_DOTLINE2+8: {       /* Draw line */
     draw_line(sx, sy, ex, ey, (code & DRAW_STYLEMASK));
     break;
   }
-  case PLOT_POINT:	/* Plot a single point */
+  case PLOT_POINT:      /* Plot a single point */
     plot_pixel(ex, ey);
     break;
-  case FILL_TRIANGLE: {		/* Plot a filled triangle */
+  case FILL_TRIANGLE: {         /* Plot a filled triangle */
     int32 left, right, top, bottom;
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
@@ -1908,7 +1908,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast < bottom) bottom = ylast;
     break;
   }
-  case FILL_RECTANGLE: {		/* Plot a filled rectangle */
+  case FILL_RECTANGLE: {                /* Plot a filled rectangle */
     int32 left, right, top, bottom;
     left = sx;
     top = sy;
@@ -1921,7 +1921,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     fill_rectangle(left, top, right, bottom);
     break;
   }
-  case FILL_PARALLELOGRAM: {	/* Plot a filled parallelogram */
+  case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
     int32 vx, vy, left, right, top, bottom;
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
     vx = xlast3-xlast2+xlast;
@@ -1944,8 +1944,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (vy < bottom) bottom = vy;
     break;
   }
-  case PLOT_CIRCLE:		/* Plot the outline of a circle */
-  case FILL_CIRCLE: {		/* Plot a filled circle */
+  case PLOT_CIRCLE:             /* Plot the outline of a circle */
+  case FILL_CIRCLE: {           /* Plot a filled circle */
     int32 xradius, yradius, xr;
 /*
 ** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
@@ -1967,8 +1967,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     break;
   }
-  case PLOT_ELLIPSE:		/* Draw an ellipse outline */
-  case FILL_ELLIPSE: {		/* Draw a filled ellipse */
+  case PLOT_ELLIPSE:            /* Draw an ellipse outline */
+  case FILL_ELLIPSE: {          /* Draw a filled ellipse */
     int32 semimajor, semiminor, shearx;
 /*
 ** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
@@ -2272,8 +2272,8 @@ void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 a
   slicew = (minorlen*majorlen)/maxy;
   shearx = (cosv*sinv*((majorlen*majorlen)-(minorlen*minorlen)))/maxy;
 
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of ellipse */
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);	/* Find a point on the circumference */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);        /* Move to centre of ellipse */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x+slicew, y);      /* Find a point on the circumference */
   if (isfilled)
     emulate_plot(FILL_ELLIPSE+DRAW_ABSOLUTE, x+shearx, y+maxy);
   else {
@@ -2286,9 +2286,9 @@ void emulate_circle(int32 x, int32 y, int32 radius, boolean isfilled) {
 #ifdef NOTEKGFX
   error(ERR_NOGRAPHICS);
 #else
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);	   /* Move to centre of circle */
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);        /* Move to centre of circle */
   if (isfilled)
-    emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);	/* Plot to a point on the circumference */
+    emulate_plot(FILL_CIRCLE+DRAW_ABSOLUTE, x-radius, y);       /* Plot to a point on the circumference */
   else {
     emulate_plot(PLOT_CIRCLE+DRAW_ABSOLUTE, x-radius, y);
   }
@@ -2317,7 +2317,7 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
 #else
   emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
   emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, width, height);
-  if (ismove)	/* Move the area just marked */
+  if (ismove)   /* Move the area just marked */
     emulate_plot(MOVE_RECTANGLE, x2, y2);
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
@@ -2478,7 +2478,7 @@ void set_wintitle(char *title) {
 #if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x500
   SetConsoleTitleA(title);
 #elif defined(TARGET_UNIX)
-  printf("\x1B]0;%s\x1B\x5C", title);		// This is an xterm escape sequence, recognised by most terminals on Linux
+  printf("\x1B]0;%s\x1B\x5C", title);           // This is an xterm escape sequence, recognised by most terminals on Linux
 #endif
 #endif /* TARGET_MINIX */
 }

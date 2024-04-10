@@ -19,8 +19,8 @@
 ** Boston, MA 02111-1307, USA.
 **
 **
-**	This file contains functions that convert numbers between
-**	character and binary format
+**      This file contains functions that convert numbers between
+**      character and binary format
 */
 
 #include <ctype.h>
@@ -68,9 +68,9 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
   value64 = 0;
   fpvalue = 0;
   digits = 0;
-  cp = skip_blanks(cp);	/* Ignore leading white space characters */
+  cp = skip_blanks(cp); /* Ignore leading white space characters */
   switch (*cp) {
-  case '&':	/* Hex value */
+  case '&':     /* Hex value */
     cp++;
     while (isxdigit(*cp)) {
       digits++;
@@ -79,8 +79,8 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       cp++;
     }
     if (digits==0) {
-      *intvalue = WARN_BADHEX;	/* Bad hexadecimal constant */
-      *int64value = WARN_BADHEX;	/* Bad hexadecimal constant */
+      *intvalue = WARN_BADHEX;  /* Bad hexadecimal constant */
+      *int64value = WARN_BADHEX;        /* Bad hexadecimal constant */
       cp = NIL;
     }
     else {
@@ -92,7 +92,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       *isinteger = TRUE;
     }
     break;
-  case '%':	/* Binary value */
+  case '%':     /* Binary value */
     cp++;
     while (*cp=='0' || *cp=='1') {
       digits++;
@@ -101,8 +101,8 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       cp++;
     }
     if (digits==0) {
-      *intvalue = WARN_BADBIN;	/* Bad binary constant */
-      *int64value = WARN_BADBIN;	/* Bad binary constant */
+      *intvalue = WARN_BADBIN;  /* Bad binary constant */
+      *int64value = WARN_BADBIN;        /* Bad binary constant */
       cp = NIL;
     }
     else {
@@ -114,12 +114,12 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       *isinteger = TRUE;
     }
     break;
-  default:	/* Integer or floating point value */
+  default:      /* Integer or floating point value */
     isint = TRUE;
-    isneg = *cp=='-';	/* Deal with any sign first */
+    isneg = *cp=='-';   /* Deal with any sign first */
     if (*cp=='+' || *cp=='-') cp++;
     while (*cp>='0' && *cp<='9') {
-      digits = 0;	/* Used to count the number of digits before the '.' */
+      digits = 0;       /* Used to count the number of digits before the '.' */
       if (isint && value64>=INT64CONV) {
         isint = FALSE;
         fpvalue = TOFLOAT(value64);
@@ -133,12 +133,12 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       digits++;
       cp++;
     }
-    if (!isint && *cp!='.' && *cp!='E' && fpvalue<=TOFLOAT(MAXINTVAL)) {	/* Convert back to integer */
+    if (!isint && *cp!='.' && *cp!='E' && fpvalue<=TOFLOAT(MAXINTVAL)) {        /* Convert back to integer */
       value = TOINT(fpvalue);
       value64 = TOINT64(fpvalue);
       isint = TRUE;
     }
-    if (*cp=='.') {	/* Number contains a decimal point */
+    if (*cp=='.') {     /* Number contains a decimal point */
       if (isint) {
         isint = FALSE;
         fpvalue = TOFLOAT(value);
@@ -157,7 +157,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
 ** letter it is assumed that the 'E' is part of a word that follows the number,
 ** that is, there is not really an exponent here
 */
-    if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {	/* Number contains an exponent */
+    if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {       /* Number contains an exponent */
       if (isint) {
         isint = FALSE;
         fpvalue = value;
@@ -173,12 +173,12 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       if (negexp) {
         if (exponent-digits<=MAXEXPONENT)
           exponent = -exponent;
-        else {	/* If value<1E-308, set value to 0 */
+        else {  /* If value<1E-308, set value to 0 */
           exponent = 0;
           fpvalue = 0;
         }
       }
-      else if (exponent+digits-1>MAXEXPONENT) {	/* Crude check for overflow on +ve exponent */
+      else if (exponent+digits-1>MAXEXPONENT) { /* Crude check for overflow on +ve exponent */
         *intvalue = WARN_EXPOFLO;
         cp = NIL;
         exponent = 0;
@@ -222,12 +222,12 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
   value64 = 0;
   fpvalue = 0;
   digits = 0;
-  cp = skip_blanks(cp);	/* Ignore leading white space characters */
+  cp = skip_blanks(cp); /* Ignore leading white space characters */
   isint = TRUE;
-  isneg = *cp=='-';	/* Deal with any sign first */
+  isneg = *cp=='-';     /* Deal with any sign first */
   if (*cp=='+' || *cp=='-') cp++;
   while (*cp>='0' && *cp<='9') {
-    digits = 0;	/* Used to count the number of digits before the '.' */
+    digits = 0; /* Used to count the number of digits before the '.' */
     if (isint && value64>=INT64CONV) {
       isint = FALSE;
       fpvalue = TOFLOAT(value64);
@@ -241,12 +241,12 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
     digits++;
     cp++;
   }
-  if (!isint && *cp!='.' && *cp!='E' && fpvalue<=TOFLOAT(MAXINTVAL)) {	/* Convert back to integer */
+  if (!isint && *cp!='.' && *cp!='E' && fpvalue<=TOFLOAT(MAXINTVAL)) {  /* Convert back to integer */
     value = TOINT(fpvalue);
     value64 = TOINT64(fpvalue);
     isint = TRUE;
   }
-  if (*cp=='.') {	/* Number contains a decimal point */
+  if (*cp=='.') {       /* Number contains a decimal point */
     if (isint) {
       isint = FALSE;
       fpvalue = TOFLOAT(value);
@@ -265,7 +265,7 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
 ** letter it is assumed that the 'E' is part of a word that follows the number,
 ** that is, there is not really an exponent here
 */
-  if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {	/* Number contains an exponent */
+  if (toupper(*cp)=='E' && !isalpha(*(cp+1))) { /* Number contains an exponent */
     if (isint) {
       isint = FALSE;
       fpvalue = value;
@@ -281,12 +281,12 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
     if (negexp) {
       if (exponent-digits<=MAXEXPONENT)
         exponent = -exponent;
-      else {	/* If value<1E-308, set value to 0 */
+      else {    /* If value<1E-308, set value to 0 */
         exponent = 0;
         fpvalue = 0;
       }
     }
-    else if (exponent+digits-1>MAXEXPONENT) {	/* Crude check for overflow on +ve exponent */
+    else if (exponent+digits-1>MAXEXPONENT) {   /* Crude check for overflow on +ve exponent */
       *intvalue = WARN_EXPOFLO;
       cp = NIL;
       exponent = 0;
