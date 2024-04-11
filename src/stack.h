@@ -112,7 +112,7 @@ extern void debug_show_stackitemtype(int32);
 #define LARGEST_ENTRY sizeof(basicstring)
 #define ALIGNSIZE(type) (ALIGN(sizeof(type)))
 
-/* The following macros are used to speed up operations on the Basic stack */
+/* The following macros are used to speed up operations on the BASIC stack */
 
 #define GET_TOPITEM (basicvars.stacktop.intsp->itemtype)
 #define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))

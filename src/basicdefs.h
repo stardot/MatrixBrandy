@@ -85,28 +85,28 @@
 
 /* Variable type flags */
 
-#define VAR_INTBYTE 1                           /* One-byte integer */
-#define VAR_INTWORD 2                           /* Four-byte integer */
-#define VAR_FLOAT 3                             /* Eight byte floating point */
-#define VAR_STRINGDOL 4                         /* String ('string$' type) */
-#define VAR_DOLSTRING 5                         /* String ('$string' type) */
-#define VAR_INTLONG 6                           /* 64-bit integer */
-#define VAR_UINT8 7                             /* Unsigned 8-bit integer */
-#define VAR_ARRAY 0x08                          /* Array */
-#define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)    /* Integer array */
-#define VAR_UINT8ARRAY (VAR_UINT8+VAR_ARRAY)    /* Integer array */
-#define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)  /* Integer array */
-#define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)    /* Floating point array */
-#define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)  /* String array */
-#define VAR_POINTER 0x10                        /* Pointer */
-#define VAR_INTBYTEPTR (VAR_INTBYTE+VAR_POINTER)        /* Pointer to 1 byte integer */
-#define VAR_INTWORDPTR (VAR_INTWORD+VAR_POINTER)        /* Pointer to 4 byte integer */
-#define VAR_INT64PTR (VAR_INTLONG+VAR_POINTER)          /* Pointer to 8 byte integer */
-#define VAR_FLOATPTR (VAR_FLOAT+VAR_POINTER)            /* Pointer to floating point */
-#define VAR_DOLSTRPTR (VAR_DOLSTRING+VAR_POINTER)       /* Pointer to string */
-#define VAR_PROC 0x20                           /* Entry is for a procedure */
-#define VAR_FUNCTION 0x40                       /* Entry is for a function */
-#define VAR_MARKER 0x80                         /* Entry marks location of a proc/fn */
+#define VAR_INTBYTE 1                             /* One-byte integer */
+#define VAR_INTWORD 2                             /* Four-byte integer */
+#define VAR_FLOAT 3                               /* Eight byte floating point */
+#define VAR_STRINGDOL 4                           /* String ('string$' type) */
+#define VAR_DOLSTRING 5                           /* String ('$string' type) */
+#define VAR_INTLONG 6                             /* 64-bit integer */
+#define VAR_UINT8 7                               /* Unsigned 8-bit integer */
+#define VAR_ARRAY 0x08                            /* Array */
+#define VAR_INTARRAY (VAR_INTWORD+VAR_ARRAY)      /* Integer array */
+#define VAR_UINT8ARRAY (VAR_UINT8+VAR_ARRAY)      /* Integer array */
+#define VAR_INT64ARRAY (VAR_INTLONG+VAR_ARRAY)    /* Integer array */
+#define VAR_FLOATARRAY (VAR_FLOAT+VAR_ARRAY)      /* Floating point array */
+#define VAR_STRARRAY (VAR_STRINGDOL+VAR_ARRAY)    /* String array */
+#define VAR_POINTER 0x10                          /* Pointer */
+#define VAR_INTBYTEPTR (VAR_INTBYTE+VAR_POINTER)  /* Pointer to 1 byte integer */
+#define VAR_INTWORDPTR (VAR_INTWORD+VAR_POINTER)  /* Pointer to 4 byte integer */
+#define VAR_INT64PTR (VAR_INTLONG+VAR_POINTER)    /* Pointer to 8 byte integer */
+#define VAR_FLOATPTR (VAR_FLOAT+VAR_POINTER)      /* Pointer to floating point */
+#define VAR_DOLSTRPTR (VAR_DOLSTRING+VAR_POINTER) /* Pointer to string */
+#define VAR_PROC 0x20                             /* Entry is for a procedure */
+#define VAR_FUNCTION 0x40                         /* Entry is for a function */
+#define VAR_MARKER 0x80                           /* Entry marks location of a proc/fn */
 
 #define VAR_FIXED 0x100                 /* Marks variable as a constant */
 #define VAR_RETURN 0x200                /* Marks variable as a 'return' variable */
@@ -284,15 +284,15 @@ typedef struct library {
 */
 typedef enum {
   STACK_UNKNOWN,
-  STACK_LVALUE,     STACK_UINT8,       STACK_INT,        STACK_INT64,           /* 04 */
-  STACK_FLOAT,      STACK_STRING,      STACK_STRTEMP,    STACK_INTARRAY,        /* 08 */
-  STACK_IATEMP,     STACK_UINT8ARRAY,  STACK_U8ATEMP,    STACK_INT64ARRAY,      /* 0C */
-  STACK_I64ATEMP,   STACK_FLOATARRAY,  STACK_FATEMP,     STACK_STRARRAY,        /* 10 */
-  STACK_SATEMP,     STACK_LOCARRAY,    STACK_LOCSTRING,  STACK_GOSUB,           /* 14 */
-  STACK_PROC,       STACK_FN,          STACK_LOCAL,      STACK_RETPARM,         /* 18 */
-  STACK_WHILE,      STACK_REPEAT,      STACK_INTFOR,     STACK_INT64FOR,        /* 1C */
-  STACK_FLOATFOR,   STACK_ERROR,       STACK_DATA,       STACK_OPSTACK,         /* 20 */
-  STACK_RESTART,    STACK_HIGHEST                                               /* 22 */
+  STACK_LVALUE,   STACK_UINT8,      STACK_INT,       STACK_INT64,      /* 04 */
+  STACK_FLOAT,    STACK_STRING,     STACK_STRTEMP,   STACK_INTARRAY,   /* 08 */
+  STACK_IATEMP,   STACK_UINT8ARRAY, STACK_U8ATEMP,   STACK_INT64ARRAY, /* 0C */
+  STACK_I64ATEMP, STACK_FLOATARRAY, STACK_FATEMP,    STACK_STRARRAY,   /* 10 */
+  STACK_SATEMP,   STACK_LOCARRAY,   STACK_LOCSTRING, STACK_GOSUB,      /* 14 */
+  STACK_PROC,     STACK_FN,         STACK_LOCAL,     STACK_RETPARM,    /* 18 */
+  STACK_WHILE,    STACK_REPEAT,     STACK_INTFOR,    STACK_INT64FOR,   /* 1C */
+  STACK_FLOATFOR, STACK_ERROR,      STACK_DATA,      STACK_OPSTACK,    /* 20 */
+  STACK_RESTART,  STACK_HIGHEST                                        /* 22 */
 } stackitem;
 
 typedef struct {                /* Operator stack */

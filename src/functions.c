@@ -73,15 +73,11 @@
  * will always be a one byte token.
  */
 
-#ifndef PI
-#define PI       3.141592653589793238462643383279502884L
-#endif
-
 #define RADCONV 57.29577951308232286    /* Used when converting degrees -> radians and vice versa */
 #define TIMEFORMAT "%a,%d %b %Y.%H:%M:%S"  /* Date format used by 'TIME$' */
 
 /* RISC OS BASIC V uses &B0A, BASIC VI uses &110A. RTR BASICs use &90A */
-#define STRFORMAT 0x110A                        /* Default format used by function STR$ */
+#define STRFORMAT 0x110A                /* Default format used by function STR$ */
 
 static int32 lastrandom;                /* 32-bit pseudo-random number generator value */
 static int32 randomoverflow;            /* 1-bit overflow from pseudo-random number generator */
@@ -1800,24 +1796,24 @@ static void fn_sysfn(void) {
 ** with it
 */
 static void (*function_table[])(void) = {
-  bad_token, fn_himem, fn_ext, fn_filepath,             /* 00..03 */
-  fn_left, fn_lomem, fn_mid, fn_page,                   /* 04..07 */
-  fn_ptr, fn_right, fn_time, bad_token,                 /* 08..0B */
-  bad_token, bad_token, bad_token, bad_token,           /* 0C..0F */
-  fn_abs, fn_acs, fn_adval, fn_argc,                    /* 10..13 */
-  fn_argvdol, fn_asc, fn_asn, fn_atn,                   /* 14..17 */
-  fn_beat, fn_bget, fn_chr, fn_cos,                     /* 18..1B */
-  fn_count, fn_deg, fn_eof, fn_erl,                     /* 1C..1F */
-  fn_err, fn_eval, fn_exp, fn_get,                      /* 20..23 */
-  fn_getdol, fn_inkey, fn_inkeydol, fn_instr,           /* 24..27 */
-  fn_int, fn_len, fn_listofn, fn_ln,                    /* 28..2B */
-  fn_log, fn_openin, fn_openout, fn_openup,             /* 2C..2F */
-  fn_pi, fn_pointfn, fn_pos, fn_rad,                    /* 30..33 */
-  fn_reportdol, fn_retcode, fn_rnd, fn_sgn,             /* 34..37 */
-  fn_sin, fn_sqr, fn_str, fn_string,                    /* 38..3B */
-  fn_sum, fn_tan, fn_tempofn, fn_usr,                   /* 3C..3F */
-  fn_val, fn_verify, fn_vpos, fn_sysfn,                 /* 40..43 */
-  fn_rndpar, fn_xlatedol                                /* 44..45 */
+  bad_token,    fn_himem,   fn_ext,      fn_filepath,   /* 00..03 */
+  fn_left,      fn_lomem,   fn_mid,      fn_page,       /* 04..07 */
+  fn_ptr,       fn_right,   fn_time,     bad_token,     /* 08..0B */
+  bad_token,    bad_token,  bad_token,   bad_token,     /* 0C..0F */
+  fn_abs,       fn_acs,     fn_adval,    fn_argc,       /* 10..13 */
+  fn_argvdol,   fn_asc,     fn_asn,      fn_atn,        /* 14..17 */
+  fn_beat,      fn_bget,    fn_chr,      fn_cos,        /* 18..1B */
+  fn_count,     fn_deg,     fn_eof,      fn_erl,        /* 1C..1F */
+  fn_err,       fn_eval,    fn_exp,      fn_get,        /* 20..23 */
+  fn_getdol,    fn_inkey,   fn_inkeydol, fn_instr,      /* 24..27 */
+  fn_int,       fn_len,     fn_listofn,  fn_ln,         /* 28..2B */
+  fn_log,       fn_openin,  fn_openout,  fn_openup,     /* 2C..2F */
+  fn_pi,        fn_pointfn, fn_pos,      fn_rad,        /* 30..33 */
+  fn_reportdol, fn_retcode, fn_rnd,      fn_sgn,        /* 34..37 */
+  fn_sin,       fn_sqr,     fn_str,      fn_string,     /* 38..3B */
+  fn_sum,       fn_tan,     fn_tempofn,  fn_usr,        /* 3C..3F */
+  fn_val,       fn_verify,  fn_vpos,     fn_sysfn,      /* 40..43 */
+  fn_rndpar,    fn_xlatedol                             /* 44..45 */
 };
 
 /*

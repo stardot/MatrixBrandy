@@ -150,10 +150,10 @@ static SDL_Rect scroll_rect;
 
 static Uint8 palette[768];              /* palette for screen */
 static Uint8 hardpalette[48]            /* palette for screen */
-       = {0,0,0,    255,0,0,    0,255,0,    255,255,0,   /* Black, Red, Green, Yellow */
-          0,0,255,  255,0,255,  0,255,255,  255,255,255, /* Blue, Magenta, Cyan, White */
-          80,80,80, 160,0,0,    0,160,0,    160,160,0,   /* Dimmer versions of the above */
-          0,0,160,  160,0,160,  0,160,160,  160,160,160 };
+       = { 0, 0,  0,  255,0,  0,  0,255,  0,  255,255,  0, /* Black, Red, Green, Yellow */
+           0, 0,255,  255,0,255,  0,255,255,  255,255,255, /* Blue, Magenta, Cyan, White */
+          80,80, 80,  160,0,  0,  0,160,  0,  160,160,  0, /* Dimmer versions of the above */
+           0, 0,160,  160,0,160,  0,160,160,  160,160,160 };
 
 
 static Uint8 vdu2316byte = 1;           /* Byte set by VDU23,16. Defaults to Scroll Protect On.*/
@@ -2171,16 +2171,16 @@ static void reset_colours(void) {
     text_forecol = ds.graph_forecol = ds.graph_forelog = 3;
     break;
   case 16:
-    logtophys[0] = VDU_BLACK;
-    logtophys[1] = VDU_RED;
-    logtophys[2] = VDU_GREEN;
-    logtophys[3] = VDU_YELLOW;
-    logtophys[4] = VDU_BLUE;
-    logtophys[5] = VDU_MAGENTA;
-    logtophys[6] = VDU_CYAN;
-    logtophys[7] = VDU_WHITE;
-    logtophys[8] = FLASH_BLAWHITE;
-    logtophys[9] = FLASH_REDCYAN;
+    logtophys[0]  = VDU_BLACK;
+    logtophys[1]  = VDU_RED;
+    logtophys[2]  = VDU_GREEN;
+    logtophys[3]  = VDU_YELLOW;
+    logtophys[4]  = VDU_BLUE;
+    logtophys[5]  = VDU_MAGENTA;
+    logtophys[6]  = VDU_CYAN;
+    logtophys[7]  = VDU_WHITE;
+    logtophys[8]  = FLASH_BLAWHITE;
+    logtophys[9]  = FLASH_REDCYAN;
     logtophys[10] = FLASH_GREENMAG;
     logtophys[11] = FLASH_YELBLUE;
     logtophys[12] = FLASH_BLUEYEL;

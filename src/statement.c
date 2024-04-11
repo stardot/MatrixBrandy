@@ -60,38 +60,38 @@ extern threadmsg tmsg;
 /* 'ateol' says whether a token is an end-of-line (statement) token */
 
 byte ateol[256] = {
-  TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 00..07 (null) */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 08..0F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 10..17 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 18..1F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 20..27 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 28..2F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 30..37 */
-  FALSE, FALSE, TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE,       /* 38..3F (':') */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 40..47 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 48..4F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 50..57 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 58..5F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 60..67 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 68..6F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 70..77 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 78..7F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 80..87 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 88..8F */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* 90..97 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,        /* 98..9F (ELSE) */
-  TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* A0..A7 (ELSE) */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* A8..AF */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* B0..B7 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* B8..BF */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* C0..C7 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* C8..CF */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* D0..D7 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* D8..DF */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* E0..E7 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* E8..EF */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* F0..F7 */
-  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,       /* F8..FF */
+  TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 00..07 (null) */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 08..0F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 10..17 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 18..1F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 20..27 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 28..2F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 30..37 */
+  FALSE, FALSE, TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE,   /* 38..3F (':') */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 40..47 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 48..4F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 50..57 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 58..5F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 60..67 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 68..6F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 70..77 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 78..7F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 80..87 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 88..8F */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* 90..97 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE,    /* 98..9F (ELSE) */
+  TRUE,  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* A0..A7 (ELSE) */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* A8..AF */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* B0..B7 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* B8..BF */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* C0..C7 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* C8..CF */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* D0..D7 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* D8..DF */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* E0..E7 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* E8..EF */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* F0..F7 */
+  FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,   /* F8..FF */
 };
 
 /*
@@ -327,70 +327,70 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
 ** of the functions that handle the various Basic statement types
 */
 static void (*statements[256])(void) = {
-  next_line, exec_assignment, assign_staticvar, assign_uint8var,        /* 00.03 */
-  assign_intvar, assign_int64var, assign_floatvar, assign_stringvar,    /* 04..07 */
-  exec_assignment, exec_assignment, exec_assignment, exec_assignment,   /* 08..0B */
-  exec_assignment, exec_assignment, exec_assignment, exec_xproc,        /* 0C..0F */
-  exec_proc, bad_syntax, bad_syntax, bad_syntax,                        /* 10..13 */
-  bad_syntax, bad_syntax, bad_syntax, bad_syntax,                       /* 14..17 */
-  bad_syntax, bad_syntax, bad_token, bad_token,                         /* 18..1B */
-  bad_token, bad_token, bad_token, bad_token,                           /* 1C..1F */
-  skip_colon, exec_assignment, bad_syntax, bad_syntax,                  /* 20..23 */
-  exec_assignment, bad_syntax, bad_syntax, bad_syntax,                  /* 24..27 */
-  bad_syntax, bad_syntax, bad_syntax, bad_syntax,                       /* 28..2B */
-  bad_syntax, bad_syntax, bad_syntax, bad_syntax,                       /* 2C..2F */
-  bad_token, bad_token, bad_token, bad_token,                           /* 30..33 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 34..37 */
-  bad_token, bad_token, skip_colon, bad_syntax,                         /* 38..3B */
-  bad_syntax, exec_fnreturn, bad_syntax, exec_assignment,               /* 3C..3F */
-  bad_syntax, bad_token, bad_token, bad_token,                          /* 40..43 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 44..47 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 48..4B */
-  bad_token, bad_token, bad_token, bad_token,                           /* 4C..4F */
-  bad_token, bad_token, bad_token, bad_token,                           /* 50..53 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 54..57 */
-  bad_token, bad_token, bad_token, exec_assembler,                      /* 58..5B */
-  bad_syntax, exec_assignment, bad_syntax, bad_token,                   /* 5C..5F */
-  bad_token, bad_token, bad_token, bad_token,                           /* 60..63 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 64..67 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 68..6B */
-  bad_token, bad_token, bad_token, bad_token,                           /* 6C..6F */
-  bad_token, bad_token, bad_token, bad_token,                           /* 70..73 */
-  bad_token, bad_token, bad_token, bad_token,                           /* 74..77 */
-  bad_token, bad_token, bad_token, bad_syntax,                          /* 78..7B */
-  exec_assignment, bad_syntax, bad_syntax, bad_token,                   /* 7C..7F */
-  bad_syntax, bad_syntax, exec_oscmd, bad_syntax,                       /* 80..83 */
-  bad_syntax, bad_syntax, exec_oscmd, bad_syntax,                       /* 84..87 */
-  bad_syntax, bad_syntax, exec_oscmd, bad_syntax,                       /* 88..8B */
-  bad_syntax, exec_beats, exec_bput, exec_call,                         /* 8C..8F */
-  exec_xcase, exec_case, exec_chain, exec_circle,                       /* 90..93 */
-  exec_clg, exec_clear, exec_close, exec_cls,                           /* 94..97 */
-  exec_colour, exec_data, exec_def, exec_dim,                           /* 98..9B */
-  exec_draw, exec_drawby, exec_ellipse, exec_xelse,                     /* 9C..9F */
-  exec_elsewhen, exec_xlhelse, exec_elsewhen, exec_end,                 /* A0..A3 */
-  exec_endifcase, exec_endifcase, exec_endproc, exec_endwhile,          /* A4..A7 */
-  exec_envelope, exec_error, bad_syntax, exec_fill,                     /* A8..AB */
-  exec_fillby, bad_token, exec_for, exec_gcol,                          /* AC..AF */
-  exec_gosub, exec_goto, exec_xif, exec_blockif,                        /* B0..B3 */
-  exec_singlif, exec_input, exec_let, exec_library,                     /* B4..B7 */
-  exec_line, exec_local, exec_mode, exec_mouse,                         /* B8..BB */
-  exec_move, exec_moveby, exec_next, bad_syntax,                        /* BC..BF */
-  bad_syntax, exec_off, exec_on, exec_origin,                           /* C0..C3 */
-  exec_oscli, exec_xwhen, exec_elsewhen, exec_overlay,                  /* C4..C7 */
-  exec_plot, exec_point, exec_pointby, exec_pointto,                    /* C8..CB */
-  exec_print, exec_proc, exec_quit, exec_read,                          /* CC..CF */
-  exec_rectangle, bad_token, exec_repeat, exec_report,                  /* D0..D3 */
-  exec_restore, exec_return, exec_run, exec_sound,                      /* D4..D7 */
-  exec_oscmd, bad_syntax, exec_stereo, exec_stop,                       /* D8..DB */
-  exec_swap, exec_sys, exec_tempo, bad_syntax,                          /* DC..DF */
-  exec_tint, bad_syntax, exec_trace, bad_syntax,                        /* E0..E3 */
-  exec_until, exec_vdu, exec_voice, exec_voices,                        /* E4..E7 */
-  exec_wait, exec_xwhen, exec_elsewhen, exec_while,                     /* E8..EB */
-  exec_while, exec_width, bad_token, bad_token,                         /* EC..EF */
-  bad_token, bad_token, bad_token, bad_token,                           /* F0..F3 */
-  bad_token, bad_token, bad_token, bad_token,                           /* F4..F7 */
-  bad_token, bad_token, bad_token, bad_token,                           /* F8..FB */
-  exec_command, flag_badline, bad_syntax, assign_pseudovar              /* FC..FF */
+  next_line,       exec_assignment, assign_staticvar, assign_uint8var,  /* 00.03 */
+  assign_intvar,   assign_int64var, assign_floatvar,  assign_stringvar, /* 04..07 */
+  exec_assignment, exec_assignment, exec_assignment,  exec_assignment,  /* 08..0B */
+  exec_assignment, exec_assignment, exec_assignment,  exec_xproc,       /* 0C..0F */
+  exec_proc,       bad_syntax,      bad_syntax,       bad_syntax,       /* 10..13 */
+  bad_syntax,      bad_syntax,      bad_syntax,       bad_syntax,       /* 14..17 */
+  bad_syntax,      bad_syntax,      bad_token,        bad_token,        /* 18..1B */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 1C..1F */
+  skip_colon,      exec_assignment, bad_syntax,       bad_syntax,       /* 20..23 */
+  exec_assignment, bad_syntax,      bad_syntax,       bad_syntax,       /* 24..27 */
+  bad_syntax,      bad_syntax,      bad_syntax,       bad_syntax,       /* 28..2B */
+  bad_syntax,      bad_syntax,      bad_syntax,       bad_syntax,       /* 2C..2F */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 30..33 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 34..37 */
+  bad_token,       bad_token,       skip_colon,       bad_syntax,       /* 38..3B */
+  bad_syntax,      exec_fnreturn,   bad_syntax,       exec_assignment,  /* 3C..3F */
+  bad_syntax,      bad_token,       bad_token,        bad_token,        /* 40..43 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 44..47 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 48..4B */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 4C..4F */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 50..53 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 54..57 */
+  bad_token,       bad_token,       bad_token,        exec_assembler,   /* 58..5B */
+  bad_syntax,      exec_assignment, bad_syntax,       bad_token,        /* 5C..5F */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 60..63 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 64..67 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 68..6B */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 6C..6F */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 70..73 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* 74..77 */
+  bad_token,       bad_token,       bad_token,        bad_syntax,       /* 78..7B */
+  exec_assignment, bad_syntax,      bad_syntax,       bad_token,        /* 7C..7F */
+  bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 80..83 */
+  bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 84..87 */
+  bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 88..8B */
+  bad_syntax,      exec_beats,      exec_bput,        exec_call,        /* 8C..8F */
+  exec_xcase,      exec_case,       exec_chain,       exec_circle,      /* 90..93 */
+  exec_clg,        exec_clear,      exec_close,       exec_cls,         /* 94..97 */
+  exec_colour,     exec_data,       exec_def,         exec_dim,         /* 98..9B */
+  exec_draw,       exec_drawby,     exec_ellipse,     exec_xelse,       /* 9C..9F */
+  exec_elsewhen,   exec_xlhelse,    exec_elsewhen,    exec_end,         /* A0..A3 */
+  exec_endifcase,  exec_endifcase,  exec_endproc,     exec_endwhile,    /* A4..A7 */
+  exec_envelope,   exec_error,      bad_syntax,       exec_fill,        /* A8..AB */
+  exec_fillby,     bad_token,       exec_for,         exec_gcol,        /* AC..AF */
+  exec_gosub,      exec_goto,       exec_xif,         exec_blockif,     /* B0..B3 */
+  exec_singlif,    exec_input,      exec_let,         exec_library,     /* B4..B7 */
+  exec_line,       exec_local,      exec_mode,        exec_mouse,       /* B8..BB */
+  exec_move,       exec_moveby,     exec_next,        bad_syntax,       /* BC..BF */
+  bad_syntax,      exec_off,        exec_on,          exec_origin,      /* C0..C3 */
+  exec_oscli,      exec_xwhen,      exec_elsewhen,    exec_overlay,     /* C4..C7 */
+  exec_plot,       exec_point,      exec_pointby,     exec_pointto,     /* C8..CB */
+  exec_print,      exec_proc,       exec_quit,        exec_read,        /* CC..CF */
+  exec_rectangle,  bad_token,       exec_repeat,      exec_report,      /* D0..D3 */
+  exec_restore,    exec_return,     exec_run,         exec_sound,       /* D4..D7 */
+  exec_oscmd,      bad_syntax,      exec_stereo,      exec_stop,        /* D8..DB */
+  exec_swap,       exec_sys,        exec_tempo,       bad_syntax,       /* DC..DF */
+  exec_tint,       bad_syntax,      exec_trace,       bad_syntax,       /* E0..E3 */
+  exec_until,      exec_vdu,        exec_voice,       exec_voices,      /* E4..E7 */
+  exec_wait,       exec_xwhen,      exec_elsewhen,    exec_while,       /* E8..EB */
+  exec_while,      exec_width,      bad_token,        bad_token,        /* EC..EF */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* F0..F3 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* F4..F7 */
+  bad_token,       bad_token,       bad_token,        bad_token,        /* F8..FB */
+  exec_command,    flag_badline,    bad_syntax,       assign_pseudovar  /* FC..FF */
 };
 
 /*

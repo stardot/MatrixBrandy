@@ -101,37 +101,37 @@ static float80 floatvalue;              /* Temporary for holding floating point 
 
 /* Operator priorities */
 
-#define POWPRIO 0x700
-#define MULPRIO 0x600
-#define ADDPRIO 0x500
-#define COMPRIO 0x400
-#define ANDPRIO 0x300
-#define ORPRIO 0x200
+#define POWPRIO  0x700
+#define MULPRIO  0x600
+#define ADDPRIO  0x500
+#define COMPRIO  0x400
+#define ANDPRIO  0x300
+#define ORPRIO   0x200
 #define MARKPRIO 0
 
 /* Operator identities (values used on operator stack) */
 
-#define OP_NOP  0
-#define OP_ADD  1
-#define OP_SUB  2
-#define OP_MUL  3
+#define OP_NOP    0
+#define OP_ADD    1
+#define OP_SUB    2
+#define OP_MUL    3
 #define OP_MATMUL 4
-#define OP_DIV  5
+#define OP_DIV    5
 #define OP_INTDIV 6
-#define OP_MOD  7
-#define OP_POW  8
-#define OP_LSL  9
-#define OP_LSR  10
-#define OP_ASR  11
-#define OP_EQ   12
-#define OP_NE   13
-#define OP_GT   14
-#define OP_LT   15
-#define OP_GE   16
-#define OP_LE   17
-#define OP_AND  18
-#define OP_OR   19
-#define OP_EOR  20
+#define OP_MOD    7
+#define OP_POW    8
+#define OP_LSL    9
+#define OP_LSR   10
+#define OP_ASR   11
+#define OP_EQ    12
+#define OP_NE    13
+#define OP_GT    14
+#define OP_LT    15
+#define OP_GE    16
+#define OP_LE    17
+#define OP_AND   18
+#define OP_OR    19
+#define OP_EOR   20
 
 #define OPCOUNT (OP_EOR+1)
 
@@ -4370,42 +4370,30 @@ void (*factor_table[256])(void) = {
 ** an operator (and that the end of the expression has been reached)
 */
 static int32 optable [256] = {  /* Character -> priority/operator */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* 00..07 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* 08..0F */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* 10..17 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* 18..1F */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 00..0F */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 10..1F */
   0, 0, 0, 0, 0, 0, 0, 0,                               /* 20..27 */
-  0 ,0, MULPRIO+OP_MUL, ADDPRIO+OP_ADD,                 /* 28..2B */
+  0, 0, MULPRIO+OP_MUL, ADDPRIO+OP_ADD,                 /* 28..2B */
   0, ADDPRIO+OP_SUB, MULPRIO+OP_MATMUL, MULPRIO+OP_DIV, /* 2C..2F */
   0, 0, 0, 0, 0, 0, 0, 0,                               /* 30..37 */
-  0 ,0, 0, 0,                                           /* 38..3B */
+  0, 0, 0, 0,                                           /* 38..3B */
   COMPRIO+OP_LT, COMPRIO+OP_EQ, COMPRIO+OP_GT, 0,       /* 3C..3F */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* 40..47 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* 48..4F */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 40..4F */
   0, 0, 0, 0, 0, 0, 0, 0,                               /* 50..57 */
-  0 ,0, 0, 0, 0, 0, POWPRIO+OP_POW, 0,                  /* 58..5F */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* 60..67 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* 68..6F */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* 70..77 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* 78..7F */
-  ANDPRIO+OP_AND, COMPRIO+OP_ASR, MULPRIO+OP_INTDIV, ORPRIO+OP_EOR,     /* 80..83 */
-  COMPRIO+OP_GE,  COMPRIO+OP_LE,  COMPRIO+OP_LSL, COMPRIO+OP_LSR,       /* 84..87 */
-  0 ,MULPRIO+OP_MOD, COMPRIO+OP_NE, ORPRIO+OP_OR,                       /* 88..8B */
+  0, 0, 0, 0, 0, 0, POWPRIO+OP_POW, 0,                  /* 58..5F */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 60..6F */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 70..7F */
+  ANDPRIO+OP_AND, COMPRIO+OP_ASR, MULPRIO+OP_INTDIV, ORPRIO+OP_EOR, /* 80..83 */
+  COMPRIO+OP_GE,  COMPRIO+OP_LE,  COMPRIO+OP_LSL,    COMPRIO+OP_LSR,/* 84..87 */
+  0,              MULPRIO+OP_MOD, COMPRIO+OP_NE,     ORPRIO+OP_OR,  /* 88..8B */
   0, 0, 0, 0,                                           /* 8C..8F */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* 90..97 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* 98..9F */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* A0..A7 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* A8..AF */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* B0..B7 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* B8..BF */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* C0..C7 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* C8..CF */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* D0..D7 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* D8..DF */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* E0..E7 */
-  0 ,0, 0, 0, 0, 0, 0, 0,                               /* E8..EF */
-  0, 0, 0, 0, 0, 0, 0, 0,                               /* F0..F7 */
-  0 ,0, 0, 0, 0, 0, 0, 0                                /* F8..FF */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* 90..9F */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* A0..AF */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* B0..BF */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* C0..CF */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* D0..DF */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,       /* E0..EF */
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0        /* F0..FF */
 };
 
 /*

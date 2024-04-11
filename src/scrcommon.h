@@ -36,7 +36,7 @@
 /*
 ** Screen output modes of operation are as follows:
 ** NOGRAPHICS   No graphics possible at all
-** TEXTONLY     RISC OS screen mode does not support graphics
+** TEXTONLY     RISC OS screen mode does not support graphics (they're handled by RISC OS)
 ** TEXTMODE     Mode support graphics but output is to text mode screen
 ** FULLSCREEN   All output is to a graphics screen
 */
@@ -193,7 +193,7 @@ static int32 vdubytes [] = {    /* Number of bytes of data needed for each VDU c
   0, 1, 2, 5, 0, 0, 1, 9,
   8, 5, 0, 0, 4, 4, 0, 2
 };
-#endif
+#endif /* __riscos */
 
 #define MODEMASK 0x7F     /* Mode numbers are in the range 0..127 */
 #define HIGHMODE 126      /* Standard RISC OS 3.1 modes are in the range 0..46, and up to 53 in RISC OS 5. */
@@ -207,18 +207,18 @@ static int32 vdubytes [] = {    /* Number of bytes of data needed for each VDU c
 
 /* Command values to set 'tint' options and so on used in VDU 23,17 */
 
-#define TINT_FORETEXT 0
-#define TINT_BACKTEXT 1
+#define TINT_FORETEXT  0
+#define TINT_BACKTEXT  1
 #define TINT_FOREGRAPH 2
 #define TINT_BACKGRAPH 3
-#define EXCH_TEXTCOLS 5
+#define EXCH_TEXTCOLS  5
 
 #define MAXTINT 3           /* Highest value for TINT */
 #define TINTMASK 0xC0       /* Mask to extract TINT value */
-#define TINTSHIFT 6             /* Shift to move TINT value to least significant bits of byte */
-#define C256_REDBIT 0x02    /* Mask for most sig bit of red component in 256 colour colour number */
+#define TINTSHIFT 6         /* Shift to move TINT value to least significant bits of byte */
+#define C256_REDBIT   0x02  /* Mask for most sig bit of red component in 256 colour colour number */
 #define C256_GREENBIT 0x08
-#define C256_BLUEBIT 0x20
+#define C256_BLUEBIT  0x20
 
 #ifndef __riscos
 
@@ -293,10 +293,10 @@ static unsigned int vduflags = 0;       /* VDU flags */
 #ifndef SIMPLETEXT_BUILD
 #ifndef BRANDY_MODE7ONLY
 static int32 logtophys[16];
-#endif
-#endif
+#endif /* BRANDY_MODE7ONLY */
+#endif /* SIMPLETEXT_BUILD */
 
-#endif
+#endif /* __riscos */
 
-#endif
+#endif /* __scrcommon_h */
 

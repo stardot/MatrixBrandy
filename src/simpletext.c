@@ -152,16 +152,16 @@ void emulate_vdu(int32 charvalue) {
   case VDU_ENAPRINT:    /* 2 - Enable the sending of characters to the printer */
     open_printer();
     break;
-  case VDU_DISPRINT:    /* 3 - Disable the sending of characters to the printer */
+  case VDU_DISPRINT:    /*  3 - Disable the sending of characters to the printer */
     close_printer();
     break;
-  case VDU_TEXTCURS:    /* 4 - Print text at text cursor (ignored) */
-  case VDU_ENABLE:      /* 6 - Enable the VDU driver (ignored) */
+  case VDU_TEXTCURS:    /*  4 - Print text at text cursor (ignored) */
+  case VDU_ENABLE:      /*  6 - Enable the VDU driver (ignored) */
   case VDU_ENAPAGE:     /* 14 - Enable page mode (ignored) */
   case VDU_DISPAGE:     /* 15 - Disable page mode (ignored) */
   case VDU_DISABLE:     /* 21 - Disable the VDU driver (ignored) */
     break;
-  case VDU_GRAPHICURS:  /* 5 - Print text at graphics cursor */
+  case VDU_GRAPHICURS:  /*  5 - Print text at graphics cursor */
   case VDU_CLEARGRAPH:  /* 16 - Clear graphics window */
   case VDU_GRAPHCOL:    /* 18 - Change current graphics colour */
   case VDU_DEFGRAPH:    /* 24 - Define graphics window */
@@ -169,7 +169,7 @@ void emulate_vdu(int32 charvalue) {
   case VDU_ORIGIN:      /* 29 - Define graphics origin */
     error(ERR_NOGRAPHICS);
     break;
-  case VDU_CURFORWARD:  /* 9 - Move cursor right one character */
+  case VDU_CURFORWARD:  /*  9 - Move cursor right one character */
   case VDU_CURUP:       /* 11 - Move cursor up one line */
   case VDU_CLEARTEXT:   /* 12 - Clear text window (formfeed) */
   case VDU_TEXTCOL:     /* 17 - Change current text colour */
@@ -183,8 +183,8 @@ void emulate_vdu(int32 charvalue) {
   case VDU_MOVETEXT:    /* 31 - Send cursor to column x, row y on screen */
     nogo();
     break;
-  case VDU_BEEP:        /* 7 - Sound the bell */
-  case VDU_CURBACK:     /* 8 - Move cursor left one character */
+  case VDU_BEEP:        /*  7 - Sound the bell */
+  case VDU_CURBACK:     /*  8 - Move cursor left one character */
   case VDU_CURDOWN:     /* 10 - Move cursor down one line (linefeed) */
   case VDU_RETURN:      /* 13 - Carriage return */
   case VDU_ESCAPE:      /* 27 - Do nothing (but char is sent to screen anyway) */

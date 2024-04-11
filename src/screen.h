@@ -45,27 +45,27 @@
 
 #define DRAW_STYLEMASK  0x38    /* Used for PLOT modes 0-63 */
 
-#define DRAW_SOLIDLINE  0x00    /* Draw a solid line including both end points, bit 0x08 skips final point */
-#define DRAW_DOTLINE    0x10      /* Draw a dotted line including both end points, bit 0x08 skips final point */
-#define DRAW_SOLIDLINE2 0x20    /* Draw a solid line excluding start point, bit 0x08 skips final point */
-#define DRAW_DOTLINE2   0x30      /* Draw a dotted line excluding start point, bit 0x08 skips final point */
-#define PLOT_POINT      0x40        /* Plot a single point */
-#define FILL_TRIANGLE   0x50      /* Plot a filled triangle */
-#define FILL_RECTANGLE  0x60    /* Plot a filled rectangle */
+#define DRAW_SOLIDLINE     0x00 /* Draw a solid line including both end points, bit 0x08 skips final point */
+#define DRAW_DOTLINE       0x10 /* Draw a dotted line including both end points, bit 0x08 skips final point */
+#define DRAW_SOLIDLINE2    0x20 /* Draw a solid line excluding start point, bit 0x08 skips final point */
+#define DRAW_DOTLINE2      0x30 /* Draw a dotted line excluding start point, bit 0x08 skips final point */
+#define PLOT_POINT         0x40 /* Plot a single point */
+#define FILL_TRIANGLE      0x50 /* Plot a filled triangle */
+#define FILL_RECTANGLE     0x60 /* Plot a filled rectangle */
 #define FILL_PARALLELOGRAM 0x70 /* Plot a filled parallelogram */
-#define FLOOD_BACKGROUND 0x80   /* Flood fill as far as background colour */
-#define PLOT_CIRCLE     0x90        /* Plot a circle outline */
-#define FILL_CIRCLE     0x98        /* Plot a filled circle */
-#define PLOT_ARC 0xA0           /* Plot a circular arc */
-#define PLOT_SEGMENT 0xA8       /* Plot a segment */
-#define PLOT_SECTOR 0xB0        /* Plot a sector */
-#define SHIFT_RECTANGLE 0xB8    /* Move or copy rectangle */
-#define MOVE_RECTANGLE  0xBD    /* Move rectangle absolute */
-#define COPY_RECTANGLE  0xBE    /* Copy rectangle absolute */
-#define PLOT_ELLIPSE    0xC0      /* Plot an ellipse outline */
-#define FILL_ELLIPSE    0xC8      /* Plot a filled ellipse */
-#define GRAPHOP_MASK    0xF8      /* Mask to extract graphics operation */
-#define GRAPHHOW_MASK   0x07      /* Mask to extract details of operation */
+#define FLOOD_BACKGROUND   0x80 /* Flood fill as far as background colour */
+#define PLOT_CIRCLE        0x90 /* Plot a circle outline */
+#define FILL_CIRCLE        0x98 /* Plot a filled circle */
+#define PLOT_ARC           0xA0 /* Plot a circular arc */
+#define PLOT_SEGMENT       0xA8 /* Plot a segment */
+#define PLOT_SECTOR        0xB0 /* Plot a sector */
+#define SHIFT_RECTANGLE    0xB8 /* Move or copy rectangle */
+#define MOVE_RECTANGLE     0xBD /* Move rectangle absolute */
+#define COPY_RECTANGLE     0xBE /* Copy rectangle absolute */
+#define PLOT_ELLIPSE       0xC0 /* Plot an ellipse outline */
+#define FILL_ELLIPSE       0xC8 /* Plot a filled ellipse */
+#define GRAPHOP_MASK       0xF8 /* Mask to extract graphics operation */
+#define GRAPHHOW_MASK      0x07 /* Mask to extract details of operation */
 
 /* RISC OS plot action codes (set by VDU 18) */
 
@@ -80,51 +80,51 @@
 
 /* RISC OS 'VDU' control codes */
 
-#define VDU_NULL        0       /* Do nothing */
-#define VDU_PRINT       1       /* Send next character to printer */
-#define VDU_ENAPRINT    2       /* Enable printer */
-#define VDU_DISPRINT    3       /* Disable printer */
-#define VDU_TEXTCURS    4       /* Write text at text cursor position */
-#define VDU_GRAPHICURS  5       /* Write text at graphics position */
-#define VDU_ENABLE      6       /* Enable VDU driver */
-#define VDU_BEEP        7       /* Generate 'bell' sound */
-#define VDU_CURBACK     8       /* Move cursor back one position */
-#define VDU_CURFORWARD  9       /* Move cursor forwards one position */
-#define VDU_CURDOWN     10      /* Move cursor down one line */
-#define VDU_CURUP       11      /* Move cursor up one line */
-#define VDU_CLEARTEXT   12      /* Clear text window */
-#define VDU_RETURN      13      /* Move cursor to start of line */
-#define VDU_ENAPAGE     14      /* Enable 'page' mode */
-#define VDU_DISPAGE     15      /* Disable 'page' mode */
-#define VDU_CLEARGRAPH  16      /* Clear graphics window */
-#define VDU_TEXTCOL     17      /* Define text colour to use */
-#define VDU_GRAPHCOL    18      /* Define graphics colour and plot action */
-#define VDU_LOGCOL      19      /* Define logical colour */
-#define VDU_RESTCOL     20      /* Restore logical colours to default values */
-#define VDU_DISABLE     21      /* Disable VDU driver */
-#define VDU_SCRMODE     22      /* Select screen mode */
-#define VDU_COMMAND     23      /* Multitudenous VDU commands */
-#define VDU_DEFGRAPH    24      /* Define graphics window */
-#define VDU_PLOT        25      /* PLOT command */
-#define VDU_RESTWIND    26      /* Restore default windows */
-#define VDU_ESCAPE      27      /* Does nothing */
-#define VDU_DEFTEXT     28      /* Define text window */
-#define VDU_ORIGIN      29      /* Define graphics origin */
-#define VDU_HOMETEXT    30      /* Send text cursor to home position */
-#define VDU_MOVETEXT    31      /* Move text cursor */
+#define VDU_NULL         0   /* Do nothing */
+#define VDU_PRINT        1   /* Send next character to printer */
+#define VDU_ENAPRINT     2   /* Enable printer */
+#define VDU_DISPRINT     3   /* Disable printer */
+#define VDU_TEXTCURS     4   /* Write text at text cursor position */
+#define VDU_GRAPHICURS   5   /* Write text at graphics position */
+#define VDU_ENABLE       6   /* Enable VDU driver */
+#define VDU_BEEP         7   /* Generate 'bell' sound */
+#define VDU_CURBACK      8   /* Move cursor back one position */
+#define VDU_CURFORWARD   9   /* Move cursor forwards one position */
+#define VDU_CURDOWN     10   /* Move cursor down one line */
+#define VDU_CURUP       11   /* Move cursor up one line */
+#define VDU_CLEARTEXT   12   /* Clear text window */
+#define VDU_RETURN      13   /* Move cursor to start of line */
+#define VDU_ENAPAGE     14   /* Enable 'page' mode */
+#define VDU_DISPAGE     15   /* Disable 'page' mode */
+#define VDU_CLEARGRAPH  16   /* Clear graphics window */
+#define VDU_TEXTCOL     17   /* Define text colour to use */
+#define VDU_GRAPHCOL    18   /* Define graphics colour and plot action */
+#define VDU_LOGCOL      19   /* Define logical colour */
+#define VDU_RESTCOL     20   /* Restore logical colours to default values */
+#define VDU_DISABLE     21   /* Disable VDU driver */
+#define VDU_SCRMODE     22   /* Select screen mode */
+#define VDU_COMMAND     23   /* Multitudenous VDU commands */
+#define VDU_DEFGRAPH    24   /* Define graphics window */
+#define VDU_PLOT        25   /* PLOT command */
+#define VDU_RESTWIND    26   /* Restore default windows */
+#define VDU_ESCAPE      27   /* Does nothing */
+#define VDU_DEFTEXT     28   /* Define text window */
+#define VDU_ORIGIN      29   /* Define graphics origin */
+#define VDU_HOMETEXT    30   /* Send text cursor to home position */
+#define VDU_MOVETEXT    31   /* Move text cursor */
 
 /* RISC OS physical colour numbers (modes up to 16 colours) */
 
-#define VDU_BLACK       0
-#define VDU_RED         1
-#define VDU_GREEN       2
-#define VDU_YELLOW      3
-#define VDU_BLUE        4
-#define VDU_MAGENTA     5
-#define VDU_CYAN        6
-#define VDU_WHITE       7
-#define FLASH_BLAWHITE  8
-#define FLASH_REDCYAN   9
+#define VDU_BLACK        0
+#define VDU_RED          1
+#define VDU_GREEN        2
+#define VDU_YELLOW       3
+#define VDU_BLUE         4
+#define VDU_MAGENTA      5
+#define VDU_CYAN         6
+#define VDU_WHITE        7
+#define FLASH_BLAWHITE   8
+#define FLASH_REDCYAN    9
 #define FLASH_GREENMAG  10
 #define FLASH_YELBLUE   11
 #define FLASH_BLUEYEL   12
@@ -133,89 +133,89 @@
 #define FLASH_WHITEBLA  15
 
 /* Teletext control codes - includes those not supported by BBC Micro / Risc OS */
-#define TELETEXT_ALPHA_BLACK            128
-#define TELETEXT_ALPHA_RED              129
-#define TELETEXT_ALPHA_GREEN            130
-#define TELETEXT_ALPHA_YELLOW           131
-#define TELETEXT_ALPHA_BLUE             132
-#define TELETEXT_ALPHA_MAGENTA          133
-#define TELETEXT_ALPHA_CYAN             134
-#define TELETEXT_ALPHA_WHITE            135
-#define TELETEXT_FLASH_ON               136
-#define TELETEXT_FLASH_OFF              137
-#define TELETEXT_END_BOX                138
-#define TELETEXT_START_BOX              139
-#define TELETEXT_SIZE_NORMAL            140
-#define TELETEXT_SIZE_DOUBLEHEIGHT      141
-#define TELETEXT_SIZE_DOUBLEWIDTH       142
-#define TELETEXT_SIZE_DOUBLESIZE        143
-#define TELETEXT_GRAPHICS_BLACK         144
-#define TELETEXT_GRAPHICS_RED           145
-#define TELETEXT_GRAPHICS_GREEN         146
-#define TELETEXT_GRAPHICS_YELLOW        147
-#define TELETEXT_GRAPHICS_BLUE          148
-#define TELETEXT_GRAPHICS_MAGENTA       149
-#define TELETEXT_GRAPHICS_CYAN          150
-#define TELETEXT_GRAPHICS_WHITE         151
-#define TELETEXT_CONCEAL                152
-#define TELETEXT_GRAPHICS_CONTIGUOUS    153
-#define TELETEXT_GRAPHICS_SEPARATE      154
-#define TELETEXT_ESCAPE                 155
-#define TELETEXT_BACKGROUND_BLACK       156
-#define TELETEXT_BACKGROUND_SET         157
-#define TELETEXT_GRAPHICS_HOLD          158
-#define TELETEXT_GRAPHICS_RELEASE       159
+#define TELETEXT_ALPHA_BLACK          0x80
+#define TELETEXT_ALPHA_RED            0x81
+#define TELETEXT_ALPHA_GREEN          0x82
+#define TELETEXT_ALPHA_YELLOW         0x83
+#define TELETEXT_ALPHA_BLUE           0x84
+#define TELETEXT_ALPHA_MAGENTA        0x85
+#define TELETEXT_ALPHA_CYAN           0x86
+#define TELETEXT_ALPHA_WHITE          0x87
+#define TELETEXT_FLASH_ON             0x88
+#define TELETEXT_FLASH_OFF            0x89
+#define TELETEXT_END_BOX              0x8A
+#define TELETEXT_START_BOX            0x8B
+#define TELETEXT_SIZE_NORMAL          0x8C
+#define TELETEXT_SIZE_DOUBLEHEIGHT    0x8D
+#define TELETEXT_SIZE_DOUBLEWIDTH     0x8E
+#define TELETEXT_SIZE_DOUBLESIZE      0x8F
+#define TELETEXT_GRAPHICS_BLACK       0x90
+#define TELETEXT_GRAPHICS_RED         0x91
+#define TELETEXT_GRAPHICS_GREEN       0x92
+#define TELETEXT_GRAPHICS_YELLOW      0x93
+#define TELETEXT_GRAPHICS_BLUE        0x94
+#define TELETEXT_GRAPHICS_MAGENTA     0x95
+#define TELETEXT_GRAPHICS_CYAN        0x96
+#define TELETEXT_GRAPHICS_WHITE       0x97
+#define TELETEXT_CONCEAL              0x98
+#define TELETEXT_GRAPHICS_CONTIGUOUS  0x99
+#define TELETEXT_GRAPHICS_SEPARATE    0x9A
+#define TELETEXT_ESCAPE               0x9B
+#define TELETEXT_BACKGROUND_BLACK     0x9C
+#define TELETEXT_BACKGROUND_SET       0x9D
+#define TELETEXT_GRAPHICS_HOLD        0x9E
+#define TELETEXT_GRAPHICS_RELEASE     0x9F
 
-extern void emulate_tab(int32, int32);
-extern void echo_on(void);
-extern void echo_off(void);
-extern void set_cursor(boolean);
-extern void emulate_vdu(int32);
-extern void emulate_vdustr(char *, int32);
-extern void emulate_printf(char *, ...);
-extern void emulate_newline(void);
-extern size_t emulate_vdufn(int32);
-extern int32 emulate_pos(void);
-extern int32 emulate_vpos(void);
-extern void emulate_mode(int32);
-extern void emulate_modestr(int32, int32, int32, int32, int32, int32, int32);
-extern void emulate_newmode(int32, int32, int32, int32);
-extern void emulate_off(void);
-extern void emulate_on(void);
-extern int32 emulate_modefn(void);
-extern int32 emulate_colourfn(int32, int32, int32);
-extern void emulate_colourtint(int32, int32);
-extern void emulate_mapcolour(int32, int32);
-extern int32 emulate_setcolour(int32, int32, int32, int32);
-extern void emulate_setcolnum(int32, int32);
-extern void emulate_defcolour(int32, int32, int32, int32);
-extern void emulate_gcol(int32, int32, int32);
-extern int32 emulate_gcolrgb(int32, int32, int32, int32, int32);
-extern void emulate_gcolnum(int32, int32, int32);
-extern void emulate_tint(int32, int32);
-extern int32 emulate_tintfn(int32, int32);
-extern void emulate_plot(int32, int32, int32);
-extern int32 emulate_pointfn(int32, int32);
-extern void emulate_move(int32, int32);
-extern void emulate_moveby(int32, int32);
-extern void emulate_draw(int32, int32);
-extern void emulate_drawby(int32, int32);
-extern void emulate_point(int32, int32);
-extern void emulate_pointby(int32, int32);
-extern void emulate_pointto(int32, int32);
-extern void emulate_line(int32, int32, int32, int32);
-extern void emulate_circle(int32, int32, int32, boolean);
-extern void emulate_ellipse(int32, int32, int32, int32, float64, boolean);
-extern void emulate_drawrect(int32, int32, int32, int32, boolean);
-extern void emulate_moverect(int32, int32, int32, int32, int32, int32, boolean);
-extern void emulate_fill(int32, int32);
-extern void emulate_fillby(int32, int32);
-extern void emulate_origin(int32, int32);
-extern void emulate_wait(void);
-extern void find_cursor(void);
+extern void    emulate_tab(int32, int32);
+extern void    echo_on(void);
+extern void    echo_off(void);
+extern void    set_cursor(boolean);
+extern void    emulate_vdu(int32);
+extern void    emulate_vdustr(char *, int32);
+extern void    emulate_printf(char *, ...);
+extern void    emulate_newline(void);
+extern size_t  emulate_vdufn(int32);
+extern int32   emulate_pos(void);
+extern int32   emulate_vpos(void);
+extern void    emulate_mode(int32);
+extern void    emulate_modestr(int32, int32, int32, int32, int32, int32, int32);
+extern void    emulate_newmode(int32, int32, int32, int32);
+extern void    emulate_off(void);
+extern void    emulate_on(void);
+extern int32   emulate_modefn(void);
+extern int32   emulate_colourfn(int32, int32, int32);
+extern void    emulate_colourtint(int32, int32);
+extern void    emulate_mapcolour(int32, int32);
+extern int32   emulate_setcolour(int32, int32, int32, int32);
+extern void    emulate_setcolnum(int32, int32);
+extern void    emulate_defcolour(int32, int32, int32, int32);
+extern void    emulate_gcol(int32, int32, int32);
+extern int32   emulate_gcolrgb(int32, int32, int32, int32, int32);
+extern void    emulate_gcolnum(int32, int32, int32);
+extern void    emulate_tint(int32, int32);
+extern int32   emulate_tintfn(int32, int32);
+extern void    emulate_plot(int32, int32, int32);
+extern int32   emulate_pointfn(int32, int32);
+extern void    emulate_move(int32, int32);
+extern void    emulate_moveby(int32, int32);
+extern void    emulate_draw(int32, int32);
+extern void    emulate_drawby(int32, int32);
+extern void    emulate_point(int32, int32);
+extern void    emulate_pointby(int32, int32);
+extern void    emulate_pointto(int32, int32);
+extern void    emulate_line(int32, int32, int32, int32);
+extern void    emulate_circle(int32, int32, int32, boolean);
+extern void    emulate_ellipse(int32, int32, int32, int32, float64, boolean);
+extern void    emulate_drawrect(int32, int32, int32, int32, boolean);
+extern void    emulate_moverect(int32, int32, int32, int32, int32, int32, boolean);
+extern void    emulate_fill(int32, int32);
+extern void    emulate_fillby(int32, int32);
+extern void    emulate_origin(int32, int32);
+extern void    emulate_wait(void);
+extern void    find_cursor(void);
 extern boolean init_screen(void);
-extern void end_screen(void);
-extern void set_wintitle(char *title);
-extern int32 get_character_at_pos(int32 cx, int32 cy);
+extern void    end_screen(void);
+extern void    set_wintitle(char *title);
+extern int32   get_character_at_pos(int32 cx, int32 cy);
 
 #endif

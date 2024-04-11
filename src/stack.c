@@ -58,17 +58,25 @@ static void restore(int32 parmcount);
 
 /*
 ** 'entrysize' gives the size of each type of entry possible on the
-** basic stack
+** BASIC stack
 */
-static int32 entrysize [] = {
-  0,                    0,    ALIGNSIZE(stack_uint8),     ALIGNSIZE(stack_int),       ALIGNSIZE(stack_int64),           /* 04 */
-  ALIGNSIZE(stack_float),     ALIGNSIZE(stack_string),    ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),           /* 08 */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 0C */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),     ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 10 */
-  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_gosub),           /* 14 */
-  ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),        ALIGNSIZE(stack_local),     ALIGNSIZE(stack_retparm),         /* 18 */
-  ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),    ALIGNSIZE(stack_for),       ALIGNSIZE(stack_for),             /* 1C */
-  ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),     ALIGNSIZE(stack_data),      ALIGNSIZE(stack_opstack),         /* 20 */
+static int32 entrysize [] = { 0,
+  0,                          ALIGNSIZE(stack_uint8),           /* 02 */
+  ALIGNSIZE(stack_int),       ALIGNSIZE(stack_int64),           /* 04 */
+  ALIGNSIZE(stack_float),     ALIGNSIZE(stack_string),          /* 06 */
+  ALIGNSIZE(stack_string),    ALIGNSIZE(stack_array),           /* 08 */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 0A */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 0C */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 0E */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_array),           /* 10 */
+  ALIGNSIZE(stack_arraytemp), ALIGNSIZE(stack_locarray),        /* 12 */
+  ALIGNSIZE(stack_locarray),  ALIGNSIZE(stack_gosub),           /* 14 */
+  ALIGNSIZE(stack_proc),      ALIGNSIZE(stack_fn),              /* 16 */
+  ALIGNSIZE(stack_local),     ALIGNSIZE(stack_retparm),         /* 18 */
+  ALIGNSIZE(stack_while),     ALIGNSIZE(stack_repeat),          /* 1A */
+  ALIGNSIZE(stack_for),       ALIGNSIZE(stack_for),             /* 1C */
+  ALIGNSIZE(stack_for),       ALIGNSIZE(stack_error),           /* 1E */
+  ALIGNSIZE(stack_data),      ALIGNSIZE(stack_opstack),         /* 20 */
   ALIGNSIZE(stack_restart)                                                                                              /* 21 */
 };
 
@@ -76,7 +84,7 @@ static int32 entrysize [] = {
 ** This table says which types of entries can be simply discarded
 ** from the Basic stack
 */
-static boolean disposible [] = {
+static boolean disposable [] = {
   FALSE, TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
   TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
   TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,  TRUE,
@@ -1260,7 +1268,7 @@ static void discard(stackitem item, boolean restorevars) {
 stack_while *get_while(void) {
   stackitem item;
   item = basicvars.stacktop.whilesp->itemtype;
-  while (disposible[item]) {
+  while (disposable[item]) {
     discard(item,1);
     item = basicvars.stacktop.whilesp->itemtype;
     if (item==STACK_WHILE) return basicvars.stacktop.whilesp;
@@ -1288,7 +1296,7 @@ void pop_while(void) {
 stack_repeat *get_repeat(void) {
   stackitem item;
   item = basicvars.stacktop.repeatsp->itemtype;
-  while (disposible[item]) {
+  while (disposable[item]) {
     discard(item,1);
     item = basicvars.stacktop.repeatsp->itemtype;
     if (item==STACK_REPEAT) return basicvars.stacktop.repeatsp;
@@ -1315,7 +1323,7 @@ void pop_repeat(void) {
 stack_for *get_for(void) {
   stackitem item;
   item = basicvars.stacktop.forsp->itemtype;
-  while (disposible[item]) {
+  while (disposable[item]) {
     discard(item,1);
     item = basicvars.stacktop.forsp->itemtype;
     if (item==STACK_INTFOR || item==STACK_FLOATFOR) return basicvars.stacktop.forsp;

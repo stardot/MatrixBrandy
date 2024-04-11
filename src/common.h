@@ -49,6 +49,10 @@
 #define TINYFLOATVAL 2.2250738585072014E-308
 #define MAXEXPONENT 308
 
+#ifndef PI
+#define PI       3.141592653589793238462643383279502884L
+#endif
+
 #define MAXSTATELEN 1024        /* Maximum length of a tokenised line of Basic */
 #define MINSTATELEN 7           /* Minimum legal length of a tokenised line */
 #define MAXLINENO 65279         /* Highest line number allowed */

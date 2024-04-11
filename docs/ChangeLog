@@ -5,16 +5,19 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 - System: Rework the threading model to use pthreads even under SDL, this allows
   a custom thread size to be set, so the recursion limit is now a factor
   of the stack and workspace size.
-- Graphics: Fix VDU 19 where physical colour is 8 to 15.
+- Graphics: Fix VDU 19 where physical colour is 8 to 15. Thank you to Richard
+  Russell for spotting this.
 - Networking: BGET# was broken on x86-32 and x86-64 (but not ARM), returning
   negative numbers if bit 7 was set. Thank you to BeeBS.ddns.net for their
   help with tracking this down.
 - BASIC: Fixed a bug importing Russell-format tokenised BASIC where tokens
-  were incorrectly decoded.
+  were incorrectly decoded. Again, thank you to Richard Russell for spotting
+  this.
 - BASIC: RUN recursion limit removed, it's now implemented with a
   setjmp/longjmp.
 - BASIC: EVAL stops at unexpected input without error (like Acorn BASIC),
-  unless Strict mode is set.
+  unless Strict mode is set. This discrepancy was also identified by Richard
+  Russell.
 - BASIC: Implement BBCSDL's PLOT x,y syntax (assumes plot code 69).
 
 * 1.23.0 - 06 February 2024

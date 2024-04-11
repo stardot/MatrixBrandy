@@ -1275,34 +1275,34 @@ static unsigned int cmd_parse_num(char** text)
 /*
  * List of *commands implemented by this code
  */
-#define CMD_UNKNOWN       0
-#define CMD_KEY           1
-#define CMD_CAT           2
-#define CMD_EX            3
-#define CMD_CD            4
-#define CMD_QUIT          5
-#define CMD_WINDOW        6
-#define CMD_FX            7
-#define CMD_VER           8
-#define CMD_TITLE         9
-#define CMD_HELP          10
-#define CMD_WINTITLE      11
-#define CMD_FULLSCREEN    12
-#define CMD_NEWMODE       13
-#define CMD_REFRESH       14
-#define CMD_SCREENSAVE    15
-#define CMD_SCREENLOAD    16
-#define CMD_SHOW          17
-#define CMD_EXEC          18
-#define CMD_SPOOL         19
-#define CMD_SPOOLON       20
-#define CMD_LOAD          27
-#define CMD_SAVE          28
-#define CMD_VOLUME        29
-#define CMD_CHANNELVOICE  30
-#define CMD_VOICES        31
-#define CMD_POINTER       32
-#define CMD_BRANDYINFO    33
+#define CMD_UNKNOWN          0
+#define CMD_KEY              1
+#define CMD_CAT              2
+#define CMD_EX               3
+#define CMD_CD               4
+#define CMD_QUIT             5
+#define CMD_WINDOW           6
+#define CMD_FX               7
+#define CMD_VER              8
+#define CMD_TITLE            9
+#define CMD_HELP            10
+#define CMD_WINTITLE        11
+#define CMD_FULLSCREEN      12
+#define CMD_NEWMODE         13
+#define CMD_REFRESH         14
+#define CMD_SCREENSAVE      15
+#define CMD_SCREENLOAD      16
+#define CMD_SHOW            17
+#define CMD_EXEC            18
+#define CMD_SPOOL           19
+#define CMD_SPOOLON         20
+#define CMD_LOAD            27
+#define CMD_SAVE            28
+#define CMD_VOLUME          29
+#define CMD_CHANNELVOICE    30
+#define CMD_VOICES          31
+#define CMD_POINTER         32
+#define CMD_BRANDYINFO      33
 #define HELP_BASIC        1024
 #define HELP_HOST         1025
 #define HELP_MOS          1026
@@ -1380,41 +1380,41 @@ void make_cmdtab(){
 
   cmdtab=calloc(CMDTABSIZE,sizeof(cmdtabent));
 
-  add_cmd( "key",          CMD_KEY  );
-  add_cmd( "cat",          CMD_CAT  );
-  add_cmd( "cd",           CMD_CD   );
-  add_cmd( "chdir",        CMD_CD   );
-  add_cmd( "ex",           CMD_EX   );
-  add_cmd( "quit",         CMD_QUIT );
-  add_cmd( "fx",           CMD_FX   );
-  add_cmd( "help",         CMD_HELP );
-  add_cmd( "ver",          CMD_VER  );
-  add_cmd( "screensave",   CMD_SCREENSAVE );
-  add_cmd( "screenload",   CMD_SCREENLOAD );
-  add_cmd( "wintitle",     CMD_WINTITLE   );
-  add_cmd( "fullscreen",   CMD_FULLSCREEN );
-  add_cmd( "newmode",      CMD_NEWMODE );
-  add_cmd( "refresh",      CMD_REFRESH );
-  add_cmd( "show",         CMD_SHOW    );
-  add_cmd( "exec",         CMD_EXEC    );
-  add_cmd( "spool",        CMD_SPOOL   );
-  add_cmd( "spoolon",      CMD_SPOOLON );
-  add_cmd( "load",         CMD_LOAD );
-  add_cmd( "save",         CMD_SAVE );
-  add_cmd( "brandyinfo",   CMD_BRANDYINFO );
+  add_cmd( "key",          CMD_KEY          );
+  add_cmd( "cat",          CMD_CAT          );
+  add_cmd( "cd",           CMD_CD           );
+  add_cmd( "chdir",        CMD_CD           );
+  add_cmd( "ex",           CMD_EX           );
+  add_cmd( "quit",         CMD_QUIT         );
+  add_cmd( "fx",           CMD_FX           );
+  add_cmd( "help",         CMD_HELP         );
+  add_cmd( "ver",          CMD_VER          );
+  add_cmd( "screensave",   CMD_SCREENSAVE   );
+  add_cmd( "screenload",   CMD_SCREENLOAD   );
+  add_cmd( "wintitle",     CMD_WINTITLE     );
+  add_cmd( "fullscreen",   CMD_FULLSCREEN   );
+  add_cmd( "newmode",      CMD_NEWMODE      );
+  add_cmd( "refresh",      CMD_REFRESH      );
+  add_cmd( "show",         CMD_SHOW         );
+  add_cmd( "exec",         CMD_EXEC         );
+  add_cmd( "spool",        CMD_SPOOL        );
+  add_cmd( "spoolon",      CMD_SPOOLON      );
+  add_cmd( "load",         CMD_LOAD         );
+  add_cmd( "save",         CMD_SAVE         );
+  add_cmd( "brandyinfo",   CMD_BRANDYINFO   );
 #ifdef USE_SDL
-  add_cmd( "volume",       CMD_VOLUME  );
+  add_cmd( "volume",       CMD_VOLUME       );
   add_cmd( "channelvoice", CMD_CHANNELVOICE );
-  add_cmd( "voices",       CMD_VOICES  );
-  add_cmd( "pointer",      CMD_POINTER );
-  add_cmd( "sound",        HELP_SOUND  );
+  add_cmd( "voices",       CMD_VOICES       );
+  add_cmd( "pointer",      CMD_POINTER      );
+  add_cmd( "sound",        HELP_SOUND       );
 #endif
-  add_cmd( "basic",        HELP_BASIC   );
-  add_cmd( "host",         HELP_HOST    );
-  add_cmd( "mos",          HELP_MOS     );
-  add_cmd( "matrix",       HELP_MATRIX  );
-  add_cmd( "meminfo",      HELP_MEMINFO );
-  add_cmd( "os",           HELP_MOS     );
+  add_cmd( "basic",        HELP_BASIC       );
+  add_cmd( "host",         HELP_HOST        );
+  add_cmd( "mos",          HELP_MOS         );
+  add_cmd( "matrix",       HELP_MATRIX      );
+  add_cmd( "meminfo",      HELP_MEMINFO     );
+  add_cmd( "os",           HELP_MOS         );
 }
 
 /* Strip quotes around a file name */
@@ -2139,33 +2139,33 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
  */
     cmd = check_command(command);
     switch(cmd){
-      case CMD_KEY:           cmd_key(command+3); return;
-      case CMD_CAT:           cmd_cat(command); return;
-      case CMD_EX:            cmd_ex(command); return;
-      case CMD_QUIT:          cmd_quit(command+4); return;
-      case CMD_HELP:          cmd_help(command+4); return;
-      case CMD_CD:            cmd_cd(command+2); return;
-      case CMD_FX:            cmd_fx(command+2); return;
-      case CMD_SHOW:          cmd_show(command+4); return;
-      case CMD_EXEC:          cmd_exec(command+4); return;
-      case CMD_SPOOL:         cmd_spool(command+5,0); return;
-      case CMD_SPOOLON:       cmd_spool(command+7,1); return;
-//    case CMD_VER:           cmd_ver(); return;
-      case CMD_SCREENSAVE:    cmd_screensave(command+10); return;
-      case CMD_SCREENLOAD:    cmd_screenload(command+10); return;
-      case CMD_WINTITLE:      cmd_wintitle(command+8); return;
-      case CMD_FULLSCREEN:    cmd_fullscreen(command+10); return;
-      case CMD_NEWMODE:       cmd_newmode(command+7); return;
-      case CMD_REFRESH:       cmd_refresh(command+7); return;
-      case CMD_BRANDYINFO:    cmd_brandyinfo(); return;
+      case CMD_KEY:          cmd_key(command+3); return;
+      case CMD_CAT:          cmd_cat(command); return;
+      case CMD_EX:           cmd_ex(command); return;
+      case CMD_QUIT:         cmd_quit(command+4); return;
+      case CMD_HELP:         cmd_help(command+4); return;
+      case CMD_CD:           cmd_cd(command+2); return;
+      case CMD_FX:           cmd_fx(command+2); return;
+      case CMD_SHOW:         cmd_show(command+4); return;
+      case CMD_EXEC:         cmd_exec(command+4); return;
+      case CMD_SPOOL:        cmd_spool(command+5,0); return;
+      case CMD_SPOOLON:      cmd_spool(command+7,1); return;
+//    case CMD_VER:          cmd_ver(); return;
+      case CMD_SCREENSAVE:   cmd_screensave(command+10); return;
+      case CMD_SCREENLOAD:   cmd_screenload(command+10); return;
+      case CMD_WINTITLE:     cmd_wintitle(command+8); return;
+      case CMD_FULLSCREEN:   cmd_fullscreen(command+10); return;
+      case CMD_NEWMODE:      cmd_newmode(command+7); return;
+      case CMD_REFRESH:      cmd_refresh(command+7); return;
+      case CMD_BRANDYINFO:   cmd_brandyinfo(); return;
 
-      case CMD_LOAD:          cmd_load(command+4); return;
-      case CMD_SAVE:          cmd_save(command+4); return;
+      case CMD_LOAD:         cmd_load(command+4); return;
+      case CMD_SAVE:         cmd_save(command+4); return;
 
-      case CMD_VOLUME:        cmd_volume(command+6);return;
-      case CMD_CHANNELVOICE:  cmd_channelvoice(command+12);return;
-      case CMD_VOICES:        cmd_voices();return;
-      case CMD_POINTER:       cmd_pointer(command+7);return;
+      case CMD_VOLUME:       cmd_volume(command+6);return;
+      case CMD_CHANNELVOICE: cmd_channelvoice(command+12);return;
+      case CMD_VOICES:       cmd_voices();return;
+      case CMD_POINTER:      cmd_pointer(command+7);return;
     }
   }
 

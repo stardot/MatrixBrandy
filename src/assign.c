@@ -2018,75 +2018,75 @@ static void assidiv_floatarray(pointers address) {
 }
 
 static void (*assign_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assign_intword, assign_float,
-  assign_stringdol, assignment_invalid, assign_int64, assign_intbyte,
-  assignment_invalid, assignment_invalid, assign_intarray, assign_floatarray,
-  assign_strarray, assignment_invalid, assign_int64array, assign_uint8array,
-  assignment_invalid, assign_intbyteptr, assign_intwordptr, assign_floatptr,
-  assignment_invalid, assign_dolstrptr, assign_int64ptr, assignment_invalid
+  assignment_invalid, assignment_invalid, assign_intword,    assign_float,
+  assign_stringdol,   assignment_invalid, assign_int64,      assign_intbyte,
+  assignment_invalid, assignment_invalid, assign_intarray,   assign_floatarray,
+  assign_strarray,    assignment_invalid, assign_int64array, assign_uint8array,
+  assignment_invalid, assign_intbyteptr,  assign_intwordptr, assign_floatptr,
+  assignment_invalid, assign_dolstrptr,   assign_int64ptr,   assignment_invalid
 };
 
 static void (*assiplus_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assiplus_intword, assiplus_float,
-  assiplus_stringdol, assignment_invalid, assiplus_int64word, assiplus_intbyte,
-  assignment_invalid, assignment_invalid, assiplus_intarray, assiplus_floatarray,
-  assiplus_strarray, assignment_invalid, assiplus_int64array, assiplus_uint8array,
+  assignment_invalid, assignment_invalid,  assiplus_intword,    assiplus_float,
+  assiplus_stringdol, assignment_invalid,  assiplus_int64word,  assiplus_intbyte,
+  assignment_invalid, assignment_invalid,  assiplus_intarray,   assiplus_floatarray,
+  assiplus_strarray,  assignment_invalid,  assiplus_int64array, assiplus_uint8array,
   assignment_invalid, assiplus_intbyteptr, assiplus_intwordptr, assiplus_floatptr,
-  assignment_invalid, assiplus_dolstrptr, assiplus_int64ptr, assignment_invalid
+  assignment_invalid, assiplus_dolstrptr,  assiplus_int64ptr,   assignment_invalid
 };
 
 static void (*assiminus_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assiminus_intword, assiminus_float,
-  assiminus_badtype, assignment_invalid, assiminus_int64word, assiminus_intbyte,
-  assignment_invalid, assignment_invalid, assiminus_intarray, assiminus_floatarray,
-  assiminus_badtype, assignment_invalid, assiminus_int64array, assiminus_uint8array,
+  assignment_invalid, assignment_invalid,   assiminus_intword,    assiminus_float,
+  assiminus_badtype,  assignment_invalid,   assiminus_int64word,  assiminus_intbyte,
+  assignment_invalid, assignment_invalid,   assiminus_intarray,   assiminus_floatarray,
+  assiminus_badtype,  assignment_invalid,   assiminus_int64array, assiminus_uint8array,
   assignment_invalid, assiminus_intbyteptr, assiminus_intwordptr, assiminus_floatptr,
-  assignment_invalid, assiminus_badtype, assiminus_int64ptr, assignment_invalid
+  assignment_invalid, assiminus_badtype,    assiminus_int64ptr,   assignment_invalid
 };
 
 static void (*assiand_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assiand_intword, assiand_float,
-  assibit_badtype, assignment_invalid, assiand_int64word, assiand_intbyte,
-  assignment_invalid, assignment_invalid, assiand_intarray, assiand_floatarray,
-  assibit_badtype, assignment_invalid, assiand_int64array, assiand_uint8array,
+  assignment_invalid, assignment_invalid, assiand_intword,    assiand_float,
+  assibit_badtype,    assignment_invalid, assiand_int64word,  assiand_intbyte,
+  assignment_invalid, assignment_invalid, assiand_intarray,   assiand_floatarray,
+  assibit_badtype,    assignment_invalid, assiand_int64array, assiand_uint8array,
   assignment_invalid, assiand_intbyteptr, assiand_intwordptr, assiand_floatptr,
-  assignment_invalid, assibit_badtype, assiand_int64ptr, assignment_invalid
+  assignment_invalid, assibit_badtype,    assiand_int64ptr,   assignment_invalid
 };
 
 static void (*assior_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assior_intword, assior_float,
-  assibit_badtype, assignment_invalid, assior_int64word, assior_intbyte,
-  assignment_invalid, assignment_invalid, assior_intarray, assior_floatarray,
-  assibit_badtype, assignment_invalid, assior_int64array, assior_uint8array,
-  assignment_invalid, assior_intbyteptr, assior_intwordptr, assior_floatptr,
-  assignment_invalid, assibit_badtype, assior_int64ptr, assignment_invalid
+  assignment_invalid, assignment_invalid, assior_intword,    assior_float,
+  assibit_badtype,    assignment_invalid, assior_int64word,  assior_intbyte,
+  assignment_invalid, assignment_invalid, assior_intarray,   assior_floatarray,
+  assibit_badtype,    assignment_invalid, assior_int64array, assior_uint8array,
+  assignment_invalid, assior_intbyteptr,  assior_intwordptr, assior_floatptr,
+  assignment_invalid, assibit_badtype,    assior_int64ptr,   assignment_invalid
 };
 
 static void (*assieor_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assieor_intword, assieor_float,
-  assibit_badtype, assignment_invalid, assieor_int64word, assieor_intbyte,
-  assignment_invalid, assignment_invalid, assieor_intarray, assieor_floatarray,
-  assibit_badtype, assignment_invalid, assieor_int64array, assieor_uint8array,
+  assignment_invalid, assignment_invalid, assieor_intword,    assieor_float,
+  assibit_badtype,    assignment_invalid, assieor_int64word,  assieor_intbyte,
+  assignment_invalid, assignment_invalid, assieor_intarray,   assieor_floatarray,
+  assibit_badtype,    assignment_invalid, assieor_int64array, assieor_uint8array,
   assignment_invalid, assieor_intbyteptr, assieor_intwordptr, assieor_floatptr,
-  assignment_invalid, assibit_badtype, assieor_int64ptr, assignment_invalid
+  assignment_invalid, assibit_badtype,    assieor_int64ptr,   assignment_invalid
 };
 
 static void (*assimod_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assimod_intword, assimod_float,
-  assibit_badtype, assignment_invalid, assimod_int64word, assimod_intbyte,
-  assignment_invalid, assignment_invalid, assimod_intarray, assimod_floatarray,
-  assibit_badtype, assignment_invalid, assimod_int64array, assimod_uint8array,
+  assignment_invalid, assignment_invalid, assimod_intword,    assimod_float,
+  assibit_badtype,    assignment_invalid, assimod_int64word,  assimod_intbyte,
+  assignment_invalid, assignment_invalid, assimod_intarray,   assimod_floatarray,
+  assibit_badtype,    assignment_invalid, assimod_int64array, assimod_uint8array,
   assignment_invalid, assimod_intbyteptr, assimod_intwordptr, assimod_floatptr,
-  assignment_invalid, assibit_badtype, assimod_int64ptr, assignment_invalid
+  assignment_invalid, assibit_badtype,    assimod_int64ptr,   assignment_invalid
 };
 
 static void (*assidiv_table[])(pointers) = {
-  assignment_invalid, assignment_invalid, assidiv_intword, assidiv_float,
-  assibit_badtype, assignment_invalid, assidiv_int64word, assidiv_intbyte,
-  assignment_invalid, assignment_invalid, assidiv_intarray, assidiv_floatarray,
-  assibit_badtype, assignment_invalid, assidiv_int64array, assidiv_uint8array,
+  assignment_invalid, assignment_invalid, assidiv_intword,    assidiv_float,
+  assibit_badtype,    assignment_invalid, assidiv_int64word,  assidiv_intbyte,
+  assignment_invalid, assignment_invalid, assidiv_intarray,   assidiv_floatarray,
+  assibit_badtype,    assignment_invalid, assidiv_int64array, assidiv_uint8array,
   assignment_invalid, assidiv_intbyteptr, assidiv_intwordptr, assidiv_floatptr,
-  assignment_invalid, assibit_badtype, assidiv_int64ptr, assignment_invalid
+  assignment_invalid, assibit_badtype,    assidiv_int64ptr,   assignment_invalid
 };
 
 /*
