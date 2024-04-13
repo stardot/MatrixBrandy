@@ -186,8 +186,6 @@ static void cmd_brandyinfo() {
 #ifdef BRANDY_GITCOMMIT
 #ifdef BRANDY_RELEASE
   emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
-#else
-  emulate_printf("  Built from git branch %s\r\n", BRANDY_GITBRANCH);
 #endif /* BRANDY_RELEASE */
 #endif /* BRANDY_GITCOMMIT */
   // Try to get attributions correct, as per license.
@@ -1704,7 +1702,7 @@ static void cmd_help(char *command)
   switch (cmd) {
     case HELP_BASIC:
 // Need to think about making this neat but informative
-#ifdef BRANDY_GITCOMMIT
+#if defined(BRANDY_GITCOMMIT) && defined(BRANDY_RELEASE)
       emulate_printf("  Git commit %s on branch %s (%s)\r\n", BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #endif
       // Try to get attributions correct, as per license.
