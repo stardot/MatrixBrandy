@@ -1171,7 +1171,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "PI")) {
     emulate_printf("This function gives the value of 'pi' 3.1415926535.");
   } else if (!strcmp(cmd, "PLOT")) {
-    emulate_printf("PLOT n,x,y: graphics operation n.");
+    emulate_printf("PLOT [n,]x,y: graphics operation n.\r\nIf n is not supplied,  operation 69 is  assumed, and is functionally equivalent to  POINT x,y  for  compatibility with  BBCSDL.");
   } else if (!strcmp(cmd, "POINT")) {
     emulate_printf("POINT [BY] x,y: set pixel at [relative to] x,y.\r\nPOINT TO x,y: Not supported.\r\nPOINT(x,y): function gives the logical colour number of the pixel at x, y.");
   } else if (!strcmp(cmd, "POS")) {
