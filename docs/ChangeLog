@@ -5,7 +5,7 @@ NOTE FOR DISTRIBUTIONS:
 Please build with -DBRANDY_RELEASE else the internal help will identify
 the binary as a development build.
 
-* 1.23.1 - 
+* 1.23.1 - 13 April 2024
 - System: Rework the threading model to use pthreads even under SDL, this allows
   a custom thread size to be set, so the recursion limit is now a factor
   of the stack and workspace size.
