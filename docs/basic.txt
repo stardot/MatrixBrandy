@@ -2987,11 +2987,14 @@ Syntax: OVERLAY
 This statement is not supported by the interpreter.
 
 PLOT
-Syntax: PLOT <code> , <x expression> , <y expression>
+Syntax: PLOT [<code> ,] <x expression> , <y expression>
 
 This statement carries out the graphics operation with code
 <code>. <x expression> and <y expression> are the two
 parameters that plot codes use.
+
+For compatibility with BBCSDL, the <code> is optional, and if not supplied,
+code 69 is assumed, making it equivalent to POINT x, y.
 
 Plot codes are at the heart of the graphics support. They carry
 out graphics operations such as drawing lines and shapes. Many of

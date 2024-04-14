@@ -47,7 +47,7 @@ program and a list of the known bugs.
 Copyright
 ~~~~~~~~~
 Brandy is copyright (C) 2000-2014 David Daniels.
-Matrix Brandy modifications are copyright (C) 2018-2021 Michael McConnell and
+Matrix Brandy modifications are copyright (C) 2018-2024 Michael McConnell and
 contributors.
 
 The program is distributed under the terms of the GNU GPL.
@@ -294,7 +294,7 @@ interpreter's limit of 255. The list of differences are as follows:
 2)  Brandy has no support for machine code programs. It does not support either
     the 'CALL' statement nor the 'USR' function
     (except for a limited number of calls to BBC-style OS interfaces, notably
-    OSBYTE). The built-in assembler has not been implemented.
+    OSBYTE and OSWORD). The built-in assembler has not been implemented.
 3)  The 'APPEND' command has not been implemented.
 4)  The 'OVERLAY' statement has not been implemented.
 5)  INKEY(-128) to INKEY(-255) are not implemented (and were only implemented
@@ -1018,9 +1018,9 @@ is it running under:
     trample on "real" SWI calls.
 
 3)  The hardware type and general environment type can be found by checking
-    what is returned by OS_Byte 0. The USR function is not supported except in
-    one special case, to make calls to a subset of BBC Micro MOS calls. The
-    following code can be used:
+    what is returned by OS_Byte 0. The USR function and CALL statement are
+    not supported except in one special case, to make calls to a subset of
+    BBC Micro MOS calls. The following code can be used:
 
 	A% = 0: X% = 1: result% = USR &FFF4
 	version% = (result% DIV 256) AND 255
@@ -1289,10 +1289,10 @@ RIGHT$	Brandy does not precisely emulate the Basic RIGHT$ function. For small
 	returns the value of A$. Brandy always returns a null string if the
 	length is negative.
 
-Block IF Statements
-	There is what looks like a bug in Brandy at first glance
+Block IF Statements (prior to Matrix Brandy V1.23.2)
+	There was what looked like a bug in Brandy at first glance
 	involving block IF statements. The following program
-	behaves differently under the Acorn interpreter and Brandy:
+	behaved differently under the Acorn interpreter and Brandy:
 
 	X%=10
 	IF X%=1 THENREM X is 1
@@ -1314,7 +1314,11 @@ Block IF Statements
 	is, the IF statement is now seen as a block IF as the REM statement has
 	been discarded.
 
-	The moral of the story is that Brandy runs programs in a crunched form.
+	Thus, Brandy runs programs in a crunched form.
+
+        As of Matrix Brandy 1.23.2, this is NO LONGER the case, and following
+        the principle of least surprise to the user, this behaviour has been
+        corrected.
 
 Floating Point Number Formats
 	There is an incompatibility between the versions of the program that
@@ -1340,7 +1344,8 @@ libraries on the machine on which it runs. (That said, for BBC / RISC OS style
 graphics on non-RISC OS systems, SDL 1.2 is required.) BASIC V/VI is easy to
 use and substantial programs can be written using it. It is good for small,
 one-off programs or for experimenting. It can also make programming enjoyable
-again.
+again.  The text-mode versions also lend themselves well for functioning as
+scripting languages in (for example) Linux.
 
 This program is a work in progress. It seems to be quite stable but plenty of
 bugs still lurk. They are many rough edges and a number of minor features have
