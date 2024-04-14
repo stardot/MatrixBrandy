@@ -2,10 +2,13 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
 NOTE FOR DISTRIBUTIONS:
-Please build with -DBRANDY_RELEASE else the internal help will identify
-the binary as a development build.
+Version 1.23.1 required the -DBRANDY_RELEASE flag to be set for a release
+build. As of version 1.23.2 this flag is automatically suppled for builds
+made from git in the master branch, and from tarballs with no git information.
 
 * 1.23.2 - 
+- Build: Autodetect whether it's a release build (master branch, or a tarball
+  without any git information) or a development build (anything else).
 - BASIC: IF something THEN REM no is no longer handled as the start of a
   multi-line IF statement.
 
