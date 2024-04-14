@@ -379,7 +379,7 @@ static void (*statements[256])(void) = {
   exec_oscli,      exec_xwhen,      exec_elsewhen,    exec_overlay,     /* C4..C7 */
   exec_plot,       exec_point,      exec_pointby,     exec_pointto,     /* C8..CB */
   exec_print,      exec_proc,       exec_quit,        exec_read,        /* CC..CF */
-  exec_rectangle,  bad_token,       exec_repeat,      exec_report,      /* D0..D3 */
+  exec_rectangle,  exec_rem,        exec_repeat,      exec_report,      /* D0..D3 */
   exec_restore,    exec_return,     exec_run,         exec_sound,       /* D4..D7 */
   exec_oscmd,      bad_syntax,      exec_stereo,      exec_stop,        /* D8..DB */
   exec_swap,       exec_sys,        exec_tempo,       bad_syntax,       /* DC..DF */

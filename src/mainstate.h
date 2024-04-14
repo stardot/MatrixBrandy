@@ -63,6 +63,7 @@ extern void exec_proc(void);
 extern void exec_xproc(void);
 extern void exec_quit(void);
 extern void exec_read(void);
+extern void exec_rem(void);
 extern void exec_repeat(void);
 extern void exec_report(void);
 extern void exec_restore(void);

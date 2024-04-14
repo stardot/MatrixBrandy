@@ -378,6 +378,16 @@ void exec_data(void) {
 }
 
 /*
+** 'exec_rem' hendles the 'REM' statement when one of these is
+** encountered in normal program execution. The REM token will
+** always be the last thing on the line. It moves the current
+** pointer to the NUL at the end of the line
+*/
+void exec_rem(void) {
+  basicvars.current = skip_token(basicvars.current);
+}
+
+/*
 ** 'exec_def' processes 'DEF'-type statements. A DEF is executed
 ** identically to a REM - execution skips to the next line.
 ** (which is why we check for 0 instead of using the ateol table)

@@ -1091,7 +1091,7 @@ static void do_keyword(void) {
       while (isident(tokenbase[source])) source++;      /* Skip PROC/FN name */
       break;
     case BASTOKEN_REM:     /* Skip rest of tokenised line */
-       next--;          /* Remove REM token */
+       //next--;          /* Remove REM token */
        source = -1;     /* Flag value to say we have finished this line */
        break;
     case BASTOKEN_DATA:    /* Insert the offset back to the data itself after the DATA token */
