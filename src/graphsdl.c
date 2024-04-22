@@ -3016,13 +3016,13 @@ static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
   if (x >= 1) /* Left */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x-1, y, colour, action);
-  if (x < (ds.vscrwidth-1)) /* Right */
+  if (x < (ds.screenwidth-1)) /* Right */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + (x+1) + y*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x+1, y, colour, action);
   if (y >= 1) /* Up */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y-1)*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x, y-1, colour, action);
-  if (y < (ds.vscrheight-1)) /* Down */
+  if (y < (ds.screenheight-1)) /* Down */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y+1)*ds.vscrwidth) == ds.gb_colour)
       flood_fill_inner(x, y+1, colour, action);
 }
