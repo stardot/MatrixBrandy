@@ -55,10 +55,10 @@ VDU 23,18,16,quality,mask| - select character display quality
                               b0=render high quality text
 VDU 23,18,255,width|       - Set Teletext character cell width.
 
-VDU 23,22 - define screen mode (BBfSDL)
-VDU 23,23 - set line thickness (BBfSDL)
-VDU 23,24 - set character spacing (BBfSDL)
-VDU 23,31 - reset VDU system (internal to BBfSDL)
+VDU 23,22 - define screen mode (BBCSDL)
+VDU 23,23 - set line thickness (BBCSDL)
+VDU 23,24 - set character spacing (BBCSDL)
+VDU 23,31 - reset VDU system (internal to BBCSDL)
 
 GCOL 0,c  GCOL 1,c  GCOL 2,c - standard GCOL commands
 GCOL 3,c  GCOL 4,c

@@ -72,7 +72,7 @@ version of the BBC Basic interpreter that had many additional
 features such as 'CASE' statements and multi-line 'IF' statements.
 It kept its reputation for speed. This version of Basic was called
 'BASIC V', and later a version using 64-bit floating point numbers
-was issued as a soft-load for RISC OS as 'BASIC V/VI' and it is the
+was issued as a soft-load for RISC OS as 'BASIC VI' and it is the
 dialect of the language implemented by this interpreter.
 
 The operating system that ran on the Archimedes and the machines
@@ -4495,17 +4495,18 @@ platforms. The following table says what works where. The column
 marked 'Text' says whether the code is supported (yes), flagged
 as an error (no) or ignored (ignore) in text-only versions of the
 program. The column 'Graphics' gives the same information for
-versions that support graphics.
+versions that support graphics (including the text-mode build with
+Tektronix support enabled).
 
 	Code	Text		Graphics
 	----	----		--------
 	0	yes		yes
-	1	yes		yes
-	2	ignored		ignored
-	3	ignored		ignored
-	4	ignored		ignored
+	1	yes*		yes*
+	2	yes*		yes*
+	3	yes*		yes*
+	4	ignored		yes
 	5	no		yes
-	6	ignored		ignored
+	6	ignored		yes
 	7	yes		yes
 	8	yes		yes
 	9	yes		yes
@@ -4513,14 +4514,14 @@ versions that support graphics.
 	11	yes		yes
 	12	yes		yes
 	13	yes		yes
-	14	ignored		ignored
-	15	ignored		ignored
+	14	ignored		yes
+	15	ignored		yes
 	16	no		yes	
 	17	yes		yes
 	18	no		yes
 	19	yes		yes
 	20	yes		yes
-	21	ignored		ignored
+	21	ignored		yes
 	22	yes		yes
 	23	yes		yes
 	24	no		yes
@@ -4531,6 +4532,10 @@ versions that support graphics.
 	29	no		yes
 	30	yes		yes	
 	31	yes		yes
+* VDU codes 1-3 are only implemented on UNIX/Linux hosts with
+CUPS enabled, and are ignored on other non-RISC OS platforms.
+On RISC OS, VDU is simply passed through to the OS and Matrix
+Brandy does not attempt to emulate any codes.
 
 Details of the supported commands follow.
 
@@ -4565,6 +4570,9 @@ reset to the edge of the graphics window.
 
 Note that text written in this mode overwrites what is currently
 on the screen without clearing the background of each character.
+
+VDU 6
+This re-enables VDU output after it has been disabled with VDU 21.
 
 VDU 7
 Sound the console bell.
@@ -4624,14 +4632,24 @@ graphics units unless the cursor was located at the top of the
 window, in which case it is moved to the bottom.
 
 VDU 12
-Clear the text window. The text window is set to the text
-background colour.
+In VDU 4 mode, this clears the text window. The text window is set
+to the text background colour.  In VDU 5 mode, this is equivalent
+to VDU 16 (CLG).
+In VDU 5 mode, the graphics cursor is moved to the top left of the
+screen for printing text at the graphics cursor.
 
 VDU 13
 Move the cursor to the start of the line. The cursor is moved to
 the left-hand edge of the window on the current line. If output is
 being sent to the graphics cursor it is the graphics cursor that
 is moved otherwise it is the text one.
+
+VDU 14
+Enable paged mode, where scrolling is paused until the SHIFT key is
+pressed.
+
+VDU 15
+Disable paged mode, reversing the effect of VDU 14.
 
 VDU 16
 Clear the graphics window. The entire graphics window is set to
@@ -4701,6 +4719,9 @@ versions of the interpreter that do not run under RISC OS.
 VDU 20
 Reset logical colours to default values.
 
+VDU 21
+Disable VDU output. All codes are ignored except VDU 6.
+
 VDU 22
 Change the screen mode. This takes one byte of data, the new
 screen mode. It causes the text and graphics windows to be set to
@@ -4728,12 +4749,18 @@ supplied but the command might ignore them.
 
 Some of the VDU 23 commands are supported:
 
+	23,0	Control some cursor effects.
 	23,1	Hide or show the text cursor.
 	23,7	Scroll rectangle on screen
 	23,16	Define cursor movement
 	23,17	Set the 'tint' value in 256 colour screen modes.
 	23,18	Control soft Teletext implementation.
 	23,22	BB4W/BBCSDL custom screen mode
+
+23,0
+----
+This is only minimally implemented, to support cursor control
+(on the BBC Micro as CRTC6845 register 10).
 
 23,1
 ----
@@ -4813,7 +4840,7 @@ b0	0 Disables scroll protection, the text cursor moving off the positive
 -----
 The format of this command is:
 
-VDU 23,17,<option>,<tint>
+VDU 23,17,<option>,<tint>,0,0,0,0,0,0
 
 where:
 
@@ -4963,6 +4990,13 @@ Brandy's VDU driver does not support the full range of PLOT codes. The
 ones implemented are:
 
 	  0-  7	Draw a solid line
+	  8- 15	Draw a solid line excluding the final point
+	 16- 23	Draw a dotted line
+	 24- 31	Draw a dotted line excluding the final point
+	 32- 39	Draw a solid line excluding the start point
+	 40- 47	Draw a solid line excluding the start and final points
+	 48- 55	Draw a dotted line excluding the start point
+	 56- 63	Draw a dotted line excluding the start and final points
 	 64- 71	Plot a single point
 	 80- 87	Draw a filled triangle
 	 96-103 Draw a filled rectangle
@@ -4970,6 +5004,7 @@ ones implemented are:
 	128-135	Flood fill background
 	144-151 Plot a circle outline
 	152-159 Draw a filled circle
+	160-167 Draw a circular arc
 	184-191 Move or copy a rectangle
 	192-199	Draw an ellipse outline
 	200-207 Plot a filled ellipse
