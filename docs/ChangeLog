@@ -12,6 +12,7 @@ made from git in the master branch, and from tarballs with no git information.
 - Graphics: Fixed some breakage in flood fill.
 - BASIC: IF something THEN REM no is no longer handled as the start of a
   multi-line IF statement.
+- BASIC: Unary minus (and plus) on arrays are now implemented.
 
 * 1.23.1 - 13 April 2024
 - System: Rework the threading model to use pthreads even under SDL, this allows
