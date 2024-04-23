@@ -35,9 +35,20 @@
 ** 'todigit' converts the character 'x' to its numeric equivalent
 */
 int todigit(char x) {
-  if (x>='0' && x<='9') return x-'0';
-  if (x>='A' && x<='F') return x-'A'+10;
-  if (x>='a' && x<='f') return x-'a'+10;
+  DEBUGFUNCMSGIN;
+  if (x>='0' && x<='9') {
+    DEBUGFUNCMSGOUT;
+    return x-'0';
+  }
+  if (x>='A' && x<='F') {
+    DEBUGFUNCMSGOUT;
+    return x-'A'+10;
+  }
+  if (x>='a' && x<='f') {
+    DEBUGFUNCMSGOUT;
+    return x-'a'+10;
+  }
+  DEBUGFUNCMSGOUT;
   return 0;
 }
 
@@ -61,9 +72,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
   boolean isint, isneg, negexp;
   int digits, exponent;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function convert.c:tonumber\n");
-#endif
+  DEBUGFUNCMSGIN;
   value = 0;
   value64 = 0;
   fpvalue = 0;
@@ -193,9 +202,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       *floatvalue = (isneg ? -fpvalue : fpvalue);
     }
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function convert.c:tonumber\n");
-#endif
+  DEBUGFUNCMSGOUT;
   return cp;
 }
 
@@ -215,9 +222,7 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
   boolean isint, isneg, negexp;
   int digits, exponent;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function convert.c:tonumber\n");
-#endif
+  DEBUGFUNCMSGIN;
   value = 0;
   value64 = 0;
   fpvalue = 0;
@@ -300,8 +305,6 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
   } else {
     *floatvalue = (isneg ? -fpvalue : fpvalue);
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function convert.c:tonumber\n");
-#endif
+  DEBUGFUNCMSGOUT;
   return cp;
 }

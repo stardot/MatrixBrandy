@@ -52,6 +52,8 @@
 */
 static void fn_spc(void) {
   int32 count;
+
+  DEBUGFUNCMSGIN;
   count = eval_intfactor();
   if (count > 0) {
     count = count & BYTEMASK;   /* Basic V/VI only uses the low-order byte of the value */
@@ -67,6 +69,7 @@ static void fn_spc(void) {
     echo_on();
 #endif
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -76,6 +79,8 @@ static void fn_spc(void) {
 */
 static void fn_tab(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   x = eval_integer();
   if (*basicvars.current == ')') {      /* 'TAB(x)' form of function */
     if (x > 0) {        /* Nothing happens is 'tab' count is less than 0 */
@@ -105,9 +110,11 @@ static void fn_tab(void) {
     emulate_tab(x, y);
   }
   else {        /* Error - ',' or ')' needed */
+    DEBUGFUNCMSGOUT;
     error(ERR_CORPNEXT);
   }
   basicvars.current++;  /* Skip the ')' */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -121,9 +128,8 @@ static char *input_number(lvalue destination, char *p) {
   int32 intvalue;
   int64 int64value;
   static float64 fpvalue;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:input_number\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   p = tonumber(p, &isint, &intvalue, &int64value, &fpvalue);
   if (p == NIL) return NIL;     /* 'tonumber' hit an error - return to caller */
   while (*p != asc_NUL && *p != ',') p++;       /* Find the end of the field */
@@ -151,10 +157,8 @@ static char *input_number(lvalue destination, char *p) {
     store_float(destination.address.offset, isint ? TOFLOAT(intvalue) : fpvalue);
     break;
   }
+  DEBUGFUNCMSGOUT;
   return p;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function iostate.c:input_number\n");
-#endif
 }
 
 /*
@@ -171,6 +175,8 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   char *cp, tempstring[INPUTLEN+1];
   boolean more;
   int32 index;
+
+  DEBUGFUNCMSGIN;
   index = 0;
   if (inputall) {       /* Want everything up to the end of line */
     while (*p != asc_NUL) {
@@ -191,17 +197,26 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
           more = *p == '\"';    /* Continue if '""' found else stop */
         }
         if (more) {
-          if (index == MAXSTRING) error(ERR_STRINGLEN);
+          if (index == MAXSTRING) {
+            DEBUGFUNCMSGOUT;
+            error(ERR_STRINGLEN);
+          }
           tempstring[index] = *p;
           index++;
           p++;
-          if (*p == asc_NUL) error(WARN_QUOTEMISS);
+          if (*p == asc_NUL) {
+            DEBUGFUNCMSGOUT;
+            error(WARN_QUOTEMISS);
+          }
         }
       }
     }
     else {      /* Normal string */
       while (*p != asc_NUL && *p != ',') {
-        if (index == MAXSTRING) error(ERR_STRINGLEN);
+        if (index == MAXSTRING) {
+          DEBUGFUNCMSGOUT;
+          error(ERR_STRINGLEN);
+        }
         tempstring[index] = *p;
         index++;
         p++;
@@ -221,6 +236,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
     tempstring[index] = asc_CR;
     memmove(&basicvars.memory[destination.address.offset], tempstring, index+1);
   }
+  DEBUGFUNCMSGOUT;
   return p;
 }
 
@@ -236,6 +252,8 @@ static void read_input(boolean inputline) {
   lvalue destination;
   boolean bad, prompted;
   int n, length;
+
+  DEBUGFUNCMSGIN;
   do {  /* Loop around prompts and items to read */
     while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
     token = *basicvars.current;
@@ -294,7 +312,10 @@ static void read_input(boolean inputline) {
       if (*cp == asc_NUL) {      /* There be nowt left to read on the line */
         if (!prompted) emulate_vdu('?');
         prompted = FALSE;
-        if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
+        if (!read_line(line, INPUTLEN)) {
+          DEBUGFUNCMSGOUT;
+          error(ERR_ESCAPE);
+        }
         cp = &line[0];
       }
       switch (destination.typeinfo) {
@@ -305,7 +326,10 @@ static void read_input(boolean inputline) {
           bad = cp == NIL;
           if (bad) {    /* Hit an error - Try again */
             emulate_vdu('?');
-            if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
+            if (!read_line(line, INPUTLEN)) {
+              DEBUGFUNCMSGOUT;
+              error(ERR_ESCAPE);
+            }
             cp = &line[0];
           }
         } while (bad);
@@ -316,12 +340,16 @@ static void read_input(boolean inputline) {
           bad = cp == NIL;
           if (bad) {    /* Hit an error - Try again */
             emulate_vdu('?');
-            if (!read_line(line, INPUTLEN)) error(ERR_ESCAPE);
+            if (!read_line(line, INPUTLEN)) {
+              DEBUGFUNCMSGOUT;
+              error(ERR_ESCAPE);
+            }
             cp = &line[0];
           }
         } while (bad);
         break;
       default:
+        DEBUGFUNCMSGOUT;
         error(ERR_VARNUMSTR);   /* Numeric or string variable required */
       }
       while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
@@ -332,6 +360,7 @@ static void read_input(boolean inputline) {
     }
   } while (!ateol[*basicvars.current]);
   basicvars.printcount = 0;     /* Line will have been ended by a newline */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -339,10 +368,13 @@ static void read_input(boolean inputline) {
 */
 void exec_beats(void) {
   int32 beats;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   beats = eval_integer();
   check_ateol();
   mos_wrbeat(beats);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -354,11 +386,19 @@ void exec_bput(void) {
   int32 handle;
   stackitem stringtype;
   basicstring descriptor;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip BPUT token */
-  if (*basicvars.current != '#') error(ERR_HASHMISS);
+  if (*basicvars.current != '#') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_HASHMISS);
+  }
   basicvars.current++;
   handle = eval_intfactor();    /* Get the file handle */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   do {
     expression();               /* Now fetch the value to be written */
@@ -375,6 +415,7 @@ void exec_bput(void) {
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
       break;
     default:    /* Item is neither a number nor a string */
+      DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
     }
     if (*basicvars.current == ',')      /* Anything more to come? */
@@ -386,9 +427,11 @@ void exec_bput(void) {
     else if (ateol[*basicvars.current])         /* Anything else - Check for end of statement */
       break;
     else {
+      DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
   } while (TRUE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -397,6 +440,8 @@ void exec_bput(void) {
 void exec_circle(void) {
   int32 x, y, radius;
   boolean filled;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip CIRCLE token */
   filled = *basicvars.current == BASTOKEN_FILL;
   if (filled) basicvars.current++;
@@ -409,15 +454,18 @@ void exec_circle(void) {
   radius = eval_integer();      /* Get radius of circle */
   check_ateol();
   emulate_circle(x, y, radius, filled);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'exec_clg' handles the Basic statement 'CLG'
 */
 void exec_clg(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   check_ateol();
   emulate_vdu(VDU_CLEARGRAPH);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -425,6 +473,8 @@ void exec_clg(void) {
 */
 void exec_close(void) {
   int32 handle;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip CLOSE token */
   if (*basicvars.current != '#') error(ERR_HASHMISS);
   basicvars.current++;
@@ -432,6 +482,7 @@ void exec_close(void) {
   check_ateol();
   handle = pop_anynum32();
   fileio_close(handle);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -439,10 +490,12 @@ void exec_close(void) {
 ** system-dependent.
 */
 void exec_cls(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   check_ateol();
   emulate_vdu(VDU_CLEARTEXT);
   basicvars.printcount = 0;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -458,6 +511,7 @@ static void exec_colofon(void) {
 ** Bit 2: 1 = Change foreground
 ** Bit 3: 1 = Change background
 */
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == BASTOKEN_OF) {
     basicvars.current++;        /* Skip OF */
     form += 4;
@@ -466,7 +520,10 @@ static void exec_colofon(void) {
       form += 1;
       basicvars.current++;
       green = eval_integer();
-      if (*basicvars.current != ',') error(ERR_COMISS);
+      if (*basicvars.current != ',') {
+        DEBUGFUNCMSGOUT;
+        error(ERR_COMISS);
+      }
       basicvars.current++;
       blue = eval_integer();
     }
@@ -479,7 +536,10 @@ static void exec_colofon(void) {
       form += 2;
       basicvars.current++;
       backgreen = eval_integer();
-      if (*basicvars.current != ',') error(ERR_COMISS);
+      if (*basicvars.current != ',') {
+        DEBUGFUNCMSGOUT;
+        error(ERR_COMISS);
+      }
       basicvars.current++;
       backblue = eval_integer();
     }
@@ -499,6 +559,7 @@ static void exec_colofon(void) {
       emulate_setcolnum(TRUE, backred);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -506,6 +567,8 @@ static void exec_colofon(void) {
 */
 static void exec_colnum(void) {
   int32 colour, tint, parm2, parm3, parm4;
+
+  DEBUGFUNCMSGIN;
   colour = eval_integer();
   switch (*basicvars.current) {
   case BASTOKEN_TINT:                /* Got 'COLOUR ... TINT' */
@@ -541,18 +604,21 @@ static void exec_colnum(void) {
     emulate_vdu(VDU_TEXTCOL);
     emulate_vdu(colour);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'exec_colour' deals with the Basic statement 'COLOUR'
 */
 void exec_colour(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   if (*basicvars.current == BASTOKEN_OF || *basicvars.current == BASTOKEN_ON)
     exec_colofon();
   else {
     exec_colnum();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -560,13 +626,19 @@ void exec_colour(void) {
 */
 void exec_draw(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate of end point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
   emulate_draw(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -574,13 +646,19 @@ void exec_draw(void) {
 */
 void exec_drawby(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get relative x coordinate of end point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of end point */
   check_ateol();
   emulate_drawby(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -590,17 +668,28 @@ void exec_ellipse(void) {
   int32 x, y, majorlen, minorlen;
   static float64 angle;
   boolean isfilled;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip ELLIPSE token */
   isfilled = *basicvars.current == BASTOKEN_FILL;
   if (isfilled) basicvars.current++;
   x = eval_integer();           /* Get x coordinate of centre */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of centre */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   majorlen = eval_integer();    /* Get length of semi-major axis */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   minorlen = eval_integer();    /* Get length of semi-minor axis */
   if (*basicvars.current == ',') {      /* Get angle at which ellipse is inclined */
@@ -613,6 +702,7 @@ void exec_ellipse(void) {
   }
   check_ateol();
   emulate_ellipse(x, y, majorlen, minorlen, angle, isfilled);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -623,14 +713,20 @@ void exec_ellipse(void) {
 */
 void exec_envelope(void) {
   int32 n;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   for (n=1; n<14; n++) {        /* Do the first 13 parameters */
     (void) eval_integer();
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
   }
   (void) eval_integer();
   check_ateol();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -638,13 +734,19 @@ void exec_envelope(void) {
 */
 void exec_fill(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip the FILL token */
   x = eval_integer();           /* Get x coordinate of start of fill */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of start of fill */
   check_ateol();
   emulate_fill(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -652,13 +754,19 @@ void exec_fill(void) {
 */
 void exec_fillby(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get relative x coordinate of start of fill */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of start of fill */
   check_ateol();
   emulate_fillby(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -677,6 +785,7 @@ static void exec_gcolofon(void) {
 ** Bit 2: 1 = Change foreground
 ** Bit 3: 1 = Change background
 */
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == BASTOKEN_OF) {
     form += 4;
     basicvars.current++;
@@ -743,6 +852,7 @@ static void exec_gcolofon(void) {
       emulate_gcolnum(backact, TRUE, backred);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -753,6 +863,8 @@ static void exec_gcolofon(void) {
 */
 static void exec_gcolnum(void) {
   int32 colour, action, tint, gotrgb, green, blue;
+
+  DEBUGFUNCMSGIN;
   action = 0;
   tint = 0;
   gotrgb = FALSE;
@@ -787,18 +899,21 @@ static void exec_gcolnum(void) {
   else {
     emulate_gcol(action, colour, tint);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'exec_gcol' deals with all forms of the Basic 'GCOL' statement
 */
 void exec_gcol(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   if (*basicvars.current == BASTOKEN_OF || *basicvars.current == BASTOKEN_ON)
     exec_gcolofon();
   else {
     exec_gcolnum();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -816,10 +931,18 @@ static void input_file(void) {
   char *cp;
   boolean isint;
   lvalue destination;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip '#' token */
   handle = eval_intfactor();    /* Find handle of file */
-  if (ateol[*basicvars.current]) return;        /* Nothing to do */
-  if (*basicvars.current != ',') error(ERR_SYNTAX);
+  if (ateol[*basicvars.current]) {   /* Nothing to do */
+    DEBUGFUNCMSGOUT;
+    return;
+  }
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   do {  /* Now read the values from the file */
     basicvars.current++;        /* Skip the ',' token */
     get_lvalue(&destination);
@@ -865,11 +988,13 @@ static void input_file(void) {
       basicvars.memory[destination.address.offset+length] = asc_CR;
       break;
     default:
+      DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
     }
     if (*basicvars.current != ',') break;
   } while (TRUE);
   check_ateol();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -878,6 +1003,7 @@ static void input_file(void) {
 ** but untested)
 */
 void exec_input(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip INPUT token */
   switch (*basicvars.current) {
   case BASTOKEN_LINE:        /* Got 'INPUT LINE' - Read from keyboard */
@@ -890,6 +1016,7 @@ void exec_input(void) {
   default:
     read_input(FALSE);  /* FALSE = handling 'INPUT' */
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -897,6 +1024,7 @@ void exec_input(void) {
 ** varieties: 'LINE INPUT' and 'draw a line' LINE graphics command
 */
 void exec_line(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip LINE token */
   if (*basicvars.current == BASTOKEN_INPUT) {        /* Got 'LINE INPUT' - Read from keyboard */
     basicvars.current++;        /* Skip INPUT token */
@@ -905,18 +1033,28 @@ void exec_line(void) {
   else {        /* Graphics command version of 'LINE' */
     int32 x1, y1, x2, y2;
     x1 = eval_integer();        /* Get first x coordinate */
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
     y1 = eval_integer();        /* Get first y coordinate */
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
     x2 = eval_integer();        /* Get second x coordinate */
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
     y2 = eval_integer();        /* Get second y coordinate */
     check_ateol();
     emulate_line(x1, y1, x2, y2);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -927,6 +1065,8 @@ void exec_line(void) {
  */
 static void exec_modenum(stackitem itemtype) {
   int xres, yres, bpp, rate;
+
+  DEBUGFUNCMSGIN;
   rate = -1;            /* Use best rate */
   bpp = 6;              /* 6 bpp - Marks old type RISC OS 256 colour mode */
   if (*basicvars.current == ',') {
@@ -948,6 +1088,7 @@ static void exec_modenum(stackitem itemtype) {
     check_ateol();
     emulate_mode(pop_anynum32());
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -957,6 +1098,8 @@ static void exec_modenum(stackitem itemtype) {
 static void exec_modestr(stackitem itemtype) {
   basicstring descriptor;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   check_ateol();
 
   descriptor = pop_string();
@@ -993,31 +1136,49 @@ static void exec_modestr(stackitem itemtype) {
           value = value * 10 + *cp - '0';
           cp++;
         }
-        if (value < 1) error(ERR_BADMODESC);
+        if (value < 1) {
+          DEBUGFUNCMSGOUT;
+          error(ERR_BADMODESC);
+        }
         if (what == 'X')
           xres = value;
         else if (what == 'Y')
           yres = value;
         else {
-          if (colours > 0) error(ERR_BADMODESC);        /* Colour depth already given */
+          if (colours > 0) {       /* Colour depth already given */
+            DEBUGFUNCMSGOUT;
+            error(ERR_BADMODESC); 
+          }
           greys = value;
         }
         break;
       case 'C': /* Number of colours */
-        if (greys > 0) error(ERR_BADMODESC);    /* Grey scale already specified */
+        if (greys > 0) {    /* Grey scale already specified */
+          DEBUGFUNCMSGOUT;
+          error(ERR_BADMODESC);
+        }
         cp++;
         while (isdigit(*cp)) {
           colours = colours * 10 + *cp - '0';
           cp++;
         }
-        if (colours < 1) error(ERR_BADMODESC);
+        if (colours < 1) {
+          DEBUGFUNCMSGOUT;
+          error(ERR_BADMODESC);
+        }
         if (toupper(*cp) == 'K') {      /* 32K colours */
-          if (colours != 32) error(ERR_BADMODESC);
+          if (colours != 32) {
+            DEBUGFUNCMSGOUT;
+            error(ERR_BADMODESC);
+          }
           colours = 32 * 1024;
           cp++;
         }
         else if (toupper(*cp) == 'M') { /* 16M colours */
-          if (colours != 16) error(ERR_BADMODESC);
+          if (colours != 16) {
+            DEBUGFUNCMSGOUT;
+            error(ERR_BADMODESC);
+          }
           colours = 16 * 1024 * 1024;
           cp++;
         }
@@ -1032,7 +1193,10 @@ static void exec_modestr(stackitem itemtype) {
             rate = rate * 10 + *cp - '0';
             cp++;
           }
-          if (rate < 1) error(ERR_BADMODESC);
+          if (rate < 1) {
+            DEBUGFUNCMSGOUT;
+            error(ERR_BADMODESC);
+          }
         }
         break;
       case 'E': /* X and Y eigenvalues */
@@ -1042,17 +1206,20 @@ static void exec_modestr(stackitem itemtype) {
         else if (toupper(*cp) == 'Y')
           yeig = *(cp+1) - '0';
         else {
+          DEBUGFUNCMSGOUT;
           error(ERR_BADMODESC);
         }
         cp+=2;
         break;
       default:
+        DEBUGFUNCMSGOUT;
         error(ERR_BADMODESC);
       }
       while (*cp == ' ' || *cp == ',') cp++;
     } while (*cp != asc_NUL);
     emulate_modestr(xres, yres, colours, greys, xeig, yeig, rate);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1061,6 +1228,8 @@ static void exec_modestr(stackitem itemtype) {
 */
 void exec_mode(void) {
   stackitem itemtype;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   expression();
   itemtype = GET_TOPITEM;
@@ -1072,9 +1241,11 @@ void exec_mode(void) {
     exec_modestr(itemtype);
     break;
   default:
+    DEBUGFUNCMSGOUT;
     error(ERR_VARNUMSTR);
   }
   basicvars.printcount = 0;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1083,6 +1254,8 @@ void exec_mode(void) {
 */
 static void exec_mouse_on(void) {
   int32 pointer;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   if (!ateol[*basicvars.current])       /* Pointer number specified */
     pointer = eval_integer();
@@ -1091,6 +1264,7 @@ static void exec_mouse_on(void) {
   }
   check_ateol();
   mos_mouse_on(pointer);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1098,9 +1272,11 @@ static void exec_mouse_on(void) {
 ** turns off the mouse pointer
 */
 static void exec_mouse_off(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   check_ateol();
   mos_mouse_off();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1109,13 +1285,19 @@ static void exec_mouse_off(void) {
 */
 static void exec_mouse_to(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();
   check_ateol();
   mos_mouse_to(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1125,6 +1307,8 @@ static void exec_mouse_to(void) {
 */
 static void exec_mouse_step(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();
   if (*basicvars.current == ',') {      /* 'y' multiplier supplied */
@@ -1136,6 +1320,7 @@ static void exec_mouse_step(void) {
   }
   check_ateol();
   mos_mouse_step(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1143,19 +1328,31 @@ static void exec_mouse_step(void) {
 */
 static void exec_mouse_colour(void) {
   int32 colour, red, green, blue;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   colour = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   red = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   green = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   blue = eval_integer();
   check_ateol();
   mos_mouse_colour(colour, red, green, blue);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1163,19 +1360,31 @@ static void exec_mouse_colour(void) {
 */
 static void exec_mouse_rectangle(void) {
   int32 left, bottom, right, top;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   left = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   bottom = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   right = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   top = eval_integer();
   check_ateol();
   mos_mouse_rectangle(left, bottom, right, top);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1184,13 +1393,21 @@ static void exec_mouse_rectangle(void) {
 static void exec_mouse_position(void) {
   size_t mousevalues[4];
   lvalue destination;
+
+  DEBUGFUNCMSGIN;
   mos_mouse(mousevalues);               /* Note: this code does not check the type of the variable to receive the values */
   get_lvalue(&destination);
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   store_value(destination, mousevalues[0], NOSTRING);   /* Mouse x coordinate */
   basicvars.current++;  /* Skip ',' token */
   get_lvalue(&destination);
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   store_value(destination, mousevalues[1], NOSTRING);   /* Mouse y coordinate */
   basicvars.current++;  /* Skip ',' token */
   get_lvalue(&destination);
@@ -1201,6 +1418,7 @@ static void exec_mouse_position(void) {
     store_value(destination, mousevalues[3], NOSTRING); /* Timestamp */
   }
   check_ateol();
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -1208,6 +1426,7 @@ static void exec_mouse_position(void) {
 ** 'exec_mouse' handles the Basic 'MOUSE' statement
 */
 void exec_mouse(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip MOUSE token */
   switch (*basicvars.current) {
   case BASTOKEN_ON:  /* MOUSE ON */
@@ -1231,6 +1450,7 @@ void exec_mouse(void) {
   default:
     exec_mouse_position();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1238,13 +1458,19 @@ void exec_mouse(void) {
 */
 void exec_move(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate of end point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
   emulate_move(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1252,13 +1478,19 @@ void exec_move(void) {
 */
 void exec_moveby(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get relative x coordinate of end point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of end point */
   check_ateol();
   emulate_moveby(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1266,9 +1498,11 @@ void exec_moveby(void) {
 ** text cursor
 */
 void exec_off(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   check_ateol();
   emulate_off();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1277,13 +1511,19 @@ void exec_off(void) {
 */
 void exec_origin(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate of new origin */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of new origin */
   check_ateol();
   emulate_origin(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1291,9 +1531,14 @@ void exec_origin(void) {
 */
 void exec_plot(void) {
   int32 code, x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   code = eval_integer();        /* Get 'PLOT' code */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate for 'plot' command */
   if (*basicvars.current != ',') {
@@ -1307,6 +1552,7 @@ void exec_plot(void) {
   }
   check_ateol();
   emulate_plot(code, x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1314,13 +1560,19 @@ void exec_plot(void) {
 */
 void exec_point(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip POINT token */
   x = eval_integer();           /* Get x coordinate of point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
   emulate_point(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1328,13 +1580,19 @@ void exec_point(void) {
 */
 void exec_pointby(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate of point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
   emulate_pointby(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1342,13 +1600,19 @@ void exec_pointby(void) {
 */
 void exec_pointto(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate of point */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
   emulate_pointto(x, y);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1371,9 +1635,7 @@ static void print_screen(void) {
   char *leftfmt, *rightfmt;
   char *bufptr;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function iostate.c:print_screen\n");
-#endif
+  DEBUGFUNCMSGIN;
   hex = FALSE;
   rightjust = TRUE;
   newline = TRUE;
@@ -1448,6 +1710,7 @@ static void print_screen(void) {
           basicvars.current++;
           break;
         default:
+          DEBUGFUNCMSGOUT;
           error(ERR_BROKEN, __LINE__, "iostate");
         }
       }
@@ -1548,6 +1811,7 @@ static void print_screen(void) {
       break;
     }
     default:
+      DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
     }
   }
@@ -1555,9 +1819,7 @@ static void print_screen(void) {
     emulate_newline();
     basicvars.printcount = 0;
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function iostate.c:print_screen\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1567,11 +1829,16 @@ static void print_file(void) {
   basicstring descriptor;
   int32 handle;
   boolean more;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip '#' token */
   handle = eval_intfactor();    /* Find handle of file */
   more = !ateol[*basicvars.current];
   while (more) {
-    if (*basicvars.current != ',') error(ERR_SYNTAX);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_SYNTAX);
+    }
     basicvars.current++;
     expression();
     switch (GET_TOPITEM) {
@@ -1597,22 +1864,26 @@ static void print_file(void) {
       free_string(descriptor);
       break;
     default:
+      DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
     }
     more = !ateol[*basicvars.current];
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'exec_print' deals with the Basic 'PRINT' statement
 */
 void exec_print(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   if (*basicvars.current == '#')
     print_file();
   else {
     print_screen();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1622,14 +1893,22 @@ void exec_print(void) {
 void exec_rectangle(void) {
   int32 x1, y1, width, height, x2, y2;
   boolean filled;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip RECTANGLE token */
   filled = *basicvars.current == BASTOKEN_FILL;
   if (filled) basicvars.current++;
   x1 = eval_integer();          /* Get x coordinate of a corner */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y1 = eval_integer();          /* Get y coordinate of a corner */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   width = eval_integer();               /* Get width of rectangle */
   if (*basicvars.current == ',') {      /* Height is specified */
@@ -1642,7 +1921,10 @@ void exec_rectangle(void) {
   if (*basicvars.current == BASTOKEN_TO) {   /* Got 'RECTANGLE ... TO' form of statement */
     basicvars.current++;
     x2 = eval_integer();                /* Get destination x coordinate */
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
     y2 = eval_integer();                /* Get destination y coordinate */
     check_ateol();
@@ -1652,6 +1934,7 @@ void exec_rectangle(void) {
     check_ateol();
     emulate_drawrect(x1, y1, width, height, filled);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1659,6 +1942,8 @@ void exec_rectangle(void) {
 */
 void exec_sound(void) {
   int32 channel, amplitude, pitch, duration, delay;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip sound token */
   switch (*basicvars.current) {
   case BASTOKEN_ON:
@@ -1690,6 +1975,7 @@ void exec_sound(void) {
     check_ateol();
     mos_sound(channel, amplitude, pitch, duration, delay);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1697,13 +1983,19 @@ void exec_sound(void) {
 */
 void exec_stereo(void) {
   int32 channel, position;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   channel = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   position = eval_integer();
   check_ateol();
   mos_stereo(channel, position);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1711,10 +2003,13 @@ void exec_stereo(void) {
 */
 void exec_tempo(void) {
   int32 tempo;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   tempo = eval_integer();
   check_ateol();
   mos_wrtempo(tempo);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1723,13 +2018,19 @@ void exec_tempo(void) {
 */
 void exec_tint(void) {
   int32 colour, tint;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   colour = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   tint = eval_integer();
   check_ateol();
   emulate_tint(colour, tint);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1737,6 +2038,8 @@ void exec_tint(void) {
 */
 void exec_vdu(void) {
   int32 n, value;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip VDU token */
   do {
     value = eval_integer();
@@ -1755,6 +2058,7 @@ void exec_vdu(void) {
       }
     }
   } while (!ateol[*basicvars.current]);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1762,19 +2066,28 @@ void exec_vdu(void) {
 */
 void exec_voice(void) {
   int32 channel;
+
+  DEBUGFUNCMSGIN;
   basicstring name;
   stackitem stringtype;
   basicvars.current++;
   channel = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   expression();
   check_ateol();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   name = pop_string();
   mos_voice(channel, tocstring(name.stringaddr, name.stringlen));
   if (stringtype == STACK_STRTEMP) free_string(name);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1782,10 +2095,13 @@ void exec_voice(void) {
 */
 void exec_voices(void) {
   int32 count;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   count = eval_integer();
   check_ateol();
   mos_voices(count);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1793,10 +2109,13 @@ void exec_voices(void) {
 */
 void exec_width(void) {
   int32 width;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   width = eval_integer();
   check_ateol();
   basicvars.printwidth = (width>=0 ? width : 0);
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -1806,26 +2125,32 @@ void exec_width(void) {
 ** with CUPS installed, and are a no-op on other platforms.
  */
 void open_printer(void) {
+  DEBUGFUNCMSGIN;
 #ifdef TARGET_UNIX
   matrixflags.printer = popen("lpr -o document-format='text/plain'","w");
   if (!matrixflags.printer) error(ERR_PRINTER);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 void close_printer(void) {
+  DEBUGFUNCMSGIN;
 #ifdef TARGET_UNIX
   if (matrixflags.printer) pclose(matrixflags.printer);
   matrixflags.printer = NULL;
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /* Only called when we have the handle.
 ** Send the character to the stream if not the ignored character.
  */
 void printout_character(int32 ch) {
+  DEBUGFUNCMSGIN;
 #ifdef TARGET_UNIX
   if (ch == matrixflags.printer_ignore) return;
   fputc(ch, matrixflags.printer);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 #endif /* ! TARGET_RISCOS */

@@ -344,12 +344,16 @@ static boolean
 ** 'isempty' returns true if the line passed to it has nothing on it
 */
 boolean isempty(byte line[]) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return line[OFFSOURCE] == asc_NUL;
 }
 
 void save_lineno(byte *where, int32 number) {
+  DEBUGFUNCMSGIN;
   *where = CAST(number, byte);
   *(where+1) = CAST(number>>BYTESHIFT, byte);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -357,10 +361,12 @@ void save_lineno(byte *where, int32 number) {
 ** tokenised line. It is held in the form <low byte> <high byte>.
 */
 static void store_lineno(int32 number) {
+  DEBUGFUNCMSGIN;
   if (next+LINESIZE>=MAXSTATELEN) error(ERR_STATELEN);
   tokenbase[next] = CAST(number, byte);
   tokenbase[next+1] = CAST(number>>BYTESHIFT, byte);
   next+=2;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -368,8 +374,10 @@ static void store_lineno(int32 number) {
 ** of the tokenised line
 */
 static void store_linelen(int32 length) {
+  DEBUGFUNCMSGIN;
   tokenbase[OFFLENGTH] = CAST(length, byte);
   tokenbase[OFFLENGTH+1] = CAST(length>>BYTESHIFT, byte);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -377,8 +385,10 @@ static void store_linelen(int32 length) {
 ** in the line at the start of the line
 */
 static void store_exec(int32 offset) {
+  DEBUGFUNCMSGIN;
   tokenbase[OFFEXEC] = CAST(offset, byte);
   tokenbase[OFFEXEC+1] = CAST(offset>>BYTESHIFT, byte);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -386,6 +396,8 @@ static void store_exec(int32 offset) {
 ** start of the line (that is, the line number)
 */
 int32 get_linelen(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return *(p+OFFLENGTH) | *(p+OFFLENGTH+1)<<BYTESHIFT;
 }
 
@@ -393,6 +405,8 @@ int32 get_linelen(byte *p) {
 ** 'get_lineno' returns the line number of the line starting at 'p'
 */
 int32 get_lineno(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return *(p+OFFLINE) | *(p+OFFLINE+1)<<BYTESHIFT;
 }
 
@@ -402,6 +416,8 @@ int32 get_lineno(byte *p) {
 ** used to do this for speed
 */
 static int32 get_exec(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return *(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT;
 }
 
@@ -409,9 +425,11 @@ static int32 get_exec(byte *p) {
 ** 'store' is called to add a character to the tokenised line buffer
 */
 static void store(byte token) {
+  DEBUGFUNCMSGIN;
   if (next+1>=MAXSTATELEN) error(ERR_STATELEN);
   tokenbase[next] = token;
   next++;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -419,10 +437,12 @@ static void store(byte token) {
 ** line buffer
 */
 static void store_size(int32 size) {
+  DEBUGFUNCMSGIN;
   if (next+SIZESIZE>=MAXSTATELEN) error(ERR_STATELEN);
   tokenbase[next] = CAST(size, byte);
   tokenbase[next+1] = CAST(size>>BYTESHIFT, byte);
   next+=2;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -431,12 +451,15 @@ static void store_size(int32 size) {
 */
 static void store_longoffset(int32 value) {
   int n;
+
+  DEBUGFUNCMSGIN;
   if (next+LOFFSIZE>=MAXSTATELEN) error(ERR_STATELEN);
   for (n=1; n<=LOFFSIZE; n++) {
     tokenbase[next] = CAST(value, byte);
     value = value>>BYTESHIFT;
     next++;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -445,10 +468,12 @@ static void store_longoffset(int32 value) {
 ** current position in the Basic program.
 */
 static void store_shortoffset(int32 value) {
+  DEBUGFUNCMSGIN;
   if (next+OFFSIZE>=MAXSTATELEN) error(ERR_STATELEN);
   tokenbase[next] = CAST(value, byte);
   tokenbase[next+1] = CAST(value>>BYTESHIFT, byte);
   next+=2;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -457,23 +482,28 @@ static void store_shortoffset(int32 value) {
 */
 static void store_intconst(int32 value) {
   int n;
+
+  DEBUGFUNCMSGIN;
   if (next+INTSIZE>=MAXSTATELEN) error(ERR_STATELEN);
   for (n=1; n<=INTSIZE; n++) {
     tokenbase[next] = CAST(value, byte);
     value = value>>8;
     next++;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 static void store_int64const(int64 value) {
   int n;
 
+  DEBUGFUNCMSGIN;
   if (next+INT64SIZE>=MAXSTATELEN) error(ERR_STATELEN);
   for (n=1; n<=INT64SIZE; n++) {
     tokenbase[next] = CAST(value, byte);
     value = value>>8;
     next++;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -483,12 +513,15 @@ static void store_int64const(int64 value) {
 static void store_fpvalue(float64 fpvalue) {
   byte temp[sizeof(float64)];
   int n;
+
+  DEBUGFUNCMSGIN;
   if (next+FLOATSIZE>=MAXSTATELEN) error(ERR_STATELEN);
   memcpy(temp, &fpvalue, sizeof(float64));
   for (n=0; n<sizeof(float64); n++) {
     tokenbase[next] = temp[n];
     next++;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -497,8 +530,9 @@ static void store_fpvalue(float64 fpvalue) {
 ** but tokenisation continues
 */
 static int32 convert_lineno(void) {
-  int32 line;
-  line = 0;
+  int32 line = 0;
+
+  DEBUGFUNCMSGIN;
   while (*lp>='0' && *lp<='9' && line<=MAXLINENO) {
     line = line*10+(*lp-'0');
     lp++;
@@ -509,6 +543,7 @@ static int32 convert_lineno(void) {
     line = 0;
     while (*lp>='0' && *lp<='9') lp++;  /* Skip any remaining digits in line number */
   }
+  DEBUGFUNCMSGOUT;
   return line;
 }
 
@@ -517,10 +552,12 @@ static int32 convert_lineno(void) {
 ** tokenised line buffer
 */
 static char *copy_line(char *lp) {
+  DEBUGFUNCMSGIN;
   while (*lp != asc_NUL) {
     store(*lp);
     lp++;
   }
+  DEBUGFUNCMSGOUT;
   return lp;
 }
 
@@ -533,7 +570,10 @@ static char *copy_line(char *lp) {
 */
 static boolean nextis(char *string) {
   char *cp;
+
+  DEBUGFUNCMSGIN;
   cp = skip_blanks(lp);
+  DEBUGFUNCMSGOUT;
   return *cp != asc_NUL && strncmp(cp, string, strlen(string)) == 0;
 }
 
@@ -557,6 +597,8 @@ static int kwsearch(void) {
   char first, *cp;
   boolean nomatch, abbreviated;
   char keyword[MAXKWLEN+1];
+
+  DEBUGFUNCMSGIN;
   cp = lp;
   for (n=0; n<MAXKWLEN && (isalpha(*cp) || *cp == '$' || *cp == '('); n++) {
     keyword[n] = *cp;
@@ -619,11 +661,14 @@ static int kwsearch(void) {
     nomatch = *(tokens[n].name) != first;
     if (!nomatch && abbreviated) abbreviated = kwlength < tokens[n].length;
   }
-  if (nomatch || (!abbreviated && tokens[n].alone && isidchar(keyword[count]))) /* Not a keyword */
+  if (nomatch || (!abbreviated && tokens[n].alone && isidchar(keyword[count]))) { /* Not a keyword */
+    DEBUGFUNCMSGOUT;
     return NOKEYWORD;
+  }
   else {        /* Found a keyword */
     lp+=count;
     if (abbreviated && *lp == '.') lp++;        /* Skip '.' after abbreviated keyword */
+    DEBUGFUNCMSGOUT;
     return n;
   }
 }
@@ -638,6 +683,8 @@ static int kwsearch(void) {
 */
 static void copy_keyword(int token) {
   byte toktype, tokvalue;
+
+  DEBUGFUNCMSGIN;
   if (firstitem) {      /* Keyword is the first item in the statement */
     toktype = tokens[token].lhtype;
     tokvalue = tokens[token].lhvalue;
@@ -682,6 +729,7 @@ static void copy_keyword(int token) {
       lp = copy_line(lp);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -691,6 +739,8 @@ static void copy_keyword(int token) {
 static void copy_token(void) {
   int n;
   byte toktype, tokvalue;
+
+  DEBUGFUNCMSGIN;
   toktype = TYPE_ONEBYTE;
   tokvalue = *lp;       /* Fetch the token */
   if (tokvalue>=TYPE_COMMAND) {
@@ -715,6 +765,7 @@ static void copy_token(void) {
     lasterror = ERR_SYNTAX;
     error(WARN_BADTOKEN);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -725,9 +776,7 @@ static void copy_token(void) {
 ** clear_varaddrs() below)
 */
 static void copy_variable(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:copy_variable, lp=%s\n\n", lp);
-#endif
+  DEBUGFUNCMSGIN;
   if (*lp>='@' && *lp<='Z' && lp[1] == '%' && lp[2] != '%' && lp[2] != '(' && lp[2] != '[') {   /* Static integer variable */
     store(*lp);
     lp++;
@@ -755,9 +804,7 @@ static void copy_variable(void) {
     store(*lp);
     lp++;
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:copy_variable\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -766,8 +813,10 @@ static void copy_variable(void) {
 ** easier to renumber lines
 */
 static void copy_lineno(void) {
+  DEBUGFUNCMSGIN;
   store(BASTOKEN_XLINENUM);
   store_lineno(convert_lineno());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -777,6 +826,8 @@ static void copy_lineno(void) {
 static void copy_number(void) {
   char ch;
   int digits;
+
+  DEBUGFUNCMSGIN;
   ch = *lp;
   lp++;
   store(ch);
@@ -837,6 +888,7 @@ static void copy_number(void) {
       }
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -844,6 +896,7 @@ static void copy_number(void) {
 ** line buffer
 */
 static void copy_string(void) {
+  DEBUGFUNCMSGIN;
   store('"');           /* Store the quote at the start of the string */
   lp++;
   while (TRUE) {
@@ -865,6 +918,7 @@ static void copy_string(void) {
     error(WARN_QUOTEMISS);      /* No terminating '"' found */
     store('"');
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -872,6 +926,8 @@ static void copy_string(void) {
 */
 static void copy_other(void) {
   byte tclass, token;
+
+  DEBUGFUNCMSGIN;
   tclass = TYPE_ONEBYTE;
   token = *lp;
   switch (token) {      /* Deal with special tokens */
@@ -949,6 +1005,7 @@ static void copy_other(void) {
     firstitem = FALSE;
   }
   lp++;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -959,6 +1016,8 @@ static void tokenise_source(char *start, boolean haslineno) {
   int token;
   char ch;
   boolean linenoposs;
+
+  DEBUGFUNCMSGIN;
   next = OFFLINE;
   store_lineno(NOLINENO);
   store_linelen(0);
@@ -1043,6 +1102,7 @@ static void tokenise_source(char *start, boolean haslineno) {
     lasterror = ERR_RPMISS;
     error(WARN_RPMISS);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1052,6 +1112,8 @@ static void tokenise_source(char *start, boolean haslineno) {
 */
 static void do_keyword(void) {
   byte token;
+
+  DEBUGFUNCMSGIN;
   token = tokenbase[source];
   source++;
   if (token>=TYPE_COMMAND) {            /* Two byte token */
@@ -1106,6 +1168,7 @@ static void do_keyword(void) {
       }
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1113,6 +1176,8 @@ static void do_keyword(void) {
 */
 static void do_statvar(void) {
   byte first = tokenbase[source];
+
+  DEBUGFUNCMSGIN;
   if (tokenbase[source+2] == '?' || tokenbase[source+2] == '!') /* Variable is followed by an indirection operator */
     store(BASTOKEN_STATINDVAR);
   else {        /* Nice, plain, simple reference to variable */
@@ -1121,6 +1186,7 @@ static void do_statvar(void) {
   store(first-'@');             /* Store identifer name mapped to range 0..26 */
   source+=2;
   firstitem = FALSE;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1130,6 +1196,7 @@ static void do_statvar(void) {
 ** of the line
 */
 static void do_dynamvar(void) {
+  DEBUGFUNCMSGIN;
   source++;
   store(BASTOKEN_XVAR);
   store_longoffset(next-1-source);      /* Store offset back to name from here */
@@ -1138,6 +1205,7 @@ static void do_dynamvar(void) {
   if (tokenbase[source] == '%') source++;   /* Skip 64-bit integer second variable marker */
   if (tokenbase[source] == '(' || tokenbase[source] == '[') source++;   /* Skip '(' (is part of name if an array) */
   firstitem = FALSE;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1148,11 +1216,14 @@ static void do_dynamvar(void) {
 */
 static void do_linenumber(void) {
   int32 line;
+
+  DEBUGFUNCMSGIN;
   line = tokenbase[source+1]+(tokenbase[source+2]<<BYTESHIFT);
   store(BASTOKEN_XLINENUM);
   store_longoffset(line);
   source+=1+LINESIZE;
   firstitem = FALSE;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1170,9 +1241,7 @@ static void do_number(void) {
   boolean isbinhex=FALSE;
   char *p;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:do_number\n");
-#endif
+  DEBUGFUNCMSGIN;
   value = 0;
   value64 = 0;
   isintvalue = TRUE;    /* Number is an integer */
@@ -1199,9 +1268,7 @@ static void do_number(void) {
     p = tonumber(CAST(&tokenbase[source], char *), &isintvalue, &value, &value64, &fpvalue);
     if (p == NIL) {
       lasterror = ERR_BADEXPR;
-#ifdef DEBUG
-      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:do_number by throwing error\n");
-#endif
+      DEBUGFUNCMSGOUT;
       error(value);     /* Error found in number - flag it */
       return;
     }
@@ -1246,9 +1313,7 @@ static void do_number(void) {
       store_fpvalue(fpvalue);
     }
   }
-#ifdef DEBUG
-      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:do_number\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1278,6 +1343,8 @@ static void do_number(void) {
 static void do_string(void) {
   int start, length;
   boolean quotes;
+
+  DEBUGFUNCMSGIN;
   source++;             /* Skip the first '"' */
   start = source;       /* Note where the string starts */
   quotes = FALSE;
@@ -1299,12 +1366,14 @@ static void do_string(void) {
   store_shortoffset(next-1-start);      /* Store offset to string in source part of line */
   store_size(length);           /* Store string length */
   firstitem = FALSE;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_star' processes a '*' star (operating system) command
 */
 static void do_star(void) {
+  DEBUGFUNCMSGIN;
   do    /* Skip the '*' token at the start of the command */
     source++;
   while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB || tokenbase[source] == '*');
@@ -1313,6 +1382,7 @@ static void do_star(void) {
     store_shortoffset(next-1-source);   /* -1 so that offset is from the '*' token itself */
     source = -1;                /* Flag value to say we have finished this line */
   }
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -1327,9 +1397,7 @@ static void do_star(void) {
 static void translate(void) {
   byte token;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:translate\n");
-#endif
+  DEBUGFUNCMSGIN;
   source = OFFSOURCE;           /* Offset of first byte of tokenised source */
   token = tokenbase[source];
   firstitem = TRUE;
@@ -1392,9 +1460,7 @@ static void translate(void) {
   }
   store(asc_NUL);
   store_linelen(next);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:translate\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1409,6 +1475,7 @@ static void translate(void) {
 ** it will not include the name of a variable or the like
 */
 static void mark_badline(void) {
+  DEBUGFUNCMSGIN;
   if (get_lineno(tokenbase) == NOLINENO)        /* Line has no line number - Put an 'END' here */
     store(BASTOKEN_END);
   else {        /* Line has number - Put a 'bad line' token here */
@@ -1417,6 +1484,7 @@ static void mark_badline(void) {
   }
   store(asc_NUL);
   store_linelen(next);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1428,9 +1496,7 @@ static void mark_badline(void) {
 ** 2)  The executable version of the line is created
 */
 void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediatemode) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:tokenize\n");
-#endif
+  DEBUGFUNCMSGIN;
   immediate = immediatemode;
   tokenbase = tokenbuf;
   tokenise_source(start, haslineno);
@@ -1438,9 +1504,7 @@ void tokenize(char *start, byte tokenbuf[], boolean haslineno, boolean immediate
     mark_badline();
   else 
     translate();
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:tokenize\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1508,9 +1572,15 @@ static int skiptable [] = {
 */
 byte *skip_token(byte *p) {
   int size;
+
+  DEBUGFUNCMSGIN;
   if (*p == asc_NUL) return p;      /* At end of line */
   size = skiptable[*p];
-  if (size>=0) return p+1+size;
+  if (size>=0) {
+    DEBUGFUNCMSGOUT;
+    return p+1+size;
+  }
+  DEBUGFUNCMSGOUT;
   error(ERR_BADPROG);   /* Not a legal token value - Program has been corrupted */
   return 0;
 }
@@ -1520,18 +1590,14 @@ byte *skip_token(byte *p) {
 ** starts at 'p'
 */
 byte *skip_name(byte *p) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function tokens.c:skip_name\n");
-#endif
+  DEBUGFUNCMSGIN;
   do
     p++;
   while (ISIDCHAR(*p));
   if (*p == '&' || *p == '%' || *p == '$') p++;      /* If integer or string, skip the suffix character */
   if (*p == '%') p++;      /* If 64-bit integer skip the second suffix character */
   if (*p == '(' || *p == '[') p++;      /* If an array, the first '(' or '[' is part of the name so skip it */
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function tokens.c:skip_name\n");
-#endif
+  DEBUGFUNCMSGOUT;
   return p;
 }
 
@@ -1546,6 +1612,8 @@ byte *skip_name(byte *p) {
 ** problems on machines where an integer is not four bytes long
 */
 static byte *get_address(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return basicvars.workspace+(*(p+1) | *(p+2)<<8 | *(p+3)<<16 | *(p+4)<<24);
 }
 
@@ -1555,6 +1623,8 @@ static byte *get_address(byte *p) {
 ** at 'lp'
 */
 int32 get_linenum(byte *lp) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return *(lp+1) | *(lp+2)<<BYTESHIFT;
 }
 
@@ -1563,8 +1633,10 @@ int32 get_linenum(byte *lp) {
 ** at 'lp'
 */
 static void set_linenum(byte *lp, int32 line) {
+  DEBUGFUNCMSGIN;
   *(lp+1) = CAST(line, byte);
   *(lp+2) = CAST(line>>BYTESHIFT, byte);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1574,7 +1646,10 @@ static void set_linenum(byte *lp, int32 line) {
 */
 float64 get_fpvalue(byte *fp) {
   static float64 fpvalue;
+
+  DEBUGFUNCMSGIN;
   memcpy(&fpvalue, fp+1, sizeof(float64));
+  DEBUGFUNCMSGOUT;
   return fpvalue;
 }
 
@@ -1651,6 +1726,8 @@ static char *printlist [] = {NIL, "SPC", "TAB("};
 static int expand_token(char *cp, char *namelist[], byte token) {
   int n, count;
   char *name;
+
+  DEBUGFUNCMSGIN;
   name = namelist[token];
   if (name == NIL) error(ERR_BROKEN, __LINE__, "tokens");       /* Sanity check for bad token value */
   strcpy(cp, name);
@@ -1661,15 +1738,28 @@ static int expand_token(char *cp, char *namelist[], byte token) {
       cp++;
     }
   }
+  DEBUGFUNCMSGOUT;
   return count;
 }
 
 static byte *skip_source(byte *p) {
   byte token;
+
+  DEBUGFUNCMSGIN;
   token = *p;
-  if (token == asc_NUL) return p;
-  if (token == BASTOKEN_XLINENUM) return p+1+LINESIZE;
-  if (token>=TYPE_COMMAND) return p+2;  /* Two byte token */
+  if (token == asc_NUL) {
+    DEBUGFUNCMSGOUT;
+    return p;
+  }
+  if (token == BASTOKEN_XLINENUM) {
+    DEBUGFUNCMSGOUT;
+    return p+1+LINESIZE;
+  }
+  if (token>=TYPE_COMMAND) {
+    DEBUGFUNCMSGOUT;
+    return p+2;  /* Two byte token */
+  }
+  DEBUGFUNCMSGOUT;
   return p+1;
 }
 
@@ -1682,6 +1772,8 @@ void expand(byte *line, char *text) {
   byte token;
   byte *lp;
   int n, count, thisindent, nextindent;
+
+  DEBUGFUNCMSGIN;
   if (!basicvars.list_flags.noline) {   /* Include line number */
     sprintf(text, "%5d", get_lineno(line));
     text+=5;
@@ -1814,9 +1906,12 @@ void expand(byte *line, char *text) {
     token = *lp;
   }
   *text = asc_NUL;
+  DEBUGFUNCMSGOUT;
 }
 
 void reset_indent(void) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   indentation = 0;
 }
 
@@ -1830,10 +1925,13 @@ void reset_indent(void) {
 */
 void set_dest(byte *tp, byte *dest) {
   int32 offset;
+
+  DEBUGFUNCMSGIN;
   offset = dest-tp;
   *(tp) = CAST(offset, byte);
   *(tp+1) = CAST(offset>>BYTESHIFT, byte);
   basicvars.runflags.has_offsets = TRUE;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1845,6 +1943,8 @@ void set_dest(byte *tp, byte *dest) {
 */
 void set_address(byte *tp, void *p) {
   int n, offset;
+
+  DEBUGFUNCMSGIN;
   basicvars.runflags.has_offsets = TRUE;
   offset = CAST(p, byte *)-basicvars.workspace;
   for (n=0; n<LOFFSIZE; n++) {
@@ -1852,6 +1952,7 @@ void set_address(byte *tp, void *p) {
     *tp = CAST(offset, byte);
     offset = offset>>BYTESHIFT;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1861,6 +1962,8 @@ void set_address(byte *tp, void *p) {
 ** token
 */
 byte *get_srcaddr(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return p-(*(p+1)+(*(p+2)<<BYTESHIFT));
 }
 
@@ -1871,6 +1974,8 @@ byte *get_srcaddr(byte *p) {
 static void clear_varaddrs(byte *bp) {
   byte *sp, *tp;
   int offset;
+
+  DEBUGFUNCMSGIN;
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
@@ -1901,6 +2006,7 @@ static void clear_varaddrs(byte *bp) {
     }
     tp = skip_token(tp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1912,6 +2018,8 @@ static void clear_varaddrs(byte *bp) {
 static void clear_branches(byte *bp) {
   byte *tp, *lp;
   int line;
+
+  DEBUGFUNCMSGIN;
   tp = FIND_EXEC(bp);
   while (*tp != asc_NUL) {
     switch (*tp) {
@@ -1930,11 +2038,14 @@ static void clear_branches(byte *bp) {
     }
     tp = skip_token(tp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 void clear_linerefs(byte *bp) {
+  DEBUGFUNCMSGIN;
   clear_branches(bp);
   clear_varaddrs(bp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1948,6 +2059,8 @@ void clear_linerefs(byte *bp) {
 void clear_varptrs(void) {
   byte *bp;
   library *lp;
+
+  DEBUGFUNCMSGIN;
   bp = basicvars.start;
   while (!AT_PROGEND(bp)) {
     clear_varaddrs(bp);
@@ -1962,6 +2075,7 @@ void clear_varptrs(void) {
     }
     lp = lp->libflink;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -1988,34 +2102,61 @@ boolean isvalid(byte *bp) {
   int length, execoff;
   byte *base, *cp;
   byte token;
-  if (get_lineno(bp)>MAXLINENO) return FALSE;   /* Line number is out of range */
+
+  DEBUGFUNCMSGIN;
+  if (get_lineno(bp)>MAXLINENO) {   /* Line number is out of range */
+    DEBUGFUNCMSGOUT;
+    return FALSE;
+  }
   length = get_linelen(bp);
-  if (length<MINSTATELEN || length>MAXSTATELEN) return FALSE;
+  if (length<MINSTATELEN || length>MAXSTATELEN) {
+    DEBUGFUNCMSGOUT;
+    return FALSE;
+  }
   execoff = get_exec(bp);
-  if (execoff<OFFSOURCE || execoff>length) return FALSE;
+  if (execoff<OFFSOURCE || execoff>length) {
+    DEBUGFUNCMSGOUT;
+    return FALSE;
+  }
   base = cp = bp+execoff;
   while (cp-base<=length && *cp != asc_NUL) {
     token = *cp;
-    if (token<=LOW_HIGHEST) {   /* In lower block of tokens */
-      if (!legalow[token]) return FALSE;        /* Bad token value found */
+    if (token<=LOW_HIGHEST) {       /* In lower block of tokens */
+      if (!legalow[token]) {        /* Bad token value found */
+        DEBUGFUNCMSGOUT;
+        return FALSE;
+      }
     }
     else if (token>=BASTOKEN_LOWEST) {
       switch (token) {
       case TYPE_PRINTFN:
-        if (cp[1] == 0 || cp[1] > BASTOKEN_TAB) return FALSE;
+        if (cp[1] == 0 || cp[1] > BASTOKEN_TAB) {
+          DEBUGFUNCMSGOUT;
+          return FALSE;
+        }
         break;
      case TYPE_FUNCTION:
-        if (cp[1] == 0 || (cp[1] > BASTOKEN_TIME && cp[1] < BASTOKEN_ABS) || cp[1] > BASTOKEN_VPOS) return FALSE;
+        if (cp[1] == 0 || (cp[1] > BASTOKEN_TIME && cp[1] < BASTOKEN_ABS) || cp[1] > BASTOKEN_VPOS) {
+          DEBUGFUNCMSGOUT;
+          return FALSE;
+        }
         break;
       case TYPE_COMMAND:
-        if (cp[1] == 0 || cp[1] > BASTOKEN_TWINO) return FALSE;
+        if (cp[1] == 0 || cp[1] > BASTOKEN_TWINO) {
+          DEBUGFUNCMSGOUT;
+          return FALSE;
+        }
         break;
       default:
-        if (token > BASTOKEN_HIGHEST) return FALSE;
+        if (token > BASTOKEN_HIGHEST) {
+          DEBUGFUNCMSGOUT;
+          return FALSE;
+        }
       }
     }
     cp = skip_token(cp);
   }
+  DEBUGFUNCMSGOUT;
   return (*cp == asc_NUL);
 }
 
@@ -2027,6 +2168,8 @@ boolean isvalid(byte *bp) {
 void resolve_linenums(byte *bp) {
   byte *dest;
   int32 line;
+
+  DEBUGFUNCMSGIN;
   bp = FIND_EXEC(bp);
   while (*bp != asc_NUL) {
     if (*bp == BASTOKEN_XLINENUM) {        /* Unresolved reference */
@@ -2043,6 +2186,7 @@ void resolve_linenums(byte *bp) {
     }
     bp = skip_token(bp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2054,6 +2198,8 @@ void resolve_linenums(byte *bp) {
 void reset_linenums(byte *bp) {
   byte *dest, *sp;
   int32 line;
+
+  DEBUGFUNCMSGIN;
   sp = bp+OFFSOURCE;
   bp = FIND_EXEC(bp);
   while (*bp != asc_NUL) {
@@ -2079,6 +2225,7 @@ void reset_linenums(byte *bp) {
     }
     bp = skip_token(bp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*  =============== Acorn -> Brandy token conversion =============== */
@@ -2134,10 +2281,13 @@ void reset_linenums(byte *bp) {
 */
 static int32 expand_linenum(byte *p) {
   int32 a, b, c, line;
+
+  DEBUGFUNCMSGIN;
   a = *p;
   b = *(p+1);
   c = *(p+2);
   line = ((a<<4) ^ c) & 0xff;
+  DEBUGFUNCMSGOUT;
   return (line<<8) | ((((a<<2) & 0xc0) ^ b) & 0xff);
 }
 
@@ -2255,6 +2405,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   byte token, token2;
   char line[ACORNLEN];
 
+  DEBUGFUNCMSGIN;
   cp = &line[0];
   count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));          /* Start with two byte line number */
   cp+=count;
@@ -2377,5 +2528,6 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   }
   *cp = asc_NUL;    /* Complete the line */
   tokenize(line, tokenbuf, HASLINE, FALSE);
+  DEBUGFUNCMSGOUT;
   return get_linelen(tokenbuf);
 }

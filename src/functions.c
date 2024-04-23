@@ -90,16 +90,20 @@ static float64 floatvalue;              /* Temporary for holding floating point 
 ** case.
 */
 static void bad_token(void)  {
+  DEBUGFUNCMSGIN;
 #ifdef DEBUG
   fprintf(stderr, "Bad token value %x at %p\n", *basicvars.current, basicvars.current);
 #endif
-  error(ERR_BROKEN, __LINE__, "expressions");
+  DEBUGFUNCMSGOUT;
+  error(ERR_BROKEN, __LINE__, "functions");
 }
 
 static uint64 resize32(size_t value) {
+  DEBUGFUNCMSGIN;
   if (sizeof(size_t) == 4) { /* 32-bit */
     value &= 0xFFFFFFFFll;
   }
+  DEBUGFUNCMSGOUT;
   return value;
 }
 
@@ -107,11 +111,13 @@ static uint64 resize32(size_t value) {
 ** 'fn_himem' pushes the value of HIMEM on to the Basic stack
 */
 static void fn_himem(void) {
+  DEBUGFUNCMSGIN;
   if (matrixflags.pseudovarsunsigned) {
     push_int64(resize32((size_t)basicvars.himem));
   } else {
     push_int64((size_t)basicvars.himem);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -119,9 +125,14 @@ static void fn_himem(void) {
 ** given by its argument on to the Basic stack
 */
 static void fn_ext(void) {
-  if (*basicvars.current != '#') error(ERR_HASHMISS);
+  DEBUGFUNCMSGIN;
+  if (*basicvars.current != '#') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_HASHMISS);
+  }
   basicvars.current++;
   push_int(fileio_getext(eval_intfactor()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -131,6 +142,8 @@ static void fn_ext(void) {
 static void fn_filepath(void) {
   int32 length;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   if (basicvars.loadpath == NIL)
     length = 0;
   else {
@@ -139,6 +152,7 @@ static void fn_filepath(void) {
   cp = alloc_string(length);
   if (length>0) memcpy(cp, basicvars.loadpath, length);
   push_strtemp(length, cp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -149,13 +163,21 @@ static void fn_left(void) {
   basicstring descriptor;
   int32 length;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   if (*basicvars.current == ',') {      /* Function call is of the form LEFT(<string>,<value>) */
     basicvars.current++;
     length = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
+    if (*basicvars.current != ')') {   /* ')' missing */
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;
     if (length<0)
       return;   /* Do nothing if required length is negative, that is, return whole string */
@@ -178,7 +200,10 @@ static void fn_left(void) {
     }
   }
   else {        /* Return original string with the last character sawn off */
-    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
+    if (*basicvars.current != ')') {   /* ')' missing */
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;        /* Skip past the ')' */
     descriptor = pop_string();
     length = descriptor.stringlen-1;
@@ -194,6 +219,7 @@ static void fn_left(void) {
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -201,11 +227,13 @@ static void fn_left(void) {
 ** to the Basic stack
 */
 static void fn_lomem(void) {
+  DEBUGFUNCMSGIN;
   if (matrixflags.pseudovarsunsigned) {
     push_int64(resize32((size_t)basicvars.lomem));
   } else {
     push_int64((size_t)basicvars.lomem);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -217,10 +245,18 @@ static void fn_mid(void) {
   basicstring descriptor;
   int32 start, length;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   start = eval_integer();
   if (*basicvars.current == ',') {      /* Call of the form 'MID$(<string>,<expr>,<expr>) */
@@ -231,7 +267,10 @@ static void fn_mid(void) {
   else {        /* Length not given - Use remainder of string */
     length = MAXSTRING;
   }
-  if (*basicvars.current != ')') error(ERR_RPMISS);     /* ')' missing */
+  if (*basicvars.current != ')') {     /* ')' missing */
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
   descriptor = pop_string();
   if (length == 0 || start<0 || start>descriptor.stringlen) {   /* Don't want anything from the string */
@@ -251,6 +290,7 @@ static void fn_mid(void) {
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -258,11 +298,13 @@ static void fn_mid(void) {
 ** Basic stack
 */
 static void fn_page(void) {
+  DEBUGFUNCMSGIN;
   if (matrixflags.pseudovarsunsigned) {
     push_int64(resize32((size_t)basicvars.page));
   } else {
     push_int64((size_t)basicvars.page);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -270,6 +312,7 @@ static void fn_page(void) {
 ** pointer for the file associated with file handle 'handle'
 */
 static void fn_ptr(void) {
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == '#') {
     basicvars.current++;
     push_int(fileio_getptr(eval_intfactor()));
@@ -292,12 +335,15 @@ static void fn_ptr(void) {
         push_int64((int64)(size_t)strdesc.stringaddr);
         break;
       default:
+        DEBUGFUNCMSGOUT;
         error(ERR_UNSUITABLEVAR);
     }
     basicvars.current++;
   } else {
+    DEBUGFUNCMSGOUT;
     error(ERR_HASHMISS);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -308,13 +354,18 @@ static void fn_right(void) {
   basicstring descriptor;
   int32 length;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
   if (*basicvars.current == ',') {      /* Function call is of the form RIGHT$(<string>,<value>) */
     basicvars.current++;
     length = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
+    if (*basicvars.current != ')') {   /* ')' missing */
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;
     if (length<=0) {    /* Do not want anything from string */
       descriptor = pop_string();
@@ -347,6 +398,7 @@ static void fn_right(void) {
       if (stringtype == STACK_STRTEMP) free_string(descriptor);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -358,11 +410,14 @@ static void fn_timedol(void) {
   size_t length;
   time_t thetime;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   thetime = time(NIL);
   length = strftime(basicvars.stringwork, MAXSTRING, TIMEFORMAT, localtime(&thetime));
   cp = alloc_string(length);
   memcpy(cp, basicvars.stringwork, length);
   push_strtemp(length, cp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -370,12 +425,14 @@ static void fn_timedol(void) {
 ** this is depends on the underlying OS
 */
 static void fn_time(void) {
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == '$') {
     basicvars.current++;
     fn_timedol();
   } else {
     push_int(mos_rdtime());
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -384,6 +441,8 @@ static void fn_time(void) {
 */
 static void fn_abs(void) {
   stackitem numtype;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   numtype = GET_TOPITEM;
   if (numtype == STACK_UINT8)
@@ -394,15 +453,21 @@ static void fn_abs(void) {
     ABS_INT64;
   else if (numtype == STACK_FLOAT)
     ABS_FLOAT;
-  else error(ERR_TYPENUM);
+  else {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_acs' evalutes the arc cosine of its argument
 */
 static void fn_acs(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(acos(pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -415,7 +480,9 @@ static void fn_acs(void) {
 ** these
 */
 static void fn_adval(void) {
+  DEBUGFUNCMSGIN;
   push_int(mos_adval(eval_intfactor()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -423,7 +490,9 @@ static void fn_adval(void) {
 ** Basic stack
 */
 static void fn_argc(void) {
+  DEBUGFUNCMSGIN;
   push_int(basicvars.argcount);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -434,8 +503,13 @@ static void fn_argvdol(void) {
   int32 number, length;
   cmdarg *ap;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   number = eval_intfactor();    /* Fetch number of argument to push on to stack */
-  if (number<0 || number>basicvars.argcount) error(ERR_RANGE);
+  if (number<0 || number>basicvars.argcount) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RANGE);
+  }
   ap = basicvars.arglist;
   while (number > 0) {
     number--;
@@ -445,6 +519,7 @@ static void fn_argvdol(void) {
   cp = alloc_string(length);
   if (length>0) memcpy(cp, ap->argvalue, length);
   push_strtemp(length, cp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -454,6 +529,8 @@ static void fn_argvdol(void) {
 static void fn_asc(void) {
   basicstring descriptor;
   stackitem topitem;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   topitem = GET_TOPITEM;
   if (topitem == STACK_STRING || topitem == STACK_STRTEMP) {
@@ -465,21 +542,28 @@ static void fn_asc(void) {
       if (topitem == STACK_STRTEMP) free_string(descriptor);
     }
   }
-  else error(ERR_TYPESTR);      /* String wanted */
+  else {      /* String wanted */
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_asn' evalutes the arc sine of its argument
 */
 static void fn_asn(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(asin(pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_atn' evalutes the arc tangent of its argument
 */
 static void fn_atn(void) {
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == '(') {
     float64 parmx = 0, parmy = 0;
     basicvars.current++;
@@ -493,12 +577,16 @@ static void fn_atn(void) {
       parmy=pop_anynumfp();
       push_float(atan2(parmx, parmy));
     }
-    if (*basicvars.current != ')') error(ERR_SYNTAX);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_SYNTAX);
+    }
     basicvars.current++;
   } else {
     (*factor_table[*basicvars.current])();
     push_float(atan(pop_anynumfp()));
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -506,7 +594,9 @@ static void fn_atn(void) {
 ** 'BEAT' returns the current microbeat number.
 */
 static void fn_beat(void) {
+  DEBUGFUNCMSGIN;
   push_int(mos_rdbeat());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -514,8 +604,10 @@ static void fn_beat(void) {
 ** 'BEATS' returns the number of microbeats in a bar.
 */
 void fn_beats(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(mos_rdbeats());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -523,9 +615,11 @@ void fn_beats(void) {
 ** handle specified as its argument
 */
 static void fn_bget(void) {
+  DEBUGFUNCMSGIN;
   if (*basicvars.current != '#') error(ERR_HASHMISS);
   basicvars.current++;
   push_int(fileio_bget(eval_intfactor()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -535,11 +629,13 @@ static void fn_bget(void) {
 static void fn_chr(void) {
   char *cp, value;
 
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   value = pop_anynum32();
   cp = alloc_string(1);
   *cp=value;
   push_strtemp(1, cp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -551,27 +647,44 @@ static void fn_chr(void) {
 */
 void fn_colour(void) {
   int32 red, green, blue;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
-  if (*basicvars.current != '(') error(ERR_SYNTAX);     /* COLOUR must be followed by a '(' */
+  if (*basicvars.current != '(') {     /* COLOUR must be followed by a '(' */
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   basicvars.current++;
   red = eval_integer();
-  if (*basicvars.current != ',') error(ERR_SYNTAX);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   basicvars.current++;
   green = eval_integer();
-  if (*basicvars.current != ',') error(ERR_SYNTAX);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   basicvars.current++;
   blue = eval_integer();
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
   push_int(emulate_colourfn(red, green, blue));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_cos' evaluates the cosine of its argument
 */
 static void fn_cos(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(cos(pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -579,7 +692,9 @@ static void fn_cos(void) {
 ** line by 'PRINT'
 */
 static void fn_count(void) {
+  DEBUGFUNCMSGIN;
   push_int(basicvars.printcount);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -590,6 +705,8 @@ static void fn_count(void) {
 */
 static variable *get_arrayname(void) {
   variable *vp = NULL;
+
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == BASTOKEN_ARRAYVAR)       /* Known reference */
     vp = GET_ADDRESS(basicvars.current, variable *);
   else if (*basicvars.current == BASTOKEN_XVAR) {    /* Reference not seen before */
@@ -598,16 +715,26 @@ static variable *get_arrayname(void) {
     ep = skip_name(base);
     vp = find_variable(base, ep-base);
     if (vp == NIL) error(ERR_ARRAYMISS, tocstring(CAST(base, char *), ep-base));
-    if ((vp->varflags & VAR_ARRAY) == 0) error(ERR_VARARRAY);   /* Not an array */
-    if (*(basicvars.current+LOFFSIZE+1) != ')') error(ERR_RPMISS);      /* Array name must be suppled as 'array()' */
+    if ((vp->varflags & VAR_ARRAY) == 0) {  /* Not an array */
+      DEBUGFUNCMSGOUT;
+      error(ERR_VARARRAY);
+    }
+    if (*(basicvars.current+LOFFSIZE+1) != ')') {      /* Array name must be suppled as 'array()' */
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     *basicvars.current = BASTOKEN_ARRAYVAR;
     set_address(basicvars.current, vp);
   }
   else {        /* Not an array name */
     error(ERR_VARARRAY);        /* Name not found */
   }
-  if (vp->varentry.vararray == NIL) error(ERR_NODIMS, vp->varname);     /* Array has not been dimensioned */
+  if (vp->varentry.vararray == NIL) {     /* Array has not been dimensioned */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NODIMS, vp->varname);
+  }
   basicvars.current+=LOFFSIZE+2;        /* Skip pointer to array and ')' */
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -619,17 +746,28 @@ static variable *get_arrayname(void) {
 void fn_dim(void) {
   variable *vp;
   int32 dimension;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
-  if (*basicvars.current != '(') error(ERR_SYNTAX);     /* DIM must be followed by a '(' */
+  if (*basicvars.current != '(') {     /* DIM must be followed by a '(' */
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   basicvars.current++;
   vp = get_arrayname();
   switch (*basicvars.current) {
   case ',':     /* Got 'array(),<x>) - Return upper bound of dimension <x> */
     basicvars.current++;
     dimension = eval_integer();         /* Get dimension number */
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;        /* Skip the trailing ')' */
-    if (dimension<1 || dimension>vp->varentry.vararray->dimcount) error(ERR_DIMRANGE);
+    if (dimension<1 || dimension>vp->varentry.vararray->dimcount) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_DIMRANGE);
+    }
     push_int(vp->varentry.vararray->dimsize[dimension-1]-1);
     break;
   case ')':     /* Got 'array())' - Return the number of dimensions */
@@ -637,16 +775,20 @@ void fn_dim(void) {
     basicvars.current++;
     break;
   default:
+    DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** The function 'DEG' converts an angrle expressed in radians to degrees
 */
 static void fn_deg(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(pop_anynumfp()*RADCONV);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -654,12 +796,14 @@ static void fn_deg(void) {
 ** the top of the Basic program and variables on to the Basic stack
 */
 void fn_end(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   if (matrixflags.pseudovarsunsigned) {
     push_int64(resize32((size_t)basicvars.vartop));
   } else {
     push_int64((size_t)basicvars.vartop);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -668,10 +812,16 @@ void fn_end(void) {
 */
 static void fn_eof(void) {
   int32 handle;
-  if (*basicvars.current != '#') error(ERR_HASHMISS);
+
+  DEBUGFUNCMSGIN;
+  if (*basicvars.current != '#') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_HASHMISS);
+  }
   basicvars.current++;
   handle = eval_intfactor();
   push_int(fileio_eof(handle) ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -679,7 +829,9 @@ static void fn_eof(void) {
 ** occured
 */
 static void fn_erl(void) {
+  DEBUGFUNCMSGIN;
   push_int(basicvars.error_line);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -687,7 +839,9 @@ static void fn_erl(void) {
 ** stack
 */
 static void fn_err(void) {
+  DEBUGFUNCMSGIN;
   push_int(basicvars.error_number);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -703,9 +857,14 @@ static void fn_eval(void) {
   stackitem stringtype;
   basicstring descriptor;
   byte evalexpr[MAXSTATELEN];
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   descriptor = pop_string();
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
   basicvars.stringwork[descriptor.stringlen] = asc_NUL; /* Now have a null-terminated version of string */
@@ -715,24 +874,32 @@ static void fn_eval(void) {
   save_current();               /* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();
-  if (basicvars.runflags.flag_cosmetic && (*basicvars.current != asc_NUL)) error(ERR_SYNTAX);
+  if (basicvars.runflags.flag_cosmetic && (*basicvars.current != asc_NUL)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   restore_current();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_exp' evaluates the exponentinal function of its argument
 */
 static void fn_exp(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(exp(pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_false' pushes the value which represents 'FALSE' on to the Basic stack
 */
 void fn_false(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -741,14 +908,22 @@ void fn_false(void) {
 */
 static void fn_get(void) {
   int ch;
+
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == '(') {      /* Have encountered the 'GET(x,y)' version */
     int32 x, y;
     basicvars.current++;
     x = eval_integer();
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
     y = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;
     push_int(get_character_at_pos(x, y));
   } else {
@@ -757,6 +932,7 @@ static void fn_get(void) {
     } while (ch==0);
     push_int(ch);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -767,14 +943,22 @@ static void fn_getdol(void) {
   char *cp;
   int ch;
   int32 handle, count;
+
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == '(') {      /* Have encountered the 'GET$(x,y)' version */
     int32 x, y;
     basicvars.current++;
     x = eval_integer();
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+    }
     basicvars.current++;
     y = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;
     cp = alloc_string(1);
     *cp = get_character_at_pos(x, y);
@@ -795,6 +979,7 @@ static void fn_getdol(void) {
     *cp = ch;
     push_strtemp(1, cp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -802,7 +987,9 @@ static void fn_getdol(void) {
 ** OS_Byte 129 under a different name.
 */
 static void fn_inkey(void) {
+  DEBUGFUNCMSGIN;
   push_int(kbd_inkey(eval_intfactor()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -813,6 +1000,8 @@ static void fn_inkey(void) {
 static void fn_inkeydol(void) {
   int32 result;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   result=kbd_inkey(eval_intfactor());
   if (result == -1) {
     cp = alloc_string(0);
@@ -823,6 +1012,7 @@ static void fn_inkeydol(void) {
     *cp = result;
     push_strtemp(1, cp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -840,15 +1030,26 @@ static void fn_instr(void) {
   char *hp, *p;
   int32 start, count;
   char first;
+
+  DEBUGFUNCMSGIN;
   expression();
-  if (*basicvars.current != ',') error(ERR_COMISS);     /* ',' missing */
+  if (*basicvars.current != ',') {     /* ',' missing */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   haytype = GET_TOPITEM;
-  if (haytype != STACK_STRING && haytype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (haytype != STACK_STRING && haytype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   haystack = pop_string();
   expression();
   needtype = GET_TOPITEM;
-  if (needtype != STACK_STRING && needtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (needtype != STACK_STRING && needtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   needle = pop_string();
   if (*basicvars.current == ',') {      /* Starting position given */
     basicvars.current++;
@@ -858,7 +1059,10 @@ static void fn_instr(void) {
   else {        /* Set starting position to one */
     start = 1;
   }
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
 /*
 ** After finding the string to be searched (haystack) and what to look
@@ -917,6 +1121,7 @@ static void fn_instr(void) {
   }
   if (haytype == STACK_STRTEMP) free_string(haystack);
   if (needtype == STACK_STRTEMP) free_string(needle);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -926,6 +1131,8 @@ static void fn_instr(void) {
 static void fn_int(void) {
   int64 localint64 = 0;
   float64 localfloat = 0;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
     if (matrixflags.int_uses_float) {
@@ -940,8 +1147,10 @@ static void fn_int(void) {
       push_int(TOINT(floor(pop_float())));
     }
   } else if (GET_TOPITEM != STACK_INT && GET_TOPITEM != STACK_UINT8 && GET_TOPITEM != STACK_INT64) {
+    DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -950,6 +1159,8 @@ static void fn_int(void) {
 static void fn_len(void) {
   basicstring descriptor;
   stackitem stringtype;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
@@ -958,37 +1169,45 @@ static void fn_len(void) {
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
   }
   else {
+    DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_listofn' pushes the current 'LISTO' value on to the stack
 */
 static void fn_listofn(void) {
+  DEBUGFUNCMSGIN;
   push_int(basicvars.list_flags.space | basicvars.list_flags.indent<<1
         | basicvars.list_flags.split<<2 | basicvars.list_flags.noline<<3
         | basicvars.list_flags.lower<<4 | basicvars.list_flags.showpage<<5);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_ln' evaluates the natural log of its argument
 */
 static void fn_ln(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   floatvalue = pop_anynumfp();
   if (floatvalue<=0.0) error(ERR_LOGRANGE);
   push_float(log(floatvalue));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_log' computes the base 10 log of its argument
 */
 static void fn_log(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   floatvalue = pop_anynumfp();
   if (floatvalue<=0.0) error(ERR_LOGRANGE);
   push_float(log10(floatvalue));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1000,11 +1219,16 @@ void fn_mod(void) {
   static float64 fpsum;
   int32 n, elements;
   variable *vp;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip MOD token */
   if(*basicvars.current == '(') {       /* One level of parentheses is allowed */
     basicvars.current++;
     vp = get_arrayname();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;
   }
   else {
@@ -1034,11 +1258,14 @@ void fn_mod(void) {
     break;
   }
   case VAR_STRARRAY:
+    DEBUGFUNCMSGOUT;
     error(ERR_NUMARRAY);        /* Numeric array wanted */
     break;
   default:      /* Bad 'varflags' value found */
-    error(ERR_BROKEN, __LINE__, "expressions");
+    DEBUGFUNCMSGOUT;
+    error(ERR_BROKEN, __LINE__, "functions");
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1047,8 +1274,10 @@ void fn_mod(void) {
 ** no meaning
 */
 void fn_mode(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(emulate_modefn());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1056,9 +1285,11 @@ void fn_mode(void) {
 ** 'not' of its argument on to the stack
 */
 void fn_not(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip NOT token */
   (*factor_table[*basicvars.current])();
   push_varyint(~pop_anynum64());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1067,12 +1298,18 @@ void fn_not(void) {
 static void fn_openin(void) {
   stackitem stringtype;
   basicstring descriptor;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   descriptor = pop_string();
   push_int(fileio_openin(descriptor.stringaddr, descriptor.stringlen));
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1082,12 +1319,18 @@ static void fn_openin(void) {
 static void fn_openout(void) {
   stackitem stringtype;
   basicstring descriptor;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   descriptor = pop_string();
   push_int(fileio_openout(descriptor.stringaddr, descriptor.stringlen));
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1097,19 +1340,27 @@ static void fn_openout(void) {
 static void fn_openup(void) {
   stackitem stringtype;
   basicstring descriptor;
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   descriptor = pop_string();
   push_int(fileio_openup(descriptor.stringaddr, descriptor.stringlen));
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_pi' pushes the constant value pi on to the Basic stack
 */
 static void fn_pi(void) {
+  DEBUGFUNCMSGIN;
   push_float(PI);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1117,20 +1368,31 @@ static void fn_pi(void) {
 */
 static void fn_pointfn(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   x = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
   push_int(emulate_pointfn(x, y));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_pos' emulates the Basic function 'POS'
 */
 static void fn_pos(void) {
+  DEBUGFUNCMSGIN;
   push_int(emulate_pos());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1138,8 +1400,10 @@ static void fn_pos(void) {
 **on the value of the 'quit interpreter at end of run' flag
 */
 void fn_quit(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(basicvars.runflags.quitatend);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1147,8 +1411,10 @@ void fn_quit(void) {
 ** to radians
 */
 static void fn_rad(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(pop_anynumfp()/RADCONV);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1158,10 +1424,13 @@ static void fn_rad(void) {
 static void fn_reportdol(void) {
   char *p;
   int32 length;
+
+  DEBUGFUNCMSGIN;
   length = strlen(get_lasterror());
   p = alloc_string(length);
   memmove(p, get_lasterror(), length);
   push_strtemp(length, p);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1169,7 +1438,9 @@ static void fn_reportdol(void) {
 ** issued via OSCLI or '*' on to the Basic stack
 */
 static void fn_retcode(void) {
+  DEBUGFUNCMSGIN;
   push_int(basicvars.retcode);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1179,11 +1450,14 @@ static void fn_retcode(void) {
 */
 static void nextrandom(void) {
   int n;
+
+  DEBUGFUNCMSGIN;
   for (n=0; n<32; n++) {
     int newbit = ((lastrandom>>19) ^ randomoverflow) & 1;
     randomoverflow = lastrandom>>31;
     lastrandom = (lastrandom<<1) | newbit;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1192,6 +1466,8 @@ static void nextrandom(void) {
 static float64 randomfraction(void) {
   uint32 reversed = ((lastrandom>>24)&0xFF)|((lastrandom>>8)&0xFF00)|((lastrandom<<8)&0xFF0000)|((lastrandom<<24)&0xFF000000);
 
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return TOFLOAT(reversed) / 4294967296.0;
 }
 
@@ -1199,8 +1475,10 @@ static float64 randomfraction(void) {
 ** 'fn_rnd' evaluates the function 'RND'. See also fn_rndpar
 */
 static void fn_rnd(void) {
+  DEBUGFUNCMSGIN;
   nextrandom();
   push_int(lastrandom);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1208,8 +1486,13 @@ static void fn_rnd(void) {
 */
 static void fn_rndpar(void) {
   int32 value;
+
+  DEBUGFUNCMSGIN;
   value = eval_integer();
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
   if (value<0) {        /* Negative value = reseed random number generator */
     lastrandom = value;
@@ -1224,6 +1507,7 @@ static void fn_rndpar(void) {
     nextrandom();
     push_int(TOINT(1+randomfraction()*TOFLOAT(value)));
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1231,30 +1515,42 @@ static void fn_rndpar(void) {
 ** whether the value there is positive, zero or negative
 */
 static void fn_sgn(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
     push_int(sgni(pop_anyint()));
   } else if (GET_TOPITEM == STACK_FLOAT) {
     push_int(sgnf(pop_float()));
-  } else error(ERR_TYPENUM);
+  } else {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_sin' evaluates the sine of its argument
 */
 static void fn_sin(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(sin(pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_sqr' evaluates the square root of its argument
 */
 static void fn_sqr(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   floatvalue = pop_anynumfp();
-  if (floatvalue<0.0) error(ERR_NEGROOT);
+  if (floatvalue<0.0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_NEGROOT);
+  }
   push_float(sqrt(floatvalue));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1268,6 +1564,7 @@ static void fn_str(void) {
   int32 length = 0;
   char *cp, *bufptr;
 
+  DEBUGFUNCMSGIN;
   ishex = *basicvars.current == '~';
   if (ishex) basicvars.current++;
   (*factor_table[*basicvars.current])();
@@ -1324,11 +1621,13 @@ static void fn_str(void) {
       }
     }
   } else {
+    DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
   }
   cp = alloc_string(length);
   memcpy(cp, basicvars.stringwork, length);
   push_strtemp(length, cp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1339,21 +1638,35 @@ static void fn_string(void) {
   basicstring descriptor;
   char* base, *cp;
   stackitem stringtype;
+
+  DEBUGFUNCMSGIN;
   count = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   expression();
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   if (count == 1) return;       /* Leave things as they are if repeat count is 1 */
   descriptor = pop_string();
   if (count<=0)
     newlen = 0;
   else  {
     newlen = count*descriptor.stringlen;
-    if (newlen>MAXSTRING) error(ERR_STRINGLEN); /* New string is too long */
+    if (newlen>MAXSTRING) { /* New string is too long */
+      DEBUGFUNCMSGOUT;
+      error(ERR_STRINGLEN);
+    }
   }
   base = cp = alloc_string(newlen);
   while (count>0) {
@@ -1363,6 +1676,7 @@ static void fn_string(void) {
   }
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
   push_strtemp(newlen, base);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1376,12 +1690,17 @@ static void fn_sum(void) {
   int32 n, elements;
   variable *vp;
   boolean sumlen;
+
+  DEBUGFUNCMSGIN;
   sumlen = *basicvars.current == TYPE_FUNCTION && *(basicvars.current+1) == BASTOKEN_LEN;
   if (sumlen) basicvars.current+=2;     /* Skip the 'LEN' token */
   if(*basicvars.current == '(') {       /* One level of parentheses is allowed */
     basicvars.current++;
     vp = get_arrayname();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;
   }
   else {
@@ -1391,7 +1710,10 @@ static void fn_sum(void) {
   if (sumlen) {         /* Got 'SUM LEN' */
     int32 length;
     basicstring *p;
-    if (vp->varflags != VAR_STRARRAY) error(ERR_TYPESTR);       /* Array is not a string array */
+    if (vp->varflags != VAR_STRARRAY) {       /* Array is not a string array */
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPESTR);
+    }
     p = vp->varentry.vararray->arraystart.stringbase;
     length = 0;
     for (n=0; n<elements; n++) length+=p[n].stringlen;  /* Find length of all strings in array */
@@ -1429,8 +1751,11 @@ static void fn_sum(void) {
       basicstring *p;
       p = vp->varentry.vararray->arraystart.stringbase;
       length = 0;
-      for (n=0; n<elements; n++) length+=p[n].stringlen;        /* Find length of result string */
-      if (length>MAXSTRING) error(ERR_STRINGLEN);               /* String is too long */
+      for (n=0; n<elements; n++) length+=p[n].stringlen;    /* Find length of result string */
+      if (length>MAXSTRING) {              /* String is too long */
+        DEBUGFUNCMSGOUT;
+        error(ERR_STRINGLEN);
+      }
       cp = cp2 = alloc_string(length);  /* Grab enough memory to hold the result string */
       if (length>0) {
         for (n=0; n<elements; n++) {    /* Concatenate strings */
@@ -1445,17 +1770,21 @@ static void fn_sum(void) {
       break;
     }
     default:    /* Bad 'varflags' value found */
-      error(ERR_BROKEN, __LINE__, "expressions");
+      DEBUGFUNCMSGOUT;
+      error(ERR_BROKEN, __LINE__, "functions");
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_tan' calculates the tangent of its argument
 */
 static void fn_tan(void) {
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   push_float(tan(pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1463,7 +1792,9 @@ static void fn_tan(void) {
 ** 'TEMPO' on to the stack
 */
 static void fn_tempofn(void) {
+  DEBUGFUNCMSGIN;
   push_int(mos_rdtempo());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1472,16 +1803,28 @@ static void fn_tempofn(void) {
 */
 void fn_tint(void) {
   int32 x, y;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
-  if (*basicvars.current != '(') error(ERR_LPMISS);
+  if (*basicvars.current != '(') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LPMISS);
+  }
   basicvars.current++;
   x = eval_integer();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   y = eval_integer();
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
   push_int(emulate_tintfn(x, y));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1489,20 +1832,29 @@ void fn_tint(void) {
 ** itself on to the Basic stack.
 ** Note that 'TOP' is encoded as the token for 'TO' followed by
 ** the letter 'P'. There is no token for 'TOP'. This is the way
-** the RISC OS Basic interpreter works.
+** all of Acorn's BASIC interpreters work.
 */
 void fn_top(void) {
   byte *p;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip the 'TO' token */
-  if (*basicvars.current != BASTOKEN_XVAR) error(ERR_SYNTAX);        /* 'TO' is not followed by a variable name */
+  if (*basicvars.current != BASTOKEN_XVAR) { /* 'TO' is not followed by a variable name */
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   p = get_srcaddr(basicvars.current);           /* Find the address of the variable */
-  if (*p != 'P') error(ERR_SYNTAX);             /* But it does not start with the letter 'P' */
+  if (*p != 'P') {            /* But it does not start with the letter 'P' */
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   basicvars.current+=LOFFSIZE + 1;
   if (matrixflags.pseudovarsunsigned) {
     push_int64(resize32((size_t)basicvars.top));
   } else {
     push_int64((size_t)basicvars.top);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1510,8 +1862,10 @@ void fn_top(void) {
 ** is written
 */
 void fn_trace(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(basicvars.tracehandle);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1519,8 +1873,10 @@ void fn_trace(void) {
 ** the stack
 */
 void fn_true(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(BASTRUE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1529,7 +1885,9 @@ void fn_true(void) {
 ** It is probably safer to say that this function is unsupported
 */
 static void fn_usr(void) {
+  DEBUGFUNCMSGIN;
   push_int(mos_usr(eval_intfactor()));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1549,12 +1907,13 @@ static void fn_val(void) {
   int64 int64value;
   static float64 fpvalue;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function functions.c:fn_val\n");
-#endif
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   descriptor = pop_string();
   if (descriptor.stringlen == 0)
     push_int(0);        /* Nothing to do */
@@ -1575,9 +1934,7 @@ static void fn_val(void) {
       push_float(fpvalue);
     }
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function functions.c:fn_val\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1586,9 +1943,12 @@ static void fn_val(void) {
 */
 void fn_vdu(void) {
   int variable;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   variable = eval_intfactor();  /* Number of VDU variable */
   push_int64(emulate_vdufn(variable));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1599,15 +1959,26 @@ static void fn_verify(void) {
   basicstring string, verify;
   int32 start, n;
   byte present[256];
+
+  DEBUGFUNCMSGIN;
   expression();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   string = pop_string();
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+  }
   basicvars.current++;
   expression();
   veritype = GET_TOPITEM;
-  if (veritype != STACK_STRING && veritype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (veritype != STACK_STRING && veritype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   verify = pop_string();
   if (*basicvars.current == ',') {      /* Start position supplied */
     basicvars.current++;
@@ -1617,7 +1988,10 @@ static void fn_verify(void) {
   else {        /* Set starting position to one */
     start = 1;
   }
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
 /*
 ** Start by dealing with the special cases. These are:
@@ -1649,6 +2023,7 @@ static void fn_verify(void) {
   }
   if (veritype == STACK_STRTEMP) free_string(verify);
   if (stringtype == STACK_STRTEMP) free_string(string);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1656,15 +2031,19 @@ static void fn_verify(void) {
 ** on to the Basic stack
 */
 static void fn_vpos(void) {
+  DEBUGFUNCMSGIN;
   push_int(emulate_vpos());
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'fn_width' pushes the current value of 'WIDTH' on to the Basic stack
 */
 void fn_width(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip WIDTH token */
   push_int(basicvars.printwidth);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1679,24 +2058,36 @@ static void fn_xlatedol(void) {
   char *cp;
   int32 n;
   byte ch;
+
+  DEBUGFUNCMSGIN;
   expression();
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   string = pop_string();
   if (*basicvars.current == ',') {
 /* Got user-supplied translate table */
     basicvars.current++;
     expression();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+    }
     basicvars.current++;        /* Skip the ')' */
     transtype = GET_TOPITEM;
     if (transtype == STACK_STRING || transtype == STACK_STRTEMP)
       transtring = pop_string();
     else if (transtype == STACK_STRARRAY) {
       transarray = pop_array();
-      if (transarray->dimcount != 1) error(ERR_NOTONEDIM);      /* Must be a 1-D array */
+      if (transarray->dimcount != 1) {      /* Must be a 1-D array */
+        DEBUGFUNCMSGOUT;
+        error(ERR_NOTONEDIM);
+      }
     }
     else {
+      DEBUGFUNCMSGOUT;
       error(ERR_TYPESTR);
     }
 /* If the string or table length is zero then there is nothing to do */
@@ -1737,9 +2128,10 @@ static void fn_xlatedol(void) {
     }
     push_strtemp(string.stringlen, cp);
   }
-  else if (*basicvars.current != ')')
+  else if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);  /* Must have a ')' next */
-  else {
+  } else {
 /* Translate string to lower case */
     basicvars.current++;        /* Skip the ')' */
     if (string.stringlen == 0) {        /* String length is zero */
@@ -1763,6 +2155,7 @@ static void fn_xlatedol(void) {
     }
     push_strtemp(string.stringlen, cp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 static void fn_sysfn(void) {
@@ -1771,6 +2164,8 @@ static void fn_sysfn(void) {
   char *tmpstring;
   sysparm inregs[MAXSYSPARMS];
   size_t outregs[MAXSYSPARMS];
+
+  DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
@@ -1785,10 +2180,12 @@ static void fn_sysfn(void) {
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
   }
   else {
-    error(ERR_TYPESTR);
+   DEBUGFUNCMSGOUT;
+   error(ERR_TYPESTR);
   }
   if (*basicvars.current != ')')  error(ERR_RPMISS);
   basicvars.current++;  /* Skip the ')' */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1821,16 +2218,21 @@ static void (*function_table[])(void) = {
 */
 void exec_function(void) {
   byte token = *(basicvars.current+1);
+
+  DEBUGFUNCMSGIN;
   basicvars.current+=2;
   if (token>BASTOKEN_XLATEDOL) bad_token();  /* Function token is out of range */
   (*function_table[token])();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'init_functions' is called before running a program
 */
 void init_functions(void) {
+  DEBUGFUNCMSGIN;
   srand( (unsigned)time( NULL ) );
   lastrandom=rand();
   randomoverflow = 0;
+  DEBUGFUNCMSGOUT;
 }

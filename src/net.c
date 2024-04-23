@@ -79,13 +79,14 @@ static int neteof[MAXNETSOCKETS];
 #ifdef __TARGET_SCL__
 /* SharedCLibrary is missing inet_aton(). Here'a an implementation */
 in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
-        uint32 quads[4];
-        in_addr_t ipaddr = 0;
-        const char *c;
-        char *endptr;
-        int atend = 0, n = 0;
+  uint32 quads[4];
+  in_addr_t ipaddr = 0;
+  const char *c;
+  char *endptr;
+  int atend = 0, n = 0;
 
-        c = (const char *)cp;
+  DEBUGFUNCMSGIN;
+  c = (const char *)cp;
   while (!atend) {
     uint32 l;
 
@@ -108,7 +109,10 @@ in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
       if (isspace((unsigned char)*c)) {
         atend = 1;
         break;
-      } else return (0);
+      } else {
+        DEBUGFUNCMSGOUT;
+        return (0);
+      }
     }
   }
 
@@ -133,6 +137,7 @@ in_addr_t inet_aton(const char *cp, struct in_addr *addr) {
     break;
   }
   if (addr != NULL) addr->s_addr = htonl(ipaddr);
+  DEBUGFUNCMSGOUT;
   return (1);
 }
 #endif /* __TARGET_SCL__ */
@@ -149,6 +154,7 @@ void brandynet_init() {
   char *swiname;
 #endif
 
+  DEBUGFUNCMSGIN;
   matrixflags.networking = 1;
   for (n=0; n<MAXNETSOCKETS; n++) {
     netsockets[n]=bufptr[n]=bufendptr[n]=neteof[n]=0;
@@ -172,6 +178,7 @@ void brandynet_init() {
   if (regs.r[2] != 13) matrixflags.networking=0; /* SWI not found */
   free(swiname);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 int brandynet_connect(char *dest, char type) {
@@ -188,9 +195,10 @@ int brandynet_connect(char *dest, char type) {
   unsigned long opt;
 #endif
 
+  DEBUGFUNCMSGIN;
   if(matrixflags.networking==0) {
     error(ERR_NET_NOTSUPP);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
 
   for (n=0; n<MAXNETSOCKETS; n++) {
@@ -198,7 +206,7 @@ int brandynet_connect(char *dest, char type) {
   }
   if (MAXNETSOCKETS == n) {
     error(ERR_NET_MAXSOCKETS);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
 
   host=strdup(dest);
@@ -221,7 +229,7 @@ int brandynet_connect(char *dest, char type) {
     if ((he = gethostbyname(host)) == NULL) {
       free(host);
       error(ERR_NET_NOTFOUND);
-      return(-1);
+      return(-1); /* Will never be reached */
     }
     inaddr=(struct in_addr *)he->h_addr;
   }
@@ -230,7 +238,7 @@ int brandynet_connect(char *dest, char type) {
   free(host);                                /* Don't need this any more */
   if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
     error(ERR_NET_CONNREFUSED);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
   free(inaddr);                              /* Don't need this any more */
 
@@ -243,6 +251,7 @@ int brandynet_connect(char *dest, char type) {
   fcntl(mysocket, F_SETFL, flags | O_NONBLOCK);
 #endif
   netsockets[n] = mysocket;
+  DEBUGFUNCMSGOUT;
   return(n);
 
 #else /* not TARGET_RISCOS */
@@ -257,7 +266,7 @@ int brandynet_connect(char *dest, char type) {
 
   if(matrixflags.networking==0) {
     error(ERR_NET_NOTSUPP);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
 
   for (n=0; n<MAXNETSOCKETS; n++) {
@@ -265,7 +274,7 @@ int brandynet_connect(char *dest, char type) {
   }
   if (MAXNETSOCKETS == n) {
     error(ERR_NET_MAXSOCKETS);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
 
   memset(&hints, 0, sizeof(hints));
@@ -289,7 +298,7 @@ int brandynet_connect(char *dest, char type) {
     if (basicvars.debug_flags.debug) fprintf(stderr, "getaddrinfo returns: %s\n", gai_strerror(ret));
 #endif
     error(ERR_NET_NOTFOUND);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
 
   for(rp = addrdata; rp != NULL; rp = rp->ai_next) {
@@ -304,7 +313,7 @@ int brandynet_connect(char *dest, char type) {
 
   if (!rp) {
     error(ERR_NET_CONNREFUSED);
-    return(-1);
+    return(-1); /* Will never be reached */
   }
 
 #ifdef TARGET_MINGW
@@ -315,13 +324,16 @@ int brandynet_connect(char *dest, char type) {
   fcntl(mysocket, F_SETFL, flags | O_NONBLOCK);
 #endif
   netsockets[n] = mysocket;
+  DEBUGFUNCMSGOUT;
   return(n);
 #endif /* RISCOS */
 }
 
 int brandynet_close(int handle) {
+  DEBUGFUNCMSGIN;
   close(netsockets[handle]);
   netsockets[handle] = neteof[handle] = 0;
+  DEBUGFUNCMSGOUT;
   return(0);
 }
 
@@ -333,6 +345,7 @@ int brandynet_close(int handle) {
 static int net_get_something(int handle) {
   int retval = 0;
 
+  DEBUGFUNCMSGIN;
   bufendptr[handle] = recv(netsockets[handle], netbuffer[handle], MAXNETRCVLEN, MSG_DONTWAIT);
   if (bufendptr[handle] == 0) {
     retval=1; /* EOF - connection closed */
@@ -340,6 +353,7 @@ static int net_get_something(int handle) {
   }
   if (bufendptr[handle] == -1) bufendptr[handle] = 0;
   bufptr[handle] = 0;
+  DEBUGFUNCMSGOUT;
   return(retval);
 }
 
@@ -347,6 +361,7 @@ int32 net_bget(int handle) {
   int value;
   int retval=0;
 
+  DEBUGFUNCMSGIN;
   if (neteof[handle]) return(-2);
   if (bufptr[handle] >= bufendptr[handle]) {
     retval=net_get_something(handle);
@@ -355,10 +370,13 @@ int32 net_bget(int handle) {
   if (bufptr[handle] >= bufendptr[handle]) return(-1);  /* No data available. EOF NOT set */
   value=netbuffer[handle][(bufptr[handle])];
   bufptr[handle]++;
+  DEBUGFUNCMSGOUT;
   return(value & 0xFF);
 }
 
 boolean net_eof(int handle) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return(neteof[handle]);
 }
 
@@ -366,18 +384,28 @@ int net_bput(int handle, int32 value) {
   char minibuf[2];
   int retval;
 
+  DEBUGFUNCMSGIN;
   minibuf[0]=(value & 0xFFu);
   minibuf[1]=0;
   retval=send(netsockets[handle], (const char *)&minibuf, 1, 0);
-  if (retval == -1) return(1);
+  if (retval == -1) {
+    DEBUGFUNCMSGOUT;
+    return(1);
+  }
+  DEBUGFUNCMSGOUT;
   return(0);
 }
 
 int net_bputstr(int handle, char *string, int32 length) {
   int retval;
 
+  DEBUGFUNCMSGIN;
   retval=send(netsockets[handle], string, length, 0);
-  if (retval == -1) return(1);
+  if (retval == -1) {
+    DEBUGFUNCMSGOUT;
+    return(1);
+  }
+  DEBUGFUNCMSGOUT;
   return(0);
 }
 #endif /* NONET ... right at top of the file */

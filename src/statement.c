@@ -99,10 +99,12 @@ byte ateol[256] = {
 ** starts running
 */
 void init_interpreter(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current = NIL;
   init_stack();
   init_expressions();
   init_staticvars();
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -111,6 +113,8 @@ void init_interpreter(void) {
 */
 void trace_line(int32 lineno) {
   int32 len;
+
+  DEBUGFUNCMSGIN;
   len = sprintf(basicvars.stringwork, "[%d]", lineno);
   if (basicvars.tracehandle == 0)       { /* Trace output goes to screen */
     if (basicvars.traces.console)
@@ -120,9 +124,7 @@ void trace_line(int32 lineno) {
   } else {      /* Trace output goes to a file */
     fileio_bputstr(basicvars.tracehandle, basicvars.stringwork, len);
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.debug) fprintf(stderr, "Basic line trace - %s\n", basicvars.stringwork);
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -133,6 +135,8 @@ void trace_line(int32 lineno) {
 void trace_proc(char *np, boolean entering) {
   int32 len;
   char *what = *CAST(np, byte *) == BASTOKEN_PROC ? "PROC" : "FN";
+
+  DEBUGFUNCMSGIN;
   np++;
   if (entering) /* Entering procedure or function */
     len = sprintf(basicvars.stringwork, "==>%s%s ", what, np);
@@ -150,6 +154,7 @@ void trace_proc(char *np, boolean entering) {
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "Basic PROC/FN call - %s\n", basicvars.stringwork);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -160,6 +165,8 @@ void trace_proc(char *np, boolean entering) {
 void trace_branch(byte *from, byte *to) {
   int32 len;
   byte *fromline, *toline;
+
+  DEBUGFUNCMSGIN;
   fromline = find_linestart(from);
   toline = find_linestart(to);
   if (fromline == NIL || toline == NIL) return; /* Do not trace anything if at command line */
@@ -175,6 +182,7 @@ void trace_branch(byte *from, byte *to) {
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "Basic branch trace - %s\n", basicvars.stringwork);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -183,9 +191,11 @@ void trace_branch(byte *from, byte *to) {
 ** that the interpreter is broken
 */
 void bad_token(void) {
+  DEBUGFUNCMSGIN;
 #ifdef DEBUG
   fprintf(stderr, "Bad token at %p, value=&%02x\n", basicvars.current, *basicvars.current);
 #endif
+  DEBUGFUNCMSGOUT;
   error(ERR_BROKEN, __LINE__, "statement");
 }
 
@@ -193,6 +203,8 @@ void bad_token(void) {
 ** 'bad_syntax' is called when a syntax error is discovered
 */
 void bad_syntax(void) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   error(ERR_SYNTAX);
 }
 
@@ -202,7 +214,9 @@ void bad_syntax(void) {
 ** 'BADLINE' token contains the error number
 */
 static void flag_badline(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
+  DEBUGFUNCMSGOUT;
   error(*basicvars.current);
 }
 
@@ -211,6 +225,8 @@ static void flag_badline(void) {
 ** token
 */
 boolean isateol(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return ateol[*p];
 }
 
@@ -219,14 +235,21 @@ boolean isateol(byte *p) {
 ** at either the end of a line, at a ':' or the keyword 'ELSE'
 */
 void check_ateol(void) {
-  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
+  DEBUGFUNCMSGIN;
+  if (!ateol[*basicvars.current]) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'skip_colon' skips the ':' between statements
 */
 static void skip_colon(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -234,6 +257,7 @@ static void skip_colon(void) {
 ** back to the main command interpreter loop
 */
 void end_run(void) {
+  DEBUGFUNCMSGIN;
   basicvars.runflags.running = FALSE;
   basicvars.escape = FALSE;             /* Clear ESCAPE state at end of run */
   basicvars.procstack = NIL;
@@ -246,15 +270,19 @@ void end_run(void) {
 #endif
   if (basicvars.runflags.quitatend) exit_interpreter(EXIT_SUCCESS);     /* Exit from the interpreter once program has finished */
   siglongjmp(basicvars.restart, 1);     /* Restart at the command line */
+  DEBUGFUNCMSGOUT;
 }
 
 void next_line(void) {
   byte *lp;
+
+  DEBUGFUNCMSGIN;
   lp = basicvars.current+1;             /* Skip NUL and point at start of next line */
   if (AT_PROGEND(lp)) end_run();        /* Have reached end of program */
   if (basicvars.traces.lines) trace_line(get_lineno(lp));
   basicvars.thisline = lp;              /* Remember start of current line */
   basicvars.current = FIND_EXEC(lp);    /* Find first executable token on line */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -277,9 +305,8 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
   int32 length;
   intptr_t value = valuex; /* 32 bits on 32-bit systems, 64 bits on 64-bit systems */
   char *cp;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function statement.c:store_value\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   switch (destination.typeinfo) {
   case VAR_INTWORD:
     *destination.address.intaddr = value;
@@ -295,9 +322,15 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     *destination.address.floataddr = TOFLOAT(valuex);
     break;
   case VAR_STRINGDOL:
-    if (nostring) error(ERR_VARNUM);
+    if (nostring) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_VARNUM);
+    }
     length = strlen(TOSTRING(value));
-    if (length>MAXSTRING) error(ERR_STRINGLEN);
+    if (length>MAXSTRING) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_STRINGLEN);
+    }
     free_string(*destination.address.straddr);
     cp = alloc_string(length);
     if (length>0) memmove(cp, TOSTRING(value), length);
@@ -311,15 +344,23 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     store_float(destination.address.offset, TOFLOAT(valuex));
     break;
   case VAR_DOLSTRPTR:
-    if (nostring) error(ERR_VARNUM);
+    if (nostring) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_VARNUM);
+    }
     length = strlen(TOSTRING(value));
-    if (length>MAXSTRING) error(ERR_STRINGLEN);
+    if (length>MAXSTRING) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_STRINGLEN);
+    }
     if (length>0) memmove(destination.address.uint8addr, TOSTRING(value), length);
     *((uint8 *)destination.address.uint8addr+length) = asc_CR;
     break;
   default:
+    DEBUGFUNCMSGOUT;
     error(ERR_VARNUM);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -401,14 +442,14 @@ static void (*statements[256])(void) = {
 */
 void exec_fnstatements(byte *lp) {
   byte token;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function statement.c:exec_fnstatements\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   basicvars.current = lp;
   do {  /* This is the main statement execution loop */
     token = *basicvars.current;
     (*statements[token])();     /* Dispatch a statement */
   } while (token != '=');
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -417,19 +458,24 @@ void exec_fnstatements(byte *lp) {
 */
 static void exec_statements(byte *lp) {
   basicvars.current = lp;
+
+  DEBUGFUNCMSGIN;
   do {  /* This is the main statement execution loop */
 #ifdef USE_SDL
     if (tmsg.bailout != -1) {
       while(TRUE) sleep(10); /* Stop processing while threads are stopped */
     }
 #endif
-    if (basicvars.escape) error(ERR_ESCAPE);
+    if (basicvars.escape) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_ESCAPE);
+    }
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
 #endif
     (*statements[*basicvars.current])();        /* Dispatch a statement */
   } while (TRUE);
-// to do: put kbd_escpoll() in while()?
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -450,6 +496,7 @@ static void exec_statements(byte *lp) {
 ** tidying up for this is carried out in errors.c too.
 */
 void run_program(byte *lp) {
+  DEBUGFUNCMSGIN;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   if (basicvars.runflags.running) {
     siglongjmp(basicvars.run_restart,1);
@@ -484,6 +531,7 @@ void run_program(byte *lp) {
     reset_opstack();             /* Reset the operator stack to a known state code */
     exec_statements(basicvars.error_handler.current);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -500,6 +548,8 @@ void run_program(byte *lp) {
 */
 void exec_thisline(void) {
   int32 linelen;
+
+  DEBUGFUNCMSGIN;
   linelen = get_linelen(thisline);
   if (linelen == 0) return;             /* There is nothing to do */
   mark_end(&thisline[linelen]);         /* Mark end of command line */
@@ -510,4 +560,5 @@ void exec_thisline(void) {
   clear_error();
   reset_opstack();
   exec_statements(FIND_EXEC(thisline));
+  DEBUGFUNCMSGOUT;
 }

@@ -58,28 +58,35 @@ static void *mymap (size_t size)
   char line[256] ;
   void *start, *finish, *base = (void *) 0x400000 ;
 
+  DEBUGFUNCMSGIN;
   fp = fopen ("/proc/self/maps", "r") ;
-  if (fp == NULL)
+  if (fp == NULL) {
+    DEBUGFUNCMSGOUT;
     return NULL ;
+  }
 
   while (NULL != fgets (line, 256, fp)) {
     sscanf (line, "%p-%p", &start, &finish) ;
     start = (void *)((size_t)start & -0x1000) ; // page align (GCC extension)
     if (start >= (base + size)) {
       fclose(fp);
+      DEBUGFUNCMSGOUT;
       return base ;
     }
     if (finish > (void *)0xFFFFF000) {
       fclose(fp);
+      DEBUGFUNCMSGOUT;
       return NULL ;
     }
     base = (void *)(((size_t)finish + 0xFFF) & -0x1000) ; // page align
     if (base > ((void *)0xFFFFFFFF - size)) {
       fclose(fp);
+      DEBUGFUNCMSGOUT;
       return NULL ;
     }
   }
   fclose(fp);
+  DEBUGFUNCMSGOUT;
   return base ;
 }
 #endif
@@ -106,6 +113,7 @@ boolean init_workspace(size_t heapsize) {
   uint32 heaporig;
 #endif
 
+  DEBUGFUNCMSGIN;
   basicvars.misc_flags.usedmmap = 0;
   if (heapsize==0)
     heapsize = DEFAULTSIZE;
@@ -174,6 +182,7 @@ boolean init_workspace(size_t heapsize) {
   if (oserror==NIL) basicvars.slotend = CAST(regs.r[1], byte *);
   }
 #endif
+  DEBUGFUNCMSGOUT;
   return wp!=NIL;
 }
 
@@ -201,6 +210,8 @@ void release_workspace(void) {
 */
 void release_heap(void) {
   library *lp, *lp2;
+
+  DEBUGFUNCMSGIN;
   lp = basicvars.installist;    /* Free memory acquired for installed libraries */
   while (lp!=NIL) {
     lp2 = lp->libflink;
@@ -211,6 +222,7 @@ void release_heap(void) {
   release_workspace();
   free(basicvars.stringwork);
   if (basicvars.loadpath!=NIL) free(basicvars.loadpath);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -223,15 +235,21 @@ void release_heap(void) {
 */
 void *allocmem(size_t size, boolean reporterror) {
   byte *newlimit;
+
+  DEBUGFUNCMSGIN;
   size = ALIGN(size);
   newlimit = basicvars.stacklimit.bytesp+size;
   if (newlimit>=basicvars.stacktop.bytesp) {    /* Have run out of memory */
     if (reporterror) error(ERR_NOROOM);
-    else return NIL;
+    else {
+      DEBUGFUNCMSGOUT;
+      return NIL;
+    }
   }
   basicvars.stacklimit.bytesp = newlimit;
   newlimit = basicvars.vartop;
   basicvars.vartop+=size;
+  DEBUGFUNCMSGOUT;
   return newlimit;
 }
 
@@ -243,8 +261,10 @@ void *allocmem(size_t size, boolean reporterror) {
 ** that the memory can be returned
 */
 void freemem(void *where, int32 size) {
+  DEBUGFUNCMSGIN;
   basicvars.vartop-=size;
   basicvars.stacklimit.bytesp-=size;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -253,7 +273,9 @@ void freemem(void *where, int32 size) {
 ** to it
 */
 boolean returnable(void *where, int32 size) {
+  DEBUGFUNCMSGIN;
   size = ALIGN(size);
+  DEBUGFUNCMSGOUT;
   return CAST(where, byte *)+size==basicvars.vartop;
 }
 
@@ -263,7 +285,9 @@ boolean returnable(void *where, int32 size) {
 ** 'old' are issued.
 */
 void clear_heap(void) {
+  DEBUGFUNCMSGIN;
   basicvars.vartop = basicvars.lomem;
   basicvars.stacklimit.bytesp = basicvars.lomem+STACKBUFFER;
+  DEBUGFUNCMSGOUT;
 }
 

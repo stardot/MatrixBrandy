@@ -103,14 +103,18 @@ static char errortext[200];     /* Copy of text of last error for REPORT */
 ** well as dealing with the signal
 */
 static void handle_signal(int signo) {
+  DEBUGFUNCMSGIN;
   switch (signo) {
 #ifndef TARGET_MINGW
   case SIGUSR1:
+    DEBUGFUNCMSGOUT;
     return;
   case SIGUSR2:
+    DEBUGFUNCMSGOUT;
     return;
 #ifdef SIGPIPE
   case SIGPIPE:
+    DEBUGFUNCMSGOUT;
     return;
 #endif
 #endif
@@ -122,21 +126,25 @@ static void handle_signal(int signo) {
 #if defined(TARGET_MINGW) || defined(TARGET_RISCOS)
     (void) signal(SIGINT, handle_signal);
 #endif
+    DEBUGFUNCMSGOUT;
     return;
   case SIGFPE:
 #ifdef TARGET_MINGW
     (void) signal(SIGFPE, handle_signal);
 #endif
+    DEBUGFUNCMSGOUT;
     error(ERR_ARITHMETIC);
   case SIGSEGV:
 #ifdef TARGET_MINGW
     (void) signal(SIGSEGV, handle_signal);
 #endif
+    DEBUGFUNCMSGOUT;
     error(ERR_ADDREXCEPT);
   case SIGABRT:
 #ifdef TARGET_MINGW
     (void) signal(SIGABRT, handle_signal);
 #endif
+    DEBUGFUNCMSGOUT;
     error(ERR_ADDREXCEPT);
 #if defined(TARGET_UNIX) | defined(TARGET_MACOSX)
   case SIGCONT:
@@ -149,6 +157,7 @@ static void handle_signal(int signo) {
   default:
     error(ERR_UNKNOWN, signo);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 #ifdef TARGET_MINGW
@@ -192,6 +201,7 @@ void watch_signals(void) {
 ** to 'false'
 */
 void init_errors(void) {
+  DEBUGFUNCMSGIN;
   errortext[0] = asc_NUL;
   if (basicvars.misc_flags.trapexcp) {  /* Want program to trap exceptions */
 #if defined(TARGET_MINGW) || defined(TARGET_DJGPP) || defined(__TARGET_SCL__)
@@ -247,6 +257,7 @@ void init_errors(void) {
 
 #endif /* TARGET_MINGW | TARGET_DJGPP */
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -255,6 +266,7 @@ void init_errors(void) {
 ** safe side
 */
 void restore_handlers(void) {
+  DEBUGFUNCMSGIN;
   if (basicvars.misc_flags.trapexcp) {
     (void) signal(SIGFPE, SIG_DFL);
     (void) signal(SIGSEGV, SIG_DFL);
@@ -270,12 +282,14 @@ void restore_handlers(void) {
     if (sigintthread != NULL) TerminateThread(sigintthread, 0);
 #endif
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'announce' prints out the start messages for the interpreter
 */
 void announce(void) {
+  DEBUGFUNCMSGIN;
 #ifdef BRANDY_BANNER_MINIMAL
   emulate_printf("\nMatrix Brandy ");
   if ((basicvars.himem-basicvars.page) > (98304*1024))
@@ -293,6 +307,7 @@ void announce(void) {
   emulate_printf("Basicvars is at &" FMT_SZX ", tokenised line is at &" FMT_SZX "\r\nWorkspace is at &" FMT_SZX ", size is " FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
    &basicvars, &thisline, basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
 #endif /*DEBUG*/
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -300,6 +315,7 @@ void announce(void) {
 ** and debugging options in effect
 */
 void show_options(int32 showextra) {
+  DEBUGFUNCMSGIN;
 #ifdef BRANDY_GITCOMMIT
   emulate_printf("%s\r\n  Git commit %s on branch %s (%s)\r\n\n", IDSTRING, BRANDY_GITCOMMIT, BRANDY_GITBRANCH, BRANDY_GITDATE);
 #else
@@ -327,9 +343,11 @@ void show_options(int32 showextra) {
     emulate_printf("  Show PROC/FN call trace on error: %s\r\n\n", basicvars.traces.backtrace ? "Yes" : "No");
     if (basicvars.tracehandle != 0) emulate_printf("Trace output is being written to a file\r\n\n");
   }
+  DEBUGFUNCMSGOUT;
 }
 
 void show_help(void) {
+  DEBUGFUNCMSGIN;
   printf("%s\n\n%s\nThe command syntax is:\n\n", IDSTRING, COPYRIGHT);
 #ifdef BRANDYAPP
   printf("    thisapp [<options>]\n\n");
@@ -366,6 +384,7 @@ void show_help(void) {
   printf("Basic program files may be gzipped.\n\n");
 #endif
 #endif /* BRANDYAPP */
+  DEBUGFUNCMSGOUT;
 }
 
 static detail badcmdtable [] = {
@@ -384,6 +403,8 @@ static detail badcmdtable [] = {
 */
 void cmderror(int32 errnumber, ...) {
   va_list parms;
+
+  DEBUGFUNCMSGIN;
   va_start(parms, errnumber);
   switch (badcmdtable[errnumber].parmtype) {
   case INTEGER:
@@ -399,6 +420,7 @@ void cmderror(int32 errnumber, ...) {
     break;
   }
   va_end(parms);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -602,12 +624,20 @@ static detail errortable [] = {
 */
 static char *find_libname(byte *p) {
   library *lp;
-  if (p>=basicvars.page && p<basicvars.top) return NIL;
+
+  DEBUGFUNCMSGIN;
+  if (p>=basicvars.page && p<basicvars.top) {
+    DEBUGFUNCMSGOUT;
+    return NIL;
+  }
   lp = find_library(p);
+  DEBUGFUNCMSGOUT;
   return lp==NIL ? NIL : lp->libname;
 }
 
 static char *procfn(char *name) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   return *CAST(name, byte *)==BASTOKEN_PROC ? "PROC" : "FN";
 }
 
@@ -621,6 +651,8 @@ static void print_details(boolean iserror) {
   fnprocinfo *p;
   byte *lp;
   char *libname;
+
+  DEBUGFUNCMSGIN;
   basicvars.printcount = 0;             /* Reset no. of chars Basic has printed on line to zero */
   if (basicvars.error_line==0) {        /* Error occured when dealing with the command line */
     if (basicvars.linecount==0) {
@@ -683,6 +715,7 @@ static void print_details(boolean iserror) {
       }
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -720,6 +753,7 @@ static void print_details(boolean iserror) {
 ** error handler.
 */
 static void handle_error(errortype severity) {
+  DEBUGFUNCMSGIN;
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) {
     fprintf(stderr, "Error in Basic program - %s at line %d\n", errortext, basicvars.error_line);
@@ -742,6 +776,7 @@ static void handle_error(errortype severity) {
 #ifdef DEBUG
       if (basicvars.debug_flags.debug) fprintf(stderr, "About to siglongjmp(*basicvars.local_restart,1), local_restart = %p\n", basicvars.local_restart);
 #endif
+      DEBUGFUNCMSGOUT;
       siglongjmp(*basicvars.local_restart, 1);
     } else {      /* Trapped via 'ON ERROR' - Reset everything and return to main interpreter loop */
       basicvars.procstack = NIL;
@@ -750,6 +785,7 @@ static void handle_error(errortype severity) {
 #ifdef DEBUG
       if (basicvars.debug_flags.debug) fprintf(stderr, "About to siglongjmp(*basicvars.error_restart,1), localrestart = %p\n", basicvars.error_restart);
 #endif
+      DEBUGFUNCMSGOUT;
       siglongjmp(basicvars.error_restart, 1);      /* Branch back to the main interpreter loop */
     }
   }
@@ -768,6 +804,7 @@ static void handle_error(errortype severity) {
     basicvars.gosubstack = NIL;
     basicvars.recdepth = 0;
     clear_stack();              /* Clear the stack on an unhandled error */
+    DEBUGFUNCMSGOUT;
     siglongjmp(basicvars.restart, 1);  /* Error - branch to main interpreter loop */
   }
 }
@@ -799,6 +836,7 @@ void error(int32 errnumber, ...) {
   *collapse="bork";
 #endif
 
+  DEBUGFUNCMSGIN;
 #ifdef USE_SDL
   while (matrixflags.videothreadbusy) usleep(1000);
   hide_cursor();
@@ -836,15 +874,19 @@ void error(int32 errnumber, ...) {
   else {
     handle_error(errortable[errnumber].severity);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'get_lasterror' is used to return the text of the last error message
 */
 char *get_lasterror(void) {
-  if (errortext[0]==asc_NUL)
+  DEBUGFUNCMSGIN;
+  if (errortext[0]==asc_NUL) {
+    DEBUGFUNCMSGOUT;
     return COPYRIGHT;
-  else {
+  } else {
+    DEBUGFUNCMSGOUT;
     return &errortext[0];
   }
 }
@@ -856,6 +898,8 @@ char *get_lasterror(void) {
 void show_error(int32 number, char *text) {
   byte *badline;
   errortype severity;
+
+  DEBUGFUNCMSGIN;
   basicvars.error_number = number;
   severity = number==0 ? FATAL : NONFATAL;
   strcpy(errortext, text);
@@ -866,12 +910,14 @@ void show_error(int32 number, char *text) {
     basicvars.error_line = get_lineno(badline);
   }
   handle_error(severity);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'set_error' is called to set up a normal Basic error handler
 */
 void set_error(void) {
+  DEBUGFUNCMSGIN;
   basicvars.error_handler.current = basicvars.current;
   basicvars.error_handler.stacktop = get_safestack();
   basicvars.error_handler.islocal = FALSE;
@@ -879,12 +925,14 @@ void set_error(void) {
   if (basicvars.debug_flags.debug) fprintf(stderr, "Set up ON ERROR handler at %p,  stack = %p\n",
    basicvars.error_handler.current, basicvars.error_handler.stacktop);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'set_local_error' is called to set up a 'local' Basic error handler
 */
 void set_local_error(void) {
+  DEBUGFUNCMSGIN;
   basicvars.error_handler.current = basicvars.current;
   basicvars.error_handler.stacktop = get_stacktop();
   basicvars.error_handler.islocal = TRUE;
@@ -892,6 +940,7 @@ void set_local_error(void) {
   if (basicvars.debug_flags.debug) fprintf(stderr, "Set up ON ERROR LOCAL handler at %p,  stack = %p\n",
    basicvars.error_handler.current, basicvars.error_handler.stacktop);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -899,10 +948,12 @@ void set_local_error(void) {
 ** Basic program
 */
 void clear_error(void) {
+  DEBUGFUNCMSGIN;
   basicvars.error_handler.current = NIL;
   basicvars.local_restart = NIL;
   basicvars.escape = FALSE;
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "Clearing ON ERROR handler\n");
 #endif
+  DEBUGFUNCMSGOUT;
 }

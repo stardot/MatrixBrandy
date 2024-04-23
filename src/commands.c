@@ -63,7 +63,9 @@ static void detailed_help(char *);
 ** Basic commands in this file
 */
 static int64 get_number(void) {
+  DEBUGFUNCMSGIN;
   factor();
+  DEBUGFUNCMSGOUT;
   return pop_anynum64();
 }
 
@@ -74,9 +76,14 @@ static int64 get_number(void) {
 */
 static void get_pair(size_t *first, size_t *second, size_t firstdef, size_t secondef) {
   size_t low, high = 0;
+
+  DEBUGFUNCMSGIN;
   *first = firstdef;
   *second = secondef;
-  if (isateol(basicvars.current)) return;       /* Return if there is nothing to do */
+  if (isateol(basicvars.current)) {       /* Return if there is nothing to do */
+    DEBUGFUNCMSGOUT;
+    return;
+  }
   if (*basicvars.current == ',' || *basicvars.current == '-')
     low = firstdef;
   else {
@@ -98,6 +105,7 @@ static void get_pair(size_t *first, size_t *second, size_t firstdef, size_t seco
   }
   *first = low;
   *second = high;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -109,12 +117,18 @@ static char *get_name(void) {
   stackitem topitem;
   basicstring descriptor;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   expression();
   topitem = get_topitem();
-  if (topitem != STACK_STRING && topitem != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (topitem != STACK_STRING && topitem != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+  }
   descriptor = pop_string();
   cp = tocstring(descriptor.stringaddr, descriptor.stringlen);
   if (topitem == STACK_STRTEMP) free_string(descriptor);
+  DEBUGFUNCMSGOUT;
   return cp;
 }
 
@@ -126,7 +140,12 @@ static char *get_name(void) {
 static void exec_new(void) {
   int32 oldsize, newsize;
   boolean ok;
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.runflags.running) {   /* Cannot edit a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
   basicvars.current++;
   if (!isateol(basicvars.current)) {    /* New workspace size supplied */
     newsize = get_number();
@@ -142,6 +161,7 @@ static void exec_new(void) {
   }
   clear_program();
   init_expressions();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -149,6 +169,8 @@ static void exec_new(void) {
 ** and attempt to recover it. Unfortunately, it didn't work.
 */
 static void exec_old(void) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   error(ERR_UNSUPPORTED);
 }
 
@@ -165,6 +187,8 @@ static void list_vars(void) {
   char *p, ch;
   library *lp;
   boolean found;
+
+  DEBUGFUNCMSGIN;
   p = CAST(get_srcaddr(basicvars.current), char *);     /* Get the argument of the LVAR command if one is supplied */
   basicvars.current+=1+OFFSIZE;
   check_ateol();
@@ -187,7 +211,10 @@ static void list_vars(void) {
     while (lp != NIL && strcmp(lp->libname, basicvars.stringwork) != 0) lp = lp->libflink;
     found = found || lp != NIL;
     if (lp != NIL) detail_library(lp);
-    if (!found) error(ERR_NOLIB, basicvars.stringwork);
+    if (!found) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_NOLIB, basicvars.stringwork);
+    }
   }
   else {
     if (isalpha(ch))
@@ -199,6 +226,7 @@ static void list_vars(void) {
     list_variables(ch);
     list_libraries(ch);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -211,6 +239,8 @@ static void list_if(void) {
   int32 targetlen, statelen;
   char first, *sp;
   boolean more;
+
+  DEBUGFUNCMSGIN;
   p = tp = get_srcaddr(basicvars.current);      /* Get address of string to search for */
   basicvars.current+=1+OFFSIZE;
   check_ateol();
@@ -242,9 +272,11 @@ static void list_if(void) {
     }
     p+=GET_LINELEN(p);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 static void set_listoption(int32 listopts) {
+  DEBUGFUNCMSGIN;
   basicvars.list_flags.space = (listopts & LIST_SPACE) != 0;
   basicvars.list_flags.indent = (listopts & LIST_INDENT) != 0;
   basicvars.list_flags.split = (listopts & LIST_SPLIT) != 0;
@@ -252,6 +284,7 @@ static void set_listoption(int32 listopts) {
   basicvars.list_flags.lower = (listopts & LIST_LOWER) != 0;
   basicvars.list_flags.showpage = (listopts & LIST_PAGE) != 0;
   basicvars.list_flags.expand = (listopts & LIST_EXPAND) != 0;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -261,6 +294,8 @@ static void set_listoption(int32 listopts) {
 */
 static void set_listopt(void) {
   int32 listopts;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   listopts = get_number();
   check_ateol();
@@ -277,6 +312,7 @@ static void set_listopt(void) {
   basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
   basicvars.debug_flags.vdu = (listopts & DEBUG_VDU) != 0;
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -284,14 +320,29 @@ static void set_listopt(void) {
 */
 static void delete(void) {
   size_t low, high;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
+  if (basicvars.runflags.running) {   /* Cannot modify a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
   basicvars.current++;
-  if (isateol(basicvars.current)) error(ERR_SYNTAX);
+  if (isateol(basicvars.current)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   get_pair(&low, &high, 0, MAXLINENO);
   check_ateol();
-  if (low>MAXLINENO || high>MAXLINENO) error(ERR_LINENO);
+  if (low>MAXLINENO || high>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINENO);
+  }
   delete_range(low, high);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -299,14 +350,29 @@ static void delete(void) {
 */
 static void renumber(void) {
   size_t start, step;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
+  if (basicvars.runflags.running) {   /* Cannot modify a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
   basicvars.current++;
   get_pair(&start, &step, 10, 10);
   check_ateol();
-  if (start>MAXLINENO) error(ERR_LINENO);
-  if (step==0 || step>=MAXLINENO) error(ERR_SILLY);     /* An increment of zero is silly */
+  if (start>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINENO);
+  }
+  if (step==0 || step>=MAXLINENO) {     /* An increment of zero is silly */
+    DEBUGFUNCMSGOUT;
+    error(ERR_SILLY);
+  }
   renumber_program(basicvars.start, start, step);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -316,6 +382,8 @@ static void renumber(void) {
 static void show_memory(void) {
   byte which;
   size_t lowaddr, highaddr;
+
+  DEBUGFUNCMSGIN;
   which = *basicvars.current;
   basicvars.current++;
   get_pair(&lowaddr, &highaddr, basicvars.memdump_lastaddr, basicvars.memdump_lastaddr+0x40);
@@ -327,6 +395,7 @@ static void show_memory(void) {
     show_word(lowaddr, highaddr);
   }
   basicvars.memdump_lastaddr = highaddr;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -337,11 +406,19 @@ static void list_program(void) {
   int32 count;
   boolean more, paused;
   byte *p;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
   basicvars.current++;
   get_pair(&lowline, &highline, 0, MAXLINENO);
   check_ateol();
-  if (lowline>MAXLINENO || highline>MAXLINENO) error(ERR_LINENO);
+  if (lowline>MAXLINENO || highline>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINENO);
+  }
   if (lowline == 0)
     p = basicvars.start;
   else {
@@ -366,8 +443,10 @@ static void list_program(void) {
         paused = TRUE;
         emulate_printf("-- More --");
         do {
-//        if (basicvars.escape) error(ERR_ESCAPE);
-          if (kbd_escpoll()) error(ERR_ESCAPE);
+          if (kbd_escpoll()) {
+            DEBUGFUNCMSGOUT;
+            error(ERR_ESCAPE);
+          }
           count = kbd_get();
           switch (count) {
           case ' ':
@@ -386,10 +465,17 @@ static void list_program(void) {
       }
     }
 #ifdef USE_SDL
-    if (kbd_escpoll()) error(ERR_ESCAPE);
+    if (kbd_escpoll()) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_ESCAPE);
+    }
 #endif
-    if (basicvars.escape) error(ERR_ESCAPE);
+    if (basicvars.escape) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_ESCAPE);
+    }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -399,16 +485,24 @@ static void list_hexline(void) {
   int32 length;
   size_t theline;
   byte *where;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   get_pair(&theline, &theline, 0, 0);
   check_ateol();
-  if (theline>MAXLINENO) error(ERR_LINENO);
+  if (theline>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINENO);
+  }
   if (theline == 0)
     where = basicvars.start;
   else {
     where = find_line(theline);
   }
-  if (theline != get_lineno(where)) error(ERR_LINEMISS, theline);       /* Line not found */
+  if (theline != get_lineno(where)) {       /* Line not found */
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINEMISS, theline);
+  }
   length = get_linelen(where);
   emulate_printf("Line %d at %p, length=%d", get_lineno(where), where, length);
   if (length<MINSTATELEN || length>MAXSTATELEN) {
@@ -419,6 +513,7 @@ static void list_hexline(void) {
     emulate_printf("\r\n");
   }
   show_byte((size_t)where, (size_t)where+length);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -429,12 +524,15 @@ static void list_hexline(void) {
 */
 static char *check_incore(void) {
   byte *p;
+
+  DEBUGFUNCMSGIN;
   if (AT_PROGEND(basicvars.start)) return NIL;  /* There is nothing to search */
   p = basicvars.start+OFFSOURCE;
   while (*p != asc_NUL && *p != '>') p++;   /* Look for a '>' */
   if (*p == asc_NUL) return NIL;            /* Did not find one so give up */
   p = skip(p+1);
   if (*p == asc_NUL) return NIL;            /* There is nothing after the '>' */
+  DEBUGFUNCMSGOUT;
   return TOSTRING(p);
 }
 
@@ -447,12 +545,15 @@ static char *check_incore(void) {
 */
 static char *get_savefile(void) {
   char *np;
+
+  DEBUGFUNCMSGIN;
   if (isateol(basicvars.current)) {
     np = check_incore();                /* Check for an 'incore' file name */
     if (np == NIL) {                    /* Did not find one */
-      if (basicvars.program[0] == asc_NUL)
+      if (basicvars.program[0] == asc_NUL) {
+        DEBUGFUNCMSGOUT;
         error(ERR_FILENAME);
-      else {
+      } else {
         np = basicvars.program;
       }
     }
@@ -461,6 +562,7 @@ static char *get_savefile(void) {
     np = get_name();
     check_ateol();
   }
+  DEBUGFUNCMSGOUT;
   return np;
 }
 
@@ -470,12 +572,18 @@ static char *get_savefile(void) {
 */
 static void save_program(void) {
   char *np;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
   basicvars.current++;
   np = get_savefile();
   reset_indent();
   write_text(np, NULL);
   strcpy(basicvars.program, np);        /* Preserve name used when saving program for later */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -484,9 +592,14 @@ static void save_program(void) {
 static void saveo_program(void) {
   char *np;
   int32 saveopts;
+
+  DEBUGFUNCMSGIN;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   basicvars.current++;
-  if (isateol(basicvars.current)) error(ERR_SYNTAX);
+  if (isateol(basicvars.current)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   saveopts = get_number();
   if (*basicvars.current == ',') basicvars.current++;   /* Skip comma between options and name */
   np = get_savefile();
@@ -499,6 +612,7 @@ static void saveo_program(void) {
   write_text(np, NULL);
   strcpy(basicvars.program, np);        /* Preserve name used for program for later */
   basicvars.list_flags = basicvars.listo_copy;  /* Restore LISTO flags to original values */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -508,9 +622,17 @@ static void saveo_program(void) {
 */
 static void load_program(void) {
   char *np;
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot modify a running program */
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.runflags.running) {   /* Cannot modify a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
   basicvars.current++;
-  if (isateol(basicvars.current)) error(ERR_FILENAME);
+  if (isateol(basicvars.current)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_FILENAME);
+  }
   np = get_name();
   check_ateol();
   clear_varptrs();
@@ -521,6 +643,7 @@ static void load_program(void) {
   read_basic(np);
   init_expressions();
   strcpy(basicvars.program, basicvars.filename);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -529,10 +652,13 @@ static void load_program(void) {
 */
 static void install_library(void) {
   char *name;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
-  if (isateol(basicvars.current))               /* Filename missing */
+  if (isateol(basicvars.current)) {             /* Filename missing */
+    DEBUGFUNCMSGOUT;
     error(ERR_FILENAME);
-  else {
+  } else {
     do {
       name = get_name();
       if (strlen(name)>0) read_library(name, INSTALL_LIBRARY);  /* Permanently install the library */
@@ -541,9 +667,11 @@ static void install_library(void) {
     } while (TRUE);
     check_ateol();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 static void print_help(void) {
+  DEBUGFUNCMSGIN;
 #ifndef NOINLINEHELP
   char *parm;
 #endif
@@ -565,6 +693,7 @@ static void print_help(void) {
   }
 #endif
   check_ateol();
+  DEBUGFUNCMSGOUT;
 }
 
 #ifdef TARGET_RISCOS
@@ -581,13 +710,19 @@ static void invoke_editor(void) {
   char *p;
   FILE *fhandle;
   _kernel_osfile_block now, then;
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.runflags.running) {   /* Cannot edit a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
   basicvars.listo_copy = basicvars.list_flags;
   if (basicvars.misc_flags.validedit) basicvars.list_flags = basicvars.edit_flags;
   basicvars.list_flags.lower = FALSE;   /* Changing keyword to lower case is useless here */
   basicvars.list_flags.expand = FALSE;  /* So is adding extra blanks */
   fhandle=secure_tmpnam(tempname);
   if (!fhandle) {
+    DEBUGFUNCMSGOUT;
     error(ERR_EDITFAIL, strerror (errno));
     return;
   }
@@ -611,11 +746,11 @@ static void invoke_editor(void) {
       clear_program();
       read_basic(tempname);
       strcpy(basicvars.program, savedname);
-    }
-    else
+    } else {
+      DEBUGFUNCMSGOUT;
       error(ERR_EDITFAIL, strerror (errno));
-  }
-  else {
+    }
+  } else {
 /*
 ** Program is running in the desktop, probably in a task window.
 ** The program can be passed to an editor easily enough by just
@@ -649,11 +784,13 @@ static void invoke_editor(void) {
         read_basic(tempname);
         strcpy(basicvars.program, savedname);
       }
-    }
-    else
+    } else {
+      DEBUGFUNCMSGOUT;
       error(ERR_EDITFAIL, strerror (errno));
+    }
   }
   remove(tempname);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -663,13 +800,19 @@ static void invoke_editor(void) {
 ** editing, which is far more flexible)
 */
 static void exec_editor(void) {
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  DEBUGFUNCMSGIN;
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
   basicvars.current++;
   if (isateol(basicvars.current))       /* Nothing on line - start an editor */
     invoke_editor();
   else {        /* 'edit <line no>' is not supported under RISC OS */
+    DEBUGFUNCMSGOUT;
     error(ERR_UNSUPPORTED);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 #else
@@ -688,9 +831,15 @@ static void invoke_editor(void) {
 #ifdef TARGET_DJGPP
   char *p;
 #endif
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
+
+  DEBUGFUNCMSGIN;
+  if (basicvars.runflags.running) {   /* Cannot edit a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
   fhandle=secure_tmpnam(tempname);
   if (!fhandle) {
+    DEBUGFUNCMSGOUT;
     error(ERR_EDITFAIL, strerror (errno));
     return;
   }
@@ -717,10 +866,12 @@ static void invoke_editor(void) {
     clear_program();
     read_basic(tempname);
     strcpy(basicvars.program, savedname);
-  }
-  else
+  } else {
+    DEBUGFUNCMSGOUT;
     error(ERR_EDITFAIL, strerror (errno));
+  }
   remove(tempname);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -737,13 +888,27 @@ static void alter_line(void) {
   int32 lineno;
   byte *p;
   boolean ok;
+
+  DEBUGFUNCMSGIN;
   lineno = get_number();
   check_ateol();
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
-  if (lineno<0 || lineno>MAXLINENO) error(ERR_LINENO);
+  if (basicvars.runflags.running) {   /* Cannot edit a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
+  if (lineno<0 || lineno>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINENO);
+  }
   p = find_line(lineno);
-  if (get_lineno(p) != lineno) error(ERR_LINEMISS, lineno);
+  if (get_lineno(p) != lineno) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINEMISS, lineno);
+  }
   basicvars.listo_copy = basicvars.list_flags;
   basicvars.list_flags.space = FALSE;   /* Reset listing options */
   basicvars.list_flags.indent = FALSE;
@@ -754,7 +919,10 @@ static void alter_line(void) {
   expand(p, basicvars.stringwork);
   basicvars.list_flags = basicvars.listo_copy;  /* Restore LISTOF flags to original values */
   ok = amend_line(basicvars.stringwork, MAXSTATELEN);
-  if (!ok) error(ERR_ESCAPE);
+  if (!ok) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_ESCAPE);
+  }
   tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
 //  tokenize(basicvars.stringwork, thisline, HASLINE);
   if (get_lineno(thisline) == NOLINENO) /* If line number has been removed, execute line */
@@ -768,6 +936,7 @@ static void alter_line(void) {
 ** to it. To avoid this, the code just branches back into the command
 ** loop via 'longjump()'. This is a kludge.
 */
+  DEBUGFUNCMSGOUT;
   siglongjmp(basicvars.restart, 1);
 }
 
@@ -776,13 +945,18 @@ static void alter_line(void) {
 ** program or allows a single line to be edited
 */
 static void exec_editor(void) {
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  DEBUGFUNCMSGIN;
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
   basicvars.current++;
   if (isateol(basicvars.current))       /* Nothing on line - start an editor */
     invoke_editor();
   else {        /* EDIT <line> command */
     alter_line();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 #endif
@@ -793,6 +967,8 @@ static void exec_editor(void) {
 */
 static void exec_edito(void) {
   int32 editopts;
+
+  DEBUGFUNCMSGIN;
   if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
   basicvars.current++;
   if (isateol(basicvars.current)) error(ERR_SYNTAX);
@@ -807,6 +983,7 @@ static void exec_edito(void) {
   basicvars.edit_flags.expand = FALSE;
   basicvars.misc_flags.validedit = TRUE;
   invoke_editor();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -814,19 +991,23 @@ static void exec_edito(void) {
 ** effect with this interpreter so is ignored
 */
 static void exec_crunch(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   (void) get_number();
   check_ateol();
+  DEBUGFUNCMSGOUT;
 }
 
 /* 'exec_auto' borrows heavily from alter_line (above), but unlike the editing
-** of an existing line the lune number cannot be deleted (as per BBC/RISC OS
+** of an existing line the line number cannot be deleted (as per BBC/RISC OS
 ** BASIC). The same kludge is used should the while loop terminate, but usually
 ** this command will be terminated by hitting the ESCAPE key.
 */
 static void exec_auto(void) {
   int32 lineno = 10, linestep = 10;
   boolean ok;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   if (!isateol(basicvars.current)) {
     lineno = get_number();
@@ -835,20 +1016,39 @@ static void exec_auto(void) {
       linestep = get_number();
     }
   }
-  if (basicvars.runflags.running) error(ERR_COMMAND);   /* Cannot edit a running program */
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
-  if (lineno<0 || lineno>MAXLINENO) error(ERR_LINENO);
-  if (linestep<=0) error(ERR_SILLY);
-  if (linestep>MAXLINENO) error(ERR_SYNTAX);
+  if (basicvars.runflags.running) {   /* Cannot edit a running program */
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMMAND);
+  }
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+  }
+  if (lineno<0 || lineno>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_LINENO);
+  }
+  if (linestep<=0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SILLY);
+  }
+  if (linestep>MAXLINENO) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+  }
   while (lineno <= MAXLINENO) { /* ESCAPE will interrupt */
     emulate_printf("%5d ",lineno);
     sprintf(basicvars.stringwork, "%5d", lineno);
     ok = amend_line(basicvars.stringwork+5, MAXSTATELEN);
-    if (!ok) error(ERR_ESCAPE);
+    if (!ok) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_ESCAPE);
+    }
     tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
     edit_line();
     lineno += linestep;
   }
+  DEBUGFUNCMSGOUT;
   siglongjmp(basicvars.restart, 1);
 }
 
@@ -862,6 +1062,7 @@ static void exec_auto(void) {
 ** handled by 'sigsetjmp' and 'siglongjmp' in the normal way
 */
 void exec_command(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Point at command type token */
   switch (*basicvars.current) {
   case BASTOKEN_NEW:
@@ -922,8 +1123,10 @@ void exec_command(void) {
     exec_auto();
     break;
   default:
+    DEBUGFUNCMSGOUT;
     error(ERR_UNSUPSTATE);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -933,6 +1136,8 @@ void exec_command(void) {
 */
 void init_commands(void) {
   char *editor;
+
+  DEBUGFUNCMSGIN;
   memset(editname, 0, 80); /* Fill the buffer with zero bytes. Ensures whatever we get back is null-terminated. */
   editor = getenv(EDITOR_VARIABLE);
   if (editor != NULL)
@@ -954,11 +1159,13 @@ void init_commands(void) {
     strncpy(editname, DEFAULT_EDITOR,79);
 #endif
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /* Define NOINLINEHELP to disable this, to reduce binary size if required */
 #ifndef NOINLINEHELP
 static void detailed_help(char *cmd) {
+  DEBUGFUNCMSGIN;
   if        (!strcmp(cmd, "ABS")) {
     emulate_printf("This function gives the magnitude (absolute value) of a number (<factor>).");
   } else if (!strcmp(cmd, "ACS")) {
@@ -1310,5 +1517,6 @@ VDU       VOICE     VOICES    VPOS      WAIT      WHEN      WHILE     WIDTH");
     emulate_printf("\r\nNo help available for '%s'", cmd);
   }
   emulate_printf("\r\n");
+  DEBUGFUNCMSGOUT;
 }
 #endif

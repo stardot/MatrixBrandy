@@ -58,6 +58,8 @@ static void (*lvalue_table[256])(lvalue *);     /* Forward reference */
 ** normally indicates a bug in the interpreter
 */
 static void bad_token(lvalue *destination) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   error(ERR_BROKEN, __LINE__, "lvalue");
 }
 
@@ -66,6 +68,8 @@ static void bad_token(lvalue *destination) {
 ** when trying to identify the type of lvalue being dealt with
 */
 static void bad_syntax(lvalue *destination) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   error(ERR_SYNTAX);
 }
 
@@ -85,9 +89,7 @@ static void fix_address(lvalue *destination) {
   byte *base, *tp, *np;
   boolean isarray = 0;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function lvalue.c:fix_address\n");
-#endif
+  DEBUGFUNCMSGIN;
   base = get_srcaddr(basicvars.current);        /* Point 'base' at start of variable name */
   tp = skip_name(base);         /* Find to end of name */
   np = basicvars.current+1+LOFFSIZE;    /* Point at token after the XVAR token */
@@ -97,6 +99,7 @@ static void fix_address(lvalue *destination) {
       if (basicvars.runflags.make_array && *np==')')    /* Can create array */
         vp = create_variable(base, tp-base, NIL);
       else {
+        DEBUGFUNCMSGOUT;
         error(ERR_ARRAYMISS, tocstring(CAST(base, char *), tp-base));   /* Cannot create array - Flag error */
       }
     }
@@ -135,6 +138,7 @@ static void fix_address(lvalue *destination) {
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
     default:
+      DEBUGFUNCMSGOUT;
       error(ERR_VARNUM);        /* Need a numeric variable before the operator */
     }
   }
@@ -170,9 +174,7 @@ static void fix_address(lvalue *destination) {
     }
   }
   (*lvalue_table[*basicvars.current])(destination);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:fix_address\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -182,9 +184,11 @@ static void fix_address(lvalue *destination) {
 ** token after the variable
 */
 static void do_staticvar(lvalue *destination) {
+  DEBUGFUNCMSGIN;
   destination->typeinfo = VAR_INTWORD;
   destination->address.intaddr = &basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger;
   basicvars.current+=2;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -192,9 +196,11 @@ static void do_staticvar(lvalue *destination) {
 ** a 32-bit integer variable
 */
 static void do_intvar(lvalue *destination) {
+  DEBUGFUNCMSGIN;
   destination->typeinfo = VAR_INTWORD;
   destination->address.intaddr = GET_ADDRESS(basicvars.current, int32 *);
   basicvars.current+=LOFFSIZE+1;        /* Point at byte after variable */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -202,9 +208,11 @@ static void do_intvar(lvalue *destination) {
 ** a 64-bit integer variable
 */
 static void do_uint8var(lvalue *destination) {
+  DEBUGFUNCMSGIN;
   destination->typeinfo = VAR_UINT8;
   destination->address.uint8addr = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;        /* Point at byte after variable */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -212,9 +220,11 @@ static void do_uint8var(lvalue *destination) {
 ** a 64-bit integer variable
 */
 static void do_int64var(lvalue *destination) {
+  DEBUGFUNCMSGIN;
   destination->typeinfo = VAR_INTLONG;
   destination->address.int64addr = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;        /* Point at byte after variable */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -222,9 +232,11 @@ static void do_int64var(lvalue *destination) {
 ** to a floating point variable
 */
 static void do_floatvar(lvalue *destination) {
+  DEBUGFUNCMSGIN;
   destination->typeinfo = VAR_FLOAT;
   destination->address.floataddr = GET_ADDRESS(basicvars.current, float64 *);
   basicvars.current+=LOFFSIZE+1;        /* Point at byte after variable */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -232,9 +244,11 @@ static void do_floatvar(lvalue *destination) {
 ** to a string variable
 */
 static void do_stringvar(lvalue *destination) {
+  DEBUGFUNCMSGIN;
   destination->typeinfo = VAR_STRINGDOL;
   destination->address.straddr = GET_ADDRESS(basicvars.current, basicstring *);
   basicvars.current+=LOFFSIZE+1;                /* Point at byte after variable */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -243,10 +257,13 @@ static void do_stringvar(lvalue *destination) {
 */
 static void do_arrayvar(lvalue *destination) {
   variable *vp;
+
+  DEBUGFUNCMSGIN;
   vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+2;                /* Skip pointer to array and ')' */
   destination->typeinfo = vp->varflags;
   destination->address.arrayaddr = &vp->varentry.vararray;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -258,6 +275,8 @@ static void do_elementvar(lvalue *destination) {
   variable *vp;
   int32 vartype, offset = 0, element = 0;
   basicarray *descriptor;
+
+  DEBUGFUNCMSGIN;
   vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+1;                /* Skip the pointer to the array's address */
   vartype = vp->varflags;
@@ -265,7 +284,10 @@ static void do_elementvar(lvalue *destination) {
   if (descriptor->dimcount==1) {        /* Shortcut for single dimension arrays */
     expression();       /* Evaluate the array index */
     element = pop_anynum32();
-    if (element<0 || element>=descriptor->dimsize[0]) error(ERR_BADINDEX, element, vp->varname);
+    if (element<0 || element>=descriptor->dimsize[0]) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_BADINDEX, element, vp->varname);
+    }
   }
   else {
     int32 index = 0, maxdims = descriptor->dimcount, dimcount = 0;
@@ -278,12 +300,21 @@ static void do_elementvar(lvalue *destination) {
       dimcount++;
       if (*basicvars.current!=',') break;       /* Escape from loop if no further indexes are expected */
       basicvars.current++;
-      if (dimcount>maxdims) error(ERR_INDEXCO, vp->varname);    /* Too many dimensions */
+      if (dimcount>maxdims) {               /* Too many dimensions */
+        DEBUGFUNCMSGOUT;
+        error(ERR_INDEXCO, vp->varname);
+      }
       if (dimcount!=maxdims) element = element*descriptor->dimsize[dimcount];
     } while (TRUE);
-    if (dimcount!=maxdims) error(ERR_INDEXCO, vp->varname);     /* Not enough dimensions */
+    if (dimcount!=maxdims) {                /* Not enough dimensions */
+      DEBUGFUNCMSGOUT;
+      error(ERR_INDEXCO, vp->varname);
+    }
   }
-  if (*basicvars.current!=')') error(ERR_RPMISS);
+  if (*basicvars.current!=')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;  /* Step past the ')' */
   destination->typeinfo = vartype = vartype-VAR_ARRAY;  /* Clear the 'array' bit */
   if (*basicvars.current!='?' && *basicvars.current!='!') {
@@ -296,6 +327,7 @@ static void do_elementvar(lvalue *destination) {
       case VAR_FLOAT:   destination->address.floataddr = descriptor->arraystart.floatbase+element; break;
       default: destination->address.straddr = descriptor->arraystart.stringbase+element; /* string */
     }
+    DEBUGFUNCMSGOUT;
     return;
   }
 /*
@@ -308,7 +340,9 @@ static void do_elementvar(lvalue *destination) {
     case VAR_UINT8:   offset = descriptor->arraystart.uint8base[element]; break;
     case VAR_INTLONG: offset = descriptor->arraystart.int64base[element]; break;
     case VAR_FLOAT:   offset = TONATIVEADDR(descriptor->arraystart.floatbase[element]); break;
-    default: error(ERR_VARNUM);
+    default: 
+      DEBUGFUNCMSGOUT;
+      error(ERR_VARNUM);
   }
 /* Now deal with the indirection operator */
   if (*basicvars.current=='?')          /* Result of operator is a single byte integer */
@@ -319,6 +353,7 @@ static void do_elementvar(lvalue *destination) {
   basicvars.current++;  /* Skip the operator */
   factor();             /* Evaluate the RH operand */
   destination->address.offset = offset+pop_anynum64();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -327,6 +362,8 @@ static void do_elementvar(lvalue *destination) {
 */
 static void do_intindvar(lvalue *destination) {
   int32 *ip;
+
+  DEBUGFUNCMSGIN;
   ip = GET_ADDRESS(basicvars.current, int32 *);
   basicvars.current+=LOFFSIZE+1;
   if (*basicvars.current=='?')          /* Decide on the type of the result from the operator */
@@ -337,6 +374,7 @@ static void do_intindvar(lvalue *destination) {
   basicvars.current++;  /* Skip the operator */
   factor();             /* Evaluate the RH operand */
   destination->address.offset = *ip+pop_anynum32();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -345,9 +383,8 @@ static void do_intindvar(lvalue *destination) {
 */
 static void do_int64indvar(lvalue *destination) {
   int64 *ip;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function lvalue.c:do_int64indvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   ip = GET_ADDRESS(basicvars.current, int64 *);
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "lvalue.c:do_int64indvar: ip=%llX\n", *ip);
@@ -361,9 +398,7 @@ static void do_int64indvar(lvalue *destination) {
   basicvars.current++;  /* Skip the operator */
   factor();             /* Evaluate the RH operand */
   destination->address.offset = *ip+pop_anynum64();
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function lvalue.c:do_int64indvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -372,6 +407,8 @@ static void do_int64indvar(lvalue *destination) {
 */
 static void do_floatindvar(lvalue *destination) {
   float64 *fp;
+
+  DEBUGFUNCMSGIN;
   fp = GET_ADDRESS(basicvars.current, float64 *);
   basicvars.current+=LOFFSIZE+1;
   if (*basicvars.current=='?')          /* Decide on the type of the result from the operator */
@@ -382,6 +419,7 @@ static void do_floatindvar(lvalue *destination) {
   basicvars.current++;  /* Skip the operator */
   factor();             /* Evaluate the RH operand */
   destination->address.offset = TONATIVEADDR(*fp)+pop_anynum32();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -390,6 +428,8 @@ static void do_floatindvar(lvalue *destination) {
 */
 static void do_statindvar(lvalue *destination) {
   byte index;
+
+  DEBUGFUNCMSGIN;
   index = *(basicvars.current+1);       /* Get static variable's index */
   basicvars.current+=2;                 /* Skip the variable */
   if (*basicvars.current=='?')          /* Decide on the type of the result from the operator */
@@ -400,6 +440,7 @@ static void do_statindvar(lvalue *destination) {
   basicvars.current++;  /* Skip the operator */
   factor();             /* Evaluate the RH operand */
   destination->address.offset = basicvars.staticvars[index].varentry.varinteger+pop_anynum64();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -409,6 +450,8 @@ static void do_statindvar(lvalue *destination) {
 */
 static void do_unaryind(lvalue *destination) {
   byte operator;
+
+  DEBUGFUNCMSGIN;
   operator = *basicvars.current;
   basicvars.current++;
   if (operator=='?')    /* Byte unary indirection operator */
@@ -424,6 +467,7 @@ static void do_unaryind(lvalue *destination) {
   }
   factor();
   destination->address.offset = pop_anynum64();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -508,9 +552,11 @@ static void (*lvalue_table[256])(lvalue *) = {
 ** at the byte after the variable's name.
 */
 void get_lvalue(lvalue *destination) {
+  DEBUGFUNCMSGIN;
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "get_lvalue: token=&%X\n", *basicvars.current);
 #endif
   (*lvalue_table[*basicvars.current])(destination);
+  DEBUGFUNCMSGOUT;
 }
 

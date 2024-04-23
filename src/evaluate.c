@@ -142,124 +142,6 @@ static float80 floatvalue;              /* Temporary for holding floating point 
 
 typedef void operator(void);
 
-
-/*
-** 'eval_integer' evaluates a numeric expression where an integer value
-** is required, returning the value
-*/
-int32 eval_integer(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_integer\n");
-#endif
-  expression();
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_integer\n");
-#endif
-  return pop_anynum32();
-}
-
-int64 eval_int64(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_int64\n");
-#endif
-  expression();
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_int64\n");
-#endif
-  return pop_anynum64();
-}
-
-static int32 i32mulwithtest(int32 lh, int32 rh) {
-  if (llabs((int64)lh * (int64)rh) > MAXINTVAL)
-    error(ERR_RANGE);
-  return lh*rh;
-}
-
-/* Use cast to float instead of TOFLOAT() as we don't care about loss of precision here */
-static int64 i64mulwithtest(int64 lh, int64 rh) {
-  if (fabsl((float64)(lh) * (float64)(rh)) > (float64)(MAXINT64VAL))
-    error(ERR_RANGE);
-  return lh*rh;
-}
-
-static int32 i32divwithtest(int32 lh, int32 rh) {
-  if(rh == 0) error(ERR_DIVZERO);
-  return(lh/rh);
-}
-
-static int64 i64divwithtest(int64 lh, int64 rh) {
-  if(rh == 0) error(ERR_DIVZERO);
-  return(lh/rh);
-}
-
-static int32 i32modwithtest(int32 lh, int32 rh) {
-  if(rh == 0) error(ERR_DIVZERO);
-  return(lh%rh);
-}
-
-static int64 i64modwithtest(int64 lh, int64 rh) {
-  if(rh == 0) error(ERR_DIVZERO);
-  return(lh%rh);
-}
-
-/*
-** 'fmulwithtest' multiplies two float64 values, and checks that the
-** number is not an invalid response (NaN, Inf, Subnormal). Also,
-** zero is OK, annoyingly isnormal() doesn't consider 0 to be normal,
-** and isfinite() doesn't report on FP_SUBNORMAL according to the
-** man pages.
-*/
-
-static float64 fmulwithtest(float64 lh, float64 rh) {
-  float64 res=lh*rh;
-  if ((res != 0.0) && !isnormal(res)) error(ERR_RANGE);
-  return(res);
-}
-
-/* Similarly for 'fdivwithtest' */
-static float64 fdivwithtest(float64 lh, float64 rh) {
-  float64 res;
-  if (rh == 0.0) error(ERR_DIVZERO);
-  res=lh/rh;
-  if ((res != 0.0) && !isnormal(res)) error(ERR_RANGE);
-  return(res);
-}
-
-/*
-** 'eval_intfactor' evaluates a numeric factor where an integer is
-** required. The function returns the value obtained.
-*/
-int32 eval_intfactor(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_intfactor\n");
-#endif
-  (*factor_table[*basicvars.current])();
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_intfactor\n");
-#endif
-  return pop_anynum32();
-}
-
-/*
-** 'check_arrays' returns 'true' if the two arrays passed to it
-** have the same number of dimensions and the bounds of each
-** dimension are the same. It does not check the types of the
-** the array elements
-*/
-boolean check_arrays(basicarray *p1, basicarray *p2) {
-  int32 n;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:check_arrays\n");
-#endif
-  if (p1->dimcount != p2->dimcount) return FALSE;
-  n = 0;
-  while (n < p1->dimcount && p1->dimsize[n] == p2->dimsize[n]) n++;
-  return n == p1->dimcount;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:check_arrays\n");
-#endif
-}
-
 /*
 ** 'type_table' is used for checking the types of formal and
 ** actual procedure and function parameters. The first index gives
@@ -368,6 +250,153 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
 };
 
+
+/*
+** 'eval_integer' evaluates a numeric expression where an integer value
+** is required, returning the value
+*/
+int32 eval_integer(void) {
+  DEBUGFUNCMSGIN;
+  expression();
+  DEBUGFUNCMSGOUT;
+  return pop_anynum32();
+}
+
+int64 eval_int64(void) {
+  DEBUGFUNCMSGIN;
+  expression();
+  DEBUGFUNCMSGOUT;
+  return pop_anynum64();
+}
+
+static int32 i32mulwithtest(int32 lh, int32 rh) {
+  DEBUGFUNCMSGIN;
+  if (llabs((int64)lh * (int64)rh) > MAXINTVAL) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RANGE);
+  }
+  DEBUGFUNCMSGOUT;
+  return lh*rh;
+}
+
+/* Use cast to float instead of TOFLOAT() as we don't care about loss of precision here */
+static int64 i64mulwithtest(int64 lh, int64 rh) {
+  DEBUGFUNCMSGIN;
+  if (fabsl((float64)(lh) * (float64)(rh)) > (float64)(MAXINT64VAL)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RANGE);
+  }
+  DEBUGFUNCMSGOUT;
+  return lh*rh;
+}
+
+static int32 i32divwithtest(int32 lh, int32 rh) {
+  DEBUGFUNCMSGIN;
+  if(rh == 0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
+  DEBUGFUNCMSGOUT;
+  return(lh/rh);
+}
+
+static int64 i64divwithtest(int64 lh, int64 rh) {
+  DEBUGFUNCMSGIN;
+  if(rh == 0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
+  DEBUGFUNCMSGOUT;
+  return(lh/rh);
+}
+
+static int32 i32modwithtest(int32 lh, int32 rh) {
+  DEBUGFUNCMSGIN;
+  if(rh == 0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
+  DEBUGFUNCMSGOUT;
+  return(lh%rh);
+}
+
+static int64 i64modwithtest(int64 lh, int64 rh) {
+  DEBUGFUNCMSGIN;
+  if(rh == 0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
+  DEBUGFUNCMSGOUT;
+  return(lh%rh);
+}
+
+/*
+** 'fmulwithtest' multiplies two float64 values, and checks that the
+** number is not an invalid response (NaN, Inf, Subnormal). Also,
+** zero is OK, annoyingly isnormal() doesn't consider 0 to be normal,
+** and isfinite() doesn't report on FP_SUBNORMAL according to the
+** man pages.
+*/
+
+static float64 fmulwithtest(float64 lh, float64 rh) {
+  float64 res=lh*rh;
+  DEBUGFUNCMSGIN;
+  if ((res != 0.0) && !isnormal(res)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RANGE);
+  }
+  DEBUGFUNCMSGOUT;
+  return(res);
+}
+
+/* Similarly for 'fdivwithtest' */
+static float64 fdivwithtest(float64 lh, float64 rh) {
+  float64 res;
+  DEBUGFUNCMSGIN;
+  if (rh == 0.0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
+  res=lh/rh;
+  if ((res != 0.0) && !isnormal(res)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RANGE);
+  }
+  DEBUGFUNCMSGOUT;
+  return(res);
+}
+
+/*
+** 'eval_intfactor' evaluates a numeric factor where an integer is
+** required. The function returns the value obtained.
+*/
+int32 eval_intfactor(void) {
+  DEBUGFUNCMSGIN;
+  (*factor_table[*basicvars.current])();
+  DEBUGFUNCMSGOUT;
+  return pop_anynum32();
+}
+
+/*
+** 'check_arrays' returns 'true' if the two arrays passed to it
+** have the same number of dimensions and the bounds of each
+** dimension are the same. It does not check the types of the
+** the array elements
+*/
+boolean check_arrays(basicarray *p1, basicarray *p2) {
+  int32 n;
+  DEBUGFUNCMSGIN;
+  if (p1->dimcount != p2->dimcount) {
+    DEBUGFUNCMSGOUT;
+    return FALSE;
+  }
+  n = 0;
+  while (n < p1->dimcount && p1->dimsize[n] == p2->dimsize[n])
+    n++;
+  DEBUGFUNCMSGOUT;
+  return n == p1->dimcount;
+}
+
 /*
 ** 'push_oneparm' is called to deal with a PROC or FN parameter. It does this
 ** in two stages, evaluating the parameter first and after all the other have
@@ -384,9 +413,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   stackitem parmtype = STACK_UNKNOWN;
   boolean isreturn;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:push_oneparm\n");
-#endif
+  DEBUGFUNCMSGIN;
   isreturn = (fp->parameter.typeinfo & VAR_RETURN) != 0;
   if (!isreturn) {      /* Normal parameter */
     expression();
@@ -400,6 +427,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     else if (parmtype >= STACK_INTARRAY && parmtype <= STACK_SATEMP)
       arrayparm = pop_array();
     else {
+      DEBUGFUNCMSGOUT;
       error(ERR_BROKEN, __LINE__, "evaluate");
     }
   } else {      /* Return parameter */
@@ -463,6 +491,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       parmtype = STACK_STRARRAY;
       break;
     default:            /* Bad parameter type */
+      DEBUGFUNCMSGOUT;
       error(ERR_BROKEN, __LINE__, "evaluate");
     }
   }
@@ -480,20 +509,24 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   if (*basicvars.current == ',') {      /* More parameters to come - Point at start of next one */
     basicvars.current++;                /* SKip comma */
     if (*basicvars.current == ')') {
+      DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
     if (fp->nextparm == NIL) {
+      DEBUGFUNCMSGOUT;
       error(ERR_TOOMANY, procname);
     }
     push_oneparm(fp->nextparm, parmno+1, procname);
   }
   else if (*basicvars.current == ')') { /* End of parameters */
     if (fp->nextparm != NIL) {  /* Have reached end of parameters but not the end of the parameter list */
+      DEBUGFUNCMSGOUT;
       error(ERR_NOTENUFF, procname);
     }
     basicvars.current++;        /* Step past the ')' */
   }
   else {        /* Syntax error - ',' or ')' expected */
+    DEBUGFUNCMSGOUT;
     error(ERR_CORPNEXT);
   }
 /*
@@ -514,17 +547,19 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       case STACK_UINT8: *p = uint8parm; break;
       case STACK_INT64:
         if ((int64parm >= 0 && int64parm <= 0x7FFFFFFFll) ||
-            (int64parm < 0 && int64parm >= 0xFFFFFFFF80000000ll))
+            (int64parm < 0 && int64parm >= 0xFFFFFFFF80000000ll)) {
           *p = (int32)int64parm;
-        else
+        } else {
+          DEBUGFUNCMSGOUT;
           error(ERR_RANGE);
+        }
         break;
       case STACK_FLOAT: *p = TOINT(floatparm); break;
-      default: error(ERR_BROKEN, __LINE__, "evaluate");
+      default:
+        DEBUGFUNCMSGOUT;
+        error(ERR_BROKEN, __LINE__, "evaluate");
     }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_oneparm via VAR_INTWORD\n");
-#endif
+    DEBUGFUNCMSG("Exiting via VAR_INTWORD");
     return;
   }
 /* Now deal with other parameter types */
@@ -541,7 +576,9 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       case STACK_UINT8: *p = uint8parm; break;
       case STACK_INT64: *p = int64parm; break;
       case STACK_FLOAT: *p = TOINT(floatparm); break;
-      default: error(ERR_BROKEN, __LINE__, "evaluate");
+      default:
+        DEBUGFUNCMSGOUT;
+        error(ERR_BROKEN, __LINE__, "evaluate");
     }
     break;
   }
@@ -557,7 +594,9 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       case STACK_UINT8: *p = uint8parm; break;
       case STACK_INT64: *p = int64parm; break;
       case STACK_FLOAT: *p = TOINT64(floatparm); break;
-      default: error(ERR_BROKEN, __LINE__, "evaluate");
+      default:
+        DEBUGFUNCMSGOUT;
+        error(ERR_BROKEN, __LINE__, "evaluate");
     }
     break;
   }
@@ -573,7 +612,9 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       case STACK_UINT8: *p = TOFLOAT(uint8parm); break;
       case STACK_INT64: *p = TOFLOAT(int64parm); break;
       case STACK_FLOAT: *p = floatparm; break;
-      default: error(ERR_BROKEN, __LINE__, "evaluate");
+      default:
+        DEBUGFUNCMSGOUT;
+        error(ERR_BROKEN, __LINE__, "evaluate");
     }
     break;
   }
@@ -642,11 +683,10 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     *fp->parameter.address.arrayaddr = arrayparm;
     break;
   default:              /* Bad parameter type */
+    DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_oneparm\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -656,14 +696,14 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
 static void push_singleparm(formparm *fp, char *procname) {
   int32 intparm = 0;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:push_singleparm\n");
-#endif
+  DEBUGFUNCMSGIN;
   expression();
   if (*basicvars.current != ')') {      /* Try to put out a meaningful error message */
-    if (*basicvars.current == ',')      /* Assume there is another parameter */
+    if (*basicvars.current == ',') {     /* Assume there is another parameter */
+      DEBUGFUNCMSGOUT;
       error(ERR_TOOMANY, procname);
-    else {      /* Something else - Assume ')' is missing */
+    } else {      /* Something else - Assume ')' is missing */
+      DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
     }
   }
@@ -671,9 +711,7 @@ static void push_singleparm(formparm *fp, char *procname) {
   intparm = pop_anynum32();
   save_int(fp->parameter, *(fp->parameter.address.intaddr));
   *(fp->parameter.address.intaddr) = intparm;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_singleparm\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -685,18 +723,14 @@ static void push_singleparm(formparm *fp, char *procname) {
 ** function.
 */
 void push_parameters(fnprocdef *dp, char *base) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:push_parameters\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip the '(' */
   if (dp->simple)
     push_singleparm(dp->parmlist, base);
   else {
     push_oneparm(dp->parmlist, 1, base);
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:push_parameters\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -704,14 +738,10 @@ void push_parameters(fnprocdef *dp, char *base) {
 ** variable, that is, one that is not followed by an indirection operator
 */
 static void do_staticvar(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_staticvar\n");
-#endif
+  DEBUGFUNCMSGIN;
   push_int(basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger);
   basicvars.current+=2;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_staticvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -722,9 +752,8 @@ static void do_staticvar(void) {
 static void do_statindvar(void) {
   size_t address = basicvars.staticvars[*(basicvars.current+1)].varentry.varinteger;
   byte operator;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_statindvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   basicvars.current+=2;
   operator = *basicvars.current;
   basicvars.current++;
@@ -737,81 +766,59 @@ static void do_statindvar(void) {
   else {                /* Word-sized integer */
     push_int(get_integer(address));
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_statindvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_intzero' pushes the integer value 0 on to the Basic stack
 */
 static void do_intzero(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intzero\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(0);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intzero\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_intone' pushes the integer value 1 on to the Basic stack
 */
 static void do_intone(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intone\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_int(1);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intone\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_smallconst' pushes a small integer value on to the Basic stack
 */
 static void do_smallconst(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_smallconst\n");
-#endif
+  DEBUGFUNCMSGIN;
   push_int(*(basicvars.current+1)+1);   /* +1 as values 1..256 are held as 0..255 */
   basicvars.current+=2; /* Skip 'smallconst' token and value */
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_smallconst\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_intconst' pushes a 32-bit integer constant on to the Basic stack
 */
 static void do_intconst(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intconst\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Point current at binary version of number */
   push_int(GET_INTVALUE(basicvars.current));
   basicvars.current+=INTSIZE;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intconst\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_int64const' pushes a 64-bit integer constant on to the Basic stack
 */
 static void do_int64const(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_int64const\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Point current at binary version of number */
   push_int64(GET_INT64VALUE(basicvars.current));
   basicvars.current+=INT64SIZE;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_int64const\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -819,14 +826,10 @@ static void do_int64const(void) {
 ** Basic stack
 */
 static void do_floatzero(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatzero\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_float(0.0);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatzero\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -834,14 +837,10 @@ static void do_floatzero(void) {
 ** Basic stack
 */
 static void do_floatone(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatone\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;
   push_float(1.0);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatone\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -849,14 +848,10 @@ static void do_floatone(void) {
 ** the token on to the Basic stack
 */
 static void do_floatconst(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatconst\n");
-#endif
+  DEBUGFUNCMSGIN;
   push_float(get_fpvalue(basicvars.current));
   basicvars.current+=(FLOATSIZE+1);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatconst\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -866,15 +861,12 @@ static void do_floatconst(void) {
 */
 static void do_intvar(void) {
   int32 *ip;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_intvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   ip = GET_ADDRESS(basicvars.current, int32 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_int(*ip);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_intvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -883,15 +875,12 @@ static void do_intvar(void) {
 */
 static void do_uint8var(void) {
   uint8 *ip;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_uint8var\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   ip = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_uint8(*ip);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_uint8var\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -900,15 +889,12 @@ static void do_uint8var(void) {
 */
 static void do_int64var(void) {
   int64 *ip;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_int64var\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   ip = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_int64(*ip);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "Exited function evaluate.c:do_int64var\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -917,15 +903,12 @@ static void do_int64var(void) {
 */
 static void do_floatvar(void) {
   float64 *fp;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_floatvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   fp = GET_ADDRESS(basicvars.current, float64 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_float(*fp);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_floatvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -933,15 +916,12 @@ static void do_floatvar(void) {
 */
 static void do_stringvar(void) {
   basicstring *sp;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_stringvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   sp = GET_ADDRESS(basicvars.current, basicstring *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_string(*sp);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_stringvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -949,15 +929,12 @@ static void do_stringvar(void) {
 */
 static void do_arrayvar(void) {
   variable *vp;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_arrayvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+2;                /* Skip pointer to array and ')' */
   push_array(vp->varentry.vararray, vp->varflags);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_arrayvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -973,9 +950,7 @@ static void do_arrayref(void) {
   size_t offset = 0;
   basicarray *descriptor;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do\n");
-#endif
+  DEBUGFUNCMSGIN;
   vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer to variable */
   descriptor = vp->varentry.vararray;
@@ -983,7 +958,10 @@ static void do_arrayref(void) {
   if (descriptor->dimcount == 1) {      /* Array has only one dimension - Use faster code */
     expression();             /* Evaluate an array index */
     element = pop_anynum32();
-    if (element < 0 || element >= descriptor->dimsize[0]) error(ERR_BADINDEX, element, vp->varname);
+    if (element < 0 || element >= descriptor->dimsize[0]) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_BADINDEX, element, vp->varname);
+    }
   }
   else {        /* Multi-dimensional array */
     maxdims = descriptor->dimcount;
@@ -992,39 +970,57 @@ static void do_arrayref(void) {
     do {        /* Gather the array indexes */
       expression();           /* Evaluate an array index */
       index = pop_anynum32();
-      if (index < 0 || index >= descriptor->dimsize[dimcount]) error(ERR_BADINDEX, index, vp->varname);
+      if (index < 0 || index >= descriptor->dimsize[dimcount]) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_BADINDEX, index, vp->varname);
+      }
       dimcount++;
       element+=index;
       if (*basicvars.current != ',') break;     /* No more array indexes expected */
       basicvars.current++;
-      if (dimcount > maxdims) error(ERR_INDEXCO, vp->varname);  /* Too many dimensions */
+      if (dimcount > maxdims) {  /* Too many dimensions */
+        DEBUGFUNCMSGOUT;
+        error(ERR_INDEXCO, vp->varname);
+      }
       if (dimcount != maxdims) element = element*descriptor->dimsize[dimcount];
     } while (TRUE);
-    if (dimcount != maxdims) error(ERR_INDEXCO, vp->varname);   /* Not enough dimensions */
+    if (dimcount != maxdims) {   /* Not enough dimensions */
+      DEBUGFUNCMSGOUT;
+      error(ERR_INDEXCO, vp->varname);
+    }
   }
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;          /* Point at character after the ')' */
   if (*basicvars.current != '?' && *basicvars.current != '!') { /* Ordinary array reference */
     if (vartype == VAR_INTARRAY) {      /* Can push the array element on to the stack then go home */
       push_int(vp->varentry.vararray->arraystart.intbase[element]);
+      DEBUGFUNCMSGOUT;
       return;
     }
     if (vartype == VAR_UINT8ARRAY) {    /* Can push the array element on to the stack then go home */
       push_uint8(vp->varentry.vararray->arraystart.uint8base[element]);
+      DEBUGFUNCMSGOUT;
       return;
     }
     if (vartype == VAR_INT64ARRAY) {    /* Can push the array element on to the stack then go home */
       push_int64(vp->varentry.vararray->arraystart.int64base[element]);
+      DEBUGFUNCMSGOUT;
       return;
     }
     if (vartype == VAR_FLOATARRAY) {
       push_float(vp->varentry.vararray->arraystart.floatbase[element]);
+      DEBUGFUNCMSGOUT;
       return;
     }
     if (vartype == VAR_STRARRAY) {
       push_string(vp->varentry.vararray->arraystart.stringbase[element]);
+      DEBUGFUNCMSGOUT;
       return;
     }
+    DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");    /* Sanity check */
   }
   else {        /* Array reference is followed by an indirection operator */
@@ -1033,7 +1029,9 @@ static void do_arrayref(void) {
       case VAR_UINT8ARRAY: offset = vp->varentry.vararray->arraystart.uint8base[element]; break;
       case VAR_INT64ARRAY: offset = vp->varentry.vararray->arraystart.int64base[element]; break;
       case VAR_FLOATARRAY: offset = TOINT64(vp->varentry.vararray->arraystart.floatbase[element]); break;
-      default: error(ERR_TYPENUM);
+      default:
+        DEBUGFUNCMSGOUT;
+        error(ERR_TYPENUM);
     }
     operator = *basicvars.current;
     basicvars.current++;
@@ -1046,6 +1044,7 @@ static void do_arrayref(void) {
       push_int(get_integer(offset));
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1055,9 +1054,8 @@ static void do_arrayref(void) {
 static void do_indrefvar(void) {
   byte operator;
   size_t offset;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_indrefvar\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == BASTOKEN_INTINDVAR) {    /* Fetch variable's value */
     offset = *GET_ADDRESS(basicvars.current, int32 *);
   } else if (*basicvars.current == BASTOKEN_INT64INDVAR) {   /* Fetch variable's value */
@@ -1079,9 +1077,7 @@ static void do_indrefvar(void) {
   else {                /* Word-sized integer */
     push_int(get_integer(offset));
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_indrefvar\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1096,22 +1092,25 @@ static void do_xvar(void) {
   int32 vartype;
   boolean isarray;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_xvar, current=0x%llX\n", (int64)basicvars.current);
-#endif
+  DEBUGFUNCMSGIN;
   base = get_srcaddr(basicvars.current);                /* Point 'base' at the start of the variable's name */
   np = skip_name(base);
   vp = find_variable(base, np-base);
   if (vp == NIL) {      /* Cannot find the variable */
-    if (*(np-1) == '(' || *(np-1) == '[')
+    if (*(np-1) == '(' || *(np-1) == '[') {
+      DEBUGFUNCMSGOUT;
       error(ERR_ARRAYMISS, tocstring(CAST(base, char *), np-base));     /* Unknown array */
-    else {
+    } else {
+      DEBUGFUNCMSGOUT;
       error(ERR_VARMISS, tocstring(CAST(base, char *), np-base));       /* Unknown variable */
     }
   }
   vartype = vp->varflags;
   isarray = (vartype & VAR_ARRAY) != 0;
-  if (isarray && vp->varentry.vararray == NIL) error(ERR_NODIMS, vp->varname);  /* Array not dimensioned */
+  if (isarray && vp->varentry.vararray == NIL) {  /* Array not dimensioned */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NODIMS, vp->varname);
+  }
   np = basicvars.current+LOFFSIZE+1;
   if (!isarray && (*np == '?' || *np == '!')) {         /* Variable is followed by an indirection operator */
     switch (vartype) {
@@ -1127,8 +1126,12 @@ static void do_xvar(void) {
       *basicvars.current = BASTOKEN_FLOATINDVAR;
       set_address(basicvars.current, &vp->varentry.varfloat);
       break;
-    case VAR_UINT8: error(ERR_UNSUITABLEVAR);
-    default: error(ERR_VARNUM);
+    case VAR_UINT8: 
+      DEBUGFUNCMSGOUT;
+      error(ERR_UNSUITABLEVAR);
+    default:
+      DEBUGFUNCMSGOUT;
+      error(ERR_VARNUM);
     }
     do_indrefvar();
   }
@@ -1171,9 +1174,7 @@ static void do_xvar(void) {
       }
     }
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_xvar, current=0x%llX\n", (int64)basicvars.current);
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1182,10 +1183,13 @@ static void do_xvar(void) {
 */
 static void do_stringcon(void) {
   basicstring descriptor;
+
+  DEBUGFUNCMSGIN;
   descriptor.stringaddr = TOSTRING(get_srcaddr(basicvars.current));
   descriptor.stringlen = GET_SIZE(basicvars.current+1+OFFSIZE);
   basicvars.current+=1+OFFSIZE+SIZESIZE;
   push_string(descriptor);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1197,6 +1201,8 @@ static void do_qstringcon(void) {
   int32 length, srce, dest;
   byte *string;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   string = get_srcaddr(basicvars.current);
   length = GET_SIZE(basicvars.current+1+OFFSIZE);
   basicvars.current+=1+OFFSIZE+SIZESIZE;
@@ -1210,6 +1216,7 @@ static void do_qstringcon(void) {
     }
   }
   push_strtemp(length, cp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1217,10 +1224,15 @@ static void do_qstringcon(void) {
 **  expression in the brackets
 */
 static void do_brackets(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;  /* Skip the '(' */
   expression();
-  if (*basicvars.current != ')') error(ERR_RPMISS);
+  if (*basicvars.current != ')') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+  }
   basicvars.current++;
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1228,18 +1240,31 @@ static void do_brackets(void) {
 ** no-op apart from type checking
 */
 static void do_unaryplus(void) {
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip '+' */
   (*factor_table[*basicvars.current])();
-  if ((GET_TOPITEM != STACK_INT) && (GET_TOPITEM != STACK_UINT8) && (GET_TOPITEM != STACK_INT64) && (GET_TOPITEM != STACK_FLOAT)) error(ERR_TYPENUM);
+  switch(GET_TOPITEM) {
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64:
+    case STACK_FLOAT:
+    case STACK_INTARRAY:
+    case STACK_UINT8ARRAY:
+    case STACK_INT64ARRAY:
+    case STACK_FLOATARRAY:
+      break;
+    default:
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'do_unaryminus' negates the value on top of the stack
 */
 static void do_unaryminus(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:do_unaryminus\n");
-#endif
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip '-' */
   (*factor_table[*basicvars.current])();
   switch(GET_TOPITEM) {
@@ -1247,11 +1272,11 @@ static void do_unaryminus(void) {
     case STACK_UINT8: push_int(pop_anyint() * -1); break;
     case STACK_INT64: NEGATE_INT64; break;
     case STACK_FLOAT: NEGATE_FLOAT; break;
-    default: error(ERR_TYPENUM);
+    default:
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPENUM);
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:do_unaryminus\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1260,11 +1285,13 @@ static void do_unaryminus(void) {
 ** the stack
 */
 static void do_getbyte(void) {
+  DEBUGFUNCMSGIN;
   size_t offset = 0;
   basicvars.current++;          /* Skip '?' */
   (*factor_table[*basicvars.current])();
   offset = m7offset((size_t)pop_anynum64());
   push_int(basicvars.memory[offset]);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1273,11 +1300,13 @@ static void do_getbyte(void) {
 ** the stack. The address of the word to be pushed is byte-aligned
 */
 static void do_getword(void) {
+  DEBUGFUNCMSGIN;
   size_t offset = 0;
   basicvars.current++;          /* Skip '!' */
   (*factor_table[*basicvars.current])();
   offset = m7offset((size_t)pop_anynum64());
   push_int(get_integer(offset));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1286,11 +1315,13 @@ static void do_getword(void) {
 ** the stack. The address of the 64-bit int to be pushed is byte-aligned
 */
 static void do_getlong(void) {
+  DEBUGFUNCMSGIN;
   size_t offset = 0;
   basicvars.current++;          /* Skip ']' */
   (*factor_table[*basicvars.current])();
   offset = m7offset((size_t)pop_anynum64());
   push_int64(get_int64(offset));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1303,11 +1334,14 @@ static void do_getlong(void) {
 static void do_getstring(void) {
   size_t offset = 0;
   int32 len;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip '$' */
   (*factor_table[*basicvars.current])();
   offset = m7offset((size_t)pop_anynum64());
   len = get_stringlen(offset);
   push_dolstring(len, CAST(&basicvars.memory[offset], char *));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1317,10 +1351,13 @@ static void do_getstring(void) {
 */
 static void do_getfloat(void) {
   size_t offset = 0;
+
+  DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip '|' */
   (*factor_table[*basicvars.current])();
   offset = m7offset((size_t)pop_anynum64());
   push_float(get_float(offset));
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1355,18 +1392,21 @@ static void do_function(void) {
   byte *tp = NULL;
   fnprocdef *dp = NULL;
   variable *vp = NULL;
-  //if (kbd_escpoll()) error(ERR_ESCAPE);
+
+  DEBUGFUNCMSGIN;
 #ifdef TARGET_DJGPP
   if (stackavail()<DJGPPLIMIT) error(ERR_STACKFULL);
 #endif
   basicvars.recdepth++;
-  if (basicvars.recdepth > basicvars.maxrecdepth) error(ERR_STACKFULL);
+  if (basicvars.recdepth > basicvars.maxrecdepth) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_STACKFULL);
+  }
   vp = GET_ADDRESS(basicvars.current, variable *);
   dp = vp->varentry.varfnproc;
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer to function */
 
 /* Now deal with the arguments of the function call */
-
   if (*basicvars.current == '(') push_parameters(dp, vp->varname);
 
 /* Save everything */
@@ -1374,7 +1414,6 @@ static void do_function(void) {
   tp = basicvars.current;
 
 /* Lastly, create a new operator stack and call the function */
-
   basicvars.opstop = make_opstack();
   basicvars.opstlimit = basicvars.opstop+OPSTACKSIZE;
   basicvars.local_restart = make_restart();
@@ -1395,9 +1434,9 @@ static void do_function(void) {
   }
 
 /* Restore stuff after the call has ended */
-
   basicvars.recdepth--;
   basicvars.current = tp;       /* Note that 'basicvars.current' is preserved over the function call in 'tp' */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1409,8 +1448,13 @@ static void do_xfunction(void) {
   fnprocdef *dp;
   variable *vp;
   boolean gotparms;
+
+  DEBUGFUNCMSGIN;
   base = get_srcaddr(basicvars.current);                /* Point 'base' at start of function's name */
-  if (*base != BASTOKEN_FN) error(ERR_NOTAFN);       /* Ensure a function is being called */
+  if (*base != BASTOKEN_FN) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_NOTAFN);       /* Ensure a function is being called */
+  }
   tp = skip_name(base);
   gotparms = *(tp-1) == '(';
   if (gotparms) tp--;   /* '(' found but it is not part of name */
@@ -1419,12 +1463,19 @@ static void do_xfunction(void) {
   *basicvars.current = BASTOKEN_FNPROCALL;
   set_address(basicvars.current, vp);
   if (gotparms) {       /* PROC/FN call has some parameters */
-    if (dp->parmlist == NIL) error(ERR_TOOMANY, vp->varname);   /* Got a '(' but function has no parameters */
+    if (dp->parmlist == NIL) {   /* Got a '(' but function has no parameters */
+      DEBUGFUNCMSGOUT;
+      error(ERR_TOOMANY, vp->varname);
+    }
   }
   else {        /* No parameters found */
-    if (dp->parmlist != NIL) error(ERR_NOTENUFF, vp->varname+1);        /* But function should have them */
+    if (dp->parmlist != NIL) {        /* But function should have them */
+      DEBUGFUNCMSGOUT;
+      error(ERR_NOTENUFF, vp->varname+1);
+    }
   }
   do_function();        /* Call the function */
+  DEBUGFUNCMSGOUT;
 }
 
 /* =============== Operators =============== */
@@ -1435,16 +1486,23 @@ static void do_xfunction(void) {
 */
 static void want_number(void) {
   stackitem baditem;
+
+  DEBUGFUNCMSGIN;
   baditem = GET_TOPITEM;
-  if (baditem==STACK_STRING || baditem==STACK_STRTEMP)          /* Numeric operand required */
+  if (baditem==STACK_STRING || baditem==STACK_STRTEMP) {         /* Numeric operand required */
+    DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
-  else if (baditem>STACK_UNKNOWN && baditem <= STACK_SATEMP)    /* Operator is not defined for this operand type */
+  } else if (baditem>STACK_UNKNOWN && baditem <= STACK_SATEMP) {   /* Operator is not defined for this operand type */
+    DEBUGFUNCMSGOUT;
     error(ERR_BADARITH);
-  else {        /* Unrecognisable operand - Stack is probably corrupt */
+  } else {        /* Unrecognisable operand - Stack is probably corrupt */
     fprintf(stderr, "Baditem = %d, sp = %p, safe=%p, opstop=%p\n", baditem,
-     basicvars.stacktop.bytesp, basicvars.safestack.bytesp, basicvars.opstop);
+      basicvars.stacktop.bytesp, basicvars.safestack.bytesp, basicvars.opstop);
+    DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");
   }
+  /* This should never be reached */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1453,14 +1511,21 @@ static void want_number(void) {
 */
 static void want_string(void) {
   stackitem baditem;
+
+  DEBUGFUNCMSGIN;
   baditem = GET_TOPITEM;
-  if (baditem == STACK_INT || baditem == STACK_UINT8 || baditem == STACK_INT64 || baditem == STACK_FLOAT)               /* String operand required */
+  if (baditem == STACK_INT || baditem == STACK_UINT8 || baditem == STACK_INT64 || baditem == STACK_FLOAT) {              /* String operand required */
+    DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
-  else if (baditem > STACK_UNKNOWN && baditem <= STACK_SATEMP)  /* Operator is not defined for this operand type */
+  } else if (baditem > STACK_UNKNOWN && baditem <= STACK_SATEMP) {  /* Operator is not defined for this operand type */
+    DEBUGFUNCMSGOUT;
     error(ERR_BADARITH);
-  else {        /* Unrecognisable operand - Stack is probably corrupt */
+  } else {        /* Unrecognisable operand - Stack is probably corrupt */
+    DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");
   }
+  /* This should never be reached */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1468,6 +1533,8 @@ static void want_string(void) {
 ** but an entry of another type is found
 */
 static void want_array(void) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   error(ERR_VARARRAY);
 }
 
@@ -1475,6 +1542,8 @@ static void want_array(void) {
 ** 'eval_badcall' is called when an invalid stack entry type is found
 */
 static void eval_badcall(void) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
   error(ERR_BROKEN, __LINE__, "evaluate");
 }
 
@@ -1490,9 +1559,7 @@ static void *make_array(int32 arraytype, basicarray* original) {
   void *base = NULL;
   result = *original;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:make_array with arraytpe=0x%X\n", arraytype);
-#endif
+  DEBUGFUNCMSGIN;
   switch (arraytype) {
   case VAR_INTWORD:
     base = alloc_stackmem(original->arrsize*sizeof(int32));
@@ -1515,13 +1582,15 @@ static void *make_array(int32 arraytype, basicarray* original) {
     result.arraystart.stringbase = base;
     break;
   default:
+    DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");            /* Passed bad array type */
   }
-  if (base == NIL) error(ERR_NOROOM);   /* Not enough room on stack to create array */
+  if (base == NIL) {   /* Not enough room on stack to create array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NOROOM);
+  }
   push_arraytemp(&result, arraytype);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exit function evaluate.c:make_array with base=0x%p\n", base);
-#endif
+  DEBUGFUNCMSGOUT;
   return base;
 }
 
@@ -1534,6 +1603,7 @@ static void eval_ivplus(void) {
   stackitem lhitem, rhitem;
   int64 rhint = 0;
   
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhint=pop_anyint();
   lhitem = GET_TOPITEM;
@@ -1595,6 +1665,7 @@ static void eval_ivplus(void) {
     for (n = 0; n < count; n++) base[n]+=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1604,6 +1675,8 @@ static void eval_ivplus(void) {
 */
 static void eval_fvplus(void) {
   stackitem lhitem;
+
+  DEBUGFUNCMSGIN;
   floatvalue = pop_float();       /* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
@@ -1641,6 +1714,7 @@ static void eval_fvplus(void) {
     for (n = 0; n < count; n++) base[n]+=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1652,6 +1726,8 @@ static void eval_svplus(void) {
   basicstring lhstring, rhstring;
   int32 newlen;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -1659,7 +1735,10 @@ static void eval_svplus(void) {
     if (rhstring.stringlen == 0) return;        /* Do nothing if right-hand string is of zero length */
     lhstring = pop_string();
     newlen = lhstring.stringlen+rhstring.stringlen;
-    if (newlen > MAXSTRING) error(ERR_STRINGLEN);
+    if (newlen > MAXSTRING) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_STRINGLEN);
+    }
     if (lhitem == STACK_STRTEMP) {      /* Reuse left-hand string as it is a temporary */
       cp = resize_string(lhstring.stringaddr, lhstring.stringlen, newlen);
       lhstring.stringaddr = cp;
@@ -1682,7 +1761,10 @@ static void eval_svplus(void) {
     base = make_array(VAR_STRINGDOL, lharray);
     for (n = 0; n < count; n++) {               /* Append right hand string to each element of string array */
       newlen = srce[n].stringlen+rhstring.stringlen;
-      if (newlen > MAXSTRING) error(ERR_STRINGLEN);
+      if (newlen > MAXSTRING) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_STRINGLEN);
+      }
       cp = alloc_string(newlen);
       memmove(cp, srce[n].stringaddr, srce[n].stringlen);
       memmove(cp+srce[n].stringlen, rhstring.stringaddr, rhstring.stringlen);
@@ -1691,6 +1773,7 @@ static void eval_svplus(void) {
     }
     if (rhitem == STACK_STRTEMP) free_string(rhstring);
   } else want_string();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1703,6 +1786,8 @@ static void eval_iaplus(void) {
   basicarray *rharray;
   int32 n, count;
   int32 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
@@ -1723,7 +1808,10 @@ static void eval_iaplus(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>+<int array> */
     int32 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
@@ -1731,32 +1819,45 @@ static void eval_iaplus(void) {
     int32 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>+<int array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>+<int array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+TOFLOAT(rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>+<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n]+=TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1769,6 +1870,8 @@ static void eval_iu8aplus(void) {
   basicarray *rharray;
   int32 n, count;
   uint8 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
@@ -1793,39 +1896,55 @@ static void eval_iu8aplus(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>+<uint8 array> */
     int32 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_UINT8ARRAY) {      /* <uint8 array>+<uint8 array> */
     uint8 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>+<uint8 array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>+<uint8 array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+TOFLOAT(rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>+<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n]+=TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1839,6 +1958,8 @@ static void eval_i64aplus(void) {
   int32 n, count;
   int64 *rhsrce;
   int64 lhint=0;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
@@ -1857,7 +1978,10 @@ static void eval_i64aplus(void) {
     int64 *base;
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
@@ -1865,32 +1989,45 @@ static void eval_i64aplus(void) {
     int64 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>+<int64 array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>+<int64 array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+TOFLOAT(rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>+<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n]+=TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1903,6 +2040,8 @@ static void eval_faplus(void) {
   basicarray *rharray;
   int32 n, count;
   float64 *base, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
@@ -1914,39 +2053,55 @@ static void eval_faplus(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>+<float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n])+rhsrce[n];
   } else if (lhitem == STACK_UINT8ARRAY) {      /* <uint8 array>+<float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.uint8base;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n])+rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>+<float array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.int64base;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n])+rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>+<float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n]+rhsrce[n];
   } else if (lhitem == STACK_FATEMP) {          /* <float array>+<float array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n]+=rhsrce[n];
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -1959,6 +2114,8 @@ static void eval_saplus(void) {
   basicarray *rharray;
   int32 n, count;
   basicstring *base, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.stringbase;
@@ -1974,7 +2131,10 @@ static void eval_saplus(void) {
     base = make_array(VAR_STRINGDOL, rharray);
     for (n = 0; n < count; n++) {               /* Prepend left-hand string to each element of string array */
       newlen = rhsrce[n].stringlen + lhstring.stringlen;
-      if (newlen > MAXSTRING) error(ERR_STRINGLEN);
+      if (newlen > MAXSTRING) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_STRINGLEN);
+      }
       cp = alloc_string(newlen);
       memmove(cp, lhstring.stringaddr, lhstring.stringlen);
       memmove(cp + lhstring.stringlen, rhsrce[n].stringaddr, rhsrce[n].stringlen);
@@ -1988,12 +2148,18 @@ static void eval_saplus(void) {
     int32 newlen;
     basicstring *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_STRINGDOL, rharray);
     lhsrce = lharray->arraystart.stringbase;
     for (n = 0; n < count; n++) {               /* Prepend left-hand string to each element of string array */
       newlen = lhsrce[n].stringlen + rhsrce[n].stringlen;
-      if (newlen > MAXSTRING) error(ERR_STRINGLEN);
+      if (newlen > MAXSTRING) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_STRINGLEN);
+      }
       cp = alloc_string(newlen);
       memmove(cp, lhsrce[n].stringaddr, lhsrce[n].stringlen);
       memmove(cp + lhsrce[n].stringlen, rhsrce[n].stringaddr, rhsrce[n].stringlen);
@@ -2006,11 +2172,17 @@ static void eval_saplus(void) {
     int32 newlen;
     basicstring *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.stringbase;
     for (n = 0; n < count; n++) {               /* Concatenate left-hand and right-hand strings of each array element */
       newlen = lhsrce[n].stringlen + rhsrce[n].stringlen;
-      if (newlen > MAXSTRING) error(ERR_STRINGLEN);
+      if (newlen > MAXSTRING) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_STRINGLEN);
+      }
       cp = resize_string(lhsrce[n].stringaddr, lhsrce[n].stringlen, newlen);
       memmove(cp + lhsrce[n].stringlen, rhsrce[n].stringaddr, rhsrce[n].stringlen);
       lhsrce[n].stringaddr = cp;
@@ -2021,6 +2193,7 @@ static void eval_saplus(void) {
   else {
     want_string();
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2032,9 +2205,7 @@ static void eval_ivminus(void) {
   stackitem lhitem, rhitem;
   int64 rhint = 0;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_ivminus\n");
-#endif
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhint = pop_anyint();
   lhitem = GET_TOPITEM;
@@ -2107,9 +2278,7 @@ static void eval_ivminus(void) {
     for (n = 0; n < count; n++) base[n] -= floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_ivminus\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2119,6 +2288,8 @@ static void eval_ivminus(void) {
 static void eval_fvminus(void) {
   stackitem lhitem;
   floatvalue = pop_float();
+
+  DEBUGFUNCMSGIN;
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {   /* <int>-<float> */
     floatvalue = TOFLOAT(pop_anyint()) - floatvalue;
@@ -2164,6 +2335,7 @@ static void eval_fvminus(void) {
     for (n = 0; n < count; n++) base[n] -= floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2176,6 +2348,8 @@ static void eval_iaminus(void) {
   basicarray *rharray;
   int32 n, count;
   int32 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
@@ -2196,7 +2370,10 @@ static void eval_iaminus(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>-<int array> */
     int32 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
@@ -2204,32 +2381,45 @@ static void eval_iaminus(void) {
     int32 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>-<int array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>-<int array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - TOFLOAT(rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>-<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] -= TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2242,6 +2432,8 @@ static void eval_iu8aminus(void) {
   basicarray *rharray;
   int32 n, count;
   uint8 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
@@ -2266,39 +2458,55 @@ static void eval_iu8aminus(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>-<uint8 array> */
     int32 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_UINT8ARRAY) {      /* <uint8 array>-<uint8 array> */
     uint8 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>-<uint8 array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>-<uint8 array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - TOFLOAT(rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>-<uint8 array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] -= TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2311,6 +2519,8 @@ static void eval_i64aminus(void) {
   basicarray *rharray;
   int32 n, count;
   int64 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
@@ -2328,7 +2538,10 @@ static void eval_i64aminus(void) {
     int64 *base;
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
@@ -2336,32 +2549,45 @@ static void eval_i64aminus(void) {
     int64 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int array>-<int64 array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>-<int64 array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - TOFLOAT(rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>-<int64 array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] -= TOFLOAT(rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2374,6 +2600,8 @@ static void eval_faminus(void) {
   basicarray *rharray;
   int32 n, count;
   float64 *base, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
@@ -2385,39 +2613,55 @@ static void eval_faminus(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int array>+<float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n]) - rhsrce[n];
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array>+<float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.uint8base;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n]) - rhsrce[n];
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array>+<float array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.int64base;
     for (n = 0; n < count; n++) base[n] = TOFLOAT(lhsrce[n]) - rhsrce[n];
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array>-<float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = lhsrce[n] - rhsrce[n];
   } else if (lhitem == STACK_FATEMP) {                          /* <float array>-<float array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] -= rhsrce[n];
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2434,6 +2678,8 @@ static void eval_ivmul(void) {
   stackitem lhitem, rhitem;
   int64 rhint = 0, lhint = 0, intres=0;
   float64 floatres = 0;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhint = pop_anyint();
 
@@ -2506,6 +2752,7 @@ static void eval_ivmul(void) {
     for (n = 0; n < count; n++) base[n]=fmulwithtest(base[n], floatvalue);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2514,6 +2761,8 @@ static void eval_ivmul(void) {
 */
 static void eval_fvmul(void) {
   stackitem lhitem;
+
+  DEBUGFUNCMSGIN;
   floatvalue = pop_float();
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM)      /* Now branch according to type of left-hand operand */
@@ -2548,6 +2797,7 @@ static void eval_fvmul(void) {
     for (n = 0; n < count; n++) base[n]*=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2559,6 +2809,8 @@ static void eval_iamul(void) {
   basicarray *rharray;
   int32 n, count;
   int32 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
@@ -2589,32 +2841,45 @@ static void eval_iamul(void) {
     int32 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = i32mulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {              /* <int64 array>*<int array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = i64mulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>*<int array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FATEMP) {          /* <float array>*<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2626,6 +2891,8 @@ static void eval_iu8amul(void) {
   basicarray *rharray;
   int32 n, count;
   uint8 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
@@ -2649,7 +2916,10 @@ static void eval_iu8amul(void) {
   } else if (lhitem == STACK_INTARRAY) {                /* <int array>*<int array> */
     int32 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = i32mulwithtest(lhsrce[n], rhsrce[n]);
@@ -2657,32 +2927,45 @@ static void eval_iu8amul(void) {
     int32 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = i32mulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {              /* <int64 array>*<int array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = i64mulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>*<int array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FATEMP) {          /* <float array>*<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2694,6 +2977,8 @@ static void eval_i64amul(void) {
   basicarray *rharray;
   int32 n, count;
   int64 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
@@ -2711,7 +2996,10 @@ static void eval_i64amul(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>*<int64 array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = i64mulwithtest(lhsrce[n], rhsrce[n]);
@@ -2719,32 +3007,45 @@ static void eval_i64amul(void) {
     int64 *base;
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = i64mulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array>*<int64 array> */
     int64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base[n] = i64mulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>*<int64 array> */
     float64 *base, *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FATEMP) {          /* <float array>*<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2756,6 +3057,8 @@ static void eval_famul(void) {
   basicarray *rharray;
   int32 n, count;
   float64 *base, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
@@ -2767,32 +3070,45 @@ static void eval_famul(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array>*<float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base[n] = fmulwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {      /* <uint8 array>*<float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.uint8base;
     for (n = 0; n < count; n++) base[n] = fmulwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>*<float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fmulwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {          /* <float array>*<float array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fmulwithtest(lhsrce[n], rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 #define ROW 0
@@ -2805,13 +3121,21 @@ static void eval_famul(void) {
 */
 static void check_arraytype(basicarray *result, basicarray *lharray, basicarray *rharray) {
   int32 lhrows, lhcols, rhrows, rhcols;
-  if (lharray->dimcount > 2 || rharray->dimcount > 2) error(ERR_MATARRAY);
+
+  DEBUGFUNCMSGIN;
+  if (lharray->dimcount > 2 || rharray->dimcount > 2) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_MATARRAY);
+  }
   lhrows = lharray->dimsize[ROW];               /* First dimemsion is the number of rows */
   lhcols = lharray->dimsize[COLUMN];            /* Second dimension is the number of columns */
   rhrows = rharray->dimsize[ROW];
   rhcols = rharray->dimsize[COLUMN];
   if (lharray->dimcount == 1) { /* First array is a row vector */
-    if (lhrows != rhrows) error(ERR_MATARRAY);
+    if (lhrows != rhrows) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_MATARRAY);
+    }
     result->dimcount = 1;               /* Result is a row vector */
     if (rharray->dimcount == 1) /* Second array is a column vector - Result is a 1 by 1 array */
       result->dimsize[ROW] = result->arrsize = 1;
@@ -2820,17 +3144,24 @@ static void check_arraytype(basicarray *result, basicarray *lharray, basicarray 
     }
   }
   else if (rharray->dimcount == 1) {    /* Second array is a column vector (1st must be a matrix) */
-    if (rhrows != lhcols) error(ERR_MATARRAY);
+    if (rhrows != lhcols) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_MATARRAY);
+    }
     result->dimcount = 1;               /* Result is a column vector the same size as the second array */
     result->dimsize[ROW] = result->arrsize = lhrows;
   }
   else {                /* Multiplying two two dimensional matrixes */
-    if (lhcols != rhrows) error(ERR_MATARRAY);
+    if (lhcols != rhrows) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_MATARRAY);
+    }
     result->dimcount = 2;
     result->arrsize = lhrows * rhcols;
     result->dimsize[ROW] = lhrows;
     result->dimsize[COLUMN] = rhcols;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2841,9 +3172,14 @@ static void eval_immul(void) {
   int32 *base, *lhbase, *rhbase, resindex, row, col, sum, lhrowsize, rhrowsize;
   basicarray *lharray, *rharray, result;
   stackitem lhitem;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   lhitem = GET_TOPITEM;         /* Get type of left-hand item */
-  if (lhitem != STACK_INTARRAY) error(ERR_INTARRAY);    /* Want an integer array */
+  if (lhitem != STACK_INTARRAY) {    /* Want an integer array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_INTARRAY);
+  }
   lharray = pop_array();
   check_arraytype(&result, lharray, rharray);
   base = make_array(VAR_INTWORD, &result);
@@ -2885,6 +3221,7 @@ static void eval_immul(void) {
       }
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2897,9 +3234,14 @@ static void eval_fmmul(void) {
   static float64 sum;
   basicarray *lharray, *rharray, result;
   stackitem lhitem;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   lhitem = GET_TOPITEM;         /* Get type of left-hand item */
-  if (lhitem != STACK_FLOATARRAY) error(ERR_FPARRAY);   /* Want a floating point array */
+  if (lhitem != STACK_FLOATARRAY) {   /* Want a floating point array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_FPARRAY);
+  }
   lharray = pop_array();
   check_arraytype(&result, lharray, rharray);
   base = make_array(VAR_FLOAT, &result);
@@ -2941,6 +3283,7 @@ static void eval_fmmul(void) {
       }
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2950,6 +3293,8 @@ static void eval_fmmul(void) {
 static void eval_ivdiv(void) {
   stackitem lhitem;
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM)
     push_float(fdivwithtest(pop_anynumfp(),TOFLOAT(rhint)));
@@ -2985,6 +3330,7 @@ static void eval_ivdiv(void) {
     for (n = 0; n < count; n++) base[n] = fdivwithtest(base[n], floatvalue);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2993,6 +3339,8 @@ static void eval_ivdiv(void) {
 */
 static void eval_fvdiv(void) {
   stackitem lhitem;
+
+  DEBUGFUNCMSGIN;
   floatvalue = pop_float();
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM)
@@ -3027,6 +3375,7 @@ static void eval_fvdiv(void) {
     for (n = 0; n < count; n++) base[n] = fdivwithtest(base[n], floatvalue);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3039,6 +3388,8 @@ static void eval_iadiv(void) {
   int32 n, count;
   int32 *rhsrce;
   float64 *base;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
@@ -3051,39 +3402,55 @@ static void eval_iadiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int array>/<int array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array>/<int array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array>/<int array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array>/<int array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FATEMP) {                          /* <float array>/<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fdivwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3096,6 +3463,8 @@ static void eval_iu8adiv(void) {
   int32 n, count;
   uint8 *rhsrce;
   float64 *base;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
@@ -3108,39 +3477,55 @@ static void eval_iu8adiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int array>/<int array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array>/<int array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array>/<int array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array>/<int array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FATEMP) {                          /* <float array>/<int array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fdivwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3153,6 +3538,8 @@ static void eval_i64adiv(void) {
   int32 n, count;
   int64 *rhsrce;
   float64 *base;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
@@ -3165,39 +3552,55 @@ static void eval_i64adiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int array>/<int64 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array>/<int64 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array>/<int64 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base = make_array(VAR_FLOAT, rharray);
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array>/<int64 array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
   } else if (lhitem == STACK_FATEMP) {                          /* <float array>/<int64 array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fdivwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3209,6 +3612,8 @@ static void eval_fadiv(void) {
   basicarray *rharray;
   int32 n, count;
   float64 *base, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
@@ -3220,39 +3625,55 @@ static void eval_fadiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int array>/<float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <int array>/<float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.uint8base;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array>/<float array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.int64base;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array>/<float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base = make_array(VAR_FLOAT, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FATEMP) {                          /* <float array>/<float array> */
     float64 *lhsrce;
     basicarray lharray = pop_arraytemp();
-    if (!check_arrays(&lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(&lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray.arraystart.floatbase;
     for (n = 0; n < count; n++) lhsrce[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3262,9 +3683,13 @@ static void eval_fadiv(void) {
 static void eval_ivintdiv(void) {
   stackitem lhitem;
   int64 rhint = 0;
-  
+
+  DEBUGFUNCMSGIN;
   rhint = pop_anynum64();
-  if (rhint == 0) error(ERR_DIVZERO);
+  if (rhint == 0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)      /* Branch according to type of left-hand operand */
     INTDIV_INT(rhint);
@@ -3298,6 +3723,7 @@ static void eval_ivintdiv(void) {
       for (n = 0; n < count; n++) base[n] = TOINT64(srce[n]) / rhint;
     }
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3309,6 +3735,8 @@ static void eval_iaintdiv(void) {
   basicarray *rharray;
   int32 n, count;
   int32 *base, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
@@ -3321,14 +3749,20 @@ static void eval_iaintdiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int32 array> DIV <int32 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = i32divwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> DIV <int32 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base[n] = i32divwithtest(lhsrce[n], rhsrce[n]);
@@ -3336,7 +3770,10 @@ static void eval_iaintdiv(void) {
     int64 *lhsrce;
     int64 *base64;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
@@ -3344,11 +3781,15 @@ static void eval_iaintdiv(void) {
     float64 *lhsrce;
     int64 *base64;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3363,6 +3804,8 @@ static void eval_iu8aintdiv(void) {
   int32 *base32;
   uint8 *base8;
   uint8 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
@@ -3383,21 +3826,30 @@ static void eval_iu8aintdiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int32 array> DIV <uint8 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base32[n] = i32divwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> DIV <uint8 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base8[n] = i32divwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array> DIV <uint8 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
@@ -3405,11 +3857,15 @@ static void eval_iu8aintdiv(void) {
     float64 *lhsrce;
     int64 *base64;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3423,6 +3879,8 @@ static void eval_i64aintdiv(void) {
   int64 *base64, *rhsrce;
   int32 *base32;
   uint8 *base8;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
@@ -3445,34 +3903,45 @@ static void eval_i64aintdiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int32 array> DIV <int64 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base32[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> DIV <int64 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base8[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array> DIV <int64 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array> DIV <int64 array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
-  } else {
-    want_number();
-  }
+  } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3486,6 +3955,8 @@ static void eval_faintdiv(void) {
   int64 *base64;
   uint8 *base8;
   float64 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
@@ -3508,32 +3979,45 @@ static void eval_faintdiv(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int array> DIV <float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base32 = make_array(VAR_INTWORD, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base32[n] = i64divwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> DIV <float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base8 = make_array(VAR_UINT8, rharray);
     lhsrce = lharray->arraystart.uint8base;
     for (n = 0; n < count; n++) base8[n] = i64divwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array> DIV <float array> */
     int64 *lhsrce, *base64;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.int64base;
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array> DIV <float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64divwithtest(TOINT64(lhsrce[n]), TOINT64(rhsrce[n]));
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3543,8 +4027,13 @@ static void eval_faintdiv(void) {
 static void eval_ivmod(void) {
   stackitem lhitem;
   int64 rhint = 0;
+
+  DEBUGFUNCMSGIN;
   rhint = pop_anynum64();
-  if (rhint == 0) error(ERR_DIVZERO);
+  if (rhint == 0) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_DIVZERO);
+  }
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)      /* Branch according to type of left-hand operand */
     INTMOD_INT(rhint);
@@ -3578,6 +4067,7 @@ static void eval_ivmod(void) {
       for (n = 0; n < count; n++) base[n] = TOINT64(srce[n]) % rhint;
     }
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3591,6 +4081,8 @@ static void eval_iamod(void) {
   uint8 *base8;
   int32 *base32, *rhsrce;
   int64 *base64;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.intbase;
@@ -3606,32 +4098,45 @@ static void eval_iamod(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int32 array> MOD <integer array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base32[n] = i32modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> MOD <integer array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base8[n] = i32modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array> MOD <integer array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array> MOD <integer array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3645,6 +4150,8 @@ static void eval_iu8amod(void) {
   uint8 *base8, *rhsrce;
   int32 *base32;
   int64 *base64;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.uint8base;
@@ -3665,32 +4172,45 @@ static void eval_iu8amod(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int32 array> MOD <uint8 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> MOD <uint8 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array> MOD <uint8 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array> MOD <uint8 array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3704,6 +4224,8 @@ static void eval_i64amod(void) {
   uint8 *base8;
   int32 *base32;
   int64 *base64, *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.int64base;
@@ -3724,32 +4246,45 @@ static void eval_i64amod(void) {
   } else if (lhitem == STACK_INTARRAY) {                        /* <int32 array> MOD <int64 array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.intbase;
     base32 = make_array(VAR_INTWORD, rharray);
     for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_UINT8ARRAY) {                      /* <uint8 array> MOD <int64 array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.uint8base;
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array> MOD <int64 array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     lhsrce = lharray->arraystart.int64base;
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], rhsrce[n]);
   } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array> MOD <int64 array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3763,6 +4298,8 @@ static void eval_famod(void) {
   int64 *base64;
   uint8 *base8;
   float64 *rhsrce;
+
+  DEBUGFUNCMSGIN;
   rharray = pop_array();
   count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
@@ -3783,32 +4320,45 @@ static void eval_famod(void) {
   } else if (lhitem == STACK_INTARRAY) {        /* <int array> MOD <float array> */
     int32 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base32 = make_array(VAR_INTWORD, rharray);
     lhsrce = lharray->arraystart.intbase;
     for (n = 0; n < count; n++) base32[n] = i64modwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_UINT8ARRAY) {      /* <int array> MOD <float array> */
     uint8 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base8 = make_array(VAR_UINT8, rharray);
     lhsrce = lharray->arraystart.uint8base;
     for (n = 0; n < count; n++) base8[n] = i64modwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_INT64ARRAY) {      /* <int64 array> MOD <float array> */
     int64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.int64base;
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(lhsrce[n], TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_FLOATARRAY) {      /* <float array> MOD <float array> */
     float64 *lhsrce;
     basicarray *lharray = pop_array();
-    if (!check_arrays(lharray, rharray)) error(ERR_TYPEARRAY);
+    if (!check_arrays(lharray, rharray)) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPEARRAY);
+    }
     base64 = make_array(VAR_INTLONG, rharray);
     lhsrce = lharray->arraystart.floatbase;
     for (n = 0; n < count; n++) base64[n] = i64modwithtest(TOINT64(lhsrce[n]), TOINT64(rhsrce[n]));
   } else want_number();
+  DEBUGFUNCMSGOUT;
 }
 
 /* Replicate the error conditions found in RISC OS BASIC VI
@@ -3817,15 +4367,23 @@ static void eval_famod(void) {
  */
 static float80 mpow(float64 lh, float64 rh) {
   float80 result;
+
+  DEBUGFUNCMSGIN;
   set_fpu();
   result=powl((float80)lh,(float80)rh);
-  if (isnan(result) || isinf(result)) error(ERR_ARITHMETIC);
+  if (isnan(result) || isinf(result)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_ARITHMETIC);
+  }
+  DEBUGFUNCMSGOUT;
   return result;
 }
 
 /* 64-bit integer power function */
 static int64 ipow(int64 base, int64 exp) {
   int64 result = 1;
+
+  DEBUGFUNCMSGIN;
   if (exp < 0) return 0; /* Should never be tripped, but remove risk of a near-infinite loop */
   for (;;) {
     if (exp & 1) result *=base;
@@ -3833,6 +4391,7 @@ static int64 ipow(int64 base, int64 exp) {
     if (!exp) break;
     base *= base;
   }
+  DEBUGFUNCMSGOUT;
   return result;
 }
 
@@ -3845,6 +4404,8 @@ static void eval_vpow(void) {
   int64 resint;
   float80 lh, rh, result;
   float64 res64;
+
+  DEBUGFUNCMSGIN;
   rhint = TOPITEMISINT;
   rh = pop_anynumfp();
   if (rh<0) rhint=FALSE; /* Don't use integer routine if exponent is negative */
@@ -3860,10 +4421,14 @@ static void eval_vpow(void) {
       push_int64((int64)result);
     } else {
       res64=result;
-      if (isnan(res64) || isinf(res64)) error(ERR_ARITHMETIC);
+      if (isnan(res64) || isinf(res64)) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_ARITHMETIC);
+      }
       push_float(res64);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3875,10 +4440,7 @@ static void eval_vlsl(void) {
   int32 lhint = 0, rhint, val32;
   int64 lhint64 = 0;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vlsl\n");
-#endif
-
+  DEBUGFUNCMSGIN;
   rhint = pop_anynum32() % 256;
 
   while (rhint < 0) rhint += 256;
@@ -3901,9 +4463,7 @@ static void eval_vlsl(void) {
       } else push_int(0);
     }
   } else want_number();
-#ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsl at end of function\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /* The code in the next two functions assumes GCC behaviour, that it performs
@@ -3923,10 +4483,7 @@ static void eval_vlsr(void) {
   uint32 lhuint=0, rhuint=0;
   uint64 lhuint64 = 0, res64 = 0;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vlsr\n");
-#endif
-
+  DEBUGFUNCMSGIN;
   rhuint = pop_anynum32() % 256;
 
   if (!matrixflags.bitshift64) {
@@ -3934,9 +4491,7 @@ static void eval_vlsr(void) {
     if (rhuint < 32) {
       push_int(lhuint >> rhuint);
     } else push_int(0);
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of 32-bit handler\n");
-#endif
+    DEBUGFUNCMSGOUT;
     return; /* end of !bitshift64 */
   } else {
     lhuint64 = pop_anynum64();
@@ -3951,9 +4506,7 @@ static void eval_vlsr(void) {
       push_int(TOINT(res64));
     }
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vlsr at end of function\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3964,10 +4517,7 @@ static void eval_vasr(void) {
   int32 rhint = 0;
   int64 lhint64 = 0, res64 = 0;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:eval_vasr\n");
-#endif
-
+  DEBUGFUNCMSGIN;
   rhint = pop_anynum32() % 256;
 
   while (rhint < 0) rhint += 256;
@@ -3982,9 +4532,7 @@ static void eval_vasr(void) {
       push_int(TOINT(res64));
     }
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:eval_vasr at end of function\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3994,7 +4542,10 @@ static void eval_vasr(void) {
 */
 static void eval_iveq(void) {
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() == rhint ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4004,7 +4555,10 @@ static void eval_iveq(void) {
 */
 static void eval_fveq(void) {
   floatvalue = pop_float();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() == floatvalue ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4016,6 +4570,8 @@ static void eval_sveq(void) {
   stackitem lhitem, rhitem;
   int32 result;
   basicstring lhstring, rhstring;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -4029,6 +4585,7 @@ static void eval_sveq(void) {
   push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4037,7 +4594,10 @@ static void eval_sveq(void) {
 */
 static void eval_ivne(void) {
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() != rhint ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4057,6 +4617,8 @@ static void eval_svne(void) {
   stackitem lhitem, rhitem;
   basicstring lhstring, rhstring;
   int32 result;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -4070,6 +4632,7 @@ static void eval_svne(void) {
   push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4078,7 +4641,10 @@ static void eval_svne(void) {
 */
 static void eval_ivgt(void) {
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() > rhint ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4087,7 +4653,10 @@ static void eval_ivgt(void) {
 */
 static void eval_fvgt(void) {
   floatvalue = pop_float();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() > floatvalue ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4098,6 +4667,8 @@ static void eval_svgt(void) {
   stackitem lhitem, rhitem;
   basicstring lhstring, rhstring;
   int32 result, complen;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -4117,6 +4688,7 @@ static void eval_svgt(void) {
   push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4125,7 +4697,10 @@ static void eval_svgt(void) {
 */
 static void eval_ivlt(void) {
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() < rhint ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4134,7 +4709,10 @@ static void eval_ivlt(void) {
 */
 static void eval_fvlt(void) {
   floatvalue = pop_float();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() < floatvalue ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4145,6 +4723,8 @@ static void eval_svlt(void) {
   stackitem lhitem, rhitem;
   basicstring lhstring, rhstring;
   int32 result, complen;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -4164,6 +4744,7 @@ static void eval_svlt(void) {
   push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4172,7 +4753,10 @@ static void eval_svlt(void) {
 */
 static void eval_ivge(void) {
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() >= rhint ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4181,7 +4765,10 @@ static void eval_ivge(void) {
 */
 static void eval_fvge(void) {
   floatvalue = pop_float();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() >= floatvalue ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4192,6 +4779,8 @@ static void eval_svge(void) {
   stackitem lhitem, rhitem;
   basicstring lhstring, rhstring;
   int32 result, complen;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -4211,6 +4800,7 @@ static void eval_svge(void) {
   push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4219,7 +4809,10 @@ static void eval_svge(void) {
 */
 static void eval_ivle(void) {
   int64 rhint = pop_anyint();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() <= rhint ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4228,7 +4821,10 @@ static void eval_ivle(void) {
 */
 static void eval_fvle(void) {
   floatvalue = pop_float();
+
+  DEBUGFUNCMSGIN;
   push_int(pop_anynumfp() <= floatvalue ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4239,6 +4835,8 @@ static void eval_svle(void) {
   stackitem lhitem, rhitem;
   basicstring lhstring, rhstring;
   int32 result, complen;
+
+  DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhstring = pop_string();
   lhitem = GET_TOPITEM;
@@ -4258,6 +4856,7 @@ static void eval_svle(void) {
   push_int(result);
   if (lhitem == STACK_STRTEMP) free_string(lhstring);
   if (rhitem == STACK_STRTEMP) free_string(rhstring);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4267,7 +4866,10 @@ static void eval_svle(void) {
 static void eval_ivand(void) {
   int64 rhint=pop_anynum64();
   int64 lhint=pop_anynum64();
+
+  DEBUGFUNCMSGIN;
   push_varyint(lhint & rhint);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4277,7 +4879,10 @@ static void eval_ivand(void) {
 static void eval_ivor(void) {
   int64 rhint=pop_anynum64();
   int64 lhint=pop_anynum64();
+
+  DEBUGFUNCMSGIN;
   push_varyint(lhint | rhint);
+  DEBUGFUNCMSGOUT;
 }
 
 
@@ -4288,7 +4893,10 @@ static void eval_ivor(void) {
 static void eval_iveor(void) {
   int64 rhint=pop_anynum64();
   int64 lhint=pop_anynum64();
+
+  DEBUGFUNCMSGIN;
   push_varyint(lhint ^ rhint);
+  DEBUGFUNCMSGOUT;
 }
 /*
 ** 'factor_table' is a table of functions indexed by token type used
@@ -4549,33 +5157,28 @@ static void (*opfunctions [21][18])(void) = {
 void expression(void) {
   int32 thisop, lastop;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function evaluate.c:expression\n");
-#endif
+  DEBUGFUNCMSGIN;
   if (*basicvars.current == ' ') {
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "    expression: Bumping current\n");
-#endif
+  DEBUGFUNCMSG("Bumping current");
+    basicvars.current++;
+  }
+  if (*basicvars.current == '\\') {
+    /* Try to handle a BBCSDL long line */
+    DEBUGFUNCMSG("Trying to handle a BBCSDL long line");
+    while (!isateol(basicvars.current)) basicvars.current++;
+    next_line();
     basicvars.current++;
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
 #endif
-  if (*basicvars.current == '\\') {
-    /* Try to handle a BBCSDL long line */
-    while (!isateol(basicvars.current)) basicvars.current++;
-    next_line();
-    basicvars.current++;
-  }
   (*factor_table[*basicvars.current])();        /* Get first factor in the expression */
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)basicvars.current);
 #endif
   lastop = optable[*basicvars.current];
   if (lastop == 0) {
-#ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via lastop=0, current=0x%llX\n", (int64)basicvars.current);
-#endif
+    DEBUGFUNCMSGOUT;
     return;     /* Quick way out if there is nothing to do */
   }
   basicvars.current++;          /* Skip operator (always one character) */
@@ -4596,12 +5199,18 @@ void expression(void) {
     return;
   }
 /* Expression is more complex so we have to invoke the heavy machinery */
-  if (basicvars.opstop == basicvars.opstlimit) error(ERR_OPSTACK);
+  if (basicvars.opstop == basicvars.opstlimit) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_OPSTACK);
+  }
   basicvars.opstop++;
   *basicvars.opstop = OPSTACKMARK;
   do {
     if (PRIORITY(thisop) > PRIORITY(lastop)) {  /* Priority of this operator > priority of last */
-      if (basicvars.opstop == basicvars.opstlimit) error(ERR_OPSTACK);
+      if (basicvars.opstop == basicvars.opstlimit) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_OPSTACK);
+      }
     }
     else {      /* Priority of this operator <= last op's priority - exec last operator */
       if (PRIORITY(thisop) == COMPRIO) {                /* Ghastly hack for ghastly Basic relational operator syntax */
@@ -4644,9 +5253,14 @@ void expression(void) {
 ** statement types such as 'BPUT' use it too.
 */
 void factor(void) {
+  DEBUGFUNCMSGIN;
   *basicvars.opstop = OPSTACKMARK;
   (*factor_table[*basicvars.current])();
-  if (*basicvars.opstop != OPSTACKMARK) error(ERR_BADEXPR);
+  if (*basicvars.opstop != OPSTACKMARK) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADEXPR);
+  }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4654,10 +5268,12 @@ void factor(void) {
 ** before running a program
 */
 void init_expressions(void) {
+  DEBUGFUNCMSGIN;
   basicvars.opstop = make_opstack();
   basicvars.opstlimit = basicvars.opstop+OPSTACKSIZE;
   *basicvars.opstop = OPSTACKMARK;
   init_functions();
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -4665,6 +5281,8 @@ void init_expressions(void) {
 ** initial value
 */
 void reset_opstack(void) {
+  DEBUGFUNCMSGIN;
   basicvars.opstop = basicvars.opstlimit-OPSTACKSIZE;
   *basicvars.opstop = OPSTACKMARK;
+  DEBUGFUNCMSGOUT;
 }

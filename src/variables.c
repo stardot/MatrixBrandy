@@ -59,10 +59,13 @@ char *nullstring = "";          /* Null string used when defining string variabl
 */
 static int32 hash(char *p) {
   int32 hashtotal = 0;
+
+  DEBUGFUNCMSGIN;
   while (*p) {
     hashtotal = hashtotal*5^*p;
     p++;
   }
+  DEBUGFUNCMSGOUT;
   return hashtotal;
 }
 
@@ -76,6 +79,8 @@ static int32 hash(char *p) {
 void clear_varlists(void) {
   int n;
   library *lp;
+
+  DEBUGFUNCMSGIN;
   for (n=0; n<VARLISTS; n++) basicvars.varlists[n] = NIL;
   basicvars.runflags.has_variables = FALSE;
   basicvars.lastsearch = basicvars.start;
@@ -87,11 +92,13 @@ void clear_varlists(void) {
     for (n=0; n<VARLISTS; n++) lp->varlists[n] = NIL;
     lp = lp->libflink;
   }
+  DEBUGFUNCMSGOUT;
 }
 
 static void remove_variable(variable *vptoremove, variable *newvp) {
   variable *vp;
 
+  DEBUGFUNCMSGIN;
   if (basicvars.varlists[vptoremove->varhash & VARMASK] == vptoremove) {
     basicvars.varlists[vptoremove->varhash & VARMASK] = newvp;
   } else {
@@ -102,11 +109,14 @@ static void remove_variable(variable *vptoremove, variable *newvp) {
     }
   }
   if(returnable(vptoremove, sizeof(variable))) freemem(vptoremove, sizeof(variable));
+  DEBUGFUNCMSGOUT;
 }
 
 void clear_offheaparrays() {
   variable *vp;
   int n;
+
+  DEBUGFUNCMSGIN;
   for (n=0; n<VARLISTS; n++) {
     vp = basicvars.varlists[n];
     while (vp!=NIL) {
@@ -128,9 +138,11 @@ void clear_offheaparrays() {
       vp = vp->varflink;
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 void exec_clear_himem(void) {
+  DEBUGFUNCMSGIN;
   if (isateol(basicvars.current)) {
     clear_offheaparrays();
   } else {
@@ -152,6 +164,7 @@ void exec_clear_himem(void) {
       default: error(ERR_OFFHEAPARRAY);
     }
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -163,6 +176,8 @@ static void list_varlist(char which, library *lp) {
   char temp[320];
   int templen=319; /* Leave room for the terminating \0 byte */
   int done = 0, columns = 0, next, len = 0, n, width;
+
+  DEBUGFUNCMSGIN;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   for (n=0; n<VARLISTS; n++) {
     if (lp==NIL)        /* list entries in program's symbol table */
@@ -344,6 +359,7 @@ static void list_varlist(char which, library *lp) {
     }
   }
   if (done!=0) emulate_printf("\r\n\n");
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -352,12 +368,15 @@ static void list_varlist(char which, library *lp) {
 */
 static void list_entries(library *lp) {
   char n;
+
+  DEBUGFUNCMSGIN;
   for (n='A'; n<='Z'; n++) {
     list_varlist(n, lp);
     list_varlist(tolower(n), lp);
   }
   list_varlist('_', lp);
   list_varlist('`', lp);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -369,6 +388,8 @@ void list_variables(char which) {
   char n;
   char temp[40];
   int columns, len, next, width, atpercent;
+
+  DEBUGFUNCMSGIN;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   if (which==' ') {     /* List everything */
     emulate_printf("Static integer variables:\r\n");
@@ -434,6 +455,7 @@ void list_variables(char which) {
     emulate_printf("Dynamic variables, procedures and functions:\r\n");
     list_varlist(which, NIL);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -442,6 +464,8 @@ void list_variables(char which) {
 */
 void detail_library(library *lp) {
   int n;
+
+  DEBUGFUNCMSGIN;
   emulate_printf("%s\r\n", lp->libname);
   for (n=0; n<VARLISTS && lp->varlists[n]==NIL; n++);   /* Are there any entries in the library's symbol table? */
   if (n==VARLISTS)
@@ -450,6 +474,7 @@ void detail_library(library *lp) {
     emulate_printf("Variables local to library:\r\n");
     list_entries(lp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -479,9 +504,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   size_t size;
   basicarray *ap;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:define_array\n");
-#endif
+  DEBUGFUNCMSGIN;
   dimcount = 0;         /* Number of dimemsions */
   size = 1;             /* Number of elements */
   switch (vp->varflags) {       /* Figure out array element size */
@@ -576,9 +599,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
     temp.stringaddr = nullstring;
     for (n=0; n<size; n++) ap->arraystart.stringbase[n] = temp;
   }
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variables.c:define_array\n");
-#endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -594,9 +615,8 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   variable *vp;
   char *np;
   int32 hashvalue;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:create_variable\n");
-#endif
+
+  DEBUGFUNCMSGIN;
   np = allocmem(namelen+2, 1);
   vp = allocmem(sizeof(variable), 1);
 #ifdef DEBUG
@@ -667,9 +687,7 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created variable '%s' at %p\n", vp->varname, vp);
 #endif
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variables.c:create_variable\n");
-#endif
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -689,9 +707,7 @@ variable *find_variable(byte *np, int namelen) {
   char name[MAXNAMELEN];
   int32 hashvalue;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variable.c:find_variable\n");
-#endif
+  DEBUGFUNCMSGIN;
   if(namelen > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
   memcpy(name, np, namelen);
   if (name[namelen-1]=='[') name[namelen-1] = '(';
@@ -702,17 +718,13 @@ variable *find_variable(byte *np, int namelen) {
     vp = lp->varlists[hashvalue & VARMASK];
     while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(name, vp->varname)!=0)) vp = vp->varflink;
     if (vp!=NIL) {
-#ifdef DEBUG
-      if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variable.c:find_variable\n");
-#endif
+      DEBUGFUNCMSGOUT;
       return vp;        /* Found symbol - Return pointer to symbol table entry */
     }
   }
   vp = basicvars.varlists[hashvalue & VARMASK];
   while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(name, vp->varname)!=0)) vp = vp->varflink;
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variable.c:find_variable\n");
-#endif
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -729,6 +741,8 @@ static void scan_parmlist(variable *vp) {
   formparm *formlist, *formlast, *fp;
   byte what;
   boolean isreturn;
+
+  DEBUGFUNCMSGIN;
   count = 0;
   formlist = formlast = NIL;
   save_current();
@@ -780,6 +794,7 @@ static void scan_parmlist(variable *vp) {
   }
   basicvars.runflags.make_array = FALSE;
   restore_current();    /* Restore current to its rightful value */
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -791,6 +806,8 @@ static void add_libvars(byte *tp, library *lp) {
   byte *ep, *base;
   int namelen;
   variable *vp = NULL;
+
+  DEBUGFUNCMSGIN;
   save_current();
   basicvars.current = tp;       /* Point current at this line for error messages */
   tp+=2;        /* Skip 'LIBRARY' and 'lOCAL' tokens */
@@ -814,6 +831,7 @@ static void add_libvars(byte *tp, library *lp) {
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
    vp->varname, lp->libname, vp);
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -825,9 +843,7 @@ static void add_libarray(byte *tp, library *lp) {
   int namelen;
   variable *vp;
 
-#ifdef DEBUG
-  if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function variables.c:add_libarray\n");
-#endif
+  DEBUGFUNCMSGIN;
   save_current();
   basicvars.current = tp;
   do {
@@ -854,8 +870,8 @@ static void add_libarray(byte *tp, library *lp) {
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
    vp->varname, lp->libname, vp);
-  if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function variables.c:add_libarray\n");
 #endif
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -868,6 +884,8 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
   libfnproc *fpp;
   int namelen;
   char pfname[MAXNAMELEN];
+
+  DEBUGFUNCMSGIN;
   base = get_srcaddr(tp+1);     /* Find address of PROC/FN name */
   ep = skip_name(base); /* Find byte after name */
   if (*(ep-1)=='(') ep--;       /* '(' here is not part of the name but the start of the parameter list */
@@ -880,6 +898,7 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
   fpp->fpmarker = tp+1; /* Need pointer to the XFNPROCALL token for scan_parmlist() */
   fpp->fphash = hash(pfname);
   fpp->fpflink = NIL;
+  DEBUGFUNCMSGOUT;
   return fpp;
 }
 
@@ -899,6 +918,8 @@ static void scan_library(library *lp) {
   byte *tp, *bp;
   libfnproc *fpp, *fpplast;
   boolean foundproc;
+
+  DEBUGFUNCMSGIN;
   bp = lp->libstart;
   fpplast = NIL;
   foundproc = FALSE;
@@ -921,6 +942,7 @@ static void scan_library(library *lp) {
     }
     bp+=get_linelen(bp);
   }
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -934,6 +956,8 @@ static variable *search_library(library *lp, char *name) {
   int namelen;
   libfnproc *fpp;
   variable *vp;
+
+  DEBUGFUNCMSGIN;
   if (lp->libfplist==NIL) scan_library(lp);     /* Create list of PROCs and FNs in library */
   hashvalue = hash(name);
   namelen = strlen(name);
@@ -957,6 +981,7 @@ static variable *search_library(library *lp, char *name) {
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created PROC/FN '%s%s' in library '%s' at %p\n",
    (*CAST(name, byte *)==BASTOKEN_PROC ? "PROC" : "FN"), name+1, lp->libname, vp);
 #endif
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -972,6 +997,8 @@ static variable *mark_procfn(byte *pp) {
   int32 hashvalue;
   int namelen;
   char *cp;
+
+  DEBUGFUNCMSGIN;
   base = get_srcaddr(pp);       /* Point at start of name (includes 'PROC' or 'FN' token) */
   ep = skip_name(base);
   if (*(ep-1)=='(') ep--;
@@ -992,6 +1019,7 @@ static variable *mark_procfn(byte *pp) {
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created PROC/FN '%s%s' at %p\n",
    (*base==BASTOKEN_PROC ? "PROC" : "FN"), vp->varname+1, vp);
 #endif
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -1007,6 +1035,8 @@ static variable *scan_fnproc(char *name) {
   int32 namehash;
   variable *vp;
   library *lp;
+
+  DEBUGFUNCMSGIN;
   namehash = hash(name);
   bp = basicvars.lastsearch;    /* Start new search where last one ended */
   vp = NIL;
@@ -1043,6 +1073,7 @@ static variable *scan_fnproc(char *name) {
       error(ERR_FNMISS, name+1);
     }
   }
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -1059,6 +1090,8 @@ static variable *scan_fnproc(char *name) {
 variable *find_fnproc(byte *np, int namelen) {
   variable *vp;
   int32 hashvalue;
+
+  DEBUGFUNCMSGIN;
   memcpy(basicvars.stringwork, np, namelen);    /* Copy name from after 'FN' or 'PROC' token */
   *(basicvars.stringwork+namelen) = asc_NUL;    /* Ensure name is properly terminated */
   hashvalue = hash(basicvars.stringwork);
@@ -1069,6 +1102,7 @@ variable *find_fnproc(byte *np, int namelen) {
   }
   if (vp==NIL) vp = scan_fnproc(basicvars.stringwork);  /* Not a known proc - Scan program and libraries for it */
   if (vp->varflags==VAR_MARKER) scan_parmlist(vp);      /* Fill in its details */
+  DEBUGFUNCMSGOUT;
   return vp;
 }
 
@@ -1078,9 +1112,12 @@ variable *find_fnproc(byte *np, int namelen) {
 */
 void init_staticvars(void) {
   int n;
+
+  DEBUGFUNCMSGIN;
   for (n=0; n<STDVARS; n++) {
     basicvars.staticvars[n].varflags = VAR_INTWORD;
     basicvars.staticvars[n].varentry.varinteger = 0;
   }
   basicvars.staticvars[ATPERCENT].varentry.varinteger = STDFORMAT;
+  DEBUGFUNCMSGOUT;
 }

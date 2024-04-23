@@ -33,6 +33,18 @@
 #include "common.h"
 #include "target.h"
 
+/* Debug statement handler */
+#ifdef DEBUG
+#define DEBUGFUNCMSGIN if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function %s:%s at line %d\n", __FILE__, __func__, __LINE__)
+#define DEBUGFUNCMSGOUT if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function %s:%s at line %d\n", __FILE__, __func__, __LINE__)
+#define DEBUGFUNCMSG(x) if (basicvars.debug_flags.functions) fprintf(stderr, "    %s:%s: %s at line %d\n", __FILE__, __func__, x, __LINE__)
+#else
+/* Not debugging, these macros resolve to nothing */
+#define DEBUGFUNCMSGIN
+#define DEBUGFUNCMSGOUT
+#define DEBUGFUNCMSG(x)
+#endif /* DEBUG */
+
 #define OPSTACKSIZE 20                  /* Size of operator stack */
 
 #define STDVARS 27                      /* Number of built-in variables (@% to Z%) */
