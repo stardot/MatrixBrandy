@@ -1236,50 +1236,6 @@ static void do_brackets(void) {
 }
 
 /*
-** 'do_unaryplus' handles the unary '+' operator. This is a
-** no-op apart from type checking
-*/
-static void do_unaryplus(void) {
-  DEBUGFUNCMSGIN;
-  basicvars.current++;          /* Skip '+' */
-  (*factor_table[*basicvars.current])();
-  switch(GET_TOPITEM) {
-    case STACK_INT:
-    case STACK_UINT8:
-    case STACK_INT64:
-    case STACK_FLOAT:
-    case STACK_INTARRAY:
-    case STACK_UINT8ARRAY:
-    case STACK_INT64ARRAY:
-    case STACK_FLOATARRAY:
-      break;
-    default:
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPENUM);
-  }
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'do_unaryminus' negates the value on top of the stack
-*/
-static void do_unaryminus(void) {
-  DEBUGFUNCMSGIN;
-  basicvars.current++;          /* Skip '-' */
-  (*factor_table[*basicvars.current])();
-  switch(GET_TOPITEM) {
-    case STACK_INT:   NEGATE_INT; break;
-    case STACK_UINT8: push_int(pop_anyint() * -1); break;
-    case STACK_INT64: NEGATE_INT64; break;
-    case STACK_FLOAT: NEGATE_FLOAT; break;
-    default:
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPENUM);
-  }
-  DEBUGFUNCMSGOUT;
-}
-
-/*
 ** 'do_getbyte' handles the byte indirection operator, '?', pushing
 ** the byte addressed by the numeric value on top of the stack on to
 ** the stack
@@ -4885,7 +4841,6 @@ static void eval_ivor(void) {
   DEBUGFUNCMSGOUT;
 }
 
-
 /*
 ** 'eval_iveor' deals with the exclusive or operator when right-hand
 ** operand is any integer or floating point value
@@ -4898,6 +4853,80 @@ static void eval_iveor(void) {
   push_varyint(lhint ^ rhint);
   DEBUGFUNCMSGOUT;
 }
+
+/*
+** 'do_unaryplus' handles the unary '+' operator. This is a
+** no-op apart from type checking
+*/
+static void do_unaryplus(void) {
+  DEBUGFUNCMSGIN;
+  basicvars.current++;          /* Skip '+' */
+  (*factor_table[*basicvars.current])();
+  switch(GET_TOPITEM) {
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64:
+    case STACK_FLOAT:
+    case STACK_INTARRAY:
+    case STACK_UINT8ARRAY:
+    case STACK_INT64ARRAY:
+    case STACK_FLOATARRAY:
+      break;
+    default:
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'do_unaryminus' negates the value on top of the stack
+*/
+static void do_unaryminus(void) {
+  basicarray *tmparray;
+  int32 topitem;
+
+  DEBUGFUNCMSGIN;
+  basicvars.current++;          /* Skip '-' */
+  (*factor_table[*basicvars.current])();
+  topitem = GET_TOPITEM;
+  switch(topitem) {
+    case STACK_INT:   NEGATE_INT; break;
+    case STACK_UINT8: push_int(pop_anyint() * -1); break;
+    case STACK_INT64: NEGATE_INT64; break;
+    case STACK_FLOAT: NEGATE_FLOAT; break;
+    case STACK_INTARRAY:
+    case STACK_INT64ARRAY:
+    case STACK_UINT8ARRAY:
+    case STACK_FLOATARRAY:
+      tmparray=pop_array();
+      push_int(0);
+      switch(topitem) {
+        case STACK_INTARRAY:
+          push_array(tmparray, VAR_INTWORD);
+          eval_iaminus();
+          break;
+        case STACK_INT64ARRAY:
+          push_array(tmparray, VAR_INTLONG);
+          eval_i64aminus();
+          break;
+        case STACK_UINT8ARRAY:
+          push_array(tmparray, VAR_UINT8);
+          eval_iu8aminus();
+          break;
+        case STACK_FLOATARRAY:
+          push_array(tmparray, VAR_FLOAT);
+          eval_faminus();
+          break;
+      }
+      break;
+    default:
+      DEBUGFUNCMSGOUT;
+      error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
+}
+
 /*
 ** 'factor_table' is a table of functions indexed by token type used
 ** to deal with factors in an expression.
