@@ -10,7 +10,7 @@ made from git in the master branch, and from tarballs with no git information.
 - Build: Autodetect whether it's a release build (master branch, or a tarball
   without any git information) or a development build (anything else).
 - Graphics: Fixed some breakage in flood fill.
-- BASIC: IF something THEN REM no is no longer handled as the start of a
+- BASIC: IF something THEN REM is no longer handled as the start of a
   multi-line IF statement.
 - BASIC: Unary minus (and plus) on arrays are now implemented.
 - BASIC: Slight adjustment to TRACE VDU - 'TRACE VDU ON' now also works,
