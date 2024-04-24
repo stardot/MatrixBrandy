@@ -13,6 +13,8 @@ made from git in the master branch, and from tarballs with no git information.
 - BASIC: IF something THEN REM no is no longer handled as the start of a
   multi-line IF statement.
 - BASIC: Unary minus (and plus) on arrays are now implemented.
+- BASIC: Slight adjustment to TRACE VDU - 'TRACE VDU ON' now also works,
+  and is functionally identical to 'TRACE VDU'.
 
 * 1.23.1 - 13 April 2024
 - System: Rework the threading model to use pthreads even under SDL, this allows

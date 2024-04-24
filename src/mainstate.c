@@ -2834,6 +2834,9 @@ void exec_trace(void) {
     if (*(basicvars.current + 1) == BASTOKEN_OFF) {
       basicvars.current++;
       basicvars.traces.console = FALSE;
+    } else if (*(basicvars.current + 1) == BASTOKEN_ON) {
+      basicvars.current++;
+      basicvars.traces.console = TRUE;
     } else {
       basicvars.traces.console = TRUE;
     }

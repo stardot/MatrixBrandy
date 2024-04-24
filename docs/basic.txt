@@ -3684,6 +3684,7 @@ Syntax: a) TRACE ON
 	d) TRACE CLOSE
 	e) TRACE PROC
 	f) TRACE GOTO
+	g) TRACE VDU
 
 The TRACE statement is used to help debug Basic programs. It
 controls the various trace options possible.
@@ -3725,6 +3726,11 @@ to <line number 2>.
 This trace can be turned off with the statement:
 
 	TRACE GOTO OFF
+
+g) TRACE VDU redirects output to the controlling terminal's stderr
+output stream.  This can be turned off with the statement:
+
+	TRACE VDU OFF
 
 Sending Trace Output to a File
 ------------------------------

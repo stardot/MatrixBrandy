@@ -305,17 +305,19 @@ interpreter's limit of 255. The list of differences are as follows:
 7)  'WIDTH' has not been implemented. 'PRINT' leaves something to be desired
     too.
 8)  The TRACE option 'TRACE STEP' has not been implemented yet.
-9)  Some 'LISTO' options have not been implemented yet.
-10) The 'END=' version of the END statement is not supported.
-11) Brandy behaves differently to the Acorn interpreter after an error when the
+9)  A new TRACE option 'TRACE VDU' has been added, this redirects TRACE output
+    to the controlling terminal.
+10) Some 'LISTO' options have not been implemented yet.
+11) The 'END=' version of the END statement is not supported.
+12) Brandy behaves differently to the Acorn interpreter after an error when the
     program contains ON ERROR or ON ERROR LOCAL statements to trap errors.
 
 The following differences only apply on non-RISC OS builds:
-12) Support of the 'SYS' statement is minimal.
-13) Cursor editing is not available. A line editor is available in its place.
+13) Support of the 'SYS' statement is minimal.
+14) Cursor editing is not available. A line editor is available in its place.
 
-The major omissions in the versions of the interpreter are some graphics and
-sound.  The built-in assembler and support for machine code programs are
+The major omissions in the versions of the interpreter are some graphics.
+The built-in assembler and support for machine code programs are
 missing too. Apart from that, the interpreter is essentially a full
 implementation of the Acorn interpreter.
 
@@ -346,8 +348,11 @@ The interpreter has the following extensions:
     BASICs.
 11) The 'RUN' command can also be followed by a line number to start program
     execution at that line.
-12) There is an extra 'TRACE' option: 'TRACE GOTO'. This prints out the source
-    and destination line numbers of any branches in the program.
+12) There are two extra 'TRACE' option: 'TRACE GOTO' and 'TRACE VDU'.
+    'TRACE GOTO' prints out the source and destination line numbers of any
+    branches in the program.
+    'TRACE VDU' redirects trace output to the controlling terminal's stderr
+    output stream.
 13) 'TRACE PROC' shows returns from procedures and functions as well as when
     they are called.
 14) Individual TRACE options may be turned off and on, for example,
@@ -790,6 +795,12 @@ TRACE PROC
 This shows both when a procedure or function is entered and when it is exited.
 '==>PROCabcd' indicates that PROCabcd has been entered and 'PROCabcd-->' shows
 that it has been exited.
+
+TRACE VDU
+---------
+The purpose of this option is to redirect all TRACE output to the controlling
+terminal's stderr stream, where it can be examined without affecting the
+running program's display. Use 'TRACE VDU OFF' to disable this.
 
 TRACE GOTO
 ----------
