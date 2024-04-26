@@ -282,6 +282,11 @@ static void init1(void) {
   matrixflags.printer = NULL;         /* By default, printer is closed */
   matrixflags.printer_ignore = 13;    /* By default, ignore carriage return characters */
   matrixflags.translatefname = 2;     /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
+#ifdef BRANDYAPP
+  matrixflags.checknewver = 0;        /* By default, try to check for a new version */
+#else
+  matrixflags.checknewver = 1;        /* By default, try to check for a new version */
+#endif
 
 /*
  * Add dummy first parameter for Basic program command line.
@@ -373,7 +378,7 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='f') {          /* -fullscreen */
         basicvars.runflags.startfullscreen=TRUE;
       }
-      else if (optchar=='n') {          /* -nofull */
+      else if (optchar=='n' && tolower(*(p+2))=='o' && tolower(*(p+3))=='f') {  /* -nofull */
         matrixflags.neverfullscreen=TRUE;
       }
       else if (optchar=='s' && tolower(*(p+2))=='w') {
@@ -381,6 +386,9 @@ static void check_cmdline(int argc, char *argv[]) {
       }
 #endif
 #ifndef BRANDYAPP
+      else if (optchar=='n' && tolower(*(p+2))=='o' && tolower(*(p+3))=='c') {  /* -nocheck */
+        matrixflags.checknewver = FALSE;
+      }
       else if (optchar == 'c' || optchar == 'q' || (optchar == 'l' && tolower(*(p+2)) == 'o')) {        /* -chain, -quit or -load */
         n++;
         if (n==argc)

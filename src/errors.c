@@ -306,7 +306,9 @@ void announce(void) {
 #endif /* BRANDY_BANNER_MINIMAL */
 #ifdef BRANDY_RELEASE
 #ifndef NONET
-  if (checkfornewer()) emulate_printf("A newer version is available!\r\n\n");
+  if (matrixflags.checknewver) {
+    if (checkfornewer()) emulate_printf("A newer version is available!\r\n\n");
+  }
 #endif /* NONET */
 #endif /* BRANDY_RELEASE */
 #ifdef DEBUG
@@ -374,6 +376,9 @@ void show_help(void) {
   printf("  -tek           Enable Tek graphics (on compatible builds)\n");
 #endif
 #ifndef BRANDYAPP
+#ifdef BRANDY_RELEASE
+  printf("  -nocheck       Skip new version check on immediate mode startup\n");
+#endif
   printf("  -path <list>   Look for programs and libraries in directories in list <list>\n");
   printf("  -load <file>   Load Basic program <file> when the interpreter starts\n");
   printf("  -chain <file>  Run Basic program <file> and stay in interpreter when it ends\n");
