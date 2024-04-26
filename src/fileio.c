@@ -186,7 +186,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (strncmp(filename, "ip0:", 4)==0 || strncmp(filename, "ip4:", 4)==0 || strncmp(filename, "ip6:", 4)==0) {
     for (n=FIRSTHANDLE; n>0 && fileinfo[n].stream!=NIL; n--);   /* Find an unused handle */
-    handle=brandynet_connect(filename+4, filename[2]);
+    handle=brandynet_connect(filename+4, filename[2], 1);
     if (handle == -1) return 0;
     fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
     fileinfo[n].filetype = NETWORK;
@@ -725,7 +725,7 @@ int32 fileio_openup(char *name, int32 namelen) {
   /* Check, does it start "ip4:" if so use network handler to open it. */
   if (!strncmp(filename, "ip0:", 4) || !strncmp(filename, "ip4:", 4) || !strncmp(filename, "ip6:", 4)) {
     int handle;
-    handle=brandynet_connect(filename+4, filename[2]);
+    handle=brandynet_connect(filename+4, filename[2], 1);
     if (handle == -1) return 0;
     fileinfo[n].stream = (void *)42; /* Not used, but != NIL */
     fileinfo[n].filetype = NETWORK;

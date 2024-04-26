@@ -22,11 +22,12 @@
 #ifndef NONET
 #include "common.h"
 extern void brandynet_init();
-extern int brandynet_connect(char *dest, char type);
+extern int brandynet_connect(char *dest, char type, int reporterrors);
 extern int brandynet_close(int handle);
 extern int32 net_bget(int handle);
 extern boolean net_eof(int handle);
 extern int net_bput(int handle, int32 value);
 extern int net_bputstr(int handle, char *string, int32 length);
+extern int checkfornewer(void);
 #endif /* NONET */
 #endif /* BRANDY_NET_H */

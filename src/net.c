@@ -181,7 +181,7 @@ void brandynet_init() {
   DEBUGFUNCMSGOUT;
 }
 
-int brandynet_connect(char *dest, char type) {
+int brandynet_connect(char *dest, char type, int reporterrors) {
 #if defined(TARGET_RISCOS) | defined(MINIX_OLDNET)
   char *host, *port;
   int n, mysocket, portnum, result;
@@ -197,16 +197,16 @@ int brandynet_connect(char *dest, char type) {
 
   DEBUGFUNCMSGIN;
   if(matrixflags.networking==0) {
-    error(ERR_NET_NOTSUPP);
-    return(-1); /* Will never be reached */
+    if (reporterrors) error(ERR_NET_NOTSUPP);
+    return(-1);
   }
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     if (!netsockets[n]) break;
   }
   if (MAXNETSOCKETS == n) {
-    error(ERR_NET_MAXSOCKETS);
-    return(-1); /* Will never be reached */
+    if (reporterrors) error(ERR_NET_MAXSOCKETS);
+    return(-1);
   }
 
   host=strdup(dest);
@@ -228,8 +228,8 @@ int brandynet_connect(char *dest, char type) {
     inaddr = NULL;
     if ((he = gethostbyname(host)) == NULL) {
       free(host);
-      error(ERR_NET_NOTFOUND);
-      return(-1); /* Will never be reached */
+      if (reporterrors) error(ERR_NET_NOTFOUND);
+      return(-1);
     }
     inaddr=(struct in_addr *)he->h_addr;
   }
@@ -237,8 +237,8 @@ int brandynet_connect(char *dest, char type) {
   netdest.sin_port = htons(portnum);         /* set destination port number */
   free(host);                                /* Don't need this any more */
   if (connect(mysocket, (struct sockaddr *)&netdest, sizeof(struct sockaddr_in))) {
-    error(ERR_NET_CONNREFUSED);
-    return(-1); /* Will never be reached */
+    if (reporterrors) error(ERR_NET_CONNREFUSED);
+    return(-1);
   }
   free(inaddr);                              /* Don't need this any more */
 
@@ -256,8 +256,9 @@ int brandynet_connect(char *dest, char type) {
 
 #else /* not TARGET_RISCOS */
   char *host, *port;
-  int n, mysocket=0, ret;
+  int n, mysocket=0, ret, sockres;
   struct addrinfo hints, *addrdata, *rp;
+  struct timeval timeout;
 #ifdef TARGET_MINGW
   unsigned long opt;
 #else
@@ -265,16 +266,16 @@ int brandynet_connect(char *dest, char type) {
 #endif
 
   if(matrixflags.networking==0) {
-    error(ERR_NET_NOTSUPP);
-    return(-1); /* Will never be reached */
+    if (reporterrors) error(ERR_NET_NOTSUPP);
+    return(-1);
   }
 
   for (n=0; n<MAXNETSOCKETS; n++) {
     if (!netsockets[n]) break;
   }
   if (MAXNETSOCKETS == n) {
-    error(ERR_NET_MAXSOCKETS);
-    return(-1); /* Will never be reached */
+    if (reporterrors) error(ERR_NET_MAXSOCKETS);
+    return(-1);
   }
 
   memset(&hints, 0, sizeof(hints));
@@ -297,23 +298,29 @@ int brandynet_connect(char *dest, char type) {
 #ifdef DEBUG
     if (basicvars.debug_flags.debug) fprintf(stderr, "getaddrinfo returns: %s\n", gai_strerror(ret));
 #endif
-    error(ERR_NET_NOTFOUND);
-    return(-1); /* Will never be reached */
+    if (reporterrors) error(ERR_NET_NOTFOUND);
+    return(-1);
   }
+
+/* Set the timeout of the socket if we're not reporting errors */
+  timeout.tv_sec = 3;
+  timeout.tv_usec = 0;
 
   for(rp = addrdata; rp != NULL; rp = rp->ai_next) {
     mysocket = socket(rp->ai_family, SOCK_STREAM, 0);
     if (mysocket == -1) continue;
-    if (connect(mysocket, rp->ai_addr, rp->ai_addrlen) != -1)
+    if (!reporterrors) setsockopt(mysocket, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+    sockres=connect(mysocket, rp->ai_addr, rp->ai_addrlen);
+    if (!sockres)
       break; /* success! */
     close(mysocket);
   }
 
   freeaddrinfo(addrdata);               /* Don't need this any more either */
 
-  if (!rp) {
-    error(ERR_NET_CONNREFUSED);
-    return(-1); /* Will never be reached */
+  if (sockres) {
+    if (reporterrors) error(ERR_NET_CONNREFUSED);
+    return(-1);
   }
 
 #ifdef TARGET_MINGW
@@ -326,7 +333,7 @@ int brandynet_connect(char *dest, char type) {
   netsockets[n] = mysocket;
   DEBUGFUNCMSGOUT;
   return(n);
-#endif /* RISCOS */
+#endif /* not RISCOS */
 }
 
 int brandynet_close(int handle) {
@@ -400,6 +407,7 @@ int net_bputstr(int handle, char *string, int32 length) {
   int retval;
 
   DEBUGFUNCMSGIN;
+  if (length == -1) length=strlen(string);
   retval=send(netsockets[handle], string, length, 0);
   if (retval == -1) {
     DEBUGFUNCMSGOUT;
@@ -407,5 +415,56 @@ int net_bputstr(int handle, char *string, int32 length) {
   }
   DEBUGFUNCMSGOUT;
   return(0);
+}
+
+/* This function queries the Matrix Brandy web server to check for a newer
+ * version. This is a quick and dirty implementation talking raw HTML!
+ */
+int checkfornewer() {
+  int hndl, ptr, val, vermaj, vermin, verpatch;
+  char *inbuf, *verstr, *ptra;
+
+  DEBUGFUNCMSGIN;
+  inbuf=malloc(8192);
+  memset(inbuf, 0, 4096);
+  hndl=brandynet_connect("brandy.matrixnetwork.co.uk:80", 0, 0);
+  if (hndl < 0) {
+    fprintf(stderr, "negative handle\n");
+    DEBUGFUNCMSGOUT;
+    return(0);
+  }
+  fprintf(stderr, "hndl=%d\n", hndl);
+  net_bputstr(hndl, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\n\r\n", -1);
+  ptr = 0;
+  val=-1;
+  while (val != -2) {
+    val=net_bget(hndl);
+    if (val >= 0) {
+      inbuf[ptr]=val;
+      ptr++;
+    } else {
+      usleep(10000);
+    }
+  }
+  brandynet_close(hndl);
+  verstr=strstr(inbuf, "\r\n\r\n");
+  verstr+=4;
+  ptra=strchr(verstr, '\n'); *ptra='\0';
+  ptra=strchr(verstr, '.'); *ptra='\0';
+  vermaj=atoi(verstr);
+  verstr=ptra+1;
+  ptra=strchr(verstr, '.'); *ptra='\0';
+  vermin=atoi(verstr);
+  verstr=ptra+1;
+  verpatch=atoi(verstr);
+  free(inbuf);
+  if ((vermaj > atoi(BRANDY_MAJOR)) || \
+      (vermin > atoi(BRANDY_MINOR)) || \
+      (verpatch > atoi(BRANDY_PATCHLEVEL))) {
+    DEBUGFUNCMSGOUT;
+    return(1);
+  } else {
+    return(0);
+  }
 }
 #endif /* NONET ... right at top of the file */
