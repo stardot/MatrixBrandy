@@ -103,6 +103,9 @@ where <filename> is the optional name of the program to load and
 
 -swsurface              (SDL build only) Use a software SDL surface.
 
+-tek                    (Text-mode 'tbrandy' build only) Enable Tektronics
+                        graphics.
+
 -path <directory list>  This specifies a list of directories that the
                         interpreter will search when looking for libraries and
                         programs. The directory names are separated by commas.
@@ -172,6 +175,7 @@ few characters of the option name to identify it.
 -size           -s
 -strict         -st
 -swsurface      -sw
+-tek            -t
 -version        -v
 
 Parameters for Basic Programs
