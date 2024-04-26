@@ -430,7 +430,7 @@ static void check_cmdline(int argc, char *argv[]) {
           }
         }
       }
-      else if (optchar == 'n' && tolower(*(p+2))=='o')  /* -nostar  Ignore '*' commands */
+      else if (optchar == 'n' && tolower(*(p+2))=='o' && tolower(*(p+3))=='s')  /* -nostar  Ignore '*' commands */
         basicvars.runflags.ignore_starcmd = TRUE;
       else if (optchar=='p') {              /* -path */
         n++;

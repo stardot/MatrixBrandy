@@ -389,6 +389,8 @@ void show_help(void) {
 #else
   printf("  -ignore        Ignore 'unsupported feature' where possible\n");
 #endif
+  printf("  -nostar        Do not check OSCLI for internal *-commands, instead pass all\n");
+  printf("                 commands to the underlying operating system.\n");
   printf("  --             Subsequent options are passed to Basic program\n");
   printf("  <file>         Run Basic program <file> and leave interpreter when it ends\n\n");
 #ifdef HAVE_ZLIB_H
