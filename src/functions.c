@@ -131,7 +131,7 @@ static void fn_ext(void) {
     error(ERR_HASHMISS);
   }
   basicvars.current++;
-  push_int(fileio_getext(eval_intfactor()));
+  push_int64(fileio_getext(eval_intfactor()));
   DEBUGFUNCMSGOUT;
 }
 
@@ -315,7 +315,7 @@ static void fn_ptr(void) {
   DEBUGFUNCMSGIN;
   if (*basicvars.current == '#') {
     basicvars.current++;
-    push_int(fileio_getptr(eval_intfactor()));
+    push_int64(fileio_getptr(eval_intfactor()));
   } else if (*basicvars.current == '(') {
     stackitem topitem;
     basicarray *descriptor;

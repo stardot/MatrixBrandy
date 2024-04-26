@@ -15,6 +15,9 @@ made from git in the master branch, and from tarballs with no git information.
 - BASIC: Unary minus (and plus) on arrays are now implemented.
 - BASIC: Slight adjustment to TRACE VDU - 'TRACE VDU ON' now also works,
   and is functionally identical to 'TRACE VDU'.
+- BASIC: EXT#handle%,length%% is now supported.
+- BASIC: PTR#handle% and EXT#handle% now accept and can return 64-bit values
+  for working with large files.
 
 * 1.23.1 - 13 April 2024
 - System: Rework the threading model to use pthreads even under SDL, this allows

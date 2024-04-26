@@ -44,10 +44,10 @@ extern void fileio_printint64(int32, int64);
 extern void fileio_printfloat(int32, float64);
 extern void fileio_printstring(int32, char *, int32);
 extern int32 fileio_eof(int32);
-extern int32 fileio_getptr(int32);
-extern void fileio_setptr(int32, int32);
-extern int32 fileio_getext(int32);
-extern void fileio_setext(int32, int32);
+extern int64 fileio_getptr(int32);
+extern void fileio_setptr(int32, int64);
+extern int64 fileio_getext(int32);
+extern void fileio_setext(int32, int64);
 extern void fileio_shutdown(void);
 
 #endif

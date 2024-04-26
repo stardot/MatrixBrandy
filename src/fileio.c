@@ -30,6 +30,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include "common.h"
 #include "miscprocs.h"
 #include "target.h"
@@ -532,7 +534,7 @@ int32 fileio_getptr(int32 handle) {
 ** 'fileio_setptr' is used to set the current file pointer of
 ** the file 'handle'
 */
-void fileio_setptr(int32 handle, int32 newoffset) {
+void fileio_setptr(int32 handle, int64 newoffset) {
   int32 result;
   result = _kernel_osargs(1, handle, newoffset);        /* OS_Args 1 = set file pointer */
   if (result==_kernel_ERROR) report();
@@ -541,7 +543,7 @@ void fileio_setptr(int32 handle, int32 newoffset) {
 /*
 ** 'fileio_getext' returns the size of the file with handle 'handle'
 */
-int32 fileio_getext(int32 handle) {
+int64 fileio_getext(int32 handle) {
   int32 extent;
   extent = _kernel_osargs(2, handle, 0);        /* OS_Args 2 = read file's extent (size) */
   if (extent==_kernel_ERROR) report();
@@ -1193,7 +1195,7 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 /*
 ** 'fileio_setptr' is used to set the current file pointer
 */
-void fileio_setptr(int32 handle, int32 newoffset) {
+void fileio_setptr(int32 handle, int64 newoffset) {
   int32 result;
 
   if (handle==0) error(ERR_BADHANDLE);
@@ -1206,12 +1208,12 @@ void fileio_setptr(int32 handle, int32 newoffset) {
 /*
 ** 'fileio_getptr' returns the current value of the file pointer
 */
-int32 fileio_getptr(int32 handle) {
-  int32 result;
+int64 fileio_getptr(int32 handle) {
+  int64 result;
 
   if (handle==0) return 0; /* This is what happens on RISC OS 3.71 */
   handle = map_handle(handle);
-  result = TOINT(ftell(fileinfo[handle].stream));
+  result = ftell(fileinfo[handle].stream);
   if (result==-1) error(ERR_GETPTRFAIL);        /* File pointer cannot be read */
   return result;
 }
@@ -1219,8 +1221,8 @@ int32 fileio_getptr(int32 handle) {
 /*
 ** 'fileio_getext' returns the size of a file
 */
-int32 fileio_getext(int32 handle) {
-  long int position, length;
+int64 fileio_getext(int32 handle) {
+  int64 position, length;
   FILE *stream;
 
   if (handle==0) error(ERR_BADHANDLE);
@@ -1231,16 +1233,25 @@ int32 fileio_getext(int32 handle) {
   fseek(stream, 0, SEEK_END);                   /* Find the end of the file */
   length = ftell(stream);
   fseek(stream, position, SEEK_SET);    /* Restore file to its original file pointer position */
-  return TOINT(length);
+  return length;
 }
 
 /*
-** 'fileio_setext' allows the size of a file to be changed. This
-** is not supported except under RISC OS
+** 'fileio_setext' allows the size of a file to be changed.
 */
-void fileio_setext(int32 handle, int32 newsize) {
-  handle = map_handle(handle);
-//error(ERR_UNSUPPORTED);
+void fileio_setext(int32 handle, int64 newsize) {
+  int32 fh, type;
+  
+  handle=map_handle(handle);
+  type=fileinfo[handle].filetype;
+  if((type==OPENOUT) || (type==OPENUP)) {
+    fh=fileno(fileinfo[handle].stream);
+    if (ftruncate(fh, newsize)) {
+      error(ERR_CMDFAIL);
+    }
+  } else {
+    error(ERR_CANTWRITE);
+  }
 }
 
 /*

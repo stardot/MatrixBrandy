@@ -3595,7 +3595,8 @@ static void assign_himem(void) {
 ** size of a file
 */
 static void assign_ext(void) {
-  int32 handle, newsize;
+  int32 handle;
+  int64 newsize;
 
   DEBUGFUNCMSGIN;
   basicvars.current++;
@@ -3610,7 +3611,7 @@ static void assign_ext(void) {
     error(ERR_EQMISS);
   }
   basicvars.current++;
-  newsize = eval_integer();
+  newsize = eval_int64();
   if (!ateol[*basicvars.current]) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
@@ -3873,7 +3874,8 @@ static void assign_page(void) {
 ** 'assign_ptr' deals with the Basic 'PTR#x=' statement
 */
 static void assign_ptr(void) {
-  int32 handle, newplace;
+  int32 handle;
+  int64 newplace;
 
   DEBUGFUNCMSGIN;
   basicvars.current++;
@@ -3885,14 +3887,14 @@ static void assign_ptr(void) {
       error(ERR_EQMISS);
     }
     basicvars.current++;
-    newplace = eval_integer();
+    newplace = eval_int64();
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
     fileio_setptr(handle, newplace);
   } else if (*basicvars.current=='(') {
-    size_t newptr;
+    int64 newptr;
     stackitem topitem;
     basicarray *descriptor;
     variable *vp;
