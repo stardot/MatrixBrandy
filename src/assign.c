@@ -3894,7 +3894,7 @@ static void assign_ptr(void) {
     }
     fileio_setptr(handle, newplace);
   } else if (*basicvars.current=='(') {
-    int64 newptr;
+    size_t newptr;
     stackitem topitem;
     basicarray *descriptor;
     variable *vp;
