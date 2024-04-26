@@ -522,7 +522,7 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 ** 'fileio_getptr' returns the current value of the file pointer for
 ** the file 'handle'
 */
-int32 fileio_getptr(int32 handle) {
+int64 fileio_getptr(int32 handle) {
   int32 pointer;
   if (handle == 0) return 0;
   pointer = _kernel_osargs(0, handle, 0);       /* OS_Args 0 = read file pointer */
@@ -554,7 +554,7 @@ int64 fileio_getext(int32 handle) {
 ** 'fileio_setext' is called to alter the extent (size) of the file
 ** with handle 'handle'
 */
-void fileio_setext(int32 handle, int32 newsize) {
+void fileio_setext(int32 handle, int64 newsize) {
   int32 result;
   result = _kernel_osargs(3, handle, newsize);  /* OS_Args 3 = alter file's extent (size) */
   if (result==_kernel_ERROR) report();
