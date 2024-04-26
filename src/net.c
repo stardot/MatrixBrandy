@@ -429,11 +429,9 @@ int checkfornewer() {
   memset(inbuf, 0, 4096);
   hndl=brandynet_connect("brandy.matrixnetwork.co.uk:80", 0, 0);
   if (hndl < 0) {
-    fprintf(stderr, "negative handle\n");
     DEBUGFUNCMSGOUT;
     return(0);
   }
-  fprintf(stderr, "hndl=%d\n", hndl);
   net_bputstr(hndl, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\n\r\n", -1);
   ptr = 0;
   val=-1;
