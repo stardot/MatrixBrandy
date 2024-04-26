@@ -309,7 +309,9 @@ int brandynet_connect(char *dest, char type, int reporterrors) {
   for(rp = addrdata; rp != NULL; rp = rp->ai_next) {
     mysocket = socket(rp->ai_family, SOCK_STREAM, 0);
     if (mysocket == -1) continue;
+#ifndef TARGET_MINGW
     if (!reporterrors) setsockopt(mysocket, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+#endif
     sockres=connect(mysocket, rp->ai_addr, rp->ai_addrlen);
     if (!sockres)
       break; /* success! */
