@@ -65,6 +65,10 @@ nostar                  Do not check commands issued via OSCLI to see if they
                         are dealt with by Brandy. Pass all commands to the
                         underlying operating system.
 
+hex64                   Equivalent to SYS"Brandy_Hex64",1.
+                        This controls whether Brandy renders and interprets
+                        Base 16 (Hexadecimal) values as 64-bit.
+
 intusesfloat            Equivalent to SYS"Brandy_INTusesFloat",1.
                         This enables a BB4W/BBCSDL extension that allows INT()
                         to handle numbers > 2^31-1 by using a float if the
@@ -78,18 +82,15 @@ legacyintmaths          Equivalent to SYS"Brandy_LegacyIntMaths",1.
                         BASIC VI, BB4W and BBCSDL do not have this wrap-around
                         issue and will promote to float when needed.
 
-hex64                   Equivalent to SYS"Brandy_Hex64",1.
-                        This controls whether Brandy renders and interprets
-                        Base 16 (Hexadecimal) values as 64-bit.
-
 pseudovarsunsigned      Equivalent to SYS"Brandy_PseudovarsUnsigned",1.
                         Only effective on 32-bit hardware. Toggles whether
                         memory pseudo-variables (e.g. PAGE, HIMEM etc) return
                         large positive numbers above &7FFFFFFF.
 
+Each option is to be listed on its own line.
 
 Unrecognised options are silently ignored.  A - prefix of any option is
-also ignored, and skipped over, so either
+also ignored and also skipped over, so either
 -nofull
   or
 nofull
