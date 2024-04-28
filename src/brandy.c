@@ -363,7 +363,7 @@ static void check_configfile() {
   snprintf(conffname, "<Brandy$Dir>.brandyrc",1023);
 #endif
 #ifdef TARGET_MINGW
-  snprintf(conffname, 1023, "%s\brandyrc", getenv("APPDATA"));
+  snprintf(conffname, 1023, "%s\\brandyrc", getenv("APPDATA"));
 #endif
 #ifdef TARGET_UNIX
   snprintf(conffname, 1023, "%s/.brandyrc", getenv("HOME"));
