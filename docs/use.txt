@@ -86,6 +86,9 @@ where <filename> is the optional name of the program to load and
 
 -version                Print the version of Matrix Brandy.
 
+-nocheck                Don't try to check for new versions of Brandy on
+                        interactive mode startup.
+
 -size <size>            Set the size of the Basic workspace to <size> bytes
                         when starting the interpreter.  The minimum size
                         allowed is 16384 bytes and anything below this value

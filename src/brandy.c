@@ -462,6 +462,7 @@ static void check_configfile() {
 
   fclose(conffile);
   free(conffname);
+  free(line);
 }
 
 /*

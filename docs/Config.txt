@@ -6,6 +6,11 @@ supports most of the command-line options listed in 'brandy -help'
 and additionally some tunables ordinarily set via the SYS command
 at run-time.
 
+The location of this configuration is:
+RISC OS:    <Brandy$Dir>.brandyrc
+Windows:    %APPDATA%\brandyrc
+UNIX/Linux: $HOME/.brandyrc
+
 These are:
 size <size>             Set the size of the Basic workspace to <size> bytes
                         when starting the interpreter.  The minimum size
@@ -17,6 +22,9 @@ size <size>             Set the size of the Basic workspace to <size> bytes
                         example, '-size 100k' will set the workspace size to
                         100 kilobytes (102400 bytes) and '-size 8m' will set
                         it to eight megabytes (8388608 bytes).
+
+nocheck                 Don't try to check for new versions of Brandy on
+                        interactive mode startup.
 
 fullscreen              (SDL build only) Start Brandy in fullscreen mode.
 
