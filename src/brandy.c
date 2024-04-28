@@ -399,14 +399,16 @@ static void check_configfile() {
       parameter++;
     }
 
-    if(!strcmp(item, "fullscreen")) {
+    if(!strcmp(item, "nocheck")) {
+      matrixflags.checknewver = FALSE;
+#ifdef USE_SDL
+    } else if(!strcmp(item, "fullscreen")) {
       basicvars.runflags.startfullscreen=TRUE;
     } else if(!strcmp(item, "nofull")) {
       matrixflags.neverfullscreen=TRUE;
     } else if(!strcmp(item, "swsurface")) {
       basicvars.runflags.swsurface=TRUE;
-    } else if(!strcmp(item, "nocheck")) {
-      matrixflags.checknewver = FALSE;
+#endif
     } else if(!strcmp(item, "tek")) {
       matrixflags.tekenabled=1;
     } else if(!strcmp(item, "ignore")) {
