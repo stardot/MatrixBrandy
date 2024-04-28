@@ -1,0 +1,89 @@
+Matrix Brandy configuration file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Matrix Brandy now supports the use of a configuration file, which
+supports most of the command-line options listed in 'brandy -help'
+and additionally some tunables ordinarily set via the SYS command
+at run-time.
+
+These are:
+size <size>             Set the size of the Basic workspace to <size> bytes
+                        when starting the interpreter.  The minimum size
+                        allowed is 16384 bytes and anything below this value
+                        will be set to it. The maximum size is 4294966272
+                        bytes (1K short of 4GB), The size may have a
+                        suffix of 'k', 'm' or 'g' to denote that the size is
+                        in kilobytes, megabytes or gigabytes respectively, for
+                        example, '-size 100k' will set the workspace size to
+                        100 kilobytes (102400 bytes) and '-size 8m' will set
+                        it to eight megabytes (8388608 bytes).
+
+fullscreen              (SDL build only) Start Brandy in fullscreen mode.
+
+nofull                  (SDL build only) Never use fullscreen mode.
+
+swsurface               (SDL build only) Use a software SDL surface.
+
+tek                     (Text-mode 'tbrandy' build only) Enable Tektronics
+                        graphics.
+
+path <directory list>   This specifies a list of directories that the
+                        interpreter will search when looking for libraries and
+                        programs. The directory names are separated by commas.
+                        The pseudo-variable 'FILEPATH$' is set to this value.
+                        See the section below on FILEPATH$ for more details.
+
+lib <filename>          Load Basic library <filename> when the interpreter
+                        starts. This option can be repeated as many times as
+                        required to load a number of libraries. This is
+                        equivalent to typing 'INSTALL <filename>' at the
+                        interpreter's command line. The libraries are loaded
+                        in the order given on the command line. Note that the
+                        search order is the reverse of this.
+
+ignore                  (If strict mode enabled by default) Ignore certain
+                        'unsupported feature' errors.
+                        This option allows some unsupported features that do
+                        not affect the basic running of the program to be
+                        ignored.
+
+strict                  (If ignore mode enabled by default) The interpreter
+                        will report an error whenever it comes across a
+                        BASIC V/VI feature that it does not support, and
+                        some obvious BASIC program bugs that are ignored by
+                        the Acorn interpreter.
+
+nostar                  Do not check commands issued via OSCLI to see if they
+                        are dealt with by Brandy. Pass all commands to the
+                        underlying operating system.
+
+intusesfloat            Equivalent to SYS"Brandy_INTusesFloat",1.
+                        This enables a BB4W/BBCSDL extension that allows INT()
+                        to handle numbers > 2^31-1 by using a float if the
+                        number is out of range for a 32-bit signed integer.
+
+legacyintmaths          Equivalent to SYS"Brandy_LegacyIntMaths",1.
+                        This allows integer mathematics to be handled in the
+                        way BBC BASIC 1 to 4 on the Acorn 8-bit machines, and
+                        RISC OS ARM BBC BASIC V, including the rather
+                        questionable wrap-around on integers. RISC OS ARM BBC
+                        BASIC VI, BB4W and BBCSDL do not have this wrap-around
+                        issue and will promote to float when needed.
+
+hex64                   Equivalent to SYS"Brandy_Hex64",1.
+                        This controls whether Brandy renders and interprets
+                        Base 16 (Hexadecimal) values as 64-bit.
+
+pseudovarsunsigned      Equivalent to SYS"Brandy_PseudovarsUnsigned",1.
+                        Only effective on 32-bit hardware. Toggles whether
+                        memory pseudo-variables (e.g. PAGE, HIMEM etc) return
+                        large positive numbers above &7FFFFFFF.
+
+
+Unrecognised options are silently ignored.  A - prefix of any option is
+also ignored, and skipped over, so either
+-nofull
+  or
+nofull
+are equally valid.  Similarly, a parameter is separated from its option by
+either a single space or a single '=' character.

@@ -1,5 +1,5 @@
-Brandy
-~~~~~~
+Matrix Brandy
+~~~~~~~~~~~~~
 
 Contents
 ~~~~~~~~
@@ -155,6 +155,15 @@ where <filename> is the optional name of the program to load and
 The case of the names of the options is ignored. It depends on the operating
 system under which the interpreter is running as to whether the names of files
 are case sensitive or insensitive.
+
+Most of these items can be put into a configuration file, those that cannot
+be used are -load, -chain, -quit, -version, --help or a supplied program to
+run.  This configuration file lives, depending on your platform, in
+$HOME/.brandyrc
+%APPDATA%\brandyrc
+<Brandy$Dir>.brandyrc
+
+Some tunables can also be set in this file. For more details see Config.txt.
 
 Minimum Abbreviations
 ---------------------

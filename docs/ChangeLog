@@ -11,6 +11,9 @@ made from git in the master branch, and from tarballs with no git information.
   without any git information) or a development build (anything else).
 - System: Added a new version check for release builds. Use option "-nocheck"
   to skip this should it cause slow starts.
+- System: Added support for a configuration file, in $HOME/.brandyrc,
+  %APPDATA%\brandyrc or <Brandy$Dir>.brandyrc depending on platform.
+  See docs/Config.txt for full details.
 - Graphics: Fixed some breakage in flood fill.
 - BASIC: IF something THEN REM is no longer handled as the start of a
   multi-line IF statement.

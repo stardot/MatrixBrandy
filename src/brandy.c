@@ -354,7 +354,112 @@ static void init2(void) {
  */
 static void check_configfile() {
   /* Right now, this is a stub that does nothing. */
-  
+  FILE *conffile;
+  char *conffname, *line, *item, *parameter;
+
+  conffname=malloc(1024);
+  memset(conffname, 0, 1024);
+#ifdef TARGET_RISCOS
+  snprintf(conffname, "<Brandy$Dir>.brandyrc",1023);
+#endif
+#ifdef TARGET_MINGW
+  snprintf(conffname, 1023, "%s\brandyrc", getenv("APPDATA"));
+#endif
+#ifdef TARGET_UNIX
+  snprintf(conffname, 1023, "%s/.brandyrc", getenv("HOME"));
+#endif
+  if(*conffname=='\0') {
+    free(conffname);
+    return;
+  }
+
+  conffile=fopen(conffname, "r");
+  if (!conffile) {
+    /* File doesn't exist. Not to worry. */
+    free(conffname);
+    return;
+  }
+  line=malloc(1024);
+  while (!feof(conffile)) {
+    memset(line,0,1024);          /* Clear the buffer before new entries are read */
+    parameter=NULL;
+    fgets(line, 1024, conffile);
+    /* Borrow the 'item' pointer, to remove any trailing CR/LF */
+    item=strchr(line, '\n');
+    if (item) *item='\0';
+        item=strchr(line, '\r');
+    if (item) *item='\0';
+
+    item=line;
+    if(*item == '-') item++;      /* Skip a leading - */
+    parameter=strchr(item, '=');  /* Parameter comes after space or = */
+    if (!parameter) parameter=strchr(item, ' ');
+    if (parameter) {
+      *parameter='\0';
+      parameter++;
+    }
+
+    if(!strcmp(item, "fullscreen")) {
+      basicvars.runflags.startfullscreen=TRUE;
+    } else if(!strcmp(item, "nofull")) {
+      matrixflags.neverfullscreen=TRUE;
+    } else if(!strcmp(item, "swsurface")) {
+      basicvars.runflags.swsurface=TRUE;
+    } else if(!strcmp(item, "nocheck")) {
+      matrixflags.checknewver = FALSE;
+    } else if(!strcmp(item, "tek")) {
+      matrixflags.tekenabled=1;
+    } else if(!strcmp(item, "ignore")) {
+      basicvars.runflags.flag_cosmetic = FALSE;
+    } else if(!strcmp(item, "strict")) {
+      basicvars.runflags.flag_cosmetic = TRUE;
+    } else if(!strcmp(item, "nostar")) {
+      basicvars.runflags.ignore_starcmd = TRUE;
+    } else if(!strcmp(item, "size")) {
+      char *sp;
+      worksize = CAST(strtol(parameter, &sp, 10), size_t);  /* Fetch workspace size (n.b. no error checking) */
+      if (tolower(*sp)=='k') {          /* Size is in kilobytes */
+        worksize = worksize*1024;
+      } else if (tolower(*sp)=='m') {   /* Size is in megabytes */
+        worksize = worksize*1024*1024;
+      } else if (tolower(*sp)=='g') {   /* Size is in gigabytes */
+        worksize = worksize*1024*1024*1024;
+      }
+    } else if(!strcmp(item, "path")) {
+      if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
+      basicvars.loadpath = malloc(strlen(parameter)+1);         /* +1 for the NUL */
+      if (basicvars.loadpath==NIL) {    /* No memory available */
+        cmderror(CMD_NOMEMORY);
+        exit(EXIT_FAILURE);
+      }
+      strcpy(basicvars.loadpath, parameter);
+    } else if(!strcmp(item, "lib")) {
+      struct loadlib *p = malloc(sizeof(struct loadlib));
+      if (p==NIL)
+        cmderror(CMD_NOMEMORY);
+      else {
+        p->name = strdup(parameter);
+        p->next = NIL;
+        if (liblast==NIL)
+          liblist = p;
+        else {
+          liblast->next = p;
+        }
+        liblast = p;
+      }
+    } else if(!strcmp(item, "intusesfloat")) {
+      matrixflags.int_uses_float = TRUE;
+    } else if(!strcmp(item, "legacyintmaths")) {
+      matrixflags.legacyintmaths = TRUE;
+    } else if(!strcmp(item, "hex64")) {
+      matrixflags.hex64 = TRUE;
+    } else if(!strcmp(item, "pseudovarsunsigned")) {
+      matrixflags.pseudovarsunsigned = TRUE;
+    }
+  }
+
+  fclose(conffile);
+  free(conffname);
 }
 
 /*
@@ -393,7 +498,7 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='n' && tolower(*(p+2))=='o' && tolower(*(p+3))=='f') {  /* -nofull */
         matrixflags.neverfullscreen=TRUE;
       }
-      else if (optchar=='s' && tolower(*(p+2))=='w') {
+      else if (optchar=='s' && tolower(*(p+2))=='w') {    /* -swsurface */
         basicvars.runflags.swsurface=TRUE;
       }
 #endif
