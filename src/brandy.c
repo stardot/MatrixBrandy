@@ -92,6 +92,7 @@ static cmdarg *arglast;                 /* Pointer to end of command line argume
 
 static struct loadlib {char *name; struct loadlib *next;} *liblist, *liblast;
 
+static void check_configfile(void);
 static void check_cmdline(int, char *[]);
 #ifndef BRANDYAPP
 static char *loadfile;                  /* Pointer to name of file to load when interpreter starts */
@@ -114,6 +115,7 @@ int main(int argc, char *argv[]) {
   basicvars.runflags.quitatend = TRUE;
   basicvars.runflags.loadngo = TRUE;
 #endif
+  check_configfile();
   check_cmdline(argc, argv);
   init2();
   gpio_init();
@@ -136,6 +138,7 @@ int main(int argc, char *argv[]) {
   basicvars.runflags.quitatend = TRUE;
   basicvars.runflags.loadngo = TRUE;
 #endif
+  check_configfile();
   check_cmdline(argc, argv);
   init2();
   gpio_init();
@@ -343,6 +346,15 @@ static void init2(void) {
   basicvars.current = NIL;
   basicvars.misc_flags.validsaved = FALSE;  /* Want this to be 'FALSE' when the interpreter first starts */
   init_interpreter();
+}
+
+/* 'check_configfile' is called to check the configuration file
+ * (~/.brandyrc on UNIX-type systems) to override compiled defaults
+ * before checking the command line.
+ */
+static void check_configfile() {
+  /* Right now, this is a stub that does nothing. */
+  
 }
 
 /*
