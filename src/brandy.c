@@ -360,7 +360,7 @@ static void check_configfile() {
   conffname=malloc(1024);
   memset(conffname, 0, 1024);
 #ifdef TARGET_RISCOS
-  snprintf(conffname, "<Brandy$Dir>.brandyrc",1023);
+  snprintf(conffname, 1023, "<Brandy$Dir>.brandyrc");
 #endif
 #ifdef TARGET_MINGW
   snprintf(conffname, 1023, "%s\\brandyrc", getenv("APPDATA"));
