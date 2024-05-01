@@ -1440,6 +1440,12 @@ boolean is8or32int(stackitem item) {
   return 0;
 }
 
+boolean isNumericArray(stackitem item) {
+  if ((item == STACK_INTARRAY) || (item == STACK_UINT8ARRAY) || \
+      (item == STACK_INT64ARRAY) || (item == STACK_FLOATARRAY)) return 1;
+  return 0;
+}
+
 #ifdef DEBUG
 /* Output to stderr the stack item type supplied */
 void debug_show_stackitemtype(int32 item) {

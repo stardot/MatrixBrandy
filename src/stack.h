@@ -103,6 +103,7 @@ extern void init_stack(void);
 extern void clear_stack(void);
 extern void *alloc_local(int32);
 extern boolean is8or32int(stackitem);
+extern boolean isNumericArray(stackitem);
 #ifdef DEBUG
 extern void debug_show_stackitemtype(int32);
 #endif

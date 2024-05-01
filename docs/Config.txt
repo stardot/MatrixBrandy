@@ -24,7 +24,10 @@ size <size>             Set the size of the Basic workspace to <size> bytes
                         it to eight megabytes (8388608 bytes).
 
 nocheck                 Don't try to check for new versions of Brandy on
-                        interactive mode startup.
+                        interactive mode startup.  This is perhaps useful if
+                        you have a slow internet connection that causes Brandy
+                        to hang for a few seconds on startup as it tries to
+                        check for a new version.
 
 fullscreen              (SDL build only) Start Brandy in fullscreen mode.
 
