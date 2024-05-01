@@ -261,7 +261,7 @@ static void assign_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()=<value> [,<value>] */
+  if (TOPITEMISNUM) { /* array()=<value> [,<value>] */
     if (*basicvars.current==',') {      /* array()=<value>,<value>,... */
       p = ap->arraystart.intbase;
       n = 0;
@@ -276,7 +276,7 @@ static void assign_intarray(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) {
+        if (!(TOPITEMISNUM)) {
           DEBUGFUNCMSGOUT;
           error(ERR_TYPENUM);
         }
@@ -293,7 +293,7 @@ static void assign_intarray(pointers address) {
       p = ap->arraystart.intbase;
       for (n=0; n<ap->arrsize; n++) p[n] = value;
     }
-  } else if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
+  } else if (TOPITEMISNUMARRAY) {
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
@@ -303,121 +303,40 @@ static void assign_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
+    check_arrays(ap, ap2);
+    p = ap->arraystart.intbase;
+    if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
+      if (ap!=ap2) memmove(ap->arraystart.intbase, ap2->arraystart.intbase, ap->arrsize*sizeof(int32));
+    } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
+      uint8 *fp = ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
+      int64 *fp = ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
+    } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
+      float64 *fp = ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
-    if (ap!=ap2) memmove(ap->arraystart.intbase, ap2->arraystart.intbase, ap->arrsize*sizeof(int32));
-  } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
-    uint8 *fp;
+  } else if (TOPITEMISNUMARRTEMP) {
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.intbase;
-    fp = ap2->arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-  } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
-    int64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.intbase;
-    fp = ap2->arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
-  } else if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
     basicarray temp = pop_arraytemp();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    memmove(ap->arraystart.intbase, temp.arraystart.intbase, ap->arrsize*sizeof(int32));
-    free_stackmem();
-  } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    uint8 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, &temp);
     p = ap->arraystart.intbase;
-    fp = temp.arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-    free_stackmem();
-  } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    int64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
+    if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
+      memmove(ap->arraystart.intbase, temp.arraystart.intbase, ap->arrsize*sizeof(int32));
+    } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
+      uint8 *fp = temp.arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
+      int64 *fp = temp.arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
+    } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
+      float64 *fp = temp.arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.intbase;
-    fp = temp.arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
-    free_stackmem();
-  } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
-    float64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.intbase;
-    fp = ap2->arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
-  } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    float64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.intbase;
-    fp = temp.arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     free_stackmem();
   } else {
     DEBUGFUNCMSGOUT;
@@ -444,12 +363,12 @@ static void assign_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()=<value> [,<value>] */
+  if (TOPITEMISNUM) {                   /* array()=<value> [,<value>] */
     if (*basicvars.current==',') {      /* array()=<value>,<value>,... */
       p = ap->arraystart.uint8base;
       n = 0;
       do {
-        if (n>=ap->arrsize) {        /* Trying to assign too many elements */
+        if (n>=ap->arrsize) {           /* Trying to assign too many elements */
           DEBUGFUNCMSGOUT;
           error(ERR_BADINDEX, n, "(");
         }
@@ -459,7 +378,7 @@ static void assign_uint8array(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) {
+        if (!(TOPITEMISNUM)) {
           DEBUGFUNCMSGOUT;
           error(ERR_TYPENUM);
         }
@@ -476,8 +395,7 @@ static void assign_uint8array(pointers address) {
       p = ap->arraystart.uint8base;
       for (n=0; n<ap->arrsize; n++) p[n] = value;
     }
-  } else if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
-    int32 *fp;
+  } else if (TOPITEMISNUMARRAY) {
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
@@ -487,120 +405,40 @@ static void assign_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
-    fp = ap2->arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-  } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
+    if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
+      int32 *fp = ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
+      if (ap!=ap2) memmove(ap->arraystart.uint8base, ap2->arraystart.uint8base, ap->arrsize*sizeof(uint8));
+    } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
+      int64 *fp = ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
+    } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
+      float64 *fp = ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
+    }
+  } else if (TOPITEMISNUMARRTEMP) {
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    if (ap!=ap2) memmove(ap->arraystart.uint8base, ap2->arraystart.uint8base, ap->arrsize*sizeof(uint8));
-  } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
-    int64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.uint8base;
-    fp = ap2->arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = (int32)(fp[n]);
-  } else if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
     basicarray temp = pop_arraytemp();
-    int32 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, &temp);
     p = ap->arraystart.uint8base;
-    fp = temp.arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-    free_stackmem();
-  } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
+    if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
+      int32 *fp = temp.arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
+      memmove(ap->arraystart.uint8base, temp.arraystart.uint8base, ap->arrsize*sizeof(uint8));
+    } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
+      int64 *fp = temp.arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n] = (uint8)(fp[n]);
+    } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
+      float64 *fp = temp.arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    memmove(ap->arraystart.uint8base, temp.arraystart.uint8base, ap->arrsize*sizeof(uint8));
-    free_stackmem();
-  } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    int64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.uint8base;
-    fp = temp.arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = (uint8)(fp[n]);
-    free_stackmem();
-  } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
-    float64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.uint8base;
-    fp = ap2->arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
-  } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    float64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.uint8base;
-    fp = temp.arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     free_stackmem();
   } else {
     DEBUGFUNCMSGOUT;
@@ -625,7 +463,7 @@ static void assign_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()=<value> [,<value>] */
+  if (TOPITEMISNUM) { /* array()=<value> [,<value>] */
     if (*basicvars.current==',') {      /* array()=<value>,<value>,... */
       p = ap->arraystart.int64base;
       n = 0;
@@ -640,7 +478,7 @@ static void assign_int64array(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) {
+        if (!(TOPITEMISNUM)) {
           DEBUGFUNCMSGOUT;
           error(ERR_TYPENUM);
         }
@@ -657,8 +495,7 @@ static void assign_int64array(pointers address) {
       p = ap->arraystart.int64base;
       for (n=0; n<ap->arrsize; n++) p[n] = value;
     }
-  } else if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
-    int32 *fp;
+  } else if (TOPITEMISNUMARRAY) {
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
@@ -668,120 +505,40 @@ static void assign_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
-    fp = ap2->arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = (fp[n]);
-  } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
-    uint8 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
+    if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
+      int32 *fp = ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = (fp[n]);
+    } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
+      uint8 *fp = ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
+      if (ap!=ap2) memmove(ap->arraystart.int64base, ap2->arraystart.int64base, ap->arrsize*sizeof(int64));
+    } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
+      float64 *fp = ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.int64base;
-    fp = ap2->arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-  } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    if (ap!=ap2) memmove(ap->arraystart.int64base, ap2->arraystart.int64base, ap->arrsize*sizeof(int64));
-  } else if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
-    int32 *fp;
+  } else if (TOPITEMISNUMARRTEMP) {
     basicarray temp = pop_arraytemp();
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, &temp);
     p = ap->arraystart.int64base;
-    fp = temp.arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-    free_stackmem();
-  } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
-    uint8 *fp;
-    basicarray temp = pop_arraytemp();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
+    if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
+      int32 *fp = temp.arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
+      uint8 *fp = temp.arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
+    } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
+      memmove(ap->arraystart.int64base, temp.arraystart.int64base, ap->arrsize*sizeof(int64));
+    } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
+      float64 *fp = temp.arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.int64base;
-    fp = temp.arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n] = fp[n];
-    free_stackmem();
-  } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    memmove(ap->arraystart.int64base, temp.arraystart.int64base, ap->arrsize*sizeof(int64));
-    free_stackmem();
-  } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
-    float64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.int64base;
-    fp = ap2->arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
-  } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    float64 *fp;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.int64base;
-    fp = temp.arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     free_stackmem();
   } else {
     DEBUGFUNCMSGOUT;
@@ -807,7 +564,7 @@ static void assign_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()=<value> */
+  if (TOPITEMISNUM) { /* array()=<value> */
     if (*basicvars.current==',') {
       p = ap->arraystart.floatbase;
       n = 0;
@@ -822,7 +579,7 @@ static void assign_floatarray(pointers address) {
         basicvars.current++;
         expression();
         exprtype = GET_TOPITEM;
-        if (exprtype!=STACK_INT && exprtype!=STACK_UINT8 && exprtype!=STACK_INT64 && exprtype!=STACK_FLOAT) {
+        if (!(TOPITEMISNUM)) {
           DEBUGFUNCMSGOUT;
           error(ERR_TYPENUM);
         }
@@ -839,7 +596,7 @@ static void assign_floatarray(pointers address) {
       p = ap->arraystart.floatbase;
       for (n=0; n<ap->arrsize; n++) p[n] = fpvalue;
     }
-  } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
+  } else if (TOPITEMISNUMARRAY) {
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
@@ -849,121 +606,40 @@ static void assign_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
+    check_arrays(ap, ap2);
+    p = ap->arraystart.floatbase;
+    if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
+      int32 *ip = ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
+      uint8 *ip = ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
+      int64 *ip = ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    } else if (exprtype==STACK_FLOATARRAY) {      /* array1()=array2() */
+      if (ap!=ap2) memmove(ap->arraystart.floatbase, ap2->arraystart.floatbase, ap->arrsize*sizeof(float64));
     }
-    if (ap!=ap2) memmove(ap->arraystart.floatbase, ap2->arraystart.floatbase, ap->arrsize*sizeof(float64));
-  } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
+  } else if (TOPITEMISNUMARRTEMP) {
     basicarray temp = pop_arraytemp();
     if (!ateol[*basicvars.current]) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    memmove(ap->arraystart.floatbase, temp.arraystart.floatbase, ap->arrsize*sizeof(float64));
-    free_stackmem();
-  } else if (exprtype==STACK_INTARRAY) {        /* array1()=array2() */
-    int32 *ip;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, &temp);
     p = ap->arraystart.floatbase;
-    ip = ap2->arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
-  } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()=array2() */
-    uint8 *ip;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
+    if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
+      int32 *ip = temp.arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
+      uint8 *ip = temp.arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
+      int64 *ip = temp.arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
+    } else if (exprtype==STACK_FATEMP) {  /* array1()=array2()<op><value> */
+      memmove(ap->arraystart.floatbase, temp.arraystart.floatbase, ap->arrsize*sizeof(float64));
     }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.floatbase;
-    ip = ap2->arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
-  } else if (exprtype==STACK_INT64ARRAY) {      /* array1()=array2() */
-    int64 *ip;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
-      DEBUGFUNCMSGOUT;
-      error(ERR_NODIMS, "(");
-    }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.floatbase;
-    ip = ap2->arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
-  } else if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    int32 *ip;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.floatbase;
-    ip = temp.arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
-    free_stackmem();
-  } else if (exprtype==STACK_U8ATEMP) { /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    uint8 *ip;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.floatbase;
-    ip = temp.arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
-    free_stackmem();
-  } else if (exprtype==STACK_I64ATEMP) {        /* array1()=array2()<op><value> */
-    basicarray temp = pop_arraytemp();
-    int64 *ip;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-    }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
-    p = ap->arraystart.floatbase;
-    ip = temp.arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n] = TOFLOAT(ip[n]);
     free_stackmem();
   } else {
     DEBUGFUNCMSGOUT;
@@ -1079,10 +755,7 @@ static void assign_strarray(pointers address) {
         DEBUGFUNCMSGOUT;
         error(ERR_NODIMS, "(");
       }
-      if (!check_arrays(ap, ap2)) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_TYPEARRAY);
-      }
+      check_arrays(ap, ap2);
       p = ap->arraystart.stringbase;
       p2 = ap2->arraystart.stringbase;
       for (n=0; n<ap->arrsize; n++) {   /* Duplicate entire array */
@@ -1101,10 +774,7 @@ static void assign_strarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
     }
-    if (!check_arrays(ap, &temp)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, &temp);
     count = ap->arrsize;
     p = ap->arraystart.stringbase;
     for (n=0; n<count; n++) free_string(p[n]);  /* Discard old destination array strings */
@@ -1273,24 +943,21 @@ static void assiplus_intarray(pointers address) {
   DEBUGFUNCMSGIN;
   exprtype = GET_TOPITEM;
   ap = *address.arrayaddr;
-  if (ap==NIL) {                          /* Undefined array */
+  if (ap==NIL) {                            /* Undefined array */
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()+=<value> */
+  if (TOPITEMISNUM) {                       /* array()+=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]+=value;
-  } else if (exprtype==STACK_INTARRAY) {        /* array1()+=array2() */
+  } else if (exprtype==STACK_INTARRAY) {    /* array1()+=array2() */
     ap2 = pop_array();
-    if (ap2==NIL) {                       /* Undefined array */
+    if (ap2==NIL) {                         /* Undefined array */
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 = ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]+=p2[n];
@@ -1318,7 +985,7 @@ static void assiplus_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()+=<value> */
+  if (TOPITEMISNUM) {                           /* array()+=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]+=value;
@@ -1328,10 +995,7 @@ static void assiplus_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 = ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]+=p2[n];
@@ -1359,7 +1023,7 @@ static void assiplus_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()+=<value> */
+  if (TOPITEMISNUM) { /* array()+=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]+=value;
@@ -1369,10 +1033,7 @@ static void assiplus_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 = ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]+=p2[n];
@@ -1401,7 +1062,7 @@ static void assiplus_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()+=<value> */
+  if (TOPITEMISNUM) { /* array()+=<value> */
     fpvalue = pop_anynumfp();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]+=fpvalue;
@@ -1411,10 +1072,7 @@ static void assiplus_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]+=p2[n];
@@ -1474,10 +1132,7 @@ static void assiplus_strarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.stringbase;
     p2 = ap2->arraystart.stringbase;
     for (n=0; n<ap->arrsize; n++) {
@@ -1599,7 +1254,7 @@ static void assiminus_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()-=<value> */
+  if (TOPITEMISNUM) { /* array()-=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]-=value;
@@ -1609,10 +1264,7 @@ static void assiminus_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 =ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]-=p2[n];
@@ -1640,7 +1292,7 @@ static void assiminus_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()-=<value> */
+  if (TOPITEMISNUM) { /* array()-=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]-=value;
@@ -1650,10 +1302,7 @@ static void assiminus_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 =ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]-=p2[n];
@@ -1680,7 +1329,7 @@ static void assiminus_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()-=<value> */
+  if (TOPITEMISNUM) { /* array()-=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]-=value;
@@ -1690,10 +1339,7 @@ static void assiminus_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 =ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]-=p2[n];
@@ -1722,7 +1368,7 @@ static void assiminus_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()-=<value> */
+  if (TOPITEMISNUM) { /* array()-=<value> */
     fpvalue = pop_anynumfp();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]-=fpvalue;
@@ -1732,10 +1378,7 @@ static void assiminus_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]-=p2[n];
@@ -1854,7 +1497,7 @@ static void assiand_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()&=<value> */
+  if (TOPITEMISNUM) { /* array()&=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]&=value;
@@ -1864,10 +1507,7 @@ static void assiand_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 =ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]&=p2[n];
@@ -1895,7 +1535,7 @@ static void assiand_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()&=<value> */
+  if (TOPITEMISNUM) { /* array()&=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]&=value;
@@ -1905,10 +1545,7 @@ static void assiand_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 =ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]&=p2[n];
@@ -1935,7 +1572,7 @@ static void assiand_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()&=<value> */
+  if (TOPITEMISNUM) { /* array()&=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]&=value;
@@ -1945,10 +1582,7 @@ static void assiand_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 =ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]&=p2[n];
@@ -1977,7 +1611,7 @@ static void assiand_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()&=<value> */
+  if (TOPITEMISNUM) { /* array()&=<value> */
     value = pop_anynum64();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) & value);
@@ -1987,10 +1621,7 @@ static void assiand_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) & TOINT64(p2[n]));
@@ -2095,7 +1726,7 @@ static void assior_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()|=<value> */
+  if (TOPITEMISNUM) { /* array()|=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]|=value;
@@ -2105,10 +1736,7 @@ static void assior_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 =ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]|=p2[n];
@@ -2136,7 +1764,7 @@ static void assior_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()|=<value> */
+  if (TOPITEMISNUM) { /* array()|=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]|=value;
@@ -2146,10 +1774,7 @@ static void assior_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 =ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]|=p2[n];
@@ -2176,7 +1801,7 @@ static void assior_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()|=<value> */
+  if (TOPITEMISNUM) { /* array()|=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]|=value;
@@ -2186,10 +1811,7 @@ static void assior_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 =ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]|=p2[n];
@@ -2218,7 +1840,7 @@ static void assior_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()|=<value> */
+  if (TOPITEMISNUM) { /* array()|=<value> */
     value = pop_anynum64();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) | value);
@@ -2228,10 +1850,7 @@ static void assior_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) | TOINT64(p2[n]));
@@ -2338,7 +1957,7 @@ static void assieor_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()^=<value> */
+  if (TOPITEMISNUM) { /* array()^=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]^=value;
@@ -2348,10 +1967,7 @@ static void assieor_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 =ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]^=p2[n];
@@ -2379,7 +1995,7 @@ static void assieor_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()^=<value> */
+  if (TOPITEMISNUM) { /* array()^=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]^=value;
@@ -2389,10 +2005,7 @@ static void assieor_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 =ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]^=p2[n];
@@ -2419,7 +2032,7 @@ static void assieor_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()^=<value> */
+  if (TOPITEMISNUM) { /* array()^=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]^=value;
@@ -2429,10 +2042,7 @@ static void assieor_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 =ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]^=p2[n];
@@ -2461,7 +2071,7 @@ static void assieor_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()^=<value> */
+  if (TOPITEMISNUM) { /* array()^=<value> */
     value = pop_anynum64();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) ^ value);
@@ -2471,10 +2081,7 @@ static void assieor_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) ^ TOINT64(p2[n]));
@@ -2581,7 +2188,7 @@ static void assimod_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()%=<value> */
+  if (TOPITEMISNUM) { /* array()%=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]%=value;
@@ -2591,10 +2198,7 @@ static void assimod_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 =ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]%=p2[n];
@@ -2622,7 +2226,7 @@ static void assimod_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()%=<value> */
+  if (TOPITEMISNUM) { /* array()%=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]%=value;
@@ -2632,10 +2236,7 @@ static void assimod_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 =ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]%=p2[n];
@@ -2662,7 +2263,7 @@ static void assimod_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");                     /* Undefined array */
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()%=<value> */
+  if (TOPITEMISNUM) { /* array()%=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]%=value;
@@ -2672,10 +2273,7 @@ static void assimod_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 =ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]%=p2[n];
@@ -2704,7 +2302,7 @@ static void assimod_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()%=<value> */
+  if (TOPITEMISNUM) { /* array()%=<value> */
     value = pop_anynum64();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) % value);
@@ -2714,10 +2312,7 @@ static void assimod_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) % TOINT64(p2[n]));
@@ -2824,7 +2419,7 @@ static void assidiv_intarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()/=<value> */
+  if (TOPITEMISNUM) { /* array()/=<value> */
     value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
@@ -2834,10 +2429,7 @@ static void assidiv_intarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
     p2 =ap2->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
@@ -2865,7 +2457,7 @@ static void assidiv_uint8array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()/=<value> */
+  if (TOPITEMISNUM) { /* array()/=<value> */
     value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
@@ -2875,10 +2467,7 @@ static void assidiv_uint8array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
     p2 =ap2->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
@@ -2905,7 +2494,7 @@ static void assidiv_int64array(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()/=<value> */
+  if (TOPITEMISNUM) { /* array()/=<value> */
     value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
@@ -2915,10 +2504,7 @@ static void assidiv_int64array(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
     p2 =ap2->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
@@ -2947,7 +2533,7 @@ static void assidiv_floatarray(pointers address) {
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, "(");                     /* Undefined array */
   }
-  if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) { /* array()DIV=<value> */
+  if (TOPITEMISNUM) { /* array()DIV=<value> */
     value = pop_anynum64();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) / value);
@@ -2957,10 +2543,7 @@ static void assidiv_floatarray(pointers address) {
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
     }
-    if (!check_arrays(ap, ap2)) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_TYPEARRAY);
-    }
+    check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
     p2 = ap2->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) / TOINT64(p2[n]));
@@ -3291,7 +2874,7 @@ void assign_staticvar(void) {
   }
   exprtype = GET_TOPITEM;
   if (varindex==ATPERCENT && assignop=='=') {   /* @%= is a special case */
-    if (exprtype==STACK_INT || exprtype==STACK_UINT8 || exprtype==STACK_INT64 || exprtype==STACK_FLOAT) {
+    if (TOPITEMISNUM) {
       value64 = pop_anynum64();
       if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) {
         DEBUGFUNCMSGOUT;

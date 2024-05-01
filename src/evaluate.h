@@ -35,7 +35,7 @@ extern int32 eval_integer(void);
 extern int64 eval_int64(void);
 extern int32 eval_intfactor(void);
 
-extern boolean check_arrays(basicarray *, basicarray *);
+extern void check_arrays(basicarray *, basicarray *);
 extern void expression(void);
 extern void factor(void);
 extern void push_parameters(fnprocdef *, char *);

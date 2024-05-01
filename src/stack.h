@@ -103,7 +103,6 @@ extern void init_stack(void);
 extern void clear_stack(void);
 extern void *alloc_local(int32);
 extern boolean is8or32int(stackitem);
-extern boolean isNumericArray(stackitem);
 #ifdef DEBUG
 extern void debug_show_stackitemtype(int32);
 #endif
@@ -119,6 +118,10 @@ extern void debug_show_stackitemtype(int32);
 #define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))
 
 #define TOPITEMISNUM ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64) || (basicvars.stacktop.intsp->itemtype == STACK_FLOAT))
+
+#define TOPITEMISNUMARRAY ((basicvars.stacktop.intsp->itemtype == STACK_INTARRAY) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8ARRAY) || (basicvars.stacktop.intsp->itemtype == STACK_INT64ARRAY) || (basicvars.stacktop.intsp->itemtype == STACK_FLOATARRAY))
+
+#define TOPITEMISNUMARRTEMP ((basicvars.stacktop.intsp->itemtype == STACK_IATEMP) || (basicvars.stacktop.intsp->itemtype == STACK_U8ATEMP) || (basicvars.stacktop.intsp->itemtype == STACK_I64ATEMP) || (basicvars.stacktop.intsp->itemtype == STACK_FATEMP))
 
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
                 basicvars.stacktop.intsp->itemtype = STACK_INT; \
