@@ -256,7 +256,7 @@ int brandynet_connect(char *dest, char type, int reporterrors) {
 
 #else /* not TARGET_RISCOS */
   char *host, *port;
-  int n, mysocket=0, ret, sockres;
+  int n, mysocket=0, ret, sockres=-1;
   struct addrinfo hints, *addrdata, *rp;
   struct timeval timeout;
 #ifdef TARGET_MINGW
