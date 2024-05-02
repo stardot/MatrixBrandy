@@ -1517,7 +1517,7 @@ static void fn_rndpar(void) {
 static void fn_sgn(void) {
   DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
-  if (GET_TOPITEM == STACK_INT || GET_TOPITEM == STACK_UINT8 || GET_TOPITEM == STACK_INT64) {
+  if (TOPITEMISINT) {
     push_int(sgni(pop_anyint()));
   } else if (GET_TOPITEM == STACK_FLOAT) {
     push_int(sgnf(pop_float()));
@@ -1569,7 +1569,7 @@ static void fn_str(void) {
   if (ishex) basicvars.current++;
   (*factor_table[*basicvars.current])();
   resultype=GET_TOPITEM;
-  if (resultype == STACK_INT || resultype == STACK_UINT8 || resultype == STACK_INT64 || resultype == STACK_FLOAT) {
+  if (IS_NUMERIC(resultype)) {
     if (ishex)
       if (matrixflags.hex64)
         length = sprintf(basicvars.stringwork, "%llX", pop_anynum64());

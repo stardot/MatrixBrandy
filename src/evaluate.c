@@ -384,13 +384,12 @@ int32 eval_intfactor(void) {
 ** It does not check the types of the the array elements.
 */
 void check_arrays(basicarray *p1, basicarray *p2) {
-  int32 n;
+  int32 n = 0;
   DEBUGFUNCMSGIN;
   if (p1->dimcount != p2->dimcount) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPEARRAY);
   }
-  n = 0;
   while (n < p1->dimcount && p1->dimsize[n] == p2->dimsize[n])
     n++;
   DEBUGFUNCMSGOUT;
@@ -460,6 +459,10 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     case VAR_INTWORDPTR:        /* Indirect word-sized integer */
       intparm = get_integer(retparm.address.offset);
       parmtype = STACK_INT;
+      break;
+    case VAR_INT64PTR:        /* Indirect 64-bit integer */
+      int64parm = get_int64(retparm.address.offset);
+      parmtype = STACK_INT64;
       break;
     case VAR_FLOATPTR:          /* Indirect eight-byte floating point value */
       floatparm = get_float(retparm.address.offset);
@@ -1470,7 +1473,7 @@ static void want_string(void) {
 
   DEBUGFUNCMSGIN;
   baditem = GET_TOPITEM;
-  if (baditem == STACK_INT || baditem == STACK_UINT8 || baditem == STACK_INT64 || baditem == STACK_FLOAT) {              /* String operand required */
+  if (IS_NUMERIC(baditem)) {              /* String operand required */
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
   } else if (baditem > STACK_UNKNOWN && baditem <= STACK_SATEMP) {  /* Operator is not defined for this operand type */
@@ -3086,40 +3089,39 @@ static void eval_i64adiv(void) {
 static void eval_fadiv(void) {
   stackitem lhitem;
   basicarray *rharray;
-  int32 n, count;
+  int32 n;
   float64 *base, *rhsrce;
 
   DEBUGFUNCMSGIN;
   rharray = pop_array();
-  count = rharray->arrsize;
   rhsrce = rharray->arraystart.floatbase;
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM) {                                           /* <int32/float value>/<float array> */
     floatvalue = pop_anynumfp();
     base = make_array(VAR_FLOAT, rharray);
-    for (n = 0; n < count; n++) base[n] = fdivwithtest(floatvalue, rhsrce[n]);
+    for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(floatvalue, rhsrce[n]);
   } else if (TOPITEMISNUMARRAY) {
     basicarray *lharray = pop_array();
     check_arrays(lharray, rharray);
     base = make_array(VAR_FLOAT, rharray);
     if (lhitem == STACK_INTARRAY) {                        /* <int array>/<float array> */
       int32 *lhsrce = lharray->arraystart.intbase;
-      for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
+      for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
     } else if (lhitem == STACK_UINT8ARRAY) {                      /* <int array>/<float array> */
       uint8 *lhsrce = lharray->arraystart.uint8base;
-      for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
+      for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
     } else if (lhitem == STACK_INT64ARRAY) {                      /* <int64 array>/<float array> */
       int64 *lhsrce = lharray->arraystart.int64base;
-      for (n = 0; n < count; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
+      for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(lhsrce[n]), rhsrce[n]);
     } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array>/<float array> */
       float64 *lhsrce = lharray->arraystart.floatbase;
-      for (n = 0; n < count; n++) base[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
+      for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
     }
   } else if (lhitem == STACK_FATEMP) {                          /* <float array>/<float array> */
     basicarray lharray = pop_arraytemp();
     float64 *lhsrce = lharray.arraystart.floatbase;
     check_arrays(&lharray, rharray);
-    for (n = 0; n < count; n++) lhsrce[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
+    for (n = 0; n < rharray->arrsize; n++) lhsrce[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
   DEBUGFUNCMSGOUT;
@@ -3188,7 +3190,7 @@ static void eval_iaintdiv(void) {
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM) {   /* <value> DIV <int32 array> */
     int64 lhint64, *base64;
-    lhint64 = lhitem == STACK_FLOAT ? TOINT64(pop_float()) : pop_anyint();
+    lhint64 = pop_anynum64();
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < rharray->arrsize; n++) base64[n] = i64divwithtest(lhint64, rhsrce[n]);
   } else if (TOPITEMISNUMARRAY) {
@@ -3241,8 +3243,7 @@ static void eval_iu8aintdiv(void) {
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < rharray->arrsize; n++) base8[n] = i32divwithtest(lhint, rhsrce[n]);
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {  /* <int64/float> DIV <uint8 array> */
-    int64 lhint64;
-    lhint64 = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+    int64 lhint64 = pop_anynum64();
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < rharray->arrsize; n++) base64[n] = i64divwithtest(lhint64, rhsrce[n]);
   } else if (TOPITEMISNUMARRAY) {
@@ -3346,7 +3347,7 @@ static void eval_faintdiv(void) {
     base8 = make_array(VAR_UINT8, rharray);
     for (n = 0; n < rharray->arrsize; n++) base8[n] = i64divwithtest(lhint, TOINT64(rhsrce[n]));
   } else if (lhitem == STACK_INT64 || lhitem == STACK_FLOAT) {  /* <int64/float> DIV <float array> */
-    int64 lhint = lhitem == STACK_INT64 ? pop_int64() : TOINT64(pop_float());
+    int64 lhint = pop_anynum64();
     base64 = make_array(VAR_INTLONG, rharray);
     for (n = 0; n < rharray->arrsize; n++) base64[n] = i64divwithtest(lhint, TOINT64(rhsrce[n]));
   } else if (TOPITEMISNUMARRAY) {

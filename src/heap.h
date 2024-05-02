@@ -39,6 +39,11 @@ extern void *allocmem(size_t, boolean);
 extern void freemem(void *, int32);
 extern void clear_heap(void);
 
+/*
+** 'returnable' is called to check if the block at 'where' is the
+** last item allocated on the heap and can therefore be returned
+** to it.
+*/
 #define returnable(x,y) (CAST(x, byte *)+ALIGN(y)==basicvars.vartop)
 
 #endif

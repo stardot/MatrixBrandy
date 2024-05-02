@@ -123,6 +123,8 @@ extern void debug_show_stackitemtype(int32);
 #define GET_TOPITEM (basicvars.stacktop.intsp->itemtype)
 #define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))
 
+#define IS_NUMERIC(x) ((x == STACK_INT) || (x == STACK_UINT8) || (x == STACK_INT64) || (x == STACK_FLOAT))
+
 #define TOPITEMISNUM ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64) || (basicvars.stacktop.intsp->itemtype == STACK_FLOAT))
 
 #define TOPITEMISNUMARRAY ((basicvars.stacktop.intsp->itemtype == STACK_INTARRAY) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8ARRAY) || (basicvars.stacktop.intsp->itemtype == STACK_INT64ARRAY) || (basicvars.stacktop.intsp->itemtype == STACK_FLOATARRAY))
