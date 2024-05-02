@@ -170,7 +170,7 @@ void trace_branch(byte *from, byte *to) {
   fromline = find_linestart(from);
   toline = find_linestart(to);
   if (fromline == NIL || toline == NIL) return; /* Do not trace anything if at command line */
-  len = sprintf(basicvars.stringwork, "[%d->%d]", get_lineno(fromline), get_lineno(toline));
+  len = sprintf(basicvars.stringwork, "[%d->%d]", GET_LINENO(fromline), GET_LINENO(toline));
   if (basicvars.tracehandle == 0)       { /* Trace output goes to screen */
     if (basicvars.traces.console)
       fprintf(stderr, "%s", basicvars.stringwork);
@@ -279,7 +279,7 @@ void next_line(void) {
   DEBUGFUNCMSGIN;
   lp = basicvars.current+1;             /* Skip NUL and point at start of next line */
   if (AT_PROGEND(lp)) end_run();        /* Have reached end of program */
-  if (basicvars.traces.lines) trace_line(get_lineno(lp));
+  if (basicvars.traces.lines) trace_line(GET_LINENO(lp));
   basicvars.thisline = lp;              /* Remember start of current line */
   basicvars.current = FIND_EXEC(lp);    /* Find first executable token on line */
   DEBUGFUNCMSGOUT;
@@ -550,7 +550,7 @@ void exec_thisline(void) {
   int32 linelen;
 
   DEBUGFUNCMSGIN;
-  linelen = get_linelen(thisline);
+  linelen = GET_LINELEN(thisline);
   if (linelen == 0) return;             /* There is nothing to do */
   mark_end(&thisline[linelen]);         /* Mark end of command line */
   basicvars.lastsearch = basicvars.start;

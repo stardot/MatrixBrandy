@@ -265,11 +265,11 @@ static void read_input(boolean inputline) {
       switch(token) {
       case BASTOKEN_STRINGCON:       /* Got a prompt string */
         length =GET_SIZE(basicvars.current+1+OFFSIZE);
-        if (length>0) emulate_vdustr(TOSTRING(get_srcaddr(basicvars.current)), length);
+        if (length>0) emulate_vdustr(TOSTRING(GET_SRCADDR(basicvars.current)), length);
         basicvars.current = skip_token(basicvars.current);
         break;
       case BASTOKEN_QSTRINGCON:      /* Prompt string with '""' in it */
-        cp = TOSTRING(get_srcaddr(basicvars.current));
+        cp = TOSTRING(GET_SRCADDR(basicvars.current));
         length = GET_SIZE(basicvars.current+1+OFFSIZE);
         for (n=0; n<length; n++) {
           emulate_vdu(*cp);
@@ -637,7 +637,7 @@ void exec_draw(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
-  emulate_draw(x, y);
+  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -657,7 +657,7 @@ void exec_drawby(void) {
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of end point */
   check_ateol();
-  emulate_drawby(x, y);
+  emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -745,7 +745,7 @@ void exec_fill(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of start of fill */
   check_ateol();
-  emulate_fill(x, y);
+  emulate_plot(FLOOD_BACKGROUND+DRAW_ABSOLUTE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -765,7 +765,7 @@ void exec_fillby(void) {
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of start of fill */
   check_ateol();
-  emulate_fillby(x, y);
+  emulate_plot(FLOOD_BACKGROUND+DRAW_RELATIVE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -1052,7 +1052,8 @@ void exec_line(void) {
     basicvars.current++;
     y2 = eval_integer();        /* Get second y coordinate */
     check_ateol();
-    emulate_line(x1, y1, x2, y2);
+    emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
+    emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x2, y2);
   }
   DEBUGFUNCMSGOUT;
 }
@@ -1469,7 +1470,7 @@ void exec_move(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
-  emulate_move(x, y);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -1489,7 +1490,7 @@ void exec_moveby(void) {
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of end point */
   check_ateol();
-  emulate_moveby(x, y);
+  emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -1571,7 +1572,7 @@ void exec_point(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
-  emulate_point(x, y);
+  emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -1591,7 +1592,7 @@ void exec_pointby(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
-  emulate_pointby(x, y);
+  emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
   DEBUGFUNCMSGOUT;
 }
 

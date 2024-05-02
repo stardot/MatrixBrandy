@@ -35,8 +35,10 @@ extern void release_heap(void);
 extern boolean init_workspace(size_t);
 extern void release_workspace(void);
 extern void *allocmem(size_t, boolean);
-extern boolean returnable(void *, int32);
+//extern boolean returnable(void *, int32);
 extern void freemem(void *, int32);
 extern void clear_heap(void);
+
+#define returnable(x,y) (CAST(x, byte *)+ALIGN(y)==basicvars.vartop)
 
 #endif

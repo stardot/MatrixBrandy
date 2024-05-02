@@ -90,7 +90,7 @@ static void fix_address(lvalue *destination) {
   boolean isarray = 0;
 
   DEBUGFUNCMSGIN;
-  base = get_srcaddr(basicvars.current);        /* Point 'base' at start of variable name */
+  base = GET_SRCADDR(basicvars.current);        /* Point 'base' at start of variable name */
   tp = skip_name(base);         /* Find to end of name */
   np = basicvars.current+1+LOFFSIZE;    /* Point at token after the XVAR token */
   vp = find_variable(base, tp-base);

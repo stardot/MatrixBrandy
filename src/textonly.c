@@ -2201,63 +2201,6 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 ** Following are the functions that emulate graphics statements.
 */
 
-void emulate_move(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
-#endif
-}
-
-void emulate_moveby(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
-#endif
-}
-
-void emulate_draw(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
-#endif
-}
-
-void emulate_drawby(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
-#endif
-}
-
-void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
-  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x2, y2);
-#endif
-}
-
-void emulate_point(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
-#endif
-}
-
-void emulate_pointby(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
-#endif
-}
-
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
 #ifdef NOTEKGFX
   error(ERR_NOGRAPHICS);
@@ -2322,22 +2265,6 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
   }
-#endif
-}
-
-void emulate_fill(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(FLOOD_BACKGROUND+DRAW_ABSOLUTE, x, y);
-#endif
-}
-
-void emulate_fillby(int32 x, int32 y) {
-#ifdef NOTEKGFX
-  error(ERR_NOGRAPHICS);
-#else
-  emulate_plot(FLOOD_BACKGROUND+DRAW_RELATIVE, x, y);
 #endif
 }
 

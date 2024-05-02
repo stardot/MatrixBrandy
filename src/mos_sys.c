@@ -482,7 +482,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       switch (inregs[0].i) {
         case 0:         emulate_mode(inregs[1].i);break;
         case 1:         outregs[1]=emulate_modefn();break;
-        case 7:         outregs[1]=get_maxbanks();break; /* MAXBANKS defined in graphsdl.c */
+        case 7:         outregs[1]=MAXBANKS; break;
         case 8:         osbyte113(inregs[1].i);break;
         case 9:         osbyte112(inregs[1].i);break;
         case 10:        screencopy(inregs[1].i, inregs[2].i);break;

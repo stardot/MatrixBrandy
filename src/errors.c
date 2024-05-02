@@ -709,7 +709,7 @@ static void print_details(boolean iserror) {
            procfn(p->fnprocname), p->fnprocname+1);
         else {
           emulate_printf("  %s%s was called from line %d",
-           procfn(p->fnprocname), p->fnprocname+1, get_lineno(lp));
+           procfn(p->fnprocname), p->fnprocname+1, GET_LINENO(lp));
         }
         p = p->lastcall;
         if (p==NIL)
@@ -875,7 +875,7 @@ void error(int32 errnumber, ...) {
     if (badline==NIL)   /* Error did not occur in program - Assume it was in the command line */
       basicvars.error_line = 0;
     else {      /* Error occured in running program */
-      basicvars.error_line = get_lineno(badline);
+      basicvars.error_line = GET_LINENO(badline);
     }
   }
   if (errortable[errnumber].severity<=WARNING &&   /* Error message is just a warning */
@@ -918,7 +918,7 @@ void show_error(int32 number, char *text) {
   if (badline==NIL)     /* 'ERROR' was not used in program - Assume it was in the command line */
     basicvars.error_line = 0;
   else {        /* ERROR used in running program */
-    basicvars.error_line = get_lineno(badline);
+    basicvars.error_line = GET_LINENO(badline);
   }
   handle_error(severity);
   DEBUGFUNCMSGOUT;
@@ -930,7 +930,7 @@ void show_error(int32 number, char *text) {
 void set_error(void) {
   DEBUGFUNCMSGIN;
   basicvars.error_handler.current = basicvars.current;
-  basicvars.error_handler.stacktop = get_safestack();
+  basicvars.error_handler.stacktop = basicvars.safestack.bytesp; /* get_safestack */
   basicvars.error_handler.islocal = FALSE;
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "Set up ON ERROR handler at %p,  stack = %p\n",
@@ -945,7 +945,7 @@ void set_error(void) {
 void set_local_error(void) {
   DEBUGFUNCMSGIN;
   basicvars.error_handler.current = basicvars.current;
-  basicvars.error_handler.stacktop = get_stacktop();
+  basicvars.error_handler.stacktop = basicvars.stacktop.bytesp; /* get_stacktop */
   basicvars.error_handler.islocal = TRUE;
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "Set up ON ERROR LOCAL handler at %p,  stack = %p\n",

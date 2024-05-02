@@ -153,16 +153,6 @@ void dump(byte *sp) {
 #endif
 
 /*
-** 'safestack' returns TRUE if it is safe to move the Basic stack.
-** At the moment this is only allowed if the stack is empty, that is,
-** the only thing on it is the operator stack and the program is not
-** in a procedure or function
-*/
-boolean safestack(void) {
-  return basicvars.procstack==NIL && basicvars.stacktop.intsp->itemtype==STACK_OPSTACK;
-}
-
-/*
 ** 'make_opstack' is called to create a new operator stack. It also
 ** checks that there is enough room on the Basic stack to hold
 ** 'OPSTACKSIZE' numeric or string entries. It returns a pointer to
@@ -198,30 +188,17 @@ sigjmp_buf *make_restart(void) {
 }
 
 /*
-** 'get_topitem' returns the type of the top item on the Basic stack
-*/
-stackitem get_topitem(void) {
-  return basicvars.stacktop.intsp->itemtype;
-}
-
-/*
-** 'get_stacktop' returns the current value of the Basic stack pointer
-*/
-byte *get_stacktop(void) {
-  return basicvars.stacktop.bytesp;
-}
-
-/*
 ** 'get_safestack' returns the value that the stack pointer is set
 ** to after an error to restore the stack to a known condition
 */
+#if 0 /* Code disabled; only used in one place and it's a global struct variable */
 byte *get_safestack(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Get safestack = %p\n", basicvars.safestack.bytesp);
 #endif
   return basicvars.safestack.bytesp;
 }
-
+#endif
 
 /* Pushes an int of variable size, using the most appropriate type */
 void push_varyint(int64 value) {
@@ -1433,11 +1410,6 @@ void clear_stack(void) {
   basicvars.stacktop.bytesp = basicvars.safestack.bytesp;
   basicvars.procstack = NIL;
   basicvars.gosubstack = NIL;
-}
-
-boolean is8or32int(stackitem item) {
-  if ((item == STACK_INT) || (item == STACK_UINT8)) return 1;
-  return 0;
 }
 
 #ifdef DEBUG

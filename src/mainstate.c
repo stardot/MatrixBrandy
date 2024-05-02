@@ -101,7 +101,7 @@ void exec_asmend(void) {
 void exec_oscmd(void) {
   char *p;
   DEBUGFUNCMSGIN;
-  p = CAST(get_srcaddr(basicvars.current), char *);     /* Get the address of the command text */
+  p = CAST(GET_SRCADDR(basicvars.current), char *);     /* Get the address of the command text */
   mos_oscli(p, FALSE, NULL);            /* Run command but do not capture output */
   basicvars.current+=1+SIZESIZE;        /* Skip the '*' and the offset after it */
   DEBUGFUNCMSGOUT;
@@ -162,7 +162,7 @@ void exec_case(void) {
   found = FALSE;
   for (n=0; n<cp->whencount; n++) {
     basicvars.current = cp->whentable[n].whenexpr;      /* Point at the WHEN expression */
-    if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(basicvars.current)));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(find_linestart(basicvars.current)));
     while (TRUE) {
       expression();
       whentype = GET_TOPITEM;
@@ -548,7 +548,7 @@ void exec_dim(void) {
       blockdef = TRUE;  /* Can only be defining a block of memory */
     }
     else {      /* Found dynamic variable or array name */
-      base = get_srcaddr(basicvars.current);    /* Point 'base' at start of array name */
+      base = GET_SRCADDR(basicvars.current);    /* Point 'base' at start of array name */
       ep = skip_name(base);                     /* Point ep at byte after name */
       basicvars.current+=1+LOFFSIZE;            /* Skip the pointer to the name */
       blockdef = *(ep-1) != '(' && *(ep-1) != '[';
@@ -619,7 +619,7 @@ void exec_elsewhen(void) {
   p = basicvars.current+1;      /* Point at offset */
   p = GET_DEST(p);
   if (basicvars.traces.enabled) {
-    if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(p)));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(find_linestart(p)));
     if (basicvars.traces.branches) trace_branch(basicvars.current, p);
   }
   basicvars.current = p;
@@ -676,7 +676,7 @@ void exec_xlhelse(void) {
   lp2++;        /* Skip the ENDIF token */
   if (*lp2 == asc_NUL) {        /* There is nothing else on the line after the ENDIF */
     lp2++;      /* Move to start of next line */
-    if (basicvars.traces.lines) trace_line(get_lineno(lp2));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(lp2));
     lp2 = FIND_EXEC(lp2);       /* Find the first executable token */
   }
   *basicvars.current = BASTOKEN_LHELSE;
@@ -732,7 +732,7 @@ void exec_endifcase(void) {
   if (*basicvars.current == ':') basicvars.current++;   /* Skip ':' */
   if (*basicvars.current == asc_NUL) {  /* Token is at end of line */
     basicvars.current++;                /* Move to start of next line */
-    if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
   }
   DEBUGFUNCMSGOUT;
@@ -895,7 +895,7 @@ void exec_endwhile(void) {
     if (*tp == ':') tp++;               /* Continue at next token after ENDWHILE */
     if (*tp == asc_NUL) {
       tp++;             /* Move to the start of the next line */
-      if (basicvars.traces.lines) trace_line(get_lineno(tp));
+      if (basicvars.traces.lines) trace_line(GET_LINENO(tp));
       tp = FIND_EXEC(tp);       /* Skip to start of the executable tokens */
     }
     basicvars.current = tp;
@@ -1026,7 +1026,7 @@ void exec_for(void) {
   if (*basicvars.current == ':') basicvars.current++;   /* Find the start of the statements in the loop */
   if (*basicvars.current == asc_NUL) {  /* Not on this line - Try the next */
     basicvars.current++;
-    if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
   }
   if (isinteger) {      /* Finally, set up the loop control block on the stack and end */
@@ -1056,9 +1056,9 @@ static byte *set_linedest(byte *tp) {
   byte *dest;
 
   DEBUGFUNCMSGIN;
-  line = get_linenum(tp);
+  line = GET_LINENUM(tp);
   dest = find_line(line);       /* Find the line refered to */
-  if (get_lineno(dest) != line) {
+  if (GET_LINENO(dest) != line) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINEMISS, line);
   }
@@ -1092,7 +1092,7 @@ void exec_gosub(void) {
       error(ERR_LINENO);
     }
     dest = find_line(line);     /* Find start of destination line */
-    if (get_lineno(dest) != line) {
+    if (GET_LINENO(dest) != line) {
       DEBUGFUNCMSGOUT;
       error(ERR_LINEMISS, line);
     }
@@ -1128,7 +1128,7 @@ void exec_goto(void) {
       error(ERR_LINENO);
     }
     dest = find_line(line);
-    if (get_lineno(dest) != line) {
+    if (GET_LINENO(dest) != line) {
       DEBUGFUNCMSGOUT;
       error(ERR_LINEMISS, line);
     }
@@ -1154,7 +1154,7 @@ void exec_blockif(void) {
   expression();
   if (pop_anynum64() == BASFALSE) dest+=OFFSIZE;        /* Point at offset to 'ELSE' part */
   if (basicvars.traces.enabled) {       /* Branch after dealing with debug info */
-    if (basicvars.traces.lines) trace_line(get_lineno(find_linestart(GET_DEST(dest))));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(find_linestart(GET_DEST(dest))));
     if (basicvars.traces.branches) trace_branch(dest, GET_DEST(dest));
   }
   basicvars.current = GET_DEST(dest);           /* Branch to the 'THEN' or 'ELSE' code */
@@ -1180,8 +1180,8 @@ void exec_singlif(void) {
   }
   if (basicvars.traces.enabled) {       /* Deal with any trace info needed */
     if (basicvars.traces.lines) {
-      int32 destline = get_lineno(find_linestart(dest));
-      if (get_lineno(here) != destline) trace_line(destline);
+      int32 destline = GET_LINENO(find_linestart(dest));
+      if (GET_LINENO(here) != destline) trace_line(destline);
     }
     if (basicvars.traces.branches) trace_branch(here, dest);
   }
@@ -1349,8 +1349,8 @@ void exec_xif(void) {
     }
   }
   if (basicvars.traces.lines) {
-    int32 destline = get_lineno(find_linestart(dest));
-    if (get_lineno(basicvars.current) != destline) trace_line(destline);
+    int32 destline = GET_LINENO(find_linestart(dest));
+    if (GET_LINENO(basicvars.current) != destline) trace_line(destline);
   }
   if (basicvars.traces.branches) trace_branch(ifplace, dest);
   basicvars.current = dest;
@@ -1773,7 +1773,7 @@ static void exec_onbranch(void) {
             error(ERR_LINENO);
           }
           dest = find_line(line);
-          if (get_lineno(dest) != line) {
+          if (GET_LINENO(dest) != line) {
             DEBUGFUNCMSGOUT;
             error(ERR_LINEMISS, line);
           }
@@ -1801,7 +1801,7 @@ static void exec_onbranch(void) {
       }
       else {    /* Call one of the procedures */
         if (*basicvars.current == BASTOKEN_XFNPROCALL) {     /* Procedure call not seen before */
-          byte *ep, *base = get_srcaddr(basicvars.current);     /* Find the start of the procedure name */
+          byte *ep, *base = GET_SRCADDR(basicvars.current);     /* Find the start of the procedure name */
           ep = skip_name(base);
           if (*(ep-1) == '(') ep--;     /* Do not include '(' of parameter list in name */
           pp = find_fnproc(base, ep-base);
@@ -2017,7 +2017,7 @@ void exec_xproc(void) {
 
   DEBUGFUNCMSGIN;
   tp = basicvars.current;
-  base = get_srcaddr(tp);       /* Point at name of procedure */
+  base = GET_SRCADDR(tp);       /* Point at name of procedure */
   if (*base != BASTOKEN_PROC) {   /* Ensure a procedure is being called */
     DEBUGFUNCMSGOUT;
     error(ERR_NOTAPROC);
@@ -2100,7 +2100,7 @@ static void find_data(void) {
 ** The DATA token is followed by the offset to the start of the data
 ** in the source part of the line. Find address of data
 */
-  basicvars.datacur = get_srcaddr(FIND_EXEC(dp));
+  basicvars.datacur = GET_SRCADDR(FIND_EXEC(dp));
   DEBUGFUNCMSGOUT;
 }
 
@@ -2256,7 +2256,7 @@ void exec_repeat(void) {
   if (*basicvars.current == ':') basicvars.current++;   /* Found a ':' - Move past it */
   if (*basicvars.current == asc_NUL) {  /* Nothing on line after REPEAT - Try next line */
     basicvars.current++;        /* Move to start of next line */
-    if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
+    if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
     basicvars.current = FIND_EXEC(basicvars.current);
   }
   push_repeat();
@@ -2335,7 +2335,7 @@ static void restore_dataptr(void) {
       line = eval_integer();            /* Find number of line */
       check_ateol();
       dest = find_line(line);
-      if (get_lineno(dest) != line) {
+      if (GET_LINENO(dest) != line) {
         DEBUGFUNCMSGOUT;
         error(ERR_LINEMISS, line);
       }
@@ -2359,7 +2359,7 @@ static void restore_dataptr(void) {
 ** otherwise be skipped by the 'find data' function, that is, the
 ** first field would be missed.
 */
-    basicvars.datacur = get_srcaddr(FIND_EXEC(dest))-1;
+    basicvars.datacur = GET_SRCADDR(FIND_EXEC(dest))-1;
   }
   DEBUGFUNCMSGOUT;
 }
@@ -2456,7 +2456,7 @@ void exec_run(void) {
         line = pop_anynum32();
         if (line<0 || line>MAXLINENO) error(ERR_LINENO);
         bp = find_line(line);
-        if (get_lineno(bp) != line) error(ERR_LINEMISS, line);
+        if (GET_LINENO(bp) != line) error(ERR_LINEMISS, line);
         break;
       case STACK_STRING: case STACK_STRTEMP:
         string = pop_string();
@@ -3033,7 +3033,7 @@ void exec_while(void) {
     if (*basicvars.current == ':') basicvars.current++; /* Loop body found on same line as WHILE statement */
     if (*basicvars.current == asc_NUL) {        /* Loop body starts on next line */
       basicvars.current++;
-      if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
+      if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
       basicvars.current = FIND_EXEC(basicvars.current); /* Move to first token on next line */
     }
     push_while(expr);
@@ -3066,7 +3066,7 @@ void exec_while(void) {
       if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the ENDWHILE */
       if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */
         basicvars.current++;
-        if (basicvars.traces.lines) trace_line(get_lineno(basicvars.current));
+        if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
         basicvars.current = FIND_EXEC(basicvars.current);
       }
       set_dest(here+1, basicvars.current);      /* Save the address for latet */
@@ -3076,4 +3076,3 @@ void exec_while(void) {
   }
   DEBUGFUNCMSGOUT;
 }
-

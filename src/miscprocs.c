@@ -52,6 +52,7 @@ int64 llabs(int64 i) {
 }
 #endif
 
+#if 0 /* Converted to macros in miscprocs.h */
 /*
 ** 'isidstart' returns TRUE if the character passed to it can appear at
 ** the start of an identifier
@@ -75,25 +76,7 @@ boolean isidchar(char ch) {
 boolean isident(byte ch) {
   return isalnum(ch) || ch=='_' || ch=='`';
 }
-
-
-/*
-** 'skip_blanks' skips white space characters. The difference between
-** this and 'skip' is that this one works on 'char' data whilst 'skip'
-** deals with 'byte' data
-*/
-char *skip_blanks(char *p) {
-  while (*p==' ' || *p==asc_TAB) p++;
-  return p;
-}
-
-/*
-** 'skip' is used to skip the 'white space' characters in a tokenised line
-*/
-byte *skip(byte *p) {
-  while (*p==' ' || *p==asc_TAB) p++;
-  return p;
-}
+#endif /* 0 - macro conversion */
 
 /*
 ** 'get_integer' returns the four byte integer found at offset
@@ -112,6 +95,24 @@ int32 get_integer(size_t offset) {
 */
 int64 get_int64(size_t offset) {
   return ((int64)get_integer(offset) & 0xFFFFFFFFl) + (((int64)(get_integer(offset+4)) & 0xFFFFFFFFl) << 32);
+}
+
+/*
+** 'skip_blanks' skips white space characters. The difference between
+** this and 'skip' is that this one works on 'char' data whilst 'skip'
+** deals with 'byte' data
+*/
+char *skip_blanks(char *p) {
+  while (*p==' ' || *p==asc_TAB) p++;
+  return p;
+}
+
+/*
+** 'skip' is used to skip the 'white space' characters in a tokenised line
+*/
+byte *skip(byte *p) {
+  while (*p==' ' || *p==asc_TAB) p++;
+  return p;
 }
 
 /*
@@ -317,7 +318,7 @@ byte *find_line(int32 lineno) {
   else {        /* Not running a program - Line can only be in the program in memory */
     p = basicvars.start;
   }
-  while (get_lineno(p)<lineno) p+=get_linelen(p);
+  while (GET_LINENO(p)<lineno) p+=GET_LINELEN(p);
   return p;
 }
 
@@ -462,8 +463,7 @@ boolean amend_line(char line[], int32 linelen) {
 ** ** THE FILENAME BUFFER MUST BE OF SUFFICIENT SIZE FOR USE BY tmpnam.
 ** ** NO CHECK IS MADE.
 */
-FILE *secure_tmpnam(char *name)
-{
+FILE *secure_tmpnam(char *name) {
 #ifdef TARGET_MINGW
   FILE *fdes;
   fdes=tmpfile();

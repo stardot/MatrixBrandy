@@ -3158,7 +3158,7 @@ static void assign_himem(void) {
   if (basicvars.himem == newhimem) return; /* Always OK to set HIMEM to its existing value */
   if (newhimem<(basicvars.vartop+1024) || newhimem>basicvars.end)
     error(WARN_BADHIMEM);       /* Flag error (execution continues after this one) */
-  else if (!safestack()) {
+  else if (!IS_SAFESTACK) {
     DEBUGFUNCMSGOUT;
     error(ERR_HIMEMFIXED);      /* Cannot alter HIMEM here */
   } else {
@@ -3483,7 +3483,7 @@ static void assign_ptr(void) {
     variable *vp;
     basicvars.current++;
     expression();
-    topitem = get_topitem();
+    topitem = GET_TOPITEM;
     switch(topitem) {
       case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
         descriptor=pop_array();

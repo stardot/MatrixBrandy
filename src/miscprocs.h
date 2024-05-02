@@ -38,9 +38,9 @@ extern int64 llabs(int64);
 #endif
 extern boolean read_line(char [], int32);
 extern boolean amend_line(char [], int32);
-extern boolean isidstart(char);
-extern boolean isidchar(char);
-extern boolean isident(byte);
+//extern boolean isidstart(char);
+//extern boolean isidchar(char);
+//extern boolean isident(byte);
 extern int32 get_integer(size_t);
 extern int64 get_int64(size_t);
 extern float64 get_float(size_t);

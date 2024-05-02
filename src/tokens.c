@@ -395,8 +395,9 @@ static void store_exec(int32 offset) {
 ** 'get_linelen' returns the length of a line. 'p' is assumed to point at the
 ** start of the line (that is, the line number)
 */
+#if 0 /* Converted to macro in tokens.h */
 int32 get_linelen(byte *p) {
-  DEBUGFUNCMSGIN;
+  DEBUGFU#NCMSGIN;
   DEBUGFUNCMSGOUT;
   return *(p+OFFLENGTH) | *(p+OFFLENGTH+1)<<BYTESHIFT;
 }
@@ -411,15 +412,30 @@ int32 get_lineno(byte *p) {
 }
 
 /*
+** 'get_srcaddr' returns the address of a byte in the source part
+** of a line. This is given as an offset from the address of the
+** token at 'p'. The offset is stored in the two bytes after the
+** token
+*/
+byte *get_srcaddr(byte *p) {
+  DEBUGFUNCMSGIN;
+  DEBUGFUNCMSGOUT;
+  return p-(*(p+1)+(*(p+2)<<BYTESHIFT));
+}
+
+#endif /* 0 - macro conversion */
+
+/*
 ** 'get_exec' returns the offset in the line of the first executable
 ** token. 'p' points at the start of the line. Normally a macro is
 ** used to do this for speed
 */
-static int32 get_exec(byte *p) {
-  DEBUGFUNCMSGIN;
-  DEBUGFUNCMSGOUT;
-  return *(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT;
-}
+//static int32 get_exec(byte *p) {
+//  DEBUGFUNCMSGIN;
+//  DEBUGFUNCMSGOUT;
+//  return *(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT;
+//}
+#define get_exec(p) (*(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT)
 
 /*
 ** 'store' is called to add a character to the tokenised line buffer
@@ -661,7 +677,7 @@ static int kwsearch(void) {
     nomatch = *(tokens[n].name) != first;
     if (!nomatch && abbreviated) abbreviated = kwlength < tokens[n].length;
   }
-  if (nomatch || (!abbreviated && tokens[n].alone && isidchar(keyword[count]))) { /* Not a keyword */
+  if (nomatch || (!abbreviated && tokens[n].alone && ISIDCHAR(keyword[count]))) { /* Not a keyword */
     DEBUGFUNCMSGOUT;
     return NOKEYWORD;
   }
@@ -717,7 +733,7 @@ static void copy_keyword(int token) {
       firstitem = TRUE; /* Next token must use the 'first in statement' token */
       break;
     case BASTOKEN_FN: case BASTOKEN_PROC:     /* Copy proc/function name */
-      while(isidchar(*lp)) {
+      while(ISIDCHAR(*lp)) {
         store(*lp);
         lp++;
       }
@@ -783,7 +799,7 @@ static void copy_variable(void) {
   }
   else {        /* Dynamic variable */
     store(BASTOKEN_XVAR);
-    while (isidchar(*lp)) {
+    while (ISIDCHAR(*lp)) {
       store(*lp);
       lp++;
     }
@@ -1045,7 +1061,7 @@ static void tokenise_source(char *start, boolean haslineno) {
   firstitem = TRUE;     /* Use 'first item in line' tokens where necessary */
   linestart = TRUE;     /* Say that this is the very start of the tokenised line */
   while (ch != asc_NUL) {
-    if (isidstart(ch)) {                /* Keyword or identifier */
+    if (ISIDSTART(ch)) {                /* Keyword or identifier */
       if (toupper(ch)>='A' && toupper(ch)<='X') /* Possible keyword */
         token = kwsearch();
       else {
@@ -1150,7 +1166,7 @@ static void do_keyword(void) {
       next--;           /* Hack, hack... */
       store(BASTOKEN_XFNPROCALL);
       store_longoffset(next-source);    /* Store offset to PROC/FN name */
-      while (isident(tokenbase[source])) source++;      /* Skip PROC/FN name */
+      while (ISIDCHAR(tokenbase[source])) source++;      /* Skip PROC/FN name, was isident()*/
       break;
     case BASTOKEN_REM:     /* Skip rest of tokenised line */
        //next--;          /* Remove REM token */
@@ -1200,7 +1216,7 @@ static void do_dynamvar(void) {
   source++;
   store(BASTOKEN_XVAR);
   store_longoffset(next-1-source);      /* Store offset back to name from here */
-  while (isident(tokenbase[source])) source++;  /* Skip name */
+  while (ISIDCHAR(tokenbase[source])) source++;  /* Skip name, was isident() */
   if (tokenbase[source] == '&' || tokenbase[source] == '%' || tokenbase[source] == '$') source++;   /* Skip integer or string variable marker */
   if (tokenbase[source] == '%') source++;   /* Skip 64-bit integer second variable marker */
   if (tokenbase[source] == '(' || tokenbase[source] == '[') source++;   /* Skip '(' (is part of name if an array) */
@@ -1476,7 +1492,7 @@ static void translate(void) {
 */
 static void mark_badline(void) {
   DEBUGFUNCMSGIN;
-  if (get_lineno(tokenbase) == NOLINENO)        /* Line has no line number - Put an 'END' here */
+  if (GET_LINENO(tokenbase) == NOLINENO)        /* Line has no line number - Put an 'END' here */
     store(BASTOKEN_END);
   else {        /* Line has number - Put a 'bad line' token here */
     store(BADLINE_MARK);
@@ -1617,16 +1633,17 @@ static byte *get_address(byte *p) {
   return basicvars.workspace+(*(p+1) | *(p+2)<<8 | *(p+3)<<16 | *(p+4)<<24);
 }
 
-
 /*
 ** 'get_linenum' returns the line number following the line number token
 ** at 'lp'
 */
+#if 0 /* Converted to macro in tokens.h */
 int32 get_linenum(byte *lp) {
   DEBUGFUNCMSGIN;
   DEBUGFUNCMSGOUT;
   return *(lp+1) | *(lp+2)<<BYTESHIFT;
 }
+#endif
 
 /*
 ** 'set_linenum' stores a line number following the line number token
@@ -1775,7 +1792,7 @@ void expand(byte *line, char *text) {
 
   DEBUGFUNCMSGIN;
   if (!basicvars.list_flags.noline) {   /* Include line number */
-    sprintf(text, "%5d", get_lineno(line));
+    sprintf(text, "%5d", GET_LINENO(line));
     text+=5;
     if (basicvars.list_flags.space) {   /* Need a blank before the expanded line */
       *text = ' ';
@@ -1844,7 +1861,7 @@ void expand(byte *line, char *text) {
 /* Deal with special cases first */
     if (token == BASTOKEN_XLINENUM) {      /* Line number */
       lp++;
-      count = sprintf(text, "%d", get_lineno(lp));
+      count = sprintf(text, "%d", GET_LINENO(lp));
       text+=count;
       lp+=LINESIZE;
     }
@@ -1956,18 +1973,6 @@ void set_address(byte *tp, void *p) {
 }
 
 /*
-** 'get_srcaddr' returns the address of a byte in the source part
-** of a line. This is given as an offset from the address of the
-** token at 'p'. The offset is stored in the two bytes after the
-** token
-*/
-byte *get_srcaddr(byte *p) {
-  DEBUGFUNCMSGIN;
-  DEBUGFUNCMSGOUT;
-  return p-(*(p+1)+(*(p+2)<<BYTESHIFT));
-}
-
-/*
 ** 'clear_varaddrs' goes through the line passed to it and resets any variable
 ** or procedure references to 'unknown'.
 */
@@ -2026,7 +2031,7 @@ static void clear_branches(byte *bp) {
     case BASTOKEN_LINENUM:
       *tp = BASTOKEN_XLINENUM;     /* Reset to 'X' version of token */
       lp = get_address(tp);     /* Find the line the token refers to */
-      line = get_lineno(find_linestart(lp));    /* Find the number of the line refered to */
+      line = GET_LINENO(find_linestart(lp));    /* Find the number of the line refered to */
       *(tp+1) = CAST(line, byte);       /* Store the line number */
       *(tp+2) = CAST(line>>BYTESHIFT, byte);
       break;
@@ -2104,11 +2109,11 @@ boolean isvalid(byte *bp) {
   byte token;
 
   DEBUGFUNCMSGIN;
-  if (get_lineno(bp)>MAXLINENO) {   /* Line number is out of range */
+  if (GET_LINENO(bp)>MAXLINENO) {   /* Line number is out of range */
     DEBUGFUNCMSGOUT;
     return FALSE;
   }
-  length = get_linelen(bp);
+  length = GET_LINELEN(bp);
   if (length<MINSTATELEN || length>MAXSTATELEN) {
     DEBUGFUNCMSGOUT;
     return FALSE;
@@ -2173,9 +2178,9 @@ void resolve_linenums(byte *bp) {
   bp = FIND_EXEC(bp);
   while (*bp != asc_NUL) {
     if (*bp == BASTOKEN_XLINENUM) {        /* Unresolved reference */
-      line = get_linenum(bp);
+      line = GET_LINENUM(bp);
       dest = find_line(line);
-      if (line == get_lineno(dest)) {   /* Found line number */
+      if (line == GET_LINENO(dest)) {   /* Found line number */
         set_address(bp, dest);
         *bp = BASTOKEN_LINENUM;
       }
@@ -2209,7 +2214,7 @@ void reset_linenums(byte *bp) {
     }
     if (*bp == BASTOKEN_LINENUM) { /* Line number reference that has to be updated */
       dest = get_address(bp);
-      line = get_lineno(dest);  /* Fetch the new line number */
+      line = GET_LINENO(dest);  /* Fetch the new line number */
 /* Update the line number in the source part of the line */
       set_linenum(sp, line);
       sp+=1+LINESIZE;   /* Skip the line number in the source */
@@ -2219,7 +2224,7 @@ void reset_linenums(byte *bp) {
     else if (*bp == BASTOKEN_XLINENUM) {   /* Line number missing - Issue a warning */
       byte *savedcurr = basicvars.current;
       basicvars.current = bp;   /* Ensure error message shows the line number of the bad line */
-      error(WARN_LINEMISS, get_linenum(bp));
+      error(WARN_LINEMISS, GET_LINENUM(bp));
       basicvars.current = savedcurr;
       sp+=1+LINESIZE;   /* Skip the line number in the source */
     }
@@ -2529,5 +2534,5 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   *cp = asc_NUL;    /* Complete the line */
   tokenize(line, tokenbuf, HASLINE, FALSE);
   DEBUGFUNCMSGOUT;
-  return get_linelen(tokenbuf);
+  return GET_LINELEN(tokenbuf);
 }

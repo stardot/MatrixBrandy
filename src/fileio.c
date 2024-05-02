@@ -70,6 +70,18 @@ typedef struct {
 
 static fileblock fileinfo [MAXFILES+1];
 
+/*
+** 'isapath' returns TRUE if the file name passed to it is a pathname, that
+** is, contains directories as well as a file name, and FALSE if it consists
+** of just the name of the file. 'DIRSEPS' is a string containing all the
+** characters that can be used in a file name to separate directories or
+** the name of the file from the directories.
+** This code is meant to be operating system independent
+*/
+boolean isapath(char *name) {
+  return strpbrk(name, DIR_SEPS)!=NIL;
+}
+
 #ifdef TARGET_RISCOS
 
 /* ================================================================= */
@@ -96,10 +108,6 @@ static fileblock fileinfo [MAXFILES+1];
 #define OPEN_INPUT 0x40
 #define OPEN_OUTPUT 0x80
 #define OPEN_UPDATE 0xC0
-
-boolean isapath(char *name) {
-  return strpbrk(name, DIR_SEPS)!=NIL;
-}
 
 /*
 ** 'report' is called when one of the _kernel_xxx functions
@@ -588,7 +596,7 @@ void init_fileio(void) {
 #else /* !TARGET_RISCOS */
 
 /* ================================================================== */
-/* ============= NetBSD/Linux/DOS versions of functions ============= */
+/* ========= NetBSD/Linux/DOS/Windows versions of functions ========= */
 /* ================================================================== */
 
 /*
@@ -610,18 +618,6 @@ void init_fileio(void) {
 #define OUTMODE "w+"
 #define UPMODE "r+"
 #endif
-
-/*
-** 'isapath' returns TRUE if the file name passed to it is a pathname, that
-** is, contains directories as well as a file name, and FALSE if it consists
-** of just the name of the file. 'DIRSEPS' is a string containing all the
-** characters that can be used in a file name to separate directories or
-** the name of the file from the directories.
-** This code is meant to be operating system independent
-*/
-boolean isapath(char *name) {
-  return strpbrk(name, DIR_SEPS)!=NIL;
-}
 
 /*
 ** 'map_handle' maps a Basic-style file handle to the corresponding entry

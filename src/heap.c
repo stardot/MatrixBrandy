@@ -272,12 +272,14 @@ void freemem(void *where, int32 size) {
 ** last item allocated on the heap and can therefore be returned
 ** to it
 */
+#if 0 /* converted to macro in heap.h */
 boolean returnable(void *where, int32 size) {
   DEBUGFUNCMSGIN;
   size = ALIGN(size);
   DEBUGFUNCMSGOUT;
   return CAST(where, byte *)+size==basicvars.vartop;
 }
+#endif
 
 /*
 ** 'clear_heap' is used to clear the variable and free string lists

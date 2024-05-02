@@ -617,64 +617,6 @@ int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
 }
 
 /*
-** 'emulate_move' moves the graphics cursor to the absolute
-** position (x,y) on the screen
-*/
-void emulate_move(int32 x, int32 y) {
-  emulate_plot(DRAW_SOLIDLINE + MOVE_ABSOLUTE, x, y);
-}
-
-/*
-** 'emulate_moveby' move the graphics cursor by the offsets 'x'
-** and 'y' relative to its current position
-*/
-void emulate_moveby(int32 x, int32 y) {
-  emulate_plot(DRAW_SOLIDLINE + MOVE_RELATIVE, x, y);
-}
-
-/*
-** 'emulate_draw' draws a solid line from the current graphics
-** cursor position to the absolute position (x,y) on the screen
-*/
-void emulate_draw(int32 x, int32 y) {
-  emulate_plot(DRAW_SOLIDLINE + DRAW_ABSOLUTE, x, y);
-}
-
-/*
-** 'emulate_drawby' draws a solid line from the current graphics
-** cursor position to that at offsets 'x' and 'y' relative to that
-** position
-*/
-void emulate_drawby(int32 x, int32 y) {
-  emulate_plot(DRAW_SOLIDLINE + DRAW_RELATIVE, x, y);
-}
-
-/*
-** 'emulate_line' draws a line from the absolute position (x1,y1)
-** on the screen to (x2,y2)
-*/
-void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
-  emulate_plot(DRAW_SOLIDLINE + MOVE_ABSOLUTE, x1, y1);
-  emulate_plot(DRAW_SOLIDLINE + DRAW_ABSOLUTE, x2, y2);
-}
-
-/*
-** 'emulate_point' plots a single point at the absolute position
-** (x,y) on the screen
-*/
-void emulate_point(int32 x, int32 y) {
-  emulate_plot(PLOT_POINT + DRAW_ABSOLUTE, x, y);
-}
-
-/*
-** 'emulate_pointby' plots a single point at the offsets 'x' and
-** 'y' from the current graphics position
-*/
-void emulate_pointby(int32 x, int32 y) {
-  emulate_plot(PLOT_POINT + DRAW_RELATIVE, x, y);
-}
-
-/*
 ** 'emulate_ellipse' handles the Basic statement 'ELLIPSE'. This one is
 ** a little more complex than a straight call to a SWI as it plots the
 ** ellipse with the semi-major axis at any angle. However, as the graphics
@@ -746,24 +688,6 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
   }
-}
-
-/*
-** 'emulate_fill' flood-fills an area of the graphics screen in
-** the current foreground colour starting at position (x,y) on the
-** screen
-*/
-void emulate_fill(int32 x, int32 y) {
-  emulate_plot(FLOOD_BACKGROUND + DRAW_ABSOLUTE, x, y);
-}
-
-/*
-** 'emulate_fillby' flood-fills an area of the graphics screen in
-** the current foreground colour starting at the position at offsets
-** 'x' and 'y' relative to the current graphics cursor position
-*/
-void emulate_fillby(int32 x, int32 y) {
-  emulate_plot(FLOOD_BACKGROUND + DRAW_RELATIVE, x, y);
 }
 
 /*

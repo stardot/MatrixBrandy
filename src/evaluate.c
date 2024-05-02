@@ -1093,7 +1093,7 @@ static void do_xvar(void) {
   boolean isarray;
 
   DEBUGFUNCMSGIN;
-  base = get_srcaddr(basicvars.current);                /* Point 'base' at the start of the variable's name */
+  base = GET_SRCADDR(basicvars.current);                /* Point 'base' at the start of the variable's name */
   np = skip_name(base);
   vp = find_variable(base, np-base);
   if (vp == NIL) {      /* Cannot find the variable */
@@ -1185,7 +1185,7 @@ static void do_stringcon(void) {
   basicstring descriptor;
 
   DEBUGFUNCMSGIN;
-  descriptor.stringaddr = TOSTRING(get_srcaddr(basicvars.current));
+  descriptor.stringaddr = TOSTRING(GET_SRCADDR(basicvars.current));
   descriptor.stringlen = GET_SIZE(basicvars.current+1+OFFSIZE);
   basicvars.current+=1+OFFSIZE+SIZESIZE;
   push_string(descriptor);
@@ -1203,7 +1203,7 @@ static void do_qstringcon(void) {
   char *cp;
 
   DEBUGFUNCMSGIN;
-  string = get_srcaddr(basicvars.current);
+  string = GET_SRCADDR(basicvars.current);
   length = GET_SIZE(basicvars.current+1+OFFSIZE);
   basicvars.current+=1+OFFSIZE+SIZESIZE;
   cp = alloc_string(length);
@@ -1406,7 +1406,7 @@ static void do_xfunction(void) {
   boolean gotparms;
 
   DEBUGFUNCMSGIN;
-  base = get_srcaddr(basicvars.current);                /* Point 'base' at start of function's name */
+  base = GET_SRCADDR(basicvars.current);                /* Point 'base' at start of function's name */
   if (*base != BASTOKEN_FN) {
     DEBUGFUNCMSGOUT;
     error(ERR_NOTAFN);       /* Ensure a function is being called */

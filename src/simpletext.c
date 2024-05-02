@@ -443,34 +443,6 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 ** None of these are supported so they are just flagged as errors
 */
 
-void emulate_move(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_moveby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_draw(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_drawby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_point(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_pointby(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
 void emulate_ellipse(int32 x, int32 y, int32 majorlen, int32 minorlen, float64 angle, boolean isfilled) {
   error(ERR_NOGRAPHICS);
 }
@@ -484,14 +456,6 @@ void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isf
 }
 
 void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, int32 y2, boolean ismove) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_fill(int32 x, int32 y) {
-  error(ERR_NOGRAPHICS);
-}
-
-void emulate_fillby(int32 x, int32 y) {
   error(ERR_NOGRAPHICS);
 }
 

@@ -629,7 +629,7 @@ static void read_command(void) {
 ** 'thisline' as a sequence of commands
 */
 static void interpret_line(void) {
-  if (get_lineno(thisline)==NOLINENO)
+  if (GET_LINENO(thisline)==NOLINENO)
     exec_thisline();
   else {
     edit_line();

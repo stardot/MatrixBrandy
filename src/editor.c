@@ -236,7 +236,7 @@ static void clear_refs(void) {
     bp = basicvars.start;
     while (!AT_PROGEND(bp)) {
       clear_linerefs(bp);
-      bp+=get_linelen(bp);
+      bp+=GET_LINELEN(bp);
     }
     lp = basicvars.installist;  /* Now clear the pointers in any installed libraries */
     while (lp!=NIL) {
@@ -261,20 +261,20 @@ static void clear_refs(void) {
 static void insert_line(byte *line) {
   int32 lendiff, newline, newlength;
   byte *bp, *prev;
-  newline = get_lineno(line);
-  newlength = get_linelen(line);
-  if (last_added!=NIL && newline>=get_lineno(last_added))
+  newline = GET_LINENO(line);
+  newlength = GET_LINELEN(line);
+  if (last_added!=NIL && newline>=GET_LINENO(last_added))
     bp = last_added;
   else {
     bp = basicvars.start;
   }
   prev = NIL;
-  while (newline>=get_lineno(bp)) {     /* Work out where line goes */
+  while (newline>=GET_LINENO(bp)) {     /* Work out where line goes */
     prev = bp;
-    bp+=get_linelen(bp);
+    bp+=GET_LINELEN(bp);
   }
-  if (prev!=NIL && newline==get_lineno(prev)) { /* Replacing a line */
-    lendiff = newlength-get_linelen(prev);
+  if (prev!=NIL && newline==GET_LINENO(prev)) { /* Replacing a line */
+    lendiff = newlength-GET_LINELEN(prev);
     if (lendiff!=0) {   /* Old and new lines are not the same length */
       if (basicvars.top+lendiff>=basicvars.himem) error(ERR_NOROOM);    /* No room for line */
       memmove(prev+newlength, bp, basicvars.top-bp+ENDMARKSIZE);
@@ -301,8 +301,8 @@ static void delete_line(int32 line) {
   int32 length;
   byte *p;
   p = find_line(line);
-  if (get_lineno(p)==line) {    /* Need an exact match. Cannot delete just anything... */
-    length = get_linelen(p);
+  if (GET_LINENO(p)==line) {    /* Need an exact match. Cannot delete just anything... */
+    length = GET_LINELEN(p);
     memmove(p, p+length, basicvars.top-p-length+ENDMARKSIZE);
     basicvars.top-=length;
     adjust_heaplimits();
@@ -319,10 +319,10 @@ void delete_range(int32 low, int32 high) {
   byte *lowline, *highline;
   if (low>high) return;
   lowline = find_line(low);
-  if (get_lineno(lowline)==ENDLINENO) return;   /* No lines are in the range to delete */
+  if (GET_LINENO(lowline)==ENDLINENO) return;   /* No lines are in the range to delete */
   clear_refs();
   highline = find_line(high);
-  if (get_lineno(highline)==high) highline+=get_linelen(highline);
+  if (GET_LINENO(highline)==high) highline+=GET_LINELEN(highline);
   memmove(lowline, highline, basicvars.top-highline+ENDMARKSIZE);
   basicvars.top-=(highline-lowline);
   adjust_heaplimits();
@@ -344,7 +344,7 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
   bp = progstart;
   while (!AT_PROGEND(bp) && start<=MAXLINENO) {
     resolve_linenums(bp);
-    bp+=get_linelen(bp);
+    bp+=GET_LINELEN(bp);
     lineno+=step;
   }
   if(lineno-step <= MAXLINENO) {
@@ -352,7 +352,7 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
     while (!AT_PROGEND(bp) && start<=MAXLINENO) {
       save_lineno(bp, start);
       start+=step;
-      bp+=get_linelen(bp);
+      bp+=GET_LINELEN(bp);
     }
     ok = AT_PROGEND(bp);
     if (!ok) {  /* Oops... Did not stop at end of program */
@@ -362,7 +362,7 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
         while (!AT_PROGEND(bp) && start<=MAXLINENO) {
           save_lineno(bp, start);
           start++;
-          bp+=get_linelen(bp);
+          bp+=GET_LINELEN(bp);
         }
       }
     }
@@ -370,7 +370,7 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
   bp = progstart;
   while (!AT_PROGEND(bp)) {
     reset_linenums(bp);
-    bp+=get_linelen(bp);
+    bp+=GET_LINELEN(bp);
   }
   if(lineno-step > MAXLINENO) error(ERR_RENUMBER);
 }
@@ -480,7 +480,7 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
         error(ERR_NOROOM);
       }
       memmove(base, tokenline, length);
-      if (get_lineno(tokenline) == 0) zerolines++;
+      if (GET_LINENO(tokenline) == 0) zerolines++;
       base+=length;
     }
   } while (!feof(bbcfile));
@@ -567,11 +567,11 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
 //    tokenize(basicvars.stringwork, tokenline, HASLINE);
-    if (get_lineno(tokenline)==NOLINENO) {
+    if (GET_LINENO(tokenline)==NOLINENO) {
       save_lineno(tokenline, 0);        /* Otherwise renumber goes a bit funny */
       needsnumbers = TRUE;
     }
-    length = get_linelen(tokenline);
+    length = GET_LINELEN(tokenline);
     if (length>0) {     /* Line length is not zero so include line */
       if (base+length>=limit) { /* No room left */
 #ifdef HAVE_ZLIB_H
@@ -664,11 +664,11 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
     length++;
     basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
-    if (get_lineno(tokenline)==NOLINENO) {
+    if (GET_LINENO(tokenline)==NOLINENO) {
       save_lineno(tokenline, 0);        /* Otherwise renumber goes a bit funny */
       needsnumbers = TRUE;
     }
-    length = get_linelen(tokenline);
+    length = GET_LINELEN(tokenline);
     if (length>0) {     /* Line length is not zero so include line */
       if (base+length>=limit) { /* No room left */
         error(ERR_NOROOM);
@@ -931,7 +931,7 @@ void write_text(char *name, FILE *fhandle) {
       fclose(savefile);
       error(ERR_WRITEFAIL, name);
     }
-    bp+=get_linelen(bp);
+    bp+=GET_LINELEN(bp);
   }
   fclose(savefile);
 #ifdef TARGET_RISCOS
@@ -951,7 +951,7 @@ void edit_line(void) {
   clear_refs();
   basicvars.misc_flags.validsaved = FALSE;      /* If program is edited mark save area contents as bad */
   if (isempty(thisline))                        /* Empty line = delete line */
-    delete_line(get_lineno(thisline));
+    delete_line(GET_LINENO(thisline));
   else {
     insert_line(thisline);
   }

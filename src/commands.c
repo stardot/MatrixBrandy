@@ -120,7 +120,7 @@ static char *get_name(void) {
 
   DEBUGFUNCMSGIN;
   expression();
-  topitem = get_topitem();
+  topitem = GET_TOPITEM;
   if (topitem != STACK_STRING && topitem != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
@@ -189,7 +189,7 @@ static void list_vars(void) {
   boolean found;
 
   DEBUGFUNCMSGIN;
-  p = CAST(get_srcaddr(basicvars.current), char *);     /* Get the argument of the LVAR command if one is supplied */
+  p = CAST(GET_SRCADDR(basicvars.current), char *);     /* Get the argument of the LVAR command if one is supplied */
   basicvars.current+=1+OFFSIZE;
   check_ateol();
   ch = *p;
@@ -241,7 +241,7 @@ static void list_if(void) {
   boolean more;
 
   DEBUGFUNCMSGIN;
-  p = tp = get_srcaddr(basicvars.current);      /* Get address of string to search for */
+  p = tp = GET_SRCADDR(basicvars.current);      /* Get address of string to search for */
   basicvars.current+=1+OFFSIZE;
   check_ateol();
   while (*p != asc_NUL) p++;        /* Find the end of the string */
@@ -428,7 +428,7 @@ static void list_program(void) {
   basicvars.printcount = 0;
   count = 0;
   more = TRUE;
-  while (more && !AT_PROGEND(p) && get_lineno(p)<=highline) {
+  while (more && !AT_PROGEND(p) && GET_LINENO(p)<=highline) {
     expand(p, basicvars.stringwork);
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens)
@@ -499,12 +499,12 @@ static void list_hexline(void) {
   else {
     where = find_line(theline);
   }
-  if (theline != get_lineno(where)) {       /* Line not found */
+  if (theline != GET_LINENO(where)) {       /* Line not found */
     DEBUGFUNCMSGOUT;
     error(ERR_LINEMISS, theline);
   }
-  length = get_linelen(where);
-  emulate_printf("Line %d at %p, length=%d", get_lineno(where), where, length);
+  length = GET_LINELEN(where);
+  emulate_printf("Line %d at %p, length=%d", GET_LINENO(where), where, length);
   if (length<MINSTATELEN || length>MAXSTATELEN) {
     emulate_printf("  ** Statement length is bad **\r\n");
     length = 96;        /* Print six lines of sixteen bytes */
@@ -905,7 +905,7 @@ static void alter_line(void) {
     error(ERR_LINENO);
   }
   p = find_line(lineno);
-  if (get_lineno(p) != lineno) {
+  if (GET_LINENO(p) != lineno) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINEMISS, lineno);
   }
@@ -925,7 +925,7 @@ static void alter_line(void) {
   }
   tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
 //  tokenize(basicvars.stringwork, thisline, HASLINE);
-  if (get_lineno(thisline) == NOLINENO) /* If line number has been removed, execute line */
+  if (GET_LINENO(thisline) == NOLINENO) /* If line number has been removed, execute line */
     exec_thisline();
   else {
     edit_line();

@@ -150,7 +150,7 @@ void exec_clear_himem(void) {
     basicarray *descriptor;
     variable *vp;
     expression();
-    topitem = get_topitem();
+    topitem = GET_TOPITEM;
     switch(topitem) {
       case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY:
         descriptor=pop_array();
@@ -329,10 +329,10 @@ static void list_varlist(char which, library *lp) {
           }
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  [line %d] %s%s", vp, get_lineno(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
+            len = sprintf(temp, "%p  [line %d] %s%s", vp, GET_LINENO(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
           else
 #endif
-            len = sprintf(temp, "[line %d] %s%s", get_lineno(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
+            len = sprintf(temp, "[line %d] %s%s", GET_LINENO(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
           break;
         }
         default:        /* Bad type of variable flag */
@@ -812,7 +812,7 @@ static void add_libvars(byte *tp, library *lp) {
   basicvars.current = tp;       /* Point current at this line for error messages */
   tp+=2;        /* Skip 'LIBRARY' and 'lOCAL' tokens */
   while (*tp==BASTOKEN_XVAR) {
-    base = get_srcaddr(tp);
+    base = GET_SRCADDR(tp);
     ep = skip_name(base);       /* Find byte after name */
     namelen = ep-base;
     vp = find_variable(base, namelen);  /* Has variable already been created for this library? */
@@ -849,7 +849,7 @@ static void add_libarray(byte *tp, library *lp) {
   do {
     basicvars.current++;                /*Skip DIM token or ',' */
     if (*basicvars.current!=BASTOKEN_XVAR) error(ERR_SYNTAX);        /* Array name wanted */
-    base = get_srcaddr(basicvars.current);
+    base = GET_SRCADDR(basicvars.current);
     ep = skip_name(base);       /* Find byte after name */
     namelen = ep-base;
     if (*(ep-1)!='(' && *(ep-1)!='[') error(ERR_VARARRAY);      /* Not an array */
@@ -886,7 +886,7 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
   char pfname[MAXNAMELEN];
 
   DEBUGFUNCMSGIN;
-  base = get_srcaddr(tp+1);     /* Find address of PROC/FN name */
+  base = GET_SRCADDR(tp+1);     /* Find address of PROC/FN name */
   ep = skip_name(base); /* Find byte after name */
   if (*(ep-1)=='(') ep--;       /* '(' here is not part of the name but the start of the parameter list */
   namelen = ep-base;
@@ -940,7 +940,7 @@ static void scan_library(library *lp) {
     else if (!foundproc && *tp==BASTOKEN_DIM) {
       add_libarray(tp, lp);
     }
-    bp+=get_linelen(bp);
+    bp+=GET_LINELEN(bp);
   }
   DEBUGFUNCMSGOUT;
 }
@@ -999,11 +999,11 @@ static variable *mark_procfn(byte *pp) {
   char *cp;
 
   DEBUGFUNCMSGIN;
-  base = get_srcaddr(pp);       /* Point at start of name (includes 'PROC' or 'FN' token) */
+  base = GET_SRCADDR(pp);       /* Point at start of name (includes 'PROC' or 'FN' token) */
   ep = skip_name(base);
   if (*(ep-1)=='(') ep--;
   namelen = ep-base;
-  if (namelen > (MAXNAMELEN - 1)) error(ERR_BADPROCFNNAME, get_lineno(base-7));
+  if (namelen > (MAXNAMELEN - 1)) error(ERR_BADPROCFNNAME, GET_LINENO(base-7));
   cp = allocmem(namelen+1, 1);
   vp = allocmem(sizeof(variable), 1);
   memcpy(cp, base, namelen);    /* Make copy of name */
@@ -1042,7 +1042,7 @@ static variable *scan_fnproc(char *name) {
   vp = NIL;
   while (!AT_PROGEND(bp)) {
     tp = FIND_EXEC(bp);
-    bp+=get_linelen(bp);        /* This is updated here so that 'lastsearch' is set correctly below */
+    bp+=GET_LINELEN(bp);        /* This is updated here so that 'lastsearch' is set correctly below */
     if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found 'DEF PROC' or 'DEF FN' */
       vp = mark_procfn(tp+1); /* Must be a previously unseen entry */
       if (vp->varhash==namehash && strcmp(name, vp->varname)==0) break; /* Found it */

@@ -24,6 +24,15 @@
 #ifndef GRAPHSDL_INC
 #define GRAPHSDL_INC
 
+#ifndef MAXBANKS
+#ifdef BRANDY_MODE7ONLY
+#define MAXBANKS 1
+#else
+#define MAXBANKS 4
+#endif
+#endif /* defined MAXBANKS */
+
+
 typedef struct {
   char *titlepointer;             /* Not NULL to set title bar */
   int32 mousecmd;                 /* Mouse toggle stuff */
@@ -66,7 +75,6 @@ extern void sdl_screenload(char *fname);
 extern void swi_swap16palette(void);
 extern size_t readmodevariable(int32 scrmode, int32 var);
 extern void screencopy(int32 src, int32 dst);
-extern int32 get_maxbanks(void);
 extern void refresh_location(uint32 offset);
 extern void add_mouseitem(int x, int y, int b, int64 c);
 extern void drain_mousebuffer(void);

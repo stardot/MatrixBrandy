@@ -91,13 +91,6 @@
 **  copying areas of the virtual screen that have changed.
 */
 
-#ifndef MAXBANKS
-#ifdef BRANDY_MODE7ONLY
-#define MAXBANKS 1
-#else
-#define MAXBANKS 4
-#endif
-#endif
 #define MAX_YRES 16384
 #define MAX_XRES 16384
 #define FAST_2_MUL(x) ((x)<<1)
@@ -268,13 +261,8 @@ static void toggle_cursor(void);
 static void vdu_cleartext(void);
 static void mode7renderline(int32 ypos, int32 fast);
 
-static inline int max(int a, int b) {
-  return (a > b) ? a : b;
-}
-
-static inline int min(int a, int b) {
-  return (a < b) ? a : b;
-}
+#define max(a,b) ((a > b) ? a : b)
+#define min(a,b) ((a < b) ? a : b)
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
@@ -493,9 +481,7 @@ static int istextonly(void) {
 }
 
 #ifndef BRANDY_MODE7ONLY
-static int32 riscoscolour(int32 colour) {
-  return (((colour & 0xFF) <<16) + (colour & 0xFF00) + ((colour & 0xFF0000) >> 16));
-}
+#define riscoscolour(c) (((c & 0xFF) <<16) + (c & 0xFF00) + ((c & 0xFF0000) >> 16))
 
 static int32 tint24bit(int32 colour, int32 tint) {
   colour=(colour & 0xC0C0C0);
@@ -3093,365 +3079,365 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   }
 /* Now carry out the operation */
   switch (code & GRAPHOP_MASK) {
-  case DRAW_SOLIDLINE:
-  case DRAW_SOLIDLINE+8:
-  case DRAW_DOTLINE:
-  case DRAW_DOTLINE+8:
-  case DRAW_SOLIDLINE2:
-  case DRAW_SOLIDLINE2+8:
-  case DRAW_DOTLINE2:
-  case DRAW_DOTLINE2+8: {       /* Draw line */
-    int32 top, left;
-    left = sx;  /* Find top left-hand corner of rectangle containing line */
-    top = sy;
-    if (ex < sx) left = ex;
-    if (ey < sy) top = ey;
-    draw_line(screenbank[ds.writebank], sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK), action);
-    hide_cursor();
-    blit_scaled(left, top, sx+ex-left, sy+ey-top);
-    reveal_cursor();
-    break;
-  }
-  case PLOT_POINT:      /* Plot a single point */
-    hide_cursor();
-    if ((ex < 0) || (ex >= ds.screenwidth) || (ey < 0) || (ey >= ds.screenheight)) break;
-    plot_pixel(screenbank[ds.writebank], ex, ey, colour, action);
-    blit_scaled(ex, ey, ex, ey);
-    reveal_cursor();
-    break;
-  case FILL_TRIANGLE: {         /* Plot a filled triangle */
-    int32 left, right, top, bottom;
-    filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
-/*  Now figure out the coordinates of the rectangle that contains the triangle */
-    left = right = ds.xlast3;
-    top = bottom = ds.ylast3;
-    if (ds.xlast2 < left) left = ds.xlast2;
-    if (ds.xlast < left) left = ds.xlast;
-    if (ds.xlast2 > right) right = ds.xlast2;
-    if (ds.xlast > right) right = ds.xlast;
-    if (ds.ylast2 > top) top = ds.ylast2;
-    if (ds.ylast > top) top = ds.ylast;
-    if (ds.ylast2 < bottom) bottom = ds.ylast2;
-    if (ds.ylast < bottom) bottom = ds.ylast;
-    hide_cursor();
-    blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
-    reveal_cursor();
-    break;
-  }
-  case FILL_RECTANGLE: {                /* Plot a filled rectangle */
-    int32 left, right, top, bottom;
-    left = sx;
-    top = sy;
-    if (ex < sx) left = ex;
-    if (ey < sy) top = ey;
-    right = sx+ex-left;
-    bottom = sy+ey-top;
-/* sx and sy give the bottom left-hand corner of the rectangle */
-/* x and y are its width and height */
-    plot_rect.x = left;
-    plot_rect.y = top;
-    plot_rect.w = right - left +1;
-    plot_rect.h = bottom - top +1;
-    if (action==0 && !ds.clipping) {
-      SDL_FillRect(screenbank[ds.writebank], &plot_rect, SWAPENDIAN(colour));
-    } else {
-      fill_rectangle(left, top, right, bottom, colour, action);
+    case DRAW_SOLIDLINE:
+    case DRAW_SOLIDLINE+8:
+    case DRAW_DOTLINE:
+    case DRAW_DOTLINE+8:
+    case DRAW_SOLIDLINE2:
+    case DRAW_SOLIDLINE2+8:
+    case DRAW_DOTLINE2:
+    case DRAW_DOTLINE2+8: {       /* Draw line */
+      int32 top, left;
+      left = sx;  /* Find top left-hand corner of rectangle containing line */
+      top = sy;
+      if (ex < sx) left = ex;
+      if (ey < sy) top = ey;
+      draw_line(screenbank[ds.writebank], sx, sy, ex, ey, colour, (code & DRAW_STYLEMASK), action);
+      hide_cursor();
+      blit_scaled(left, top, sx+ex-left, sy+ey-top);
+      reveal_cursor();
+      break;
     }
-    hide_cursor();
-    blit_scaled(left, top, right, bottom);
-    reveal_cursor();
-    break;
-  }
-  case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
-    int32 vx, vy, left, right, top, bottom;
-    filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
-    vx = ds.xlast3-ds.xlast2+ds.xlast;
-    vy = ds.ylast3-ds.ylast2+ds.ylast;
-    filled_triangle(screenbank[ds.writebank], ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), colour, action);
-/*  Now figure out the coordinates of the rectangle that contains the parallelogram */
-    left = right = ds.xlast3;
-    top = bottom = ds.ylast3;
-    if (ds.xlast2 < left) left = ds.xlast2;
-    if (ds.xlast < left) left = ds.xlast;
-    if (vx < left) left = vx;
-    if (ds.xlast2 > right) right = ds.xlast2;
-    if (ds.xlast > right) right = ds.xlast;
-    if (vx > right) right = vx;
-    if (ds.ylast2 > top) top = ds.ylast2;
-    if (ds.ylast > top) top = ds.ylast;
-    if (vy > top) top = vy;
-    if (ds.ylast2 < bottom) bottom = ds.ylast2;
-    if (ds.ylast < bottom) bottom = ds.ylast;
-    if (vy < bottom) bottom = vy;
-    hide_cursor();
-    blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
-    reveal_cursor();
-    break;
-  }
-  case FLOOD_BACKGROUND:        /* Flood fill background with graphics foreground colour */
-    flood_fill(ex, ey, colour, action);
-    break;
-  case SHIFT_RECTANGLE: {       /* Move or copy a rectangle */
-    int32 destleft, destop, left, right, top, bottom;
-    if (ds.xlast3 < ds.xlast2) {        /* Figure out left and right hand extents of rectangle */
-      left = GXTOPX(ds.xlast3);
-      right = GXTOPX(ds.xlast2);
+    case PLOT_POINT:      /* Plot a single point */
+      hide_cursor();
+      if ((ex < 0) || (ex >= ds.screenwidth) || (ey < 0) || (ey >= ds.screenheight)) break;
+      plot_pixel(screenbank[ds.writebank], ex, ey, colour, action);
+      blit_scaled(ex, ey, ex, ey);
+      reveal_cursor();
+      break;
+    case FILL_TRIANGLE: {         /* Plot a filled triangle */
+      int32 left, right, top, bottom;
+      filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
+  /*  Now figure out the coordinates of the rectangle that contains the triangle */
+      left = right = ds.xlast3;
+      top = bottom = ds.ylast3;
+      if (ds.xlast2 < left) left = ds.xlast2;
+      if (ds.xlast < left) left = ds.xlast;
+      if (ds.xlast2 > right) right = ds.xlast2;
+      if (ds.xlast > right) right = ds.xlast;
+      if (ds.ylast2 > top) top = ds.ylast2;
+      if (ds.ylast > top) top = ds.ylast;
+      if (ds.ylast2 < bottom) bottom = ds.ylast2;
+      if (ds.ylast < bottom) bottom = ds.ylast;
+      hide_cursor();
+      blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
+      reveal_cursor();
+      break;
     }
-    else {
-      left = GXTOPX(ds.xlast2);
-      right = GXTOPX(ds.xlast3);
-    }
-    if (ds.ylast3 > ds.ylast2) {        /* Figure out upper and lower extents of rectangle */
-      top = GYTOPY(ds.ylast3);
-      bottom = GYTOPY(ds.ylast2);
-    }
-    else {
-      top = GYTOPY(ds.ylast2);
-      bottom = GYTOPY(ds.ylast3);
-    }
-    destleft = GXTOPX(ds.xlast);                /* X coordinate of top left-hand corner of destination */
-    destop = GYTOPY(ds.ylast)-(bottom-top);     /* Y coordinate of top left-hand corner of destination */
-    plot_rect.x = destleft;
-    plot_rect.y = destop;
-    temp_rect.x = left;
-    temp_rect.y = top;
-    temp_rect.w = plot_rect.w = right - left +1;
-    temp_rect.h = plot_rect.h = bottom - top +1;
-    SDL_BlitSurface(screenbank[ds.writebank], &temp_rect, screen1, &plot_rect); /* copy to temp buffer */
-    SDL_BlitSurface(screen1, &plot_rect, screenbank[ds.writebank], &plot_rect);
-    hide_cursor();
-    blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
-    reveal_cursor();
-    if (code == MOVE_RECTANGLE) {       /* Move rectangle - Set original rectangle to the background colour */
-      int32 destright, destbot;
-      destright = destleft+right-left;
-      destbot = destop+bottom-top;
-/* Check if source and destination rectangles overlap */
-      if (((destleft >= left && destleft <= right) || (destright >= left && destright <= right)) &&
-       ((destop >= top && destop <= bottom) || (destbot >= top && destbot <= bottom))) {        /* Overlap found */
-        int32 xdiff, ydiff;
-/*
-** The area of the original rectangle that is not overlapped can be
-** broken down into one or two smaller rectangles. Figure out the
-** coordinates of those rectangles and plot filled rectangles over
-** them set to the graphics background colour
-*/
-        xdiff = left-destleft;
-        ydiff = top-destop;
-        if (ydiff > 0) {        /* Destination area is higher than the original area on screen */
-          if (xdiff > 0) {
-            plot_rect.x = destright+1;
-            plot_rect.y = top;
-            plot_rect.w = right - (destright+1) +1;
-            plot_rect.h = destbot - top +1;
-            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-          }
-          else if (xdiff < 0) {
-            plot_rect.x = left;
-            plot_rect.y = top;
-            plot_rect.w = (destleft-1) - left +1;
-            plot_rect.h = destbot - top +1;
-            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-          }
-          plot_rect.x = left;
-          plot_rect.y = destbot+1;
-          plot_rect.w = right - left +1;
-          plot_rect.h = bottom - (destbot+1) +1;
-          SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-        }
-        else if (ydiff == 0) {  /* Destination area is on same level as original area */
-          if (xdiff > 0) {      /* Destination area lies to left of original area */
-            plot_rect.x = destright+1;
-            plot_rect.y = top;
-            plot_rect.w = right - (destright+1) +1;
-            plot_rect.h = bottom - top +1;
-            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-          }
-          else if (xdiff < 0) {
-            plot_rect.x = left;
-            plot_rect.y = top;
-            plot_rect.w = (destleft-1) - left +1;
-            plot_rect.h = bottom - top +1;
-            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-          }
-        }
-        else {  /* Destination area is lower than original area on screen */
-          if (xdiff > 0) {
-            plot_rect.x = destright+1;
-            plot_rect.y = destop;
-            plot_rect.w = right - (destright+1) +1;
-            plot_rect.h = bottom - destop +1;
-            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-          }
-          else if (xdiff < 0) {
-            plot_rect.x = left;
-            plot_rect.y = destop;
-            plot_rect.w = (destleft-1) - left +1;
-            plot_rect.h = bottom - destop +1;
-            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-          }
-          plot_rect.x = left;
-          plot_rect.y = top;
-          plot_rect.w = right - left +1;
-          plot_rect.h = (destop-1) - top +1;
-          SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
-        }
-      }
-      else {    /* No overlap - Simple case */
-        plot_rect.x = left;
-        plot_rect.y = top;
-        plot_rect.w = right - left +1;
-        plot_rect.h = bottom - top +1;
-        SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+    case FILL_RECTANGLE: {                /* Plot a filled rectangle */
+      int32 left, right, top, bottom;
+      left = sx;
+      top = sy;
+      if (ex < sx) left = ex;
+      if (ey < sy) top = ey;
+      right = sx+ex-left;
+      bottom = sy+ey-top;
+  /* sx and sy give the bottom left-hand corner of the rectangle */
+  /* x and y are its width and height */
+      plot_rect.x = left;
+      plot_rect.y = top;
+      plot_rect.w = right - left +1;
+      plot_rect.h = bottom - top +1;
+      if (action==0 && !ds.clipping) {
+        SDL_FillRect(screenbank[ds.writebank], &plot_rect, SWAPENDIAN(colour));
+      } else {
+        fill_rectangle(left, top, right, bottom, colour, action);
       }
       hide_cursor();
       blit_scaled(left, top, right, bottom);
       reveal_cursor();
+      break;
     }
-    break;
-  }
-  case PLOT_CIRCLE:             /* Plot the outline of a circle */
-  case FILL_CIRCLE: {           /* Plot a filled circle */
-    int32 xradius, yradius, xr;
-/*
-** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
-** point on the circumference, specifically the left-most point of the
-** circle.
-*/
-    // xradius = abs(ds.xlast2-ds.xlast)/ds.xgupp;
-    // yradius = abs(ds.xlast2-ds.xlast)/ds.ygupp;
-    float fradius=sqrtf((ds.xlast-ds.xlast2)*(ds.xlast-ds.xlast2)+(ds.ylast-ds.ylast2)*(ds.ylast-ds.ylast2));
-    xradius = (int)(fradius/ds.xgupp);
-    yradius = (int)(fradius/ds.ygupp);
-
-    xr=ds.xlast2-ds.xlast;
-    if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-      draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
-    else {
-      filled_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+    case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
+      int32 vx, vy, left, right, top, bottom;
+      filled_triangle(screenbank[ds.writebank], GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), sx, sy, ex, ey, colour, action);
+      vx = ds.xlast3-ds.xlast2+ds.xlast;
+      vy = ds.ylast3-ds.ylast2+ds.ylast;
+      filled_triangle(screenbank[ds.writebank], ex, ey, GXTOPX(vx), GYTOPY(vy), GXTOPX(ds.xlast3), GYTOPY(ds.ylast3), colour, action);
+  /*  Now figure out the coordinates of the rectangle that contains the parallelogram */
+      left = right = ds.xlast3;
+      top = bottom = ds.ylast3;
+      if (ds.xlast2 < left) left = ds.xlast2;
+      if (ds.xlast < left) left = ds.xlast;
+      if (vx < left) left = vx;
+      if (ds.xlast2 > right) right = ds.xlast2;
+      if (ds.xlast > right) right = ds.xlast;
+      if (vx > right) right = vx;
+      if (ds.ylast2 > top) top = ds.ylast2;
+      if (ds.ylast > top) top = ds.ylast;
+      if (vy > top) top = vy;
+      if (ds.ylast2 < bottom) bottom = ds.ylast2;
+      if (ds.ylast < bottom) bottom = ds.ylast;
+      if (vy < bottom) bottom = vy;
+      hide_cursor();
+      blit_scaled(GXTOPX(left), GYTOPY(top), GXTOPX(right), GYTOPY(bottom));
+      reveal_cursor();
+      break;
     }
-    /* To match RISC OS, xlast needs to be the right-most point not left-most. */
-    ds.xlast+=(xr*2);
-    ex = sx-xradius;
-    ey = sy-yradius;
-/* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    hide_cursor();
-    blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
-    reveal_cursor();
-    break;
-  }
-  case PLOT_ELLIPSE:            /* Draw an ellipse outline */
-  case FILL_ELLIPSE: {          /* Draw a filled ellipse */
-    int32 semimajor, semiminor, shearx;
-/*
-** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
-** point on the circumference in the +ve X direction and (xlast, ylast)
-** is a point on the circumference in the +ve Y direction
-*/
-    semimajor = abs(ds.xlast2-ds.xlast3)/ds.xgupp;
-    semiminor = abs(ds.ylast-ds.ylast3)/ds.ygupp;
-    tx = GXTOPX(ds.xlast3);
-    ty = GYTOPY(ds.ylast3);
-    shearx=(GXTOPX(ds.xlast)-tx)*(ds.ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
-
-    if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-      draw_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
-    else {
-      filled_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
-    }
-    ex = sx-semimajor;
-    ey = sy-semiminor;
-/* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    hide_cursor();
-    blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
-    reveal_cursor();
-    break;
-  }
-  case PLOT_ARC: {
-    float xradius,yradius;
-    int end_dx,end_dy,start_dx,start_dy;
-/*
-** (xlast3, ylast3) is the centre of the arc. (xlast2, ylast2) is a
-** point on the circumference, and (xlast, ylast) is a point that indicates the end-angle of the arc.
-** Note that the arc is drawn anti-clockwise from the start point to end angle
-*/
-    tx = GXTOPX(ds.xlast3);
-    ty = GYTOPY(ds.ylast3);
-    int xlast3=ds.xlast3/ds.xgupp; // performs integer division
-    int ylast3=ds.ylast3/ds.ygupp; // performs integer division
-    int xlast2=ds.xlast2/ds.xgupp; // performs integer division
-    int ylast2=ds.ylast2/ds.ygupp; // performs integer division
-    int xlast=ds.xlast/ds.xgupp; // performs integer division
-    int ylast=ds.ylast/ds.ygupp; // performs integer division
-    float fradius=sqrtf((xlast3-xlast2)*(xlast3-xlast2)*ds.xgupp*ds.xgupp+(ylast3-ylast2)*(ylast3-ylast2)*ds.ygupp*ds.ygupp)+0.5;
-    xradius = (fradius/ds.xgupp);
-    yradius = (fradius/ds.ygupp);
-    float fradius_end=sqrtf((xlast3-xlast)*(xlast3-xlast)*ds.xgupp*ds.xgupp+(ylast3-ylast)*(ylast3-ylast)*ds.ygupp*ds.ygupp);
-    if (fradius_end<1e-9) {
-      // the end point is on top of the centre, so there's not much we can do here.
-      // Don't do anything in this case, to avoid a division by zero
-    } else {
-      start_dx=xlast2-xlast3;//displacement to start point from centre
-      start_dy=ylast2-ylast3;//displacement to start point from centre
-      //fprintf(stderr,"start_dx %d=%d-%d\n",start_dx,ds.xlast2,ds.xlast3);
-      end_dx=(int)((xlast-xlast3)*fradius/fradius_end);//projects end point onto circle circumference
-      end_dy=ds.ylast-ds.ylast3;
-      end_dy=floor(((ylast-ylast3)*fradius/fradius_end));//projects end point onto circle circumference
-
-      // check that the rounding above does not cause end_dx, end_dy to lie off the rasterised curve.
-      float axis_ratio = (float) xradius / (float) yradius;
-      int xnext_rasterised=abs(end_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(end_dy)+1)*(abs(end_dy)+1)))+1:0; // uses same formula as used by draw_arc function
-      int xthis_rasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(end_dy))*(abs(end_dy)) )); // uses same formula as used by draw_arc function
-      
-      if (abs(end_dy)==yradius && end_dy>0 &&0)
-        xnext_rasterised=1;
-      if (abs(end_dx)<xnext_rasterised ) {
-        // like xnext to be smaller, so like abs(end_dy) to be larger
-        //fprintf(stderr,"Going to have error... end point too short xnext_rasterised %d xthis_rasterised %d\n",xnext_rasterised,xthis_rasterised);
-        end_dy+=end_dy>0?1:-1;
-        //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
-      } 
-      if (abs(end_dx)>xthis_rasterised) {
-        // like xthis to be bigger, so end_dy to be smaller
-        //fprintf(stderr,"Going to have error... end point too long xnext_rasterised %d xthis_rasterised %d\n",xnext_rasterised,xthis_rasterised);
-        end_dy-=end_dy>0?1:-1; 
-        //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
+    case FLOOD_BACKGROUND:        /* Flood fill background with graphics foreground colour */
+      flood_fill(ex, ey, colour, action);
+      break;
+    case SHIFT_RECTANGLE: {       /* Move or copy a rectangle */
+      int32 destleft, destop, left, right, top, bottom;
+      if (ds.xlast3 < ds.xlast2) {        /* Figure out left and right hand extents of rectangle */
+        left = GXTOPX(ds.xlast3);
+        right = GXTOPX(ds.xlast2);
       }
-
-      int xnext_srasterised=abs(start_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy)+1)*(abs(start_dy)+1)))+1:0; // uses same formula as used by draw_arc function
-      int xthis_srasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy))*(abs(start_dy)))); // uses same formula as used by draw_arc function
-      if (abs(start_dx)<xnext_srasterised ) {
-        // like xnext to be smaller, so like abs(end_dy) to be larger
-        //fprintf(stderr,"Going to have error... start point too short xnext_srasterised %d xthis_srasterised %d\n",xnext_rasterised,xthis_rasterised);
-        start_dy+=start_dy>0?1:-1;
-        //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
-      } 
-      if (abs(start_dx)>xthis_srasterised) {
-        // like xthis to be bigger, so end_dy to be smaller
-        //fprintf(stderr,"Going to have error... start point too long xnext_srasterised %d xthis_srasterised %d\n",xnext_rasterised,xthis_rasterised);
-        start_dy-=start_dy>0?1:-1; 
-        //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
+      else {
+        left = GXTOPX(ds.xlast2);
+        right = GXTOPX(ds.xlast3);
       }
-
-      draw_arc(screenbank[ds.writebank], tx, ty, xradius, yradius, start_dx,start_dy,end_dx,end_dy, colour, action);    
-      //plot_pixel(screenbank[ds.writebank], tx, ty, colour, action);
-      //plot_pixel(screenbank[ds.writebank], tx+start_dx, ty-start_dy, colour, action);
+      if (ds.ylast3 > ds.ylast2) {        /* Figure out upper and lower extents of rectangle */
+        top = GYTOPY(ds.ylast3);
+        bottom = GYTOPY(ds.ylast2);
+      }
+      else {
+        top = GYTOPY(ds.ylast2);
+        bottom = GYTOPY(ds.ylast3);
+      }
+      destleft = GXTOPX(ds.xlast);                /* X coordinate of top left-hand corner of destination */
+      destop = GYTOPY(ds.ylast)-(bottom-top);     /* Y coordinate of top left-hand corner of destination */
+      plot_rect.x = destleft;
+      plot_rect.y = destop;
+      temp_rect.x = left;
+      temp_rect.y = top;
+      temp_rect.w = plot_rect.w = right - left +1;
+      temp_rect.h = plot_rect.h = bottom - top +1;
+      SDL_BlitSurface(screenbank[ds.writebank], &temp_rect, screen1, &plot_rect); /* copy to temp buffer */
+      SDL_BlitSurface(screen1, &plot_rect, screenbank[ds.writebank], &plot_rect);
+      hide_cursor();
+      blit_scaled(destleft, destop, destleft+(right-left), destop+(bottom-top));
+      reveal_cursor();
+      if (code == MOVE_RECTANGLE) {       /* Move rectangle - Set original rectangle to the background colour */
+        int32 destright, destbot;
+        destright = destleft+right-left;
+        destbot = destop+bottom-top;
+  /* Check if source and destination rectangles overlap */
+        if (((destleft >= left && destleft <= right) || (destright >= left && destright <= right)) &&
+         ((destop >= top && destop <= bottom) || (destbot >= top && destbot <= bottom))) {        /* Overlap found */
+          int32 xdiff, ydiff;
+  /*
+  ** The area of the original rectangle that is not overlapped can be
+  ** broken down into one or two smaller rectangles. Figure out the
+  ** coordinates of those rectangles and plot filled rectangles over
+  ** them set to the graphics background colour
+  */
+          xdiff = left-destleft;
+          ydiff = top-destop;
+          if (ydiff > 0) {        /* Destination area is higher than the original area on screen */
+            if (xdiff > 0) {
+              plot_rect.x = destright+1;
+              plot_rect.y = top;
+              plot_rect.w = right - (destright+1) +1;
+              plot_rect.h = destbot - top +1;
+              SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+            }
+            else if (xdiff < 0) {
+              plot_rect.x = left;
+              plot_rect.y = top;
+              plot_rect.w = (destleft-1) - left +1;
+              plot_rect.h = destbot - top +1;
+              SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+            }
+            plot_rect.x = left;
+            plot_rect.y = destbot+1;
+            plot_rect.w = right - left +1;
+            plot_rect.h = bottom - (destbot+1) +1;
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+          }
+          else if (ydiff == 0) {  /* Destination area is on same level as original area */
+            if (xdiff > 0) {      /* Destination area lies to left of original area */
+              plot_rect.x = destright+1;
+              plot_rect.y = top;
+              plot_rect.w = right - (destright+1) +1;
+              plot_rect.h = bottom - top +1;
+              SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+            }
+            else if (xdiff < 0) {
+              plot_rect.x = left;
+              plot_rect.y = top;
+              plot_rect.w = (destleft-1) - left +1;
+              plot_rect.h = bottom - top +1;
+              SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+            }
+          }
+          else {  /* Destination area is lower than original area on screen */
+            if (xdiff > 0) {
+              plot_rect.x = destright+1;
+              plot_rect.y = destop;
+              plot_rect.w = right - (destright+1) +1;
+              plot_rect.h = bottom - destop +1;
+              SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+            }
+            else if (xdiff < 0) {
+              plot_rect.x = left;
+              plot_rect.y = destop;
+              plot_rect.w = (destleft-1) - left +1;
+              plot_rect.h = bottom - destop +1;
+              SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+            }
+            plot_rect.x = left;
+            plot_rect.y = top;
+            plot_rect.w = right - left +1;
+            plot_rect.h = (destop-1) - top +1;
+            SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+          }
+        }
+        else {    /* No overlap - Simple case */
+          plot_rect.x = left;
+          plot_rect.y = top;
+          plot_rect.w = right - left +1;
+          plot_rect.h = bottom - top +1;
+          SDL_FillRect(screenbank[ds.writebank], &plot_rect, ds.gb_colour);
+        }
+        hide_cursor();
+        blit_scaled(left, top, right, bottom);
+        reveal_cursor();
+      }
+      break;
+    }
+    case PLOT_CIRCLE:             /* Plot the outline of a circle */
+    case FILL_CIRCLE: {           /* Plot a filled circle */
+      int32 xradius, yradius, xr;
+  /*
+  ** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
+  ** point on the circumference, specifically the left-most point of the
+  ** circle.
+  */
+      // xradius = abs(ds.xlast2-ds.xlast)/ds.xgupp;
+      // yradius = abs(ds.xlast2-ds.xlast)/ds.ygupp;
+      float fradius=sqrtf((ds.xlast-ds.xlast2)*(ds.xlast-ds.xlast2)+(ds.ylast-ds.ylast2)*(ds.ylast-ds.ylast2));
+      xradius = (int)(fradius/ds.xgupp);
+      yradius = (int)(fradius/ds.ygupp);
+  
+      xr=ds.xlast2-ds.xlast;
+      if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
+        draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+      else {
+        filled_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+      }
+      /* To match RISC OS, xlast needs to be the right-most point not left-most. */
+      ds.xlast+=(xr*2);
+      ex = sx-xradius;
+      ey = sy-yradius;
+  /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
+      hide_cursor();
+      blit_scaled(ex, ey, ex+2*xradius, ey+2*yradius);
+      reveal_cursor();
+      break;
+    }
+    case PLOT_ELLIPSE:            /* Draw an ellipse outline */
+    case FILL_ELLIPSE: {          /* Draw a filled ellipse */
+      int32 semimajor, semiminor, shearx;
+  /*
+  ** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
+  ** point on the circumference in the +ve X direction and (xlast, ylast)
+  ** is a point on the circumference in the +ve Y direction
+  */
+      semimajor = abs(ds.xlast2-ds.xlast3)/ds.xgupp;
+      semiminor = abs(ds.ylast-ds.ylast3)/ds.ygupp;
+      tx = GXTOPX(ds.xlast3);
+      ty = GYTOPY(ds.ylast3);
+      shearx=(GXTOPX(ds.xlast)-tx)*(ds.ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
+  
+      if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
+        draw_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
+      else {
+        filled_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
+      }
+      ex = sx-semimajor;
+      ey = sy-semiminor;
+  /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
       hide_cursor();
       blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
       reveal_cursor();
+      break;
     }
-    break;
-  }
-  case PLOT_SEGMENT: {
-    
-    break;
-  }
-  case PLOT_SECTOR: {
-    
-    break;
-  }
-  //default:
-    //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
+    case PLOT_ARC: {
+      float xradius,yradius;
+      int end_dx,end_dy,start_dx,start_dy;
+  /*
+  ** (xlast3, ylast3) is the centre of the arc. (xlast2, ylast2) is a
+  ** point on the circumference, and (xlast, ylast) is a point that indicates the end-angle of the arc.
+  ** Note that the arc is drawn anti-clockwise from the start point to end angle
+  */
+      tx = GXTOPX(ds.xlast3);
+      ty = GYTOPY(ds.ylast3);
+      int xlast3=ds.xlast3/ds.xgupp; // performs integer division
+      int ylast3=ds.ylast3/ds.ygupp; // performs integer division
+      int xlast2=ds.xlast2/ds.xgupp; // performs integer division
+      int ylast2=ds.ylast2/ds.ygupp; // performs integer division
+      int xlast=ds.xlast/ds.xgupp; // performs integer division
+      int ylast=ds.ylast/ds.ygupp; // performs integer division
+      float fradius=sqrtf((xlast3-xlast2)*(xlast3-xlast2)*ds.xgupp*ds.xgupp+(ylast3-ylast2)*(ylast3-ylast2)*ds.ygupp*ds.ygupp)+0.5;
+      xradius = (fradius/ds.xgupp);
+      yradius = (fradius/ds.ygupp);
+      float fradius_end=sqrtf((xlast3-xlast)*(xlast3-xlast)*ds.xgupp*ds.xgupp+(ylast3-ylast)*(ylast3-ylast)*ds.ygupp*ds.ygupp);
+      if (fradius_end<1e-9) {
+        // the end point is on top of the centre, so there's not much we can do here.
+        // Don't do anything in this case, to avoid a division by zero
+      } else {
+        start_dx=xlast2-xlast3;//displacement to start point from centre
+        start_dy=ylast2-ylast3;//displacement to start point from centre
+        //fprintf(stderr,"start_dx %d=%d-%d\n",start_dx,ds.xlast2,ds.xlast3);
+        end_dx=(int)((xlast-xlast3)*fradius/fradius_end);//projects end point onto circle circumference
+        end_dy=ds.ylast-ds.ylast3;
+        end_dy=floor(((ylast-ylast3)*fradius/fradius_end));//projects end point onto circle circumference
+  
+        // check that the rounding above does not cause end_dx, end_dy to lie off the rasterised curve.
+        float axis_ratio = (float) xradius / (float) yradius;
+        int xnext_rasterised=abs(end_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(end_dy)+1)*(abs(end_dy)+1)))+1:0; // uses same formula as used by draw_arc function
+        int xthis_rasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(end_dy))*(abs(end_dy)) )); // uses same formula as used by draw_arc function
+        
+        if (abs(end_dy)==yradius && end_dy>0 &&0)
+          xnext_rasterised=1;
+        if (abs(end_dx)<xnext_rasterised ) {
+          // like xnext to be smaller, so like abs(end_dy) to be larger
+          //fprintf(stderr,"Going to have error... end point too short xnext_rasterised %d xthis_rasterised %d\n",xnext_rasterised,xthis_rasterised);
+          end_dy+=end_dy>0?1:-1;
+          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
+        } 
+        if (abs(end_dx)>xthis_rasterised) {
+          // like xthis to be bigger, so end_dy to be smaller
+          //fprintf(stderr,"Going to have error... end point too long xnext_rasterised %d xthis_rasterised %d\n",xnext_rasterised,xthis_rasterised);
+          end_dy-=end_dy>0?1:-1; 
+          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
+        }
+  
+        int xnext_srasterised=abs(start_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy)+1)*(abs(start_dy)+1)))+1:0; // uses same formula as used by draw_arc function
+        int xthis_srasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy))*(abs(start_dy)))); // uses same formula as used by draw_arc function
+        if (abs(start_dx)<xnext_srasterised ) {
+          // like xnext to be smaller, so like abs(end_dy) to be larger
+          //fprintf(stderr,"Going to have error... start point too short xnext_srasterised %d xthis_srasterised %d\n",xnext_rasterised,xthis_rasterised);
+          start_dy+=start_dy>0?1:-1;
+          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
+        } 
+        if (abs(start_dx)>xthis_srasterised) {
+          // like xthis to be bigger, so end_dy to be smaller
+          //fprintf(stderr,"Going to have error... start point too long xnext_srasterised %d xthis_srasterised %d\n",xnext_rasterised,xthis_rasterised);
+          start_dy-=start_dy>0?1:-1; 
+          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
+        }
+  
+        draw_arc(screenbank[ds.writebank], tx, ty, xradius, yradius, start_dx,start_dy,end_dx,end_dy, colour, action);    
+        //plot_pixel(screenbank[ds.writebank], tx, ty, colour, action);
+        //plot_pixel(screenbank[ds.writebank], tx+start_dx, ty-start_dy, colour, action);
+        hide_cursor();
+        blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
+        reveal_cursor();
+      }
+      break;
+    }
+    case PLOT_SEGMENT: {
+      
+      break;
+    }
+    case PLOT_SECTOR: {
+      
+      break;
+    }
+    //default:
+      //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
   }
 #endif
 }
@@ -3689,78 +3675,6 @@ void emulate_defcolour(int32 colour, int32 red, int32 green, int32 blue) {
 }
 
 /*
-** 'emulate_move' moves the graphics cursor to the absolute
-** position (x,y) on the screen
-*/
-void emulate_move(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
-#endif
-}
-
-/*
-** 'emulate_moveby' move the graphics cursor by the offsets 'x'
-** and 'y' relative to its current position
-*/
-void emulate_moveby(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
-#endif
-}
-
-/*
-** 'emulate_draw' draws a solid line from the current graphics
-** cursor position to the absolute position (x,y) on the screen
-*/
-void emulate_draw(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
-#endif
-}
-
-/*
-** 'emulate_drawby' draws a solid line from the current graphics
-** cursor position to that at offsets 'x' and 'y' relative to that
-** position
-*/
-void emulate_drawby(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
-#endif
-}
-
-/*
-** 'emulate_line' draws a line from the absolute position (x1,y1)
-** on the screen to (x2,y2)
-*/
-void emulate_line(int32 x1, int32 y1, int32 x2, int32 y2) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x1, y1);
-  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x2, y2);
-#endif
-}
-
-/*
-** 'emulate_point' plots a single point at the absolute position
-** (x,y) on the screen
-*/
-void emulate_point(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
-#endif
-}
-
-/*
-** 'emulate_pointby' plots a single point at the offsets 'x' and
-** 'y' from the current graphics position
-*/
-void emulate_pointby(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
-#endif
-}
-
-/*
 ** 'emulate_ellipse' handles the Basic statement 'ELLIPSE'. This one is
 ** a little more complex than a straight call to a SWI as it plots the
 ** ellipse with the semi-major axis at any angle.
@@ -3848,28 +3762,6 @@ void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, i
   else {
     emulate_plot(COPY_RECTANGLE, x2, y2);
   }
-#endif
-}
-
-/*
-** 'emulate_fill' flood-fills an area of the graphics screen in
-** the current foreground colour starting at position (x,y) on the
-** screen
-*/
-void emulate_fill(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(FLOOD_BACKGROUND+DRAW_ABSOLUTE, x, y);
-#endif
-}
-
-/*
-** 'emulate_fillby' flood-fills an area of the graphics screen in
-** the current foreground colour starting at the position at offsets
-** 'x' and 'y' relative to the current graphics cursor position
-*/
-void emulate_fillby(int32 x, int32 y) {
-#ifndef BRANDY_MODE7ONLY
-  emulate_plot(FLOOD_BACKGROUND+DRAW_RELATIVE, x, y);
 #endif
 }
 
@@ -5037,10 +4929,6 @@ void screencopy(int32 src, int32 dst) {
   if (dst==(ds.displaybank+1)) {
     SDL_BlitSurface(screenbank[ds.displaybank], NULL, matrixflags.surface, NULL);
   }
-}
-
-int32 get_maxbanks(void) {
-  return MAXBANKS;
 }
 
 int32 osbyte134_165(int32 a) {

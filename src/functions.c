@@ -324,7 +324,7 @@ static void fn_ptr(void) {
     basicvars.current++;
 
     expression();
-    topitem = get_topitem();
+    topitem = GET_TOPITEM;
     switch(topitem) {
       case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY: case STACK_STRARRAY:
         descriptor=pop_array();
@@ -711,7 +711,7 @@ static variable *get_arrayname(void) {
     vp = GET_ADDRESS(basicvars.current, variable *);
   else if (*basicvars.current == BASTOKEN_XVAR) {    /* Reference not seen before */
     byte *base, *ep;
-    base = get_srcaddr(basicvars.current);      /* Find address of array's name */
+    base = GET_SRCADDR(basicvars.current);      /* Find address of array's name */
     ep = skip_name(base);
     vp = find_variable(base, ep-base);
     if (vp == NIL) error(ERR_ARRAYMISS, tocstring(CAST(base, char *), ep-base));
@@ -1843,7 +1843,7 @@ void fn_top(void) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
   }
-  p = get_srcaddr(basicvars.current);           /* Find the address of the variable */
+  p = GET_SRCADDR(basicvars.current);           /* Find the address of the variable */
   if (*p != 'P') {            /* But it does not start with the letter 'P' */
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);

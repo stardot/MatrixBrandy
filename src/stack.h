@@ -56,9 +56,6 @@ extern void push_error(errorblock);
 extern void push_varyint(int64);
 extern size_t *make_opstack(void);
 extern sigjmp_buf *make_restart(void);
-extern stackitem get_topitem(void);
-extern byte *get_stacktop(void);
-extern byte *get_safestack(void);
 extern boolean safestack(void);
 extern lvalue pop_lvalue(void);
 extern int64 pop_anyint(void);
@@ -102,7 +99,6 @@ extern void reset_stack(byte *);
 extern void init_stack(void);
 extern void clear_stack(void);
 extern void *alloc_local(int32);
-extern boolean is8or32int(stackitem);
 #ifdef DEBUG
 extern void debug_show_stackitemtype(int32);
 #endif
@@ -112,7 +108,17 @@ extern void debug_show_stackitemtype(int32);
 #define LARGEST_ENTRY sizeof(basicstring)
 #define ALIGNSIZE(type) (ALIGN(sizeof(type)))
 
+/*
+** 'IS_SAFESTACK' returns TRUE if it is safe to move the Basic stack.
+** At the moment this is only allowed if the stack is empty, that is,
+** the only thing on it is the operator stack and the program is not
+** in a procedure or function
+*/
+#define IS_SAFESTACK (basicvars.procstack==NIL && basicvars.stacktop.intsp->itemtype==STACK_OPSTACK)
+
 /* The following macros are used to speed up operations on the BASIC stack */
+
+#define is8or32int(x) ((x == STACK_INT) || (x == STACK_UINT8))
 
 #define GET_TOPITEM (basicvars.stacktop.intsp->itemtype)
 #define TOPITEMISINT ((basicvars.stacktop.intsp->itemtype == STACK_INT) || (basicvars.stacktop.intsp->itemtype == STACK_UINT8) || (basicvars.stacktop.intsp->itemtype == STACK_INT64))

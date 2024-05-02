@@ -37,14 +37,16 @@ SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c $(SRCDIR)/riscos.c \
 	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
 
 Brandy,ff8:	$(OBJ)
+	@echo ""
+	@echo "Build flags: $(CFLAGS)"
 	$(LD) $(LDFLAGS) -static -o Brandy.elf $(OBJ) $(LIBS)
 	$(STRIP) Brandy.elf
 	$(ELFAIF) Brandy.elf Brandy,ff8
 
 include depends.mk
 
-.c.o:
-	$(CC) $(CFLAGS) $< -c -o $@
+.c.o:; 	@echo -n "$@ "
+	@$(CC) $(CFLAGS) $< -c -o $@ >/dev/null
 
 clean:
 	rm -f $(SRCDIR)/*.o Brandy,ff8 Brandy.elf
