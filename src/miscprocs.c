@@ -435,12 +435,12 @@ boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = asc_NUL;
   result = kbd_readline(line, linelen, 0);
-  // result = READ_OK;     /* temp'y bodge */
-  if (result==READ_ESC || basicvars.escape) {
+  //result = READ_OK;     /* temp'y bodge */
+  if (result==-READ_ESC || basicvars.escape) {
     error(ERR_ESCAPE);
     return FALSE;
   }
-  if (result==READ_EOF) return FALSE;           /* Read failed - Hit EOF */
+  if (result==-READ_EOF) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
 }
@@ -459,11 +459,11 @@ boolean amend_line(char line[], int32 linelen) {
   readstate result;
   result = kbd_readline(line, linelen,0);
   //result = READ_OK;     /* temp'y bodge */
-  if (result==READ_ESC || basicvars.escape) {
+  if (result==-READ_ESC || basicvars.escape) {
     error(ERR_ESCAPE);
     return FALSE;
   }
-  if (result==READ_EOF) return FALSE;           /* Read failed - Hit EOF */
+  if (result==-READ_EOF) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
 }
@@ -501,11 +501,7 @@ int32 TOINT(float64 fltmp) {
 }
 
 int64 TOINT64(float64 fltmp) {
-  if (fltmp > MAXINT64FLT) {
-    error(ERR_RANGE);
-    return 0;
-  }
-  if (fltmp < MININT64FLT) {
+  if ((fltmp > MAXINT64FLT) || (fltmp < MININT64FLT)) {
     error(ERR_RANGE);
     return 0;
   }

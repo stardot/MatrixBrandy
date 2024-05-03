@@ -1982,7 +1982,7 @@ void exec_oscli(void) {
     basicvars.current++;
     get_lvalue(&response);
     if (response.typeinfo != VAR_STRARRAY) {
-      if(oscli_string) free(oscli_string)
+      if(oscli_string) free(oscli_string);
       DEBUGFUNCMSGOUT;
       error(ERR_STRARRAY);
       return;
