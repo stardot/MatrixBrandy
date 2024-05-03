@@ -274,6 +274,7 @@ static int32 i32mulwithtest(int32 lh, int32 rh) {
   if (llabs((int64)lh * (int64)rh) > MAXINTVAL) {
     DEBUGFUNCMSGOUT;
     error(ERR_RANGE);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return lh*rh;
@@ -285,6 +286,7 @@ static int64 i64mulwithtest(int64 lh, int64 rh) {
   if (fabsl((float64)(lh) * (float64)(rh)) > (float64)(MAXINT64VAL)) {
     DEBUGFUNCMSGOUT;
     error(ERR_RANGE);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return lh*rh;
@@ -295,6 +297,7 @@ static int32 i32divwithtest(int32 lh, int32 rh) {
   if(rh == 0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return(lh/rh);
@@ -305,6 +308,7 @@ static int64 i64divwithtest(int64 lh, int64 rh) {
   if(rh == 0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return(lh/rh);
@@ -315,6 +319,7 @@ static int32 i32modwithtest(int32 lh, int32 rh) {
   if(rh == 0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return(lh%rh);
@@ -325,6 +330,7 @@ static int64 i64modwithtest(int64 lh, int64 rh) {
   if(rh == 0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return(lh%rh);
@@ -344,6 +350,7 @@ static float64 fmulwithtest(float64 lh, float64 rh) {
   if ((res != 0.0) && !isnormal(res)) {
     DEBUGFUNCMSGOUT;
     error(ERR_RANGE);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return(res);
@@ -356,11 +363,13 @@ static float64 fdivwithtest(float64 lh, float64 rh) {
   if (rh == 0.0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return 0;
   }
   res=lh/rh;
   if ((res != 0.0) && !isnormal(res)) {
     DEBUGFUNCMSGOUT;
     error(ERR_RANGE);
+    return 0;
   }
   DEBUGFUNCMSGOUT;
   return(res);
@@ -389,6 +398,7 @@ void check_arrays(basicarray *p1, basicarray *p2) {
   if (p1->dimcount != p2->dimcount) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPEARRAY);
+    return;
   }
   while (n < p1->dimcount && p1->dimsize[n] == p2->dimsize[n])
     n++;
@@ -428,74 +438,76 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     else {
       DEBUGFUNCMSGOUT;
       error(ERR_BROKEN, __LINE__, "evaluate");
+      return;
     }
   } else {      /* Return parameter */
     get_lvalue(&retparm);
     switch (retparm.typeinfo) { /* Now fetch the parameter's value */
-    case VAR_INTWORD:           /* Integer parameter */
-      intparm = *retparm.address.intaddr;
-      parmtype = STACK_INT;
-      break;
-    case VAR_UINT8:             /* Integer parameter */
-      uint8parm = *retparm.address.uint8addr;
-      parmtype = STACK_UINT8;
-      break;
-    case VAR_INTLONG:           /* Integer parameter */
-      int64parm = *retparm.address.int64addr;
-      parmtype = STACK_INT64;
-      break;
-    case VAR_FLOAT:             /* Floating point parameter */
-      floatparm = *retparm.address.floataddr;
-      parmtype = STACK_FLOAT;
-      break;
-    case VAR_STRINGDOL:         /* Normal string parameter */
-      stringparm = *retparm.address.straddr;
-      parmtype = STACK_STRING;
-      break;
-    case VAR_INTBYTEPTR:        /* Indirect byte-sized integer */
-      intparm = basicvars.memory[retparm.address.offset];
-      parmtype = STACK_INT;
-      break;
-    case VAR_INTWORDPTR:        /* Indirect word-sized integer */
-      intparm = get_integer(retparm.address.offset);
-      parmtype = STACK_INT;
-      break;
-    case VAR_INT64PTR:        /* Indirect 64-bit integer */
-      int64parm = get_int64(retparm.address.offset);
-      parmtype = STACK_INT64;
-      break;
-    case VAR_FLOATPTR:          /* Indirect eight-byte floating point value */
-      floatparm = get_float(retparm.address.offset);
-      parmtype = STACK_FLOAT;
-      break;
-    case VAR_DOLSTRPTR:         /* Indirect string */
-      stringparm.stringlen = get_stringlen(retparm.address.offset);
-      stringparm.stringaddr = CAST(&basicvars.memory[retparm.address.offset], char *);
-      parmtype = STACK_STRING;
-      break;
-    case VAR_INTARRAY:          /* Array of integers */
-      arrayparm = *retparm.address.arrayaddr;
-      parmtype = STACK_INTARRAY;
-      break;
-    case VAR_UINT8ARRAY:        /* Array of integers */
-      arrayparm = *retparm.address.arrayaddr;
-      parmtype = STACK_UINT8ARRAY;
-      break;
-    case VAR_INT64ARRAY:                /* Array of integers */
-      arrayparm = *retparm.address.arrayaddr;
-      parmtype = STACK_INT64ARRAY;
-      break;
-    case VAR_FLOATARRAY:                /* Array of floating point values */
-      arrayparm = *retparm.address.arrayaddr;
-      parmtype = STACK_FLOATARRAY;
-      break;
-    case VAR_STRARRAY:          /* Array of strings */
-      arrayparm = *retparm.address.arrayaddr;
-      parmtype = STACK_STRARRAY;
-      break;
-    default:            /* Bad parameter type */
-      DEBUGFUNCMSGOUT;
-      error(ERR_BROKEN, __LINE__, "evaluate");
+      case VAR_INTWORD:           /* Integer parameter */
+        intparm = *retparm.address.intaddr;
+        parmtype = STACK_INT;
+        break;
+      case VAR_UINT8:             /* Integer parameter */
+        uint8parm = *retparm.address.uint8addr;
+        parmtype = STACK_UINT8;
+        break;
+      case VAR_INTLONG:           /* Integer parameter */
+        int64parm = *retparm.address.int64addr;
+        parmtype = STACK_INT64;
+        break;
+      case VAR_FLOAT:             /* Floating point parameter */
+        floatparm = *retparm.address.floataddr;
+        parmtype = STACK_FLOAT;
+        break;
+      case VAR_STRINGDOL:         /* Normal string parameter */
+        stringparm = *retparm.address.straddr;
+        parmtype = STACK_STRING;
+        break;
+      case VAR_INTBYTEPTR:        /* Indirect byte-sized integer */
+        intparm = basicvars.memory[retparm.address.offset];
+        parmtype = STACK_INT;
+        break;
+      case VAR_INTWORDPTR:        /* Indirect word-sized integer */
+        intparm = get_integer(retparm.address.offset);
+        parmtype = STACK_INT;
+        break;
+      case VAR_INT64PTR:        /* Indirect 64-bit integer */
+        int64parm = get_int64(retparm.address.offset);
+        parmtype = STACK_INT64;
+        break;
+      case VAR_FLOATPTR:          /* Indirect eight-byte floating point value */
+        floatparm = get_float(retparm.address.offset);
+        parmtype = STACK_FLOAT;
+        break;
+      case VAR_DOLSTRPTR:         /* Indirect string */
+        stringparm.stringlen = get_stringlen(retparm.address.offset);
+        stringparm.stringaddr = CAST(&basicvars.memory[retparm.address.offset], char *);
+        parmtype = STACK_STRING;
+        break;
+      case VAR_INTARRAY:          /* Array of integers */
+        arrayparm = *retparm.address.arrayaddr;
+        parmtype = STACK_INTARRAY;
+        break;
+      case VAR_UINT8ARRAY:        /* Array of integers */
+        arrayparm = *retparm.address.arrayaddr;
+        parmtype = STACK_UINT8ARRAY;
+        break;
+      case VAR_INT64ARRAY:                /* Array of integers */
+        arrayparm = *retparm.address.arrayaddr;
+        parmtype = STACK_INT64ARRAY;
+        break;
+      case VAR_FLOATARRAY:                /* Array of floating point values */
+        arrayparm = *retparm.address.arrayaddr;
+        parmtype = STACK_FLOATARRAY;
+        break;
+      case VAR_STRARRAY:          /* Array of strings */
+        arrayparm = *retparm.address.arrayaddr;
+        parmtype = STACK_STRARRAY;
+        break;
+      default:            /* Bad parameter type */
+        DEBUGFUNCMSGOUT;
+        error(ERR_BROKEN, __LINE__, "evaluate");
+        return;
     }
   }
 
@@ -505,6 +517,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
   if (typerr != ERR_NONE) {
     if (typerr == ERR_BROKEN) error(ERR_BROKEN, __LINE__, "evaluate");
     error(typerr, parmno);
+    return;
   }
 
 /* Check for another parameter and process it if one is found */
@@ -514,10 +527,12 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     if (*basicvars.current == ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
+      return;
     }
     if (fp->nextparm == NIL) {
       DEBUGFUNCMSGOUT;
       error(ERR_TOOMANY, procname);
+      return;
     }
     push_oneparm(fp->nextparm, parmno+1, procname);
   }
@@ -525,12 +540,14 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     if (fp->nextparm != NIL) {  /* Have reached end of parameters but not the end of the parameter list */
       DEBUGFUNCMSGOUT;
       error(ERR_NOTENUFF, procname);
+      return;
     }
     basicvars.current++;        /* Step past the ')' */
   }
   else {        /* Syntax error - ',' or ')' expected */
     DEBUGFUNCMSGOUT;
     error(ERR_CORPNEXT);
+    return;
   }
 /*
 ** Now move the parameter to the formal parameter variable, saving the
@@ -555,12 +572,14 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
         } else {
           DEBUGFUNCMSGOUT;
           error(ERR_RANGE);
+          return;
         }
         break;
       case STACK_FLOAT: *p = TOINT(floatparm); break;
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_BROKEN, __LINE__, "evaluate");
+        return;
     }
     DEBUGFUNCMSG("Exiting via VAR_INTWORD");
     return;
@@ -582,6 +601,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_BROKEN, __LINE__, "evaluate");
+        return;
     }
     break;
   }
@@ -600,6 +620,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_BROKEN, __LINE__, "evaluate");
+        return;
     }
     break;
   }
@@ -618,6 +639,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_BROKEN, __LINE__, "evaluate");
+        return;
     }
     break;
   }
@@ -664,8 +686,7 @@ static void push_oneparm(formparm *fp, int32 parmno, char *procname) {
     break;
   case VAR_DOLSTRPTR: { /* Indirect string */
     basicstring descriptor;
-    byte *sp;
-    sp = &basicvars.memory[fp->parameter.address.offset];       /* This is too long to keep typing... */
+    byte *sp = &basicvars.memory[fp->parameter.address.offset];       /* This is too long to keep typing... */
 /* Fake a descriptor for the original '$<string>' string */
     descriptor.stringlen = get_stringlen(fp->parameter.address.offset)+1;
     descriptor.stringaddr = alloc_string(descriptor.stringlen);
@@ -709,6 +730,7 @@ static void push_singleparm(formparm *fp, char *procname) {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
     }
+    return;
   }
   basicvars.current++;  /* Skip the ')' */
   intparm = pop_anynum32();
@@ -863,10 +885,9 @@ static void do_floatconst(void) {
 ** to be not followed by an indirection operator
 */
 static void do_intvar(void) {
-  int32 *ip;
+  int32 *ip = GET_ADDRESS(basicvars.current, int32 *);
 
   DEBUGFUNCMSGIN;
-  ip = GET_ADDRESS(basicvars.current, int32 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_int(*ip);
   DEBUGFUNCMSGOUT;
@@ -877,10 +898,9 @@ static void do_intvar(void) {
 ** 8-bit integer variable.
 */
 static void do_uint8var(void) {
-  uint8 *ip;
+  uint8 *ip = GET_ADDRESS(basicvars.current, uint8 *);
 
   DEBUGFUNCMSGIN;
-  ip = GET_ADDRESS(basicvars.current, uint8 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_uint8(*ip);
   DEBUGFUNCMSGOUT;
@@ -891,10 +911,9 @@ static void do_uint8var(void) {
 ** integer variable.
 */
 static void do_int64var(void) {
-  int64 *ip;
+  int64 *ip = GET_ADDRESS(basicvars.current, int64 *);
 
   DEBUGFUNCMSGIN;
-  ip = GET_ADDRESS(basicvars.current, int64 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_int64(*ip);
   DEBUGFUNCMSGOUT;
@@ -905,10 +924,9 @@ static void do_int64var(void) {
 ** point variable
 */
 static void do_floatvar(void) {
-  float64 *fp;
+  float64 *fp = GET_ADDRESS(basicvars.current, float64 *);
 
   DEBUGFUNCMSGIN;
-  fp = GET_ADDRESS(basicvars.current, float64 *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_float(*fp);
   DEBUGFUNCMSGOUT;
@@ -918,10 +936,9 @@ static void do_floatvar(void) {
 ** 'do_stringvar' handles references to a known string variable
 */
 static void do_stringvar(void) {
-  basicstring *sp;
+  basicstring *sp = GET_ADDRESS(basicvars.current, basicstring *);
 
   DEBUGFUNCMSGIN;
-  sp = GET_ADDRESS(basicvars.current, basicstring *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer */
   push_string(*sp);
   DEBUGFUNCMSGOUT;
@@ -931,10 +948,9 @@ static void do_stringvar(void) {
 ** 'do_arrayvar' handles references to entire arrays
 */
 static void do_arrayvar(void) {
-  variable *vp;
+  variable *vp = GET_ADDRESS(basicvars.current, variable *);
 
   DEBUGFUNCMSGIN;
-  vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+2;                /* Skip pointer to array and ')' */
   push_array(vp->varentry.vararray, vp->varflags);
   DEBUGFUNCMSGOUT;
@@ -947,14 +963,11 @@ static void do_arrayvar(void) {
 ** references followed by an indirection operator
 */
 static void do_arrayref(void) {
-  variable *vp;
-  byte operator;
-  int32 vartype, maxdims, index = 0, dimcount, element = 0;
-  size_t offset = 0;
+  variable *vp = GET_ADDRESS(basicvars.current, variable *);
+  int32 vartype, element = 0;
   basicarray *descriptor;
 
   DEBUGFUNCMSGIN;
-  vp = GET_ADDRESS(basicvars.current, variable *);
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer to variable */
   descriptor = vp->varentry.vararray;
   vartype = vp->varflags;
@@ -964,18 +977,21 @@ static void do_arrayref(void) {
     if (element < 0 || element >= descriptor->dimsize[0]) {
       DEBUGFUNCMSGOUT;
       error(ERR_BADINDEX, element, vp->varname);
+      return;
     }
   }
   else {        /* Multi-dimensional array */
-    maxdims = descriptor->dimcount;
-    dimcount = 0;
+    int32 dimcount = 0;
+    int32 maxdims = descriptor->dimcount;
     element = 0;
     do {        /* Gather the array indexes */
+      int32 index;
       expression();           /* Evaluate an array index */
       index = pop_anynum32();
       if (index < 0 || index >= descriptor->dimsize[dimcount]) {
         DEBUGFUNCMSGOUT;
         error(ERR_BADINDEX, index, vp->varname);
+        return;
       }
       dimcount++;
       element+=index;
@@ -984,17 +1000,20 @@ static void do_arrayref(void) {
       if (dimcount > maxdims) {  /* Too many dimensions */
         DEBUGFUNCMSGOUT;
         error(ERR_INDEXCO, vp->varname);
+        return;
       }
       if (dimcount != maxdims) element = element*descriptor->dimsize[dimcount];
     } while (TRUE);
     if (dimcount != maxdims) {   /* Not enough dimensions */
       DEBUGFUNCMSGOUT;
       error(ERR_INDEXCO, vp->varname);
+      return;
     }
   }
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;          /* Point at character after the ')' */
   if (*basicvars.current != '?' && *basicvars.current != '!') { /* Ordinary array reference */
@@ -1025,8 +1044,11 @@ static void do_arrayref(void) {
     }
     DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");    /* Sanity check */
+    return;
   }
   else {        /* Array reference is followed by an indirection operator */
+    size_t offset;
+    byte operator;
     switch(vartype) {
       case VAR_INTARRAY:   offset = vp->varentry.vararray->arraystart.intbase[element]; break;
       case VAR_UINT8ARRAY: offset = vp->varentry.vararray->arraystart.uint8base[element]; break;
@@ -1035,6 +1057,7 @@ static void do_arrayref(void) {
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_TYPENUM);
+        return;
     }
     operator = *basicvars.current;
     basicvars.current++;
@@ -1107,12 +1130,14 @@ static void do_xvar(void) {
       DEBUGFUNCMSGOUT;
       error(ERR_VARMISS, tocstring(CAST(base, char *), np-base));       /* Unknown variable */
     }
+    return;
   }
   vartype = vp->varflags;
   isarray = (vartype & VAR_ARRAY) != 0;
   if (isarray && vp->varentry.vararray == NIL) {  /* Array not dimensioned */
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, vp->varname);
+    return;
   }
   np = basicvars.current+LOFFSIZE+1;
   if (!isarray && (*np == '?' || *np == '!')) {         /* Variable is followed by an indirection operator */
@@ -1132,9 +1157,11 @@ static void do_xvar(void) {
     case VAR_UINT8: 
       DEBUGFUNCMSGOUT;
       error(ERR_UNSUITABLEVAR);
+      return;
     default:
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUM);
+      return;
     }
     do_indrefvar();
   }
@@ -1201,17 +1228,15 @@ static void do_stringcon(void) {
 ** is put on the Basic stack
 */
 static void do_qstringcon(void) {
-  int32 length, srce, dest;
-  byte *string;
+  byte *string = GET_SRCADDR(basicvars.current);
+  int32 length = GET_SIZE(basicvars.current+1+OFFSIZE);
   char *cp;
 
   DEBUGFUNCMSGIN;
-  string = GET_SRCADDR(basicvars.current);
-  length = GET_SIZE(basicvars.current+1+OFFSIZE);
   basicvars.current+=1+OFFSIZE+SIZESIZE;
   cp = alloc_string(length);
   if (length > 0) {
-    srce = 0;
+    int32 dest, srce = 0;
     for (dest = 0; dest < length; dest++) {
       cp[dest] = string[srce];
       if (string[srce] == '"') srce++;  /* Skip one '"' of '""' */
@@ -1233,6 +1258,7 @@ static void do_brackets(void) {
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   DEBUGFUNCMSGOUT;
@@ -1354,12 +1380,16 @@ static void do_function(void) {
 
   DEBUGFUNCMSGIN;
 #ifdef TARGET_DJGPP
-  if (stackavail()<DJGPPLIMIT) error(ERR_STACKFULL);
+  if (stackavail()<DJGPPLIMIT) {
+    error(ERR_STACKFULL);
+    return;
+  }
 #endif
   basicvars.recdepth++;
   if (basicvars.recdepth > basicvars.maxrecdepth) {
     DEBUGFUNCMSGOUT;
     error(ERR_STACKFULL);
+    return;
   }
   vp = GET_ADDRESS(basicvars.current, variable *);
   dp = vp->varentry.varfnproc;
@@ -1413,6 +1443,7 @@ static void do_xfunction(void) {
   if (*base != BASTOKEN_FN) {
     DEBUGFUNCMSGOUT;
     error(ERR_NOTAFN);       /* Ensure a function is being called */
+    return;
   }
   tp = skip_name(base);
   gotparms = *(tp-1) == '(';
@@ -1425,12 +1456,14 @@ static void do_xfunction(void) {
     if (dp->parmlist == NIL) {   /* Got a '(' but function has no parameters */
       DEBUGFUNCMSGOUT;
       error(ERR_TOOMANY, vp->varname);
+      return;
     }
   }
   else {        /* No parameters found */
     if (dp->parmlist != NIL) {        /* But function should have them */
       DEBUGFUNCMSGOUT;
       error(ERR_NOTENUFF, vp->varname+1);
+      return;
     }
   }
   do_function();        /* Call the function */
@@ -1451,9 +1484,11 @@ static void want_number(void) {
   if (baditem==STACK_STRING || baditem==STACK_STRTEMP) {         /* Numeric operand required */
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
+    return;
   } else if (baditem>STACK_UNKNOWN && baditem <= STACK_SATEMP) {   /* Operator is not defined for this operand type */
     DEBUGFUNCMSGOUT;
     error(ERR_BADARITH);
+    return;
   } else {        /* Unrecognisable operand - Stack is probably corrupt */
     fprintf(stderr, "Baditem = %d, sp = %p, safe=%p, opstop=%p\n", baditem,
       basicvars.stacktop.bytesp, basicvars.safestack.bytesp, basicvars.opstop);
@@ -1543,10 +1578,12 @@ static void *make_array(int32 arraytype, basicarray* original) {
   default:
     DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");            /* Passed bad array type */
+    return NULL;
   }
   if (base == NIL) {   /* Not enough room on stack to create array */
     DEBUGFUNCMSGOUT;
     error(ERR_NOROOM);
+    return NULL;
   }
   push_arraytemp(&result, arraytype);
   DEBUGFUNCMSGOUT;
@@ -1682,10 +1719,11 @@ static void eval_svplus(void) {
     if (newlen > MAXSTRING) {
       DEBUGFUNCMSGOUT;
       error(ERR_STRINGLEN);
+      return;
     }
     if (lhitem == STACK_STRTEMP) {      /* Reuse left-hand string as it is a temporary */
       cp = resize_string(lhstring.stringaddr, lhstring.stringlen, newlen);
-      lhstring.stringaddr = cp;
+      /* lhstring.stringaddr = cp; - this is a no-op */
       memmove(cp+lhstring.stringlen, rhstring.stringaddr, rhstring.stringlen);
     } else {    /* Any other case - Create a new string temporary */
       cp = alloc_string(newlen);
@@ -1707,6 +1745,7 @@ static void eval_svplus(void) {
       if (newlen > MAXSTRING) {
         DEBUGFUNCMSGOUT;
         error(ERR_STRINGLEN);
+        return;
       }
       cp = alloc_string(newlen);
       memmove(cp, srce[n].stringaddr, srce[n].stringlen);
@@ -1847,15 +1886,14 @@ static void eval_i64aplus(void) {
   basicarray *rharray;
   int32 n;
   int64 *rhsrce;
-  int64 lhint=0;
 
   DEBUGFUNCMSGIN;
   rharray = pop_array();
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
+    int64 lhint=pop_anyint();
     int64 *base = make_array(VAR_INTLONG, rharray);
-    lhitem=pop_anyint();
     for (n = 0; n < rharray->arrsize; n++) base[n] = lhint+rhsrce[n];
   } else if (lhitem == STACK_FLOAT) {   /* <float>+<int array> */
     float64 *base = make_array(VAR_FLOAT, rharray);
@@ -1945,7 +1983,7 @@ static void eval_faplus(void) {
 static void eval_saplus(void) {
   stackitem lhitem;
   basicarray *rharray;
-  int32 n;
+  int32 n, newlen ;
   basicstring *base, *rhsrce;
 
   DEBUGFUNCMSGIN;
@@ -1953,7 +1991,6 @@ static void eval_saplus(void) {
   rhsrce = rharray->arraystart.stringbase;
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_STRING || lhitem == STACK_STRTEMP) {
-    int32 newlen;
     char *cp;
     basicstring lhstring = pop_string();
     if (lhstring.stringlen == 0) {      /* Do nothing if left-hand string is of zero length */
@@ -1966,6 +2003,7 @@ static void eval_saplus(void) {
       if (newlen > MAXSTRING) {
         DEBUGFUNCMSGOUT;
         error(ERR_STRINGLEN);
+        return;
       }
       cp = alloc_string(newlen);
       memmove(cp, lhstring.stringaddr, lhstring.stringlen);
@@ -1976,7 +2014,6 @@ static void eval_saplus(void) {
     if (lhitem == STACK_STRTEMP) free_string(lhstring);
   } else if (lhitem == STACK_STRARRAY) {  /* <string array>+<string array> */
     char *cp;
-    int32 newlen;
     basicarray *lharray = pop_array();
     basicstring *lhsrce = lharray->arraystart.stringbase;
     check_arrays(lharray, rharray);
@@ -1986,6 +2023,7 @@ static void eval_saplus(void) {
       if (newlen > MAXSTRING) {
         DEBUGFUNCMSGOUT;
         error(ERR_STRINGLEN);
+        return;
       }
       cp = alloc_string(newlen);
       memmove(cp, lhsrce[n].stringaddr, lhsrce[n].stringlen);
@@ -1995,7 +2033,6 @@ static void eval_saplus(void) {
     }
   } else if (lhitem == STACK_SATEMP) {    /* <string array>+<string array> */
     char *cp;
-    int32 newlen;
     basicarray lharray = pop_arraytemp();
     basicstring *lhsrce = lharray.arraystart.stringbase;
     check_arrays(&lharray, rharray);
@@ -2004,6 +2041,7 @@ static void eval_saplus(void) {
       if (newlen > MAXSTRING) {
         DEBUGFUNCMSGOUT;
         error(ERR_STRINGLEN);
+        return;
       }
       cp = resize_string(lhsrce[n].stringaddr, lhsrce[n].stringlen, newlen);
       memmove(cp + lhsrce[n].stringlen, rhsrce[n].stringaddr, rhsrce[n].stringlen);
@@ -2371,8 +2409,7 @@ static void eval_faminus(void) {
 */
 static void eval_ivmul(void) {
   stackitem lhitem, rhitem;
-  int64 rhint, lhint = 0, intres=0;
-  float64 floatres = 0;
+  int64 rhint;
 
   DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
@@ -2380,8 +2417,9 @@ static void eval_ivmul(void) {
 
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {   /* Now look at left-hand operand */
-    lhint = pop_anyint();
-    intres=lhint*rhint;
+    float64 floatres;
+    int64 lhint = pop_anyint();
+    int64 intres = lhint*rhint;
     floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
     if (fabs(floatres) > (float80)MAXINT64VAL)
       push_float(floatres);
@@ -2631,7 +2669,6 @@ static void eval_i64amul(void) {
     } else if (lhitem == STACK_FLOATARRAY) {      /* <float array>*<int64 array> */
       float64 *lhsrce = lharray->arraystart.floatbase;
       float64 *base = make_array(VAR_FLOAT, rharray);
-      lhsrce = lharray->arraystart.floatbase;
       for (n = 0; n < rharray->arrsize; n++) base[n] = fmulwithtest(lhsrce[n], TOFLOAT(rhsrce[n]));
     }
   } else if (lhitem == STACK_FATEMP) {          /* <float array>*<int array> */
@@ -2702,6 +2739,7 @@ static void check_arraytype(basicarray *result, basicarray *lharray, basicarray 
   if (lharray->dimcount > 2 || rharray->dimcount > 2) {
     DEBUGFUNCMSGOUT;
     error(ERR_MATARRAY);
+    return;
   }
   lhrows = lharray->dimsize[ROW];               /* First dimemsion is the number of rows */
   lhcols = lharray->dimsize[COLUMN];            /* Second dimension is the number of columns */
@@ -2711,6 +2749,7 @@ static void check_arraytype(basicarray *result, basicarray *lharray, basicarray 
     if (lhrows != rhrows) {
       DEBUGFUNCMSGOUT;
       error(ERR_MATARRAY);
+      return;
     }
     result->dimcount = 1;               /* Result is a row vector */
     if (rharray->dimcount == 1) { /* Second array is a column vector - Result is a 1 by 1 array */
@@ -2723,6 +2762,7 @@ static void check_arraytype(basicarray *result, basicarray *lharray, basicarray 
     if (rhrows != lhcols) {
       DEBUGFUNCMSGOUT;
       error(ERR_MATARRAY);
+      return;
     }
     result->dimcount = 1;               /* Result is a column vector the same size as the second array */
     result->dimsize[ROW] = result->arrsize = lhrows;
@@ -2731,6 +2771,7 @@ static void check_arraytype(basicarray *result, basicarray *lharray, basicarray 
     if (lhcols != rhrows) {
       DEBUGFUNCMSGOUT;
       error(ERR_MATARRAY);
+      return;
     }
     result->dimcount = 2;
     result->arrsize = lhrows * rhcols;
@@ -2755,6 +2796,7 @@ static void eval_immul(void) {
   if (lhitem != STACK_INTARRAY) {    /* Want an integer array */
     DEBUGFUNCMSGOUT;
     error(ERR_INTARRAY);
+    return;
   }
   lharray = pop_array();
   check_arraytype(&result, lharray, rharray);
@@ -2817,6 +2859,7 @@ static void eval_fmmul(void) {
   if (lhitem != STACK_FLOATARRAY) {   /* Want a floating point array */
     DEBUGFUNCMSGOUT;
     error(ERR_FPARRAY);
+    return;
   }
   lharray = pop_array();
   check_arraytype(&result, lharray, rharray);
@@ -2958,7 +3001,7 @@ static void eval_iadiv(void) {
   rhsrce = rharray->arraystart.intbase;
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM) {                                     /* <any number>/<integer array> */
-    float64 *base = make_array(VAR_FLOAT, rharray);
+    base = make_array(VAR_FLOAT, rharray);
     floatvalue = pop_anynumfp();
     for (n = 0; n < rharray->arrsize; n++) base[n]=fdivwithtest(floatvalue, TOFLOAT(rhsrce[n]));
   }
@@ -3006,7 +3049,7 @@ static void eval_iu8adiv(void) {
   rhsrce = rharray->arraystart.uint8base;
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM) {                                     /* <any number>/<integer array> */
-    float64 *base = make_array(VAR_FLOAT, rharray);
+    base = make_array(VAR_FLOAT, rharray);
     floatvalue = pop_anynumfp();
     for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(floatvalue, TOFLOAT(rhsrce[n]));
   } else if (TOPITEMISNUMARRAY) {
@@ -3052,7 +3095,7 @@ static void eval_i64adiv(void) {
   rhsrce = rharray->arraystart.int64base;
   lhitem = GET_TOPITEM;
   if (TOPITEMISNUM) {                                           /* <any number>/<int64 array> */
-    float64 *base = make_array(VAR_FLOAT, rharray);
+    base = make_array(VAR_FLOAT, rharray);
     floatvalue = pop_anynumfp();
     for (n = 0; n < rharray->arrsize; n++) base[n] = fdivwithtest(floatvalue, TOFLOAT(rhsrce[n]));
   } else if (TOPITEMISNUMARRAY) {
@@ -3140,6 +3183,7 @@ static void eval_ivintdiv(void) {
   if (rhint == 0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return;
   }
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)              /* Branch according to type of left-hand operand */
@@ -3263,7 +3307,7 @@ static void eval_iu8aintdiv(void) {
       for (n = 0; n < rharray->arrsize; n++) base64[n] = i64divwithtest(lhsrce[n], rhsrce[n]);
     } else if (lhitem == STACK_FLOATARRAY) {                      /* <float array> DIV <uint8 array> */
       float64 *lhsrce = lharray->arraystart.floatbase;
-      int64 *base64 = make_array(VAR_INTLONG, rharray);
+      base64 = make_array(VAR_INTLONG, rharray);
       for (n = 0; n < rharray->arrsize; n++) base64[n] = i64divwithtest(TOINT64(lhsrce[n]), rhsrce[n]);
     }
   } else want_number();
@@ -3387,6 +3431,7 @@ static void eval_ivmod(void) {
   if (rhint == 0) {
     DEBUGFUNCMSGOUT;
     error(ERR_DIVZERO);
+    return;
   }
   lhitem = GET_TOPITEM;
   if (lhitem == STACK_INT)                  /* Branch according to type of left-hand operand */
@@ -3614,7 +3659,7 @@ static void eval_famod(void) {
  * It is slightly more permissive than BASIC versions I to V.
  */
 static float80 mpow(float64 lh, float64 rh) {
-  float80 result;
+  float80 result = 0.0;
 
   DEBUGFUNCMSGIN;
   set_fpu();
@@ -3672,6 +3717,7 @@ static void eval_vpow(void) {
       if (isnan(res64) || isinf(res64)) {
         DEBUGFUNCMSGOUT;
         error(ERR_ARITHMETIC);
+        return;
       }
       push_float(res64);
     }
@@ -3684,15 +3730,13 @@ static void eval_vpow(void) {
 ** operand is a numeric value.
 */
 static void eval_vlsl(void) {
-  int32 rhint;
-  int64 lhint64 = 0;
+  int32 rhint = (pop_anynum32() % 256);
 
   DEBUGFUNCMSGIN;
-  rhint = pop_anynum32() % 256;
   while (rhint < 0) rhint += 256;
 
   if (TOPITEMISNUM) {
-    lhint64 = pop_anynum64();
+    int64 lhint64 = pop_anynum64();
     if (matrixflags.bitshift64) {
       if (rhint < 64) {
         push_int64(lhint64 << rhint);
@@ -3720,31 +3764,30 @@ static void eval_vlsl(void) {
 ** it so desires.
 */
 static void eval_vlsr(void) {
-  uint32 lhuint=0, rhuint=0;
-  uint64 lhuint64 = 0, res64 = 0;
+  uint32 rhuint=0;
 
   DEBUGFUNCMSGIN;
   rhuint = pop_anynum32() % 256;
 
   if (TOPITEMISNUM) {
     if (!matrixflags.bitshift64) {
-      lhuint=pop_anynum32();
+      uint32 lhuint=pop_anynum32();
       if (rhuint < 32) {
         push_int(lhuint >> rhuint);
       } else push_int(0);
       DEBUGFUNCMSGOUT;
       return; /* end of !bitshift64 */
     } else {
-      lhuint64 = pop_anynum64();
-    }
-    if ((rhuint >= 64) || ((!matrixflags.bitshift64) && (rhuint >= 32))) {
-      push_int(0);
-    } else {
-      res64 = (lhuint64 >> rhuint);
-      if (matrixflags.bitshift64) {
-        push_int64(res64);
+      uint64 lhuint64 = pop_anynum64();
+      if ((rhuint >= 64) || ((!matrixflags.bitshift64) && (rhuint >= 32))) {
+        push_int(0);
       } else {
-        push_int(TOINT(res64));
+        uint64 res64 = (lhuint64 >> rhuint);
+        if (matrixflags.bitshift64) {
+          push_int64(res64);
+        } else {
+          push_int(TOINT(res64));
+        }
       }
     }
   } else want_number();
@@ -3756,19 +3799,17 @@ static void eval_vlsr(void) {
 ** operand is a 32-bit or 64-bit integer value, or a floating point value.
 */
 static void eval_vasr(void) {
-  int32 rhint = 0;
-  int64 lhint64 = 0, res64 = 0;
+  int32 rhint = (pop_anynum32() % 256);
 
   DEBUGFUNCMSGIN;
-  rhint = pop_anynum32() % 256;
   while (rhint < 0) rhint += 256;
 
   if (TOPITEMISNUM) {
-    lhint64 = pop_anynum64();
+    int64 lhint64 = pop_anynum64();
     if ((rhint >= 64) || ((!matrixflags.bitshift64) && (rhint >= 32))) {
       push_int(0);
     } else {
-      res64 = (lhint64 >> rhint);
+      int64 res64 = (lhint64 >> rhint);
       if (matrixflags.bitshift64) {
         push_int64(res64);
       } else {
@@ -4519,6 +4560,7 @@ void expression(void) {
   if (basicvars.opstop == basicvars.opstlimit) {
     DEBUGFUNCMSGOUT;
     error(ERR_OPSTACK);
+    return;
   }
   basicvars.opstop++;
   *basicvars.opstop = OPSTACKMARK;
@@ -4527,6 +4569,7 @@ void expression(void) {
       if (basicvars.opstop == basicvars.opstlimit) {
         DEBUGFUNCMSGOUT;
         error(ERR_OPSTACK);
+        return;
       }
     }
     else {      /* Priority of this operator <= last op's priority - exec last operator */

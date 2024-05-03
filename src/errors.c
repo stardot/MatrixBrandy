@@ -170,11 +170,10 @@ static DWORD watch_escape(LPVOID unused) {
   boolean alreadyraised = FALSE;
 
   while (1) {
-//  if (GetAsyncKeyState(VK_ESCAPE) < 0)
     if (kbd_escpoll()) {
       if (!alreadyraised && (GetForegroundWindow() == GetConsoleWindow())) {
-        raise(SIGINT);
         alreadyraised = TRUE;
+        raise(SIGINT);
       }
     }
     else
@@ -658,10 +657,7 @@ static char *procfn(char *name) {
 ** error is just a warning, that is, iserror is FALSE
 */
 static void print_details(boolean iserror) {
-  int32 count;
   fnprocinfo *p;
-  byte *lp;
-  char *libname;
 
   DEBUGFUNCMSGIN;
   basicvars.printcount = 0;             /* Reset no. of chars Basic has printed on line to zero */
@@ -674,6 +670,7 @@ static void print_details(boolean iserror) {
     }
   }
   else {        /* Error occured in running program */
+    char *libname;
     if (basicvars.procstack==NIL) {
       emulate_printf("\r\n%s at line %d", errortext, basicvars.error_line);
     } else {
@@ -690,11 +687,11 @@ static void print_details(boolean iserror) {
     }
     if (iserror && basicvars.traces.backtrace && basicvars.procstack!=NIL) {
 /* Print a stack backtrace */
-      count = 0;
+      int32 count = 0;
       p = basicvars.procstack;
       emulate_printf("PROC/FN call trace:\r\n");
       while (p!=NIL && count<MAXCALLDEPTH) {
-        lp = find_linestart(p->retaddr);
+        byte *lp = find_linestart(p->retaddr);
         if (lp!=NIL)    /* Line was in the program or a library */
           libname = find_libname(p->retaddr);
         else if (basicvars.curcount>0) {        /* In EVAL or READ */

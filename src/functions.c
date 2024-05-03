@@ -129,6 +129,7 @@ static void fn_ext(void) {
   if (*basicvars.current != '#') {
     DEBUGFUNCMSGOUT;
     error(ERR_HASHMISS);
+    return;
   }
   basicvars.current++;
   push_int64(fileio_getext(eval_intfactor()));
@@ -170,6 +171,7 @@ static void fn_left(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   if (*basicvars.current == ',') {      /* Function call is of the form LEFT(<string>,<value>) */
     basicvars.current++;
@@ -177,6 +179,7 @@ static void fn_left(void) {
     if (*basicvars.current != ')') {   /* ')' missing */
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;
     if (length<0)
@@ -203,6 +206,7 @@ static void fn_left(void) {
     if (*basicvars.current != ')') {   /* ')' missing */
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;        /* Skip past the ')' */
     descriptor = pop_string();
@@ -252,10 +256,12 @@ static void fn_mid(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   start = eval_integer();
@@ -270,6 +276,7 @@ static void fn_mid(void) {
   if (*basicvars.current != ')') {     /* ')' missing */
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   descriptor = pop_string();
@@ -337,6 +344,7 @@ static void fn_ptr(void) {
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_UNSUITABLEVAR);
+        return;
     }
     basicvars.current++;
   } else {
@@ -352,19 +360,24 @@ static void fn_ptr(void) {
 static void fn_right(void) {
   stackitem stringtype;
   basicstring descriptor;
-  int32 length;
   char *cp;
 
   DEBUGFUNCMSGIN;
   expression();         /* Fetch the string */
   stringtype = GET_TOPITEM;
-  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) error(ERR_TYPESTR);
+  if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPESTR);
+    return;
+  }
   if (*basicvars.current == ',') {      /* Function call is of the form RIGHT$(<string>,<value>) */
+    int32 length;
     basicvars.current++;
     length = eval_integer();
     if (*basicvars.current != ')') {   /* ')' missing */
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;
     if (length<=0) {    /* Do not want anything from string */
@@ -386,7 +399,11 @@ static void fn_right(void) {
     }
   }
   else {        /* Return only the last character */
-    if (*basicvars.current != ')') error(ERR_RPMISS);   /* ')' missing */
+    if (*basicvars.current != ')') {    /* ')' missing */
+      DEBUGFUNCMSGOUT;
+      error(ERR_RPMISS);
+      return;
+    }
     basicvars.current++;        /* Skip past the ')' */
     descriptor = pop_string();
     if (descriptor.stringlen == 0)
@@ -509,6 +526,7 @@ static void fn_argvdol(void) {
   if (number<0 || number>basicvars.argcount) {
     DEBUGFUNCMSGOUT;
     error(ERR_RANGE);
+    return;
   }
   ap = basicvars.arglist;
   while (number > 0) {
@@ -565,13 +583,14 @@ static void fn_asn(void) {
 static void fn_atn(void) {
   DEBUGFUNCMSGIN;
   if (*basicvars.current == '(') {
-    float64 parmx = 0, parmy = 0;
+    float64 parmx;
     basicvars.current++;
     expression();
     parmx=pop_anynumfp();
     if(*basicvars.current != ',') {
       push_float(atan(parmx));
     } else {
+      float64 parmy;
       basicvars.current++;
       expression();
       parmy=pop_anynumfp();
@@ -580,6 +599,7 @@ static void fn_atn(void) {
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
+      return;
     }
     basicvars.current++;
   } else {
@@ -616,7 +636,11 @@ void fn_beats(void) {
 */
 static void fn_bget(void) {
   DEBUGFUNCMSGIN;
-  if (*basicvars.current != '#') error(ERR_HASHMISS);
+  if (*basicvars.current != '#') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_HASHMISS);
+    return;
+  }
   basicvars.current++;
   push_int(fileio_bget(eval_intfactor()));
   DEBUGFUNCMSGOUT;
@@ -653,24 +677,28 @@ void fn_colour(void) {
   if (*basicvars.current != '(') {     /* COLOUR must be followed by a '(' */
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   basicvars.current++;
   red = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   basicvars.current++;
   green = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   basicvars.current++;
   blue = eval_integer();
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   push_int(emulate_colourfn(red, green, blue));
@@ -714,24 +742,32 @@ static variable *get_arrayname(void) {
     base = GET_SRCADDR(basicvars.current);      /* Find address of array's name */
     ep = skip_name(base);
     vp = find_variable(base, ep-base);
-    if (vp == NIL) error(ERR_ARRAYMISS, tocstring(CAST(base, char *), ep-base));
+    if (vp == NIL) {
+      error(ERR_ARRAYMISS, tocstring(CAST(base, char *), ep-base));
+      return NULL;
+    }
     if ((vp->varflags & VAR_ARRAY) == 0) {  /* Not an array */
       DEBUGFUNCMSGOUT;
       error(ERR_VARARRAY);
+      return NULL;
     }
     if (*(basicvars.current+LOFFSIZE+1) != ')') {      /* Array name must be suppled as 'array()' */
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return NULL;
     }
     *basicvars.current = BASTOKEN_ARRAYVAR;
     set_address(basicvars.current, vp);
   }
   else {        /* Not an array name */
+    DEBUGFUNCMSGOUT;
     error(ERR_VARARRAY);        /* Name not found */
+    return NULL;
   }
   if (vp->varentry.vararray == NIL) {     /* Array has not been dimensioned */
     DEBUGFUNCMSGOUT;
     error(ERR_NODIMS, vp->varname);
+    return NULL;
   }
   basicvars.current+=LOFFSIZE+2;        /* Skip pointer to array and ')' */
   DEBUGFUNCMSGOUT;
@@ -752,6 +788,7 @@ void fn_dim(void) {
   if (*basicvars.current != '(') {     /* DIM must be followed by a '(' */
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   basicvars.current++;
   vp = get_arrayname();
@@ -762,11 +799,13 @@ void fn_dim(void) {
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;        /* Skip the trailing ')' */
     if (dimension<1 || dimension>vp->varentry.vararray->dimcount) {
       DEBUGFUNCMSGOUT;
       error(ERR_DIMRANGE);
+      return;
     }
     push_int(vp->varentry.vararray->dimsize[dimension-1]-1);
     break;
@@ -817,6 +856,7 @@ static void fn_eof(void) {
   if (*basicvars.current != '#') {
     DEBUGFUNCMSGOUT;
     error(ERR_HASHMISS);
+    return;
   }
   basicvars.current++;
   handle = eval_intfactor();
@@ -864,6 +904,7 @@ static void fn_eval(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   descriptor = pop_string();
   memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
@@ -877,6 +918,7 @@ static void fn_eval(void) {
   if (basicvars.runflags.flag_cosmetic && (*basicvars.current != asc_NUL)) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   restore_current();
   DEBUGFUNCMSGOUT;
@@ -907,8 +949,6 @@ void fn_false(void) {
 ** keyboard and saves it on the Basic stack as a number
 */
 static void fn_get(void) {
-  int ch;
-
   DEBUGFUNCMSGIN;
   if (*basicvars.current == '(') {      /* Have encountered the 'GET(x,y)' version */
     int32 x, y;
@@ -917,16 +957,19 @@ static void fn_get(void) {
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
     y = eval_integer();
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;
     push_int(get_character_at_pos(x, y));
   } else {
+    int ch;
     do {
       ch=kbd_get() & 0xFF;
     } while (ch==0);
@@ -952,12 +995,14 @@ static void fn_getdol(void) {
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
     y = eval_integer();
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;
     cp = alloc_string(1);
@@ -1036,12 +1081,14 @@ static void fn_instr(void) {
   if (*basicvars.current != ',') {     /* ',' missing */
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   haytype = GET_TOPITEM;
   if (haytype != STACK_STRING && haytype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   haystack = pop_string();
   expression();
@@ -1049,6 +1096,7 @@ static void fn_instr(void) {
   if (needtype != STACK_STRING && needtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   needle = pop_string();
   if (*basicvars.current == ',') {      /* Starting position given */
@@ -1062,6 +1110,7 @@ static void fn_instr(void) {
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
 /*
@@ -1129,15 +1178,12 @@ static void fn_instr(void) {
 ** of its argument on to the Basic stack
 */
 static void fn_int(void) {
-  int64 localint64 = 0;
-  float64 localfloat = 0;
-
   DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
     if (matrixflags.int_uses_float) {
-      localfloat = floor(pop_float());
-      localint64 = localfloat;
+      float64 localfloat = floor(pop_float());
+      int64 localint64 = (int64)localfloat;
       if (localint64 == localfloat) {
         push_varyint(localint64);
       } else {
@@ -1193,7 +1239,10 @@ static void fn_ln(void) {
   DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   floatvalue = pop_anynumfp();
-  if (floatvalue<=0.0) error(ERR_LOGRANGE);
+  if (floatvalue<=0.0) {
+    error(ERR_LOGRANGE);
+    return;
+  }
   push_float(log(floatvalue));
   DEBUGFUNCMSGOUT;
 }
@@ -1205,7 +1254,10 @@ static void fn_log(void) {
   DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   floatvalue = pop_anynumfp();
-  if (floatvalue<=0.0) error(ERR_LOGRANGE);
+  if (floatvalue<=0.0) {
+    error(ERR_LOGRANGE);
+    return;
+  }
   push_float(log10(floatvalue));
   DEBUGFUNCMSGOUT;
 }
@@ -1228,6 +1280,7 @@ void fn_mod(void) {
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;
   }
@@ -1260,7 +1313,7 @@ void fn_mod(void) {
   case VAR_STRARRAY:
     DEBUGFUNCMSGOUT;
     error(ERR_NUMARRAY);        /* Numeric array wanted */
-    break;
+    return;
   default:      /* Bad 'varflags' value found */
     DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "functions");
@@ -1305,6 +1358,7 @@ static void fn_openin(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   descriptor = pop_string();
   push_int(fileio_openin(descriptor.stringaddr, descriptor.stringlen));
@@ -1326,6 +1380,7 @@ static void fn_openout(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   descriptor = pop_string();
   push_int(fileio_openout(descriptor.stringaddr, descriptor.stringlen));
@@ -1347,6 +1402,7 @@ static void fn_openup(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   descriptor = pop_string();
   push_int(fileio_openup(descriptor.stringaddr, descriptor.stringlen));
@@ -1374,12 +1430,14 @@ static void fn_pointfn(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   push_int(emulate_pointfn(x, y));
@@ -1492,6 +1550,7 @@ static void fn_rndpar(void) {
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   if (value<0) {        /* Negative value = reseed random number generator */
@@ -1548,6 +1607,7 @@ static void fn_sqr(void) {
   if (floatvalue<0.0) {
     DEBUGFUNCMSGOUT;
     error(ERR_NEGROOT);
+    return;
   }
   push_float(sqrt(floatvalue));
   DEBUGFUNCMSGOUT;
@@ -1562,7 +1622,7 @@ static void fn_str(void) {
   stackitem resultype;
   boolean ishex;
   int32 length = 0;
-  char *cp, *bufptr;
+  char *cp;
 
   DEBUGFUNCMSGIN;
   ishex = *basicvars.current == '~';
@@ -1577,7 +1637,7 @@ static void fn_str(void) {
         length = sprintf(basicvars.stringwork, "%X", pop_anynum32());
     else {
       int32 format, numdigits;
-      char *fmt;
+      char *fmt, *bufptr;
       format = basicvars.staticvars[ATPERCENT].varentry.varinteger;
       if ((format & STRUSECHK) == 0) format = STRFORMAT;        /* Use predefined format, not @% */
       switch ((format>>2*BYTESHIFT) & BYTEMASK) {       /* Determine format of floating point values */
@@ -1623,6 +1683,7 @@ static void fn_str(void) {
   } else {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
+    return;
   }
   cp = alloc_string(length);
   memcpy(cp, basicvars.stringwork, length);
@@ -1644,18 +1705,21 @@ static void fn_string(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   expression();
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   if (count == 1) return;       /* Leave things as they are if repeat count is 1 */
   descriptor = pop_string();
@@ -1666,6 +1730,7 @@ static void fn_string(void) {
     if (newlen>MAXSTRING) { /* New string is too long */
       DEBUGFUNCMSGOUT;
       error(ERR_STRINGLEN);
+      return;
     }
   }
   base = cp = alloc_string(newlen);
@@ -1700,6 +1765,7 @@ static void fn_sum(void) {
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;
   }
@@ -1713,6 +1779,7 @@ static void fn_sum(void) {
     if (vp->varflags != VAR_STRARRAY) {       /* Array is not a string array */
       DEBUGFUNCMSGOUT;
       error(ERR_TYPESTR);
+      return;
     }
     p = vp->varentry.vararray->arraystart.stringbase;
     length = 0;
@@ -1746,7 +1813,7 @@ static void fn_sum(void) {
       break;
     }
     case VAR_STRARRAY: {        /* Concatenate all strings in a string array */
-      int32 length, strlen;
+      int32 length;
       char *cp, *cp2;
       basicstring *p;
       p = vp->varentry.vararray->arraystart.stringbase;
@@ -1755,11 +1822,12 @@ static void fn_sum(void) {
       if (length>MAXSTRING) {              /* String is too long */
         DEBUGFUNCMSGOUT;
         error(ERR_STRINGLEN);
+        return;
       }
       cp = cp2 = alloc_string(length);  /* Grab enough memory to hold the result string */
       if (length>0) {
         for (n=0; n<elements; n++) {    /* Concatenate strings */
-          strlen = p[n].stringlen;
+          int32 strlen = p[n].stringlen;
           if (strlen>0) {       /* Ignore zero-length strings */
             memmove(cp2, p[n].stringaddr, strlen);
             cp2+=strlen;
@@ -1809,18 +1877,21 @@ void fn_tint(void) {
   if (*basicvars.current != '(') {
     DEBUGFUNCMSGOUT;
     error(ERR_LPMISS);
+    return;
   }
   basicvars.current++;
   x = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
   push_int(emulate_tintfn(x, y));
@@ -1842,11 +1913,13 @@ void fn_top(void) {
   if (*basicvars.current != BASTOKEN_XVAR) { /* 'TO' is not followed by a variable name */
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   p = GET_SRCADDR(basicvars.current);           /* Find the address of the variable */
   if (*p != 'P') {            /* But it does not start with the letter 'P' */
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   basicvars.current+=LOFFSIZE + 1;
   if (matrixflags.pseudovarsunsigned) {
@@ -1901,7 +1974,6 @@ static void fn_usr(void) {
 static void fn_val(void) {
   stackitem stringtype;
   basicstring descriptor;
-  char *cp;
   boolean isint;
   int32 intvalue;
   int64 int64value;
@@ -1913,17 +1985,21 @@ static void fn_val(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   descriptor = pop_string();
   if (descriptor.stringlen == 0)
     push_int(0);        /* Nothing to do */
   else {
+    char *cp;
     memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
     basicvars.stringwork[descriptor.stringlen] = asc_NUL;
     if (stringtype == STACK_STRTEMP) free_string(descriptor);
     cp = todecimal(basicvars.stringwork, &isint, &intvalue, &int64value, &fpvalue);
     if (cp == NIL) {    /* Error found when converting number */
+      DEBUGFUNCMSGOUT;
       error(intvalue);  /* 'intvalue' is used to return the precise error */
+      return;
     }
     if (isint)
       if (intvalue == int64value)
@@ -1966,11 +2042,13 @@ static void fn_verify(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   string = pop_string();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   expression();
@@ -1978,6 +2056,7 @@ static void fn_verify(void) {
   if (veritype != STACK_STRING && veritype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   verify = pop_string();
   if (*basicvars.current == ',') {      /* Start position supplied */
@@ -1991,6 +2070,7 @@ static void fn_verify(void) {
   if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;
 /*
@@ -2057,7 +2137,6 @@ static void fn_xlatedol(void) {
   basicarray *transarray = NULL;
   char *cp;
   int32 n;
-  byte ch;
 
   DEBUGFUNCMSGIN;
   expression();
@@ -2065,15 +2144,18 @@ static void fn_xlatedol(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   string = pop_string();
-  if (*basicvars.current == ',') {
-/* Got user-supplied translate table */
+  if (*basicvars.current == ',') {  /* Got user-supplied translate table */
+    byte ch;
+
     basicvars.current++;
     expression();
     if (*basicvars.current != ')') {
       DEBUGFUNCMSGOUT;
       error(ERR_RPMISS);
+      return;
     }
     basicvars.current++;        /* Skip the ')' */
     transtype = GET_TOPITEM;
@@ -2084,11 +2166,13 @@ static void fn_xlatedol(void) {
       if (transarray->dimcount != 1) {      /* Must be a 1-D array */
         DEBUGFUNCMSGOUT;
         error(ERR_NOTONEDIM);
+        return;
       }
     }
     else {
       DEBUGFUNCMSGOUT;
       error(ERR_TYPESTR);
+      return;
     }
 /* If the string or table length is zero then there is nothing to do */
     if (string.stringlen == 0 || (transtype != STACK_STRARRAY && transtring.stringlen == 0)) {
@@ -2131,6 +2215,7 @@ static void fn_xlatedol(void) {
   else if (*basicvars.current != ')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);  /* Must have a ')' next */
+    return;
   } else {
 /* Translate string to lower case */
     basicvars.current++;        /* Skip the ')' */
@@ -2159,19 +2244,24 @@ static void fn_xlatedol(void) {
 }
 
 static void fn_sysfn(void) {
-  basicstring descriptor;
   stackitem stringtype;
-  char *tmpstring;
-  sysparm inregs[MAXSYSPARMS];
-  size_t outregs[MAXSYSPARMS];
 
   DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   stringtype = GET_TOPITEM;
   if (stringtype == STACK_STRING || stringtype == STACK_STRTEMP) {
+    basicstring descriptor;
+    sysparm inregs[MAXSYSPARMS];
+    char *tmpstring;
+    size_t outregs[MAXSYSPARMS];
+
     descriptor = pop_string();
     tmpstring = strdup(descriptor.stringaddr);
-    if (tmpstring == NULL) error(ERR_BROKEN, __LINE__, "functions");
+    if (tmpstring == NULL) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_BROKEN, __LINE__, "functions");
+      return;
+    }
     tmpstring[descriptor.stringlen]='\0';
     inregs[1].i = (size_t)tmpstring;
     mos_sys(SWI_OS_SWINumberFromString+XBIT, inregs, outregs, 0);
@@ -2182,8 +2272,13 @@ static void fn_sysfn(void) {
   else {
    DEBUGFUNCMSGOUT;
    error(ERR_TYPESTR);
+   return;
   }
-  if (*basicvars.current != ')')  error(ERR_RPMISS);
+  if (*basicvars.current != ')')  {
+    DEBUGFUNCMSGOUT;
+    error(ERR_RPMISS);
+    return;
+  }
   basicvars.current++;  /* Skip the ')' */
   DEBUGFUNCMSGOUT;
 }

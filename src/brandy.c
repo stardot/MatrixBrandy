@@ -437,9 +437,10 @@ static void check_configfile() {
       strcpy(basicvars.loadpath, parameter);
     } else if(!strcmp(item, "lib")) {
       struct loadlib *p = malloc(sizeof(struct loadlib));
-      if (p==NIL)
+      if (p==NIL) {
         cmderror(CMD_NOMEMORY);
-      else {
+        exit(EXIT_FAILURE);
+      } else {
         p->name = strdup(parameter);
         p->next = NIL;
         if (liblast==NIL)
@@ -535,18 +536,18 @@ static void check_cmdline(int argc, char *argv[]) {
         if (n==argc)
           cmderror(CMD_NOFILE, p);      /* Filename missing */
         else {                          /* Add name to list of libraries to load */
-          struct loadlib *p = malloc(sizeof(struct loadlib));
-          if (p==NIL)
+          struct loadlib *llp = malloc(sizeof(struct loadlib));
+          if (llp==NIL)
             cmderror(CMD_NOMEMORY);
           else {
-            p->name = argv[n];
-            p->next = NIL;
+            llp->name = argv[n];
+            llp->next = NIL;
             if (liblast==NIL)
-              liblist = p;
+              liblist = llp;
             else {
-              liblast->next = p;
+              liblast->next = llp;
             }
-            liblast = p;
+            liblast = llp;
           }
         }
       }

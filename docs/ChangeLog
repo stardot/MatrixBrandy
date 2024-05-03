@@ -7,6 +7,7 @@ build. As of version 1.23.2 this flag is automatically suppled for builds
 made from git in the master branch, and from tarballs with no git information.
 
 * 1.23.2 - 
+- General: Much code clean-up (and some bugs fixed) after static analysis.
 - Build: Autodetect whether it's a release build (master branch, or a tarball
   without any git information) or a development build (anything else).
 - System: Added a new version check for release builds. Use option "-nocheck"

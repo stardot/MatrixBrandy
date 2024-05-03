@@ -259,10 +259,10 @@ static void clear_refs(void) {
 ** if new or replaces it if it already exists.
 */
 static void insert_line(byte *line) {
-  int32 lendiff, newline, newlength;
+  int32 newline = GET_LINENO(line);
+  int32 newlength = GET_LINELEN(line);
   byte *bp, *prev;
-  newline = GET_LINENO(line);
-  newlength = GET_LINELEN(line);
+
   if (last_added!=NIL && newline>=GET_LINENO(last_added))
     bp = last_added;
   else {
@@ -274,9 +274,12 @@ static void insert_line(byte *line) {
     bp+=GET_LINELEN(bp);
   }
   if (prev!=NIL && newline==GET_LINENO(prev)) { /* Replacing a line */
-    lendiff = newlength-GET_LINELEN(prev);
+    int32 lendiff = newlength-GET_LINELEN(prev);
     if (lendiff!=0) {   /* Old and new lines are not the same length */
-      if (basicvars.top+lendiff>=basicvars.himem) error(ERR_NOROOM);    /* No room for line */
+      if (basicvars.top+lendiff>=basicvars.himem) {
+        error(ERR_NOROOM);    /* No room for line */
+        return;
+      }
       memmove(prev+newlength, bp, basicvars.top-bp+ENDMARKSIZE);
       basicvars.top+=lendiff;
     }
@@ -284,7 +287,10 @@ static void insert_line(byte *line) {
     last_added = prev;
   }
   else {        /* Adding a line */
-    if (basicvars.top+newlength>=basicvars.himem) error(ERR_NOROOM);    /* No room for line */
+    if (basicvars.top+newlength>=basicvars.himem) {
+      error(ERR_NOROOM);    /* No room for line */
+      return;
+    }
     memmove(bp+newlength, bp, basicvars.top-bp+ENDMARKSIZE);
     memmove(bp, line, newlength);
     basicvars.top+=newlength;
@@ -298,11 +304,10 @@ static void insert_line(byte *line) {
 ** exists
 */
 static void delete_line(int32 line) {
-  int32 length;
-  byte *p;
-  p = find_line(line);
+  byte *p = find_line(line);
+  
   if (GET_LINENO(p)==line) {    /* Need an exact match. Cannot delete just anything... */
-    length = GET_LINELEN(p);
+    int32 length = GET_LINELEN(p);
     memmove(p, p+length, basicvars.top-p-length+ENDMARKSIZE);
     basicvars.top-=length;
     adjust_heaplimits();
@@ -338,16 +343,16 @@ void delete_range(int32 low, int32 high) {
 ** pointers in the program are left pointing at the right lines.
 */
 void renumber_program(byte *progstart, int32 start, int32 step) {
-  byte *bp;
+  byte *bp = progstart;
   int32 lineno = start;
-  boolean ok;
-  bp = progstart;
+  
   while (!AT_PROGEND(bp) && start<=MAXLINENO) {
     resolve_linenums(bp);
     bp+=GET_LINELEN(bp);
     lineno+=step;
   }
   if(lineno-step <= MAXLINENO) {
+    boolean ok;
     bp = progstart;
     while (!AT_PROGEND(bp) && start<=MAXLINENO) {
       save_lineno(bp, start);
@@ -444,14 +449,15 @@ static FILE *open_file(char *name) {
 **
 */
 static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
-  int length, count, zerolines = 0;
+  int length, zerolines = 0;
   byte line[INPUTLEN], *filebase;
   byte tokenline[MAXSTATELEN];
   basicvars.linecount = 0;      /* Number of line being read from file */
   filebase = base;
 
-  if (ftype == BBCFILE) count=fgetc(bbcfile);   /* Skip initial CR */
+  if (ftype == BBCFILE) (void)fgetc(bbcfile);   /* Skip initial CR */
   do {
+    int count;
     if (ftype == BBCFILE) {
       line[0] = fgetc(bbcfile);                 /* High order byte of line number */
       if (line[0]==ACORN_ENDMARK) break;        /* Found 0xFF marking end of program so end */
@@ -468,6 +474,7 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
       fclose(bbcfile);
       bbcfile = NULL;
       error(ERR_READFAIL, basicvars.filename);
+      return 0;
     }
     basicvars.linecount++;
     length = reformat(line, tokenline, ftype);
@@ -478,15 +485,19 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
           bbcfile = NULL;
         }
         error(ERR_NOROOM);
+        return 0;
       }
       memmove(base, tokenline, length);
       if (GET_LINENO(tokenline) == 0) zerolines++;
       base+=length;
     }
   } while (!feof(bbcfile));
-  if (bbcfile) fclose(bbcfile);
+  fclose(bbcfile);
   basicvars.linecount = 0;
-  if (base + ENDMARKSIZE >= limit) error(ERR_NOROOM);
+  if (base + ENDMARKSIZE >= limit) {
+    error(ERR_NOROOM);
+    return 0;
+  }
   mark_end(base);
   if(zerolines > 1) {
     if (!basicvars.runflags.loadngo) emulate_printf("Line numbers added to program\r\n");
@@ -520,22 +531,35 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 #endif
   fseek (textfile, 0, 0);
   tokenline[2] = 0;
-  if (fread(tokenline, 1, 3, textfile) < 3) error(ERR_CANTREAD);
+  if (fread(tokenline, 1, 3, textfile) < 3) {
+    error(ERR_CANTREAD);
+    return 0;
+  }
   matrixflags.scrunge = (tokenline[0] == 0x23 && tokenline[1] == 0xFA && tokenline[2] == 0xC8);
-  if (matrixflags.scrunge == 1 && basicvars.runflags.quitatend == 0) error(ERR_BADPROG);
+  if (matrixflags.scrunge == 1 && basicvars.runflags.quitatend == 0) {
+    error(ERR_BADPROG);
+    return 0;
+  }
   gzipped = (tokenline[0] == 0x1F && tokenline[1] == 0x8B && tokenline[2] == 8);
   if (gzipped) {
 #ifdef HAVE_ZLIB_H
     fclose (textfile);
     gzipfile = gzopen (basicvars.filename, "r");
-    if (gzipfile==NIL) error(ERR_FILEIO, basicvars.filename);
+    if (gzipfile==NIL) {
+      error(ERR_FILEIO, basicvars.filename);
+      return 0;
+    }
 #else
     error(ERR_NOGZIP);
+    return 0;
 #endif
   }
   else {
     textfile = freopen(basicvars.filename, "r", textfile);      /* Close and reopen the file as a text file */
-    if (textfile==NIL) error(ERR_FILEIO, basicvars.filename);
+    if (textfile==NIL) {
+      error(ERR_FILEIO, basicvars.filename);
+      return 0;
+    }
   }
   needsnumbers = FALSE;         /* This will be set by tokenise_line() above */
   basicvars.linecount = 0;      /* Number of line being read from file */
@@ -582,6 +606,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
         fclose(textfile);
         basicvars.misc_flags.badprogram=1; /* The program is incomplete, thus corrupt */
         error(ERR_NOROOM);
+        return 0;
       }
       memmove(base, tokenline, length);
       base+=length;
@@ -600,7 +625,10 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 #endif
   fclose(textfile);
   basicvars.linecount = 0;
-  if (base+ENDMARKSIZE>=limit) error(ERR_NOROOM);
+  if (base+ENDMARKSIZE>=limit) {
+    error(ERR_NOROOM);
+    return 0;
+  }
   mark_end(base);
   if (needsnumbers) {           /* Line numbers are missing */
     if (!basicvars.runflags.loadngo) emulate_printf("Line numbers added to program\r\n");
@@ -672,6 +700,7 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
     if (length>0) {     /* Line length is not zero so include line */
       if (base+length>=limit) { /* No room left */
         error(ERR_NOROOM);
+        return 0;
       }
       memmove(base, tokenline, length);
       base+=length;
@@ -679,7 +708,10 @@ static int32 read_textblock(byte *base, byte *limit, boolean silent) {
     result = blockgets(basicvars.stringwork, INPUTLEN); // result = fgets(basicvars.stringwork, INPUTLEN, textfile);
   }
   basicvars.linecount = 0;
-  if (base+ENDMARKSIZE>=limit) error(ERR_NOROOM);
+  if (base+ENDMARKSIZE>=limit) {
+    error(ERR_NOROOM);
+    return 0;
+  }
   mark_end(base);
   if (needsnumbers) {           /* Line numbers are missing */
     renumber_program(filebase, 1, 1);
@@ -719,9 +751,9 @@ static filetype identify(FILE *thisfile, char *name) {
    * a text file.
    */
   while (ptr < count) {
-    if ((basicvars.stringwork[ptr] == 34) && (ptr < count-1)) { /* " */
+    if ((ptr < count-1) && (basicvars.stringwork[ptr] == 34)) { /* " */
       ptr++;
-      while ((basicvars.stringwork[ptr] != 34) && (ptr < count)) ptr++;
+      while ((ptr < count) && (basicvars.stringwork[ptr] != 34)) ptr++;
     }
     if ((ptr < count) && basicvars.stringwork[ptr] != asc_CR && basicvars.stringwork[ptr] != asc_LF)
       if (basicvars.stringwork[ptr] < 32 || basicvars.stringwork[ptr] > 126) flag=0;
@@ -752,9 +784,15 @@ static filetype identify(FILE *thisfile, char *name) {
 void read_basic(char *name) {
   FILE *loadfile;
   int32 length, ftype;
-  if (strlen(name) > (FNAMESIZE - 1)) error(ERR_INVALIDFNAME);
+  if (strlen(name) > (FNAMESIZE - 1)) {
+    error(ERR_INVALIDFNAME);
+    return;
+  }
   loadfile = open_file(name);
-  if (loadfile==NIL) error(ERR_NOTFOUND, name);
+  if (loadfile==NIL) {
+    error(ERR_NOTFOUND, name);
+    return;
+  }
   last_added = NIL;
   if ((ftype=identify(loadfile, name)) != TEXTFILE) {   /* Tokenised BBC BASIC file */
     clear_program();
@@ -800,7 +838,10 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
   }
   else {        /* Library is held in permanent memory */
     lp = malloc(sizeof(library));
-    if (lp==NIL) error(ERR_LIBSIZE, name);      /* Run out of memory */
+    if (lp==NIL) {
+      error(ERR_LIBSIZE, name);      /* Run out of memory */
+      return;
+    }
     lp->libname = malloc(strlen(name)+1);
     lp->libflink = basicvars.installist;
     basicvars.installist = lp;
@@ -829,7 +870,10 @@ static void read_bbclib(FILE *libfile, char *name, boolean onheap, int32 ftype) 
   else {        /* Library being loaded via 'INSTALL' - Move to permanent memory */
     byte *installbase;
     installbase = malloc(size);
-    if (installbase==NIL) error(ERR_LIBSIZE, name);
+    if (installbase==NIL) {
+      error(ERR_LIBSIZE, name);
+      return;
+    }
     memmove(installbase, base, size);
     base = installbase;
 #ifdef DEBUG
@@ -861,7 +905,10 @@ static void read_textlib(FILE *libfile, char *name, boolean onheap) {
   else {        /* Library being loaded via 'INSTALL' - Move to permanent memory */
     byte *installbase;
     installbase = malloc(size);
-    if (installbase==NIL) error(ERR_LIBSIZE, name);
+    if (installbase==NIL) {
+      error(ERR_LIBSIZE, name);
+      return;
+    }
     memmove(installbase, base, size);
     base = installbase;
 #ifdef DEBUG
@@ -885,7 +932,10 @@ void read_library(char *name, boolean onheap) {
   FILE *libfile;
   int32 ftype;
 
-  if (strlen(name) > (FNAMESIZE - 1)) error(ERR_INVALIDFNAME);
+  if (strlen(name) > (FNAMESIZE - 1)) {
+    error(ERR_INVALIDFNAME);
+    return;
+  }
   if (onheap)   /* Check if library has already been loaded */
     lp = basicvars.liblist;
   else {
@@ -897,7 +947,10 @@ void read_library(char *name, boolean onheap) {
     return;
   }
   libfile = open_file(name);
-  if (libfile == NIL) error(ERR_NOLIB, name);           /* Cannot find library */
+  if (libfile == NIL) {
+    error(ERR_NOLIB, name);           /* Cannot find library */
+    return;
+  }
   if ((ftype=identify(libfile, name)) != TEXTFILE)      /* Reading a BBC BASIC tokenised library */
     read_bbclib(libfile, name, onheap, ftype);
   else {                                                /* Reading a library in plain text form */
@@ -921,7 +974,10 @@ void write_text(char *name, FILE *fhandle) {
   } else {
     savefile = fopen(name, "w");
   }
-  if (savefile==NIL) error(ERR_NOTCREATED, name);
+  if (savefile==NIL) {
+    error(ERR_NOTCREATED, name);
+    return;
+  }
   bp = basicvars.start;
   while (!AT_PROGEND(bp)) {
     expand(bp, basicvars.stringwork);
@@ -930,6 +986,7 @@ void write_text(char *name, FILE *fhandle) {
     if (x==EOF) {       /* Error occured writing to file */
       fclose(savefile);
       error(ERR_WRITEFAIL, name);
+      return;
     }
     bp+=GET_LINELEN(bp);
   }
@@ -947,7 +1004,10 @@ void write_text(char *name, FILE *fhandle) {
 ** 'edit_line' is the main line editing routine.
 */
 void edit_line(void) {
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  if (basicvars.misc_flags.badprogram) {
+    error(ERR_BADPROG);
+    return;
+  }
   clear_refs();
   basicvars.misc_flags.validsaved = FALSE;      /* If program is edited mark save area contents as bad */
   if (isempty(thisline))                        /* Empty line = delete line */

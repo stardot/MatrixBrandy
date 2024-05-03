@@ -102,6 +102,7 @@ static void get_pair(size_t *first, size_t *second, size_t firstdef, size_t seco
   }
   else {
     error(ERR_SYNTAX);
+    return;
   }
   *first = low;
   *second = high;
@@ -124,6 +125,7 @@ static char *get_name(void) {
   if (topitem != STACK_STRING && topitem != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return NULL;
   }
   descriptor = pop_string();
   cp = tocstring(descriptor.stringaddr, descriptor.stringlen);
@@ -138,16 +140,16 @@ static char *get_name(void) {
 ** to store and run programs
 */
 static void exec_new(void) {
-  int32 oldsize, newsize;
-  boolean ok;
-
   DEBUGFUNCMSGIN;
   if (basicvars.runflags.running) {   /* Cannot edit a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   basicvars.current++;
   if (!isateol(basicvars.current)) {    /* New workspace size supplied */
+    int32 oldsize, newsize;
+    boolean ok;
     newsize = get_number();
     check_ateol();
     oldsize = basicvars.worksize;
@@ -156,6 +158,7 @@ static void exec_new(void) {
     if (!ok) {  /* Allocation failed - Should still be a block of the old size available */
       (void) init_workspace(oldsize);
       error(ERR_NOMEMORY);
+      return;
     }
     emulate_printf("\r\nMemory available for Basic programs is now %u bytes\r\n", basicvars.worksize);
   }
@@ -186,7 +189,6 @@ static void exec_old(void) {
 static void list_vars(void) {
   char *p, ch;
   library *lp;
-  boolean found;
 
   DEBUGFUNCMSGIN;
   p = CAST(GET_SRCADDR(basicvars.current), char *);     /* Get the argument of the LVAR command if one is supplied */
@@ -196,6 +198,8 @@ static void list_vars(void) {
   if (ch == '"') {      /* List variables in library */
     int len;
     char *start;
+    boolean found;
+
     p++;
     start = p;
     while (*p != '"') p++;
@@ -238,7 +242,6 @@ static void list_if(void) {
   byte *p, *tp;
   int32 targetlen, statelen;
   char first, *sp;
-  boolean more;
 
   DEBUGFUNCMSGIN;
   p = tp = GET_SRCADDR(basicvars.current);      /* Get address of string to search for */
@@ -248,9 +251,8 @@ static void list_if(void) {
   targetlen = p-tp;             /* Number of characters in search string */
   if (targetlen == 0) return;   /* End if search string is empty */
   p = basicvars.start;
-  more = TRUE;
   first = *tp;
-  while (more && !AT_PROGEND(p)) {
+  while (!AT_PROGEND(p)) {
     reset_indent();
     expand(p, basicvars.stringwork);
     sp = basicvars.stringwork;
@@ -325,21 +327,25 @@ static void delete(void) {
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   if (basicvars.runflags.running) {   /* Cannot modify a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   basicvars.current++;
   if (isateol(basicvars.current)) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   get_pair(&low, &high, 0, MAXLINENO);
   check_ateol();
   if (low>MAXLINENO || high>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINENO);
+    return;
   }
   delete_range(low, high);
   DEBUGFUNCMSGOUT;
@@ -355,10 +361,12 @@ static void renumber(void) {
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   if (basicvars.runflags.running) {   /* Cannot modify a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   basicvars.current++;
   get_pair(&start, &step, 10, 10);
@@ -366,10 +374,12 @@ static void renumber(void) {
   if (start>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINENO);
+    return;
   }
   if (step==0 || step>=MAXLINENO) {     /* An increment of zero is silly */
     DEBUGFUNCMSGOUT;
     error(ERR_SILLY);
+    return;
   }
   renumber_program(basicvars.start, start, step);
   DEBUGFUNCMSGOUT;
@@ -411,6 +421,7 @@ static void list_program(void) {
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   basicvars.current++;
   get_pair(&lowline, &highline, 0, MAXLINENO);
@@ -418,6 +429,7 @@ static void list_program(void) {
   if (lowline>MAXLINENO || highline>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINENO);
+    return;
   }
   if (lowline == 0)
     p = basicvars.start;
@@ -446,6 +458,7 @@ static void list_program(void) {
           if (kbd_escpoll()) {
             DEBUGFUNCMSGOUT;
             error(ERR_ESCAPE);
+            return;
           }
           count = kbd_get();
           switch (count) {
@@ -468,6 +481,7 @@ static void list_program(void) {
     if (kbd_escpoll()) {
       DEBUGFUNCMSGOUT;
       error(ERR_ESCAPE);
+      return;
     }
 #endif
     if (basicvars.escape) {
@@ -493,6 +507,7 @@ static void list_hexline(void) {
   if (theline>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINENO);
+    return;
   }
   if (theline == 0)
     where = basicvars.start;
@@ -502,6 +517,7 @@ static void list_hexline(void) {
   if (theline != GET_LINENO(where)) {       /* Line not found */
     DEBUGFUNCMSGOUT;
     error(ERR_LINEMISS, theline);
+    return;
   }
   length = GET_LINELEN(where);
   emulate_printf("Line %d at %p, length=%d", GET_LINENO(where), where, length);
@@ -553,6 +569,7 @@ static char *get_savefile(void) {
       if (basicvars.program[0] == asc_NUL) {
         DEBUGFUNCMSGOUT;
         error(ERR_FILENAME);
+        return NULL;
       } else {
         np = basicvars.program;
       }
@@ -577,6 +594,7 @@ static void save_program(void) {
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   basicvars.current++;
   np = get_savefile();
@@ -594,11 +612,16 @@ static void saveo_program(void) {
   int32 saveopts;
 
   DEBUGFUNCMSGIN;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+    return;
+  }
   basicvars.current++;
   if (isateol(basicvars.current)) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   saveopts = get_number();
   if (*basicvars.current == ',') basicvars.current++;   /* Skip comma between options and name */
@@ -627,11 +650,13 @@ static void load_program(void) {
   if (basicvars.runflags.running) {   /* Cannot modify a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   basicvars.current++;
   if (isateol(basicvars.current)) {
     DEBUGFUNCMSGOUT;
     error(ERR_FILENAME);
+    return;
   }
   np = get_name();
   check_ateol();
@@ -651,16 +676,15 @@ static void load_program(void) {
 ** opposed to saving it on the Basic heap)
 */
 static void install_library(void) {
-  char *name;
-
   DEBUGFUNCMSGIN;
   basicvars.current++;
   if (isateol(basicvars.current)) {             /* Filename missing */
     DEBUGFUNCMSGOUT;
     error(ERR_FILENAME);
+    return;
   } else {
     do {
-      name = get_name();
+      char *name = get_name();
       if (strlen(name)>0) read_library(name, INSTALL_LIBRARY);  /* Permanently install the library */
       if (*basicvars.current != ',') break;
       basicvars.current++;
@@ -706,7 +730,7 @@ static void print_help(void) {
 */
 static void invoke_editor(void) {
   char tempname[FNAMESIZE], savedname[FNAMESIZE];
-  int32 retcode, r2byte;
+  int32 retcode;
   char *p;
   FILE *fhandle;
   _kernel_osfile_block now, then;
@@ -715,6 +739,7 @@ static void invoke_editor(void) {
   if (basicvars.runflags.running) {   /* Cannot edit a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   basicvars.listo_copy = basicvars.list_flags;
   if (basicvars.misc_flags.validedit) basicvars.list_flags = basicvars.edit_flags;
@@ -749,6 +774,7 @@ static void invoke_editor(void) {
     } else {
       DEBUGFUNCMSGOUT;
       error(ERR_EDITFAIL, strerror (errno));
+      return;
     }
   } else {
 /*
@@ -768,11 +794,16 @@ static void invoke_editor(void) {
     strcat(basicvars.stringwork, tempname);
 /* Extract details of file as written to disk */
     retcode = _kernel_osfile(17, tempname, &now);
-    if (retcode != 1) error(ERR_BROKEN, __LINE__, "commands");
+    if (retcode != 1) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_BROKEN, __LINE__, "commands");
+      return;
+    }
     retcode = system(basicvars.stringwork);
     if (retcode == 0) { /* Invocation of editor worked */
 /* Now sit in a loop waiting for the file to change */
       do {
+        int32 r2byte;
         retcode = _kernel_osbyte(129, 100, 0);          /* Wait for one second */
         r2byte = (retcode>>BYTESHIFT) & BYTEMASK;       /* Only interested in what R2 contains after call */
         if (r2byte == ESC || basicvars.escape) break;   /* Escape was pressed - Escape from loop */
@@ -787,6 +818,7 @@ static void invoke_editor(void) {
     } else {
       DEBUGFUNCMSGOUT;
       error(ERR_EDITFAIL, strerror (errno));
+      return;
     }
   }
   remove(tempname);
@@ -804,6 +836,7 @@ static void exec_editor(void) {
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   basicvars.current++;
   if (isateol(basicvars.current))       /* Nothing on line - start an editor */
@@ -836,6 +869,7 @@ static void invoke_editor(void) {
   if (basicvars.runflags.running) {   /* Cannot edit a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   fhandle=secure_tmpnam(tempname);
   if (!fhandle) {
@@ -869,6 +903,7 @@ static void invoke_editor(void) {
   } else {
     DEBUGFUNCMSGOUT;
     error(ERR_EDITFAIL, strerror (errno));
+    return;
   }
   remove(tempname);
   DEBUGFUNCMSGOUT;
@@ -895,19 +930,23 @@ static void alter_line(void) {
   if (basicvars.runflags.running) {   /* Cannot edit a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   if (lineno<0 || lineno>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINENO);
+    return;
   }
   p = find_line(lineno);
   if (GET_LINENO(p) != lineno) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINEMISS, lineno);
+    return;
   }
   basicvars.listo_copy = basicvars.list_flags;
   basicvars.list_flags.space = FALSE;   /* Reset listing options */
@@ -922,6 +961,7 @@ static void alter_line(void) {
   if (!ok) {
     DEBUGFUNCMSGOUT;
     error(ERR_ESCAPE);
+    return;
   }
   tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
 //  tokenize(basicvars.stringwork, thisline, HASLINE);
@@ -949,6 +989,7 @@ static void exec_editor(void) {
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   basicvars.current++;
   if (isateol(basicvars.current))       /* Nothing on line - start an editor */
@@ -969,9 +1010,17 @@ static void exec_edito(void) {
   int32 editopts;
 
   DEBUGFUNCMSGIN;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+    return;
+  }
   basicvars.current++;
-  if (isateol(basicvars.current)) error(ERR_SYNTAX);
+  if (isateol(basicvars.current)) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+    return;
+  }
   editopts = get_number();      /* Get LISTO options to use for tranferring file to editor */
   check_ateol();
   basicvars.edit_flags.space = (editopts & LIST_SPACE) != 0;
@@ -1005,7 +1054,6 @@ static void exec_crunch(void) {
 */
 static void exec_auto(void) {
   int32 lineno = 10, linestep = 10;
-  boolean ok;
 
   DEBUGFUNCMSGIN;
   basicvars.current++;
@@ -1019,30 +1067,37 @@ static void exec_auto(void) {
   if (basicvars.runflags.running) {   /* Cannot edit a running program */
     DEBUGFUNCMSGOUT;
     error(ERR_COMMAND);
+    return;
   }
   if (basicvars.misc_flags.badprogram) {
     DEBUGFUNCMSGOUT;
     error(ERR_BADPROG);
+    return;
   }
   if (lineno<0 || lineno>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_LINENO);
+    return;
   }
   if (linestep<=0) {
     DEBUGFUNCMSGOUT;
     error(ERR_SILLY);
+    return;
   }
   if (linestep>MAXLINENO) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   while (lineno <= MAXLINENO) { /* ESCAPE will interrupt */
+    boolean ok;
     emulate_printf("%5d ",lineno);
     sprintf(basicvars.stringwork, "%5d", lineno);
     ok = amend_line(basicvars.stringwork+5, MAXSTATELEN);
     if (!ok) {
       DEBUGFUNCMSGOUT;
       error(ERR_ESCAPE);
+      return;
     }
     tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
     edit_line();

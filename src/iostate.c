@@ -106,12 +106,16 @@ static void fn_tab(void) {
   else if (*basicvars.current == ',') { /* 'TAB(x,y)' form of function */
     basicvars.current++;
     y = eval_integer();
-    if (*basicvars.current != ')') error(ERR_RPMISS);
+    if (*basicvars.current != ')') {
+      error(ERR_RPMISS);
+      return;
+    }
     emulate_tab(x, y);
   }
   else {        /* Error - ',' or ')' needed */
     DEBUGFUNCMSGOUT;
     error(ERR_CORPNEXT);
+    return;
   }
   basicvars.current++;  /* Skip the ')' */
   DEBUGFUNCMSGOUT;
@@ -173,14 +177,16 @@ static char *input_number(lvalue destination, char *p) {
 */
 static char *input_string(lvalue destination, char *p, boolean inputall) {
   char *cp, tempstring[INPUTLEN+1];
-  boolean more;
   int32 index;
 
   DEBUGFUNCMSGIN;
   index = 0;
   if (inputall) {       /* Want everything up to the end of line */
     while (*p != asc_NUL) {
-      if (index == MAXSTRING) error(ERR_STRINGLEN);
+      if (index == MAXSTRING) {
+        error(ERR_STRINGLEN);
+        return NULL;
+      }
       tempstring[index] = *p;
       index++;
       p++;
@@ -189,6 +195,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
   else {        /* Only want text as far as next delimiter */
     p = skip_blanks(p);
     if (*p == '\"') {   /* Want string up to next double quote */
+      boolean more;
       p++;
       more = *p != asc_NUL;
       while (more) {
@@ -200,6 +207,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
           if (index == MAXSTRING) {
             DEBUGFUNCMSGOUT;
             error(ERR_STRINGLEN);
+            return NULL;
           }
           tempstring[index] = *p;
           index++;
@@ -216,6 +224,7 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
         if (index == MAXSTRING) {
           DEBUGFUNCMSGOUT;
           error(ERR_STRINGLEN);
+          return NULL;
         }
         tempstring[index] = *p;
         index++;
@@ -247,18 +256,18 @@ static char *input_string(lvalue destination, char *p, boolean inputall) {
 ** is taken from a new line)
 */
 static void read_input(boolean inputline) {
-  byte token;
   char *cp, line[INPUTLEN];
   lvalue destination;
-  boolean bad, prompted;
+  boolean bad;
   int n, length;
 
   DEBUGFUNCMSGIN;
   do {  /* Loop around prompts and items to read */
+    boolean prompted = FALSE;
+    byte token;
     while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
     token = *basicvars.current;
     line [0] = asc_NUL;
-    prompted = FALSE;
 /* Deal with prompt */
     while (token == BASTOKEN_STRINGCON || token == BASTOKEN_QSTRINGCON || token == '\'' || token == TYPE_PRINTFN) {
       prompted = TRUE;
@@ -315,6 +324,7 @@ static void read_input(boolean inputline) {
         if (!read_line(line, INPUTLEN)) {
           DEBUGFUNCMSGOUT;
           error(ERR_ESCAPE);
+          return;
         }
         cp = &line[0];
       }
@@ -343,6 +353,7 @@ static void read_input(boolean inputline) {
             if (!read_line(line, INPUTLEN)) {
               DEBUGFUNCMSGOUT;
               error(ERR_ESCAPE);
+              return;
             }
             cp = &line[0];
           }
@@ -351,6 +362,7 @@ static void read_input(boolean inputline) {
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_VARNUMSTR);   /* Numeric or string variable required */
+        return;
       }
       while (*basicvars.current == ',' || *basicvars.current == ';') basicvars.current++;
       if (inputline) {  /* Signal that another line is required for 'INPUT LINE' */
@@ -392,12 +404,14 @@ void exec_bput(void) {
   if (*basicvars.current != '#') {
     DEBUGFUNCMSGOUT;
     error(ERR_HASHMISS);
+    return;
   }
   basicvars.current++;
   handle = eval_intfactor();    /* Get the file handle */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   do {
@@ -417,6 +431,7 @@ void exec_bput(void) {
     default:    /* Item is neither a number nor a string */
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
+      return;
     }
     if (*basicvars.current == ',')      /* Anything more to come? */
       basicvars.current++;              /* Yes */
@@ -429,6 +444,7 @@ void exec_bput(void) {
     else {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
+      return;
     }
   } while (TRUE);
   DEBUGFUNCMSGOUT;
@@ -446,10 +462,18 @@ void exec_circle(void) {
   filled = *basicvars.current == BASTOKEN_FILL;
   if (filled) basicvars.current++;
   x = eval_integer();           /* Get x coordinate of centre */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+    return;
+  }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of centre */
-  if (*basicvars.current != ',') error(ERR_COMISS);
+  if (*basicvars.current != ',') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_COMISS);
+    return;
+  }
   basicvars.current++;
   radius = eval_integer();      /* Get radius of circle */
   check_ateol();
@@ -476,7 +500,11 @@ void exec_close(void) {
 
   DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip CLOSE token */
-  if (*basicvars.current != '#') error(ERR_HASHMISS);
+  if (*basicvars.current != '#') {
+    DEBUGFUNCMSGOUT;
+    error(ERR_HASHMISS);
+    return;
+  }
   basicvars.current++;
   expression(); /* Get the file handle */
   check_ateol();
@@ -523,6 +551,7 @@ static void exec_colofon(void) {
       if (*basicvars.current != ',') {
         DEBUGFUNCMSGOUT;
         error(ERR_COMISS);
+        return;
       }
       basicvars.current++;
       blue = eval_integer();
@@ -539,6 +568,7 @@ static void exec_colofon(void) {
       if (*basicvars.current != ',') {
         DEBUGFUNCMSGOUT;
         error(ERR_COMISS);
+        return;
       }
       basicvars.current++;
       backblue = eval_integer();
@@ -566,7 +596,7 @@ static void exec_colofon(void) {
 ** exec_colnum - Handle old style COLOUR statement
 */
 static void exec_colnum(void) {
-  int32 colour, tint, parm2, parm3, parm4;
+  int32 colour, tint, parm2;
 
   DEBUGFUNCMSGIN;
   colour = eval_integer();
@@ -583,15 +613,15 @@ static void exec_colnum(void) {
     if (*basicvars.current != ',') {
       check_ateol();
       emulate_mapcolour(colour, parm2);
-    }
-    else {      /* Have got at least three parameters */
+    } else {      /* Have got at least three parameters */
+      int32 parm3;
       basicvars.current++;
       parm3 = eval_integer();   /* Assume 'COLOUR <red>,<green>,<blue>' */
       if (*basicvars.current != ',') {
         check_ateol();
         emulate_setcolour(FALSE, colour, parm2, parm3);
-      }
-      else {
+      } else {
+        int32 parm4;
         basicvars.current++;
         parm4 = eval_integer(); /* Assume 'COLOUR <colour>,<red>,<green>,<blue> */
         check_ateol();
@@ -633,6 +663,7 @@ void exec_draw(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
@@ -653,6 +684,7 @@ void exec_drawby(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of end point */
@@ -677,18 +709,21 @@ void exec_ellipse(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of centre */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   majorlen = eval_integer();    /* Get length of semi-major axis */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   minorlen = eval_integer();    /* Get length of semi-minor axis */
@@ -721,6 +756,7 @@ void exec_envelope(void) {
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
   }
@@ -741,6 +777,7 @@ void exec_fill(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of start of fill */
@@ -761,6 +798,7 @@ void exec_fillby(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of start of fill */
@@ -942,6 +980,7 @@ static void input_file(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   do {  /* Now read the values from the file */
     basicvars.current++;        /* Skip the ',' token */
@@ -990,6 +1029,7 @@ static void input_file(void) {
     default:
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
+      return;
     }
     if (*basicvars.current != ',') break;
   } while (TRUE);
@@ -1036,18 +1076,21 @@ void exec_line(void) {
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
     y1 = eval_integer();        /* Get first y coordinate */
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
     x2 = eval_integer();        /* Get second x coordinate */
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
     y2 = eval_integer();        /* Get second y coordinate */
@@ -1065,13 +1108,12 @@ void exec_line(void) {
  *   MODE <x>,<y>,<bpp> [, <rate>]
  */
 static void exec_modenum(stackitem itemtype) {
-  int xres, yres, bpp, rate;
-
   DEBUGFUNCMSGIN;
-  rate = -1;            /* Use best rate */
-  bpp = 6;              /* 6 bpp - Marks old type RISC OS 256 colour mode */
   if (*basicvars.current == ',') {
-    xres = pop_anynum32();
+    int32 bpp = 6;              /* 6 bpp - Marks old type RISC OS 256 colour mode */
+    int32 rate = -1;            /* Use best rate */
+    int32 xres = pop_anynum32();
+    int32 yres;
     basicvars.current++;
     yres = eval_integer();      /* Y resolution */
     if (*basicvars.current == ',') {
@@ -1104,7 +1146,6 @@ static void exec_modestr(stackitem itemtype) {
   check_ateol();
 
   descriptor = pop_string();
-  cp = descriptor.stringaddr;
   if (descriptor.stringlen > 0) memmove(basicvars.stringwork, descriptor.stringaddr, descriptor.stringlen);
   *(basicvars.stringwork+descriptor.stringlen) = asc_NUL;
   if (itemtype == STACK_STRTEMP) free_string(descriptor);
@@ -1121,14 +1162,14 @@ static void exec_modestr(stackitem itemtype) {
     emulate_mode(mode);
   }
   else {        /* Extract details from mode string */
-    int32 xres, yres, colours, greys, xeig, yeig, rate, value;
+    int32 xres, yres, colours, greys, xeig, yeig, rate;
     char what;
     xres = yres = 0;            /* Set up default values */
     colours = greys = 0;
     xeig = yeig = 1;
     rate = -1;          /* Use highest frame rate possible */
     do {
-      value = 0;
+      int32 value = 0;
       switch (toupper(*cp)) {
       case 'X': case 'Y': case 'G':     /* X and Y size and number of grey scale levels */
         what = toupper(*cp);
@@ -1140,6 +1181,7 @@ static void exec_modestr(stackitem itemtype) {
         if (value < 1) {
           DEBUGFUNCMSGOUT;
           error(ERR_BADMODESC);
+          return;
         }
         if (what == 'X')
           xres = value;
@@ -1149,6 +1191,7 @@ static void exec_modestr(stackitem itemtype) {
           if (colours > 0) {       /* Colour depth already given */
             DEBUGFUNCMSGOUT;
             error(ERR_BADMODESC); 
+            return;
           }
           greys = value;
         }
@@ -1157,6 +1200,7 @@ static void exec_modestr(stackitem itemtype) {
         if (greys > 0) {    /* Grey scale already specified */
           DEBUGFUNCMSGOUT;
           error(ERR_BADMODESC);
+          return;
         }
         cp++;
         while (isdigit(*cp)) {
@@ -1166,11 +1210,13 @@ static void exec_modestr(stackitem itemtype) {
         if (colours < 1) {
           DEBUGFUNCMSGOUT;
           error(ERR_BADMODESC);
+          return;
         }
         if (toupper(*cp) == 'K') {      /* 32K colours */
           if (colours != 32) {
             DEBUGFUNCMSGOUT;
             error(ERR_BADMODESC);
+            return;
           }
           colours = 32 * 1024;
           cp++;
@@ -1179,6 +1225,7 @@ static void exec_modestr(stackitem itemtype) {
           if (colours != 16) {
             DEBUGFUNCMSGOUT;
             error(ERR_BADMODESC);
+            return;
           }
           colours = 16 * 1024 * 1024;
           cp++;
@@ -1197,6 +1244,7 @@ static void exec_modestr(stackitem itemtype) {
           if (rate < 1) {
             DEBUGFUNCMSGOUT;
             error(ERR_BADMODESC);
+            return;
           }
         }
         break;
@@ -1209,12 +1257,14 @@ static void exec_modestr(stackitem itemtype) {
         else {
           DEBUGFUNCMSGOUT;
           error(ERR_BADMODESC);
+          return;
         }
         cp+=2;
         break;
       default:
         DEBUGFUNCMSGOUT;
         error(ERR_BADMODESC);
+        return;
       }
       while (*cp == ' ' || *cp == ',') cp++;
     } while (*cp != asc_NUL);
@@ -1244,6 +1294,7 @@ void exec_mode(void) {
   default:
     DEBUGFUNCMSGOUT;
     error(ERR_VARNUMSTR);
+    return;
   }
   basicvars.printcount = 0;
   DEBUGFUNCMSGOUT;
@@ -1293,6 +1344,7 @@ static void exec_mouse_to(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();
@@ -1336,18 +1388,21 @@ static void exec_mouse_colour(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   red = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   green = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   blue = eval_integer();
@@ -1368,18 +1423,21 @@ static void exec_mouse_rectangle(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   bottom = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   right = eval_integer();
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   top = eval_integer();
@@ -1401,6 +1459,7 @@ static void exec_mouse_position(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   store_value(destination, mousevalues[0], NOSTRING);   /* Mouse x coordinate */
   basicvars.current++;  /* Skip ',' token */
@@ -1408,6 +1467,7 @@ static void exec_mouse_position(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   store_value(destination, mousevalues[1], NOSTRING);   /* Mouse y coordinate */
   basicvars.current++;  /* Skip ',' token */
@@ -1466,6 +1526,7 @@ void exec_move(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
@@ -1486,6 +1547,7 @@ void exec_moveby(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get relative y coordinate of end point */
@@ -1519,6 +1581,7 @@ void exec_origin(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of new origin */
@@ -1539,6 +1602,7 @@ void exec_plot(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   x = eval_integer();           /* Get x coordinate for 'plot' command */
@@ -1568,6 +1632,7 @@ void exec_point(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
@@ -1588,6 +1653,7 @@ void exec_pointby(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
@@ -1608,6 +1674,7 @@ void exec_pointto(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
@@ -1713,6 +1780,7 @@ static void print_screen(void) {
         default:
           DEBUGFUNCMSGOUT;
           error(ERR_BROKEN, __LINE__, "iostate");
+          return;
         }
       }
     }
@@ -1814,6 +1882,7 @@ static void print_screen(void) {
     default:
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
+      return;
     }
   }
   if (newline) {
@@ -1839,6 +1908,7 @@ static void print_file(void) {
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_SYNTAX);
+      return;
     }
     basicvars.current++;
     expression();
@@ -1867,6 +1937,7 @@ static void print_file(void) {
     default:
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUMSTR);
+      return;
     }
     more = !ateol[*basicvars.current];
   }
@@ -1892,7 +1963,7 @@ void exec_print(void) {
 ** statement
 */
 void exec_rectangle(void) {
-  int32 x1, y1, width, height, x2, y2;
+  int32 x1, y1, width, height;
   boolean filled;
 
   DEBUGFUNCMSGIN;
@@ -1903,12 +1974,14 @@ void exec_rectangle(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   y1 = eval_integer();          /* Get y coordinate of a corner */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   width = eval_integer();               /* Get width of rectangle */
@@ -1920,11 +1993,13 @@ void exec_rectangle(void) {
     height = width;
   }
   if (*basicvars.current == BASTOKEN_TO) {   /* Got 'RECTANGLE ... TO' form of statement */
+    int32 x2, y2;
     basicvars.current++;
     x2 = eval_integer();                /* Get destination x coordinate */
     if (*basicvars.current != ',') {
       DEBUGFUNCMSGOUT;
       error(ERR_COMISS);
+      return;
     }
     basicvars.current++;
     y2 = eval_integer();                /* Get destination y coordinate */
@@ -1960,13 +2035,25 @@ void exec_sound(void) {
   default:
     delay = -1;
     channel = eval_integer();
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+      return;
+    }
     basicvars.current++;
     amplitude = eval_integer();
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+      return;
+    }
     basicvars.current++;
     pitch = eval_integer();
-    if (*basicvars.current != ',') error(ERR_COMISS);
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+      return;
+    }
     basicvars.current++;
     duration = eval_integer();
     if (*basicvars.current == ',') {
@@ -1991,6 +2078,7 @@ void exec_stereo(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   position = eval_integer();
@@ -2026,6 +2114,7 @@ void exec_tint(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   tint = eval_integer();
@@ -2038,12 +2127,10 @@ void exec_tint(void) {
 ** 'exec_vdu' handles the Basic 'VDU' statement
 */
 void exec_vdu(void) {
-  int32 n, value;
-
   DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip VDU token */
   do {
-    value = eval_integer();
+    int32 value = eval_integer();
     if (*basicvars.current == ';') {    /* Send value as two bytes */
       emulate_vdu(value);
       emulate_vdu(value>>BYTESHIFT);
@@ -2054,6 +2141,7 @@ void exec_vdu(void) {
       if (*basicvars.current == ',')
         basicvars.current++;
       else if (*basicvars.current == '|') {     /* Got a '|' - Send nine nulls */
+        int32 n;
         for (n=1; n<=9; n++) emulate_vdu(0);
         basicvars.current++;
       }
@@ -2076,6 +2164,7 @@ void exec_voice(void) {
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
     error(ERR_COMISS);
+    return;
   }
   basicvars.current++;
   expression();
@@ -2084,6 +2173,7 @@ void exec_voice(void) {
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
+    return;
   }
   name = pop_string();
   mos_voice(channel, tocstring(name.stringaddr, name.stringlen));

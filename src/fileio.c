@@ -64,7 +64,7 @@ typedef struct {
 #define MAXFILES 4              /* Maximum number of files that can be open simultaneously - only tracks networking on RISC OS */
 #define FIRSTHANDLE 4           /* Number of first handle */
 #else
-#define MAXFILES 25             /* Maximum number of files that can be open simultaneously */
+#define MAXFILES 256            /* Maximum number of files that can be open simultaneously */
 #define FIRSTHANDLE 254         /* Number of first handle */
 #endif
 
@@ -138,7 +138,7 @@ static int32 fileio_read(int32 handle) {
 int32 fileio_openin(char *name, int32 namelen) {
   int32 handle;
   char filename [FNAMESIZE];
-  char *tfilename;
+
   memmove(filename, name, namelen);
   filename[namelen] = NUL;              /* Get a null-terminated version of the file name */
   handle = _kernel_osfind(OPEN_INPUT, filename);
@@ -146,7 +146,7 @@ int32 fileio_openin(char *name, int32 namelen) {
     if (matrixflags.translatefname == 0) {
       report();
     } else {
-      tfilename=translatefname(filename);
+      char *tfilename = translatefname(filename);
       handle = _kernel_osfind(OPEN_INPUT, tfilename);
       if (handle==_kernel_ERROR) {
         report();
@@ -165,11 +165,11 @@ int32 fileio_openin(char *name, int32 namelen) {
 int32 fileio_openout(char *name, int32 namelen) {
   int32 handle;
   char filename [FNAMESIZE];
-  char *tfilename;
+
   memmove(filename, name, namelen);
   filename[namelen] = NUL;
   if(matrixflags.translatefname == 1) {
-    tfilename=translatefname(filename);
+    char *tfilename = translatefname(filename);
     handle = _kernel_osfind(OPEN_OUTPUT, tfilename);
   } else {
     handle = _kernel_osfind(OPEN_OUTPUT, filename);
@@ -251,8 +251,8 @@ static void close_file(int32 handle) {
 }
 
 void fileio_close(int32 handle) {
-  int32 n;
   if (handle==0) {      /* Close all open files */
+    int32 n;
     for (n=FIRSTHANDLE; n>0; n--) {
       if (fileinfo[n].filetype!=CLOSED) close_file(n);
     }
@@ -268,7 +268,10 @@ void fileio_close(int32 handle) {
 */
 int32 fileio_bget(int32 handle) {
   int32 ch = 0;
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return 0;
+  }
 
 #ifndef NONET
   if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype == NETWORK)) {
@@ -277,6 +280,7 @@ int32 fileio_bget(int32 handle) {
       if (fileinfo[handle].eofstatus == PENDING) {
         fileinfo[handle].eofstatus = ATEOF;
         error(ERR_HITEOF);
+        return 0;
       } else {
         fileinfo[handle].eofstatus = PENDING;
       }
@@ -288,7 +292,10 @@ int32 fileio_bget(int32 handle) {
     regs.r[0] = 0;
     regs.r[1] = handle;
     oserror = _kernel_swi(OS_BGet, &regs, &regs);
-    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+    if (oserror!=NIL) {
+      error(ERR_CMDFAIL, oserror->errmess);
+      return 0;
+    }
     ch=regs.r[0];
 #ifndef NONET
   }
@@ -304,10 +311,9 @@ int32 fileio_bget(int32 handle) {
 ** buffer is large enough to hold MAXSTRING (65536) characters.
 */
 int32 fileio_getdol(int32 handle, char *buffer) {
-  int32 ch, length;
-  length = 0;
+  int32 length = 0;
   do {
-    ch = fileio_bget(handle);
+    int32 ch = fileio_bget(handle);
     if (ch==_kernel_ERROR) report();    /* Function returned -2 = SWI call failed */
     if (ch==-1 || ch==LF) break;        /* At end of file or reached end of line */
     buffer[length] = ch;
@@ -413,6 +419,7 @@ int32 fileio_getstring(int32 handle, char *p) {
     break;
   default:
     error(ERR_TYPESTR);
+    return 0;
   }
   return length;
 }
@@ -421,7 +428,10 @@ int32 fileio_getstring(int32 handle, char *p) {
 ** 'fileio_bput' writes a character to a file
 */
 void fileio_bput(int32 handle, int32 value) {
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return 0;
+  }
 #ifndef NONET
   if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {
     if(net_bput(fileinfo[handle].nethandle, value)) error(ERR_CANTWRITE);
@@ -442,7 +452,10 @@ void fileio_bput(int32 handle, int32 value) {
 ** 'fileio_bputstr' writes a string to a file
 */
 void fileio_bputstr(int32 handle, char *string, int32 length) {
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
 #ifndef NONET
   if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {
     if(net_bputstr(fileinfo[handle].nethandle, string, length)) error(ERR_CANTWRITE);
@@ -455,7 +468,10 @@ void fileio_bputstr(int32 handle, char *string, int32 length) {
     regs.r[2] = TOINT((int)string);
     regs.r[3] = length;
     oserror = _kernel_swi(OS_GBPB, &regs, &regs);
-    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+    if (oserror!=NIL) {
+      error(ERR_CMDFAIL, oserror->errmess);
+      return;
+    }
     if (regs.r[3]!=0) error(ERR_CANTWRITE);     /* Not all the data was written to the file */
 #ifndef NONET
   }
@@ -509,15 +525,15 @@ void fileio_printfloat(int32 handle, float64 value) {
 ** four bytes. The string is written in 'true' order
 */
 void fileio_printstring(int32 handle, char *string, int32 length) {
-  int32 n, temp;
+  int32 n;
   if (length<SHORT_STRING) {    /* Write string in Acorn format */
     fileio_bput(handle, PRINT_SHORTSTR);
     fileio_bput(handle, length);
     if (length>0) for (n=length-1; n>=0; n--) fileio_bput(handle, string[n]);
   }
   else {        /* Long string - Use interpreter's extended format */
+    int32 temp = length;
     fileio_bput(handle, PRINT_LONGSTR);
-    temp = length;
     for (n=0; n<sizeof(int32); n++) {   /* Write four byte length to file */
       fileio_bput(handle, temp & BYTEMASK);
       temp = temp>>BYTESHIFT;
@@ -636,15 +652,21 @@ int32 fileio_openin(char *name, int32 namelen) {
   FILE *thefile;
   int32 n;
   char filename [FNAMESIZE];
-  char filenameb[FNAMESIZE];
-  char *tfilename;
-  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
+
+  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) {
+    error(ERR_INVALIDFNAME);
+    return 0;
+  }
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);        /* Find an unused handle */
-  if (n>=MAXFILES) error(ERR_MAXHANDLE);
+  if (n>=MAXFILES) {
+    error(ERR_MAXHANDLE);
+    return 0;
+  }
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
   thefile = fopen(filename, INMODE);
   if (thefile==NIL) {
+    char filenameb[FNAMESIZE];
     strncpy(filenameb, filename, FNAMESIZE);
     strcat(filenameb, ".bbc"); /* Append a .bbc suffix and try again */
     thefile = fopen(filenameb, INMODE);
@@ -652,7 +674,7 @@ int32 fileio_openin(char *name, int32 namelen) {
       if (matrixflags.translatefname == 0) {
         return 0;
       } else {
-        tfilename=translatefname(filename);
+        char *tfilename = translatefname(filename);
         thefile = fopen(tfilename, INMODE);
         if (thefile==NIL) {
           return 0; /* Could not open file - Return null handle */
@@ -681,19 +703,28 @@ int32 fileio_openout(char *name, int32 namelen) {
   FILE *thefile;
   int32 n;
   char filename [FNAMESIZE];
-  char *tfilename;
-  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
+
+  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) {
+    error(ERR_INVALIDFNAME);
+    return 0;
+  }
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);        /* Find an unused handle */
-  if (n>=MAXFILES) error(ERR_MAXHANDLE);
+  if (n>=MAXFILES) {
+    error(ERR_MAXHANDLE);
+    return 0;
+  }
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
   if(matrixflags.translatefname == 1) {
-    tfilename=translatefname(filename);
+    char *tfilename = translatefname(filename);
     thefile = fopen(tfilename, OUTMODE);
   } else {
     thefile = fopen(filename, OUTMODE);
   }
-  if (thefile==NIL) error(ERR_OPENWRITE, filename);
+  if (thefile==NIL) {
+    error(ERR_OPENWRITE, filename);
+    return 0;
+  }
   fileinfo[n].stream = thefile;
   fileinfo[n].filetype = OPENOUT;
   fileinfo[n].eofstatus = OKAY;
@@ -712,9 +743,15 @@ int32 fileio_openup(char *name, int32 namelen) {
   char filenameb[FNAMESIZE];
   char *tfilename;
 
-  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) error(ERR_INVALIDFNAME);
+  if ((namelen < 0) || (namelen > (FNAMESIZE - 1))) {
+    error(ERR_INVALIDFNAME);
+    return 0;
+  }
   for (n=0; n<MAXFILES && fileinfo[n].stream!=NIL; n++);        /* Find an unused handle */
-  if (n>=MAXFILES) error(ERR_MAXHANDLE);
+  if (n>=MAXFILES) {
+    error(ERR_MAXHANDLE);
+    return 0;
+  }
   memmove(filename, name, namelen);
   filename[namelen] = asc_NUL;
 #ifndef NONET
@@ -809,7 +846,10 @@ void fileio_close(int32 handle) {
 int32 fileio_bget(int32 handle) {
   int32 ch;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return 0;
+  }
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype == NETWORK) {
@@ -818,6 +858,7 @@ int32 fileio_bget(int32 handle) {
       if (fileinfo[handle].eofstatus == PENDING) {
         fileinfo[handle].eofstatus = ATEOF;
         error(ERR_HITEOF);
+        return 0;
       } else {
         fileinfo[handle].eofstatus = PENDING;
       }
@@ -827,9 +868,9 @@ int32 fileio_bget(int32 handle) {
     if (fileinfo[handle].eofstatus!=OKAY) {     /* If EOF is pending, flag an error */
       fileinfo[handle].eofstatus = ATEOF;
       error(ERR_HITEOF);
+      return 0;
     }
     else if (fileinfo[handle].filetype==OPENOUT) {      /* If file is open for output, read one char */
-      ch = asc_NUL;
       fileinfo[handle].eofstatus = PENDING;
     }
     if (fileinfo[handle].lastwaswrite) {                /* Ensure everything has been written to disk first */
@@ -861,18 +902,25 @@ int32 fileio_getdol(int32 handle, char *buffer) {
   char *p;
   int32 length;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return 0;
+  }
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {       /* If EOF is pending or EOF, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
     error(ERR_HITEOF);
+    return 0;
   }
   if (fileinfo[handle].lastwaswrite) {          /* Ensure everything has been written to disk first */
     fflush(fileinfo[handle].stream);
     fileinfo[handle].lastwaswrite = FALSE;
   }
   p = fgets(buffer, MAXSTRING, fileinfo[handle].stream);
-  if (p==NIL) error(ERR_CANTREAD);      /* Read failed utterly */
+  if (p==NIL) {
+    error(ERR_CANTREAD);      /* Read failed utterly */
+    return 0;
+  }
   length = strlen(buffer);
   p = buffer+length-1;  /* Point at line end character */
   if (*p==asc_LF) {     /* Got a 'linefeed' at the end of the line */
@@ -910,11 +958,15 @@ void fileio_getnumber(int32 handle, boolean *isint, int64 *ip, float64 *fp) {
   char temp[sizeof(float64)];
 
   memset(temp,0,sizeof(float64));
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {       /* If EOF is pending, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
     error(ERR_HITEOF);
+    return;
   }
   if (fileinfo[handle].lastwaswrite) {  /* Ensure everything has been written to disk first */
     fflush(fileinfo[handle].stream);
@@ -989,11 +1041,15 @@ int32 fileio_getstring(int32 handle, char *p) {
   FILE *stream;
   int32 marker, length = 0, n;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return 0;
+  }
   handle = map_handle(handle);
   if (fileinfo[handle].eofstatus!=OKAY) {       /* If EOF is pending, flag an error */
     fileinfo[handle].eofstatus = ATEOF;
     error(ERR_HITEOF);
+    return 0;
   }
   if (fileinfo[handle].lastwaswrite) {          /* Ensure everything has been written to disk first */
     fflush(fileinfo[handle].stream);
@@ -1029,17 +1085,26 @@ static void fileio_write(FILE *stream, int32 value) {
 void fileio_bput(int32 handle, int32 value) {
   int32 result;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
     if(net_bput(fileinfo[handle].nethandle, value)) error(ERR_CANTWRITE);
   } else {
 #endif
-    if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+    if (fileinfo[handle].filetype==OPENIN) {
+      error(ERR_OPENIN);
+      return;
+    }
     fileinfo[handle].eofstatus = OKAY;
     result = fputc(value, fileinfo[handle].stream);
-    if (result==EOF) error(ERR_CANTWRITE);
+    if (result==EOF) {
+      error(ERR_CANTWRITE);
+      return;
+    }
     fileinfo[handle].lastwaswrite = TRUE;
 #ifndef NONET
   }
@@ -1052,17 +1117,26 @@ void fileio_bput(int32 handle, int32 value) {
 void fileio_bputstr(int32 handle, char *string, int32 length) {
   int32 result;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
 #ifndef NONET
   if (fileinfo[handle].filetype==NETWORK) {
     if(net_bputstr(fileinfo[handle].nethandle, string, length)) error(ERR_CANTWRITE);
   } else {
 #endif
-    if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+    if (fileinfo[handle].filetype==OPENIN) {
+      error(ERR_OPENIN);
+      return;
+    }
     fileinfo[handle].eofstatus = OKAY;
     result = fwrite(string, sizeof(char), length, fileinfo[handle].stream);
-    if (result!=length) error(ERR_CANTWRITE);
+    if (result!=length) {
+      error(ERR_CANTWRITE);
+      return;
+    }
     fileinfo[handle].lastwaswrite = TRUE;
 #ifndef NONET
   }
@@ -1079,9 +1153,15 @@ void fileio_printint(int32 handle, int32 value) {
   FILE *stream;
   int32 n;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  if (fileinfo[handle].filetype==OPENIN) {
+    error(ERR_OPENIN);
+    return;
+  }
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
   fileio_write(stream, PRINT_INT);
@@ -1092,9 +1172,15 @@ void fileio_printint(int32 handle, int32 value) {
 void fileio_printuint8(int32 handle, uint8 value) {
   FILE *stream;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  if (fileinfo[handle].filetype==OPENIN) {
+    error(ERR_OPENIN);
+    return;
+  }
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
   fileio_write(stream, PRINT_UINT8);
@@ -1106,9 +1192,15 @@ void fileio_printint64(int32 handle, int64 value) {
   FILE *stream;
   int32 n;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  if (fileinfo[handle].filetype==OPENIN) {
+    error(ERR_OPENIN);
+    return;
+  }
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
   fileio_write(stream, PRINT_INT64);
@@ -1129,9 +1221,15 @@ void fileio_printfloat(int32 handle, float64 value) {
   int32 n;
   char temp[sizeof(float64)];
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  if (fileinfo[handle].filetype==OPENIN) {
+    error(ERR_OPENIN);
+    return;
+  }
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
   fileio_write(stream, PRINT_FLOAT);
@@ -1163,11 +1261,17 @@ void fileio_printfloat(int32 handle, float64 value) {
 */
 void fileio_printstring(int32 handle, char *string, int32 length) {
   FILE *stream;
-  int32 n, temp, result;
+  int32 n;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
-  if (fileinfo[handle].filetype==OPENIN) error(ERR_OPENIN);
+  if (fileinfo[handle].filetype==OPENIN) {
+    error(ERR_OPENIN);
+    return;
+  }
   fileinfo[handle].eofstatus = OKAY;
   stream = fileinfo[handle].stream;
   if (length<SHORT_STRING) {    /* Write string in Acorn format */
@@ -1176,14 +1280,18 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
     if (length>0) for (n=length-1; n>=0; n--) fileio_write(stream, string[n]);
   }
   else {        /* Long string - Use interpreter's extended format */
+    int32 result;
+    int32 temp = length;
     fileio_write(stream, PRINT_LONGSTR);
-    temp = length;
     for (n=0; n<sizeof(int32); n++) {   /* Write four byte length to file */
       fileio_write(stream, temp & BYTEMASK);
       temp = temp>>BYTESHIFT;
     }
     result = fwrite(string, sizeof(char), length, stream);
-    if (result!=length) error(ERR_CANTWRITE);
+    if (result!=length) {
+      error(ERR_CANTWRITE);
+      return;
+    }
   }
   fileinfo[handle].lastwaswrite = TRUE;
 }
@@ -1194,10 +1302,16 @@ void fileio_printstring(int32 handle, char *string, int32 length) {
 void fileio_setptr(int32 handle, int64 newoffset) {
   int32 result;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return;
+  }
   handle = map_handle(handle);
   result = fseek(fileinfo[handle].stream, newoffset, SEEK_SET);
-  if (result==-1) error(ERR_SETPTRFAIL);        /* File pointer cannot be set */
+  if (result==-1) {                             /* File pointer cannot be set */
+    error(ERR_SETPTRFAIL);
+    return;
+  }
   fileinfo[handle].eofstatus = OKAY;
 }
 
@@ -1221,11 +1335,17 @@ int64 fileio_getext(int32 handle) {
   int64 position, length;
   FILE *stream;
 
-  if (handle==0) error(ERR_BADHANDLE);
+  if (handle==0) {
+    error(ERR_BADHANDLE);
+    return 0;
+  }
   handle = map_handle(handle);
   stream = fileinfo[handle].stream;
   position = ftell(stream);
-  if (position==-1) error(ERR_GETEXTFAIL);      /* Cannot find size of file */
+  if (position==-1) {
+    error(ERR_GETEXTFAIL);      /* Cannot find size of file */
+    return 0;
+  }
   fseek(stream, 0, SEEK_END);                   /* Find the end of the file */
   length = ftell(stream);
   fseek(stream, position, SEEK_SET);    /* Restore file to its original file pointer position */
@@ -1236,12 +1356,12 @@ int64 fileio_getext(int32 handle) {
 ** 'fileio_setext' allows the size of a file to be changed.
 */
 void fileio_setext(int32 handle, int64 newsize) {
-  int32 fh, type;
+  int32 type;
   
   handle=map_handle(handle);
   type=fileinfo[handle].filetype;
   if((type==OPENOUT) || (type==OPENUP)) {
-    fh=fileno(fileinfo[handle].stream);
+    int32 fh = fileno(fileinfo[handle].stream);
     if (ftruncate(fh, newsize)) {
       error(ERR_CMDFAIL);
     }

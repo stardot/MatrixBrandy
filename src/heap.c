@@ -164,7 +164,10 @@ boolean init_workspace(size_t heapsize) {
   wp = malloc(heapsize);
 #endif
 
-  if (wp==NIL) heapsize = 0;                    /* Could not obtain block of requested size */
+  if (wp==NIL) {
+    heapsize = 0;                    /* Could not obtain block of requested size */
+    return 0;
+  }
   basicvars.worksize = heapsize;
   basicvars.workspace = wp;
   basicvars.slotend = basicvars.end = basicvars.himem = wp+basicvars.worksize;
@@ -240,8 +243,11 @@ void *allocmem(size_t size, boolean reporterror) {
   size = ALIGN(size);
   newlimit = basicvars.stacklimit.bytesp+size;
   if (newlimit>=basicvars.stacktop.bytesp) {    /* Have run out of memory */
-    if (reporterror) error(ERR_NOROOM);
-    else {
+    if (reporterror) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_NOROOM);
+      return NIL;
+    } else {
       DEBUGFUNCMSGOUT;
       return NIL;
     }

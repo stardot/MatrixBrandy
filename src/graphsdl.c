@@ -226,10 +226,8 @@ static struct {
   uint32 writebank;                     /* Video bank to be written to */
   uint32 xor_mask;                      
   int64 videorefresh;                   /* Centisecond reference of when screen was last updated */
-  int32 videofreq;                      /* How many centiseconds between screen updates? */
   boolean scaled;                       /* TRUE if screen mode is scaled to fit real screen */
   boolean clipping;                     /* TRUE if clipping region is not full screen of a RISC OS mode */
-  
 } ds;
 
 /*
@@ -907,7 +905,7 @@ static void toggle_cursor(void) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
-  int32 xx, yy, pxoffset;
+  int32 xx, yy;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
@@ -931,7 +929,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
     } else {
       for (xx=left; xx <= right; xx++) {
         for (yy=top; yy <= bottom; yy++) {
-          pxoffset = xx + yy*ds.vscrwidth;
+          int32 pxoffset = xx + yy*ds.vscrwidth;
           *((Uint32*)matrixflags.surface->pixels + pxoffset) = *((Uint32*)screenbank[ds.displaybank]->pixels + pxoffset);
         }
       }
@@ -1045,6 +1043,7 @@ static void init_palette(void) {
 #endif
   default:      /* 32K colour modes are not supported */
     error(ERR_UNSUPPORTED);
+    return;
   }
 #ifndef BRANDY_MODE7ONLY
   if (colourdepth >= 256) {
@@ -1084,16 +1083,15 @@ static void change_palette(int32 colour, int32 red, int32 green, int32 blue) {
  */
 int32 emulate_colourfn(int32 red, int32 green, int32 blue) {
 #ifndef BRANDY_MODE7ONLY
-  int32 n, distance, test, best, dr, dg, db;
+  int32 n, distance = 0x7fffffff;
+  int32 best = 0;
 
   if (colourdepth == COL24BIT) return (red + (green << 8) + (blue << 16));
-  distance = 0x7fffffff;
-  best = 0;
   for (n = 0; n < colourdepth && distance != 0; n++) {
-    dr = palette[n * 3 + 0] - red;
-    dg = palette[n * 3 + 1] - green;
-    db = palette[n * 3 + 2] - blue;
-    test = 2 * dr * dr + 4 * dg * dg + db * db;
+    int32 dr = palette[n * 3 + 0] - red;
+    int32 dg = palette[n * 3 + 1] - green;
+    int32 db = palette[n * 3 + 2] - blue;
+    int32 test = 2 * dr * dr + 4 * dg * dg + db * db;
     if (test < distance) {
       distance = test;
       best = n;
@@ -1173,7 +1171,7 @@ static void scroll_up_mode7(int32 windowed) {
 
 static void scroll_up(int32 windowed) {
 #ifndef BRANDY_MODE7ONLY
-  int left, right, top, dest, topwin;
+  int left, right, dest, topwin;
   if (screenmode == 7) { 
 #endif
     scroll_up_mode7(windowed);
@@ -1186,7 +1184,6 @@ static void scroll_up(int32 windowed) {
     dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
-    top = dest+YPPC;                                    /* Top of block to move starts here */
     scroll_rect.x = left;
     scroll_rect.y = YPPC * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
@@ -1206,13 +1203,12 @@ static void scroll_up(int32 windowed) {
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
   } else {
     int loop;
-    /* First, get size of one line. */
-    top=4*ds.screenwidth*YPPC*ds.xscale;
+    int top = 4*ds.screenwidth*YPPC*ds.xscale;            /* First, get size of one line. */
     /* Screen size minus size of one line (calculated above) */
     dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
-    memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
+    memmove((byte *)screenbank[ds.writebank]->pixels, (const byte *)(screenbank[ds.writebank]->pixels)+top, dest);
 
-    memmove((void *)matrixflags.surface->pixels, (const void *)(matrixflags.surface->pixels)+(top*ds.yscale), dest*ds.yscale);
+    memmove((byte *)matrixflags.surface->pixels, (const byte *)(matrixflags.surface->pixels)+(top*ds.yscale), dest*ds.yscale);
     /* Need to do it this way, as memset() works on bytes only */
     for (loop=0;loop<top;loop+=4) {
       *(uint32 *)(screenbank[ds.writebank]->pixels+dest+loop) = SWAPENDIAN(ds.tb_colour);
@@ -1285,8 +1281,8 @@ static void scroll_down(int32 windowed) {
     top=4*ds.screenwidth*YPPC*ds.xscale;
     /* Screen size minus size of one line (calculated above) */
     dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
-    memmove((void *)screenbank[ds.writebank]->pixels+top, (const void *)screenbank[ds.writebank]->pixels, dest);
-    memmove((void *)(matrixflags.surface->pixels)+(top*ds.yscale), (const void *)matrixflags.surface->pixels, dest*ds.yscale);
+    memmove((byte *)screenbank[ds.writebank]->pixels+top, (const byte *)screenbank[ds.writebank]->pixels, dest);
+    memmove((byte *)(matrixflags.surface->pixels)+(top*ds.yscale), (const byte *)matrixflags.surface->pixels, dest*ds.yscale);
     /* Need to do it this way, as memset() works on bytes only */
     for (loop=0;loop<top;loop+=4) {
       *(uint32 *)(screenbank[ds.writebank]->pixels+loop) = SWAPENDIAN(ds.tb_colour);
@@ -1321,7 +1317,7 @@ static void scroll_left_mode7(int32 windowed) {
 
 static void scroll_left(int32 windowed) {
 #ifndef BRANDY_MODE7ONLY
-  int left, right, top, dest, topwin;
+  int left, right, dest, topwin;
   if (screenmode == 7) { 
 #endif
     scroll_left_mode7(windowed);
@@ -1334,7 +1330,6 @@ static void scroll_left(int32 windowed) {
     dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
-    top = dest+YPPC;                                    /* Top of block to move starts here */
     scroll_rect.x = (twinleft+1)*XPPC;
     scroll_rect.y = YPPC * (twintop);
     scroll_rect.w = XPPC * (twinright - twinleft);
@@ -1354,10 +1349,10 @@ static void scroll_left(int32 windowed) {
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
   } else {
     int lx, ly;
-    top=4*XPPC;
+    int top = 4*XPPC;
     /* Screen size minus size of one line (calculated above) */
     dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
-    memmove((void *)screenbank[ds.writebank]->pixels, (const void *)(screenbank[ds.writebank]->pixels)+top, dest);
+    memmove((byte *)screenbank[ds.writebank]->pixels, (const byte *)(screenbank[ds.writebank]->pixels)+top, dest);
   
     for (ly=1; ly<=(ds.screenheight*ds.xscale); ly++) {
       for (lx=0; lx < (4*XPPC); lx+=4) {
@@ -1392,7 +1387,7 @@ static void scroll_right_mode7(int32 windowed) {
 
 static void scroll_right(int32 windowed) {
 #ifndef BRANDY_MODE7ONLY
-  int left, right, top, dest, topwin;
+  int left, right, dest, topwin;
   if (screenmode == 7) { 
 #endif
     scroll_right_mode7(windowed);
@@ -1405,7 +1400,6 @@ static void scroll_right(int32 windowed) {
     dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
     right = twinright*XPPC+XPPC-1;
-    top = dest+YPPC;                                    /* Top of block to move starts here */
     scroll_rect.x = (twinleft)*XPPC;
     scroll_rect.y = YPPC * (twintop);
     scroll_rect.w = XPPC * (twinright - twinleft);
@@ -1426,10 +1420,10 @@ static void scroll_right(int32 windowed) {
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
   } else {
     int lx, ly;
-    top=4*XPPC;
+    int top = 4*XPPC;
     /* Screen size minus size of one line (calculated above) */
     dest=(ds.screenwidth * ds.screenheight * 4 * ds.xscale) - top;
-    memmove((void *)screenbank[ds.writebank]->pixels+top, (const void *)screenbank[ds.writebank]->pixels, dest);
+    memmove((byte *)screenbank[ds.writebank]->pixels+top, (const byte *)screenbank[ds.writebank]->pixels, dest);
   
     for (ly=0; ly<=(ds.screenheight*ds.xscale)-1; ly++) {
       for (lx=0; lx < (4*XPPC); lx+=4) {
@@ -1547,7 +1541,7 @@ static void cursor_move(int32 *curx, int32 *cury, int32 incx, int32 incy) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void write_char(int32 ch) {
-  int32 y, topx, topy, line, r;
+  int32 y, topx, topy, r;
   
   if (cursorstate == ONSCREEN) toggle_cursor();
   matrixflags.cursorbusy = 1;
@@ -1582,7 +1576,7 @@ static void write_char(int32 ch) {
   topx = xtext*XPPC;
   topy = ytext*YPPC;
   for (y=0; y < 8; y++) {
-    line = sysfont[ch-' '][y];
+    int32 line = sysfont[ch-' '][y];
     for (r=0; r < 8; r++)
       *((Uint32*)screenbank[ds.writebank]->pixels + topx + r + ((topy+y)*ds.vscrwidth)) = (line & 1<<(7-r)) ? ds.tf_colour : ds.tb_colour;
   }
@@ -1666,13 +1660,14 @@ static void vdu5_cursordown(void) {
 ** 'x' and 'y' direction but never in just the 'x' direction.
 */
 static void plot_char(int32 ch) {
-  int32 y, topx, topy, line, r;
+  int32 y, topx, topy, r;
 
   topx = GXTOPX(ds.xlast);              /* X and Y coordinates are those of the */
   topy = GYTOPY(ds.ylast);      /* top left-hand corner of the character */
   place_rect.x = topx;
   place_rect.y = topy;
   for (y=0; y<YPPC; y++) {
+    int32 line;
     if ((topy+y) >= modetable[screenmode].yres) break;
     line = sysfont[ch-' '][y];
     if (line!=0) {
@@ -1758,7 +1753,7 @@ void set_cursor(boolean underline) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void vdu_setpalette(void) {
-  int32 logcol, pmode, mode, offset, c, newcol;
+  int32 logcol, pmode, mode;
   if (screenmode == 7) return;
   logcol = vduqueue[0] & colourmask;
   mode = vduqueue[1];
@@ -1773,8 +1768,9 @@ static void vdu_setpalette(void) {
   set_rgb();
   /* Now, go through the framebuffer and change the pixels */
   if (colourdepth <= 256) {
-    c = logcol * 3;
-    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
+    int32 offset;
+    int32 c = logcol * 3;
+    int32 newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
     for (offset=0; offset < (ds.screenheight*ds.screenwidth*ds.xscale); offset++) {
       if ((SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[ds.writebank]->pixels + offset) = SWAPENDIAN(newcol);
     }
@@ -2017,12 +2013,7 @@ static void vdu_cleartext(void) {
   }
   else {        /* Text window is not being used */
     reset_mode7();
-    left = twinleft*mxppc;
-    right = twinright*mxppc+mxppc-1;
-    top = twintop*myppc;
-    bottom = twinbottom*myppc+myppc-1;
     SDL_FillRect(screenbank[ds.writebank], NULL, ds.tb_colour);
-    // blit_scaled(left, top, right, bottom);
 #ifndef BRANDY_MODE7ONLY
     blit_scaled(0, 0, ds.screenwidth-1, ds.screenheight-1);
 #endif
@@ -2131,10 +2122,10 @@ static void vdu_textcol(void) {
 */
 #ifndef BRANDY_MODE7ONLY
 static void resetpixels(int32 numcols) {
-  int32 logcol, newcol, c, offset;
+  int32 logcol, offset;
   for (logcol=0; logcol < numcols; logcol++) {
-    c = logcol * 3;
-    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
+    int32 c = logcol * 3;
+    int32 newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
     for (offset=0; offset < (ds.screenheight*ds.screenwidth*ds.xscale); offset++) {
       if ((SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[ds.writebank]->pixels + offset) = SWAPENDIAN(newcol);
     }
@@ -2187,6 +2178,7 @@ static void reset_colours(void) {
     break;
   default:
     error(ERR_UNSUPPORTED); /* 32K colour modes not supported */
+    return;
   }
   if (colourdepth==256)
     colourmask = COL256MASK;
@@ -2371,14 +2363,13 @@ static void vdu_hometext(void) {
 ** the text window (VDU 31)
 */
 static void vdu_movetext(void) {
-  int32 column, row;
   if (vduflag(VDU_FLAG_GRAPHICURS)) {   /* Text is going to the graphics cursor */
     ds.xlast = ds.gwinleft+vduqueue[0]*XPPC*ds.xgupp;
     ds.ylast = ds.gwintop-vduqueue[1]*YPPC*ds.ygupp;
   }
   else {        /* Text is going to the text cursor */
-    column = vduqueue[0] + twinleft;
-    row = vduqueue[1] + twintop;
+    int32 column = vduqueue[0] + twinleft;
+    int32 row = vduqueue[1] + twintop;
     if (column > (twinright + SCROLLPROT) || row > twinbottom) return;  /* Ignore command if values are out of range */
     move_cursor(column, row);
   }
@@ -2834,7 +2825,10 @@ void emulate_mode(int32 mode) {
   /* Signal the display update thread to change mode */
   tmsg.modechange = mode;
   while (tmsg.modechange >= 0) usleep(1000);
-  if (tmsg.modechange == -2) error(ERR_BADMODE);
+  if (tmsg.modechange == -2) {
+    error(ERR_BADMODE);
+    return;
+  }
 /* Reset colours, clear screen and home cursor */
   SDL_FillRect(matrixflags.surface, NULL, ds.tb_colour);
   for (p=0; p<MAXBANKS; p++) {
@@ -2853,7 +2847,10 @@ void emulate_mode(int32 mode) {
 void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
 #ifndef BRANDY_MODE7ONLY
   int32 coldepth, n;
-  if (xres == 0 || yres == 0 || rate == 0 || bpp == 0) error(ERR_BADMODE);
+  if (xres == 0 || yres == 0 || rate == 0 || bpp == 0) {
+    error(ERR_BADMODE);
+    return;
+  }
   switch (bpp) {
   case 1: coldepth = 2; break;
   case 2: coldepth = 4; break;
@@ -2883,7 +2880,10 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
 void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 xeig, int32 yeig, int32 rate) {
 #ifndef BRANDY_MODE7ONLY
   int32 coldepth, n;
-  if (xres == 0 || yres == 0 || rate == 0 || (colours == 0 && greys == 0)) error(ERR_BADMODE);
+  if (xres == 0 || yres == 0 || rate == 0 || (colours == 0 && greys == 0)) {
+    error(ERR_BADMODE);
+    return;
+  }
   coldepth = colours!=0 ? colours : greys;
   for (n=0; n <= HIGHMODE; n++) {
     if (xeig==1 && yeig==1 && modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
@@ -2917,7 +2917,7 @@ int32 emulate_modefn(void) {
    takes into account the GCOL foreground action code */
 #ifndef BRANDY_MODE7ONLY
 static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Uint32 action) {
-  Uint32 altcolour = 0, prevcolour = 0, drawcolour, a;
+  Uint32 altcolour = 0, prevcolour, drawcolour, a;
   int32 rox = 0, roy = 0;
   int64 offset = x + (y*ds.vscrwidth);
 
@@ -3345,9 +3345,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       else {
         filled_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
       }
-      ex = sx-semimajor;
-      ey = sy-semiminor;
-  /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
+      /*
+      ** ex = sx-semimajor;  ey = sy-semiminor;
+      ** (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse
+      */
       hide_cursor();
       blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
       reveal_cursor();
@@ -3355,7 +3356,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     case PLOT_ARC: {
       float xradius,yradius;
-      int end_dx,end_dy,start_dx,start_dy;
   /*
   ** (xlast3, ylast3) is the centre of the arc. (xlast2, ylast2) is a
   ** point on the circumference, and (xlast, ylast) is a point that indicates the end-angle of the arc.
@@ -3377,11 +3377,12 @@ void emulate_plot(int32 code, int32 x, int32 y) {
         // the end point is on top of the centre, so there's not much we can do here.
         // Don't do anything in this case, to avoid a division by zero
       } else {
-        start_dx=xlast2-xlast3;//displacement to start point from centre
-        start_dy=ylast2-ylast3;//displacement to start point from centre
+        int end_dx,end_dy;
+        int start_dx=xlast2-xlast3;//displacement to start point from centre
+        int start_dy=ylast2-ylast3;//displacement to start point from centre
         //fprintf(stderr,"start_dx %d=%d-%d\n",start_dx,ds.xlast2,ds.xlast3);
         end_dx=(int)((xlast-xlast3)*fradius/fradius_end);//projects end point onto circle circumference
-        end_dy=ds.ylast-ds.ylast3;
+        //end_dy=ds.ylast-ds.ylast3;
         end_dy=floor(((ylast-ylast3)*fradius/fradius_end));//projects end point onto circle circumference
   
         // check that the rounding above does not cause end_dx, end_dy to lie off the rasterised curve.
@@ -3941,13 +3942,13 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
   hmask=0x7E7Eu;
 
 /* Row sets - 0 to 6, 7 to 13, and 14 to 19 */
-  if ((y >= 0) && (y <= 6)) {
+  if (y <= 6) {
     if (ch & 1) val=left; 
     if (ch & 2) val+=right;
-  } else if ((y >= 7) && (y <= 13)) {
+  } else if (y <= 13) {     /* 7-13 */
     if (ch & 4) val=left;
     if (ch & 8) val+=right;
-  } else if ((y >= 14) && (y <= 19)) {
+  } else {                  /* 14-19 */
     if (ch & 16) val=left;
     if (ch & 64) val+=right;
   }
@@ -3959,8 +3960,8 @@ static unsigned int teletextgraphic(unsigned int ch, unsigned int y) {
 }
 
 static void mode7renderline(int32 ypos, int32 fast) {
-  int32 ch, ch7, xt;
-  int32 y=0, yy=0, line=0, xch=0, mode7prevchar=32;
+  int32 xt;
+  int32 mode7prevchar=32;
   Uint8 mode7flash=0, mode7vdu141on=0, mode7vdu141mode=1;
   
   text_physbackcol=text_backcol=0;
@@ -3971,7 +3972,8 @@ static void mode7renderline(int32 ypos, int32 fast) {
 
   if (cursorstate == ONSCREEN) cursorstate = SUSPENDED;
   for (xt=0; xt<=39; xt++) {
-    ch=mode7frame[ypos][xt];
+    int32 xch=0;
+    int32 ch=mode7frame[ypos][xt];
     if (ch < 32) ch |= 0x80;
     /* Check the Set At codes here */
     if (is_teletextctrl(ch)) switch (ch) {
@@ -4020,13 +4022,13 @@ static void mode7renderline(int32 ypos, int32 fast) {
     }
     /* Skip this chunk for control codes */
     if ((!is_teletextctrl(ch) && !vduflag(MODE7_CONCEAL)) || vduflag(MODE7_REVEAL)) {
-      ch7=(ch & 0x7F);
+      int32 ch7=(ch & 0x7F), y=0;
       if (vduflag(MODE7_ALTCHARS)) ch |= 0x80;
       if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F))) mode7prevchar=ch;
       for (y=0; y < M7YPPC; y++) {
-        line = 0;
+        int32 line = 0;
         if (mode7vdu141on) {
-          yy=((y/2)+(mode7vdu141mode ? 10 : 0));
+          int32 yy=((y/2)+(mode7vdu141mode ? 10 : 0));
           if (vduflag(MODE7_GRAPHICS) && ((ch7 >= 0x20 && ch7 <= 0x3F) || (ch7 >= 0x60 && ch7 <= 0x7F)))
             line = teletextgraphic(ch, yy);
           else
@@ -4204,12 +4206,14 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 ** Draw a horizontal line
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action) {
-  int32 tt, i;
   if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth )) return;
   if (x1 > x2) {
-    tt = x1; x1 = x2; x2 = tt;
+    int32 tt = x1;
+    x1 = x2;
+    x2 = tt;
   }
   if ( y >= 0 && y < ds.vscrheight ) {
+    int32 i;
     if (x1 < 0) x1 = 0;
     if (x1 >= ds.vscrwidth) x1 = ds.vscrwidth-1;
     if (x2 < 0) x2 = 0;
@@ -4667,7 +4671,7 @@ void get_sdl_mouse(size_t values[]) {
   ** pick up a fresh item from SDL.
   */
 
-  if (mousequeuelength != 0) fprintf(stderr,"Warning: mousequeuelength out of sync (%d), correcting\n", mousequeuelength);
+  if (mousequeuelength != 0) fprintf(stderr,"Warning: mousequeuelength out of sync (%u), correcting\n", mousequeuelength);
   mousequeuelength=0; /* Not strictly necessary, but keeps things in sync, just in case */
   while (matrixflags.videothreadbusy) usleep(1000);
   SDL_GetMouseState(&x, &y);
@@ -4876,11 +4880,10 @@ int32 get_character_at_pos(int32 cx, int32 cy) {
 
 int32 osbyte163_2(int x) {
   int fullscreen=0, ref=(x & 3), fsc=((x & 12) >> 2);
-  int outx;
   
   if (matrixflags.surface->flags & SDL_FULLSCREEN) fullscreen=8;
   if (x == 0) {
-    outx = fullscreen + (ds.autorefresh+1);
+    int outx = fullscreen + (ds.autorefresh+1);
     return ((outx << 8) + 42);
   }
   if (x == 255) {
@@ -4979,8 +4982,8 @@ void osword0A(int64 x) {
       for (i=0; i<= 7; i++) block[i+1]=dot_pattern_packed[i];
       break;
     default:
+      if (block[0] < 32) return;
       offset=block[0]-32;
-      if (offset < 0) return;
       for (i=0; i<= 7; i++) block[i+1]=sysfont[offset][i];
   }
 #endif
@@ -5004,7 +5007,7 @@ int32 os_readpalette(int32 colour, int32 mode) {
 void osword0C(int64 x) {
 #ifndef BRANDY_MODE7ONLY
   unsigned char *block;
-  int32 logcol, pmode, mode, offset, c, newcol;
+  int32 logcol, pmode, mode;
   
   block=(unsigned char *)(size_t)x;
   if (screenmode == 7) return;
@@ -5021,8 +5024,8 @@ void osword0C(int64 x) {
   set_rgb();
   /* Now, go through the framebuffer and change the pixels */
   if (colourdepth <= 256) {
-    c = logcol * 3;
-    newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
+    int32 offset, c = logcol * 3;
+    int32 newcol = SDL_MapRGB(sdl_fontbuf->format, palette[c+0], palette[c+1], palette[c+2]) + (logcol << 24);
     for (offset=0; offset < (ds.screenheight*ds.screenwidth*ds.xscale); offset++) {
       if ((SWAPENDIAN(*((Uint32*)screenbank[ds.writebank]->pixels + offset)) >> 24) == logcol) *((Uint32*)screenbank[ds.writebank]->pixels + offset) = SWAPENDIAN(newcol);
     }
@@ -5035,13 +5038,14 @@ void osword0C(int64 x) {
  */
 void osword8B(int64 x) {
   unsigned char *block;
-  int32 offset, i, ch, chbank;
+  int32 i, ch, chbank;
 
   block=(unsigned char *)(size_t)x;
   if ( ( block[0] < 4 ) || ( block[1] < 44 ) ) return;
   ch=block[2];
   chbank=block[3];
   if (chbank == 0) {
+    int32 offset;
     if ((ch < 0x20) || (ch > 0xFF)) return;
     offset = ch -32;
     for (i=0; i<= 19; i++) {
@@ -5107,8 +5111,8 @@ void sdl_screenload(char *fname) {
 
 void swi_swap16palette() {
 #ifndef BRANDY_MODE7ONLY
-  Uint8 place = 0;
-  int ptr = 0;
+  Uint8 place;
+  int ptr;
   if (colourdepth != 16) return;
   for (ptr=0; ptr < 24; ptr++) {
     place=palette[ptr];

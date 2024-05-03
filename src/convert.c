@@ -66,17 +66,13 @@ int todigit(char x) {
 ** an error number
 */
 char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value, float64 *floatvalue) {
-  int32 value;
-  int64 value64;
-  static float64 fpvalue, fltdiv;
-  boolean isint, isneg, negexp;
-  int digits, exponent;
+  int32 value = 0;
+  int64 value64 = 0;
+  static float64 fpvalue = 0;
+  int digits = 0;
+  boolean isint, isneg;
 
   DEBUGFUNCMSGIN;
-  value = 0;
-  value64 = 0;
-  fpvalue = 0;
-  digits = 0;
   cp = skip_blanks(cp); /* Ignore leading white space characters */
   switch (*cp) {
   case '&':     /* Hex value */
@@ -148,6 +144,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       isint = TRUE;
     }
     if (*cp=='.') {     /* Number contains a decimal point */
+      static float64 fltdiv;
       if (isint) {
         isint = FALSE;
         fpvalue = TOFLOAT(value);
@@ -167,6 +164,8 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
 ** that is, there is not really an exponent here
 */
     if (toupper(*cp)=='E' && !isalpha(*(cp+1))) {       /* Number contains an exponent */
+      int exponent;
+      boolean negexp;
       if (isint) {
         isint = FALSE;
         fpvalue = value;
@@ -216,19 +215,15 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
 ** used to return an error number
 */
 char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value, float64 *floatvalue) {
-  int32 value;
-  int64 value64;
-  static float64 fpvalue, fltdiv;
-  boolean isint, isneg, negexp;
-  int digits, exponent;
+  int32 value = 0;
+  int64 value64 = 0;
+  static float64 fpvalue = 0;
+  int digits = 0;
+  boolean isint = TRUE;
+  boolean isneg;
 
   DEBUGFUNCMSGIN;
-  value = 0;
-  value64 = 0;
-  fpvalue = 0;
-  digits = 0;
   cp = skip_blanks(cp); /* Ignore leading white space characters */
-  isint = TRUE;
   isneg = *cp=='-';     /* Deal with any sign first */
   if (*cp=='+' || *cp=='-') cp++;
   while (*cp>='0' && *cp<='9') {
@@ -252,6 +247,7 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
     isint = TRUE;
   }
   if (*cp=='.') {       /* Number contains a decimal point */
+    static float64 fltdiv;
     if (isint) {
       isint = FALSE;
       fpvalue = TOFLOAT(value);
@@ -271,6 +267,8 @@ char *todecimal(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value
 ** that is, there is not really an exponent here
 */
   if (toupper(*cp)=='E' && !isalpha(*(cp+1))) { /* Number contains an exponent */
+    int exponent;
+    boolean negexp;
     if (isint) {
       isint = FALSE;
       fpvalue = value;
