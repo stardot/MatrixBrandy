@@ -513,7 +513,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
     snd = &sndtab[cm1][snd_wr[cm1]];
   }
 
-  if(delay != 0 || snd->count == 0 ){
+  if ((delay != 0) || (snd->count == 0) ){
     if( delay > 0 && snd_wr[cm1] == snd_rd[cm1] && snd->count > (delay << 11) ) {
       snd->count = (delay << 11);
       sndtime[cm1] = tnow + delay;

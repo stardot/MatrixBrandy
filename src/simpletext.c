@@ -168,7 +168,7 @@ void emulate_vdu(int32 charvalue) {
   case VDU_PLOT:        /* 25 - Issue graphics command */
   case VDU_ORIGIN:      /* 29 - Define graphics origin */
     error(ERR_NOGRAPHICS);
-    break;
+    return;
   case VDU_CURFORWARD:  /*  9 - Move cursor right one character */
   case VDU_CURUP:       /* 11 - Move cursor up one line */
   case VDU_CLEARTEXT:   /* 12 - Clear text window (formfeed) */

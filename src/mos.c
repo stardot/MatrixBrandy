@@ -117,7 +117,7 @@ extern threadmsg tmsg;
 #ifndef TARGET_RISCOS
 static int check_command(char *text);
 static void mos_osword(int32 areg, int64 xreg);
-static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
+static uint32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag);
 
 static void native_oscli(char *command, char *respfile, FILE *respfh);
 #endif
@@ -423,7 +423,10 @@ void mos_mouse(size_t values[]) {
   _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   oserror = _kernel_swi(OS_Mouse, &regs, &regs);
-  if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror!=NIL) {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return;
+  }
   values[0] = regs.r[0];        /* Mouse X coordinate is in R0 */
   values[1] = regs.r[1];        /* Mouse Y coordinate is in R1 */
   values[2] = regs.r[2];        /* Mouse button state is in R2 */
@@ -599,7 +602,6 @@ static int32 read_monotonic(void) {
 */
 void mos_waitdelay(int32 delay) {
   int32 target;
-  _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   if (delay<=0) return;         /* Nothing to do */
   target = read_monotonic()+delay;
@@ -608,12 +610,16 @@ void mos_waitdelay(int32 delay) {
 ** here to make the program pause
 */
   do {
+    _kernel_oserror *oserror;
     if (delay>32767) delay = 32767;     /* Maximum time OS_Byte 129 can wait */
     regs.r[0] = 129;
     regs.r[1] = delay & BYTEMASK;
     regs.r[2] = delay>>BYTESHIFT;
     oserror = _kernel_swi(OS_Byte, &regs, &regs);
-    if (oserror!=NIL) error(ERR_CMDFAIL, oserror->errmess);
+    if (oserror!=NIL) {
+      error(ERR_CMDFAIL, oserror->errmess);
+      return;
+    }
     if (regs.r[2]==ESC || basicvars.escape) break;      /* Escape was pressed - Escape from wait */
     delay = target-read_monotonic();
   } while (delay>0);
@@ -650,7 +656,10 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
       /* Do nothing - Matrix Brandy specific commands for other platforms */
     } else {
       basicvars.retcode = _kernel_oscli(command);
-      if (basicvars.retcode<0) error(ERR_CMDFAIL, _kernel_last_oserror()->errmess);
+      if (basicvars.retcode<0) {
+        error(ERR_CMDFAIL, _kernel_last_oserror()->errmess);
+        return;
+      }
     }
   }
   else {        /* Want response back from command */
@@ -735,7 +744,10 @@ void mos_sys(size_t swino, sysparm inregs[], size_t outregs[], size_t *flags) {
   } else {
     for (n=0; n<10; n++) regs.r[n] = inregs[n].i;
     oserror = _kernel_swi_c(swino, &regs, &regs, (int *)flags);
-    if (oserror!=NIL && (swino & XBIT)==0) error(ERR_CMDFAIL, oserror->errmess);
+    if (oserror!=NIL && (swino & XBIT)==0) {
+      error(ERR_CMDFAIL, oserror->errmess);
+      return;
+    }
     *flags = *flags!=0 ? CARRY_FLAG : 0;
     if (oserror!=NIL) *flags+=OVERFLOW_FLAG;
     for (n=0; n<10; n++) outregs[n] = regs.r[n];
@@ -961,10 +973,9 @@ void mos_mouse(size_t values[]) {
 ** -12- other buffers           etc
 */
 int32 mos_adval(int32 x) {
-  size_t inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
-
   x = x & 0xFFFF;                               /* arg is a 16-bit value                */
   if((x>6) & (x<10)) {
+    size_t inputvalues[4]={0,0,0,0}; /* Initialise to zero to keep non-SDL builds happy */
     mos_mouse(inputvalues);
     return inputvalues[x-7];
   }
@@ -1158,6 +1169,7 @@ void mos_waitdelay(int32 time) {
     if (basicvars.escape) {
       time=0;
       error(ERR_ESCAPE);
+      return;
     }
 #endif /* USE_SDL */
     usleep(2000);
@@ -1181,42 +1193,43 @@ void mos_waitdelay(int32 time) {
  *           recognises |<letter> |" || !? |!
  */
 static char *mos_gstrans(char *instring, unsigned int *len) {
-        int quoted=0, escape=0;
-        char *result, *outstring;
-        char ch;
+  int quoted=0, escape=0;
+  char *result, *outstring;
 
-        result=outstring=instring;
-        while (*instring == ' ') instring++;            // Skip spaces
-        if ((quoted = (*instring == '"'))) instring++;
+  result=outstring=instring;
+  while (*instring == ' ') instring++;            // Skip spaces
+  if ((quoted = (*instring == '"'))) instring++;
 
-        while (*instring) {
-                ch = *instring++;
-                if (ch == '"' && *instring != '"' && quoted)
-                        break;
-                if ((ch == (char)124 || ch == (char)221) && *instring == '!') {
-                        instring++;
-                        escape=128;
-                        ch=*instring++;
-                }
-                if ((ch == (char)124 || ch == (char)221)) {
-                        if (*instring == (char)124 || *instring == (char)221) {
-                                instring++;
-                                ch = (char)124;
-                        } else {
-                                if (*instring == '"' || *instring == '?' || *instring >= '@') {
-                                        ch = *instring++ ^ 64;
-                                        if (ch < 64 ) ch = ch & 31; else if (ch == 98) ch = 34;
-                                }
-                        }
-                }
-                *outstring++=ch | escape;
-                escape=0;
+  while (*instring) {
+    char ch = *instring++;
+    if (ch == '"' && *instring != '"' && quoted)
+      break;
+    if ((ch == (char)124 || ch == (char)221) && *instring == '!') {
+      instring++;
+      escape=128;
+      ch=*instring++;
+    }
+    if ((ch == (char)124 || ch == (char)221)) {
+      if (*instring == (char)124 || *instring == (char)221) {
+        instring++;
+        ch = (char)124;
+      } else {
+        if (*instring == '"' || *instring == '?' || *instring >= '@') {
+          ch = *instring++ ^ 64;
+          if (ch < 64 ) ch = ch & 31; else if (ch == 98) ch = 34;
         }
-        *outstring=0;
-        if (quoted && *(instring-1) != '"')
-                error(ERR_BADSTRING);
-        *len=outstring-result;
-        return result;
+      }
+    }
+    *outstring++=ch | escape;
+    escape=0;
+  }
+  *outstring=0;
+  if (quoted && *(instring-1) != '"') {
+    error(ERR_BADSTRING);
+    return NULL;
+  }
+  *len=outstring-result;
+  return result;
 }
 
 /*
@@ -1228,44 +1241,48 @@ static char *mos_gstrans(char *instring, unsigned int *len) {
  *           leading and trailing spaces skipped
  *           error if no number or number>255
  */
-static unsigned int cmd_parse_dec(char** text)
-{
-        unsigned int ByteVal;
-        char *command;
+static unsigned int cmd_parse_dec(char** text) {
+  unsigned int ByteVal;
+  char *command;
 
-        command=*text;
-        while (*command == ' ') command++;      // Skip spaces
-        if (*command < '0' || *command > '9')
-                error(ERR_BADNUMBER);
-        ByteVal = (*command++) - '0';
-        while (*command >= '0' && *command <='9') {
-                ByteVal=ByteVal*10 + (*command++) - '0';
-                if (ByteVal > 255)
-                        error(ERR_BADNUMBER);
-        }
-        while (*command == ' ') command++;      // Skip spaces
-        *text=command;
-        return ByteVal;
+  command=*text;
+  while (*command == ' ') command++;      // Skip spaces
+  if (*command < '0' || *command > '9') {
+    error(ERR_BADNUMBER);
+    return -1;
+  }
+  ByteVal = (*command++) - '0';
+  while (*command >= '0' && *command <='9') {
+    ByteVal=ByteVal*10 + (*command++) - '0';
+    if (ByteVal > 255) {
+      error(ERR_BADNUMBER);
+      return -1;
+    }
+  }
+  while (*command == ' ') command++;      // Skip spaces
+  *text=command;
+  return ByteVal;
 }
 #endif /* !TARGET_RISCOS */
 
 #ifdef USE_SDL /* This code doesn't depend on SDL, but it's currently only called by code that does depend on it */
-static unsigned int cmd_parse_num(char** text)
-{
-        unsigned int ByteVal;
-        char *command;
+static unsigned int cmd_parse_num(char** text) {
+  unsigned int ByteVal;
+  char *command;
 
-        command=*text;
-        while (*command == ' ') command++;      // Skip spaces
-        if (*command < '0' || *command > '9')
-                error(ERR_BADNUMBER);
-        ByteVal = (*command++) - '0';
-        while (*command >= '0' && *command <='9') {
-                ByteVal=ByteVal*10 + (*command++) - '0';
-        }
-        while (*command == ' ') command++;      // Skip spaces
-        *text=command;
-        return ByteVal;
+  command=*text;
+  while (*command == ' ') command++;      // Skip spaces
+  if (*command < '0' || *command > '9') {
+    error(ERR_BADNUMBER);
+    return -1;
+  }
+  ByteVal = (*command++) - '0';
+  while (*command >= '0' && *command <='9') {
+    ByteVal=ByteVal*10 + (*command++) - '0';
+  }
+  while (*command == ' ') command++;      // Skip spaces
+  *text=command;
+  return ByteVal;
 }
 #endif
 
@@ -1314,63 +1331,61 @@ typedef struct cmdtabent { char *name; uint32 hash,value; } cmdtabent;
 
 cmdtabent *cmdtab = (cmdtabent*)0;
 
-int hash_name(char *name){
+int hash_name(char *name) {
   int h=0;
   int ch;
 
- while((ch=*name++)>32){
-  h = (h<<1)+(ch&31);
- }
- h += (h>>14);
- h = (h<<2)+(h>>6);
- if(h==0) return (CMDTABSIZE-1);
- return h;
+  while((ch=*name++)>32) {
+    h = (h<<1)+(ch&31);
+  }
+  h += (h>>14);
+  h = (h<<2)+(h>>6);
+  if(h==0) return (CMDTABSIZE-1);
+  return h;
 }
 
-void add_cmd(char *name, int value){
- int i,h;
- int j;
+void add_cmd(char *name, int value) {
+  int i,h;
+  int j;
 
- h=hash_name(name);
- i=(h & (CMDTABSIZE-1));
- j=i;
+  h=hash_name(name);
+  i=(h & (CMDTABSIZE-1));
+  j=i;
 
   // fprintf(stderr," name %s hash %d index %d\n",name,h,i);
 
- while(cmdtab[i].name != (char*)0){
-   i=((i+1)&(CMDTABSIZE-1));
-   if(i==j){
-     fprintf(stderr,"add_cmd: command table is full\n");
-     return;
-   }
- }
+  while(cmdtab[i].name != (char*)0){
+    i=((i+1)&(CMDTABSIZE-1));
+    if(i==j){
+      fprintf(stderr,"add_cmd: command table is full\n");
+      return;
+    }
+  }
 
- cmdtab[i].name  = name;
- cmdtab[i].hash  = (unsigned)h;
- cmdtab[i].value = (unsigned)value;
+  cmdtab[i].name  = name;
+  cmdtab[i].hash  = (unsigned)h;
+  cmdtab[i].value = (unsigned)value;
 
- // fprintf(stderr, "add_cmd name \"%s\"\n hash %10u entry %4d (+%d) value %4d\n",name,(unsigned)h,i,i-j,value);
+  // fprintf(stderr, "add_cmd name \"%s\"\n hash %10u entry %4d (+%d) value %4d\n",name,(unsigned)h,i,i-j,value);
 }
 
-int get_cmdvalue(char *name){
- int i,j,h;
- h=hash_name(name);
+int get_cmdvalue(char *name) {
+  int i,j,h;
+  h=hash_name(name);
 
- //fprintf(stderr,"GET_cmdvalue 1 name %s name %s entry %d \n",name,cmdtab[i].name != (char*)0 ? cmdtab[i].name : "NULL",i);
+  //fprintf(stderr,"GET_cmdvalue 1 name %s name %s entry %d \n",name,cmdtab[i].name != (char*)0 ? cmdtab[i].name : "NULL",i);
 
- i=(h &(CMDTABSIZE-1));
- j=i;
+  i=(h &(CMDTABSIZE-1));
+  j=i;
 
- for(;;)
- {
-  if(cmdtab[i].name == (char*)0 ) return CMD_UNKNOWN;
-  if(cmdtab[i].hash == h && (strcmp(name,cmdtab[i].name)==0)){
-    return cmdtab[i].value;
+  for(;;) {
+    if(cmdtab[i].name == (char*)0 ) return CMD_UNKNOWN;
+    if(cmdtab[i].hash == h && (strcmp(name,cmdtab[i].name)==0)){
+      return cmdtab[i].value;
+    }
+    i=((i+1)&(CMDTABSIZE-1));
+    if(i==j) return CMD_UNKNOWN; /* we are back where we started and haven't found it */
   }
-  i=((i+1)&(CMDTABSIZE-1));
-  if(i==j) return CMD_UNKNOWN; /* we are back where we started and haven't found it */
- }
-
 }
 
 void make_cmdtab(){
@@ -1442,7 +1457,7 @@ static void cmd_cat(char *command) {
   getcwd(dbuf, FILENAME_MAX);
   buflen=FILENAME_MAX - strlen(dbuf);
   while (*command && (*command != ' ')) command++;      // Skip command
-        while (*command && (*command == ' ')) command++;        // Skip spaces
+  while (*command == ' ') command++;                    // Skip spaces
   if (strlen(command)) {
 #ifdef TARGET_MINGW
     if ((*(command+1) == ':') && ((*(command+2) == '\\') || (*(command+2) == '/'))) {
@@ -1458,8 +1473,10 @@ static void cmd_cat(char *command) {
   }
   emulate_printf("Dir. %s\r\n", dbuf);
   dirp=opendir(dbuf);
-  if (!dirp) error(ERR_DIRNOTFOUND);
-  else {
+  if (!dirp) {
+    error(ERR_DIRNOTFOUND);
+    return;
+  } else {
     emulate_printf("\r\n", dbuf);
     while ((entry = readdir(dirp)) != NULL) {
       if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
@@ -1670,7 +1687,6 @@ static void cmd_fx(char *command) {
     error(ERR_BADSYNTAX, "FX <num> (,<num> (,<num>))");
     return;
   }
-  // Not sure why this call to error() needs a return after it, doesn't need it elsewhere
   areg=cmd_parse_dec(&command);                 // Get first parameter
   if (*command == ',') command++;               // Step past any comma
   while (*command == ' ') command++;            // Skip spaces
@@ -1828,12 +1844,18 @@ static void cmd_help(char *command)
  */
 #define HIGH_FNKEY 15                   /* Highest function key number */
 static void cmd_key(char *command) {
-  unsigned int key, len;
+  unsigned int key, len = 0;
 
   while (*command == ' ') command++;            // Skip spaces
-  if (*command == 0) error(ERR_BADSYNTAX, "KEY <num> (<string>");
+  if (*command == 0) {
+    error(ERR_BADSYNTAX, "KEY <num> (<string>");
+    return;
+  }
   key=cmd_parse_dec(&command);                  // Get key number
-  if (key > HIGH_FNKEY) error(ERR_BADKEY);
+  if (key > HIGH_FNKEY) {
+    error(ERR_BADKEY);
+    return;
+  }
   if (*command == ',') command++;               // Step past any comma
 
   command=mos_gstrans(command, &len);           // Get GSTRANS string
@@ -1845,7 +1867,6 @@ static void cmd_key(char *command) {
  */
 static void cmd_show(char *command) {
   int key1, key2, len;
-  char *string;
   char c;
 
   while (*command == ' ') command++;            // Skip spaces
@@ -1853,13 +1874,19 @@ static void cmd_show(char *command) {
     key1 = 0; key2 = HIGH_FNKEY;                // All keys
   } else {
     key2=(key1=cmd_parse_dec(&command));        // Get key number
-    if (key1 > HIGH_FNKEY) error(ERR_BADKEY);
+    if (key1 > HIGH_FNKEY) {
+      error(ERR_BADKEY);
+      return;
+    }
   }
   while (*command == ' ') command++;            // Skip spaces
-  if (*command != 0) error(ERR_BADCOMMAND);
+  if (*command != 0) {
+    error(ERR_BADCOMMAND);
+    return;
+  }
 
   for (; key1 <= key2; key1++) {
-    string=kbd_fnkeyget(key1, &len);
+    char *string=kbd_fnkeyget(key1, &len);
     emulate_printf("*Key %d \x22", key1);
     while (len--) {
       c=*string++;
@@ -1985,11 +2012,6 @@ static void cmd_save(char *command){
   char chbuff[256], *ptr;
   FILE *filep;
 
-  ptr=command;
-  // fprintf(stderr,"SAVE: command is :- \"");
-  // while( (ch=*ptr++) >= 32)putc(ch,stderr);
-  // fprintf(stderr,"\"\n");
-
   while((ch=*command)==32 || ch ==9)command++;
 
   len=255;
@@ -2087,13 +2109,12 @@ static void cmd_pointer(char *command){
  * commands implemented by this code.
  */
 static int check_command(char *text) {
-  char command[16];
-  int length;
+  char command[17];
+  int length = 0;
 
   if (*text == 0) return CMD_UNKNOWN;
   if (*text == '.') return CMD_CAT;
 
-  length = 0;
   while (length < 16 && isalpha(*text)) {
     command[length] = tolower(*text);
     length++;
@@ -2123,8 +2144,6 @@ static int check_command(char *text) {
 ** drastically reduced.)
 */
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
-  int cmd;
-
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;                                    /* Null string */
   if (*command == (char)124 || *command == (char)221) return;   /* Comment     */
@@ -2135,7 +2154,7 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
  * Check if command is one of the *commands implemented
  * by this code.
  */
-    cmd = check_command(command);
+    int cmd = check_command(command);
     switch(cmd){
       case CMD_KEY:          cmd_key(command+3); return;
       case CMD_CAT:          cmd_cat(command); return;
@@ -2185,74 +2204,77 @@ HANDLE g_hInputFile = NULL;
 
 /* Create a child process that uses the previously created pipes for STDIN and STDOUT. */
 void CreateChildProcess(char *procname) {
-   char cmdLine[256];
-   PROCESS_INFORMATION piProcInfo;
-   STARTUPINFO siStartInfo;
-   BOOL bSuccess = FALSE;
+  char cmdLine[256];
+  PROCESS_INFORMATION piProcInfo;
+  STARTUPINFO siStartInfo;
+  BOOL bSuccess = FALSE;
 
-   *cmdLine='\0';
-   strcat(cmdLine, "cmd /c ");
-   strncat(cmdLine, procname, 247);
+  *cmdLine='\0';
+  strcat(cmdLine, "cmd /c ");
+  strncat(cmdLine, procname, 247);
 
 // Set up members of the PROCESS_INFORMATION structure.
-   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
+  ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
 
 // Set up members of the STARTUPINFO structure.
 // This structure specifies the STDIN and STDOUT handles for redirection.
-   ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
-   siStartInfo.cb = sizeof(STARTUPINFO);
-   siStartInfo.hStdError = g_hChildStd_OUT_Wr;
-   siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
-   siStartInfo.hStdInput = g_hChildStd_IN_Rd;
-   siStartInfo.dwFlags |= (STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW);
-   siStartInfo.wShowWindow = SW_HIDE;
+  ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
+  siStartInfo.cb = sizeof(STARTUPINFO);
+  siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+  siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
+  siStartInfo.hStdInput = g_hChildStd_IN_Rd;
+  siStartInfo.dwFlags |= (STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW);
+  siStartInfo.wShowWindow = SW_HIDE;
 
 
 // Create the child process.
-   bSuccess = CreateProcess(NULL,
-      cmdLine,       // command line
-      NULL,          // process security attributes
-      NULL,          // primary thread security attributes
-      TRUE,          // handles are inherited
-      0,             // creation flags
-      NULL,          // use parent's environment
-      NULL,          // use parent's current directory
-      &siStartInfo,  // STARTUPINFO pointer
-      &piProcInfo);  // receives PROCESS_INFORMATION
+  bSuccess = CreateProcess(NULL,
+    cmdLine,       // command line
+    NULL,          // process security attributes
+    NULL,          // primary thread security attributes
+    TRUE,          // handles are inherited
+    0,             // creation flags
+    NULL,          // use parent's environment
+    NULL,          // use parent's current directory
+    &siStartInfo,  // STARTUPINFO pointer
+    &piProcInfo);  // receives PROCESS_INFORMATION
 
-   // If an error occurs, complain.
-   if (!bSuccess)
-      error(ERR_CMDFAIL);
-   else {
-      // Close handles to the child process and its primary thread.
-      // Some applications might keep these handles to monitor the status
-      // of the child process, for example.
-      CloseHandle(piProcInfo.hProcess);
-      CloseHandle(piProcInfo.hThread);
-      CloseHandle(g_hChildStd_IN_Wr);
-      CloseHandle(g_hChildStd_OUT_Wr);
-   }
+    // If an error occurs, complain.
+  if (!bSuccess) {
+    error(ERR_CMDFAIL);
+    return;
+  } else {
+    // Close handles to the child process and its primary thread.
+    // Some applications might keep these handles to monitor the status
+    // of the child process, for example.
+    CloseHandle(piProcInfo.hProcess);
+    CloseHandle(piProcInfo.hThread);
+    CloseHandle(g_hChildStd_IN_Wr);
+    CloseHandle(g_hChildStd_OUT_Wr);
+  }
 }
 
 // Read output from the child process's pipe for STDOUT
 // Stop when there is no more data.
 int ReadFromPipe(void) {
-   DWORD dwRead;
-   char buf;
-   BOOL bSuccess = FALSE;
+  DWORD dwRead;
+  char buf;
+  BOOL bSuccess = FALSE;
 
-   bSuccess = ReadFile(g_hChildStd_OUT_Rd, &buf, 1, &dwRead, NULL);
-   if (!bSuccess || dwRead == 0) {
-         CloseHandle(g_hChildStd_OUT_Rd);
-         return(-1);
-   }
-   return buf;
+  bSuccess = ReadFile(g_hChildStd_OUT_Rd, &buf, 1, &dwRead, NULL);
+  if (!bSuccess || dwRead == 0) {
+    CloseHandle(g_hChildStd_OUT_Rd);
+    return(-1);
+  }
+  return buf;
 }
 #endif /* TARGET_MINGW */
 
 static void native_oscli(char *command, char *respfile, FILE *respfh) {
   int clen;
+#ifndef TARGET_DJGPP
   FILE *sout;
+#endif
   char *cmdbuf, *cmdbufbase, *pipebuf=NULL;
 #ifdef USE_SDL
 #ifndef TARGET_MINGW
@@ -2281,7 +2303,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 #if defined(TARGET_MINGW)
     emulate_printf("\r\n");             /* Restore cursor position */
 #endif
-    if (basicvars.retcode < 0) error(ERR_CMDFAIL);
+    if (basicvars.retcode < 0) {
+      error(ERR_CMDFAIL);
+      return;
+    }
   } else {                              /* Want response back from command */
     strcat(cmdbuf, " >");
     strcat(cmdbuf, respfile);
@@ -2293,6 +2318,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     if (basicvars.retcode < 0) {
       remove(respfile);
       error(ERR_CMDFAIL);
+      return;
     }
   }
 
@@ -2305,7 +2331,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 #ifdef USE_SDL
     strcat(cmdbuf, " 2>&1");
     sout = popen(cmdbuf, "r");
-    if (sout == NULL) error(ERR_CMDFAIL);
+    if (sout == NULL) {
+      error(ERR_CMDFAIL);
+      return;
+    }
     while (fread(&buf, 1, 1, sout) > 0) {
       if (buf == '\n') emulate_vdu('\r');
       emulate_vdu(buf);
@@ -2316,7 +2345,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     fflush(stderr);
     basicvars.retcode = system(cmdbuf);
     find_cursor();                      /* Figure out where the cursor has gone to */
-    if (basicvars.retcode < 0) error(ERR_CMDFAIL);
+    if (basicvars.retcode < 0) {
+      error(ERR_CMDFAIL);
+      return;
+    }
 #endif
   } else {                              /* Want response back from command */
     strcat(cmdbuf, " 2>&1");
@@ -2325,6 +2357,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       fclose(respfh);
       remove(respfile);
       error(ERR_CMDFAIL);
+      return;
     } else {
       pipebuf=malloc(4096);
 #if !defined(USE_SDL) && !defined(TARGET_RISCOS)
@@ -2352,13 +2385,25 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     //strcat(cmdbuf, " 2>&1");
 
 // Create a pipe for the child process's STDOUT.
-    if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0)) error(ERR_CMDFAIL);
+    if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0)) {
+      error(ERR_CMDFAIL);
+      return;
+    }
 // Ensure the read handle to the pipe for STDOUT is not inherited.
-    if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0)) error(ERR_CMDFAIL);
+    if (!SetHandleInformation(g_hChildStd_OUT_Rd, HANDLE_FLAG_INHERIT, 0)) {
+      error(ERR_CMDFAIL);
+      return;
+    }
 // Create a pipe for the child process's STDIN.
-    if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0))  error(ERR_CMDFAIL);
+    if (!CreatePipe(&g_hChildStd_IN_Rd, &g_hChildStd_IN_Wr, &saAttr, 0))  {
+      error(ERR_CMDFAIL);
+      return;
+    }
 // Ensure the write handle to the pipe for STDIN is not inherited.
-    if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0)) error(ERR_CMDFAIL);
+    if (!SetHandleInformation(g_hChildStd_IN_Wr, HANDLE_FLAG_INHERIT, 0)) {
+      error(ERR_CMDFAIL);
+      return;
+    }
 // Create the child process.
     CreateChildProcess(cmdbuf);
 
@@ -2369,7 +2414,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 #if 0
     /* This really needs to be redone using Windows API calls instead of popen() */
     sout = popen(cmdbuf, "r");
-    if (sout == NULL) error(ERR_CMDFAIL);
+    if (sout == NULL) {
+      error(ERR_CMDFAIL);
+      return;
+    }
     while (fread(&buf, 1, 1, sout) > 0) {
       if (buf == '\n') emulate_vdu('\r');
       emulate_vdu(buf);
@@ -2382,7 +2430,10 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     basicvars.retcode = system(cmdbuf);
     find_cursor();                      /* Figure out where the cursor has gone to */
     emulate_printf("\r\n");             /* Restore cursor position */
-    if (basicvars.retcode < 0) error(ERR_CMDFAIL);
+    if (basicvars.retcode < 0) {
+      error(ERR_CMDFAIL);
+      return;
+    }
 #endif /* USE_SDL */
   } else {                              /* Want response back from command */
     strcat(cmdbuf, " 2>&1");
@@ -2391,6 +2442,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       fclose(respfh);
       remove(respfile);
       error(ERR_CMDFAIL);
+      return;
     } else {
       pipebuf=malloc(4096);
 #if !defined(USE_SDL) && !defined(TARGET_RISCOS)
@@ -2853,153 +2905,156 @@ static byte _sysvar[] = { 0, 0, 0, 0, 0, 0, 0,  0, 0, 0,   /* &A6 - &AF */
 0 }; /* Overflow for &FF+1 */
 byte *sysvar = _sysvar-166;
 
-static int32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag){
-int tmp,new;
+static uint32 mos_osbyte(int32 areg, int32 xreg, int32 yreg, int32 xflag) {
+ int tmp,new;
 
-tmp=(areg=areg & 0xFF); // Prevent any sillyness
+ tmp=(areg=areg & 0xFF); // Prevent any silliness
 
-if (areg>=166) {
-  new  = (byte)(sysvar[areg] & yreg) ^ xreg;
-  xreg = sysvar[areg] & 0xFF;
-  yreg = sysvar[areg+1] & 0xFF;
-  sysvar[areg] = new;
-// Some variables are 'unclean' because we don't control the kernel
-  if (areg==210) { if (sysvar[210]!=0) mos_sound_off(); else mos_sound_on(); }
-  if (areg==220) kbd_escchar(new, xreg);
-  return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
-}
+  if (areg>=166) {
+    new  = (byte)(sysvar[areg] & yreg) ^ xreg;
+    xreg = sysvar[areg] & 0xFF;
+    yreg = sysvar[areg+1] & 0xFF;
+    sysvar[areg] = new;
+  // Some variables are 'unclean' because we don't control the kernel
+    if (areg==210) { if (sysvar[210]!=0) mos_sound_off(); else mos_sound_on(); }
+    if (areg==220) kbd_escchar(new, xreg);
+    return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;
+  }
 
-switch (areg) {
-        case 0:                 // OSBYTE 0 - Return machine type
-                if (xreg!=0) return MACTYPE;
-                else if (!xflag) error(ERR_MOSVERSION);
+  switch (areg) {
+    case 0:                 // OSBYTE 0 - Return machine type
+            if (xreg!=0) return MACTYPE;
+            else if (!xflag) {
+              error(ERR_MOSVERSION);
+              return -1;
+            }
 // else return pointer to error block
-                break;
-        case 1: case 3: case 5:
-                if (areg==3 || areg==4) tmp=tmp-7;
-                return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
-        case 4:
-                matrixflags.osbyte4val = xreg;
-                break;
-        case 6:
-                matrixflags.printer_ignore = xreg;
-                break;
-        case 43:
-                printf("%c", xreg);
-                fflush(stdout);
-                break;
-        case 44:
-                kbd_setvikeys(xreg);
-                break;
+    case 1: case 3: case 5:
+            if (areg==3 || areg==4) tmp=tmp-7;
+            return (mos_osbyte(tmp+0xF0, xreg, 0, 0) & 0xFFFFFF00) | areg;
+    case 4:
+            matrixflags.osbyte4val = xreg;
+            break;
+    case 6:
+            matrixflags.printer_ignore = xreg;
+            break;
+    case 43:
+            printf("%c", xreg);
+            fflush(stdout);
+            break;
+    case 44:
+            kbd_setvikeys(xreg);
+            break;
 
 #ifdef USE_SDL
-        case 15:
-                purge_keys();
-                drain_mousebuffer();
-                break;
-        case 20:                        // OSBYTE 20, reset font
-                reset_sysfont(8);
-                return 0x030114;
-        case 21:                        // OSBYTE 21, flush buffers (0 and 9 only)
-                osbyte21(xreg);
-                break;
-        case 25:                        // OSBYTE 25, reset font
-                if (((xreg >= 0) && (xreg <= 7)) || (xreg == 16)) {
-                  reset_sysfont(xreg);
-                  return(0x19);
-                } else {
-                  return(0x19 + (xreg << 8));
-                }
-        case 42:                        // OSBYTE 42 - local to Brandy
-                return osbyte163_2(xreg);
-                break;
-        case 106:                       // OSBYTE 106 - select pointer
-                sdl_mouse_onoff(xreg & 0x7);
-                break;
-        case 112:                       // OSBYTE 112 - screen bank written to 
-                osbyte112(xreg);
-                break;
-        case 113:                       // OSBYTE 113 - screen bank displayed
-                osbyte113(xreg);
-                break;
-  case 124:
-    basicvars.escape = FALSE;
-    break;
-  case 125:
-    basicvars.escape = TRUE;
-    error(ERR_ESCAPE);
-    break;
-        case 134:                       // OSBYTE 134 - Read POS and VPOS
-        case 165:                       // OSBYTE 165 - Read editing cursor position (we don't have seperate cursors)
-                return osbyte134_165(areg);
-        case 135:                       // OSBYTE 135 - Read character and screen MODE
-                return osbyte135();
+    case 15:
+            purge_keys();
+            drain_mousebuffer();
+            break;
+    case 20:                        // OSBYTE 20, reset font
+            reset_sysfont(8);
+            return 0x030114;
+    case 21:                        // OSBYTE 21, flush buffers (0 and 9 only)
+            osbyte21(xreg);
+            break;
+    case 25:                        // OSBYTE 25, reset font
+            if (((xreg >= 0) && (xreg <= 7)) || (xreg == 16)) {
+              reset_sysfont(xreg);
+              return(0x19);
+            } else {
+              return(0x19 + (xreg << 8));
+            }
+    case 42:                        // OSBYTE 42 - local to Brandy
+            return osbyte163_2(xreg);
+            break;
+    case 106:                       // OSBYTE 106 - select pointer
+            sdl_mouse_onoff(xreg & 0x7);
+            break;
+    case 112:                       // OSBYTE 112 - screen bank written to 
+            osbyte112(xreg);
+            break;
+    case 113:                       // OSBYTE 113 - screen bank displayed
+            osbyte113(xreg);
+            break;
+    case 124:
+            basicvars.escape = FALSE;
+            break;
+    case 125:
+            basicvars.escape = TRUE;
+            error(ERR_ESCAPE);
+            return -1;
+    case 134:                       // OSBYTE 134 - Read POS and VPOS
+    case 165:                       // OSBYTE 165 - Read editing cursor position (we don't have seperate cursors)
+            return osbyte134_165(areg);
+    case 135:                       // OSBYTE 135 - Read character and screen MODE
+            return osbyte135();
 #endif
 
 
-        case 128:                       // OSBYTE 128 - ADVAL
-                return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
+    case 128:                       // OSBYTE 128 - ADVAL
+            return ((mos_adval(xreg | yreg<<8) & 0xFFFF) << 8) | 0x80;
 
-        case 129:                       // OSBYTE 129 - INKEY
-                return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
+    case 129:                       // OSBYTE 129 - INKEY
+            return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x81;
 // NB: Real OSBYTE 129 returns weird result for Escape/Timeout
-                break;
+            break;
 
-        case 130:                       // OSBYTE 130 - High word of user memory
-                areg = (size_t)basicvars.workspace;
-                return ((areg & 0xFFFF0000) >> 8) | 130;
+    case 130:                       // OSBYTE 130 - High word of user memory
+            areg = (size_t)basicvars.workspace;
+            return ((areg & 0xFFFF0000) >> 8) | 130;
 
-        case 131:                       // OSBYTE 132 - Bottom of user memory
-                areg = (size_t)basicvars.workspace;
-                if (areg < 0xFFFF)      return (areg << 8) | 131;
-                else                    return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
+    case 131:                       // OSBYTE 132 - Bottom of user memory
+            areg = (size_t)basicvars.workspace;
+            if (areg < 0xFFFF)      return (areg << 8) | 131;
+            else                    return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
 
-        case 132:                       // OSBYTE 132 - Top of user memory
-                areg = (size_t)basicvars.slotend;
-                if (areg < 0xFFFF)      return (areg << 8) | 132;
-                else                    return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
-//      case 133:                       // OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
+    case 132:                       // OSBYTE 132 - Top of user memory
+            areg = (size_t)basicvars.slotend;
+            if (areg < 0xFFFF)      return (areg << 8) | 132;
+            else                    return ((areg & 0xFF0000) >> 16) | ((areg & 0xFFFF) << 8);
+//  case 133:                       // OSBYTE 133 - Read screen start for MODE - not implemented in RISC OS.
 
-        case 138:
-                if (xreg==0) push_key(yreg);
-                return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x8A; 
-        case 160:                       // OSBYTE 160 - Read VDU variable
-                return emulate_vdufn(xreg) << 8 | 160;
+    case 138:
+            if (xreg==0) push_key(yreg);
+            return ((kbd_inkey(xreg | yreg<<8) & 0xFFFF) << 8) | 0x8A; 
+    case 160:                       // OSBYTE 160 - Read VDU variable
+            return emulate_vdufn(xreg) << 8 | 160;
 #ifdef USE_SDL
-        case 163:                       // OSBYTE 163 - Application Support.
-                if (xreg==1) {          // get/set REFRESH state
-                  if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
-                  else {
-                    if (yreg > 2) return (0xC000FF2A + (yreg << 16));
-                    else star_refresh(yreg);
-                  }
-                } else if (xreg==2) {
-      return osbyte163_2(yreg);
-    } else if (xreg==3) {
-      printf("%c", yreg);
-      fflush(stdout);
-    } else if (xreg==4) {
-      kbd_setvikeys(yreg);
-    } else if (xreg==127) {     // Analogue to 'stty sane'
-                  star_refresh(1);
-                  osbyte112(1);
-                  osbyte113(1);
-                  emulate_vdu(6);
-                } else if (xreg==242) { // GXR and dot pattern
-                  return (osbyte163_242(yreg) << 8);
-                }
-                break;
+    case 163:                       // OSBYTE 163 - Application Support.
+            if (xreg==1) {          // get/set REFRESH state
+              if (yreg == 255) return ((get_refreshmode() << 16) + 0x1A3);
+              else {
+                if (yreg > 2) return (0xC000FF2A + (yreg << 16));
+                else star_refresh(yreg);
+              }
+            } else if (xreg==2) {
+              return osbyte163_2(yreg);
+            } else if (xreg==3) {
+              printf("%c", yreg);
+              fflush(stdout);
+            } else if (xreg==4) {
+              kbd_setvikeys(yreg);
+            } else if (xreg==127) {     // Analogue to 'stty sane'
+              star_refresh(1);
+              osbyte112(1);
+              osbyte113(1);
+              emulate_vdu(6);
+            } else if (xreg==242) { // GXR and dot pattern
+              return (osbyte163_242(yreg) << 8);
+            }
+            break;
 #endif
 // This is now in keyboard.c
-//      case 200:               // OSBYTE 200 - bit 0 disables escape if unset
-//      case 229:               // OSBYTE 229 - Enable or disable escape
-//      case 250:
-//      case 251:
+//  case 200:               // OSBYTE 200 - bit 0 disables escape if unset
+//  case 229:               // OSBYTE 229 - Enable or disable escape
+//  case 250:
+//  case 251:
 //              break;
         }
-if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
-        return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;   // Default null return
-else
-        return (3 << 30) | (yreg << 16) | (0xFF00) | areg;      // Default null return
+  if (areg <= 25 || (areg >= 40 && areg <= 44) || areg >= 106)
+          return (0 << 30) | (yreg << 16) | (xreg << 8) | areg;   // Default null return
+  else
+  return (3u << 30) | (yreg << 16) | (0xFF00) | areg;      // Default null return
 }
 #endif /* !TARGET_RISCOS */
+  

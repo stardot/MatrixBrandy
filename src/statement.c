@@ -325,11 +325,13 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     if (nostring) {
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUM);
+      return;
     }
     length = strlen(TOSTRING(value));
     if (length>MAXSTRING) {
       DEBUGFUNCMSGOUT;
       error(ERR_STRINGLEN);
+      return;
     }
     free_string(*destination.address.straddr);
     cp = alloc_string(length);
@@ -347,11 +349,13 @@ void store_value(lvalue destination, int64 valuex, boolean nostring) {
     if (nostring) {
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUM);
+      return;
     }
     length = strlen(TOSTRING(value));
     if (length>MAXSTRING) {
       DEBUGFUNCMSGOUT;
       error(ERR_STRINGLEN);
+      return;
     }
     if (length>0) memmove(destination.address.uint8addr, TOSTRING(value), length);
     *((uint8 *)destination.address.uint8addr+length) = asc_CR;
@@ -469,6 +473,7 @@ static void exec_statements(byte *lp) {
     if (basicvars.escape) {
       DEBUGFUNCMSGOUT;
       error(ERR_ESCAPE);
+      return;
     }
 #ifdef DEBUG
     if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
@@ -497,7 +502,11 @@ static void exec_statements(byte *lp) {
 */
 void run_program(byte *lp) {
   DEBUGFUNCMSGIN;
-  if (basicvars.misc_flags.badprogram) error(ERR_BADPROG);
+  if (basicvars.misc_flags.badprogram) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_BADPROG);
+    return;
+  }
   if (basicvars.runflags.running) {
     siglongjmp(basicvars.run_restart,1);
   } else {

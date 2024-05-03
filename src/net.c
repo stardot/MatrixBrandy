@@ -173,7 +173,10 @@ void brandynet_init() {
   regs.r[1] = (size_t)swiname;
   regs.r[2] = 255;
   oserror = _kernel_swi(OS_SWINumberToString, &regs, &regs);
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL) {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return;
+  }
   /* LEN("Socket_Creat"+CHR$(0)) = 13 */
   if (regs.r[2] != 13) matrixflags.networking=0; /* SWI not found */
   free(swiname);
@@ -368,12 +371,11 @@ static int net_get_something(int handle) {
 
 int32 net_bget(int handle) {
   int value;
-  int retval=0;
 
   DEBUGFUNCMSGIN;
   if (neteof[handle]) return(-2);
   if (bufptr[handle] >= bufendptr[handle]) {
-    retval=net_get_something(handle);
+    int retval=net_get_something(handle);
     if (retval) return(-2);                             /* EOF */
   }
   if (bufptr[handle] >= bufendptr[handle]) return(-1);  /* No data available. EOF NOT set */
@@ -431,6 +433,7 @@ int checkfornewer() {
   memset(inbuf, 0, 4096);
   hndl=brandynet_connect("brandy.matrixnetwork.co.uk:80", 0, 0);
   if (hndl < 0) {
+    free(inbuf);
     DEBUGFUNCMSGOUT;
     return(0);
   }

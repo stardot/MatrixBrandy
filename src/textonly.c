@@ -225,9 +225,10 @@ static void tekvdu(int chr) {
 ** -- ANSI --
 */
 void find_cursor(void) {
-  int ch, column, row;
+  int column, row;
   column = row = 0;
   if (!basicvars.runflags.outredir && !basicvars.runflags.inredir) {
+    int ch;
     // set_esc_key(_POSIX_VDISABLE); /* Disable INTR */
     printf("\033[6n");  /* ANSI/VTxxx sequence to find the position of the cursor */
     fflush(stdout);
@@ -1046,6 +1047,7 @@ static void reset_colours(void) {
     break;
   default:      /* 32K and 16M colour depths are not supported */
     error(ERR_UNSUPPORTED);
+    return;
   }
   if (colourdepth==256)
     colourmask = COL256MASK;
@@ -1088,7 +1090,10 @@ static void tekexit(void) {
 }
 
 static void vdu_cleargraph(void) {
-  if (! matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+  if (! matrixflags.tekenabled) {
+    error(ERR_NOGRAPHICS);
+    return;
+  }
   tekinit();
   tekvdu(27);
   tekvdu(12);
@@ -1260,8 +1265,12 @@ void emulate_vdu(int32 charvalue) {
   case VDU_GRAPHICURS:  /* 5 - Print text at graphics cursor */
 #ifdef NOTEKGFX
     error(ERR_NOGRAPHICS);
+    return;
 #else
-    if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+    if (!matrixflags.tekenabled) {
+      error(ERR_NOGRAPHICS);
+      return;
+    }
     tekinit();
     graphicurs = 1;
 #endif
@@ -1302,7 +1311,7 @@ void emulate_vdu(int32 charvalue) {
     ** Make graphics colour changes a no-op instead of complaining. */
     if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
 #endif
-    break;
+    return;
   case VDU_LOGCOL:      /* 19 - Map logical colour to physical colour */
     vdu_setpalette();
     break;
@@ -1325,7 +1334,7 @@ void emulate_vdu(int32 charvalue) {
     ** For now, a no-op. */
     if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
 #endif
-    break;
+    return;
   case VDU_PLOT:        /* 25 - Issue graphics command */
     vdu_plot();
     break;
@@ -1448,7 +1457,10 @@ static void setup_mode(int32 mode) {
   }
   else {
     if (mode>HIGHMODE) mode = modecopy = 0;     /* User-defined modes are mapped to mode 0 */
-    if (modetable[mode].xtext>SCRWIDTH && (!matrixflags.tekenabled)) error(ERR_BADMODE);
+    if (modetable[mode].xtext>SCRWIDTH && (!matrixflags.tekenabled)) {
+      error(ERR_BADMODE);
+      return;
+    }
 /* Set up VDU driver parameters for mode */
     screenmode = modecopy;
     colourdepth = modetable[mode].coldepth;
@@ -1512,19 +1524,22 @@ void emulate_mode(int32 mode) {
  */
 void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
   int32 coldepth, n;
-  if (xres==0 || yres==0 || rate==0 || bpp==0) error(ERR_BADMODE);
+  if (xres==0 || yres==0 || rate==0 || bpp==0) {
+    error(ERR_BADMODE);
+    return;
+  }
   switch (bpp) {
-  case 1: coldepth = 2; break;
-  case 2: coldepth = 4; break;
-  case 4: coldepth = 16; break;
-  default:
-    coldepth = 256;
+    case 1: coldepth = 2; break;
+    case 2: coldepth = 4; break;
+    case 4: coldepth = 16; break;
+    default:
+      coldepth = 256;
   }
   for (n=0; n<=HIGHMODE; n++) {
     if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
   }
   if (n > HIGHMODE) error(ERR_BADMODE);
-  emulate_mode(n);
+  else emulate_mode(n);
 }
 
 /*
@@ -1534,13 +1549,16 @@ void emulate_newmode(int32 xres, int32 yres, int32 bpp, int32 rate) {
 */
 void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 xeig, int32 yeig, int32 rate) {
   int32 coldepth, n;
-  if (xres==0 || yres==0 || rate==0 || (colours==0 && greys==0)) error(ERR_BADMODE);
+  if (xres==0 || yres==0 || rate==0 || (colours==0 && greys==0)) {
+    error(ERR_BADMODE);
+    return;
+  }
   coldepth = colours!=0 ? colours : greys;
   for (n=0; n<=HIGHMODE; n++) {
     if (modetable[n].xres==xres && modetable[n].yres==yres && modetable[n].coldepth==coldepth) break;
   }
   if (n>HIGHMODE) error(ERR_BADMODE);
-  emulate_mode(n);
+  else emulate_mode(n);
 }
 
 /*
@@ -1809,24 +1827,22 @@ static void filled_ellipse(
   int32 shearx /* X shear */
 ) {
 
-  int32 x, y, width, aa, bb, aabb, ym, dx, si;
-  float64 s;
+  int32 y, width, aa, bb, aabb, ym, dx;
 
   aa = a * a;
   bb = b * b;
-  aabb=aa*bb;
+  aabb = aa * bb;
 
-  x = 0;
-  width=a;
+  width = a;
   dx = 0;
-  ym = y = b;
+  ym = b;
 
   draw_h_line(x0-a, y0, x0 + a);
 
   for (y=1; y <= b; y++) {
-    s=shearx*(1.0*y/ym);
-    si=s;
-    x=width-(dx-1);
+    float64 s=shearx*(1.0*y/ym);
+    int32 si=s;
+    int32 x=width-(dx-1);
     for (;x>0; x--)
       if (x*x*bb + y*y*aa < aabb) break;
     dx = width -x;
@@ -1845,13 +1861,16 @@ static void fill_rectangle(uint32 left, uint32 top, uint32 right, uint32 bottom)
 }
 
 /*
-** Version of 'emulate_plot' used when interpreter does not
-** include any graphics support
+** Version of 'emulate_plot' used when interpreter has limited graphics
+** support via Tektronix terminals
 */
 void emulate_plot(int32 code, int32 x, int32 y) {
   int32 xlast3, ylast3, sx, sy, ex, ey;
 
-  if (!matrixflags.tekenabled) error(ERR_NOGRAPHICS);
+  if (!matrixflags.tekenabled) {
+    error(ERR_NOGRAPHICS);
+    return;
+  }
 /* Decode the command */
   tekinit();
   xlast3 = xlast2;
@@ -1893,9 +1912,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     plot_pixel(ex, ey);
     break;
   case FILL_TRIANGLE: {         /* Plot a filled triangle */
-    int32 left, right, top, bottom;
+    // int32 left, right, top, bottom;
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
 /*  Now figure out the coordinates of the rectangle that contains the triangle */
+#if 0 /* These might be useful for future expansion */
     left = right = xlast3;
     top = bottom = ylast3;
     if (xlast2 < left) left = xlast2;
@@ -1906,6 +1926,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast > top) top = ylast;
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
+#endif
     break;
   }
   case FILL_RECTANGLE: {                /* Plot a filled rectangle */
@@ -1922,17 +1943,19 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     break;
   }
   case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
-    int32 vx, vy, left, right, top, bottom;
+    int32 vx, vy;
+    // int32 left, right, top, bottom;
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
     vx = xlast3-xlast2+xlast;
     vy = ylast3-ylast2+ylast;
     filled_triangle(ex, ey, vx, vy, xlast3, ylast3);
 /*  Now figure out the coordinates of the rectangle that contains the parallelogram */
+#if 0 /* These might be useful for future expansion */
     left = right = xlast3;
     top = bottom = ylast3;
     if (xlast2 < left) left = xlast2;
     if (xlast < left) left = xlast;
-    if (vx < left) left = vx;
+     if (vx < left) left = vx;
     if (xlast2 > right) right = xlast2;
     if (xlast > right) right = xlast;
     if (vx > right) right = vx;
@@ -1942,6 +1965,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     if (ylast2 < bottom) bottom = ylast2;
     if (ylast < bottom) bottom = ylast;
     if (vy < bottom) bottom = vy;
+#endif
     break;
   }
   case PLOT_CIRCLE:             /* Plot the outline of a circle */
@@ -1962,8 +1986,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     /* To match RISC OS, xlast needs to be the right-most point not left-most. */
     xlast+=(xr*2);
-    ex = sx-xradius;
-    ey = sy-yradius;
+//    ex = sx-xradius;
+//    ey = sy-yradius;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     break;
   }
@@ -1986,8 +2010,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     else {
       filled_ellipse(sx, sy, semimajor, semiminor, shearx);
     }
-    ex = sx-semimajor;
-    ey = sy-semiminor;
+//    ex = sx-semimajor;
+//    ey = sy-semiminor;
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
     break;
   }

@@ -101,6 +101,7 @@ static void fix_address(lvalue *destination) {
       else {
         DEBUGFUNCMSGOUT;
         error(ERR_ARRAYMISS, tocstring(CAST(base, char *), tp-base));   /* Cannot create array - Flag error */
+        return;
       }
     }
     else {      /* Missing variable - Create it */
@@ -113,7 +114,10 @@ static void fix_address(lvalue *destination) {
 /* is in a LOCAL, DEF PROC or DEF FN statement as it is legal for there to */
 /* be a null pointer to the array descriptor in these contexts */
     if (isarray && !basicvars.runflags.make_array &&
-     vp->varentry.vararray==NIL) error(ERR_NODIMS, vp->varname);        /* Array not dimensioned */
+     vp->varentry.vararray==NIL) {
+       error(ERR_NODIMS, vp->varname);        /* Array not dimensioned */
+       return;
+     }
   }
 /*
 ** Update the token that gives the variable's type and store a pointer
@@ -128,7 +132,7 @@ static void fix_address(lvalue *destination) {
       break;
     case VAR_UINT8:
       error(ERR_UNSUITABLEVAR);
-      break;
+      return;
     case VAR_INTLONG:           /* Op follows a 64-bit integer variable */
       *basicvars.current = BASTOKEN_INT64INDVAR;
       set_address(basicvars.current, &vp->varentry.var64int);
@@ -140,6 +144,7 @@ static void fix_address(lvalue *destination) {
     default:
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUM);        /* Need a numeric variable before the operator */
+      return;
     }
   }
   else {        /* Simple variable reference or any type of array reference */
@@ -287,15 +292,20 @@ static void do_elementvar(lvalue *destination) {
     if (element<0 || element>=descriptor->dimsize[0]) {
       DEBUGFUNCMSGOUT;
       error(ERR_BADINDEX, element, vp->varname);
+      return;
     }
   }
   else {
-    int32 index = 0, maxdims = descriptor->dimcount, dimcount = 0;
+    int32 maxdims = descriptor->dimcount, dimcount = 0;
     element = 0;
     do {        /* Gather the array indexes */
+      int32 index;
       expression();     /* Evaluate an array index */
       index = pop_anynum32();
-      if (index<0 || index>=descriptor->dimsize[dimcount]) error(ERR_BADINDEX, index, vp->varname);
+      if (index<0 || index>=descriptor->dimsize[dimcount]) {
+        error(ERR_BADINDEX, index, vp->varname);
+        return;
+      }
       element+=index;
       dimcount++;
       if (*basicvars.current!=',') break;       /* Escape from loop if no further indexes are expected */
@@ -303,17 +313,20 @@ static void do_elementvar(lvalue *destination) {
       if (dimcount>maxdims) {               /* Too many dimensions */
         DEBUGFUNCMSGOUT;
         error(ERR_INDEXCO, vp->varname);
+        return;
       }
       if (dimcount!=maxdims) element = element*descriptor->dimsize[dimcount];
     } while (TRUE);
     if (dimcount!=maxdims) {                /* Not enough dimensions */
       DEBUGFUNCMSGOUT;
       error(ERR_INDEXCO, vp->varname);
+      return;
     }
   }
   if (*basicvars.current!=')') {
     DEBUGFUNCMSGOUT;
     error(ERR_RPMISS);
+    return;
   }
   basicvars.current++;  /* Step past the ')' */
   destination->typeinfo = vartype = vartype-VAR_ARRAY;  /* Clear the 'array' bit */
@@ -343,6 +356,7 @@ static void do_elementvar(lvalue *destination) {
     default: 
       DEBUGFUNCMSGOUT;
       error(ERR_VARNUM);
+      return;
   }
 /* Now deal with the indirection operator */
   if (*basicvars.current=='?')          /* Result of operator is a single byte integer */

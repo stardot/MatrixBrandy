@@ -190,8 +190,11 @@ static void *get_dladdr(size_t nameptr, void *libhandle, int32 xflag) {
 #ifdef TARGET_MINGW
   *(void **)(&dlsh)=rtrdlsym(libhandle, (void *)nameptr);
   if (dlsh == NULL) { 
-    if (!xflag) error(ERR_DL_NOSYM, "Symbol not found");
     dlsh = (void *)-1;
+    if (!xflag) {
+      error(ERR_DL_NOSYM, "Symbol not found");
+      return (dlsh);
+    }
   }
 #else
   *(void **)(&dlsh)=dlsym(libhandle, (void *)nameptr);
@@ -315,7 +318,10 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       switch(inregs[0].i) {
         case 0: case 10:
           file_handle=fopen((char *)(size_t)inregs[1].i, "wb");
-          if (!file_handle) error(ERR_OPENWRITE);
+          if (!file_handle) {
+            error(ERR_OPENWRITE);
+            return;
+          }
           pointer = (char *)(size_t)inregs[4].i;
 #ifdef USE_SDL
           /* Mode 7 screen memory */
@@ -332,18 +338,30 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
           break;
         case 6:
           outregs[0]=0;
-          if (stat((char *)(size_t)inregs[1].i,&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+          if (stat((char *)(size_t)inregs[1].i,&statbuf)) {
+            error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+            return;
+          }
           if (S_ISDIR(statbuf.st_mode)) {
             outregs[0]=2;
-            if (rmdir((char *)(size_t)inregs[1].i)) error(ERR_DIRNOTEMPTY);
+            if (rmdir((char *)(size_t)inregs[1].i)) {
+              error(ERR_DIRNOTEMPTY);
+              return;
+            }
           } else {
             outregs[0]=1;
-            if (unlink((char *)(size_t)inregs[1].i)) error(ERR_FILELOCKED);
+            if (unlink((char *)(size_t)inregs[1].i)) {
+              error(ERR_FILELOCKED);
+              return;
+            }
           }
           break;
         case 7: case 11:
           file_handle=fopen((char *)(size_t)inregs[1].i, "wb");
-          if (!file_handle) error(ERR_OPENWRITE);
+          if (!file_handle) {
+            error(ERR_OPENWRITE);
+            return;
+          }
           fclose(file_handle);
           break;
         case 8:
@@ -351,7 +369,10 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
 #ifndef TARGET_MINGW
           , 0777
 #endif
-          )) error(ERR_NODIR);
+          )) {
+            error(ERR_NODIR);
+            return;
+          }
           break;
         case 12: /* Should separate these out into the way they read the filename. */
         case 14:
@@ -359,7 +380,10 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         case 255:
           outregs[0]=1;
           file_handle=fopen((char *)(size_t)inregs[1].i, "rb");
-          if (!file_handle) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+          if (!file_handle) {
+            error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+            return;
+          }
           pointer = (char *)(size_t)inregs[2].i;
 #ifdef USE_SDL
           /* Mode 7 screen memory */
@@ -378,16 +402,21 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
           break;
         case 19:
           error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
-          break;
+          return;
         case 24:
 #ifdef TARGET_MINGW
           outregs[2]=65536; /* Dummy value, information is not available in Windows */
 #else
-          if (stat((char *)(size_t)inregs[1].i,&statbuf)) error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+          if (stat((char *)(size_t)inregs[1].i,&statbuf)) {
+            error(ERR_NOTFOUND, (char *)(size_t)inregs[1].i);
+            return;
+          }
           outregs[2]=statbuf.st_blksize;
 #endif
           break;
-        default: error(ERR_BAD_OSFILE);
+        default: 
+          error(ERR_BAD_OSFILE);
+          return;
       }
       break;
     case SWI_OS_ReadLine:
@@ -603,11 +632,15 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_dlopen:
 #ifdef __clang__
       error(ERR_DL_NODL);
+      return;
 #else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       outregs[0]=(size_t)dlopen((char *)(size_t)inregs[0].i, RTLD_NOW|RTLD_GLOBAL);
 #else
-      if (!xflag) error(ERR_DL_NODL);
+      if (!xflag) {
+        error(ERR_DL_NODL);
+        return;
+      }
       outregs[0]=0;
 #endif /* TARGET_UNIX | TARGET_MINGW */
 #endif /* __clang__ */
@@ -615,6 +648,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_dlcall:
 #ifdef __clang__
       error(ERR_DL_NODL);
+      return;
 #else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
@@ -626,22 +660,37 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         if (dlsh != (void *)-1) outregs[0]=do_syscall(dlsh, inregs);
       }
 #else
-      if (!xflag) error(ERR_DL_NODL);
+      if (!xflag) {
+        error(ERR_DL_NODL);
+        return;
+      }
       outregs[0]=0;
 #endif /* TARGET_UNIX | TARGET_MINGW */
 #endif /* __clang__ */
       break;
     case SWI_Brandy_MAlloc:
         outregs[0]=(size_t)malloc((size_t)inregs[0].i);
-        if (!xflag && outregs[0] == 0) error(ERR_NOMEMORY);
+        if (!xflag && outregs[0] == 0) {
+          error(ERR_NOMEMORY);
+          return;
+        }
       break;
     case SWI_Brandy_Free:
-        if ((size_t)inregs[0].i == (size_t)basicvars.workspace) error(ERR_ADDREXCEPT); /* Don't be silly. */
+        if ((size_t)inregs[0].i == (size_t)basicvars.workspace) {
+          error(ERR_ADDREXCEPT); /* Don't be silly. */
+          return;
+        }
         if (matrixflags.gpio) {
-          if ((size_t)inregs[0].i == (size_t)matrixflags.gpiomem) error(ERR_ADDREXCEPT); /* Don't deallocate GPIO mmap */
+          if ((size_t)inregs[0].i == (size_t)matrixflags.gpiomem) {
+            error(ERR_ADDREXCEPT); /* Don't deallocate GPIO mmap */
+            return;
+          }
         }
 #ifdef USE_SDL
-        if ((size_t)inregs[0].i == (size_t)matrixflags.modescreen_ptr) error(ERR_ADDREXCEPT); /* Don't allow deallocation of screen memory */
+        if ((size_t)inregs[0].i == (size_t)matrixflags.modescreen_ptr) {
+          error(ERR_ADDREXCEPT); /* Don't allow deallocation of screen memory */
+          return;
+        }
 #endif
         free((void *)(size_t)inregs[0].i);
       break;
@@ -685,6 +734,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_dlgetaddr:
 #ifdef __clang__
       error(ERR_DL_NODL);
+      return;
 #else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
         outregs[0]=(size_t)get_dladdr(inregs[0].i, (void *)(size_t)inregs[1].i, xflag);
@@ -697,6 +747,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_dlcalladdr:
 #ifdef __clang__
       error(ERR_DL_NODL);
+      return;
 #else
 #if defined(TARGET_UNIX) || defined(TARGET_MINGW)
       {
@@ -709,10 +760,14 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
           outregs[0]=do_syscall(dlsh, inregs);
         } else {
           error(ERR_ADDREXCEPT);
+          return;
         }
       }
 #else
-      if (!xflag) error(ERR_DL_NODL);
+      if (!xflag) {
+        error(ERR_DL_NODL);
+        return;
+      }
       outregs[0]=0;
 #endif /* TARGET_UNIX | TARGET_MINGW */
 #endif /* __clang__ */
@@ -722,7 +777,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       break;
     case SWI_Brandy_TranslateFNames:
       outregs[0]=matrixflags.translatefname;
-      if (inregs[0].i >= 0 && inregs[0].i <= 2) matrixflags.translatefname = inregs[0].i;
+      if (inregs[0].i <= 2) matrixflags.translatefname = inregs[0].i;
       break;
 // Raspberry Pi GPIO stuff below
     case SWI_RaspberryPi_GPIOInfo:

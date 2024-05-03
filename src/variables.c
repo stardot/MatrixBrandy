@@ -155,7 +155,10 @@ void exec_clear_himem(void) {
       case STACK_INTARRAY: case STACK_UINT8ARRAY: case STACK_INT64ARRAY: case STACK_FLOATARRAY:
         descriptor=pop_array();
         vp=descriptor->parent;
-        if (!descriptor->offheap) error(ERR_OFFHEAPARRAY);
+        if (!descriptor->offheap) {
+          error(ERR_OFFHEAPARRAY);
+          return;
+        }
         free(vp->varentry.vararray->arraystart.arraybase);
         free(vp->varentry.vararray);
         vp->varentry.vararray=NULL;
@@ -307,7 +310,9 @@ static void list_varlist(char which, library *lp) {
               case VAR_UINT8ARRAY: strcat(temp, "uint8()"); break;
               case VAR_FLOATARRAY: strcat(temp, "real()"); break;
               case VAR_STRARRAY: strcat(temp, "string()"); break;
-              default: error(ERR_BROKEN, __LINE__, "variables");
+              default: 
+                error(ERR_BROKEN, __LINE__, "variables");
+                return;
               }
               fp = fp->nextparm;
               if (fp==NIL)
@@ -340,6 +345,7 @@ static void list_varlist(char which, library *lp) {
           fprintf(stderr, "Broken, varflags=%X\n", vp->varflags);
 #endif
           error(ERR_BROKEN, __LINE__, "variables varflags");
+          return;
         }
         next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
         if (next>=width) {      /* Not enough room on this line */
@@ -385,15 +391,14 @@ static void list_entries(library *lp) {
 ** lists everything
 */
 void list_variables(char which) {
-  char n;
-  char temp[40];
-  int columns, len, next, width, atpercent;
+  int width;
 
   DEBUGFUNCMSGIN;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   if (which==' ') {     /* List everything */
+    char n, temp[40];
+    int columns = 0, atpercent, len, next;
     emulate_printf("Static integer variables:\r\n");
-    columns = 0;
     for (n='A'; n<='Z'; n++) {
       len = sprintf(temp, "%c%% = %d", n, basicvars.staticvars[n-'A'+1].varentry.varinteger);
       next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
@@ -499,8 +504,8 @@ void list_libraries(char ch) {
 ** array, that is, it is defined in a procedure or function.
 */
 void define_array(variable *vp, boolean islocal, boolean offheap) {
-  int32 bounds[MAXDIMS];
-  int32 n, dimcount, highindex, elemsize = 0;
+  int32 bounds[1+MAXDIMS];
+  int32 n, dimcount, elemsize = 0;
   size_t size;
   basicarray *ap;
 
@@ -521,36 +526,61 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
     elemsize = sizeof(float64);
     break;
   case VAR_STRARRAY:
-    if (offheap) error(ERR_NUMARRAY);
+    if (offheap) {
+      error(ERR_NUMARRAY);
+      return;
+    }
     elemsize = sizeof(basicstring);
     break;
   default:
     error(ERR_BROKEN, __LINE__, "variables");   /* Bad variable type flags found */
+    return;
   }
   do {  /* Find size of each dimension */
-    highindex = eval_integer();
-    if (*basicvars.current!=',' && *basicvars.current!=')' && *basicvars.current!=']') error(ERR_CORPNEXT);
-    if (highindex<0) error(ERR_NEGDIM, vp->varname);
+    int32 highindex = eval_integer();
+    if (*basicvars.current!=',' && *basicvars.current!=')' && *basicvars.current!=']') {
+      error(ERR_CORPNEXT);
+      return;
+    }
+    if (highindex<0) {
+      error(ERR_NEGDIM, vp->varname);
+      return;
+    }
     highindex++;        /* Add 1 to get size of dimension */
-    if (dimcount>MAXDIMS) error(ERR_DIMCOUNT, vp->varname);     /* Array has too many dimemsions */
+    if (dimcount>MAXDIMS) {
+      error(ERR_DIMCOUNT, vp->varname);     /* Array has too many dimemsions */
+      return;
+    }
     bounds[dimcount] = highindex;
     size = size*highindex;
     dimcount++;
     if (*basicvars.current!=',') break;
     basicvars.current++;
   } while (TRUE);
-  if (*basicvars.current!=')' && *basicvars.current!=']') error(ERR_RPMISS);
-  if (dimcount==0) error(ERR_SYNTAX);   /* No array dimemsions supplied */
+  if (*basicvars.current!=')' && *basicvars.current!=']') {
+    error(ERR_RPMISS);
+    return;
+  }
+  if (dimcount==0) {
+    error(ERR_SYNTAX);   /* No array dimemsions supplied */
+    return;
+  }
   basicvars.current++;  /* Skip the ')' */
 /* Now create the array and initialise it */
   if (islocal) {        /* Acquire memory from stack for a local array */
     if (offheap) {
       ap = malloc(sizeof(basicarray));                  /* Grab memory for array descriptor */
-      if (ap==NULL) error(ERR_BADDIM, vp->varname);     /* There is not enough memory available for the descriptor */
+      if (ap==NULL) {
+        error(ERR_BADDIM, vp->varname);     /* There is not enough memory available for the descriptor */
+        return;
+      }
       ap->arraystart.arraybase = malloc(size*elemsize); /* Grab memory for array proper */
     } else {
       ap = alloc_stackmem(sizeof(basicarray));  /* Grab memory for array descriptor */
-      if (ap==NIL) error(ERR_BADDIM, vp->varname);
+      if (ap==NIL) {
+        error(ERR_BADDIM, vp->varname);
+        return;
+      }
       if (vp->varflags==VAR_STRARRAY)   /* Grab memory for array and mark it as string array */
         ap->arraystart.arraybase = alloc_stackstrmem(size*elemsize);
       else {    /* Grab memory for numeric array */
@@ -561,7 +591,10 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   else {        /* Acquire memory from heap for a normal array */
     if (offheap) {
       ap = malloc(sizeof(basicarray));                  /* Grab memory for array descriptor */
-      if (ap==NULL) error(ERR_BADDIM, vp->varname);     /* There is not enough memory available for the descriptor */
+      if (ap==NULL) {
+        error(ERR_BADDIM, vp->varname);     /* There is not enough memory available for the descriptor */
+        return;
+      }
       ap->arraystart.arraybase = malloc(size*elemsize); /* Grab memory for array proper */
     } else {
       ap = allocmem(sizeof(basicarray), 0);             /* Grab memory for array descriptor */
@@ -570,6 +603,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
         strncpy(tmpvarname, vp->varname, 255);
         remove_variable(vp, vp->varflink);
         error(ERR_BADDIM, tmpvarname);  /* There is not enough memory available for the descriptor */
+        return;
       }
       ap->arraystart.arraybase = allocmem(size*elemsize, 0);    /* Grab memory for array proper */
     }
@@ -577,6 +611,7 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
   if (ap->arraystart.arraybase==NIL) {
     if (!islocal) remove_variable(vp, vp->varflink);
     error(ERR_BADDIM, vp->varname);     /* There is not enough memory */
+    return;
   }
   ap->dimcount = dimcount;
   ap->arrsize = size;
@@ -708,7 +743,10 @@ variable *find_variable(byte *np, int namelen) {
   int32 hashvalue;
 
   DEBUGFUNCMSGIN;
-  if(namelen > (MAXNAMELEN-1)) error(ERR_BADVARPROCNAME);
+  if(namelen > (MAXNAMELEN-1)) {
+    error(ERR_BADVARPROCNAME);
+    return NULL;
+  }
   memcpy(name, np, namelen);
   if (name[namelen-1]=='[') name[namelen-1] = '(';
   name[namelen] = asc_NUL;              /* Ensure name is null-terminated */
@@ -772,13 +810,19 @@ static void scan_parmlist(variable *vp) {
       count++;
       if (*basicvars.current!=',') break;       /* There is nothing more to do */
     } while(TRUE);
-    if (*basicvars.current!=')') error(ERR_CORPNEXT);
+    if (*basicvars.current!=')') {
+      error(ERR_CORPNEXT);
+      return;
+    }
     basicvars.current++;        /* Move past ')' */
   }
   if (*basicvars.current==':') basicvars.current++;     /* Body of procedure starts on same line as 'DEF PROC/FN' */
   while (*basicvars.current==asc_NUL) { /* Body of procedure starts on next line */
     basicvars.current++;        /* Move to start of next line */
-    if (AT_PROGEND(basicvars.current)) error(ERR_SYNTAX);       /* There is no procedure body */
+    if (AT_PROGEND(basicvars.current)) {
+      error(ERR_SYNTAX);       /* There is no procedure body */
+      return;
+    }
     basicvars.current = FIND_EXEC(basicvars.current);   /* Find the first executable token */
   }
   dp = allocmem(sizeof(fnprocdef), 1);
@@ -819,13 +863,19 @@ static void add_libvars(byte *tp, library *lp) {
     if (vp==NIL || vp->varowner!=lp) vp = create_variable(base, namelen, lp);
     tp+=LOFFSIZE+1;
     if ((vp->varflags & VAR_ARRAY)!=0) {        /* Array */
-      if (*tp!=')' && *tp!=']') error(ERR_RPMISS);
+      if (*tp!=')' && *tp!=']') {
+        error(ERR_RPMISS);
+        return;
+      }
       tp++;
     }
     if (*tp!=',') break;
     tp++;
   }
-  if (*tp!=asc_NUL && *tp!=':') error(ERR_SYNTAX);
+  if (*tp!=asc_NUL && *tp!=':') {
+    error(ERR_SYNTAX);
+    return;
+  }
   restore_current();    /* Restore current to its proper value */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
@@ -848,11 +898,17 @@ static void add_libarray(byte *tp, library *lp) {
   basicvars.current = tp;
   do {
     basicvars.current++;                /*Skip DIM token or ',' */
-    if (*basicvars.current!=BASTOKEN_XVAR) error(ERR_SYNTAX);        /* Array name wanted */
+    if (*basicvars.current!=BASTOKEN_XVAR) {
+      error(ERR_SYNTAX);        /* Array name wanted */
+      return;
+    }
     base = GET_SRCADDR(basicvars.current);
     ep = skip_name(base);       /* Find byte after name */
     namelen = ep-base;
-    if (*(ep-1)!='(' && *(ep-1)!='[') error(ERR_VARARRAY);      /* Not an array */
+    if (*(ep-1)!='(' && *(ep-1)!='[') {
+      error(ERR_VARARRAY);      /* Not an array */
+      return;
+    }
     vp = find_variable(base, namelen);  /* Has array already been created for this library? */
     if (vp==NIL)        /* Library does not exist */
       vp = create_variable(base, namelen, lp);
@@ -860,12 +916,19 @@ static void add_libarray(byte *tp, library *lp) {
       if (vp->varowner!=lp)     /* But it is not in this library */
         vp = create_variable(base, namelen, lp);
       else {    /* Array exists - Has its dimensions been defined? */
-        if (vp->varentry.vararray!=NIL) error(ERR_DUPLDIM, vp->varname);              }
+        if (vp->varentry.vararray!=NIL) {
+          error(ERR_DUPLDIM, vp->varname);
+          return;
+        }
+      }
     }
     basicvars.current+=LOFFSIZE+1;
     define_array(vp, FALSE, FALSE); /* could perhaps put the final parameter to TRUE for an off-heap array? */
   } while (*basicvars.current==',');
-  if (*basicvars.current!=asc_NUL && *basicvars.current!=':') error(ERR_SYNTAX);
+  if (*basicvars.current!=asc_NUL && *basicvars.current!=':') {
+    error(ERR_SYNTAX);
+    return;
+  }
   restore_current();    /* Restore current to its proper value */
 #ifdef DEBUG
   if (basicvars.debug_flags.variables) fprintf(stderr, "Created private variable '%s' in library '%s' at %p\n",
@@ -915,7 +978,7 @@ static libfnproc *add_procfn(byte *bp, byte *tp) {
 ** this time.
 */
 static void scan_library(library *lp) {
-  byte *tp, *bp;
+  byte *bp;
   libfnproc *fpp, *fpplast;
   boolean foundproc;
 
@@ -924,7 +987,7 @@ static void scan_library(library *lp) {
   fpplast = NIL;
   foundproc = FALSE;
   while (!AT_PROGEND(bp)) {
-    tp = FIND_EXEC(bp);
+    byte *tp = FIND_EXEC(bp);
     if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found DEF PROC or DEF FN */
       foundproc = TRUE;
       fpp = add_procfn(bp, tp);
@@ -1003,7 +1066,10 @@ static variable *mark_procfn(byte *pp) {
   ep = skip_name(base);
   if (*(ep-1)=='(') ep--;
   namelen = ep-base;
-  if (namelen > (MAXNAMELEN - 1)) error(ERR_BADPROCFNNAME, GET_LINENO(base-7));
+  if (namelen > (MAXNAMELEN - 1)) {
+    error(ERR_BADPROCFNNAME, GET_LINENO(base-7));
+    return NULL;
+  }
   cp = allocmem(namelen+1, 1);
   vp = allocmem(sizeof(variable), 1);
   memcpy(cp, base, namelen);    /* Make copy of name */
@@ -1031,7 +1097,7 @@ static variable *mark_procfn(byte *pp) {
 ** of the procedure or function
 */
 static variable *scan_fnproc(char *name) {
-  byte *tp, *bp;
+  byte *bp;
   int32 namehash;
   variable *vp;
   library *lp;
@@ -1041,7 +1107,7 @@ static variable *scan_fnproc(char *name) {
   bp = basicvars.lastsearch;    /* Start new search where last one ended */
   vp = NIL;
   while (!AT_PROGEND(bp)) {
-    tp = FIND_EXEC(bp);
+    byte *tp = FIND_EXEC(bp);
     bp+=GET_LINELEN(bp);        /* This is updated here so that 'lastsearch' is set correctly below */
     if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found 'DEF PROC' or 'DEF FN' */
       vp = mark_procfn(tp+1); /* Must be a previously unseen entry */
@@ -1067,9 +1133,9 @@ static variable *scan_fnproc(char *name) {
     } while (lp!=NIL);
   }
   if (vp==NIL) {        /* Procedure/function not found */
-    if (*CAST(name, byte *)==BASTOKEN_PROC)  /* First byte of name is a 'PROC' or 'FN' token */
+    if (*CAST(name, byte *)==BASTOKEN_PROC) {  /* First byte of name is a 'PROC' or 'FN' token */
       error(ERR_PROCMISS, name+1);
-    else {
+    } else {
       error(ERR_FNMISS, name+1);
     }
   }

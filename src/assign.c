@@ -3289,11 +3289,8 @@ static void assign_himem(void) {
   }
   if (basicvars.himem == newhimem) return; /* Always OK to set HIMEM to its existing value */
   if (newhimem<(basicvars.vartop+1024) || newhimem>basicvars.end) {
-    DEBUGFUNCMSGOUT;
     error(WARN_BADHIMEM);       /* Flag error (execution continues after this one) */
-    return;
-  }
-  else if (!IS_SAFESTACK) {
+  } else if (!IS_SAFESTACK) {
     DEBUGFUNCMSGOUT;
     error(ERR_HIMEMFIXED);      /* Cannot alter HIMEM here */
     return;

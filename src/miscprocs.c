@@ -183,7 +183,10 @@ size_t m7offset(size_t p) {
 ** there is a check for overflow.
 */
 void save_current(void) {
-  if (basicvars.curcount==MAXCURCOUNT) error(ERR_OPSTACK);
+  if (basicvars.curcount==MAXCURCOUNT) {
+    error(ERR_OPSTACK);
+    return;
+  }
   basicvars.savedcur[basicvars.curcount] = basicvars.current;
   basicvars.curcount++;
 }
@@ -303,19 +306,21 @@ byte *find_linestart(byte *wanted) {
 ** for the line otherwise it searches the program in memory
 */
 byte *find_line(int32 lineno) {
-  byte *p, *cp;
-  library *lp;
+  byte *p;
+
   if (basicvars.runflags.running) {     /* Running program => search program or library */
-    cp = basicvars.current;     /* This is just to reduce the amount of typing */
+    byte *cp = basicvars.current;     /* This is just to reduce the amount of typing */
     if (cp>=basicvars.page && cp<basicvars.top)         /* Check program for line */
       p = basicvars.start;
     else {      /* Check libraries */
-      lp = find_library(cp);
-      if (lp==NIL) error(ERR_BROKEN, __LINE__, "misc"); /* Could not find line number anywhere */
+      library *lp = find_library(cp);
+      if (lp==NIL) {
+        error(ERR_BROKEN, __LINE__, "misc"); /* Could not find line number anywhere */
+        return NULL;
+      }
       p = lp->libstart;
     }
-  }
-  else {        /* Not running a program - Line can only be in the program in memory */
+  } else {        /* Not running a program - Line can only be in the program in memory */
     p = basicvars.start;
   }
   while (GET_LINENO(p)<lineno) p+=GET_LINELEN(p);
@@ -327,15 +332,15 @@ byte *find_line(int32 lineno) {
 **'low' and 'high' as bytes of data
 */
 void show_byte(size_t low, size_t high) {
-  int32 n, x, ll, count;
+  int32 n, ll, count;
   byte ch;
   //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
   if (low>high) return;
   //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
   for (n=0; n<count; n+=16) {
+    int32 x = 0;
     emulate_printf("%06X  ", low);
-    x = 0;
     for (ll=0; ll<16; ll++) {
       if (n+ll>=count)
         emulate_printf("   ");
@@ -430,8 +435,11 @@ boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = asc_NUL;
   result = kbd_readline(line, linelen, 0);
-  result = READ_OK;     /* temp'y bodge */
-  if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
+  // result = READ_OK;     /* temp'y bodge */
+  if (result==READ_ESC || basicvars.escape) {
+    error(ERR_ESCAPE);
+    return FALSE;
+  }
   if (result==READ_EOF) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
@@ -450,8 +458,11 @@ boolean read_line(char line[], int32 linelen) {
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
   result = kbd_readline(line, linelen,0);
-  result = READ_OK;     /* temp'y bodge */
-  if (result==READ_ESC || basicvars.escape) error(ERR_ESCAPE);
+  //result = READ_OK;     /* temp'y bodge */
+  if (result==READ_ESC || basicvars.escape) {
+    error(ERR_ESCAPE);
+    return FALSE;
+  }
   if (result==READ_EOF) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
@@ -490,8 +501,14 @@ int32 TOINT(float64 fltmp) {
 }
 
 int64 TOINT64(float64 fltmp) {
-  if (fltmp > MAXINT64FLT) error(ERR_RANGE);
-  if (fltmp < MININT64FLT) error(ERR_RANGE);
+  if (fltmp > MAXINT64FLT) {
+    error(ERR_RANGE);
+    return 0;
+  }
+  if (fltmp < MININT64FLT) {
+    error(ERR_RANGE);
+    return 0;
+  }
   if ((sgni((int64)fltmp) != 0) && (sgnf(fltmp) != sgni((int64)fltmp))) error(ERR_RANGE);
   return (int64)fltmp;
 }

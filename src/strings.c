@@ -229,7 +229,10 @@ void *alloc_string(int32 size) {
 ** available to meet the current request
 */
 
-    if (reclaimed || !collect()) error(ERR_NOROOM);     /* Fail if 'collect' does not achieve anything */
+    if (reclaimed || !collect()) {
+      error(ERR_NOROOM);     /* Fail if 'collect' does not achieve anything */
+      return NIL;
+    }
     reclaimed = TRUE;
   } while (TRUE);
   return NIL;           /* Will never be executed */
@@ -299,7 +302,7 @@ void discard_strings(byte *base, int32 size) {
 ** added to the relevant bin
 */
 char *resize_string(char *cp, int32 oldlen, int32 newlen) {
-  int32 oldbin, newbin, sizediff;
+  int32 oldbin, newbin;
   char *newcp;
   basicstring descriptor;
   oldbin = find_bin(oldlen);
@@ -316,6 +319,7 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
     return newcp;
   }
   else {        /* New string length is shorter than old */
+    int32 sizediff;
     if (newlen==0) {    /* New string is the null string */
       descriptor.stringlen = oldlen;    /* Have to fake a descriptor for 'free_string' */
       descriptor.stringaddr = cp;

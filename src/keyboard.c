@@ -160,7 +160,10 @@ int32 kbd_inkey(int32 arg) {
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
-  if (oserror != NIL)   error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL)   {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return -1;
+  }
   if (regs.r[2] == 0)   return regs.r[1];       /* Character was read successfully      */
   else                  return -1;              /* Timed out                            */
 }
@@ -175,7 +178,10 @@ int32 kbd_inkey256() {
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
-  if (oserror != NIL)   error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL)   {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return -1;
+  }
   if (regs.r[2] == 0)   return regs.r[1];       /* Character was read successfully      */
   else                  return -1;              /* Timed out                            */
 }
@@ -218,7 +224,10 @@ int32 emulate_inkey(int32 arg) {
   regs.r[1] = arg & BYTEMASK;
   regs.r[2] = (arg>>BYTESHIFT) & BYTEMASK;
   oserror = _kernel_swi(OS_Byte, &regs, &regs);
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL) {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return -1;
+  }
   if (arg >= 0) {               /* +ve argument = read keyboard with time limit */
     if (regs.r[2] == 0)         /* Character was read successfully */
       return (regs.r[1]);
@@ -226,6 +235,7 @@ int32 emulate_inkey(int32 arg) {
       return -1;
     else {
       error(ERR_CMDFAIL, "C library has missed an escape event");
+      return -1;
     }
   }
   else {        /* -ve argument */
@@ -257,7 +267,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   regs.r[2] = 0;                /* Allow any character to be input */
   regs.r[3] = 255;
   oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL) {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return READ_EOF;
+  }
   if (carry != 0)               /* Carry is set - 'escape' was pressed */
     buffer[0] = NUL;
   else {
@@ -328,7 +341,10 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
     oserror = _kernel_swi_c(OS_ReadLine, &regs, &regs, &carry);
   }
 
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL) {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return -1;
+  }
   if (carry) buffer[0] = NUL;                   /* Carry is set - 'Escape' was pressed  */
   else       buffer[regs.r[1]] = NUL;           /* Number of characters returned in R1  */
 
@@ -1128,7 +1144,10 @@ int32 kbd_get(void) {
 //  int raw=0;
 
   if (matrixflags.doexec) {                     /* Are we doing *EXEC?                  */
-    if (kbd_escpoll()) error(ERR_ESCAPE);
+    if (kbd_escpoll()) {
+      error(ERR_ESCAPE);
+      return -1;
+    }
     ch=fgetc(matrixflags.doexec);
     if (!feof(matrixflags.doexec)) return (ch & BYTEMASK);
     fclose(matrixflags.doexec);
@@ -1141,7 +1160,10 @@ int32 kbd_get(void) {
 #else
     if ((ch=getch()) != EOF) return ch;
 #endif
-    else error(ERR_READFAIL);                   /* I/O error occured on STDIN           */
+    else {
+      error(ERR_READFAIL);                   /* I/O error occured on STDIN           */
+      return -1;
+    }
   }
 
   if (fn_string != NIL) return read_fn_string(); /* Function key active                 */
@@ -1776,8 +1798,11 @@ int32 read_key(void) {
       errcode = read(keyboard, &ch, 1);
 #endif
       if (errcode < 0) {                /* read() returned an error */
-        if ((errno == EINTR) && basicvars.escape_enabled) error(ERR_ESCAPE);  /* Assume Ctrl-C was pressed */
+        if ((errno == EINTR) && basicvars.escape_enabled) {
+          error(ERR_ESCAPE);  /* Assume Ctrl-C was pressed */
+        }
         error(ERR_BROKEN, __LINE__, "keyboard");        /* Otherwise roll over and die */
+        return -1;
       }
       else return ch;
     }
@@ -1795,10 +1820,14 @@ int32 read_key(void) {
   if (errcode < 0) {            /* read() returned an error */
 #ifndef BODGEMGW
 // does anything get here?
-    if (basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);      /* Assume Ctrl-C was pressed */
+    if (basicvars.escape_enabled && (errno == EINTR)) {
+      error(ERR_ESCAPE);      /* Assume Ctrl-C was pressed */
+      return -1;
+    }
 #endif
 // does anything get here?
     error(ERR_BROKEN, __LINE__, "keyboard");    /* Otherwise roll over and die */
+    return -1;
   }
 #endif
   return ch;
@@ -1854,9 +1883,9 @@ static void remove_history(int count) {
 ** at the end
 */
 static void add_history(char command[], int32 cmdlen) {
-  int32 wanted, n, freed;
   if (highbuffer+cmdlen >= HISTSIZE) {  /* There is not enough room at the end of the buffer */
-    wanted = highbuffer+cmdlen-HISTSIZE+1;      /* +1 for the NULL at the end of the command */
+    int32 n, freed;
+    int32 wanted = highbuffer+cmdlen-HISTSIZE+1;      /* +1 for the NULL at the end of the command */
 /*
 ** Figure out how many commands have to be removed from the buffer to make
 ** room for the new one. Scan from the start of the history list adding up
@@ -1886,7 +1915,7 @@ static void init_recall(void) {
 }
 
 static void recall_histline(char buffer[], int updown) {
-  int n, start, count;
+  int count;
   if (updown < 0) {     /* Move backwards in history list */
     if (recalline == 0) return; /* Already at start of list */
     recalline -= 1;
@@ -1898,7 +1927,7 @@ static void recall_histline(char buffer[], int updown) {
   if (recalline == histindex)   /* Moved to last line */
     buffer[0] = asc_NUL;
   else {
-    start = 0;
+    int n, start = 0;
     for (n = 0; n < recalline; n++) start += histlength[n];
     strcpy(buffer, &histbuffer[start]);
   }
@@ -2006,7 +2035,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
     char *p;
     p = fgets(buffer, length, stdin);   /* Get all in one go */
     if (p == NIL) {                     /* Call failed */
-      if (ferror(stdin)) error(ERR_READFAIL);   /* I/O error occured on stdin */
+      if (ferror(stdin)) {
+        error(ERR_READFAIL);   /* I/O error occured on stdin */
+        return READ_EOF;
+      }
       buffer[0] = asc_NUL;              /* End of file */
       return READ_EOF;
     }
@@ -2028,7 +2060,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 //printf("$%02X",basicvars.escape);
     ch = kbd_get();             /* Get 9-bit keypress or expanded function key          */
 //fprintf(stderr, "&%02X &%03X\n",basicvars.escape,ch);
-    if ((ch & 0x100) || ((ch == DEL) & !matrixflags.delcandelete)) {
+    if ((ch & 0x100) || ((ch == DEL) && !matrixflags.delcandelete)) {
       pendch=ch & 0xFF;         /* temp */
       ch = asc_NUL;
     }

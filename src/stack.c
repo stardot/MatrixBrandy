@@ -163,7 +163,10 @@ size_t *make_opstack(void) {
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "stack.c:make_opstack: stacktop=%p, stacklimit=%p, OPSTACKSIZE*LARGEST_ENTRY=%lX\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp, (long unsigned int)OPSTACKSIZE*LARGEST_ENTRY);
 #endif
-  if (basicvars.stacktop.bytesp-OPSTACKSIZE*LARGEST_ENTRY<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp-OPSTACKSIZE*LARGEST_ENTRY<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return NULL;
+  }
   basicvars.stacktop.opstacksp->itemtype = STACK_OPSTACK;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Create operator stack at %p\n", basicvars.stacktop.bytesp);
@@ -179,7 +182,10 @@ size_t *make_opstack(void) {
 */
 sigjmp_buf *make_restart(void) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_restart);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return NULL;
+  }
   basicvars.stacktop.restartsp->itemtype = STACK_RESTART;
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Create restart block at %p\n", basicvars.stacktop.bytesp);
@@ -368,7 +374,10 @@ void push_arraytemp(basicarray *descriptor, int32 type) {
 */
 void push_proc(char *name, int32 count) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_proc);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.procsp->itemtype = STACK_PROC;
   basicvars.stacktop.procsp->fnprocblock.lastcall = basicvars.procstack;
   basicvars.stacktop.procsp->fnprocblock.retaddr = basicvars.current;
@@ -385,7 +394,10 @@ void push_proc(char *name, int32 count) {
 */
 void push_fn(char *name, int32 count) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_fn);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.fnsp->itemtype = STACK_FN;
   basicvars.stacktop.fnsp->lastopstop = basicvars.opstop;
   basicvars.stacktop.fnsp->lastopstlimit = basicvars.opstlimit;
@@ -405,7 +417,10 @@ void push_fn(char *name, int32 count) {
 */
 void push_gosub(void) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_gosub);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.gosubsp->itemtype = STACK_GOSUB;
   basicvars.stacktop.gosubsp->gosublock.lastcall = basicvars.gosubstack;
   basicvars.stacktop.gosubsp->gosublock.retaddr = basicvars.current;
@@ -469,7 +484,10 @@ void free_stackmem(void) {
 */
 void push_while(byte *expr) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_while);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.whilesp->itemtype = STACK_WHILE;
   basicvars.stacktop.whilesp->whilexpr = expr;
   basicvars.stacktop.whilesp->whileaddr = basicvars.current;
@@ -483,7 +501,10 @@ void push_while(byte *expr) {
 */
 void push_repeat(void) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_repeat);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.repeatsp->itemtype = STACK_REPEAT;
   basicvars.stacktop.repeatsp->repeataddr = basicvars.current;
 #ifdef DEBUG
@@ -497,7 +518,10 @@ void push_repeat(void) {
 */
 void push_intfor(lvalue forvar, byte *foraddr, int32 limit, int32 step, boolean simple) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.forsp->itemtype = STACK_INTFOR;
   basicvars.stacktop.forsp->simplefor = simple;
   basicvars.stacktop.forsp->forvar = forvar;
@@ -515,7 +539,10 @@ void push_intfor(lvalue forvar, byte *foraddr, int32 limit, int32 step, boolean 
 */
 void push_int64for(lvalue forvar, byte *foraddr, int64 limit, int64 step, boolean simple) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.forsp->itemtype = STACK_INT64FOR;
   basicvars.stacktop.forsp->simplefor = simple;
   basicvars.stacktop.forsp->forvar = forvar;
@@ -533,7 +560,10 @@ void push_int64for(lvalue forvar, byte *foraddr, int64 limit, int64 step, boolea
 */
 void push_floatfor(lvalue forvar, byte *foraddr, float64 limit, float64 step, boolean simple) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_for);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.forsp->itemtype = STACK_FLOATFOR;
   basicvars.stacktop.forsp->simplefor = simple;
   basicvars.stacktop.forsp->forvar = forvar;
@@ -551,7 +581,10 @@ void push_floatfor(lvalue forvar, byte *foraddr, float64 limit, float64 step, bo
 */
 void push_data(byte *address) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_data);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.datasp->itemtype = STACK_DATA;
   basicvars.stacktop.datasp->address = address;
 #ifdef DEBUG
@@ -565,7 +598,10 @@ void push_data(byte *address) {
 */
 void push_error(errorblock handler) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_error);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.errorsp->itemtype = STACK_ERROR;
   basicvars.stacktop.errorsp->handler = handler;
 #ifdef DEBUG
@@ -579,7 +615,10 @@ void push_error(errorblock handler) {
 */
 void save_int(lvalue details, int32 value) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint = value;
@@ -595,7 +634,10 @@ void save_int(lvalue details, int32 value) {
 */
 void save_uint8(lvalue details, uint8 value) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.saveduint8 = value;
@@ -611,7 +653,10 @@ void save_uint8(lvalue details, uint8 value) {
 */
 void save_int64(lvalue details, int64 value) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedint64 = value;
@@ -627,7 +672,10 @@ void save_int64(lvalue details, int64 value) {
 */
 void save_float(lvalue details, float64 floatvalue) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedfloat = floatvalue;
@@ -648,7 +696,10 @@ void save_float(lvalue details, float64 floatvalue) {
 */
 void save_string(lvalue details, basicstring thestring) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedstring = thestring;
@@ -664,7 +715,10 @@ void save_string(lvalue details, basicstring thestring) {
 */
 void save_array(lvalue details) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_local);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.localsp->itemtype = STACK_LOCAL;
   basicvars.stacktop.localsp->savedetails = details;
   basicvars.stacktop.localsp->value.savedarray = *details.address.arrayaddr;
@@ -683,7 +737,10 @@ void save_array(lvalue details) {
 */
 void save_retint(lvalue retdetails, lvalue details, int32 value) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
   basicvars.stacktop.retparmsp->retdetails = retdetails;
   basicvars.stacktop.retparmsp->savedetails = details;
@@ -700,7 +757,10 @@ void save_retint(lvalue retdetails, lvalue details, int32 value) {
 */
 void save_retuint8(lvalue retdetails, lvalue details, uint8 value) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
   basicvars.stacktop.retparmsp->retdetails = retdetails;
   basicvars.stacktop.retparmsp->savedetails = details;
@@ -717,7 +777,10 @@ void save_retuint8(lvalue retdetails, lvalue details, uint8 value) {
 */
 void save_retint64(lvalue retdetails, lvalue details, int64 value) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
   basicvars.stacktop.retparmsp->retdetails = retdetails;
   basicvars.stacktop.retparmsp->savedetails = details;
@@ -734,7 +797,10 @@ void save_retint64(lvalue retdetails, lvalue details, int64 value) {
 */
 void save_retfloat(lvalue retdetails, lvalue details, float64 floatvalue) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
   basicvars.stacktop.retparmsp->retdetails = retdetails;
   basicvars.stacktop.retparmsp->savedetails = details;
@@ -756,7 +822,10 @@ void save_retfloat(lvalue retdetails, lvalue details, float64 floatvalue) {
 */
 void save_retstring(lvalue retdetails, lvalue details, basicstring thestring) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_retparm);
-  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) error(ERR_STACKFULL);
+  if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
+    error(ERR_STACKFULL);
+    return;
+  }
   basicvars.stacktop.retparmsp->itemtype = STACK_RETPARM;
   basicvars.stacktop.retparmsp->retdetails = retdetails;
   basicvars.stacktop.retparmsp->savedetails = details;
@@ -830,6 +899,7 @@ static void restore_retparm(int32 parmcount) {
     fprintf(stderr,"stack.c:restore_retparm: Oops. Trying to switch on value &%X didn't work\n",(p->savedetails.typeinfo & PARMTYPEMASK));
 #endif
     error(ERR_BROKEN, __LINE__, "stack");
+    return;
   }
 
 /* Now restore the next parameter */
@@ -926,6 +996,7 @@ static void restore(int32 parmcount) {
         break;
       default:
         error(ERR_BROKEN, __LINE__, "stack");
+        return;
       }
     }
 
@@ -987,6 +1058,7 @@ int32 pop_int(void) {
   if (GET_TOPITEM != STACK_INT) {
     fprintf(stderr, "Error in stack.c:pop_int: Expected type %d, got %d instead\n", STACK_INT, GET_TOPITEM);
     error(ERR_BROKEN, __LINE__, "stack");
+    return 0;
   }
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int);
 #ifdef DEBUG
@@ -1001,7 +1073,10 @@ uint8 pop_uint8(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop uint8 integer from stack at %p, value %d\n",
    p, p->uint8value);
 #endif
-  if (GET_TOPITEM != STACK_UINT8) error(ERR_BROKEN, __LINE__, "stack");
+  if (GET_TOPITEM != STACK_UINT8) {
+    error(ERR_BROKEN, __LINE__, "stack");
+    return 0;
+  }
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_uint8);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_uint8: new SP at %p\n", basicvars.stacktop.bytesp);
@@ -1018,7 +1093,10 @@ int64 pop_int64(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop 64-bit integer from stack at %p, value %lld\n",
    p, p->int64value);
 #endif
-  if (GET_TOPITEM != STACK_INT64) error(ERR_BROKEN, __LINE__, "stack");
+  if (GET_TOPITEM != STACK_INT64) {
+    error(ERR_BROKEN, __LINE__, "stack");
+    return 0;
+  }
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_int64);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_int64: new SP at %p\n", basicvars.stacktop.bytesp);
@@ -1090,7 +1168,10 @@ float64 pop_float(void) {
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Pop floating point value from stack at %p, value %g\n",
    p, p->floatvalue);
 #endif
-  if (GET_TOPITEM != STACK_FLOAT) error(ERR_BROKEN, __LINE__, "stack");
+  if (GET_TOPITEM != STACK_FLOAT) {
+    error(ERR_BROKEN, __LINE__, "stack");
+    return 0;
+  }
   basicvars.stacktop.bytesp+=ALIGNSIZE(stack_float);
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "pop_float: new SP at %p\n", basicvars.stacktop.bytesp);
@@ -1143,12 +1224,15 @@ basicarray pop_arraytemp(void) {
 */
 fnprocinfo pop_proc(void) {
   stack_proc *p = basicvars.stacktop.procsp;
-  if (p->itemtype != STACK_PROC) error(ERR_ENDPROC);
+  if (p->itemtype != STACK_PROC) {
+    error(ERR_ENDPROC);
+  } else {
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'PROC' block at %p\n", p);
+    if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'PROC' block at %p\n", p);
 #endif
-  basicvars.procstack = p->fnprocblock.lastcall;
-  basicvars.stacktop.bytesp+=ALIGNSIZE(stack_proc);
+    basicvars.procstack = p->fnprocblock.lastcall;
+    basicvars.stacktop.bytesp+=ALIGNSIZE(stack_proc);
+  }
   return p->fnprocblock;
 }
 
@@ -1158,15 +1242,18 @@ fnprocinfo pop_proc(void) {
 */
 fnprocinfo pop_fn(void) {
   stack_fn *p = basicvars.stacktop.fnsp;
-  if (p->itemtype != STACK_FN) error(ERR_FNRETURN);
+  if (p->itemtype != STACK_FN) {
+    error(ERR_FNRETURN);
+  } else {
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'FN' block at %p, restart = %p\n", p, p->lastrestart);
+    if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'FN' block at %p, restart = %p\n", p, p->lastrestart);
 #endif
-  basicvars.opstop = p->lastopstop;
-  basicvars.opstlimit = p->lastopstlimit;
-  basicvars.local_restart = p->lastrestart;
-  basicvars.procstack = p->fnprocblock.lastcall;
-  basicvars.stacktop.bytesp+=ALIGNSIZE(stack_fn);
+    basicvars.opstop = p->lastopstop;
+    basicvars.opstlimit = p->lastopstlimit;
+    basicvars.local_restart = p->lastrestart;
+    basicvars.procstack = p->fnprocblock.lastcall;
+    basicvars.stacktop.bytesp+=ALIGNSIZE(stack_fn);
+  }
   return p->fnprocblock;
 }
 
@@ -1176,12 +1263,15 @@ fnprocinfo pop_fn(void) {
 */
 gosubinfo pop_gosub(void) {
   stack_gosub *p = basicvars.stacktop.gosubsp;
-  if (p->itemtype != STACK_GOSUB) error(ERR_RETURN);
+  if (p->itemtype != STACK_GOSUB) {
+    error(ERR_RETURN);
+  } else {
 #ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'GOSUB' block at %p\n", p);
+    if (basicvars.debug_flags.stack) fprintf(stderr, "Discard 'GOSUB' block at %p\n", p);
 #endif
-  basicvars.gosubstack = p->gosublock.lastcall;
-  basicvars.stacktop.bytesp+=ALIGNSIZE(stack_gosub);
+    basicvars.gosubstack = p->gosublock.lastcall;
+    basicvars.stacktop.bytesp+=ALIGNSIZE(stack_gosub);
+  }
   return p->gosublock;
 }
 
@@ -1233,7 +1323,10 @@ static void discard(stackitem item, boolean restorevars) {
     basicvars.stacktop.bytesp+=entrysize[STACK_LOCARRAY]+basicvars.stacktop.locarraysp->arraysize;
     break;
   default:
-    if (item==STACK_UNKNOWN || item>=STACK_HIGHEST) error(ERR_BROKEN, __LINE__, "stack");
+    if (item==STACK_UNKNOWN || item>=STACK_HIGHEST) {
+      error(ERR_BROKEN, __LINE__, "stack");
+      return;
+    }
     basicvars.stacktop.bytesp+=entrysize[item];
   }
 }

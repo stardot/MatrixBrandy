@@ -200,14 +200,17 @@ static void set_mode31(int32 xres, int32 yres, int32 bpp) {
   case 4: coldepth = 16; break;
   case 6: case 8: coldepth = 256; break;
   default:
-    coldepth = 0; /* Not used, just to keep the compiler quiet */
     error(ERR_BADMODE); /* Higher colour depths not available on RO3.1 */
+    return;
   }
 /* See if there is a suitable mode */
   for (n = 0; n <= HIGHMODE; n++) {
     if (modetable[n].xres == xres && modetable[n].yres == yres && modetable[n].coldepth == coldepth) break;
   }
-  if (n>HIGHMODE) error(ERR_BADMODE);
+  if (n>HIGHMODE) {
+    error(ERR_BADMODE);
+    return;
+  }
   emulate_mode(n);
 }
 
@@ -235,6 +238,7 @@ static void set_modedesc(int32 xres, int32 yres, int32 bpp, int32 rate) {
   case 24: case 32: mode.pixdepth = 5; break;
   default:
     error(ERR_BADMODE);         /* Bad number of bits per pixel */
+    return;
   }
   mode.rate = rate;
 /*
@@ -287,7 +291,10 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
   boolean greyscale;
   mode_desc mode;
 
-  if (greys > 256) error(ERR_BADMODE);          /* Cannot have more than 256 level greyscale */
+  if (greys > 256) {
+    error(ERR_BADMODE);          /* Cannot have more than 256 level greyscale */
+    return;
+  }
   greyscale = colours == 0;
   if (greyscale) colours = greys;
 
@@ -310,6 +317,7 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
     mode.pixdepth = 5;
   else {
     error(ERR_BADMODESC);               /* Bad number of bits per pixel */
+    return;
   }
   mode.rate = rate;
 
@@ -333,7 +341,10 @@ void emulate_modestr(int32 xres, int32 yres, int32 colours, int32 greys, int32 x
   regs.r[0] = 0;        /* Use OS_ScreenMode 0 - set screen mode */
   regs.r[1] = (int) &mode;
   oserror = _kernel_swi(OS_ScreenMode, &regs, &regs);
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  if (oserror != NIL) {
+    error(ERR_CMDFAIL, oserror->errmess);
+    return;
+  }
 
 /* If grey scale, set up grey scale palette */
 

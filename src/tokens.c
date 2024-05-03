@@ -362,7 +362,10 @@ void save_lineno(byte *where, int32 number) {
 */
 static void store_lineno(int32 number) {
   DEBUGFUNCMSGIN;
-  if (next+LINESIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+LINESIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   tokenbase[next] = CAST(number, byte);
   tokenbase[next+1] = CAST(number>>BYTESHIFT, byte);
   next+=2;
@@ -442,7 +445,10 @@ byte *get_srcaddr(byte *p) {
 */
 static void store(byte token) {
   DEBUGFUNCMSGIN;
-  if (next+1>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+1>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   tokenbase[next] = token;
   next++;
   DEBUGFUNCMSGOUT;
@@ -454,7 +460,10 @@ static void store(byte token) {
 */
 static void store_size(int32 size) {
   DEBUGFUNCMSGIN;
-  if (next+SIZESIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+SIZESIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   tokenbase[next] = CAST(size, byte);
   tokenbase[next+1] = CAST(size>>BYTESHIFT, byte);
   next+=2;
@@ -469,7 +478,10 @@ static void store_longoffset(int32 value) {
   int n;
 
   DEBUGFUNCMSGIN;
-  if (next+LOFFSIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+LOFFSIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   for (n=1; n<=LOFFSIZE; n++) {
     tokenbase[next] = CAST(value, byte);
     value = value>>BYTESHIFT;
@@ -485,7 +497,10 @@ static void store_longoffset(int32 value) {
 */
 static void store_shortoffset(int32 value) {
   DEBUGFUNCMSGIN;
-  if (next+OFFSIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+OFFSIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   tokenbase[next] = CAST(value, byte);
   tokenbase[next+1] = CAST(value>>BYTESHIFT, byte);
   next+=2;
@@ -500,7 +515,10 @@ static void store_intconst(int32 value) {
   int n;
 
   DEBUGFUNCMSGIN;
-  if (next+INTSIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+INTSIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   for (n=1; n<=INTSIZE; n++) {
     tokenbase[next] = CAST(value, byte);
     value = value>>8;
@@ -513,7 +531,10 @@ static void store_int64const(int64 value) {
   int n;
 
   DEBUGFUNCMSGIN;
-  if (next+INT64SIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+INT64SIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   for (n=1; n<=INT64SIZE; n++) {
     tokenbase[next] = CAST(value, byte);
     value = value>>8;
@@ -531,7 +552,10 @@ static void store_fpvalue(float64 fpvalue) {
   int n;
 
   DEBUGFUNCMSGIN;
-  if (next+FLOATSIZE>=MAXSTATELEN) error(ERR_STATELEN);
+  if (next+FLOATSIZE>=MAXSTATELEN) {
+    error(ERR_STATELEN);
+    return;
+  }
   memcpy(temp, &fpvalue, sizeof(float64));
   for (n=0; n<sizeof(float64); n++) {
     tokenbase[next] = temp[n];
@@ -1438,12 +1462,10 @@ static void translate(void) {
 ** start of a floating point number
 */
       source++;
-      if (token == ')') {
-        while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB) source++;
-        if (tokenbase[source] == '.') { /* ')' is followed by a '.' - Assume '.' is an operator */
-          store('.');
-          source++;
-        }
+      while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB) source++;
+      if (tokenbase[source] == '.') { /* ')' is followed by a '.' - Assume '.' is an operator */
+        store('.');
+        source++;
       }
     }
     else if (token == BASTOKEN_XLINENUM)   /* Line number */
@@ -1598,7 +1620,7 @@ byte *skip_token(byte *p) {
   }
   DEBUGFUNCMSGOUT;
   error(ERR_BADPROG);   /* Not a legal token value - Program has been corrupted */
-  return 0;
+  return NULL;
 }
 
 /*
@@ -1741,15 +1763,19 @@ static char *printlist [] = {NIL, "SPC", "TAB("};
 ** form. The function returns the length of the expanded form
 */
 static int expand_token(char *cp, char *namelist[], byte token) {
-  int n, count;
+  int count;
   char *name;
 
   DEBUGFUNCMSGIN;
   name = namelist[token];
-  if (name == NIL) error(ERR_BROKEN, __LINE__, "tokens");       /* Sanity check for bad token value */
+  if (name == NIL) {
+    error(ERR_BROKEN, __LINE__, "tokens");       /* Sanity check for bad token value */
+    return 0;
+  }
   strcpy(cp, name);
   count = strlen(name);
   if (basicvars.list_flags.lower) {     /* Lower case version of name required */
+    int n;
     for (n=0; n<count; n++) {
       *cp = tolower(*cp);
       cp++;
@@ -1787,8 +1813,8 @@ static byte *skip_source(byte *p) {
 */
 void expand(byte *line, char *text) {
   byte token;
-  byte *lp;
-  int n, count, thisindent, nextindent;
+  byte *elp;
+  int count;
 
   DEBUGFUNCMSGIN;
   if (!basicvars.list_flags.noline) {   /* Include line number */
@@ -1799,11 +1825,12 @@ void expand(byte *line, char *text) {
       text++;
     }
   }
-  lp = line+OFFSOURCE;  /* Point at start of code after source token */
+  elp = line+OFFSOURCE;  /* Point at start of code after source token */
   if (basicvars.list_flags.indent) {    /* Indent line */
-    lp = skip(lp);      /* Start by figuring out if indentation changes */
+    int n, thisindent, nextindent;
+    elp = skip(elp);      /* Start by figuring out if indentation changes */
     thisindent = nextindent = indentation;
-    switch (*lp) {      /* First look at special cases where first token on line affects indentation */
+    switch (*elp) {      /* First look at special cases where first token on line affects indentation */
     case BASTOKEN_DEF:
       thisindent = nextindent = 0;
       break;
@@ -1821,14 +1848,14 @@ void expand(byte *line, char *text) {
       nextindent-=INDENTSIZE;
       break;
     }
-    while (*lp != asc_NUL) {
-      switch(*lp) {
+    while (*elp != asc_NUL) {
+      switch(*elp) {
       case BASTOKEN_WHILE: case BASTOKEN_XWHILE: case BASTOKEN_REPEAT: case BASTOKEN_FOR:
       case BASTOKEN_CASE: case BASTOKEN_XCASE:
         nextindent+=INDENTSIZE;
         break;
       case BASTOKEN_THEN:
-        if (*(lp+1) == asc_NUL) nextindent+=INDENTSIZE;     /* Block IF */
+        if (*(elp+1) == asc_NUL) nextindent+=INDENTSIZE;     /* Block IF */
         break;
       case BASTOKEN_ENDWHILE: case BASTOKEN_UNTIL:
         if (nextindent == thisindent) thisindent-=INDENTSIZE;
@@ -1837,14 +1864,14 @@ void expand(byte *line, char *text) {
       case BASTOKEN_NEXT:
         if (nextindent == thisindent) thisindent-=INDENTSIZE;
         nextindent-=INDENTSIZE;
-        lp = skip_source(lp);
-        while (*lp != asc_NUL && *lp != ':' && *lp != BASTOKEN_XELSE && *lp != BASTOKEN_ELSE) { /* Check for 'NEXT I%,J%,K%' */
-          if (*lp == ',')  nextindent-=INDENTSIZE;
-          lp = skip_source(lp);
+        elp = skip_source(elp);
+        while (*elp != asc_NUL && *elp != ':' && *elp != BASTOKEN_XELSE && *elp != BASTOKEN_ELSE) { /* Check for 'NEXT I%,J%,K%' */
+          if (*elp == ',')  nextindent-=INDENTSIZE;
+          elp = skip_source(elp);
         }
         break;
       }
-      lp = skip_source(lp);
+      elp = skip_source(elp);
     }
     if (thisindent<0) thisindent = 0;
     if (nextindent<0) nextindent = 0;
@@ -1853,74 +1880,83 @@ void expand(byte *line, char *text) {
       text++;
     }
     indentation = nextindent;
-    lp = skip(line+OFFSOURCE);
+    elp = skip(line+OFFSOURCE);
   }
-  token = *lp;
+  token = *elp;
 /* Indentation sorted out. Now expand the line */
   while (token != asc_NUL) {
 /* Deal with special cases first */
     if (token == BASTOKEN_XLINENUM) {      /* Line number */
-      lp++;
-      count = sprintf(text, "%d", GET_LINENO(lp));
+      elp++;
+      count = sprintf(text, "%d", GET_LINENO(elp));
       text+=count;
-      lp+=LINESIZE;
+      elp+=LINESIZE;
     }
     else if (token == BASTOKEN_XVAR)       /* Marks start of variable name - Ignore */
-      lp++;
+      elp++;
     else if (token == '"') {    /* Character string */
       do {      /* Copy characters up to next '"' */
-        *text = *lp;
+        *text = *elp;
         text++;
-        lp++;
-      } while (*lp != '"' && *lp != asc_NUL);
-      if (*lp == '"') { /* '"' at end of string */
+        elp++;
+      } while (*elp != '"' && *elp != asc_NUL);
+      if (*elp == '"') { /* '"' at end of string */
         *text = '"';
         text++;
-        lp++;
+        elp++;
       }
     }
     else if (token<BASTOKEN_LOWEST) {      /* Normal characters */
       *text = token;
       text++;
-      lp++;
+      elp++;
     }
     else if (token == BASTOKEN_DATA || token == BASTOKEN_REM) {       /* 'DATA' and 'REM' are a special case */
       count = expand_token(text, onebytelist, token-BASTOKEN_LOWEST);
       text+=count;
-      lp++;
-      while (*lp != asc_NUL) {      /* Copy rest of line after 'DATA' or ' REM' */
-        *text = *lp;
+      elp++;
+      while (*elp != asc_NUL) {      /* Copy rest of line after 'DATA' or ' REM' */
+        *text = *elp;
         text++;
-        lp++;
+        elp++;
       }
     }
     else {      /* Single byte tokens */
       switch (token) {
       case TYPE_PRINTFN:
-        lp++;
-        token = *lp;
-        if (token>BASTOKEN_TAB) error(ERR_BADPROG);
+        elp++;
+        token = *elp;
+        if (token>BASTOKEN_TAB) {
+          error(ERR_BADPROG);
+          return;
+        }
         count = expand_token(text, printlist, token);
         break;
       case TYPE_FUNCTION:       /* Built-in Function */
-        lp++;
-        token = *lp;
-        if (token>BASTOKEN_XLATEDOL) error(ERR_BADPROG);
+        elp++;
+        token = *elp;
+        if (token>BASTOKEN_XLATEDOL) {
+          error(ERR_BADPROG);
+          return;
+        }
         count = expand_token(text, functionlist, token);
         break;
       case TYPE_COMMAND:
-        lp++;
-        token = *lp;
-        if (token>BASTOKEN_TWINO) error(ERR_BADPROG);
+        elp++;
+        token = *elp;
+        if (token>BASTOKEN_TWINO) {
+          error(ERR_BADPROG);
+          return;
+        }
         count = expand_token(text, commandlist, token);
         break;
       default:
         count = expand_token(text, onebytelist, token-BASTOKEN_LOWEST);
       }
       text+=count;
-      lp++;
+      elp++;
     }
-    token = *lp;
+    token = *elp;
   }
   *text = asc_NUL;
   DEBUGFUNCMSGOUT;
@@ -1986,7 +2022,10 @@ static void clear_varaddrs(byte *bp) {
   while (*tp != asc_NUL) {
     if (*tp == BASTOKEN_XVAR || (*tp >= BASTOKEN_UINT8VAR && *tp <= BASTOKEN_FLOATINDVAR)) {
       while (*sp != BASTOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
-      if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
+      if (*sp == asc_NUL) {
+        error(ERR_BROKEN, __LINE__, "tokens");            /* Cannot find variable - Logic error */
+        return;
+      }
       sp++;     /* Point at first char of name */
       if (*tp != BASTOKEN_XVAR) {
         *tp = BASTOKEN_XVAR;
@@ -2021,7 +2060,7 @@ static void clear_varaddrs(byte *bp) {
 ** one less than the 'offset filled in' version
 */
 static void clear_branches(byte *bp) {
-  byte *tp, *lp;
+  byte *tp, *blp;
   int line;
 
   DEBUGFUNCMSGIN;
@@ -2030,8 +2069,8 @@ static void clear_branches(byte *bp) {
     switch (*tp) {
     case BASTOKEN_LINENUM:
       *tp = BASTOKEN_XLINENUM;     /* Reset to 'X' version of token */
-      lp = get_address(tp);     /* Find the line the token refers to */
-      line = GET_LINENO(find_linestart(lp));    /* Find the number of the line refered to */
+      blp = get_address(tp);     /* Find the line the token refers to */
+      line = GET_LINENO(find_linestart(blp));    /* Find the number of the line refered to */
       *(tp+1) = CAST(line, byte);       /* Store the line number */
       *(tp+2) = CAST(line>>BYTESHIFT, byte);
       break;
@@ -2063,7 +2102,7 @@ void clear_linerefs(byte *bp) {
 */
 void clear_varptrs(void) {
   byte *bp;
-  library *lp;
+  library *libp;
 
   DEBUGFUNCMSGIN;
   bp = basicvars.start;
@@ -2071,14 +2110,14 @@ void clear_varptrs(void) {
     clear_varaddrs(bp);
     bp = bp+GET_LINELEN(bp);
   }
-  lp = basicvars.installist;    /* Now clear the pointers in any installed libraries */
-  while (lp != NIL) {
-    bp = lp->libstart;
+  libp = basicvars.installist;    /* Now clear the pointers in any installed libraries */
+  while (libp != NIL) {
+    bp = libp->libstart;
     while (!AT_PROGEND(bp)) {
       clear_varaddrs(bp);
       bp = bp+GET_LINELEN(bp);
     }
-    lp = lp->libflink;
+    libp = libp->libflink;
   }
   DEBUGFUNCMSGOUT;
 }
@@ -2106,7 +2145,6 @@ static boolean legalow [] = {   /* Tokens in range 00.1F */
 boolean isvalid(byte *bp) {
   int length, execoff;
   byte *base, *cp;
-  byte token;
 
   DEBUGFUNCMSGIN;
   if (GET_LINENO(bp)>MAXLINENO) {   /* Line number is out of range */
@@ -2125,7 +2163,7 @@ boolean isvalid(byte *bp) {
   }
   base = cp = bp+execoff;
   while (cp-base<=length && *cp != asc_NUL) {
-    token = *cp;
+    byte token = *cp;
     if (token<=LOW_HIGHEST) {       /* In lower block of tokens */
       if (!legalow[token]) {        /* Bad token value found */
         DEBUGFUNCMSGOUT;
@@ -2210,7 +2248,10 @@ void reset_linenums(byte *bp) {
   while (*bp != asc_NUL) {
     if (*bp == BASTOKEN_LINENUM || *bp == BASTOKEN_XLINENUM) {        /* Find corresponding ref in source */
       while (*sp != BASTOKEN_XLINENUM && *sp != asc_NUL) sp++;
-      if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");            /* Sanity check */
+      if (*sp == asc_NUL) {
+        error(ERR_BROKEN, __LINE__, "tokens");            /* Sanity check */
+        return;
+      }
     }
     if (*bp == BASTOKEN_LINENUM) { /* Line number reference that has to be updated */
       dest = get_address(bp);
@@ -2465,6 +2506,10 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
           switch (token) {
             case ACORN_TWOBYTE:                                 /* C8 nn   */
               if (token2>ACORNTWO_HIGHEST) {
+                if((int32)(token2-ACORN_OTHER) < 0) {           /* Sanity check */
+                  error(ERR_BROKEN, __LINE__, "tokens");
+                  return 0;
+                }
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C8      */
               } else {
                 p = twobyte_token[token2-ACORNTWO_LOWEST];      /* C8 8E+n */
@@ -2473,6 +2518,10 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               }
             case ACORN_COMMAND:                                 /* C7 nn   */
               if (token2>ACORNCMD_HIGHEST) {
+                if((int32)(token2-ACORN_OTHER) < 0) {           /* Sanity check */
+                  error(ERR_BROKEN, __LINE__, "tokens");
+                  return 0;
+                }
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C7      */
               } else {
                 if(token-ACORNCMD_LOWEST >= 18) {
@@ -2485,6 +2534,10 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               }
             case ACORN_OTHER:                                   /* C6 nn   */
               if (token2>ACORNOTH_HIGHEST) {
+                if((int32)(token2-ACORN_OTHER) < 0) {           /* Sanity check */
+                  error(ERR_BROKEN, __LINE__, "tokens");
+                  return 0;
+                }
                 p = bbcbyte_token[token2-ACORN_OTHER];          /* C6      */
               } else {
                 if (token-ACORNOTH_LOWEST >= 8) {
