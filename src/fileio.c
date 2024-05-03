@@ -430,7 +430,7 @@ int32 fileio_getstring(int32 handle, char *p) {
 void fileio_bput(int32 handle, int32 value) {
   if (handle==0) {
     error(ERR_BADHANDLE);
-    return 0;
+    return;
   }
 #ifndef NONET
   if ((handle <= FIRSTHANDLE) && (fileinfo[handle].filetype==NETWORK)) {
