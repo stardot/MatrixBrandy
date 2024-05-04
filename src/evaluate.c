@@ -4528,11 +4528,11 @@ void expression(void) {
     basicvars.current++;
   }
 #ifdef DEBUG
-  if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
+  if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)(size_t)basicvars.current, 2 + __LINE__);
 #endif
   (*factor_table[*basicvars.current])();        /* Get first factor in the expression */
 #ifdef DEBUG
-  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)basicvars.current);
+  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)(size_t)basicvars.current);
 #endif
   lastop = optable[*basicvars.current];
   if (lastop == 0) {
@@ -4541,18 +4541,18 @@ void expression(void) {
   }
   basicvars.current++;          /* Skip operator (always one character) */
 #ifdef DEBUG
-  if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)basicvars.current, 2 + __LINE__);
+  if (basicvars.debug_flags.debug) fprintf(stderr, "    expression: About to factor table jump, *basicvars.current=0x%X, current=0x%llX at line %d\n", *basicvars.current, (int64)(size_t)basicvars.current, 2 + __LINE__);
 #endif
   (*factor_table[*basicvars.current])();        /* Get second operand */
 #ifdef DEBUG
-  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)basicvars.current);
+  if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)(size_t)basicvars.current);
 #endif
   thisop = optable[*basicvars.current];
   if (thisop == 0) {
 /* Have got a simple '<value> <op> <value>' type of expression */
     (*opfunctions[lastop & OPERMASK][GET_TOPITEM])();
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via thisop=0, current=0x%llX\n", (int64)basicvars.current);
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression via thisop=0, current=0x%llX\n", (int64)(size_t)basicvars.current);
 #endif
     return;
   }
@@ -4602,7 +4602,7 @@ void expression(void) {
     basicvars.opstop--;
   }
 #ifdef DEBUG
-    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression at end of function, current=0x%llX\n", (int64)basicvars.current);
+    if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function evaluate.c:expression at end of function, current=0x%llX\n", (int64)(size_t)basicvars.current);
 #endif
 }
 

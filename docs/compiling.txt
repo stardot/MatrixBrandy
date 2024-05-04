@@ -9,27 +9,28 @@ General
 The program is written strictly in ANSI C. The upstream Brandy BASIC
 has been successfully compiled under the following operation systems:
 
-RISC OS		Norcroft C
-NetBSD, FreeBSD	gcc
-OpenBSD		gcc
-Linux		gcc
-Mac OS X	Objective C
-Amiga		SAS C
-DOS		gcc, Jacob Navia's version of lcc and Borland C++
-		version 5.5.
-Windows		gcc (mingw under Cygwin)
+RISC OS         Norcroft C
+NetBSD, FreeBSD gcc
+OpenBSD         gcc
+Linux           gcc
+Mac OS X        Objective C
+Amiga           SAS C
+DOS             gcc, Jacob Navia's version of lcc and Borland C++
+                version 5.5.
+Windows         gcc (mingw under Cygwin)
 
 It has also been compiled under Beos using gcc but this was just
 a test to make sure it worked.
 
 The Matrix Brandy fork is developed under Linux, and has been
 successfully compiled on:
-Linux 32-bit	gcc
-Linux 64-bit	gcc
-Windows 32-bit	gcc (mingw under Cygwin)
-Windows 64-bit	gcc (mingw under Cygwin)
-Mac OS X	clang (using its gcc alias, with SDL 1.2 built from source of latest snapshot)
-Other users have successfully compiled it on RISC OS and OpenBSD.
+Linux 32-bit    gcc
+Linux 64-bit    gcc
+Windows 32-bit  gcc (mingw under Cygwin)
+Windows 64-bit  gcc (mingw under Cygwin)
+Mac OS X        clang (using its gcc alias, with SDL 1.2 built from source of latest snapshot)
+Minix 3         clang (Text builds only)
+RISC OS         Cross-compiled with gcc using gccsdk under Linux.
 
 
 Hopefully the program will compile under other operating systems

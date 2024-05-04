@@ -3911,12 +3911,12 @@ boolean init_screen(void) {
 
 #ifdef BRANDY_MODE7ONLY
   for (p=0; p<=6; p++) modetable[p].xres = 0;
+  for (p=8; p<=126; p++) modetable[p].xres = 0;
 #endif
 
-  setup_mode(BRANDY_STARTUP_MODE);
-#if BRANDY_STARTUP_MODE != 7
-  star_refresh(3);
-#endif
+  if (modetable[matrixflags.startupmode].xres == 0) matrixflags.startupmode=0;
+  setup_mode(matrixflags.startupmode);
+  if (matrixflags.startupmode != 7) star_refresh(3);
 
   return TRUE;
 }

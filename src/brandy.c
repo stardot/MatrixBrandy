@@ -285,6 +285,7 @@ static void init1(void) {
   matrixflags.printer = NULL;         /* By default, printer is closed */
   matrixflags.printer_ignore = 13;    /* By default, ignore carriage return characters */
   matrixflags.translatefname = 2;     /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
+  matrixflags.startupmode = BRANDY_STARTUP_MODE;  /* Defaults to 0 */
 #ifdef BRANDYAPP
   matrixflags.checknewver = 0;        /* By default, try to check for a new version */
 #else
@@ -427,6 +428,11 @@ static void check_configfile() {
       } else if (tolower(*sp)=='g') {   /* Size is in gigabytes */
         worksize = worksize*1024*1024*1024;
       }
+#ifndef BRANDY_MODE7ONLY
+    } else if(!strcmp(item, "startupmode")) {
+      char *sp;
+      matrixflags.startupmode = CAST(strtol(parameter, &sp, 10), size_t);  /* startup mode */
+#endif
     } else if(!strcmp(item, "path")) {
       if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
       basicvars.loadpath = malloc(strlen(parameter)+1);         /* +1 for the NUL */
@@ -456,6 +462,8 @@ static void check_configfile() {
       matrixflags.legacyintmaths = TRUE;
     } else if(!strcmp(item, "hex64")) {
       matrixflags.hex64 = TRUE;
+    } else if(!strcmp(item, "bitshift64")) {
+      matrixflags.bitshift64 = TRUE;
     } else if(!strcmp(item, "pseudovarsunsigned")) {
       matrixflags.pseudovarsunsigned = TRUE;
     }

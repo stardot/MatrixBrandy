@@ -60,7 +60,6 @@
 ** add -DBRANDY_STARTUP_MODE=<mode> to your
 ** BRANDY_BUILD_FLAGS environment variable to override
 */
-#ifdef USE_SDL
 #ifndef BRANDY_STARTUP_MODE
 #ifdef BRANDY_MODE7ONLY
 #define BRANDY_STARTUP_MODE 7
@@ -68,7 +67,6 @@
 #define BRANDY_STARTUP_MODE 0
 #endif /* BRANDY_MODE7ONLY */
 #endif /* BRANDY_STARTUP_MODE */
-#endif /* USE_SDL */
 
 /*
 ** Define the operating system-specific types used for integer

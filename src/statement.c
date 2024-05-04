@@ -476,7 +476,7 @@ static void exec_statements(byte *lp) {
       return;
     }
 #ifdef DEBUG
-    if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)basicvars.current);
+    if (basicvars.debug_flags.tokens) fprintf(stderr, "Dispatching statement with token &%X at &%llX\n", *basicvars.current, (uint64)(size_t)basicvars.current);
 #endif
     (*statements[*basicvars.current])();        /* Dispatch a statement */
   } while (TRUE);
