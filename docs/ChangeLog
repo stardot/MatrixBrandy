@@ -23,6 +23,8 @@ made from git in the master branch, and from tarballs with no git information.
   and is functionally identical to 'TRACE VDU'.
 - BASIC: EXT#handle%,length%% is now supported.
 - BASIC: PTR#handle% and EXT#handle% now accept and can return 64-bit values
+- BASIC: PRINT was garbling numeric output when left-justified on some
+  platforms (notably RISC OS).
   for working with large files.
 
 * 1.23.1 - 13 April 2024
