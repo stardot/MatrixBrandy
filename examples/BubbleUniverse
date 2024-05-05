@@ -1,0 +1,42 @@
+   10ON ERROR PROCexit
+   20n=200
+   30@%=&20808
+   40r=PI*2/235
+   50V%=0
+   60MODE 640,512,32
+   70MODE 640,512,16
+   80x=0:y=0:v=0:t=0.22
+   90s=240
+  100OFF
+  110VDU 29,640;512;
+  120TIME=0
+  130frame_counter%=0
+  140REPEAT
+  150PROCtoggle
+  160CLS
+  170FOR i=0 TO n STEP 2
+  180FOR j=0 TO n STEP 2
+  190u=SIN(i+v)+SIN(r*i+x)
+  200v=COS(i+v)+COS(r*i+x)
+  210x=u+t
+  220r%=(i/200+0.5) MOD 2
+  230g%=(j/200+0.5) MOD 2
+  240c%=r%+g%*2
+  250IF c%=0 c%=4
+  260GCOL i+50,j+50,149
+  270PLOT 69,u*s,v*s
+  280NEXT j
+  290NEXT i
+  300t=t+0.025
+  310frame_counter%=frame_counter%+1
+  320PRINT"fps:";(frame_counter%/TIME*100)
+  330UNTIL 0
+  340DEF PROCtoggle
+  350V%=(V%+1)MOD 2
+  360SYS 6,112,V%+1
+  370SYS 6,113,((V%+1)MOD 2)+1
+  380ENDPROC
+  390DEF PROCexit
+  400SYS 6,113,V%+1
+  410ON
+  420END
