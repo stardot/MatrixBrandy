@@ -12,40 +12,42 @@ Files
 ~~~~~
 The source files that make up the interpreter are as follows:
 
-	assign.c
-	brandy.c
-	commands.c
-	convert.c
-	editor.c
-	errors.c
-	evaluate.c
-	fileio.c
-	functions.c
-	graphsdl.c
-	heap.c
-	iostate.c
-	keyboard.c
-	lvalue.c
-	mainstate.c
-	miscprocs.c
-	mos.c
-	mos_sys.c
-	net.c
-	riscos.c
-	simpletext.c
-	stack.c
-	statement.c
-	strings.c
-	textonly.c
-	tokens.c
-	variables.c
+        assign.c
+        brandy.c
+        commands.c
+        convert.c
+        editor.c
+        errors.c
+        evaluate.c
+        fileio.c
+        functions.c
+        graphsdl.c
+        heap.c
+        iostate.c
+        keyboard.c
+        lvalue.c
+        mainstate.c
+        miscprocs.c
+        mos.c
+        mos_sys.c
+        net.c
+        riscos.c
+        simpletext.c
+        soundsdl.c
+        stack.c
+        statement.c
+        strings.c
+        textonly.c
+        tokens.c
+        variables.c
 
 As a general rule there are include files for each of the above that declare
-the functions found in them. In addition there are three general include files:
+the functions found in them. In addition there are four general include files:
 
-	target.h
-	common.h
-	basicdefs.h
+        target.h
+        common.h
+        basicdefs.h
+        scrcommon.h
 
 Basicdefs.h is the most important include file as all of the main
 structures used by the interpreter are declared in it. The other
@@ -55,28 +57,28 @@ declarations.
 The files containing the functions that interpret Basic programs
 are as follows:
 
-	assign.c	Assignment statements
-	iostate.c	I/O statements
-	mainstate.c	All Other statements
-	statement.c	Dispatches statement functions
+        assign.c        Assignment statements
+        iostate.c       I/O statements
+        mainstate.c     All Other statements
+        statement.c     Dispatches statement functions
 
-	evaluate.c	Evaluate Expressions
-	functions.c	Evaluate Built-in functions
+        evaluate.c      Evaluate Expressions
+        functions.c     Evaluate Built-in functions
 
-	commands.c	Perform Basic commands
+        commands.c      Perform Basic commands
 
 RISC OS emulation is carried out in:
 
-	fileio.c	File I/O
-	mos.c		Most features emulated
-	mos_sys.c	Most SYS calls
+        fileio.c        File I/O
+        mos.c           Most features emulated
+        mos_sys.c       Most SYS calls
 
-	keyboard.c	Keyboard input
+        keyboard.c      Keyboard input
 
-	riscos.c	}
-	simpletext.c	} Different flavours of screen output
-	graphsdl.c	}
-	textonly.c	}
+        riscos.c        }
+        simpletext.c    } Different flavours of screen output
+        graphsdl.c      }
+        textonly.c      }
 
 RISC OS emulation is covered in more detail below.
 
@@ -209,10 +211,10 @@ floating point values used for Basic variables are declared here. The idea is
 that using these types will help to make the program more portable. Other items
 defined here are:
 
-	Maximum string length
-	Default and minimum Basic workspace sizes
-	Characters used as directory separators in file names
-	Name of the editor invoked by the EDIT command
+        Maximum string length
+        Default and minimum Basic workspace sizes
+        Characters used as directory separators in file names
+        Name of the editor invoked by the EDIT command
 
 The values in the file as it stands should be okay for Windows and Unix-type
 operating systems.
@@ -264,20 +266,20 @@ emulation code.
 The emulation functions are spread across the following modules:
 
 General emulation functions:
-	mos.c (mos.h)
-	mos_sys.c (mos_sys.h)
+        mos.c (mos.h)
+        mos_sys.c (mos_sys.h)
 
 Keyboard input:
-	keyboard.c (keyboard.h)
+        keyboard.c (keyboard.h)
 
 Screen output:
-	riscos.c (screen.h)
-	graphsdl.c (screen.h)
-	textonly.c (screen.h)
-	simpletext.c (screen.h)
-	
+        riscos.c (screen.h)
+        graphsdl.c (screen.h)
+        textonly.c (screen.h)
+        simpletext.c (screen.h)
+
 File input and output:
-	fileio.c (fileio.h)
+        fileio.c (fileio.h)
 
 The names in parentheses are the names of the 'include' files that define the
 functions found in the emulation files. 
@@ -355,8 +357,8 @@ environment.
 
 There are two include files for screen output:
 
-	scrcommon.h
-	screen.h
+        scrcommon.h
+        screen.h
 
 'scrcommon.h' defines constants, types and variables needed by all of the VDU
 driver emulation files. 'screen.h' defines the functions that can be called in
@@ -493,17 +495,16 @@ The program uses more tokens than the Acorn interpreter as it has separate
 tokens for cases such as 'DRAW' and 'DRAW BY' where the Acorn interpreter has
 one token. It also tokenises operators such as '<>' and '>>>'.
 
-The interpreter can read programs tokenised using either Acorn's Basic
-interpreter's tokens or Richard Russell's interpreters' tokens, converting them
-to its own tokens.
+The interpreter can read programs tokenised using either Acorn's or Richard
+Russell's interpreters' tokens, converting them to its own tokens.
 
 The format of a tokenised line is:
 
-Bytes 0 and 1	Line number
-Bytes 2 and 3	Length of the line
-Bytes 4 and 5	Offset to executable tokens
-Bytes 6..n	Source version of line
-Bytes n+1..x	Executable tokens
+Bytes 0 and 1   Line number
+Bytes 2 and 3   Length of the line
+Bytes 4 and 5   Offset to executable tokens
+Bytes 6..n      Source version of line
+Bytes n+1..x    Executable tokens
 
 The tokenised line is split into two parts, the original source line and an
 executable version where all blanks, variable names, comments and so forth have
@@ -563,32 +564,37 @@ The type of an lvalue is given by one of the constants whose name is of the
 form 'VAR_xxx'. These constants are used here and also in the symbol table. The
 values defined are:
 
-VAR_INTWORD	Four-byte integer
-VAR_FLOAT	Eight byte floating point
-VAR_STRINGDOL	String ('string$' type)
-VAR_PROC	Entry is for a procedure
-VAR_FUNCTION	Entry is for a function
-VAR_MARKER	Entry marks location of a proc/fn
-VAR_ARRAY	Array
+VAR_INTWORD     32-bit integer
+VAR_UINT8       8-bit integer
+VAR_INTLONG     64-bit integer
+VAR_FLOAT       64-bit floating point
+VAR_STRINGDOL   String ('string$' type)
+VAR_PROC        Entry is for a procedure
+VAR_FUNCTION    Entry is for a function
+VAR_MARKER      Entry marks location of a proc/fn
+VAR_ARRAY       Array
 
 Array entries are further qualified to give the type of the array:
 
-VAR_INTARRAY	(VAR_INTWORD + VAR_ARRAY)	Integer array
-VAR_FLOATARRAY	(VAR_FLOAT + VAR_ARRAY)		Floating point array
-VAR_STRARRAY	(VAR_STRINGDOL + VAR_ARRAY)	String array
+VAR_INTARRAY    (VAR_INTWORD + VAR_ARRAY)       32-bit integer array
+VAR_UINT8ARRAY  (VAR_UINT8 + VAR_ARRAY)         8-bit integer array
+VAR_INT64ARRAY  (VAR_INTLONG + VAR_ARRAY)       64-bit integer array
+VAR_FLOATARRAY  (VAR_FLOAT + VAR_ARRAY)         Floating point array
+VAR_STRARRAY    (VAR_STRINGDOL + VAR_ARRAY)     String array
 
 The following entries are used only for items referenced using indirection
 operators:
 
-VAR_INTBYTE	One-byte integer
-VAR_DOLSTRING	String ('$string' type)
+VAR_INTBYTE     One-byte integer
+VAR_DOLSTRING   String ('$string' type)
 
-VAR_POINTER	Pointer
+VAR_POINTER     Pointer
 
-VAR_INTBYTEPTR	(VAR_INTBYTE + VAR_POINTER)	Pointer to 1 byte integer
-VAR_INTWORDPTR	(VAR_INTWORD + VAR_POINTER)	Pointer to 4 byte integer
-VAR_FLOATPTR	(VAR_FLOAT + VAR_POINTER)	Pointer to floating point
-VAR_DOLSTRPTR	(VAR_DOLSTRING+VAR_POINTER)	Pointer to string
+VAR_INTBYTEPTR  (VAR_INTBYTE + VAR_POINTER)     Pointer to 8-bits integer
+VAR_INTWORDPTR  (VAR_INTWORD + VAR_POINTER)     Pointer to 32-bit integer
+VAR_INT64PTR    (VAR_INTLONG + VAR_POINTER)     Pointer to 64-bit integer
+VAR_FLOATPTR    (VAR_FLOAT + VAR_POINTER)       Pointer to floating point
+VAR_DOLSTRPTR   (VAR_DOLSTRING+VAR_POINTER)     Pointer to string
 
 These values are treated as bitfields in the program.
 
@@ -626,19 +632,23 @@ Variable Types
 The 'VAR_xxx' type constants are used to identify the type of a variable. The
 values used in the symbol table are:
 
-VAR_INTWORD	Four-byte integer
-VAR_FLOAT	Eight byte floating point
-VAR_STRINGDOL	String ('string$' type)
-VAR_ARRAY	Array
-VAR_PROC	Entry is for a procedure
-VAR_FUNCTION	Entry is for a function
-VAR_MARKER	Entry marks location of a procedure or function
+VAR_INTWORD     32-bit integer
+VAR_UINT8       8-bit integer
+VAR_INTLONG     64-bit integer
+VAR_FLOAT       64-bit floating point
+VAR_STRINGDOL   String ('string$' type)
+VAR_ARRAY       Array
+VAR_PROC        Entry is for a procedure
+VAR_FUNCTION    Entry is for a function
+VAR_MARKER      Entry marks location of a procedure or function
 
 Array entries are further qualified to give the type of the array:
 
-VAR_INTARRAY (VAR_INTWORD + VAR_ARRAY)		Integer array
-VAR_FLOATARRAY (VAR_FLOAT + VAR_ARRAY)		Floating point array
-VAR_STRARRAY (VAR_STRINGDOL + VAR_ARRAY)	String array
+VAR_INTARRAY    (VAR_INTWORD + VAR_ARRAY)       32-bit integer array
+VAR_UINT8ARRAY  (VAR_UINT8 + VAR_ARRAY)         8-bit integer array
+VAR_INT64ARRAY  (VAR_INTLONG + VAR_ARRAY)       64-bit integer array
+VAR_FLOATARRAY  (VAR_FLOAT + VAR_ARRAY)         Floating point array
+VAR_STRARRAY    (VAR_STRINGDOL + VAR_ARRAY)     String array
 
 The 'VAR_MARKER' entry for a procedure or function is used when a procedure of
 function is found to note its location. When searching through the program to
@@ -669,7 +679,7 @@ procedure is called.
 There is one extra 'VAR_xxx' constant that appears only in the lvalue structure
 for a formal parameter:
 
-VAR_RETURN		Marks variable as a 'return' variable
+VAR_RETURN              Marks variable as a 'return' variable
 
 
 Basic Program Organisation
@@ -680,17 +690,17 @@ its size can be changed by means of an extended version of the 'new' command or
 at start up by means of the command line option '-size'. The organisation of
 the workspace is:
 
-Highest address				Basicvars.end
-					Basicvars.himem
-		Basic stack
-					Basicvars.stacktop
-					Basicvars.stacklimit
-					Basicvars.vartop
-		Basic heap
-					Basicvars.lomem
-					Basicvars.top
-		Basic program
-Lowest address				Basicvars.page
+Highest address                         Basicvars.end
+                                        Basicvars.himem
+                Basic stack
+                                        Basicvars.stacktop
+                                        Basicvars.stacklimit
+                                        Basicvars.vartop
+                Basic heap
+                                        Basicvars.lomem
+                                        Basicvars.top
+                Basic program
+Lowest address                          Basicvars.page
 
 Variables, non-local arrays, strings, byte arrays allocated via DIM and
 libraries loaded via 'LIBRARY' are all stored on the heap. The heap grows up
@@ -981,19 +991,19 @@ seem to be no stack checks added by the version of gcc used under DJGPP.
 There is not a lot to say about the handling of Basic statements. The code is
 split across four main files:
 
-	assign.c	Assignment statements
-	iostate.c	I/O statements
-	mainstate.c	All other statements
-	statement.c	Dispatches statement functions
+        assign.c        Assignment statements
+        iostate.c       I/O statements
+        mainstate.c     All other statements
+        statement.c     Dispatches statement functions
 
 Expressions are dealt with by:
 
-	evaluate.c	Evaluate Expressions
-	functions.c	Evaluate Built-in functions
+        evaluate.c      Evaluate Expressions
+        functions.c     Evaluate Built-in functions
 
 and Basic commands by:
 
-	commands.c
+        commands.c
 
 
 Embedded Offsets
@@ -1017,18 +1027,21 @@ Tokens Used for Variables
 The intepreter uses a number of different tokens to represent variables of
 different types. They are:
 
-XVAR		Reference to variable in source code
-INTVAR		Simple reference to an integer variable
-FLOATVAR	Simple reference to a floating point variable
-STRINGVAR	Simple reference to a string variable
-ARRAYVAR	Reference to a whole array
-ARRAYREF	Reference to an array element, possibly followed
-		by an indirection operator
-INTINDVAR	Integer variable followed by an indirection operator
-FLOATINDVAR	Floating point variable followed by an indirection
-		operator.
-STATICVAR	Simple reference to a static variable
-STATINDVAR 	Static variable with indirection operator
+XVAR            Reference to variable in source code
+UINT8VAR        Simple reference to an 8-bit integer variable
+INTVAR          Simple reference to a 32-bit integer variable
+INT64VAR        Simple reference to a 64-bit integer variable
+FLOATVAR        Simple reference to a floating point variable
+STRINGVAR       Simple reference to a string variable
+ARRAYVAR        Reference to a whole array
+ARRAYREF        Reference to an array element, possibly followed
+                by an indirection operator
+INTINDVAR       32-bit integer variable followed by an indirection operator
+INT64INDVAR     64-bit integer variable followed by an indirection operator
+FLOATINDVAR     Floating point variable followed by an indirection
+                operator.
+STATICVAR       Simple reference to a static variable
+STATINDVAR      Static variable with indirection operator
 
 All dynamic variables start off with their token set to 'XVAR'. It is changed
 to one of the tokens in the range INTVAR..FLOATINDVAR the first time the
@@ -1107,7 +1120,7 @@ The only 'nasty' in the expression code is that BASIC V/VI does not allow the
 comparision and shift operators to be chained together, that is, expressions
 such as:
 
-	abc% >> 4 < 10
+        abc% >> 4 < 10
 
 will give a syntax error and have to be put in brackets to work. There is code
 specifically to handle comparision operators (or, to be more precise, those
@@ -1181,7 +1194,7 @@ also be used as an operand under some circumstances, namely, that the array is
 on the left-hand side of the operator and that the result is of the same type
 and size as the existing temporary array, for example:
 
-	array1$() = array2$()+"  "+array3$()+"  "+array4$()
+        array1$() = array2$()+"  "+array3$()+"  "+array4$()
 
 This gives some flexibility in using arrays as operands but it is by no means
 general. It also goes beyond what the Acorn interpreter supports.
@@ -1215,25 +1228,27 @@ displaying the string usage statistics.
 
 There are six debugging options:
 
-DEBUG_DEBUG	&100	Show general debugging output. Check Basic heap for
-			memory leaks after program has finished running.
-DEBUG_TOKENS	&200	Show tokenised lines on input plus addresses on
-			listings.
-DEBUG_VARIABLES	&400	List addresses of variables when created and on listing
-			produced by LVAR.
-DEBUG_STRINGS	&800	Show memory allocated and released for strings.
-DEBUG_STATS	&1000	Show string heap statistics when program finishes.
-DEBUG_STACK	&2000	Show various control blocks pushed and popped from the
-			Basic stack.
-DEBUG_ALLSTACK	&4000	Show in detail values and intermediate results push and
-			popped from the stack
+DEBUG_DEBUG     &100    Show general debugging output. Check Basic heap for
+                        memory leaks after program has finished running.
+DEBUG_TOKENS    &200    Show tokenised lines on input plus addresses on
+                        listings.
+DEBUG_VARIABLES &400    List addresses of variables when created and on listing
+                        produced by LVAR.
+DEBUG_STRINGS   &800    Show memory allocated and released for strings.
+DEBUG_STATS     &1000   Show string heap statistics when program finishes.
+DEBUG_STACK     &2000   Show various control blocks pushed and popped from the
+                        Basic stack.
+DEBUG_ALLSTACK  &4000   Show in detail values and intermediate results push and
+                        popped from the stack
+DEBUG_FUNCTIONS &8000   Show which functions are called. This is incomplete.
 
 The values given are the LISTO value needed to turn on or off each option, that
-is, 'listo &100' will turn on general dubugging output and a second 'listo &100'
-will turn it off again. Debug output is sent to 'stderr' and is probably best
-redirected to a file, for example, starting the interpreter with
+is, 'LISTO &100' will turn on general dubugging output and LISTO call without
+the debug bit(s) set will turn it off again. Debug output is sent to 'stderr'
+and is probably best redirected to a file, for example, starting the
+interpreter with
 
-	brandy 2>tracefile
+        brandy 2>tracefile
 
 under Linux or NetBSD will send all debugging output to the file 'tracefile'.
 This is probably the best way to deal with it.
@@ -1343,8 +1358,8 @@ SWI Error Block
 ---------------
 The format of this is:
 
-Bytes 0 to 3:	Error number (four bytes, little endian)
-Bytes 4+:	Null terminated error message.
+Bytes 0 to 3:   Error number (four bytes, little endian)
+Bytes 4+:       Null terminated error message.
 
 Implementing SWIs
 -----------------
@@ -1367,8 +1382,8 @@ to turn them into real addresses. basicvars.offbase is of type
 'unsigned char *'. There are two functions in miscprocs.c that can be used to
 verify that an address is legal. These are check_read() and check_write().
 
-	void check_read(int32 low, int32 size)
-	void check_write(int32 low, int32 size)
+        void check_read(int32 low, int32 size)
+        void check_write(int32 low, int32 size)
 
 'low' is the offset within the Basic workspace of the start of the block to be
 checked and 'size' is its size in bytes. Reads are allowed anywhere in the

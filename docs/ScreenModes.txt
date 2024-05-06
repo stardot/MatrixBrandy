@@ -57,8 +57,10 @@ Mode  Text resolution Graphics resolution  Colours  Pixel size  Logical res
  52       40x30           320x240            16       2x2        1280x960
  53       40x30           320x240           256       2x2        1280x960
 54-63 reserved for future expansion within RISC OS.
-Modes from 64 can be redefined with *NewMode, these definitions are
-local to Matrix Brandy, and may be changed in the future.
+Modes from 64 are only available on SDL builds, and can be redefined with
+*NewMode, these definitions are local to Matrix Brandy, and may be changed
+in the future.  As such they are not available on RISC OS, however the
+new-style MODE commands are available and can be used to replicate these.
 Modes 64-68 use the same coordinate system as Tektronix graphical terminals
  64      128x97          1024x780             2       1x1        2048x1560
  65      128x97          1024x780             4       1x1        2048x1560
