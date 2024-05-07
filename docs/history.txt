@@ -17,7 +17,7 @@ Version 1.01  14/11/2000
 -  'QUIT=1' was not being flagged as a syntax error. Fixed.
 
 -  If a line containing an error such as:
-	100 abcd
+        100 abcd
    was the last line of the program, the line number of the line
    in error was not being given in the error message. Fixed.
 

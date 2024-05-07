@@ -21,22 +21,22 @@ if required, in R1. Those that return a value do so in R0.
 
 The other GPIO calls are:
 RaspberryPi_GetGPIOPortMode: R0=port
-	Returns a value from 0 to 7:
-		0: Input
-		1: Output
-		2: ALT5
-		3: ALT4
-		4: ALT0
-		5: ALT1
-		6: ALT2
-		7: ALT3
+        Returns a value from 0 to 7:
+                0: Input
+                1: Output
+                2: ALT5
+                3: ALT4
+                4: ALT0
+                5: ALT1
+                6: ALT2
+                7: ALT3
 
 RaspberryPi_SetGPIOPortMode: R0=port, R1=mode (as above).
 
 RaspberryPi_SetGPIOPortPullUpDownMode: R0=port, R1=mode
-		0: Off
-		1: Down
-		2: Up
+                0: Off
+                1: Down
+                2: Up
 
 RaspberryPi_ReadGPIOPort: R0=port. Value returned in R0.
 

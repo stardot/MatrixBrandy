@@ -44,53 +44,53 @@ Under RISC OS, the source is found in the 'C' and 'H'
 subdirectories in the interpreter's directory in the normal way.
 Under the other operating systems it is kept in the 'src'
 subdirectory.
- 		
+                
 As a general rule, the commands to compile the interpreter are:
 
-	cd MatrixBrandy		Change to the directory containing the
-				interpreter.
+        cd MatrixBrandy         Change to the directory containing the
+                                interpreter.
 
-	make			recompiles modules
+        make                    recompiles modules
 
 Some defaults in Matrix Brandy can be overridden using the BRANDY_BUILD_FLAGS
 shell environment variable. Notable ones include:
--DDEBUG				Enable debugging options (and extended LISTO)
--DBRANDY_STARTUP_MODE=<mode>	Choose initial screen mode, default is 0
--DBRANDY_DEFAULT_SIZE=<size>	Default amount of memory to allocate to
-				BASIC workspace in kilobytes, default 1024.
--DBRANDY_NODISPLAYOS		Banner and *HELP don't show the running OS.
--DBRANDY_BANNER_MINIMAL		Show a minimal banner on startup:
-					Matrix Brandy <size>K
+-DDEBUG                         Enable debugging options (and extended LISTO)
+-DBRANDY_STARTUP_MODE=<mode>    Choose initial screen mode, default is 0
+-DBRANDY_DEFAULT_SIZE=<size>    Default amount of memory to allocate to
+                                BASIC workspace in kilobytes, default 1024.
+-DBRANDY_NODISPLAYOS            Banner and *HELP don't show the running OS.
+-DBRANDY_BANNER_MINIMAL         Show a minimal banner on startup:
+                                        Matrix Brandy <size>K
 
-					BASIC
+                                        BASIC
 
-					>_
+                                        >_
 
-				This works best with -DBRANDY_STARTUP_MODE=7 :)
--DBRANDY_ALLOW_LOWERCASE_COMMANDS	Allow immediate-mode commands to be
-					entered in lower case.
+                                This works best with -DBRANDY_STARTUP_MODE=7 :)
+-DBRANDY_ALLOW_LOWERCASE_COMMANDS       Allow immediate-mode commands to be
+                                        entered in lower case.
 
 Compiling Under Different Operating Systems
 -------------------------------------------
 Compilation of the OS-specific parts of the interpreter is
 controlled by a macro of the form:
 
-	TARGET_xxxxxx
+        TARGET_xxxxxx
 
 where 'xxxxxx' is the target operating system, for example,
 TARGET_RISCOS and TARGET_LINUX. The macro is defined in
 target.h. The values for the various operating systems are
 as follows:
 
-RISC OS		TARGET_RISCOS
-NetBSD		TARGET_NETBSD
-OpenBSD		TARGET_OPENBSD
-FreeBSD		TARGET_FREEBSD
-Linux		TARGET_LINUX
-Mac OS X	TARGET_MACOSX		
-DOS		TARGET_DJGPP, TARGET_WIN32, TARGET_BCC32
-Amiga		TARGET_AMIGA
-Beos		TARGET_BEOS
+RISC OS         TARGET_RISCOS
+NetBSD          TARGET_NETBSD
+OpenBSD         TARGET_OPENBSD
+FreeBSD         TARGET_FREEBSD
+Linux           TARGET_LINUX
+Mac OS X        TARGET_MACOSX           
+DOS             TARGET_DJGPP, TARGET_WIN32, TARGET_BCC32
+Amiga           TARGET_AMIGA
+Beos            TARGET_BEOS
 
 Which of the above to use is determined in target.h by checking
 the predefined macros that are supplied by the compiler, for
@@ -127,11 +127,11 @@ The program has only been compiled with the Norcroft C compiler.
 Acorn's make utility is called 'amu', not 'make', and so the
 commands to compile the program are:
 
-	amu
+        amu
 - or - 
-	amu recompile
+        amu recompile
 - or -
-	amu nodebug
+        amu nodebug
 
 The program compiles and runs under RISC OS 3.1 or later. Note
 that the names of some of the source files are longer than ten
@@ -180,17 +180,17 @@ brandy executables:
 
 The commands to compile the different versions of the program become:
 
-	make -f makefile.text            # to make sbrandy and tbrandy.
+        make -f makefile.text            # to make sbrandy and tbrandy.
         make -f makefile.text sbrandy    # to make sbrandy only.
         make -f makefile.text tbrandy    # to make tbrandy only.
 
-	make -f makefile.text recompile
-	make -f makefile.text srecompile
-	make -f makefile.text trecompile
+        make -f makefile.text recompile
+        make -f makefile.text srecompile
+        make -f makefile.text trecompile
 
-	make -f makefile.text nodebug
-	make -f makefile.text snodebug
-	make -f makefile.text tnodebug
+        make -f makefile.text nodebug
+        make -f makefile.text snodebug
+        make -f makefile.text tnodebug
 
 depending on the version of the code wanted.
 
@@ -202,4 +202,4 @@ optimised version of the code, that is, it does not compile the
 debugging version. The only flavour of 'make' command that works
 is:
 
-	make -f makefile.bcc
+        make -f makefile.bcc

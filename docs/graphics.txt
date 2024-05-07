@@ -32,13 +32,13 @@ the primary display, so *FX112,0 is synonymous to *FX112,1, similarly for
 SYS "OS_Byte" (SYS 6).
 
 *REFRESH (borrowed from BB4W/BBCSDL by Richard Russell)
-*REFRESH	One-shot refresh of the display.
-*REFRESH OFF	Suspends updates to the display window.
-*REFRESH ON	Resume updates to the display window, updating it with any
-		pending changes.
+*REFRESH        One-shot refresh of the display.
+*REFRESH OFF    Suspends updates to the display window.
+*REFRESH ON     Resume updates to the display window, updating it with any
+                pending changes.
 *REFRESH ONERROR  Suspends updates to the display window until an error
-		  condition is encountered. This option is not present in
-		  BB4W/BBCSDL.
+                  condition is encountered. This option is not present in
+                  BB4W/BBCSDL.
 This can also be set - and read - by OSBYTE &2A (42). See osbyte.txt for
 more details on this.
 

@@ -118,8 +118,8 @@ where <filename> is the optional name of the program to load and
 -load <filename>        Load Basic program <filename> when the interpreter
                         starts.
 
--chain <filename>	Load and run the Basic program <filename>. Remain in
-			the interpreter when the program has finished running.
+-chain <filename>       Load and run the Basic program <filename>. Remain in
+                        the interpreter when the program has finished running.
 
 -quit <filename>        Load and run the Basic program <filename>. Leave the
                         interpreter when the program has finished running.
@@ -298,9 +298,9 @@ RUN statement is issued, when NEW or CLEAR are used or when the program is
 edited. Effectively they are only available when a Basic program is running.
 Examples:
 
-	INSTALL "catlib"
+        INSTALL "catlib"
 
-	LIBRARY "doglib"
+        LIBRARY "doglib"
 
 Libraries loaded using 'INSTALL' cannot be discarded. However the same library
 can be loaded via 'LIBRARY' and it will effectively take precedence as
@@ -435,19 +435,19 @@ only accessible in the library in which they were declared.
 The LIBRARY LOCAL statement is used to declare the variables. The syntax is as
 follows:
 
-	LIBRARY LOCAL <list of variables and arrays>
+        LIBRARY LOCAL <list of variables and arrays>
 
 where <list of variable and arrays> is a list of variable and array names
 separated by commas, for example:
 
-	LIBRARY LOCAL abc%, def%, ghi$, jkl(), mno(), pqr$()
+        LIBRARY LOCAL abc%, def%, ghi$, jkl(), mno(), pqr$()
 
 In the case of arrays, this merely defines that the array is local to the
 library. The dimensions of the array have to be declared using a DIM statement
 in the normal way, for example:
 
-	LIBRARY LOCAL jkl(), pqr$()
-	DIM jkl(100), pqr$(table_size%)
+        LIBRARY LOCAL jkl(), pqr$()
+        DIM jkl(100), pqr$(table_size%)
 
 There can be as many LIBRARY LOCAL and DIM statements as necessary but they
 have to be before the first DEF PROC or DEF FN statement in the library. They
@@ -470,20 +470,20 @@ Private variables in a library can further be used as local variables in a
 procedure or function. Note that they can only be accessed in the library, for
 example:
 
-	LIBRARY LOCAL abc%, def, ghi$, jkl(), mno$()
-	DIM jkl(100)
+        LIBRARY LOCAL abc%, def, ghi$, jkl(), mno$()
+        DIM jkl(100)
 
-	DEF PROCaaa(abc%)
-	LOCAL def, ghi$
-	ENDPROC
+        DEF PROCaaa(abc%)
+        LOCAL def, ghi$
+        ENDPROC
 
-	DEF PROCbbb(def, jkl())
-	LOCAL mno$()
-	DIM mno$(100)
-	ENDPROC
+        DEF PROCbbb(def, jkl())
+        LOCAL mno$()
+        DIM mno$(100)
+        ENDPROC
 
-	DEF PROCccc(xyz, abc%)
-	ENDPROC
+        DEF PROCccc(xyz, abc%)
+        ENDPROC
 
 Here, abc%, def, ghi$, jkl() and mno$() are all declared to be private to the
 library. The dimensions of jkl() are also defined.
@@ -515,7 +515,7 @@ interpreter will search when looking for programs and libraries. The names are
 separated by commas with no intervening blanks or other white space characters,
 for example:
 
-	FILEPATH$="/home/dave,/usr/local/basic/lib"
+        FILEPATH$="/home/dave,/usr/local/basic/lib"
 
 The format of the directory names is operating system-dependent and the program
 assumes that they are correct.
@@ -523,11 +523,11 @@ assumes that they are correct.
 FILEPATH$ can be treated like any other string variable except that only the
 '=' assignment operator is allowed, thus:
 
-	FILEPATH$="/usr/local/basic/lib"
+        FILEPATH$="/usr/local/basic/lib"
 
 is fine but:
 
-	FILEPATH$+=",/usr/local/lib"
+        FILEPATH$+=",/usr/local/lib"
 
 is not supported and will give an error.
 
@@ -539,12 +539,12 @@ end of the list. If the file can be found, the name of the file as far as the
 interpreter is concerned is the name as orginally supplied with the name of the
 directory in which it was found prepended to it, for example:
 
-	load "earthworks"
+        load "earthworks"
 
 If this program was found in the directory '/home/dave' the name of the program
 would show up as '/home/dave/earthworks' in the output from 'help'. Saving the
 program without specifying a new file name would write to the file
-'/home/dave/earthworks'.	
+'/home/dave/earthworks'.
 
 As FILEPATH$ is a pseudo variable, its value is not affected by CLEAR or NEW.
 The initial value of FILEPATH$ can be set using the command line option '-path'.
@@ -565,20 +565,20 @@ ARGC
 ----
 Returns the number of parameters, for example:
 
-	count = ARGC
+        count = ARGC
 
 ARGV$
 -----
 Returns parameters. The syntax is:
 
-	ARGV$ <factor>
+        ARGV$ <factor>
 
 where <factor> is a numeric value that identifies the parameter to return, for
 example:
 
-	FOR N%=1 TO ARGC
-	PRINT ARGV$ N%
-	NEXT
+        FOR N%=1 TO ARGC
+        PRINT ARGV$ N%
+        NEXT
 
 Parameter numbers are in the range 1 to the value returned by ARGC. ARGV$0 is
 the name of the Basic program if it was started from the command line otherwise
@@ -589,8 +589,8 @@ XLATE$
 This function is used to translate character strings. There are two forms of it
 as follows:
 
-	XLATE$(<string>)
-	XLATE$(<string>, <translate table>)
+        XLATE$(<string>)
+        XLATE$(<string>, <translate table>)
 
 In the first version, the function returns the string <string> converted to
 lower case. Note that only ASCII characters are converted. The second version
@@ -611,17 +611,17 @@ not have to contain 256 elements: characters whose ASCII code place them beyond
 the end of the array are left unchanged.
 
 Examples:
-	PRINT XLATE$("AbCdEfGh")
+        PRINT XLATE$("AbCdEfGh")
 
-	DIM table$(255)
-	FOR N%=ASC"0" TO ASC"9": table$(N%)="*": NEXT
-	PRINT XLATE$("abc123def456", table$())
-	
+        DIM table$(255)
+        FOR N%=ASC"0" TO ASC"9": table$(N%)="*": NEXT
+        PRINT XLATE$("abc123def456", table$())
+
 VERIFY
 ------
 The format of this function is as follows:
 
-	VERIFY(<string 1>, <string 2> [, <start>])
+        VERIFY(<string 1>, <string 2> [, <start>])
 
 It returns the offset (from one) of the first character in string <string 1>
 that is not in string <string 2>. <start> is an optional parameter that gives
@@ -630,15 +630,15 @@ present in <string 2> the function returns zero; otherwise it returns the
 offset of the first bad character.
 
 Examples:
-	X% = VERIFY(a$, "0123456789")
+        X% = VERIFY(a$, "0123456789")
 
-	REPEAT A$=GET$: UNTIL VERIFY(a$, "YNyn")=0
+        REPEAT A$=GET$: UNTIL VERIFY(a$, "YNyn")=0
 
-	P%=1
-	REPEAT
-	  P%=VERIFY("...x..x..", ".", P%)
-	  IF P%<>0 THEN PRINT P%
-	UNTIL P%=0
+        P%=1
+        REPEAT
+          P%=VERIFY("...x..x..", ".", P%)
+          IF P%<>0 THEN PRINT P%
+        UNTIL P%=0
 
 If <string 1> is an empty string or the start position is greater than the
 string length then the function always returns zero. If <string 2> is an empty
@@ -650,41 +650,41 @@ ARM BBC BASIC 1.26 Extensions
 The following statement types have been extended in this version of the
 interpreter:
 
-	COLOUR
-	DIM
-	GCOL
-	MODE
-	VDU function
+        COLOUR
+        DIM
+        GCOL
+        MODE
+        VDU function
 
 COLOUR
 The new 'OF' and 'ON' parts are supported, for example:
 
-	COLOUR OF 255,255,255 ON 0,0,0
+        COLOUR OF 255,255,255 ON 0,0,0
 
 DIM
 It is now possible for local byte arrays to be created in procedures and
 functions. The memory for the byte array is reclaimed when the procedure or
 function ends, for example:
 
-	DIM pointer% LOCAL 1000
+        DIM pointer% LOCAL 1000
 
 GCOL
 The new 'OF' and 'ON' parts are supported, for example:
 
-	GCOL OF 0,0,0 ON 255,255,255
+        GCOL OF 0,0,0 ON 255,255,255
 
 MODE
 The extended form of MODE where the screen size to be used is supplied is now
 supported. Example:
 
-	MODE 800,600,8
-	MODE "X800 Y600 C256"
+        MODE 800,600,8
+        MODE "X800 Y600 C256"
 
 VDU Function
 VDU can now be used as a function to return the values of mode variables.
 Example:
 
-	PRINT "Width in characters is ";VDU 1
+        PRINT "Width in characters is ";VDU 1
 
 All of these extensions are described in the file 'basic'.
 
@@ -694,17 +694,17 @@ current screen mode to the colour with the colour components passed to the
 function. The value is for use with the COLOUR OF and GCOL OF statements.
 Example:
 
-	red = COLOUR(255, 0, 0)
-	blue = COLOUR(0, 0, 255)
-	COLOUR OF red ON blue
+        red = COLOUR(255, 0, 0)
+        blue = COLOUR(0, 0, 255)
+        COLOUR OF red ON blue
 
 This could also be written as:
 
-	COLOUR OF 255, 0, 0 ON 0, 0, 255
+        COLOUR OF 255, 0, 0 ON 0, 0, 255
 
 or even:
 
-	COLOUR OF COLOUR(255, 0, 0) ON COLOUR(0, 0, 255)
+        COLOUR OF COLOUR(255, 0, 0) ON COLOUR(0, 0, 255)
 
 The advantage of the new forms of GCOL and COLOUR are that they are mode
 independent. They are more flexible than the old versions of the statements and
@@ -728,19 +728,19 @@ Command Line Parameters
 The interpreter assumes that any unrecognised parameter on the command line is
 meant to be for the Basic program, for example:
 
-	brandy aprog parm1 parm2 -xyz
+        brandy aprog parm1 parm2 -xyz
 
 would be assumed to consist of the name of the program to run, aprog, and three
 parameters for the program, 'parm1', 'parm2' and '-xyz'.
 
-	brandy aprog -size 256k parm1 parm2 -xyz
+        brandy aprog -size 256k parm1 parm2 -xyz
 
 would be interpreted in exactly the same way. '-size 256k' would be treated as
 an option for the interpreter itself.
 
 Beware of cases like:
 
-	brandy aprog -size 256k parm1 -start
+        brandy aprog -size 256k parm1 -start
 
 Here, '-start' would be seen as '-size' by the program as it only checks for
 '-s' to identify '-size'.
@@ -750,7 +750,7 @@ Capturing Command Output with OSCLI
 The OSCLI statement has been extended so that the output from operating system
 commands can be read by the program. The syntax of the statement is now:
 
-	OSCLI <command> [ TO <string array> [ , <variable> ] ]
+        OSCLI <command> [ TO <string array> [ , <variable> ] ]
 
 <command> is a string expression that is the command to be issued. <string
 array> is an array that will be used to hold the output from the command. It is
@@ -767,10 +767,10 @@ happened so it is up to the user to ensure that the array is large enough.
 
 Example:
 
-	OSCLI "ex" TO array$(), lines%
-	FOR N%=1 TO lines%
-	  IF LEFT$(array$(N%), 1)="a" THEN PRINT array$(N%)
-	NEXT
+        OSCLI "ex" TO array$(), lines%
+        FOR N%=1 TO lines%
+          IF LEFT$(array$(N%), 1)="a" THEN PRINT array$(N%)
+        NEXT
 
 Note that there some problems still to be resolved with OSCLI ... TO. Errors
 (or to be more precise, messages written to stderr) are not caught in the DOS
@@ -784,11 +784,11 @@ be changed. By default, Brandy allocates half a megabyte of memory to hold the
 program, variables, strings and so forth. This can be changed by means of the
 'NEW' command as follows:
 
-	NEW <size>
+        NEW <size>
 
 where <size> is the new size of the workspace in bytes, for example:
 
-	NEW 1000000
+        NEW 1000000
 
 would set the workspace size to 1,000,000 bytes.
 
@@ -810,14 +810,14 @@ uses the current 'LISTO' setting to control the format of the program when it
 is written to disk. 'SAVEO' allows the format to be more precisely specified.
 The format of the SAVEO command is:
 
-	SAVEO <format> [,<filename>]
+        SAVEO <format> [,<filename>]
 
 where <format> is a number that gives the 'listo' format to be used and
 <filename> is the name of the file. The name can be omitted, in which case the
 name defaults to either the name used on the last 'LOAD' command or the name
 given on the first line of the program. Example:
 
-	SAVEO 10,"test"
+        SAVEO 10,"test"
 
 would save a program called "test" using 'listo' option 10 (omit line numbers
 and indent lines inside loops, block IF statements and so forth).
@@ -850,22 +850,22 @@ at which execution continues. It works not just for GOTO statements but
 anywhere where a branch can occur, for example, in IF statements. Example:
 consider the following code:
 
-	100 IF X%<10 THEN
-	110   PRINT"X% is less than ten"
-	120   flag%=TRUE
-	130 ELSE
-	140   PRINT"X% is greater than or equal to ten"
-	150   flag%=FALSE
-	160 ENDIF
-	170 PRINT flag%
+        100 IF X%<10 THEN
+        110   PRINT"X% is less than ten"
+        120   flag%=TRUE
+        130 ELSE
+        140   PRINT"X% is greater than or equal to ten"
+        150   flag%=FALSE
+        160 ENDIF
+        170 PRINT flag%
 
 If X% was set to five, the branch trace would show the following entries:
 
-	[100->110][130->170]
+        [100->110][130->170]
 
 and if X% was set to 25, it would look like:
 
-	[100->140]
+        [100->140]
 
 (Note that the program output has been omitted for clarity here).
 
@@ -882,14 +882,14 @@ option. Note, however, that some of the trace entries are not intuitive, for
 example, the line number of the start of a WHILE loop will be that of the
 statement after the WHILE itself, for example:
 
-	200 X%=7
-	210 WHILE X%<10
-	220   X%+=1
-	230 ENDWHILE
+        200 X%=7
+        210 WHILE X%<10
+        220   X%+=1
+        230 ENDWHILE
 
 will produce the following trace:
 
-	[230->220][230->220]
+        [230->220][230->220]
 
 The reason for this is tied up in the way WHILE loops work.
 
@@ -932,9 +932,9 @@ The EDIT command loads the Basic program into a text editor. The program is
 reloaded by the interpreter when leaving the editor. The editor used by default
 varies from operating system to operating system as follows:
 
-Linux		vi
-NetBSD		vi
-Windows		(not working)
+Linux           vi
+NetBSD          vi
+Windows         (not working)
 
 It is possible to override which editor the program uses by means of an
 environment variable. Under Linux and NetBSD it looks for the standard 'EDITOR'
@@ -955,7 +955,7 @@ EDITO
 There is a variation on the EDIT command, EDITO, that affects how the program
 is formatted when it is passed to the editor. The command syntax is:
 
-	EDITO <value>
+        EDITO <value>
 
 where <value> controls how the program will be formatted. This takes the same
 values as 'LISTO' and it has the same effect. EDITO allows, for example, a
@@ -970,20 +970,20 @@ built-in line editor. Apart from allowing input lines to be edited, there is
 also a command line history feature that allows the last twenty or so lines
 entered to be recalled. The editing commands are:
 
-LEFT      or Ctrl-B	Move left one character
-RIGHT     or Ctrl-F	Move right one character
-HOME      or Ctrl-A	Go to start of line
-END       or Ctrl-E	Go to end of line
-DELETE    or Ctrl-D	Delete right, deleting character under cursor
-BACKSPACE or Ctrl-H	Delete left, deleting character to left of cursor
-             Ctrl-K	Delete from cursor to end of line
-             Ctrl-U	Delete from cursor to start of line
-INSERT			Toggle between 'insert' and 'overwrite' mode
-UP        or CTRL-P	Go to previous entry in the command line history
-DOWN      or CTRL-N	Go to next entry in the command line history
-RETURN    or CTRL-M	Finish editing
-             CTRL-J	Finish editing, as with RETURN/CTRL-M
-ESCAPE			Abort editing
+LEFT      or Ctrl-B     Move left one character
+RIGHT     or Ctrl-F     Move right one character
+HOME      or Ctrl-A     Go to start of line
+END       or Ctrl-E     Go to end of line
+DELETE    or Ctrl-D     Delete right, deleting character under cursor
+BACKSPACE or Ctrl-H     Delete left, deleting character to left of cursor
+             Ctrl-K     Delete from cursor to end of line
+             Ctrl-U     Delete from cursor to start of line
+INSERT                  Toggle between 'insert' and 'overwrite' mode
+UP        or CTRL-P     Go to previous entry in the command line history
+DOWN      or CTRL-N     Go to next entry in the command line history
+RETURN    or CTRL-M     Finish editing
+             CTRL-J     Finish editing, as with RETURN/CTRL-M
+ESCAPE                  Abort editing
 
 The aim is to provide both DOS and Unix (emacs) style editing.
 
@@ -1008,32 +1008,32 @@ is it running under:
 2)  Check what INKEY -256 returns. This has been the documented way of checking
     the OS version since the first version of RISC OS. The values returned are:
 
-	&A0	Arthur 1.2
-	&A1	RISC OS 2.00
-	&A2	RISC OS 2.01
-	&A3	RISC OS 3.00
-	&A4	RISC OS 3.10 and 3.11
-	&A5	RISC OS 3.50
-	&A6	RISC OS 3.60
-	&A7	RISC OS 3.70 and 3.71
-	&A8	RISC OS 4.00, 4.01, 4.02 and 4.03
-	&A9	RISC OS 4.32 to 4.37
-	&AA	RISC OS 5
+        &A0     Arthur 1.2
+        &A1     RISC OS 2.00
+        &A2     RISC OS 2.01
+        &A3     RISC OS 3.00
+        &A4     RISC OS 3.10 and 3.11
+        &A5     RISC OS 3.50
+        &A6     RISC OS 3.60
+        &A7     RISC OS 3.70 and 3.71
+        &A8     RISC OS 4.00, 4.01, 4.02 and 4.03
+        &A9     RISC OS 4.32 to 4.37
+        &AA     RISC OS 5
 
     On all platforms including RISC OS, Matrix Brandy returns &4D (ASC"M").
 
     Older versions of Brandy (and Matrix Brandy older than 1.22.6) added the
     following:
 
-	&F5	Amiga
-	&F6	OpenBSD
-	&F7	FreeBSD
-	&F8	MACOS X
-	&F9	Linux
-	&FA	DOS with DJGPP DOS extender
-	&FB	Beos
-	&FC	Windows 32
-	&FE	NetBSD
+        &F5     Amiga
+        &F6     OpenBSD
+        &F7     FreeBSD
+        &F8     MACOS X
+        &F9     Linux
+        &FA     DOS with DJGPP DOS extender
+        &FB     Beos
+        &FC     Windows 32
+        &FE     NetBSD
 
     Matrix Brandy can obtain this via the SYS "Brandy_Platform" call,
     with the above values in the R5 response.
@@ -1058,10 +1058,10 @@ is it running under:
     To reliably identify Matrix Brandy as of V1.22.12 with suitable capabilities
     for a program that requires a graphical output, you can use the following:
 
-	graphics%=0
-	IF INKEY(-256)=&4D THEN SYS "Brandy_Platform" TO ,,,graphics%
-	IF graphics% = 0 THEN ERROR 0,"This program requires Matrix Brandy BASIC with graphics capability".
-	REM We got here, so we're good to go.
+        graphics%=0
+        IF INKEY(-256)=&4D THEN SYS "Brandy_Platform" TO ,,,graphics%
+        IF graphics% = 0 THEN ERROR 0,"This program requires Matrix Brandy BASIC with graphics capability".
+        REM We got here, so we're good to go.
 
     Note that Matrix Brandy on RISC OS intercepts the OS_SWINumberFromString
     call to be able to recognise its own internal Brandy_* calls, which use
@@ -1073,14 +1073,14 @@ is it running under:
     not supported except in one special case, to make calls to a subset of
     BBC Micro MOS calls. The following code can be used:
 
-	A% = 0: X% = 1: result% = USR &FFF4
-	version% = (result% DIV 256) AND 255
+        A% = 0: X% = 1: result% = USR &FFF4
+        version% = (result% DIV 256) AND 255
 
     version% will contain one of the following values:
 
-	6	Acorn hardware (RiscPC, A7000 and so forth)
-	8	Unix-type OS
-	32	PC (DOS and Windows)
+        6       Acorn hardware (RiscPC, A7000 and so forth)
+        8       Unix-type OS
+        32      PC (DOS and Windows)
 
     Again, this list might be extended. Again, not that this tells you the
     *platform* the program is running on, not the interpreter. For example,
@@ -1089,7 +1089,7 @@ is it running under:
 
     In Matrix Brandy, the following may also be used:
 
-	SYS "OS_Byte",0,1 TO ,version%
+        SYS "OS_Byte",0,1 TO ,version%
 
 Determining the *interpreter* that is running, as opposed to the platform the
 interpreter is running on, is often more complicated and fiddly. In this case,
@@ -1104,19 +1104,19 @@ and write output to a file rather than use the keyboard and screen
 respectively. Under NetBSD, for example, commands could be taken
 from a file thus:
 
-	brandy <command.list
+        brandy <command.list
 
 Or read from one file with output going to a second file using:
 
-	brandy <command.list >output.file
+        brandy <command.list >output.file
 
 Under RISC OS these would be:
 
-	brandy { < command.list }
+        brandy { < command.list }
 
 and
 
-	brandy { < command.list > output.file }
+        brandy { < command.list > output.file }
 
 Under NetBSD and Linux in the text builds, redirecting output to a file
 disables all of the VDU commands except for VDU 7, 8, 9, 10, 13 and 27. The
@@ -1139,17 +1139,17 @@ interpreter. The run is also stopped if the end of the file is reached.
 
 An example might help here. Consider the following:
 
-	LOAD"examples/sieve"
-	RUN
-	LOAD"examples/hex"
-	RUN
-	IF X%=10 THEN QUIT
-	RUN
-	QUIT 100
+        LOAD"examples/sieve"
+        RUN
+        LOAD"examples/hex"
+        RUN
+        IF X%=10 THEN QUIT
+        RUN
+        QUIT 100
 
 If this is saved in a file (for example, command.bbc), then typing:
 
-	brandy <command.bbc
+        brandy <command.bbc
 
 would run the interpreter. It would read each line of the file and execute it.
 Note how the IF statement is used to end the run of the interpreter before the
@@ -1168,22 +1168,22 @@ the name of the interpreter and the file containing the Basic program is made
 executable, the interpreter will automatically be used to run the program, for
 example, conside the following program:
 
-	#!/usr/local/bin/sbrandy
-	PROCprint
-	QUIT
-	:
-	DEF PROCprint
-	PRINT "Hello"
-	ENDPROC
+        #!/usr/local/bin/sbrandy
+        PROCprint
+        QUIT
+        :
+        DEF PROCprint
+        PRINT "Hello"
+        ENDPROC
 
 If this is saved in a file (called, for example, 'hello.bbc') and the file is
 made executable with the command:
 
-	chmod +x hello.bbc
+        chmod +x hello.bbc
 
 then typing:
 
-	hello.bbc
+        hello.bbc
 
 will invoke sbrandy and pass the name of the program (hello.bbc) to it. Brandy
 ignores the first line as it starts with '#!' but reads the rest of the program
@@ -1218,33 +1218,33 @@ to allow strings to be assigned to function keys. This is an operating system
 command under RISC OS that is implemented by the interpreter's MOS interface
 layer. The command is issued using OSCLI in the normal way. The format is:
 
-	*KEY <key number> <string>
+        *KEY <key number> <string>
 
 where <key> is the function key number in the range 0 to 15 and <string> is the
 string assigned to that key. Pressing that function key will insert the string
 into the keyboard buffer, for example:
 
-	OSCLI "KEY 3 run"
+        OSCLI "KEY 3 run"
 
 will assign the string "run" to function key 3.
 
 There is a simple escape mechanism to allow control characters to be included
 in the string. This is of the form:
 
-	|<letter>
+        |<letter>
 
 where <letter> is a letter.
 
 The escape sequence '|m' is used to represent a 'newline' character, so:
 
-	OSCLI "KEY 3 run|m"
+        OSCLI "KEY 3 run|m"
 
 will set up function key 3 to insert "run" and a newline character into the
 keyboard buffer, so that pressing F3 will issue the command.
 
 The string can be enclosed in double quote if desired, for example:
 
-	OSCLI "KEY 4 ""     """: REM Insert five blanks
+        OSCLI "KEY 4 ""     """: REM Insert five blanks
         or
         *KEY 4 "     "
 
@@ -1299,89 +1299,89 @@ Known Problems
 There are no major known bugs in the program but there are a few minor issues
 as follows:
 
-1)	'PRINT' could be better implemented. 'WIDTH' is not handled correctly
-	and the way in which floating point numbers are output could be better.
+1)      'PRINT' could be better implemented. 'WIDTH' is not handled correctly
+        and the way in which floating point numbers are output could be better.
 
-2)	If an error occurs when renumbering the lines of a program when the
-	program is being loaded, the line number of the line in error is not
-	listed. The reason is that 'top' has not been updated at this point and
-	so searching for the line fails. (Effectively there is no program in
-	memory yet as far as the interpreter is concerned.)
+2)      If an error occurs when renumbering the lines of a program when the
+        program is being loaded, the line number of the line in error is not
+        listed. The reason is that 'top' has not been updated at this point and
+        so searching for the line fails. (Effectively there is no program in
+        memory yet as far as the interpreter is concerned.)
 
-3)	Under Linux and NetBSD in the text mode builds, pressing Ctrl-C when a
-	program is waiting for input should abort the Basic program immediately
-	but at the moment another character has to be typed after pressing
-	Ctrl-C.
+3)      Under Linux and NetBSD in the text mode builds, pressing Ctrl-C when a
+        program is waiting for input should abort the Basic program immediately
+        but at the moment another character has to be typed after pressing
+        Ctrl-C.
 
 
 Miscellaneous Comments
 ~~~~~~~~~~~~~~~~~~~~~~
 Some miscellaneous comments:
 
-TIME	This function always starts from zero when Brandy starts and is
-	therefore useless as a way of seeding the random number generator,
-	that is, RND(-TIME) will not give the desired result.
+TIME    This function always starts from zero when Brandy starts and is
+        therefore useless as a way of seeding the random number generator,
+        that is, RND(-TIME) will not give the desired result.
 
-TIME=	This is supported.
+TIME=   This is supported.
 
-TIME$=	This is ignored.
+TIME$=  This is ignored.
 
-MID$()=	There is a difference between Brandy's and Acorn Basic's
-	implementation of 'MID$()='. In Acorn's interpreter, if the starting
-	position exceeds the maximum length of a string (255 characters) the
-	start of string is overwritten. In Brandy, nothing is changed in the
-	original string if the starting position of the new string exceeds the
-	length of the original string.
+MID$()= There is a difference between Brandy's and Acorn Basic's
+        implementation of 'MID$()='. In Acorn's interpreter, if the starting
+        position exceeds the maximum length of a string (255 characters) the
+        start of string is overwritten. In Brandy, nothing is changed in the
+        original string if the starting position of the new string exceeds the
+        length of the original string.
 
-RIGHT$	Brandy does not precisely emulate the Basic RIGHT$ function. For small
-	negative values of the string length Acorn Basic returns a null string
-	but for large negative values it returns the original string.
-	'RIGHT$(A$,-33024)' returns a null string but 'RIGHT$(A$,-33025)'
-	returns the value of A$. Brandy always returns a null string if the
-	length is negative.
+RIGHT$  Brandy does not precisely emulate the Basic RIGHT$ function. For small
+        negative values of the string length Acorn Basic returns a null string
+        but for large negative values it returns the original string.
+        'RIGHT$(A$,-33024)' returns a null string but 'RIGHT$(A$,-33025)'
+        returns the value of A$. Brandy always returns a null string if the
+        length is negative.
 
 Block IF Statements (prior to Matrix Brandy V1.23.2)
-	There was what looked like a bug in Brandy at first glance
-	involving block IF statements. The following program
-	behaved differently under the Acorn interpreter and Brandy:
+        There was what looked like a bug in Brandy at first glance
+        involving block IF statements. The following program
+        behaved differently under the Acorn interpreter and Brandy:
 
-	X%=10
-	IF X%=1 THENREM X is 1
-	PRINT"X is 1"
-	ELSE
-	PRINT"Hello X is ";X%
-	ENDIF
+        X%=10
+        IF X%=1 THENREM X is 1
+        PRINT"X is 1"
+        ELSE
+        PRINT"Hello X is ";X%
+        ENDIF
 
-	The Acorn interpreter prints 'X is 1' but Brandy prints 'Hello X is 10'.
-	The reason for this is that Brandy always sees the IF statement as a
-	block IF. The REM statement is ignored as programs are always run in a
-	'crunched' form therefore as there is nothing after the 'THEN' the
-	statement is identified as a block IF. In the case of the Acorn
-	interpreter, the 'THEN' is not at the end of the line and it is taken
-	as a single line IF.
+        The Acorn interpreter prints 'X is 1' but Brandy prints 'Hello X is 10'.
+        The reason for this is that Brandy always sees the IF statement as a
+        block IF. The REM statement is ignored as programs are always run in a
+        'crunched' form therefore as there is nothing after the 'THEN' the
+        statement is identified as a block IF. In the case of the Acorn
+        interpreter, the 'THEN' is not at the end of the line and it is taken
+        as a single line IF.
 
-	If the program is crunched in the Acorn interpreter by typing
-	'CRUNCH 31' its behaviour changes. It now prints 'Hello X is 10', that
-	is, the IF statement is now seen as a block IF as the REM statement has
-	been discarded.
+        If the program is crunched in the Acorn interpreter by typing
+        'CRUNCH 31' its behaviour changes. It now prints 'Hello X is 10', that
+        is, the IF statement is now seen as a block IF as the REM statement has
+        been discarded.
 
-	Thus, Brandy runs programs in a crunched form.
+        Thus, Brandy runs programs in a crunched form.
 
         As of Matrix Brandy 1.23.2, this is NO LONGER the case, and following
         the principle of least surprise to the user, this behaviour has been
         corrected.
 
 Floating Point Number Formats
-	There is an incompatibility between the versions of the program that
-	run on ARM processors and those that run on, for example, a X86, that
-	affects floating point numbers. A file containing floating point
-	numbers written on an ARM processor using PRINT# cannot be read on a
-	processor with a X86 via INPUT# as the format in which the numbers are
-	written to the file is different. On a ARM processor, eight byte
-	floating point numbers are held in the order 'aa bb cc dd ee ff gg hh'
-	but on a X86 they are in the order 'ee ff gg hh aa bb cc dd'. Whilst
-	this is a minor issue, it might cause problems. It will be resolved in
-	a later version of the program.
+        There is an incompatibility between the versions of the program that
+        run on ARM processors and those that run on, for example, a X86, that
+        affects floating point numbers. A file containing floating point
+        numbers written on an ARM processor using PRINT# cannot be read on a
+        processor with a X86 via INPUT# as the format in which the numbers are
+        written to the file is different. On a ARM processor, eight byte
+        floating point numbers are held in the order 'aa bb cc dd ee ff gg hh'
+        but on a X86 they are in the order 'ee ff gg hh aa bb cc dd'. Whilst
+        this is a minor issue, it might cause problems. It will be resolved in
+        a later version of the program.
 
 
 Conclusion
@@ -1408,11 +1408,11 @@ Contact (Matrix Brandy fork)
 If anybody has any suggestions or improvements for the program
 or finds any bugs, I can be emailed at:
 
-	mike@matrixnetwork.co.uk
+        mike@matrixnetwork.co.uk
 
 Alternatively post a message on the Matrix Brandy thread on Stardot:
-	https://stardot.org.uk/forums/viewtopic.php?f=63&t=15396
+        https://stardot.org.uk/forums/viewtopic.php?f=63&t=15396
 
 In addition, the Matrix Brandy GitHub page is at:
-	https://github.com/stardot/MatrixBrandy
+        https://github.com/stardot/MatrixBrandy
 

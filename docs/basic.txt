@@ -3,30 +3,30 @@ BASIC V/VI Guide
 
 Contents
 ~~~~~~~~
-	Introduction
-	History
-	Features
-	Constants
-	Variables
-	Keywords
-	Line Numbers
-	Operators
-	Assignment Operators
-	Indirection Operators
-	Array Operations
-	Built-in Functions
-	Pseudo Variables
-	Procedures and Functions
-	Error Handling
-	Issuing Commands to the Underlying Operating System
-	Statement Types
-	Statements
-	Commands
-	The Program Environment
-	Screen Output
-	VDU Commands
-	PLOT Codes
-	Basic Keywords, Commands and Functions
+        Introduction
+        History
+        Features
+        Constants
+        Variables
+        Keywords
+        Line Numbers
+        Operators
+        Assignment Operators
+        Indirection Operators
+        Array Operations
+        Built-in Functions
+        Pseudo Variables
+        Procedures and Functions
+        Error Handling
+        Issuing Commands to the Underlying Operating System
+        Statement Types
+        Statements
+        Commands
+        The Program Environment
+        Screen Output
+        VDU Commands
+        PLOT Codes
+        Basic Keywords, Commands and Functions
 
 
 Introduction
@@ -113,13 +113,13 @@ are often put in angle brackets <like this>. The purpose of
 this is to say what goes at that part of the statement, for
 example:
 
-	GOSUB <line number>
+        GOSUB <line number>
 
 This says that the keyword GOSUB is to be followed by a line
 number if a GOSUB statement is used in the program. Another
 example:
 
-	ON ERROR <statements>
+        ON ERROR <statements>
 
 This one says that in an 'ON ERROR' statement, the keywords
 'ON ERROR' are followed by one or more Basic statements.
@@ -127,8 +127,8 @@ This one says that in an 'ON ERROR' statement, the keywords
 In some cases, parts of a statement are in square brackets,
 for example:
 
-	IF <expression> THEN <line number>
-				 [ ELSE <line number> ]
+        IF <expression> THEN <line number>
+                                 [ ELSE <line number> ]
 
 This means that that part of the statement is optional. In
 the example, the '[ ELSE <line number> ]' part of the
@@ -149,7 +149,7 @@ Hexadecimal constants begin with a '&' and binary ones with a '%'.
 Strings are enclosed in '"'. It is possible to embed a '"' is a
 string by preceding it with another '"'. Examples:
 
-	&FFFF
+        &FFFF
         &123456
         %1001101
         %1
@@ -161,10 +161,10 @@ Variables
 ~~~~~~~~~
 The interpreter supports three main types:
 
-	32-bit integer		e.g. abc%
-	64-bit integer		e.g. def%%
-	Floating point		e.g. ghi
-	String			e.g. jkl$
+        32-bit integer          e.g. abc%
+        64-bit integer          e.g. def%%
+        Floating point          e.g. ghi
+        String                  e.g. jkl$
 
 32-bit integer variables are denoted as being a 32-bit
 integer by having a '%' at the end of the name.
@@ -186,8 +186,8 @@ at the same time. The '%' and '$' are considered to be part of the
 name. Similarly, it is possible to have arrays and simple
 variables of the same name, for example:
 
-	abcd$		<-- String variable
-	abcd$()		<-- String array
+        abcd$           <-- String variable
+        abcd$()         <-- String array
 
 What happens is that the '(' is considered to be part of the name
 of the array.
@@ -252,41 +252,41 @@ details what is available. The operators are given in priority
 order, with operators of the same priority grouped together. From
 highest to lowest priority they are:
 
-	^		Exponentiation
+        ^               Exponentiation
 ------------------
-	*		Multiplication
-	/		Division
-	DIV		Integer division
-	MOD		Integer modulus
+        *               Multiplication
+        /               Division
+        DIV             Integer division
+        MOD             Integer modulus
 ------------------
-	+		Addition and string concatenation
-	-		Subtraction
+        +               Addition and string concatenation
+        -               Subtraction
 ------------------
-	=		Equals
-	<>		Not equals
-	>		Greater than
-	<		Less than
-	>=		Greater than or equal to
-	<=		Less than or equal to
-	<<		Left shift		
-	>>		Arithmetic right shift
-	>>>		Logical right shift
+        =               Equals
+        <>              Not equals
+        >               Greater than
+        <               Less than
+        >=              Greater than or equal to
+        <=              Less than or equal to
+        <<              Left shift              
+        >>              Arithmetic right shift
+        >>>             Logical right shift
 ------------------
-	AND		Logical AND
+        AND             Logical AND
 ------------------
-	OR		Logical OR
-	EOR		Exclusive OR
+        OR              Logical OR
+        EOR             Exclusive OR
 
 There is a point to watch out for when using the comparison and
 shift operators. It is not possible to chain these together in an
 expression, for example:
 
-	abc% >> 2 <= 10
+        abc% >> 2 <= 10
 
 will give an error. The solution is to put brackets around the
 first part of the expression thus:
 
-	(abc% >> 2) <= 10
+        (abc% >> 2) <= 10
 
 This is a feature of BASIC V/VI.
 
@@ -295,30 +295,30 @@ Assignment Operators
 As well as using '=' for assignments in the normal way, BASIC V/VI
 has two other assignment operators:
 
-	<variable> += <expression>
-	<variable> -= <expression>
+        <variable> += <expression>
+        <variable> -= <expression>
 
 '+=' adds <expression> to the variable <variable> and '-='
 subtracts it.
 
 Examples:
-	abc% += 1
-	ghi(N%) -= count
-	xyz$ += "abcd"
-	table%!offset% -= X%
-	$(table%+name%) += "xyz"
+        abc% += 1
+        ghi(N%) -= count
+        xyz$ += "abcd"
+        table%!offset% -= X%
+        $(table%+name%) += "xyz"
 
 Matrix Brandy offers 5 more from BB4W and BBCSDL, and JGH's ARM BBC BASIC Plus.
 These are:
-	<variable> AND= <expression>
-	<variable> OR= <expression>
-	<variable> EOR= <expression>
-	<variable> MOD= <expression>
-	<variable> DIV= <expression>
+        <variable> AND= <expression>
+        <variable> OR= <expression>
+        <variable> EOR= <expression>
+        <variable> MOD= <expression>
+        <variable> DIV= <expression>
 
 Examples:
-	a% AND=&7F
-	a OR=128
+        a% AND=&7F
+        a OR=128
 
 These five all operate on integers, and where float values are supplied
 will be truncated to integers.  Of the eight assignment operators,
@@ -335,16 +335,16 @@ constructs.
 There are two types of operator, unary and dyadic. The unary ones
 are:
 
-	?	Reference to a one byte integer
-	!	Reference to a four byte integer
-	|	Reference to a floating point value
-	]	Reference to an eight byte integer
-	$	Reference to a string
+        ?       Reference to a one byte integer
+        !       Reference to a four byte integer
+        |       Reference to a floating point value
+        ]       Reference to an eight byte integer
+        $       Reference to a string
 
 The dyadic operators are:
 
-	?	Reference to a one byte integer
-	!	Reference to a four byte integer
+        ?       Reference to a one byte integer
+        !       Reference to a four byte integer
 
 Note that there are not dyadic versions of '$', ']' and '|'.
 
@@ -356,17 +356,17 @@ operator.
 
 Examples of unary operators:
 
-	$pointer%
-	!abc%
-	?(abc%+10)
-	](abc%%+40)=8589934592
-	$text% = "abc"
+        $pointer%
+        !abc%
+        ?(abc%+10)
+        ](abc%%+40)=8589934592
+        $text% = "abc"
 
 Examples of dyadic operators:
 
-	pointer%!offset%
-	abc%?next%
-	array%(N%)!field%
+        pointer%!offset%
+        abc%?next%
+        array%(N%)!field%
 
 The operators all work in the same way. The value of the
 expression after the operator (unary version) or of the variable
@@ -377,7 +377,7 @@ offset from that address.
 Indirection operators cannot be chained together, that is, they
 cannot be used in an expression such as:
 
-	pointer%!offset%!field%
+        pointer%!offset%!field%
 
 In general, indirection operators can be used in the same way and
 places as normal variables and the two forms of reference can be
@@ -385,12 +385,12 @@ freely mixed.
 
 Examples:
 
-	IF $text%="quit" THEN STOP
-	table%!offset% = table%!offset2
-	!(table%+offset%) = !(table%+offset2)
-	abc = |address+1.0
-	PROCabcd(!table%, table%!4)
-	FOR table%!8=1 TO 10: NEXT
+        IF $text%="quit" THEN STOP
+        table%!offset% = table%!offset2
+        !(table%+offset%) = !(table%+offset2)
+        abc = |address+1.0
+        PROCabcd(!table%, table%!4)
+        FOR table%!8=1 TO 10: NEXT
 
 The interpreter limits the range of addresses that can be read
 from or written to using indirection operators to the Basic
@@ -406,7 +406,7 @@ heap to be used used for data structures and accessed via the
 indirection operators. A special form of the DIM statement is
 used for this:
 
-	DIM table%% 100
+        DIM table%% 100
 
 Strictly speaking this allocates a byte array with indexes 0 to
 100. From a more practical point of view, it allocates a 101 byte
@@ -414,8 +414,8 @@ block of memory and puts its address in table%. This block can
 then be manipulated using the indirection operators as desired,
 for example:
 
-	$table%%="an error message"
-	table%%!0 = 0: table%%!4 = 99
+        $table%%="an error message"
+        table%%!0 = 0: table%%!4 = 99
 
 In fact, blocks of memory allocated this way can only be
 referenced via indirection operators.
@@ -470,11 +470,11 @@ The expression <expression> is evaluated and the result added
 to <subtracted from) each element of <array>.
 
 Examples:
-	abc%() = def%()
-	ghi$() = "test"
-	jkl() = 0.0, 1.1, 2.2, 3.3, FNxyz(4.4)
-	abc%() += def%()
-	jhl() -= PI
+        abc%() = def%()
+        ghi$() = "test"
+        jkl() = 0.0, 1.1, 2.2, 3.3, FNxyz(4.4)
+        abc%() += def%()
+        jhl() -= PI
 
 Addition and Subtraction
 ------------------------
@@ -498,10 +498,10 @@ result of each subtraction in the corresponding element of
 <array 1>.
 
 Examples:
-	abc%() = def%() + ghi%()
-	jkl() = mno() - pqr()
-	aaa$() = bbb$() + "ccc" + FNddd(eee$)
-	abc%() = 1 - def%()
+        abc%() = def%() + ghi%()
+        jkl() = mno() - pqr()
+        aaa$() = bbb$() + "ccc" + FNddd(eee$)
+        abc%() = 1 - def%()
 
 Multiplication and Division
 ---------------------------
@@ -557,10 +557,10 @@ Carry out an integer division of <expression> by each element of
 <array 1>.
 
 Examples:
-	abc() = def() * ghi()
-	abc() = 10.0 * ghi()
-	jkl%() = mno%() MOD 100
-	abc() = 1 / abc()
+        abc() = def() * ghi()
+        abc() = 10.0 * ghi()
+        jkl%() = mno%() MOD 100
+        abc() = 1 / abc()
 
 Matrix Multiplication
 ---------------------
@@ -601,391 +601,391 @@ of expression, or abbreviated to <expr> to reduce clutter.
 <array> is a reference to a whole array.
 
 ABS
-	Use: ABS <factor>
-	Returns the absolute value of the numeric value
-	<factor>
+        Use: ABS <factor>
+        Returns the absolute value of the numeric value
+        <factor>
 
 ACS
-	Use: ACS <factor>
-	Returns the arccosine of the numeric value <factor>
+        Use: ACS <factor>
+        Returns the arccosine of the numeric value <factor>
 
 ADVAL
-	Use: ADVAL <factor>
-	This is an unsupported function. Either use of it is
-	flagged as an error or it returns zero, depending on the
-	options used to start the interpreter.
+        Use: ADVAL <factor>
+        This is an unsupported function. Either use of it is
+        flagged as an error or it returns zero, depending on the
+        options used to start the interpreter.
 
 ARGC *
-	Use: ARGC
-	Returns the number of parameters on the command line.
-	This will be zero if there are no parameters. 
+        Use: ARGC
+        Returns the number of parameters on the command line.
+        This will be zero if there are no parameters. 
 
 
 ARGV$ *
-	Use: ARGV$ <factor>
-	Returns parameter number <factor> on the command line
-	as a string. ARGV$ 0 returns the name of the program.
-	ARGV$ 1 is the first parameter, ARGV$ 2 the second and
-	so forth. ARGV$ ARGC is the last parameter.
+        Use: ARGV$ <factor>
+        Returns parameter number <factor> on the command line
+        as a string. ARGV$ 0 returns the name of the program.
+        ARGV$ 1 is the first parameter, ARGV$ 2 the second and
+        so forth. ARGV$ ARGC is the last parameter.
 
 ASN
-	Use: ASN <factor>
-	Returns the arcsine of the numeric value <factor>
+        Use: ASN <factor>
+        Returns the arcsine of the numeric value <factor>
 
 ATN
-	Use: ATN <factor>
-	Use: ATN(y,x)
-	In the first form, this returns the arctan of the numeric
-	value <factor>.
-	In the second form, this calculates the principal value
-	of the arc tangent of (y/x), using the signs of the two
-	arguments to determine the quadrant of the result.
+        Use: ATN <factor>
+        Use: ATN(y,x)
+        In the first form, this returns the arctan of the numeric
+        value <factor>.
+        In the second form, this calculates the principal value
+        of the arc tangent of (y/x), using the signs of the two
+        arguments to determine the quadrant of the result.
 
 BEAT
-	Use: BEAT
-	Returns information from the RISC OS sound system.
+        Use: BEAT
+        Returns information from the RISC OS sound system.
 
 BGET
-	Use: BGET# <factor>
-	Returns the next byte from the file with handle <factor>
+        Use: BGET# <factor>
+        Returns the next byte from the file with handle <factor>
 
 CHR$
-	Use: CHR$ <factor>
-	Returns a string consisting of a single character with
-	ASCII code <factor>
+        Use: CHR$ <factor>
+        Returns a string consisting of a single character with
+        ASCII code <factor>
 
 COLOUR
-	Use: COLOUR(<red expression>, <green expression>,
-		<blue expression>)
-	This takes the colour with the specified colour 
-	components and returns a number that represents the
-	closest match to that colour in the current screen
-	mode. This value is for use with the 'COLOUR OF' and
-	'GCOL OF' statements. It has no meaning otherwise.
+        Use: COLOUR(<red expression>, <green expression>,
+                <blue expression>)
+        This takes the colour with the specified colour 
+        components and returns a number that represents the
+        closest match to that colour in the current screen
+        mode. This value is for use with the 'COLOUR OF' and
+        'GCOL OF' statements. It has no meaning otherwise.
 
-	Example:
-		red = COLOUR(255, 0, 0): COLOUR OF red
+        Example:
+                red = COLOUR(255, 0, 0): COLOUR OF red
 
 COS
-	Use: COS <factor>
-	Returns the cosine of the numeric value <factor>
+        Use: COS <factor>
+        Returns the cosine of the numeric value <factor>
 
 COUNT
-	Use: COUNT
-	Returns the number of characters printed on the current
-	line by PRINT.
+        Use: COUNT
+        Returns the number of characters printed on the current
+        line by PRINT.
 
 DEG
-	Use: DEG <factor>
-	Converts the angle <factor> from radians to degrees.
+        Use: DEG <factor>
+        Converts the angle <factor> from radians to degrees.
 
 DIM
-	Use: a) DIM(<array>)
-	     b) DIM(<array>, <expression>)
-	a) returns the number of dimensions in array <array>.
-	b) returns the highest index of dimemsion <expression> of
-	   array <array>.
+        Use: a) DIM(<array>)
+             b) DIM(<array>, <expression>)
+        a) returns the number of dimensions in array <array>.
+        b) returns the highest index of dimemsion <expression> of
+           array <array>.
 
 END
-	Use: END
-	Returns the address of the top of the Basic heap.
+        Use: END
+        Returns the address of the top of the Basic heap.
 
 EOF
-	Use: EOF# <factor>
-	Returns TRUE if the file with handle <factor> is at end of
-	file.
+        Use: EOF# <factor>
+        Returns TRUE if the file with handle <factor> is at end of
+        file.
 
 ERL
-	Use: ERL
-	Returns the number of the line that contained the last error
-	encountered by the interpreter or zero if no error has been
-	seen.
+        Use: ERL
+        Returns the number of the line that contained the last error
+        encountered by the interpreter or zero if no error has been
+        seen.
 
 ERR
-	Use: ERR
-	Returns the error number of the last error encountered by
-	the interpreter or zero.
+        Use: ERR
+        Returns the error number of the last error encountered by
+        the interpreter or zero.
 
 EVAL
-	Use: EVAL <factor>
-	Evaluates the string <factor> as if it were an expression in
-	a statement in the program and returns the result.
+        Use: EVAL <factor>
+        Evaluates the string <factor> as if it were an expression in
+        a statement in the program and returns the result.
 
 EXP
-	Use: EXP <factor>
-	Returns the exponentional of the numeric value <factor>.
+        Use: EXP <factor>
+        Returns the exponentional of the numeric value <factor>.
 
 FALSE
-	Use: FALSE
-	The function returns the value corresponding to 'false' in
-	the interpreter (zero).
+        Use: FALSE
+        The function returns the value corresponding to 'false' in
+        the interpreter (zero).
 
 GET
-	Use: a) GET
-	     b) GET(x,y)
-	a) Returns the next character pressed on the keyboard as a
-	   number, waiting if there is not one available.
-	b) Returns the character at position (x,y) on the screen.
-	   This only works on the SDL build; on text builds this returns 0.
+        Use: a) GET
+             b) GET(x,y)
+        a) Returns the next character pressed on the keyboard as a
+           number, waiting if there is not one available.
+        b) Returns the character at position (x,y) on the screen.
+           This only works on the SDL build; on text builds this returns 0.
 
 GET$
-	Use: a) GET$
-	     b) GET$# <factor>
-	     c) GET$(x,y)
-	a) Returns the next character pressed on the keyboard as a
-	   one character string, waiting if there is not one
-	   available.
-	b) Returns the next line from the open file with handle
-	   <factor> as a character string.
-	c) Returns the character at position (x,y) on the screen.
-	   This only works on the SDL build; on text builds this returns 0.
+        Use: a) GET$
+             b) GET$# <factor>
+             c) GET$(x,y)
+        a) Returns the next character pressed on the keyboard as a
+           one character string, waiting if there is not one
+           available.
+        b) Returns the next line from the open file with handle
+           <factor> as a character string.
+        c) Returns the character at position (x,y) on the screen.
+           This only works on the SDL build; on text builds this returns 0.
 
 INKEY
-	Use: INKEY <factor>
-	If numeric value <factor> is greater than or equal to zero,
-	return the next character pressed on the keyboard as a number
-	but only wait for <factor> centiseconds. Return -1 if no key
-	pressed in that time.
-	If numeric value <factor> is -256, return a number that
-	identifies the operating system under which the program is
-	running. (See the 'use' guide for the values returned.)
-	If numeric factor <factor> is less than zero and greater
-	than -256, return TRUE if the key with RISC OS internal
-	key number <factor> is being pressed otherwise return FALSE.
-	
+        Use: INKEY <factor>
+        If numeric value <factor> is greater than or equal to zero,
+        return the next character pressed on the keyboard as a number
+        but only wait for <factor> centiseconds. Return -1 if no key
+        pressed in that time.
+        If numeric value <factor> is -256, return a number that
+        identifies the operating system under which the program is
+        running. (See the 'use' guide for the values returned.)
+        If numeric factor <factor> is less than zero and greater
+        than -256, return TRUE if the key with RISC OS internal
+        key number <factor> is being pressed otherwise return FALSE.
+        
 INKEY$
-	Use: INKEY$ <factor>
-	This is the same as INKEY but returns its result as a single
-	character string. In the case of a keyboard read with
-	timeout, an empty string is returned if the time limit
-	expires instead of -1.
-	
+        Use: INKEY$ <factor>
+        This is the same as INKEY but returns its result as a single
+        character string. In the case of a keyboard read with
+        timeout, an empty string is returned if the time limit
+        expires instead of -1.
+        
 INSTR(
-	Use: INSTR(<expr1> , <expr2> [, <expr3>])
-	Search string <expr1> for the string <expr2> returning the
-	index (starting from 1) of the start of <expr2> in <expr1>
-	if the string is found otherwise return zero. <expr3> is
-	an option expression that gives a starting point in <expr1>
-	at which to start looking for <expr2>.
+        Use: INSTR(<expr1> , <expr2> [, <expr3>])
+        Search string <expr1> for the string <expr2> returning the
+        index (starting from 1) of the start of <expr2> in <expr1>
+        if the string is found otherwise return zero. <expr3> is
+        an option expression that gives a starting point in <expr1>
+        at which to start looking for <expr2>.
 
 INT
-	Use: INT <factor>
-	Returns the integer part of number <factor>, rounding down
-	(towards minus infinity). By default (matching 6502, 32000,
+        Use: INT <factor>
+        Returns the integer part of number <factor>, rounding down
+        (towards minus infinity). By default (matching 6502, 32000,
         PDP11 and ARM BASIC) the value must be within the range
-	-2^31 to 2^31-1 that can be stored within an integer variable.
-	However, to allow values out of this range (so INT actually
-	returns a floating-point value) do: SYS "Brandy_INTusesFloat",1
+        -2^31 to 2^31-1 that can be stored within an integer variable.
+        However, to allow values out of this range (so INT actually
+        returns a floating-point value) do: SYS "Brandy_INTusesFloat",1
 
 LEN
-	Use: LEN <factor>
-	Returns the length of string <factor>.
+        Use: LEN <factor>
+        Returns the length of string <factor>.
 
 LISTO *
-	Use: LISTO
-	Returns the current LISTO setting.
+        Use: LISTO
+        Returns the current LISTO setting.
 
 LN
-	Use: LN <factor>
-	Return the natural log of number <factor>.
+        Use: LN <factor>
+        Return the natural log of number <factor>.
 
 LOG
-	Use: LOG <factor>
-	Returns the base 10 log of number <factor>.
+        Use: LOG <factor>
+        Returns the base 10 log of number <factor>.
 
-MOD	Use: MOD <array>
-	Returns the modulus (square root of the sum of the
-	squares) of numeric array <array>.
+MOD     Use: MOD <array>
+        Returns the modulus (square root of the sum of the
+        squares) of numeric array <array>.
 
-MODE	Use: MODE
-	Returns the number of the current RISC OS screen mode.
+MODE    Use: MODE
+        Returns the number of the current RISC OS screen mode.
 
 NOT
-	Use: NOT <factor>
-	Returns the logical negation (ones complement) of numeric
-	value <factor>.
+        Use: NOT <factor>
+        Returns the logical negation (ones complement) of numeric
+        value <factor>.
 
 OPENIN
-	Use: OPENIN <factor>
-	Opens the file named by the string <factor> for input and
-	returns its numeric handle or zero if it cannot be opened.
+        Use: OPENIN <factor>
+        Opens the file named by the string <factor> for input and
+        returns its numeric handle or zero if it cannot be opened.
 
 OPENOUT
-	Use: OPENOUT <factor>
-	Opens the file named by the string <factor> for output and
-	returns its numeric handle. If the file exists already its
-	length is reset to zero.
+        Use: OPENOUT <factor>
+        Opens the file named by the string <factor> for output and
+        returns its numeric handle. If the file exists already its
+        length is reset to zero.
 
 OPENUP
-	Use: OPENUP <factor>
-	Opens the file named by the string <factor> for both input
-	and output and returns its numeric handle.
-	Network sockets can also be opened, see docs/networking.txt.
+        Use: OPENUP <factor>
+        Opens the file named by the string <factor> for both input
+        and output and returns its numeric handle.
+        Network sockets can also be opened, see docs/networking.txt.
 
 PI
-	Use: PI
-	Returns the value PI.
+        Use: PI
+        Returns the value PI.
 
 POINT(
-	Use: POINT(<x expr>,<y expr>)
-	Returns the colour number of the point on the graphics
-	screen with graphics coordinates (<x expr>, <y expr>).
+        Use: POINT(<x expr>,<y expr>)
+        Returns the colour number of the point on the graphics
+        screen with graphics coordinates (<x expr>, <y expr>).
 
 POS
-	Use: POS
-	Returns the offset (from 0) of the text cursor from
-	the left-hand side of the screen.
+        Use: POS
+        Returns the offset (from 0) of the text cursor from
+        the left-hand side of the screen.
 
 QUIT
-	Use: QUIT
-	Returns TRUE if the interpreter was started with the
-	option '-quit', that is, the interpreter will be exited
-	from when the Basic program finishes running.
+        Use: QUIT
+        Returns TRUE if the interpreter was started with the
+        option '-quit', that is, the interpreter will be exited
+        from when the Basic program finishes running.
 
 RAD
-	Use: RAD <factor>
-	Convert the angle <factor> given in degrees to radians.
+        Use: RAD <factor>
+        Convert the angle <factor> given in degrees to radians.
 
 REPORT$
-	Use: REPORT$
-	Returns the message for the last error encountered.
+        Use: REPORT$
+        Returns the message for the last error encountered.
 
 RND
-	Use: a) RND
-	     b) RND(<negative expr>)
-	     c) RND(0)
-	     d) RND(1)
-	     e) RND(<expression>)
-	a) Return a pseudo-random number in the range -2147483648
-	   to 2147483647
-	b) Initialises the random number generator with seed value
-	   <negative expr>.
-	c) Returns the last number generated by RND(1).
-	d) Returns a floating point number in the range 0 to 1.
-	e) Returns an integer number in the range 1 to <expression>.
+        Use: a) RND
+             b) RND(<negative expr>)
+             c) RND(0)
+             d) RND(1)
+             e) RND(<expression>)
+        a) Return a pseudo-random number in the range -2147483648
+           to 2147483647
+        b) Initialises the random number generator with seed value
+           <negative expr>.
+        c) Returns the last number generated by RND(1).
+        d) Returns a floating point number in the range 0 to 1.
+        e) Returns an integer number in the range 1 to <expression>.
 
 SGN
-	Use: SGN <factor>
-	Returns -1 if the numeric value <factor> is less than
-	zero, zero if it is zero or 1 if it is greater than zero.
+        Use: SGN <factor>
+        Returns -1 if the numeric value <factor> is less than
+        zero, zero if it is zero or 1 if it is greater than zero.
 
 SIN
-	Use: SIN <factor>
-	Returns the sine of numeric value <factor>.
+        Use: SIN <factor>
+        Returns the sine of numeric value <factor>.
 
 SQR
-	Use: SQR <factor>
-	Returns the square root of numeric value <factor>.
+        Use: SQR <factor>
+        Returns the square root of numeric value <factor>.
 
 STR
-	Use: a) STR <factor>
-	     b) STR~ <factor>
-	a) Converts the numeric value <factor> to a decimal
-	string.
-	b) Converts the numeric value <factor> to a hexadecimal
-	string.
+        Use: a) STR <factor>
+             b) STR~ <factor>
+        a) Converts the numeric value <factor> to a decimal
+        string.
+        b) Converts the numeric value <factor> to a hexadecimal
+        string.
 
 STRING$(
-	Use: STRING$( <expression>, <string expr> )
-	Returns a string made from the string <string expr> repeated
-	<expression> times.
+        Use: STRING$( <expression>, <string expr> )
+        Returns a string made from the string <string expr> repeated
+        <expression> times.
 
 SUM
-	Use: SUM <array>
-	If <array> is a numeric array it returns the sum of all of
-	the elements of the array. If <array> is a string array it
-	returns a string made from all of the elements of <array>
-	concatenated.
+        Use: SUM <array>
+        If <array> is a numeric array it returns the sum of all of
+        the elements of the array. If <array> is a string array it
+        returns a string made from all of the elements of <array>
+        concatenated.
 
 SUM LEN
-	Use: SUM LEN <array>
-	Returns the total length of all of the strings in string
-	array <array>.
+        Use: SUM LEN <array>
+        Returns the total length of all of the strings in string
+        array <array>.
 
 SYS(
-	Use: SYS(<string>)
-	This is a wrapper for SYS call OS_SWINumberFromString, and
-	returns the SWI number for a given SWI name.
+        Use: SYS(<string>)
+        This is a wrapper for SYS call OS_SWINumberFromString, and
+        returns the SWI number for a given SWI name.
 
 TAN
-	Use: TAN <factor>
-	Returns the tangent of numeric value <factor>
+        Use: TAN <factor>
+        Returns the tangent of numeric value <factor>
 
 TEMPO
-	Use: TEMPO
-	Unsupported RISC OS feature. The function returns zero or
-	generates an error depending on intepreter command line
-	options.
+        Use: TEMPO
+        Unsupported RISC OS feature. The function returns zero or
+        generates an error depending on intepreter command line
+        options.
 
 TINT
-	Use: TINT(<x expr>,<y expr>)
-	Returns the TINT value of the position with x and y
-	graphics coordinates <x expr> and <y expr> on the screen
-	in 256 colour modes.
-	
+        Use: TINT(<x expr>,<y expr>)
+        Returns the TINT value of the position with x and y
+        graphics coordinates <x expr> and <y expr> on the screen
+        in 256 colour modes.
+        
 TOP
-	Use: TOP
-	Returns the address of the first byte after the Basic
-	program.
+        Use: TOP
+        Returns the address of the first byte after the Basic
+        program.
 
 TRACE
-	Use: TRACE
-	Returns the handle of the file to which TRACE output is
-	being written or zero if a file is not being used.
+        Use: TRACE
+        Returns the handle of the file to which TRACE output is
+        being written or zero if a file is not being used.
 
 TRUE
-	Use: TRUE
-	Returns the value used by the interpreter for 'true' (-1).
+        Use: TRUE
+        Returns the value used by the interpreter for 'true' (-1).
 
 USR
-	Use: USR <factor>
-	Calls machine code at address <factor>. Not implemented
-	this interpreter except in one special case. See the
-	'use' guide.
+        Use: USR <factor>
+        Calls machine code at address <factor>. Not implemented
+        this interpreter except in one special case. See the
+        'use' guide.
 
 VAL
-	Use: VAL <factor>
-	Converts the string <factor> to a number.
+        Use: VAL <factor>
+        Converts the string <factor> to a number.
 
 VERIFY( *
-	Use: VERIFY(<expr 1>, <expr 2> [, <expr 3>] )
-	Returns the offset of the first character in string
-	expression <expr 1> that is not in string <expr 2>
-	or zero if all characters in <expr 1> are in <expr 2>.
-	<expr 3> is the optional position at which to start
-	the search.
+        Use: VERIFY(<expr 1>, <expr 2> [, <expr 3>] )
+        Returns the offset of the first character in string
+        expression <expr 1> that is not in string <expr 2>
+        or zero if all characters in <expr 1> are in <expr 2>.
+        <expr 3> is the optional position at which to start
+        the search.
 
 VDU
-	Use: VDU <factor>
-	Returns the value of the RISC OS mode variable given by
-	<factor>. This can be used to determine such things as
-	the screen width, the number of colours and so forth.
-	Refer to the section 'Mode Variables' below for more
-	details.
-	
+        Use: VDU <factor>
+        Returns the value of the RISC OS mode variable given by
+        <factor>. This can be used to determine such things as
+        the screen width, the number of colours and so forth.
+        Refer to the section 'Mode Variables' below for more
+        details.
+        
 VPOS
-	Use: VPOS
-	Returns the offset (from zero) from the top of the screen of
-	the text cursor.
+        Use: VPOS
+        Returns the offset (from zero) from the top of the screen of
+        the text cursor.
 
 WIDTH
-	Use: WIDTH
-	The function returns the current value of 'WIDTH' (the
-	width of the current line as set by the program) or zero
-	if a line width has not been defined via the WIDTH
-	statement.
+        Use: WIDTH
+        The function returns the current value of 'WIDTH' (the
+        width of the current line as set by the program) or zero
+        if a line width has not been defined via the WIDTH
+        statement.
 
 XLATE$( *
-	Use: a) XLATE$(<expr 1>)
-	     b) XLATE$(<expr 1>, <expr 2>)
-	a) Returns the string expression <expr 1> with all
-	upper case characters converted to lower case.
-	b) Returns the string expression <expr 1> with the
-	characters translated using string expression or
-	string array <expr 2>. Characters in <expr 1> are
-	replaced with the character in the position
-	corresponding to the ASCII code of the original
-	character.
+        Use: a) XLATE$(<expr 1>)
+             b) XLATE$(<expr 1>, <expr 2>)
+        a) Returns the string expression <expr 1> with all
+        upper case characters converted to lower case.
+        b) Returns the string expression <expr 1> with the
+        characters translated using string expression or
+        string array <expr 2>. Characters in <expr 1> are
+        replaced with the character in the position
+        corresponding to the ASCII code of the original
+        character.
 
 
 Pseudo Variables
@@ -998,7 +998,7 @@ an expression too.
 Pseudo variables cannot follow the keyword 'LET', that is, using
 them in statements such as:
 
-	LET FILEPATH$="."
+        LET FILEPATH$="."
 
 is not permitted. Similarly, they can only be followed by '=',
 that is, assignments of the form '<something>+=<value>' are not
@@ -1006,284 +1006,284 @@ allowed.
 
 EXT
 As a function:
-	Use: EXT# <factor>
-	Returns the size of the open file with the handle
-	<factor>.
+        Use: EXT# <factor>
+        Returns the size of the open file with the handle
+        <factor>.
 
-	Example:
-		oldsize% = EXT#file%
+        Example:
+                oldsize% = EXT#file%
 
 On left-hand side:
-	Use: EXT# <factor> = <expression>
-	Change the size of the open file with handle <factor>
-	to <expression> bytes.
+        Use: EXT# <factor> = <expression>
+        Change the size of the open file with handle <factor>
+        to <expression> bytes.
 
-	Example:
-		IF action$="delete" THEN EXT#file% = 0
+        Example:
+                IF action$="delete" THEN EXT#file% = 0
 
 FILEPATH$
 As a function:
-	Use: FILEPATH$
-	Returns the list of directories to search when trying to
-	find a library or a program.
+        Use: FILEPATH$
+        Returns the list of directories to search when trying to
+        find a library or a program.
 
-	Example:
-		PRINT"Current search path: ";FILEPATH$
+        Example:
+                PRINT"Current search path: ";FILEPATH$
 
 On left-hand side:
-	Use: FILEPATH$ = <expression>
-	Sets the directory list to the string expression
-	<expression>. Note that there are no checks to make sure
-	that the directory names are valid. Setting FILEPATH$
-	to an empty string is allowed.
+        Use: FILEPATH$ = <expression>
+        Sets the directory list to the string expression
+        <expression>. Note that there are no checks to make sure
+        that the directory names are valid. Setting FILEPATH$
+        to an empty string is allowed.
 
-	Example:
-		FILEPATH$ = "/home/mine,/usr/local/basic"
+        Example:
+                FILEPATH$ = "/home/mine,/usr/local/basic"
 
 HIMEM
 As a function:
-	Use: HIMEM
-	Returns the address of the end of the Basic workspace.
+        Use: HIMEM
+        Returns the address of the end of the Basic workspace.
 
-	Example:
-		PRINT "Top of workspace is at ";~HIMEM
+        Example:
+                PRINT "Top of workspace is at ";~HIMEM
 
 On left-hand side:
-	Use: HIMEM = <expression>
-	This sets the address of the top of the Basic workspace
-	to the value of the numeric expression <expression>. If
-	the new value of HIMEM puts it in the Basic program or
-	outside the Basic workspace, the statement is ignored.
+        Use: HIMEM = <expression>
+        This sets the address of the top of the Basic workspace
+        to the value of the numeric expression <expression>. If
+        the new value of HIMEM puts it in the Basic program or
+        outside the Basic workspace, the statement is ignored.
 
-	Example:
-		HIMEM = HIMEM-1000
+        Example:
+                HIMEM = HIMEM-1000
 
-	The places where HIMEM can be changed are limited. It
-	cannot be altered in a procedure, function or subroutine,
-	nor in the body of a loop. The only safe place to change
-	it is at the start of a program.
+        The places where HIMEM can be changed are limited. It
+        cannot be altered in a procedure, function or subroutine,
+        nor in the body of a loop. The only safe place to change
+        it is at the start of a program.
 
 LEFT$
 As a function:
-	Use: LEFT$(<string expression> [, <expression>)
-	Returns the left-hand <expression> characters from the
-	string <string expression>. <expression> can be omitted,
-	in which case <string expression> with the last character
-	removed is returned.
+        Use: LEFT$(<string expression> [, <expression>)
+        Returns the left-hand <expression> characters from the
+        string <string expression>. <expression> can be omitted,
+        in which case <string expression> with the last character
+        removed is returned.
 
-	Examples:
-		LEFT$(abc$, 4)
-		LEFT$($table%, 10)
-		LEFT$(xyz$(X%))
+        Examples:
+                LEFT$(abc$, 4)
+                LEFT$($table%, 10)
+                LEFT$(xyz$(X%))
 
 On left-hand side:
-	Use: LEFT$(<string variable> [, <expression>])
-					= <string expression>
-	This replaces the left-hand characters of string <string
-	variable> with the string expression <string expression>.
-	<expression> says how many characters to replace. If it is
-	omitted then the length of <string expression> is used. If
-	this value exceeds the original length of <string variable>
-	then the length of <string variable> is used instead.
+        Use: LEFT$(<string variable> [, <expression>])
+                                        = <string expression>
+        This replaces the left-hand characters of string <string
+        variable> with the string expression <string expression>.
+        <expression> says how many characters to replace. If it is
+        omitted then the length of <string expression> is used. If
+        this value exceeds the original length of <string variable>
+        then the length of <string variable> is used instead.
 
-	<string variable> can be a normal string variable, an array
-	reference or a string referenced by the string indirection
-	operator.
+        <string variable> can be a normal string variable, an array
+        reference or a string referenced by the string indirection
+        operator.
 
-	Examples:
-		LEFT$(abc$)="1234"
-		LEFT$(abc$, 2)="abcdefgh"
-		LEFT$(xyz$(X%), 5)="123"
-		LEFT$($table%, 3)="pqrst"
+        Examples:
+                LEFT$(abc$)="1234"
+                LEFT$(abc$, 2)="abcdefgh"
+                LEFT$(xyz$(X%), 5)="123"
+                LEFT$($table%, 3)="pqrst"
 
 LOMEM
 As a function:
-	Use: LOMEM
-	Returns the address of the start of the Basic heap
+        Use: LOMEM
+        Returns the address of the start of the Basic heap
 
-	Example:
-		PRINT"Variables start at ";~LOMEM
+        Example:
+                PRINT"Variables start at ";~LOMEM
 
 On left-hand side:
-	Use: LOMEM = <expression>
-	This changes the address of the start of the Basic heap to
-	the numeric value <expression>. All of the variables created
-	so far are discarded when LOMEM is changed. If the value
-	is outside the range TOP to HIMEM it is ignored. The
-	assignment is also ignored if LOMEM is changed in a function
-	or procedure.
+        Use: LOMEM = <expression>
+        This changes the address of the start of the Basic heap to
+        the numeric value <expression>. All of the variables created
+        so far are discarded when LOMEM is changed. If the value
+        is outside the range TOP to HIMEM it is ignored. The
+        assignment is also ignored if LOMEM is changed in a function
+        or procedure.
 
-	Examples:
-		LOMEM = LOMEM+1000
+        Examples:
+                LOMEM = LOMEM+1000
 
 MID$
 As a function:
-	Use: MID$(<string expression>, <start expression>
-					[, <length expression>] )
+        Use: MID$(<string expression>, <start expression>
+                                        [, <length expression>] )
 
-	Returns a substring from the string <string expression>
-	starting at character position <start expression>. The
-	substring is of length <length expression> characters.
-	<length expression> can be omitted, in which case the
-	the string from the <start expression>'th character to
-	the end of the string is returned.
+        Returns a substring from the string <string expression>
+        starting at character position <start expression>. The
+        substring is of length <length expression> characters.
+        <length expression> can be omitted, in which case the
+        the string from the <start expression>'th character to
+        the end of the string is returned.
 
-	If <start expression> is negative or exceeds the length
-	of the string the empty string is returned. If <length
-	expression> is negative or exceeds the number of
-	characters in the string, the original string is
-	returned.
+        If <start expression> is negative or exceeds the length
+        of the string the empty string is returned. If <length
+        expression> is negative or exceeds the number of
+        characters in the string, the original string is
+        returned.
 
-	Examples:
-		A$ = MID$(B$, 10)
-		A$ = MID$(B$, 10, 20)
-		A$ = MID$($table%, 5, 10)
+        Examples:
+                A$ = MID$(B$, 10)
+                A$ = MID$(B$, 10, 20)
+                A$ = MID$($table%, 5, 10)
 
 
 On left-hand side:
-	Use: MID$(<string variable>, <start expression>
-		[, <length expression>] ) = <string expression>
-	The characters of the string <string variable>
-	starting at character position <start expression> are
-	overwritten by characters from string <string expression>.
-	<length expression> is optional and says how many
-	characters are to be taken from <string expression>. If
-	it is omitted then all of <string expression> is used.
+        Use: MID$(<string variable>, <start expression>
+                [, <length expression>] ) = <string expression>
+        The characters of the string <string variable>
+        starting at character position <start expression> are
+        overwritten by characters from string <string expression>.
+        <length expression> is optional and says how many
+        characters are to be taken from <string expression>. If
+        it is omitted then all of <string expression> is used.
 
-	Only the existing characters of <string variable> are
-	overwritten. The length of the string is never changed.
+        Only the existing characters of <string variable> are
+        overwritten. The length of the string is never changed.
 
-	If <start expression> is negative then <string variable>
-	is overwritten from the start of the string. If it exceeds
-	the length of <string variable> then nothing is changed.
-	If <length expression> is negative then the length of
-	<string expression> is used instead.
+        If <start expression> is negative then <string variable>
+        is overwritten from the start of the string. If it exceeds
+        the length of <string variable> then nothing is changed.
+        If <length expression> is negative then the length of
+        <string expression> is used instead.
 
-	Examples:
-		MID$(A$, 5) = "ABCD"
-		MID$(A$, 10, 10) = X$ + "abcdefghijklmnop"
-		MID$($table%, 10) = "12345"
+        Examples:
+                MID$(A$, 5) = "ABCD"
+                MID$(A$, 10, 10) = X$ + "abcdefghijklmnop"
+                MID$($table%, 10) = "12345"
 
 PAGE
 As a function:
-	Use: PAGE
-	Returns the address of the start of the Basic program.
+        Use: PAGE
+        Returns the address of the start of the Basic program.
 
-	Example:
-		PRINT"The program starts at ";~PAGE
+        Example:
+                PRINT"The program starts at ";~PAGE
 
 On left-hand side:
-	Use: PAGE = <expression>
-	This sets the address of the start of the Basic program
-	in memory to <expression>. Any program currently loaded
-	is discarded. The change is ignored if the value of
-	<expression> is outside the range of the value of PAGE
-	when the interpreter was started to HIMEM.
+        Use: PAGE = <expression>
+        This sets the address of the start of the Basic program
+        in memory to <expression>. Any program currently loaded
+        is discarded. The change is ignored if the value of
+        <expression> is outside the range of the value of PAGE
+        when the interpreter was started to HIMEM.
 
-	Note: one trick possible with the Acorn interpreter is
-	to hold several programs in memory at the same time and
-	to switch between them by altering PAGE. This does not
-	work with the current version of this interpreter. 
+        Note: one trick possible with the Acorn interpreter is
+        to hold several programs in memory at the same time and
+        to switch between them by altering PAGE. This does not
+        work with the current version of this interpreter. 
 
-	Example:
-		PAGE = PAGE + 1000
+        Example:
+                PAGE = PAGE + 1000
 
 PTR
 As a function:
-	Use: PTR# <factor>
-	Returns the value of the offset in bytes of the file
-	pointer in the open file with handle <factor>.
+        Use: PTR# <factor>
+        Returns the value of the offset in bytes of the file
+        pointer in the open file with handle <factor>.
 
-	Example:
-		place = PTR# thefile%
+        Example:
+                place = PTR# thefile%
 
         Additionally, PTR can get the address of an array or string.
 
-	Example 1:
-		stringptr%% = PTR(string$)
-	Note that the string is not terminated.
+        Example 1:
+                stringptr%% = PTR(string$)
+        Note that the string is not terminated.
 
-	Example 2:
-		arrayptr%% = PTR(array())
-	This points to the array structure (see basicdefs.h structure
-	basicarray). The address of the first member of the array is
-	stored at ](arrayptr%%+8). (The address is zero padded on 32-bit
-	platforms.) 
+        Example 2:
+                arrayptr%% = PTR(array())
+        This points to the array structure (see basicdefs.h structure
+        basicarray). The address of the first member of the array is
+        stored at ](arrayptr%%+8). (The address is zero padded on 32-bit
+        platforms.) 
 
 On left-hand side:
-	Use: PTR# <factor> = <expression>
-	Sets the file pointer of the open file with handle <factor>
-	to <expression>. This is offset into the file in bytes.
+        Use: PTR# <factor> = <expression>
+        Sets the file pointer of the open file with handle <factor>
+        to <expression>. This is offset into the file in bytes.
 
-	Example 1:
-		PTR# thefile% = 0
+        Example 1:
+                PTR# thefile% = 0
 
-	Example 2:
-		PTR(array()) = arrayptr%%
-	This sets array() to use the array structure contained at arrayptr%%. 
+        Example 2:
+                PTR(array()) = arrayptr%%
+        This sets array() to use the array structure contained at arrayptr%%. 
 
 RIGHT$
 As a function:
-	Use: RIGHT$(<string variable> [, <expression>] )
-	Returns a string containing the right-most <expression>
-	characters from the string <string variable>. It is
-	possible to omit <expression>, when just the last
-	character is returned. If <expression> is zero or
-	negative, the empty string is returned. If it exceeds
-	the length of <string variable>, the original string is
-	returned.
+        Use: RIGHT$(<string variable> [, <expression>] )
+        Returns a string containing the right-most <expression>
+        characters from the string <string variable>. It is
+        possible to omit <expression>, when just the last
+        character is returned. If <expression> is zero or
+        negative, the empty string is returned. If it exceeds
+        the length of <string variable>, the original string is
+        returned.
 
-	Examples:
-		RIGHT$(A$, 5)
-		RIGHT$(X%) + RIGHT$(Y$)
+        Examples:
+                RIGHT$(A$, 5)
+                RIGHT$(X%) + RIGHT$(Y$)
 
 Om left-hand side:
-	Use: RIGHT$(<string variable> [, <expression>]) =
-					<string expression>
-	The right-most <expression> characters of the string
-	<string variable> are overwritten with character from
-	<string expression>. If <expression> is omitted, the
-	length of the string <string expression> is used instead.
-	If it is zero or negative, <string variable> is left
-	unchanged. The length of the string <string variable>
-	is never changed.
+        Use: RIGHT$(<string variable> [, <expression>]) =
+                                        <string expression>
+        The right-most <expression> characters of the string
+        <string variable> are overwritten with character from
+        <string expression>. If <expression> is omitted, the
+        length of the string <string expression> is used instead.
+        If it is zero or negative, <string variable> is left
+        unchanged. The length of the string <string variable>
+        is never changed.
 
-	Examples:
-		RIGHT$(A$) = "1234"
-		RIGHT$(A$, 5) = "abcdefgh"
-		RIGHT$($table%, 1) = A$
+        Examples:
+                RIGHT$(A$) = "1234"
+                RIGHT$(A$, 5) = "abcdefgh"
+                RIGHT$($table%, 1) = A$
 
 TIME
 As a function:
-	Use: TIME
-	Returns the current value of the centisecond counter.
-	This is a 32-bit timer updated one hundred times per
-	second, although the real accuracy depends on the
-	underlying operating system.
+        Use: TIME
+        Returns the current value of the centisecond counter.
+        This is a 32-bit timer updated one hundred times per
+        second, although the real accuracy depends on the
+        underlying operating system.
 
-	Example:
-		newtime = TIME+100
+        Example:
+                newtime = TIME+100
 
 On left-hand side:
-	Use: TIME = <expression>
-	Sets the centisecond counter to <expression>.
+        Use: TIME = <expression>
+        Sets the centisecond counter to <expression>.
 
-	Example:
-		TIME = 0
+        Example:
+                TIME = 0
 
 TIME$
 As a function:
-	Use: TIME$
-	Returns the current date and time as a string in the
-	form: "www,dd mmm yyyy.hh:mm:ss"
+        Use: TIME$
+        Returns the current date and time as a string in the
+        form: "www,dd mmm yyyy.hh:mm:ss"
 
-	Example:
-		now$ = TIME$
+        Example:
+                now$ = TIME$
 
 On left-hand side:
-	Use: TIME$ = <expression>
-	Sets the date and time to the string expression
-	<expression>. This feature is not implemented.
+        Use: TIME$ = <expression>
+        Sets the date and time to the string expression
+        <expression>. This feature is not implemented.
 
 
 Procedures and Functions
@@ -1295,8 +1295,8 @@ variables.
 
 Procedures and functions are declared in the same way:
 
-Procedures:	DEF PROC<name> [ ( <parameter list> ) ]
-Functions:	DEF FN<name> [ ( <parameter list> ) ]
+Procedures:     DEF PROC<name> [ ( <parameter list> ) ]
+Functions:      DEF FN<name> [ ( <parameter list> ) ]
 
 <name> is the name of the procedure or function. The keywords
 'PROC' and 'FN' are considered to be part of the name.
@@ -1308,12 +1308,12 @@ by the keyword RETURN.
 
 Examples:
 
-	DEF PROCabc
-	DEF PROCxyz(aa$)
-	DEF FNpqr(X%, abc%, def$)
-	DEF PROCijk(RETURN X%, RETURN Y%)
-	DEF FNmno(array())
-	DEF PROCpqr(array1$(), RETURN array2$())
+        DEF PROCabc
+        DEF PROCxyz(aa$)
+        DEF FNpqr(X%, abc%, def$)
+        DEF PROCijk(RETURN X%, RETURN Y%)
+        DEF FNmno(array())
+        DEF PROCpqr(array1$(), RETURN array2$())
 
 When a procedure or function is called, the current values of the
 variables that are to be used as parameters are saved before they
@@ -1326,21 +1326,21 @@ to the parameter variables.
 Procedures and functions are called in the normal way, for
 example:
 
-	PROCxyz("abcd")
-	value = FNpqr(A%+1, B%+2, C$+"3")
+        PROCxyz("abcd")
+        value = FNpqr(A%+1, B%+2, C$+"3")
 
 Calls to procedures are ended with ENDPROC. Calls to functions end
 with an '=' followed by the value the function is to return, for
 example:
 
-	DEF PROCabc(X%)
-	IF X%=0 THEN ENDPROC
-	Y% = Y% DIV X%
-	ENDPROC
+        DEF PROCabc(X%)
+        IF X%=0 THEN ENDPROC
+        Y% = Y% DIV X%
+        ENDPROC
 
-	DEF FNxyz(X%)
-	IF X%=0 THEN = 0
-	= Y% DIV X%
+        DEF FNxyz(X%)
+        IF X%=0 THEN = 0
+        = Y% DIV X%
 
 Note that the name of a function does not include the type of the
 result it will return. It is possible for the same function to
@@ -1355,19 +1355,19 @@ available.
 Procedures and functions can have local variables. These are
 defined by means of the LOCAL statement. The format of this is:
 
-	LOCAL <list of variables>
+        LOCAL <list of variables>
 
 for example:
 
-	LOCAL abc%, def, ghi$, jkl$
+        LOCAL abc%, def, ghi$, jkl$
 
 Any number of local variables can be declared. It is also possible
 to have local arrays. These are slightly more complicated in that
 the array is declared to be local and its dimensions defined
 separately, thus:
 
-	LOCAL array()
-	DIM array(100)
+        LOCAL array()
+        DIM array(100)
 
 The scope of local variables is dynamic, that is, they are not
 restricted to the procedure or function in which they were
@@ -1425,7 +1425,7 @@ user-generated errors. The interpreter allows the use of the LIST
 command in programs, so it is possible for error handlers to list
 the line in which the error occured by the statement
 
-	LIST ERL
+        LIST ERL
 
 Note that the line listed will always be in the Basic program so
 if the error occured in a library the wrong line will be shown.
@@ -1443,8 +1443,8 @@ system on which the interpreter is running. The most flexible way
 is the OSCLI statement. The second way is to put the command on
 a line preceded by a '*', for example:
 
-	10 *date
-	20 IF flag THEN *help
+        10 *date
+        20 IF flag THEN *help
 
 Whatever follows the '*' up to the end of the line is passed as
 the command.
@@ -1465,7 +1465,7 @@ program is listed. The rule is to type in the minimum number
 of characters of the keyword and then follow it with a dot,
 for example:
 
-	P.
+        P.
 
 can be type instead of 'PRINT'. The minimum abbreviation for each
 keyword and command is given in the section 'Basic Keywords,
@@ -1499,7 +1499,7 @@ Statement for controlling the RISC OS sound system.
 
 BPUT
 Syntax: a) BPUT#<factor>, <expression> [;]
-	b) BPUT#<factor>, <expr 1>, <expr 2>, ... ,<expr n> [;]
+        b) BPUT#<factor>, <expr 1>, <expr 2>, ... ,<expr n> [;]
 
 BPUT is used to write data to a file. The handle of the file is
 given by <factor>. <expression> is the value to be written. If
@@ -1517,11 +1517,11 @@ a new line character is also written to the file unless the
 expression is followed by a ';'.
 
 Examples:
-	BPUT#outfile, X%
-	BPUT#outfile, A$
-	IF TRACE THEN BPUT#TRACE, "Result so far is "+STR$X%
-	BPUT#outfile, 1, 2, 3, 4, 5
-	BPUT#outfile, STR$A%, " ", STR$B%
+        BPUT#outfile, X%
+        BPUT#outfile, A$
+        IF TRACE THEN BPUT#TRACE, "Result so far is "+STR$X%
+        BPUT#outfile, 1, 2, 3, 4, 5
+        BPUT#outfile, STR$A%, " ", STR$B%
 
 CALL
 This is an unsupported statement that allows machine code
@@ -1539,11 +1539,11 @@ the last one on a line.
 
 The complete syntax of a CASE statement is:
 
-	CASE <expression> OF
-	WHEN <expression 1>: <statements>
-	WHEN <expression 2>: <statements>
-	OTHERWISE: <statements>
-	ENDCASE
+        CASE <expression> OF
+        WHEN <expression 1>: <statements>
+        WHEN <expression 2>: <statements>
+        OTHERWISE: <statements>
+        ENDCASE
 
 The expression <expression> is evaluated. The interpreter then
 searches for 'WHEN' statements and evaluates each expression after
@@ -1568,23 +1568,23 @@ CASE statements can be nested to any depth.
 
 Examples:
 
-	CASE day$ OF
-	WHEN "Monday": PRINT"It is Monday"
-	WHEN "Tuesday", "Thursday":
-	  PRINT"It is Tuesday or Thursday"
-	WHEN "Friday":
-	  PRINT"It is Friday"
+        CASE day$ OF
+        WHEN "Monday": PRINT"It is Monday"
+        WHEN "Tuesday", "Thursday":
+          PRINT"It is Tuesday or Thursday"
+        WHEN "Friday":
+          PRINT"It is Friday"
         WHEN "Wednesday": PRINT"It it the middle of the week"
-	OTHERWISE
-	  PRINT"It is the weekend"
+        OTHERWISE
+          PRINT"It is the weekend"
         ENDCASE
 
 As general expressions can be used after the WHEN, CASE statements
 are very flexible. Here one is being used in place of a series of
 IF statements:
 
-	CASE TRUE OF
-	WHEN abc%<10: state%=1
+        CASE TRUE OF
+        WHEN abc%<10: state%=1
         WHEN abc%=10: state%=2
         WHEN abc%>20 AND abc%<20: state%=3
         OTHERWISE: state%=99
@@ -1603,7 +1603,7 @@ directories given by the pseudo-variable FILEPATH$.
 
 CIRCLE
 Syntax: a) CIRCLE <x expression>,<y expression>,<expression>
-	b) CIRCLE FILL <x expression>,<y expression>,<expression>
+        b) CIRCLE FILL <x expression>,<y expression>,<expression>
 
 a) This draws a circle outline centred at (<x expression>,
 <y expression>) and with a radius <expression> in the current
@@ -1614,7 +1614,7 @@ b) This version plots a filled circle centred at (<x expression>,
 graphics foreground colour.
 
 CLG
-Syntax:	CLG
+Syntax: CLG
 
 This statement clears the graphics window (normally the whole
 screen) to the current graphics background colour.
@@ -1628,7 +1628,7 @@ procedures and functions so it should not be used in a
 procedure or function.
 
 Example:
-	IF silly% THEN CLEAR
+        IF silly% THEN CLEAR
 
 Matrix Brandy extends the CLEAR syntax with CLEAR HIMEM [<array()>] which
 will de-allocate the off-heap array if specified, or all arrays defined
@@ -1643,7 +1643,7 @@ numeric value that gives the handle of the file to close. If
 Basic program are closed.
 
 Example:
-	CLOSE#outfile%
+        CLOSE#outfile%
 
 CLS
 Syntax: CLS
@@ -1653,20 +1653,20 @@ is being used). It also sends the cursor to the top left-hand
 corner of the screen.
 
 Example:
-	IF full% THEN CLS
+        IF full% THEN CLS
 
 COLOUR
 Syntax: a) COLOUR <expression>
-	b) COLOUR <colour expression> TINT <tint expression>
-	c) COLOUR <red expression> , <green expression> ,
-				 <blue expression>
-	d) COLOUR <logical expression> , <physical expression>
-	e) COLOUR <colour expression> , <red expression> ,
-				<green expression> , <blue expression>
-	f) COLOUR OF <expression> ON <expression>
-	g) COLOUR OF <red expression>, <green expression>,
-		<blue expression> ON <red expression>,
-		<green expression>, <blue expression>
+        b) COLOUR <colour expression> TINT <tint expression>
+        c) COLOUR <red expression> , <green expression> ,
+                                 <blue expression>
+        d) COLOUR <logical expression> , <physical expression>
+        e) COLOUR <colour expression> , <red expression> ,
+                                <green expression> , <blue expression>
+        f) COLOUR OF <expression> ON <expression>
+        g) COLOUR OF <red expression>, <green expression>,
+                <blue expression> ON <red expression>,
+                <green expression>, <blue expression>
 
 The COLOUR statement is used to change the colour being used when
 writing text on the screen. It is also used to change the physical
@@ -1737,21 +1737,21 @@ in the current screen mode. Either the 'OF' or the 'ON'
 part can be left out but not both.
 
 Examples:
-	COLOUR 5
-	COLOUR 23 TINT &C0
-	COLOUR 2, 128, 128, 128
-	COLOUR OF 0, 0, 255 ON 0, 0, 0
-	COLOUR ON 191, 191, 191
-	COLOUR ON COLOUR(191, 191, 191)
+        COLOUR 5
+        COLOUR 23 TINT &C0
+        COLOUR 2, 128, 128, 128
+        COLOUR OF 0, 0, 255 ON 0, 0, 0
+        COLOUR ON 191, 191, 191
+        COLOUR ON COLOUR(191, 191, 191)
 
 The 'COLOUR OF' statement (along with 'GCOL OF') represent
 a new way of selecting colours to use on screen. Along with
 the 'COLOUR()' function they provide a means of specifying
 colours independently of the screen mode, for example:
 
-	pink = COLOUR(255, 127, 255) 
-	blue = COLOUR(0, 0, 255)
-	COLOUR OF pink ON blue
+        pink = COLOUR(255, 127, 255) 
+        blue = COLOUR(0, 0, 255)
+        COLOUR OF pink ON blue
 
 This avoids use of the 'TINT' keyword.
 
@@ -1771,8 +1771,8 @@ Refer to the section 'Procedures and Functions' above for more
 information.
 
 Examples:
-	DEF PROCfirst
-	DEF FNsecond(X%)
+        DEF PROCfirst
+        DEF FNsecond(X%)
 
 
 DIM
@@ -1783,7 +1783,7 @@ contains one or more arrays to be declared separated by
 commas. There are two types of array declation. The
 format of a normal array declaration is:
 
-	<name>( <expression 1> , ... , <expression n> )
+        <name>( <expression 1> , ... , <expression n> )
 
 where <name> is the name of the array and <expression 1> to
 <expression n> are the array's dimensions. Arrays can have up to
@@ -1797,13 +1797,13 @@ Note that the '(' is considered part of the array name.
 
 Examples:
 
-	DIM abc%(100), def(10,10), ghi$(size%+10)
+        DIM abc%(100), def(10,10), ghi$(size%+10)
 
 The second form is used to allocated blocks of memory. There
 are two versions of this:
 
-	<variable> <expression>
-	<variable> LOCAL <expression>
+        <variable> <expression>
+        <variable> LOCAL <expression>
 
 where <variable> is the name of a variable and <expression> is the
 size of the block to allocate in bytes. The address of the block
@@ -1822,16 +1822,16 @@ reason the size of the block allocated is actually <expression>+1
 bytes.
 
 Examples:
-	DIM heap% 100000, block% 100
-	DIM abc%(10), block% 1000
-	DIM xyz% LOCAL 1000
-	LOCAL ptr%: DIM ptr% LOCAL 100
+        DIM heap% 100000, block% 100
+        DIM abc%(10), block% 1000
+        DIM xyz% LOCAL 1000
+        LOCAL ptr%: DIM ptr% LOCAL 100
 
 One trick is to declare an array in this way with a size of -1
 bytes. This stores the address of the current top of the Basic
 heap in the variable, for example:
 
-	DIM heaptop% -1
+        DIM heaptop% -1
 
 The same effect can be obtained using the function 'END'.
 
@@ -1843,14 +1843,14 @@ or function call ends.
 
 The way in which local arrays are defined is as follows:
 
-	LOCAL <array>
-	DIM <array>
+        LOCAL <array>
+        DIM <array>
 
 In other words, the array is declared local first and then its
 dimensions are defined, for example:
 
-	LOCAL abc$()
-	DIM abc$(10,10)
+        LOCAL abc$()
+        DIM abc$(10,10)
 
 Off-heap Arrays
 ---------------
@@ -1861,7 +1861,7 @@ cannot be created off-heap.
 
 The way in which off-heap arrays are defined is as follows:
 
-	DIM HIMEM <array>
+        DIM HIMEM <array>
 
 Such arrays (not memory blocks) can be cleared and de-allocated using
 the syntax CLEAR HIMEM.[<array()>]. Once cleared, the array variable can
@@ -1870,12 +1870,12 @@ to resize an array at runtime without having to clear every single variable.
 
 A memory block allocated this way can be de-allocated as follows:
 
-	DIM HIMEM pointer%% -1
+        DIM HIMEM pointer%% -1
 
 
 DRAW and DRAW BY
 Syntax: a) DRAW <x expression> , <y expression>
-	b) DRAW BY <x expression> , <y expression>
+        b) DRAW BY <x expression> , <y expression>
 
 The DRAW statement draws a line in the current graphics foreground
 colour from the current graphics cursor position to the one given
@@ -1887,14 +1887,14 @@ b) <x expression> and <y expression> are the offsets from the
 current graphics cursor position of the end point of the line.
 
 Examples:
-	DRAW 500,100: DRAW 500,500: DRAW 100,100
-	DRAW BY 400,0: DRAW BY 0,400: DRAW BY -400,-400
+        DRAW 500,100: DRAW 500,500: DRAW 100,100
+        DRAW BY 400,0: DRAW BY 0,400: DRAW BY -400,-400
 
 ELLIPSE
 Syntax: a) ELLIPSE <x expression> , <y expression> ,
-			 <semi-major> , <semi-minor> , <angle>
-	b) ELLIPSE FILL <x expression> , <y expression> ,
-			 <semi-major> , <semi-minor> , <angle>
+                         <semi-major> , <semi-minor> , <angle>
+        b) ELLIPSE FILL <x expression> , <y expression> ,
+                         <semi-major> , <semi-minor> , <angle>
 
 The ELLIPSE statement draws an ellipse. The coordinates of the
 centre are (<x expression>, <y expression>). <semi-major> and
@@ -1907,7 +1907,7 @@ a) This draws an ellipse outline.
 b) This draws a filled ellipse.
 
 Example:
-	ELLIPSE 500, 500, 400, 200, 0.5
+        ELLIPSE 500, 500, 400, 200, 0.5
 
 ELSE
 Syntax: ELSE
@@ -1921,7 +1921,7 @@ Syntax: END
 As a statement, END stops the program.
 
 Example:
-	IF alldone THEN END
+        IF alldone THEN END
 
 ENDCASE
 Syntax: ENDCASE
@@ -1949,7 +1949,7 @@ statements are undone. Control then passes back to the statement
 after the procedure call.
 
 Example:
-	IF count%=0 THEN ENDPROC
+        IF count%=0 THEN ENDPROC
 
 ENDWHILE
 Syntax: ENDWHILE
@@ -1958,7 +1958,7 @@ ENDWHILE marks the end of a WHILE loop. Refer to the section
 below on the WHILE statement for more information.
 
 Example:
-	ENDWHILE
+        ENDWHILE
 
 ENVELOPE
 Syntax: ENVELOPE <expression 1> , ... , <expression 14>
@@ -1975,7 +1975,7 @@ expression> is the error message. Errors raised this way can be
 trapped just like any other using ON ERROR and ON ERROR LOCAL.
 
 Example:
-	ERROR 25, "Bad error"
+        ERROR 25, "Bad error"
 
 FALSE
 Syntax: FALSE
@@ -1985,11 +1985,11 @@ interpreter, zero.
 
 Example:
 
-	flag = FALSE
+        flag = FALSE
 
 FILL and FILL BY
 Syntax: a) FILL <x expression>, <y expression>
-	b) FILL BY <x expression> , <y expression>
+        b) FILL BY <x expression> , <y expression>
 
 The FILL statement is used to flood-fill areas with the current
 graphics foreground colour.
@@ -2002,11 +2002,11 @@ current graphics cursor position at which to start the flood
 fill.
 
 Example:
-	FILL 500,100
+        FILL 500,100
 
 FOR
 Syntax: FOR <variable> = <start expression> TO <end expression>
-			[ STEP <step expression> ]
+                        [ STEP <step expression> ]
 
 The FOR statement marks the start of a FOR loop. <start
 expression> and <end expression> are numeric values that give the
@@ -2034,32 +2034,32 @@ statements that were used in the loop. Loops badly nested within
 the FOR loop body will also be silently ignored.
 
 Examples:
-	FOR N% = 1 TO 10: NEXT
-	FOR N% = 10 TO 1 STEP -1: NEXT
-	FOR abc = FNstart TO FNfinish STEP 10: NEXT
-	FOR array%(5) = 1 TO 10: NEXT array%(5)
+        FOR N% = 1 TO 10: NEXT
+        FOR N% = 10 TO 1 STEP -1: NEXT
+        FOR abc = FNstart TO FNfinish STEP 10: NEXT
+        FOR array%(5) = 1 TO 10: NEXT array%(5)
 
 The last example shows that the loop index does not have to be
 a simple variable.
 
 GCOL
 Syntax: a) GCOL <colour expression>
-	b) GCOL <colour expression> TINT <tint expression>
-	c) GCOL <action expression> , <colour expression>
-	d) GCOL <action expression> , <colour expression>
-					TINT <tint expression>
-	e) GCOL <red expression> , <green expression> ,
-					<blue expression>
-	f) GCOL OF <expression> ON <expression>
-	g) GCOL OF <action expression>, <expression>
-		 ON <action expression>, <expression>
-	h) GCOL OF <red expression>, <green expression>,
-		<blue expression> ON <red expression>,
-		<green expression>, <blue expression>
-	i) GCOL OF <action expression>, <red expression>, 
-		<green expression>, <blue expression> 
-		ON <action expression>, <red expression>,
-		<green expression>, <blue expression>
+        b) GCOL <colour expression> TINT <tint expression>
+        c) GCOL <action expression> , <colour expression>
+        d) GCOL <action expression> , <colour expression>
+                                        TINT <tint expression>
+        e) GCOL <red expression> , <green expression> ,
+                                        <blue expression>
+        f) GCOL OF <expression> ON <expression>
+        g) GCOL OF <action expression>, <expression>
+                 ON <action expression>, <expression>
+        h) GCOL OF <red expression>, <green expression>,
+                <blue expression> ON <red expression>,
+                <green expression>, <blue expression>
+        i) GCOL OF <action expression>, <red expression>, 
+                <green expression>, <blue expression> 
+                ON <action expression>, <red expression>,
+                <green expression>, <blue expression>
 
 
 GCOL is used to set the graphics foreground or background colour.
@@ -2114,26 +2114,26 @@ graphics plotting action are supplied. It is possible to
 leave out either of the 'OF' or the 'ON' parts but not both.
 
 Examples:
-	GCOL OF 192,192,192
-	GCOL OF 0, 0, 0 ON 255,255,255
-	GCOL OF 1, 15
-	GCOL OF COLOUR(0, 0, 255)
+        GCOL OF 192,192,192
+        GCOL OF 0, 0, 0 ON 255,255,255
+        GCOL OF 1, 15
+        GCOL OF COLOUR(0, 0, 255)
 
 The 'CCOL OF' statement (along with 'COLOUR OF') represent
 a new way of selecting colours to use on screen. Along with
 the 'COLOUR()' function they provide a means of specifying
 colours independently of the screen mode, for example:
 
-	pink = GCOL(255, 127, 255) 
-	blue = GCOL(0, 0, 255)
-	GCOL OF pink ON blue
+        pink = GCOL(255, 127, 255) 
+        blue = GCOL(0, 0, 255)
+        GCOL OF pink ON blue
 
 This avoids the use of the 'TINT' keyword, which is really
 only of use in old-style RISC OS 256 colour modes.
 
 GOSUB
 Syntax: a) GOSUB <line number>
-	b) GOSUB ( <expression> )
+        b) GOSUB ( <expression> )
 
 The GOSUB statement calls a subroutine. Control passes back to the
 statement after the GOSUB by means of a RETURN statement.
@@ -2147,11 +2147,11 @@ Note that the RENUMBER command will update the line numbers in the
 first form of GOSUB above but it cannot handle the second form.
 
 Example:
-	GOSUB 1000
+        GOSUB 1000
 
 GOTO
 Syntax: a) GOTO <line number>
-	b) GOTO ( <expression> )
+        b) GOTO ( <expression> )
 
 Program execution continues at the line specified on the GOTO
 statement.
@@ -2167,14 +2167,14 @@ first form of GOTO above but it cannot handle the second form.
 
 IF
 Syntax: a) IF <expression> [ [ THEN ] <statements> ]
-				[ ELSE <statements> ]
-	b) IF <expression> THEN <line number>
-				 [ ELSE <line number> ]
-	c) IF <expression> THEN
-		<statements>
-	    [ ELSE
-		<statements> ]
-	    ENDIF
+                                [ ELSE <statements> ]
+        b) IF <expression> THEN <line number>
+                                 [ ELSE <line number> ]
+        c) IF <expression> THEN
+                <statements>
+            [ ELSE
+                <statements> ]
+            ENDIF
 
 a) The first form of IF statement is the single line IF.
 
@@ -2197,10 +2197,10 @@ expression is neither a THEN nor a ELSE keyword, the THEN keyword
 is assumed.
 
 Examples:
-	IF abc$="xyz" THEN PROCabc: PROCdef
-	IF def<2.0 ELSE PRINT"def is too large"
-	IF X% PROCpqr
-	IF abc$="abc" THEN PRINT"abc": abc$="def" ELSE abc$="abc"
+        IF abc$="xyz" THEN PROCabc: PROCdef
+        IF def<2.0 ELSE PRINT"def is too large"
+        IF X% PROCpqr
+        IF abc$="abc" THEN PRINT"abc": abc$="def" ELSE abc$="abc"
 
 b) This is a variation on the single line IF. Either or both of
 the THEN and ELSE keywords can be followed by a line number
@@ -2209,9 +2209,9 @@ that line iIf the interpreter finds a line number after a THEN or
 ELSE keyword.
 
 Examples:
-	IF abc%=1 THEN 100
-	IF def<2.0 THEN PROCabc ELSE 200
-	IF ghi$="abc" ELSE 300
+        IF abc%=1 THEN 100
+        IF def<2.0 THEN PROCabc ELSE 200
+        IF ghi$="abc" ELSE 300
 
 c) The second form of the IF statement is the block IF.
 
@@ -2229,37 +2229,37 @@ and any preceding blanks.
 Block IF statements can be nested to any depth.
 
 Examples:
-	IF X%=1 THEN
-	  PROCabc
+        IF X%=1 THEN
+          PROCabc
         ENDIF
 
-	IF X%=2 THEN
-	  PROCabc
-	ELSE
-	  PROCdef
-	ENDIF
+        IF X%=2 THEN
+          PROCabc
+        ELSE
+          PROCdef
+        ENDIF
 
-	IF X%=2 THEN
-	  IF Y%=1 THEN STOP
-	ELSE
-	  PROCabc
-	  PROCdef
-	ENDIF
+        IF X%=2 THEN
+          IF Y%=1 THEN STOP
+        ELSE
+          PROCabc
+          PROCdef
+        ENDIF
 
-	IF X=2 THEN REM X is set to 2
-	  PROCabc
-	ELSE
-	  PROCdef
-	ENDIF
+        IF X=2 THEN REM X is set to 2
+          PROCabc
+        ELSE
+          PROCdef
+        ENDIF
 
 Note in this last example that there is a REM statement after the
 THEN but the statement is still seen as a block IF.
 
 INPUT
 Syntax: a) INPUT <list of variables>
-	b) INPUT# <factor>, <list of variables>
-	c) INPUT LINE <list of variables>
-	d) LINE INPUT <list of variables>
+        b) INPUT# <factor>, <list of variables>
+        c) INPUT LINE <list of variables>
+        d) LINE INPUT <list of variables>
 
 The INPUT statement is used to read data from the terminal
 of from a file.
@@ -2267,8 +2267,8 @@ of from a file.
 a) This form of INPUT statement reads from the terminal. The
 format is more accurately specified as:
 
-	INPUT [<prompt> [,]] <list of variables>
-		[<prompt> [,]] <list of variables>] ...
+        INPUT [<prompt> [,]] <list of variables>
+                [<prompt> [,]] <list of variables>] ...
 
 <prompt> is a prompt displayed before the input is read. It
 can be made up of any number of the following: a string,
@@ -2276,9 +2276,9 @@ the function TAB() and "'". TAB() is used to display the
 prompt at a specific position on the screen. "'" causes a
 skip to the next line. Examples:
 
-	INPUT TAB(10, 10) "Value: "
-	INPUT "Size"
-	INPUT TAB(0, 10) "Enter coordinates:" ' "X: "
+        INPUT TAB(10, 10) "Value: "
+        INPUT "Size"
+        INPUT TAB(0, 10) "Enter coordinates:" ' "X: "
 
 TAB() takes two parameters, the column number and the row number
 to which to move the text cursor, that is, the point at which the
@@ -2295,9 +2295,9 @@ names can be separated with blanks, commas or semicolons.
 
 Examples:
 
-	INPUT X%,Y%
-	INPUT abc(1), abc(2), abc(3)
-	INPUT xyz$, ghi%
+        INPUT X%,Y%
+        INPUT abc(1), abc(2), abc(3)
+        INPUT xyz$, ghi%
 
 Values typed in are separated by commas. Leading blanks are
 ignored when they are read. When reading a string, trailing blanks
@@ -2323,7 +2323,7 @@ from the previous read are discarded.
 
 Example:
 
-	INPUT "Name: " name$ "Address: " address$
+        INPUT "Name: " name$ "Address: " address$
 
 b) The second form of INPUT statement is used to read data from a
 file. <factor> is the handle of the file from which input is to be
@@ -2335,13 +2335,13 @@ using PRINT#. INPUT# cannot be used to read text from a file.
 
 Example:
 
-	INPUT# file% , abc(1), abc(2), xyz$
+        INPUT# file% , abc(1), abc(2), xyz$
 
 c) and d) These are a variation on format a). The difference is
 that each value read is taken from a new line.
 
 Example:
-	LINE INPUT "Coordinates: " X% Y%
+        LINE INPUT "Coordinates: " X% Y%
 
 LET
 Syntax: LET <variable> = <expression>
@@ -2355,7 +2355,7 @@ Pseudo-variables, for example, PTR#, cannot be used after LET.
 
 LIBRARY
 Syntax: a) LIBRARY <expression 1>, <expression 2>, ... , <expression n>
-	b) LIBRARY LOCAL <list of variables>
+        b) LIBRARY LOCAL <list of variables>
 
 This statement has two purposes. In case a), it is used to read
 libraries of Basic procedures and functions into memory.
@@ -2372,9 +2372,9 @@ the libraries loaded via the INSTALL command. Libraries are
 searched in the reverse order to which they were loaded, for
 example, given:
 
-	LIBRARY "aaaaa"
-	LIBRARY "bbbbb"
-	LIBRARY "ccccc"
+        LIBRARY "aaaaa"
+        LIBRARY "bbbbb"
+        LIBRARY "ccccc"
 
 'ccccc' will be searched first, then 'bbbbb' and lastly
 'aaaaa'.
@@ -2391,19 +2391,19 @@ these variables and arrays.
 
 The syntax of the statement is as follows:
 
-	LIBRARY LOCAL <list of variables and arrays>
+        LIBRARY LOCAL <list of variables and arrays>
 
 where <list of variable and arrays> is a list of variable and
 array names separated by commas, for example:
 
-	LIBRARY LOCAL abc%, def%, ghi$, jkl(), mno(), pqr$()
+        LIBRARY LOCAL abc%, def%, ghi$, jkl(), mno(), pqr$()
 
 In the case of arrays, this merely defines that the array is local
 to the library. The dimensions of the array have to be declared
 using a DIM statement in the normal way, for example:
 
-	LIBRARY LOCAL jkl(), pqr$()
-	DIM jkl(100), pqr$(table_size%)
+        LIBRARY LOCAL jkl(), pqr$()
+        DIM jkl(100), pqr$(table_size%)
 
 There can be as many LIBRARY LOCAL and DIM statements as
 necessary but they have to be before the first DEF PROC or DEF FN
@@ -2430,20 +2430,20 @@ Private variables in a library can further be used as local
 variables in a procedure or function. Note that they can only be
 accessed in the library, for example:
 
-	LIBRARY LOCAL abc%, def, ghi$, jkl(), mno$()
-	DIM jkl(100)
+        LIBRARY LOCAL abc%, def, ghi$, jkl(), mno$()
+        DIM jkl(100)
 
-	DEF PROCaaa(abc%)
-	LOCAL def, ghi$
-	ENDPROC
+        DEF PROCaaa(abc%)
+        LOCAL def, ghi$
+        ENDPROC
 
-	DEF PROCbbb(def, jkl())
-	LOCAL mno$()
-	DIM mno$(100)
-	ENDPROC
+        DEF PROCbbb(def, jkl())
+        LOCAL mno$()
+        DIM mno$(100)
+        ENDPROC
 
-	DEF PROCccc(xyz, abc%)
-	ENDPROC
+        DEF PROCccc(xyz, abc%)
+        ENDPROC
 
 Here, abc%, def, ghi$, jkl() and mno$() are all declared to be
 private to the library. The dimensions of jkl() are also defined.
@@ -2474,8 +2474,8 @@ statement then it is visible anywhere.
 
 LINE
 Syntax: a) LINE <x expression 1> , <y expression 1> ,
-			<x expression 2> , <y expression 2>
-	b) LINE INPUT <list of variables>
+                        <x expression 2> , <y expression 2>
+        b) LINE INPUT <list of variables>
 
 a) This form of the statement draws a line on the screen in the
 current graphics foreground colour from coordinates 
@@ -2483,28 +2483,28 @@ current graphics foreground colour from coordinates
 (<x expression 2> , <y expression 2>).
 
 Example:
-	LINE 100, 100, 400, 500
+        LINE 100, 100, 400, 500
 
 b) This is a version of the INPUT statement. It is described
 in the section on INPUT above.
 
 LOCAL
 Syntax: a) LOCAL <list of variables>
-	b) LOCAL DATA
-	c) LOCAL ERROR
+        b) LOCAL DATA
+        c) LOCAL ERROR
 
 a) This version of the LOCAL statement is used in a procedure or
 function to declare local variables. The keyword LOCAL is followed
 by any number of variable names separated by commas, for example:
 
-	LOCAL abc%, def, ghi$, jkl
+        LOCAL abc%, def, ghi$, jkl
 
 Arrays can also be declared to be local, but the definition of
 a local array is slightly more complicated in that the new
 array dimensions have to be given on a DIM statement, for example:
 
-	LOCAL xyz()
-	DIM xyz(100,10)
+        LOCAL xyz()
+        DIM xyz(100,10)
 
 LOCAL statements can only appear in procedure or function.
 
@@ -2523,13 +2523,13 @@ Anything that can appear on the left-hand side of an assignment
 can in fact be declared as a local variable, so that, for example,
 individual elements can be declared local if need be! Example:
 
-	LOCAL abc(25), abc(30)
+        LOCAL abc(25), abc(30)
 
 This would declare two elements of array abc(), elements 25
 and 30, to be local. The array abc() has to exist already for
 this to work. Another example:
 
-	LOCAL block%!4, block%?20, $text%
+        LOCAL block%!4, block%?20, $text%
 
 This would preserve the integer value at address block%!4, the
 byte at block%?20 and the string at $text%.
@@ -2541,10 +2541,10 @@ b) 'LOCAL DATA' saves the current value of the DATA statement
 pointer. It can be reset to its original value by 'RESTORE DATA'.
 Example:
 
-	LOCAL DATA
-	RESTORE 100
-	READ abc%
-	RESTORE DATA
+        LOCAL DATA
+        RESTORE 100
+        READ abc%
+        RESTORE DATA
 
 Uses of LOCAL DATA can be nested without any problems.
 
@@ -2564,10 +2564,10 @@ c) The 'LOCAL ERROR' statement is used to save the details of the
    current 'ON ERROR' error handler so that it can be changed and
    restored later. 'RESTORE ERROR' is used to reset it. Example:
 
-	LOCAL ERROR
-	ON ERROR LOCAL PROClocal_error: ENDPROC
-	X=X/0
-	RESTORE ERROR
+        LOCAL ERROR
+        ON ERROR LOCAL PROClocal_error: ENDPROC
+        X=X/0
+        RESTORE ERROR
 
 There is no limit on the number of times LOCAL ERROR can be used
 (other than the memory available). It is possible to nest LOCAL
@@ -2597,7 +2597,7 @@ withoug -DDEFAULT_IGNORE, running SYS"Brandy_Strict",1) makes this report
 
 MODE
 Syntax: a) MODE <expression>
-	b) MODE <x expression>, <y expression>, <depth>, <rate>
+        b) MODE <x expression>, <y expression>, <depth>, <rate>
 
 a) The MODE statement is used to change the screen mode. 
 <expression> is the new screen mode. It can be either a number
@@ -2623,14 +2623,14 @@ colours to be used.
 
 A mode string has the format:
 
-	X<x resolution> Y<y resolution> [ C<colours> ] [ G<levels> ]
+        X<x resolution> Y<y resolution> [ C<colours> ] [ G<levels> ]
 
 where <x resolution> and <y resolution> give the screen size in
 pixels, <colours> gives the number of colours for a colour
 screen mode and <levels> the number of levels for grey-scale.
 Example:
 
-	MODE "X800 Y600 C256"
+        MODE "X800 Y600 C256"
 
 The number of colours or grey scale levels is optional. The parts
 of the mode string can be separated by any number of commas or
@@ -2653,13 +2653,13 @@ it finds a match.
 
 The possible values for <depth> are as follows:
 
-	1	2 colours
-	2	4 colours
-	4	16 colours
-	6	256 colours, old-style RISC OS mode
-	8	256 colours, new-style RISC OS mode
-	16	32K colours
-	32	16M colours
+        1       2 colours
+        2       4 colours
+        4       16 colours
+        6       256 colours, old-style RISC OS mode
+        8       256 colours, new-style RISC OS mode
+        16      32K colours
+        32      16M colours
 
 The values possible depend on the version of the program being
 used. In general, depths of 16 and 32 are only available in the
@@ -2672,21 +2672,21 @@ a newer type (RISC OS 3.5 and later) screen mode is to be used
 where all of the colours can be changed. 
 
 Examples:
-	MODE 1024, 768, 8
-	MODE 640, 512, 2, 75
+        MODE 1024, 768, 8
+        MODE 640, 512, 2, 75
 
 
 MOUSE
 Syntax: a) MOUSE ON
-	b) MOUSE OFF
-	c) MOUSE <x variable> , <y variable> , <button variable>
-				[ , <timestamp variable> ]
-	d) MOUSE STEP <expression>  [, <expression> ]
-	e) MOUSE COLOUR <expression> , <red expression>,
-			<green expression> , <blue expression>
-	f) MOUSE RECTANGLE <left expression> , <bottom expression>,
-			<right expression> , <top expression>
-	g) MOUSE TO <x expression> , <y expression>
+        b) MOUSE OFF
+        c) MOUSE <x variable> , <y variable> , <button variable>
+                                [ , <timestamp variable> ]
+        d) MOUSE STEP <expression>  [, <expression> ]
+        e) MOUSE COLOUR <expression> , <red expression>,
+                        <green expression> , <blue expression>
+        f) MOUSE RECTANGLE <left expression> , <bottom expression>,
+                        <right expression> , <top expression>
+        g) MOUSE TO <x expression> , <y expression>
 
 The MOUSE statement is used to control various aspects of the
 mouse.
@@ -2704,7 +2704,7 @@ the mouse position was recorded derived from the centisecond
 timer.
    
 Example:
-	MOUSE xpos%, ypos%, buttons%
+        MOUSE xpos%, ypos%, buttons%
 
 d) MOUSE STEP is used to the mouse multiplier, that is the number
 of graphics units on the screen that each step of the mouse makes.
@@ -2716,8 +2716,8 @@ second. It is possible to set the multiplier in either direction
 to zero, in which case the mouse will not move in that direction.
 Examples:
 
-	MOUSE STEP 4,3
-	MOUSE STEP 2,0
+        MOUSE STEP 4,3
+        MOUSE STEP 2,0
 
 e) MOUSE COLOUR sets the colour of the mouse pointer on screen.
 <expression> is in the range one to three and says which of the
@@ -2725,7 +2725,7 @@ three mouse colours to change. <red expression>, <green expression>
 and <blue expression> are the colour components of the new colour.
 
 Example:
-	MOUSE COLOUR 1, 255, 0, 0
+        MOUSE COLOUR 1, 255, 0, 0
 
 f) MOUSE RECTANGLE defines a box on the screen outside of which
 the mouse pointer cannot be moved. It requires four parameters,
@@ -2735,18 +2735,18 @@ left-hand and top right-hand corners of the box in graphics
 units.
 
 Example:
-	MOUSE RECTANGLE 100, 100, 900, 600
+        MOUSE RECTANGLE 100, 100, 900, 600
 
 g) The MOUSE TO statement moves the mouse pointer to the
 coordinates (<x expression>, <y expression>) on the screen. The
 position is expressed in graphics units.
 
 Example:
-	MOUSE TO 600, 800
+        MOUSE TO 600, 800
 
 MOVE and MOVE BY
 Syntax: a) MOVE <x expression> , <y expression>
-	b) MOVE BY <x expression> , <y expression>
+        b) MOVE BY <x expression> , <y expression>
 
 The MOVE statements move the graphics cursor to the position
 specified without drawing a line.
@@ -2759,8 +2759,8 @@ expression> in the X and Y directions relative to the old graphics
 cursor position.
 
 Examples:
-	MOVE 500, 500
-	MOVE BY 100, 60
+        MOVE 500, 500
+        MOVE BY 100, 60
 
 NEXT
 Syntax: NEXT [ <variable name> ]
@@ -2771,13 +2771,13 @@ the FOR loop index variable. Refer to the section above on
 the FOR statement for more details.
 
 Example:
-	NEXT N%
+        NEXT N%
 
 It is possible to end a number of loops on a single NEXT
 statement. The syntax for this type of NEXT is:
 
-	NEXT [ <variable name 1> ] , [ <variable name 2> ] , ...
-			[ <variable name n> ]
+        NEXT [ <variable name 1> ] , [ <variable name 2> ] , ...
+                        [ <variable name n> ]
 
 In other words, NEXT is followed by a list of variable names
 separated by commas. However, the variable names can be omitted,
@@ -2785,22 +2785,22 @@ in which case NEXT is followed by a series of commas, one less in
 total than the number of FOR loops being ended at that point.
 
 Examples:
-	FOR X% = 1 TO 10
-	  FOR Y% = 1 TO 10
-	NEXT Y%,X%
+        FOR X% = 1 TO 10
+          FOR Y% = 1 TO 10
+        NEXT Y%,X%
 
-	FOR abc = 1 TO 100
-	  FOR def = 1 TO 100
-	NEXT ,
+        FOR abc = 1 TO 100
+          FOR def = 1 TO 100
+        NEXT ,
 
 OF
 'OF' is part of a CASE statement. Refer to the section on
 CASE statements above for more details.
 
 Example:
-	CASE abc% OF
-	WHEN 1: PRINT"1"
-	ENDCASE
+        CASE abc% OF
+        WHEN 1: PRINT"1"
+        ENDCASE
 
 OFF
 Syntax: OFF
@@ -2809,19 +2809,19 @@ This statement turns off the text cursor so that it is not
 displayed.
 
 Example:
-	IF hide% THEN OFF
+        IF hide% THEN OFF
 
 ON
 Syntax: a) ON
-	b) ON <expression> GOTO <line number 1> , ... ,
-			<line number n> [ ELSE <statement> ]
-	c) ON <expression> GOSUB <line number 1> , ... ,
-			<line number n> [ ELSE <statement> ]
-	d) ON <expression> PROC<name 1>, ... ,
-			PROC<name n> [ ELSE <statement> ]
-	e) ON ERROR <statements>
-	f) ON ERROR OFF
-	g) ON ERROR LOCAL <statements>
+        b) ON <expression> GOTO <line number 1> , ... ,
+                        <line number n> [ ELSE <statement> ]
+        c) ON <expression> GOSUB <line number 1> , ... ,
+                        <line number n> [ ELSE <statement> ]
+        d) ON <expression> PROC<name 1>, ... ,
+                        PROC<name n> [ ELSE <statement> ]
+        e) ON ERROR <statements>
+        f) ON ERROR OFF
+        g) ON ERROR LOCAL <statements>
 
 The ON keyword is used in a variety of statements as follows:
 
@@ -2844,9 +2844,9 @@ desired, but the RENUMBER command will probably fail if this is
 done because it cannot deal with line numbers given in this way.
 
 Examples:
-	ON abc% GOTO 100, 500, 900
-	ON def GOTO 1000, 2000, 3000, 4000 ELSE STOP
-	ON ghi% GOTO FNline1, FNline2, 1000, abc%*10+1
+        ON abc% GOTO 100, 500, 900
+        ON def GOTO 1000, 2000, 3000, 4000 ELSE STOP
+        ON ghi% GOTO FNline1, FNline2, 1000, abc%*10+1
 
 c) ON ... GOSUB is similar to ON ... GOTO. The expression
 is used to control which subroutine to call. When the subroutine
@@ -2863,8 +2863,8 @@ The line numbers can be given as expressions if required.
 
 Example:
 
-	ON abc% GOSUB 1000, 2000, 3000
-	ON def GOSUB 1000, 2000 ELSE PROCerror: PRINT"Done"
+        ON abc% GOSUB 1000, 2000, 3000
+        ON def GOSUB 1000, 2000 ELSE PROCerror: PRINT"Done"
 
 In second example, if def is set to one, the subroutine at line
 1000 will be called. When it returns, execution resumes at the
@@ -2884,8 +2884,8 @@ interpreter continues at that statement, otherwise an error is
 reported.
 
 Example:
-	ON abc% PROCaaa, PROCbbb(X%), PROCccc("abc")
-	ON def PROCaaa, PROCaaa, PROCbbb(1) ELSE STOP
+        ON abc% PROCaaa, PROCbbb(X%), PROCccc("abc")
+        ON def PROCaaa, PROCaaa, PROCbbb(1) ELSE STOP
 
 e) ON ERROR
 The ON ERROR statement is used to deal with errors that the
@@ -2897,7 +2897,7 @@ It is therefore not possible to recover from an error and resume
 execution of the program at the point at which it was detected.
 
 Example:
-	ON ERROR PROCcomplain: END
+        ON ERROR PROCcomplain: END
 
 The section 'Error Handling' above discusses trapping errors in
 programs in more detail.
@@ -2918,9 +2918,9 @@ that it is possible to trap errors and recover from them, resuming
 at the point of the error.
 
 Example:
-	ON ERROR LOCAL PRINT"Error - ";REPORT$
-	INPUT X,Y
-	PRINT X/Y
+        ON ERROR LOCAL PRINT"Error - ";REPORT$
+        INPUT X,Y
+        PRINT X/Y
 
 Here, if an error occured when inputting the values X and Y or
 when X is divided by Y, the interpreter would branch to the PRINT
@@ -2937,11 +2937,11 @@ This statement changes the coordinates of the graphics origin.
 <x expression> and <y expression> specify the new coordinates.
 
 Example:
-	ORIGIN xplace, yplace
+        ORIGIN xplace, yplace
 
 OSCLI
 Syntax: OSCLI <string expression> [ TO <string array>
-					[ , <variable> ] ]
+                                        [ , <variable> ] ]
 
 The OSCLI statement is used to issue a command to the operating
 system on which the interpreter. <string expression> is the
@@ -2961,16 +2961,16 @@ happened so it is up to the user to ensure that the array is large
 enough.
 
 Examples:
-	F% = OPENIN filename$: size% = EXT#F%: CLOSE#F%
-	DIM block% size%
-	OSCLI "load "+filename$+" "+STR$~block%
+        F% = OPENIN filename$: size% = EXT#F%: CLOSE#F%
+        DIM block% size%
+        OSCLI "load "+filename$+" "+STR$~block%
 
-	OSCLI <command> [ TO <string array> [ , <variable> ] ]
+        OSCLI <command> [ TO <string array> [ , <variable> ] ]
 
-	OSCLI "ex" TO array$(), lines%
-	FOR N%=1 TO lines%
-	  IF LEFT$(array$(N%), 1)="a" THEN PRINT array$(N%)
-	NEXT
+        OSCLI "ex" TO array$(), lines%
+        FOR N%=1 TO lines%
+          IF LEFT$(array$(N%), 1)="a" THEN PRINT array$(N%)
+        NEXT
 
 
 OTHERWISE
@@ -3003,29 +3003,29 @@ MOVE and DRAW. PLOT allows any of the codes to used in a program.
 The section 'Plot Codes' below gives more details.
 
 Examples:
-	PLOT 4, 100, 100
-	PLOT 5, 500, 100
-	PLOT 5, 500, 500
-	PLOT 5, 100, 100
+        PLOT 4, 100, 100
+        PLOT 5, 500, 100
+        PLOT 5, 500, 500
+        PLOT 5, 100, 100
 
 This plots a triangle. It could also be written as:
 
-	MOVE 100, 100
-	DRAW 500, 100
-	DRAW 500, 500
-	DRAW 100, 100
+        MOVE 100, 100
+        DRAW 500, 100
+        DRAW 500, 500
+        DRAW 100, 100
 
 On the other hand, a filled triangle would have to be drawn using:
 
-	MOVE 100, 100
-	MOVE 500, 100
-	PLOT 85, 500, 500
+        MOVE 100, 100
+        MOVE 500, 100
+        PLOT 85, 500, 500
 
 as there is no Basic statement to draw one.
 
 POINT and POINT BY
 Syntax: a) POINT <x expression> , <y expression>
-	b) POINT BY <x expression> , <y expression>
+        b) POINT BY <x expression> , <y expression>
 
 The POINT statement is used to plot a single point on the screen.
 
@@ -3037,8 +3037,8 @@ b) This versions of the statement plots the point at the position
 direction relative to the current graphics cursor.
 
 Examples:
-	POINT 500, 100
-	PONT BY xoffset%, yoffset%
+        POINT 500, 100
+        PONT BY xoffset%, yoffset%
 
 POINT TO
 Syntax: POINT TO <x expression> , <y expression>
@@ -3051,11 +3051,11 @@ give the x and y coordinates in graphics units to which the
 pointer is to be moved.
 
 Example:
-	POINT TO 500, 500
+        POINT TO 500, 500
 
 PRINT
 Syntax: a) PRINT <list of expressions>
-	b) PRINT# <factor>, <list of expressions>
+        b) PRINT# <factor>, <list of expressions>
 
 The first version of the PRINT statement displays data on screen
 and the second writes it to a file.
@@ -3070,18 +3070,18 @@ Each item in <list of expression> can be an expression whose
 value is to be displayed or a print function. The print functions
 are:
 
-	TAB( <expression> )
-	This moves the text cursor to character position
-	<expression> on the current line. If the text cursor is
-	already beyond that column, move to the next line and
-	skip to the required column.
+        TAB( <expression> )
+        This moves the text cursor to character position
+        <expression> on the current line. If the text cursor is
+        already beyond that column, move to the next line and
+        skip to the required column.
 
-	TAB( <x expression>, <y expression> )
-	Move the text cursor to column <x expression>, row
-	<y expression> on the screen.
+        TAB( <x expression>, <y expression> )
+        Move the text cursor to column <x expression>, row
+        <y expression> on the screen.
 
-	SPC <expression>
-	Print <expression> blanks.
+        SPC <expression>
+        Print <expression> blanks.
 
 The rules describing how values are displayed are quite involved:
 
@@ -3126,14 +3126,14 @@ The rules describing how values are displayed are quite involved:
    field width set by @%.
 
 Examples:
-	PRINT abc def
-	PRINT ~pqr% xyz%
-	PRINT ghi$, "abcde", ~abc%
-	PRINT abc$ TAB(20) def
-	PRINT TAB(1,1) "a" TAB(2,2) "b" TAB(3,3) "c"
-	PRINT ; xyz%
-	PRINT CHR$13 ; SPC20 ; X%
-	PRINT "Line 1" ' "Line 2" ' "Line 3"
+        PRINT abc def
+        PRINT ~pqr% xyz%
+        PRINT ghi$, "abcde", ~abc%
+        PRINT abc$ TAB(20) def
+        PRINT TAB(1,1) "a" TAB(2,2) "b" TAB(3,3) "c"
+        PRINT ; xyz%
+        PRINT CHR$13 ; SPC20 ; X%
+        PRINT "Line 1" ' "Line 2" ' "Line 3"
 
 The Format Variable @%
 ----------------------
@@ -3207,19 +3207,19 @@ a field width of ten characters.
 To make it easier to use, @% can be set using by assigning the
 desired format to it as a string.
 
-	@% = "<format string>"
+        @% = "<format string>"
 
 <format string> is composed as follows:
 
-	[+] [<format>] [<width>] [ . <places>]
+        [+] [<format>] [<width>] [ . <places>]
 
 Starting the string with a '+' indicates that the format is used
 to be used by the function STR$ .
 
 <format> gives the format to use:
-	G	General format
-	E	Exponent format
-	F	Floating point format
+        G       General format
+        E       Exponent format
+        F       Floating point format
 
 <width> is the field width.
 
@@ -3234,11 +3234,11 @@ format supplied in the string will be changed.
 
 Examples:
 
-	@% = "G15.12"
-	@% = "E"
-	@% = "10"
-	@% = ","
-	@% = "+.10"
+        @% = "G15.12"
+        @% = "E"
+        @% = "10"
+        @% = ","
+        @% = "+.10"
 
 b) PRINT# writes data to the file with file handle <factor>.
 <list of expressions> is the data to be written. Note that
@@ -3246,7 +3246,7 @@ the output is in binary, not text. It is designed to be read
 by the INPUT# statement.
 
 Examples:
-	PRINT#file%, xyz, abc%(X%), "abcdefghij"
+        PRINT#file%, xyz, abc%(X%), "abcdefghij"
 
 QUIT
 Syntax: QUIT [ <expression> ]
@@ -3278,15 +3278,15 @@ enclosed in double quotes if need be.
 
 Examples:
 
-	abc% = 100
-	READ xyz%, pqr%
-	DATA abc%+10, 99
-		
+        abc% = 100
+        READ xyz%, pqr%
+        DATA abc%+10, 99
+                
 Here the expression 'abc%+10' is evaluated when xyz% is read and
 xyz% will be set to 110.
 
-	READ abc$, def$
-	DATA     aaa   , "   bbb   "
+        READ abc$, def$
+        DATA     aaa   , "   bbb   "
 
 abc$ will be set to the string 'aaa   ' and def$ to '   bbb   '.
 
@@ -3297,15 +3297,15 @@ its value later.
 
 RECTANGLE
 Syntax: a) RECTANGLE  <left expression> , <bottom expression>,
-			<width expression> [, <height expression> ]
-	b) RECTANGLE FILL <left expression> , <bottom expression>,
-			<width expression> [, <height expression> ]
-	c) RECTANGLE <left expression> , <bottom expression>,
-			<width expression> [, <height expression> ]
-			TO <x expression> , <y expression>
-	d) RECTANGLE FILL <left expression> , <bottom expression>,
-			<width expression> [, <height expression> ]
-			TO <x expression> , <y expression>
+                        <width expression> [, <height expression> ]
+        b) RECTANGLE FILL <left expression> , <bottom expression>,
+                        <width expression> [, <height expression> ]
+        c) RECTANGLE <left expression> , <bottom expression>,
+                        <width expression> [, <height expression> ]
+                        TO <x expression> , <y expression>
+        d) RECTANGLE FILL <left expression> , <bottom expression>,
+                        <width expression> [, <height expression> ]
+                        TO <x expression> , <y expression>
 
 The RECTANGLE statement has two uses, to draw a rectangle and to
 move or copy a rectangular portion of the screen to another part
@@ -3345,11 +3345,11 @@ corner of the location to which the area will be moved. The old
 area is set to the background graphics colour.
 
 Examples:
-	RECTANGLE 400, 400, 500, 200
-	RECTANGLE FILL 200, 200, width%, height%
-	RECTANGLE FILL 200, 200, size%
-	RECTANGLE left%, bottom%, with% TO 1000, 1000
-	RECTANGLE FILL left%, bottom%, with% TO 1000, 1000
+        RECTANGLE 400, 400, 500, 200
+        RECTANGLE FILL 200, 200, width%, height%
+        RECTANGLE FILL 200, 200, size%
+        RECTANGLE left%, bottom%, with% TO 1000, 1000
+        RECTANGLE FILL left%, bottom%, with% TO 1000, 1000
 
 REM
 Syntax: REM <comments>
@@ -3359,7 +3359,7 @@ When a REM statement is encountered, the interpreter skips
 to the next line in the program.
 
 Example:
-	REM Here be dragons
+        REM Here be dragons
 
 REPEAT
 Syntax: REPEAT
@@ -3367,9 +3367,9 @@ Syntax: REPEAT
 REPEAT marks the start of a REPEAT loop. The format of
 one of these is:
 
-	REPEAT
-	  <statements>
-	UNTIL <expression>
+        REPEAT
+          <statements>
+        UNTIL <expression>
 
 The block of statements <statements> is executed. The numeric
 expression <expression> is evaluated when the UNTIL is reached. If
@@ -3388,15 +3388,15 @@ out the ':' statement separator.
 The interpreter is not fussy about where the UNTIL is located, for
 example, the following sort of code is allowed:
 
-	IF flag THEN UNTIL X%>10 ELSE UNTIL Y%>10
+        IF flag THEN UNTIL X%>10 ELSE UNTIL Y%>10
 
 The interpreter silently ignores incorrectly nested loops of
 different types so that, for example, the following will not give
 an error:
 
-	REPEAT
-	  FOR X% = 1 TO 10
-	UNTIL Y% = 0
+        REPEAT
+          FOR X% = 1 TO 10
+        UNTIL Y% = 0
 
 Note that the effect of any LOCAL DATA or LOCAL ERROR statements
 in the body of the loop will be reversed when the loop ends, that
@@ -3411,11 +3411,11 @@ The REPORT statement displays the error message for the last
 error encountered in a program.
 
 Example:
-	DEF PROCerror
-	PRINT"Program failed with error ";
-	REPORT
-	PRINT" at line ";ERL
-	END
+        DEF PROCerror
+        PRINT"Program failed with error ";
+        REPORT
+        PRINT" at line ";ERL
+        END
 
 REPORT is used to print the error message. There is a function
 REPORT$ that returns it as a string then would be more convenient
@@ -3425,10 +3425,10 @@ error and the line in which it occured.
 
 RESTORE
 Syntax: a) RESTORE [ <line number> ]
-	b) RESTORE + <expression>
-	c) RESTORE DATA
-	d) RESTORE LOCAL
-	e) RESTORE ERROR
+        b) RESTORE + <expression>
+        c) RESTORE DATA
+        d) RESTORE LOCAL
+        e) RESTORE ERROR
 
 The RESTORE statement has two uses: firstly, it is used to control
 which DATA statement is to be used to provide data for a READ
@@ -3441,9 +3441,9 @@ can be an expression. It can also be omitted, when the data
 pointer is reset to the first DATA statement in the program.
 
 Example:
-	RESTORE
-	RESTORE 100
-	IF flag THEN RESTORE start% ELSE RESTORE finish%
+        RESTORE
+        RESTORE 100
+        IF flag THEN RESTORE start% ELSE RESTORE finish%
 
 
 b) This form of the statement sets the data pointer to a line
@@ -3453,9 +3453,9 @@ value greater than or equal to zero. The data pointer is moved
 to the DATA statement at or after the line indicated by the
 RESTORE statement.
 
-	RESTORE +0
-	RESTORE +10
-	RESTORE +offset%
+        RESTORE +0
+        RESTORE +10
+        RESTORE +offset%
 
 c) RESTORE DATA restores the data pointer to the value it had the
 last time a LOCAL DATA was executed. RESTORE DATA has to match up
@@ -3470,21 +3470,21 @@ used inside a FOR, WHILE or REPEAT loop when the program leaves
 the loop.
 
 Example:
-	LOCAL DATA
-	RESTORE 100
-	READ X%
-	RESTORE DATA
+        LOCAL DATA
+        RESTORE 100
+        READ X%
+        RESTORE DATA
 
 
 d) RESTORE LOCAL restores the variable states which were previously
 declared LOCAL within a function or procedure.
 
 Example:
-	LOCAL a
-	a=42
-	PRINT a
-	RESTORE LOCAL
-	PRINT a
+        LOCAL a
+        a=42
+        PRINT a
+        RESTORE LOCAL
+        PRINT a
 
 e) RESTORE ERROR restores the Basic error handler set up by ON
 ERROR or ON ERROR LOCAL to its condition when the last  LOCAL
@@ -3500,10 +3500,10 @@ LOCAL ERROR is used inside a FOR, WHILE or REPEAT loop when the
 program leaves the loop.
 
 Example:
-	LOCAL ERROR
-	ON ERROR LOCAL REPORT
-	INPUT X%
-	RESTORE ERROR
+        LOCAL ERROR
+        ON ERROR LOCAL REPORT
+        INPUT X%
+        RESTORE ERROR
 
 RETURN
 Syntax: RETURN
@@ -3512,11 +3512,11 @@ The RETURN statement is used to return from a subroutine invoked
 via GOSUB to the statement after the GOSUB.
 
 Example:
-	IF X%=0 RETURN
+        IF X%=0 RETURN
 
 RUN
 Syntax: a) RUN [ <line number> ]
-	b) RUN <string expression>
+        b) RUN <string expression>
 
 a) The first form of the RUN statement starts a program running.
 The line number <line number> is optional. If supplied, execution
@@ -3532,8 +3532,8 @@ variables, A% to Z%) are destroyed.
 
 SOUND
 Syntax: a) SOUND OFF
-	b) SOUND ON
-	c) SOUND <channel>,<amplitude>,<pitch>,<duration>(,<delay>)
+        b) SOUND ON
+        c) SOUND <channel>,<amplitude>,<pitch>,<duration>(,<delay>)
 
 This statement is used to make a sound.
 
@@ -3554,8 +3554,8 @@ iteration of the FOR loop. Refer to the section on the FOR
 statement for more details.
 
 Example:
-	FOR N% = 10 TO 1 STEP -1: NEXT
-	FOR X% = 1 TO 5 STEP 2: NEXT
+        FOR N% = 10 TO 1 STEP -1: NEXT
+        FOR X% = 1 TO 5 STEP 2: NEXT
 
 STEREO
 Statement for controlling the RISC OS sound system.
@@ -3567,7 +3567,7 @@ The STOP statement ends the run of a program. It differs from
 END in that STOP is trapped as an error.
 
 Example:
-	IF bad THEN STOP
+        IF bad THEN STOP
 
 SWAP
 Syntax: SWAP <variable 1> , <variable 2>
@@ -3581,18 +3581,18 @@ Arrays can also be swapped but they have to be of exactly the
 same type, although the array dimensions can be different.
 
 Examples:
-	SWAP X%, Y%
-	SWAP abc(X%), abc(X%+1)
-	SWAP array1(), array2()
-	DIM aaa(25), bbb(10,10,10): SWAP aaa(), bbb()
+        SWAP X%, Y%
+        SWAP abc(X%), abc(X%+1)
+        SWAP array1(), array2()
+        DIM aaa(25), bbb(10,10,10): SWAP aaa(), bbb()
 
 The last example demonstrates that arrays of different sizes and
 even with differing numbers of dimensions can be swapped.
 
 SYS
 Syntax: SYS <swi expression>, <expression 1>, ... ,
-		<expression n> [ TO <variable 1> , ... ,
-		<variable n> [ ; <flag variable>] ]
+                <expression n> [ TO <variable 1> , ... ,
+                <variable n> [ ; <flag variable>] ]
 
 The SYS statement is only fully supported by the RISC OS version
 of the interpreter. It is used to issue a SWI (RISC OS operating
@@ -3623,9 +3623,9 @@ controlling terminal instead of the SDL window.  This can be
 useful for some debugging scenarios.
 
 Examples:
-	SYS "OS_Write0", "abcdefgh"
-	SYS 3
-	SYS "OS_Byte", 134 TO , , row
+        SYS "OS_Write0", "abcdefgh"
+        SYS 3
+        SYS "OS_Byte", 134 TO , , row
 
 TEMPO
 Statement for controlling the RISC OS sound system.
@@ -3637,7 +3637,7 @@ The THEN keyword is used in an IF statement. Refer to the section
 above on the IF statement for more information.
 
 Example:
-	IF X%=1 THEN X%=2
+        IF X%=1 THEN X%=2
 
 TINT
 Syntax: TINT <expression> , <tint expression>
@@ -3649,23 +3649,23 @@ It sets the tint number <expression> to <tint expression>.
 There are four colours settings used by the interpreter as
 follows:
 
-	Text foreground colour
-	Text background colour
-	Graphics foreground colour
-	Graphics background colour
+        Text foreground colour
+        Text background colour
+        Graphics foreground colour
+        Graphics background colour
 
 Each of these has a tint value associated with it that is used
 in 256 colour screen modes. This statement allows the tint values
 to be changed without having to change the colours as well. The
 values to use to identify the tint to change are as follows:
 
-	0	Text foreground
-	1	Text background
-	2	Graphics foreground
-	3	Graphics background
+        0       Text foreground
+        1       Text background
+        2       Graphics foreground
+        3       Graphics background
 
 Example:
-	TINT 0, 64
+        TINT 0, 64
 
 TO
 Syntax: TO <expression>
@@ -3675,16 +3675,16 @@ for the loop variable. Refer to the section on the FOR statement
 above for more information.
 
 Example:
-	FOR N% = 1 TO 10: NEXT
+        FOR N% = 1 TO 10: NEXT
 
 TRACE
 Syntax: a) TRACE ON
-	b) TRACE OFF
-	c) TRACE TO <expression>
-	d) TRACE CLOSE
-	e) TRACE PROC
-	f) TRACE GOTO
-	g) TRACE VDU
+        b) TRACE OFF
+        c) TRACE TO <expression>
+        d) TRACE CLOSE
+        e) TRACE PROC
+        f) TRACE GOTO
+        g) TRACE VDU
 
 The TRACE statement is used to help debug Basic programs. It
 controls the various trace options possible.
@@ -3704,12 +3704,12 @@ screen.
 e) TRACE PROC displays the names of each procedure or function
 as it is entered and left.
 
-===>PROC<name>	indicates that the procedure has been entered.
-PROC<name>--->	indicates that the procedure has been left.
+===>PROC<name>  indicates that the procedure has been entered.
+PROC<name>--->  indicates that the procedure has been left.
 
 The trace can be turned off with the statement:
 
-	TRACE PROC OFF
+        TRACE PROC OFF
 
 f) TRACE GOTO lists the origin and destination line numbers
 every time a branch occurs in a program, for example, whenever
@@ -3718,19 +3718,19 @@ top of a loop. It can be used to see the path through the
 program in a more concise form than just displaying the number
 of every line executed. The output from the trace is of the
 form:
-	[<line number 1>-><line number 2>]
+        [<line number 1>-><line number 2>]
 
 This says that a branch has occured from <line number 1>
 to <line number 2>.
 
 This trace can be turned off with the statement:
 
-	TRACE GOTO OFF
+        TRACE GOTO OFF
 
 g) TRACE VDU redirects output to the controlling terminal's stderr
 output stream.  This can be turned off with the statement:
 
-	TRACE VDU OFF
+        TRACE VDU OFF
 
 Sending Trace Output to a File
 ------------------------------
@@ -3739,7 +3739,7 @@ the file can be found by using TRACE as a function. If it is not
 zero, output is going to the file with this handle. It is possible
 to put extra data into the trace file, for example:
 
-	IF TRACE THEN BPUT#TRACE,"initialisation finished"
+        IF TRACE THEN BPUT#TRACE,"initialisation finished"
 
 TRUE
 Syntax: TRUE
@@ -3748,7 +3748,7 @@ The TRUE keyword returns the value Basic uses to represent
 'true' (-1).
 
 Example:
-	flag = TRUE
+        flag = TRUE
 
 UNTIL
 Syntax: UNTIL <expression>
@@ -3757,9 +3757,9 @@ The UNTIL keyword forms part of a 'REPEAT UNTIL' loop. Refer to
 the section on the REPEAT statement for more information.
 
 Example:
-	REPEAT
-	  X%+=1
-	UNTIL X%=10
+        REPEAT
+          X%+=1
+        UNTIL X%=10
 
 VDU
 Syntax: VDU <expression 1> , ... , <expression n>
@@ -3778,12 +3778,12 @@ after it, two bytes of data are sent, the two least significant
 bytes of the result. The least significant byte is sent first, for
 example:
 
-	VDU 31, 10, 10
+        VDU 31, 10, 10
 
 This VDU command sends three bytes of data to the screen
 driver.
 
-	VDU 29, 640; 512;
+        VDU 29, 640; 512;
 
 This example sends five bytes, 29 as one byte, 640 as two bytes
 as it is followed by a ';' and 512 as two bytes.
@@ -3795,7 +3795,7 @@ need only one or two bytes. The extra zeroes are ignore or treated
 as no-ops.
 
 Examples:
-	VDU 31, 1, 1, ASC"a", 31, 2, 2, ASC"b"
+        VDU 31, 1, 1, ASC"a", 31, 2, 2, ASC"b"
 
 The VDU statement allows any VDU command to be issued but the most
 common ones are more conveniently handled by Basic statements, for
@@ -3810,7 +3810,7 @@ Statement for controlling the RISC OS sound system.
 
 WAIT
 Syntax: a) WAIT
-	b) WAIT <expression>
+        b) WAIT <expression>
 
 a) This version of the statement causes the program to be halted
 until the next vsync interrupt. It is used to synchronise drawing
@@ -3818,7 +3818,7 @@ output on the screen with the hardware to make the output look
 neater.
 
 Example:
-	WAIT
+        WAIT
 
 b) This version is used to make the program wait for a period
 of time. <expression> is a numeric expression that gives the
@@ -3827,7 +3827,7 @@ the 'escape' key (either 'Esc' or control C, depending on the
 environment) will cause the program to resume execution.
 
 Example:
-	WAIT 500
+        WAIT 500
 
 This will make the program pause for five seconds.
 
@@ -3843,9 +3843,9 @@ Syntax: WHILE <expression>
 The WHILE statement marks the start of a WHILE loop. The format
 of one of these is:
 
-	WHILE <expression>
-	<statements>
-	ENDWHILE
+        WHILE <expression>
+        <statements>
+        ENDWHILE
 
 The numeric expression <expression> is evaluated and if it is not
 zero the loop entered. The program then continues until it comes
@@ -3859,9 +3859,9 @@ of the loop. It is possible for different ENDWHILEs to be used
 in the same loop, for example, it is possible to write code
 such as:
 
-	WHILE X%<10
-	  X%+=1
-	IF X%<5 THEN ENDWHILE ELSE ENDWHILE
+        WHILE X%<10
+          X%+=1
+        IF X%<5 THEN ENDWHILE ELSE ENDWHILE
 
 If the expression <expression> is zero the first time the WHILE
 statement is executed, the loop is skipped. Note that the
@@ -3872,11 +3872,11 @@ problem if code like the example above is used.
 The interpreter allows loops to be nested incorrectly and silently
 ignores this sort of error, for example:
 
-	WHILE X%<10
-	  X%+=1
-	  REPEAT
-	    Y%+=1
-	ENDWHILE
+        WHILE X%<10
+          X%+=1
+          REPEAT
+            Y%+=1
+        ENDWHILE
 
 The interpreter will not complain about the missing 'UNTIL' part
 of the nested REPEAT loop.
@@ -3896,7 +3896,7 @@ reached. The default is the width of the screen or text window.
 This version of the interpreter ignores WIDTH.
 
 Example:
-	WIDTH 40
+        WIDTH 40
 
 
 Commands
@@ -3916,12 +3916,12 @@ program they are treated as normal keywords and have to be in
 upper case. This can give rise to unexpected results, for example
 the program:
 
-	10 list = 1.23
-	20 PRINT list
+        10 list = 1.23
+        20 PRINT list
 
 will print the number 1.23, but if:
 
-	list = 1.23
+        list = 1.23
 
 is entered on the command line it gives a syntax error as 'list'
 is seen as a command. 'list' is in lower case in the program and
@@ -3956,7 +3956,7 @@ respectively will be deleted. Leaving both out (just specifying
 the ,) will delete the entire program.
 
 Example:
-	DELETE 100
+        DELETE 100
 
 EDIT
 Syntax: EDIT [ <line number> ]
@@ -3974,8 +3974,8 @@ so there is a variation on the EDIT command, EDITO that can be
 used instead.
 
 Examples:
-	EDIT 100
-	EDIT
+        EDIT 100
+        EDIT
 
 EDITO
 Syntax: EDITO <expression>
@@ -3990,16 +3990,16 @@ and the editor exited from.
 The expression <expression> controls the format. The LISTO values
 useful in this context are:
 
-	1  Insert a space after the line number.
-	2  Indent program structures such as block IF statements.
-	8  Omit line numbers.
+        1  Insert a space after the line number.
+        2  Indent program structures such as block IF statements.
+        8  Omit line numbers.
 
 The LISTO value is obtained by adding together these numbers. If
 <expression> is 10, the program is transferred to the editor
 without line numbers and with structures indented. 
 
 Example:
-	EDITO 8
+        EDITO 8
 
 HELP
 Syntax: HELP
@@ -4037,7 +4037,7 @@ variables created in procedures and functions in the library will
 be added to those the program creates.
 
 Example:
-	INSTALL "proclib"
+        INSTALL "proclib"
 
 LIST
 Syntax: LIST [ <line number 1> [ , <line number 2> ] ]
@@ -4056,13 +4056,13 @@ The line numbers can be given by expressions and, unlike other
 commands, LIST can be used in a running program.
 
 Examples:
-	LIST
-	LIST 100,200
+        LIST
+        LIST 100,200
 
-	DEF PROCerror
-	PRINT REPORT$;" at line ";ERL
-	LIST ERL
-	ENDPROC
+        DEF PROCerror
+        PRINT REPORT$;" at line ";ERL
+        LIST ERL
+        ENDPROC
 
 
 LISTIF
@@ -4075,8 +4075,8 @@ string is found is listed.
 There are no wild card facilities.
 
 Example:
-	LISTIF PROCerror
-	LISTIF abc%
+        LISTIF PROCerror
+        LISTIF abc%
 
 LISTO 
 Syntax: LISTO <expression>
@@ -4089,11 +4089,11 @@ program.
 <expression> gives the new LISTO value. This is formed by adding
 together one or more of the following values:
 
-	1  Insert a space after the line number.
-	2  Indent program structures such as block IF statements.
-	8  Omit the line number.
-	16 List keywords in lower case.
-	32 Pause after displaying twenty lines when listing program.
+        1  Insert a space after the line number.
+        2  Indent program structures such as block IF statements.
+        8  Omit the line number.
+        16 List keywords in lower case.
+        32 Pause after displaying twenty lines when listing program.
 
 The LISTO value is obtained by combining these, for example,
 indent structures, omit line numbers and list keywords in lower
@@ -4109,9 +4109,9 @@ Really, the LISTO values are bit settings and the LISTO value is
 obtained by OR'ing them together.
 
 Examples:
-	LISTO 26
-	LISTO (2+8+16)
-	LISTO (LISTO+1)
+        LISTO 26
+        LISTO (2+8+16)
+        LISTO (LISTO+1)
 
 LOAD
 Syntax: LOAD <string expression>
@@ -4131,8 +4131,8 @@ that the name (as shown by 'HELP') will normally include the name
 of the directory in which the program was found.
 
 Example:
-	LOAD "abc"
-	LOAD FNget_name
+        LOAD "abc"
+        LOAD FNget_name
 
 LVAR 
 Syntax: LVAR [ <letter> ]
@@ -4152,8 +4152,8 @@ interpreter has found in the program but that have not been called
 yet.
 
 Examples:
-	LVAR
-	LVAR x
+        LVAR
+        LVAR x
 
 NEW
 Syntax: NEW [ <expression> ]
@@ -4173,8 +4173,8 @@ workspace size but the program in memory is lost and cannot be
 recovered.
 
 Example:
-	NEW 
-	NEW 1000000
+        NEW 
+        NEW 1000000
 
 OLD
 Syntax: OLD
@@ -4183,7 +4183,7 @@ The OLD command is used to attempt to recover a program in memory.
 It is not supported in Matrix Brandy.
 
 Example:
-	OLD
+        OLD
 
 RENUMBER
 Syntax: RENUMBER [ <start expression> [ , <step expression> ] ]
@@ -4206,9 +4206,9 @@ and a warning message put out. If the highest line number allowed
 a start value of one and a step of one.
 
 Examples:
-	RENUMBER
-	RENUMBER 1000
-	RENUMBER 100,1
+        RENUMBER
+        RENUMBER 1000
+        RENUMBER 100,1
 
 SAVE
 Syntax: SAVE [ <string expression> ]
@@ -4238,9 +4238,9 @@ The name <string expression> is saved for use by later SAVE
 commands if it is supplied.
 
 Examples:
-	SAVE "abcdefgh"
-	SAVE A$+"/abc"
-	SAVE
+        SAVE "abcdefgh"
+        SAVE A$+"/abc"
+        SAVE
 
 SAVEO
 Syntax: SAVEO <expression> [ , <string expression> ]
@@ -4251,9 +4251,9 @@ difference between it and SAVE is that the LISTO value to be used
 to format the program when writing it to the file is specified by
 <expression>. The LISTO values useful in this context are:
 
-	1  Insert a space after the line number.
-	2  Indent program structures such as block IF statements.
-	8  Omit line numbers.
+        1  Insert a space after the line number.
+        2  Indent program structures such as block IF statements.
+        8  Omit line numbers.
 
 The LISTO value is obtained by adding together these numbers. If
 <expression> is 10, the program is saved without line numbers and
@@ -4276,8 +4276,8 @@ The name <string expression> is saved for use by later SAVE
 commands if it is supplied.
 
 Examples:
-	SAVEO 10 , "abcdefgh"
-	SAVEO 3
+        SAVEO 10 , "abcdefgh"
+        SAVEO 3
 
 TEXTLOAD
 Syntax: TEXTLOAD <string expression>
@@ -4340,23 +4340,23 @@ coordinates.
 Text coordinates have their origin at the top left-hand corner of
 the screen and extend to the left and downwards:
 
-	(0,0)
-	  +----------+
-	  |          |
-	  |          |
-	  +----------+
+        (0,0)
+          +----------+
+          |          |
+          |          |
+          +----------+
                   (79,31)
 
 
 Graphics coordinates have their origin at the bottom left-hand
 corner of the screen and extend to the left and upwards:
 
-		(1279,1023)
-	  +----------+
-	  |          |
-	  |          |
-	  +----------+
-	(0,0)
+                (1279,1023)
+          +----------+
+          |          |
+          |          |
+          +----------+
+        (0,0)
 
 The values in the diagrams are just examples.
 
@@ -4401,14 +4401,14 @@ corresponding to each logical colour can be changed by means of
 VDU 19. The number corresponding to each physical colour is
 as follows:
 
-	0 (8)	Black
-	1 (9)	Red
-	2 (10)	Green
-	3 (11)	Yellow
-	4 (12)	Blue
-	5 (13)	Magenta
-	6 (14)	Cyan
-	7 (15)	White
+        0 (8)   Black
+        1 (9)   Red
+        2 (10)  Green
+        3 (11)  Yellow
+        4 (12)  Blue
+        5 (13)  Magenta
+        6 (14)  Cyan
+        7 (15)  White
 
 (Note: depending on the capabilities of the host hardware, colour
 numbers 8 to 15 may simply repeat colours 0 to 7. On RISC OS they
@@ -4433,10 +4433,10 @@ written as 0, 64, 128 and 192.
 The VDU drivers works in terms of the following colours when
 writing text or plotting graphics:
 
-	Text foreground colour
-	Text background colour
-	Graphics foreground colour
-	Graphics background colour
+        Text foreground colour
+        Text background colour
+        Graphics foreground colour
+        Graphics background colour
 
 
 Text and Graphics Windows
@@ -4463,38 +4463,38 @@ The ASCII character codes in the range 0 to 31 are used. The
 format of a VDU code is a single command byte followed by up to
 nine bytes of data. The complete list follows:
 
-0	Does nothing
-1	Send next character to the printer
-2	Enable sending of characters to the printer
-3	Disable sending sending of character to the printer
-4	Display text at the text cursor position
-5	Display text at the graphics cursor position
-6	Enable the VDU drivers
-7	Sound the console bell
-8	Move the cursor back one character
-9	Move the cursor forwards one character
-10	Move the cursor down one line
-11	Move the cursor up one line
-12	Clear the text screen
-13	Move the cursor to the start of the line
-14	Enable page mode
-15	Disable page mode
-16	Clear the graphics window
-17	Change the current text colou
-18	Change the current graphics colour
-19	Map logical colour to physical colour
-20	Reset logical colours to default values
-21	Disable the VDU driver
-22	Change the screen mode
-23	Various commands
-24	Define the graphics window
-25	Issue a graphics command
-26	Restore default text and graphic windows
-27	Do nothing
-28	Define the text window
-29	Define the graphics origin
-30	Send cursor to top left-hand corner of window
-31	Send cursor to given position in window
+0       Does nothing
+1       Send next character to the printer
+2       Enable sending of characters to the printer
+3       Disable sending sending of character to the printer
+4       Display text at the text cursor position
+5       Display text at the graphics cursor position
+6       Enable the VDU drivers
+7       Sound the console bell
+8       Move the cursor back one character
+9       Move the cursor forwards one character
+10      Move the cursor down one line
+11      Move the cursor up one line
+12      Clear the text screen
+13      Move the cursor to the start of the line
+14      Enable page mode
+15      Disable page mode
+16      Clear the graphics window
+17      Change the current text colou
+18      Change the current graphics colour
+19      Map logical colour to physical colour
+20      Reset logical colours to default values
+21      Disable the VDU driver
+22      Change the screen mode
+23      Various commands
+24      Define the graphics window
+25      Issue a graphics command
+26      Restore default text and graphic windows
+27      Do nothing
+28      Define the text window
+29      Define the graphics origin
+30      Send cursor to top left-hand corner of window
+31      Send cursor to given position in window
 
 Brandy's VDU driver does not support all of these on all target
 platforms. The following table says what works where. The column
@@ -4504,40 +4504,40 @@ program. The column 'Graphics' gives the same information for
 versions that support graphics (including the text-mode build with
 Tektronix support enabled).
 
-	Code	Text		Graphics
-	----	----		--------
-	0	yes		yes
-	1	yes*		yes*
-	2	yes*		yes*
-	3	yes*		yes*
-	4	ignored		yes
-	5	no		yes
-	6	ignored		yes
-	7	yes		yes
-	8	yes		yes
-	9	yes		yes
-	10	yes		yes
-	11	yes		yes
-	12	yes		yes
-	13	yes		yes
-	14	ignored		yes
-	15	ignored		yes
-	16	no		yes	
-	17	yes		yes
-	18	no		yes
-	19	yes		yes
-	20	yes		yes
-	21	ignored		yes
-	22	yes		yes
-	23	yes		yes
-	24	no		yes
-	25	no		yes
-	26	yes		yes
-	27	yes		yes
-	28	yes		yes
-	29	no		yes
-	30	yes		yes	
-	31	yes		yes
+        Code    Text            Graphics
+        ----    ----            --------
+        0       yes             yes
+        1       yes*            yes*
+        2       yes*            yes*
+        3       yes*            yes*
+        4       ignored         yes
+        5       no              yes
+        6       ignored         yes
+        7       yes             yes
+        8       yes             yes
+        9       yes             yes
+        10      yes             yes
+        11      yes             yes
+        12      yes             yes
+        13      yes             yes
+        14      ignored         yes
+        15      ignored         yes
+        16      no              yes     
+        17      yes             yes
+        18      no              yes
+        19      yes             yes
+        20      yes             yes
+        21      ignored         yes
+        22      yes             yes
+        23      yes             yes
+        24      no              yes
+        25      no              yes
+        26      yes             yes
+        27      yes             yes
+        28      yes             yes
+        29      no              yes
+        30      yes             yes     
+        31      yes             yes
 * VDU codes 1-3 are only implemented on UNIX/Linux hosts with
 CUPS enabled, and are ignored on other non-RISC OS platforms.
 On RISC OS, VDU is simply passed through to the OS and Matrix
@@ -4678,8 +4678,8 @@ VDU 18
 Change the current graphics colour. This is followed by two
 bytes of data:
 
-Byte	1	Plot action
-	2	Colour number
+Byte    1       Plot action
+        2       Colour number
 
 The 'plot action' controls how graphics are plotted on the
 screen. Currently the only value supported here is zero,
@@ -4700,11 +4700,11 @@ Map logical colour to physical colour.
 
 This requires five bytes of data after the command as follows:
 
-Byte	1	Logical colour number
-	2	Physical colour number
-	3	Red component
-	4	Green component
-	5	Blue component
+Byte    1       Logical colour number
+        2       Physical colour number
+        3       Red component
+        4       Green component
+        5       Blue component
 
 The logical colour number is reduced modulo the number of colours
 available in the current screen mode in 2, 4 and 16 colour modes.
@@ -4743,8 +4743,8 @@ operation of the VDU drivers.
 
 VDU 23 requires nine bytes of data. The format is:
 
-Byte	1	Command or character code
-	2 to 9	Command or character data
+Byte    1       Command or character code
+        2 to 9  Command or character data
 
 If the first byte, the command byte, is in the range 32 to 255 VDU
 23 is being used to define the layout of the character with that
@@ -4755,13 +4755,13 @@ supplied but the command might ignore them.
 
 Some of the VDU 23 commands are supported:
 
-	23,0	Control some cursor effects.
-	23,1	Hide or show the text cursor.
-	23,7	Scroll rectangle on screen
-	23,16	Define cursor movement
-	23,17	Set the 'tint' value in 256 colour screen modes.
-	23,18	Control soft Teletext implementation.
-	23,22	BB4W/BBCSDL custom screen mode
+        23,0    Control some cursor effects.
+        23,1    Hide or show the text cursor.
+        23,7    Scroll rectangle on screen
+        23,16   Define cursor movement
+        23,17   Set the 'tint' value in 256 colour screen modes.
+        23,18   Control soft Teletext implementation.
+        23,22   BB4W/BBCSDL custom screen mode
 
 23,0
 ----
@@ -4772,8 +4772,8 @@ This is only minimally implemented, to support cursor control
 ----
 The two values defined are:
 
-	23,1,0	This removes the text cursor
-	23,1,1	This displays the text cursor
+        23,1,0  This removes the text cursor
+        23,1,1  This displays the text cursor
 
 23,6
 ----
@@ -4789,23 +4789,23 @@ VDU 23,7,<extent>,<direction>,<movement>,0,0,0,0,0
 
 where:
 <extent> says what to scroll:
-	0:	Scroll the current text window
-	1:	Scroll the entire screen
+        0:      Scroll the current text window
+        1:      Scroll the entire screen
 
 <direction>:
-	0:	Scroll right
-	1:	Scroll left
-	2:	Scroll down
-	3:	Scroll up
-	4:	Scroll in positive X direction
-	5:	Scroll in negative X direction
-	6:	Scroll in positive Y direction
-	7:	Scroll in negative Y direction
+        0:      Scroll right
+        1:      Scroll left
+        2:      Scroll down
+        3:      Scroll up
+        4:      Scroll in positive X direction
+        5:      Scroll in negative X direction
+        6:      Scroll in positive Y direction
+        7:      Scroll in negative Y direction
 
 <movement>:
-	0:	Scroll by one character cell
-	1:	Scroll by one character cell vertically, or one byte
-		horizontally (NOT SUPPORTED), option ignored.
+        0:      Scroll by one character cell
+        1:      Scroll by one character cell vertically, or one byte
+                horizontally (NOT SUPPORTED), option ignored.
 
 23,16
 -----
@@ -4815,32 +4815,32 @@ VDU 23,16,x,y,0,0,0,0,0,0
 This allows the direction of the cursor movement after a character is printed
 to be specified. The new direction is specified with (old value AND y) EOR x,
 and the new status is interpreted as:
-b7	0 Normal value, 1 undefined.
-b6	VDU5 mode, 0 has the text wrap at the edge of the screen, 1 has no wrap.
-b5	0 Cursor moved in positive X direction after a character is printed.
-	1 Cursor does not move after a character is printed.
-b4	0 Cursor movement in the postive Y direction past the bottom of the text
-	  window causes the window to scroll in VDU 4 mode.
-	1 Cursor movement in the postive Y direction past the bottom of the text
-	  window always causes the text cursor to be moved to the opposite edge
-	  of the window.
+b7      0 Normal value, 1 undefined.
+b6      VDU5 mode, 0 has the text wrap at the edge of the screen, 1 has no wrap.
+b5      0 Cursor moved in positive X direction after a character is printed.
+        1 Cursor does not move after a character is printed.
+b4      0 Cursor movement in the postive Y direction past the bottom of the text
+          window causes the window to scroll in VDU 4 mode.
+        1 Cursor movement in the postive Y direction past the bottom of the text
+          window always causes the text cursor to be moved to the opposite edge
+          of the window.
 b3,2,1  define the cursor direction as follows:
-0 0 0	X direction is right, Y direction is down
-0 0 1	X direction is left, Y direction is down
-0 1 0	X direction is right, Y direction is up
-0 1 1	X direction is left, Y direction is up
+0 0 0   X direction is right, Y direction is down
+0 0 1   X direction is left, Y direction is down
+0 1 0   X direction is right, Y direction is up
+0 1 1   X direction is left, Y direction is up
 Options with b3 = 1 are not supported, but are listed below what is intended:
-1 0 0	X direction is down, Y direction is right
-1 0 1	X direction is down, Y direction is left
-1 1 0	X direction is up, Y direction is right
-1 1 1	X direction is up, Y direction is left
+1 0 0   X direction is down, Y direction is right
+1 0 1   X direction is down, Y direction is left
+1 1 0   X direction is up, Y direction is right
+1 1 1   X direction is up, Y direction is left
 
-b0	0 Disables scroll protection, the text cursor moving off the positive
-	  edge of the window will always move directly to the next line,
-	  scrolling the window if necessary. (BBC Master/Arc *configure scroll)
-	1 Enables scroll protection, the text cursor moving off the positive
-	  edge of the window waits at the dge of the window until the movement
-	  is needed. (BBC Master/Arc *configure noscroll)
+b0      0 Disables scroll protection, the text cursor moving off the positive
+          edge of the window will always move directly to the next line,
+          scrolling the window if necessary. (BBC Master/Arc *configure scroll)
+        1 Enables scroll protection, the text cursor moving off the positive
+          edge of the window waits at the dge of the window until the movement
+          is needed. (BBC Master/Arc *configure noscroll)
 
 23,17
 -----
@@ -4851,11 +4851,11 @@ VDU 23,17,<option>,<tint>,0,0,0,0,0,0
 where:
 
 <option> says what to set:
-	0	Set foreground text tint value
-	1	Set background text tint value
-	2	Set foreground graphics tint value
-	3	Set background graphics tint value
-	5	Swap foreground and background text colours
+        0       Set foreground text tint value
+        1       Set background text tint value
+        2       Set foreground graphics tint value
+        3       Set background graphics tint value
+        5       Swap foreground and background text colours
 
 <tint> sets the new tint value. Only the top two bits are significant,
 giving values of 0, 64, 128 and 192.
@@ -4882,10 +4882,10 @@ Define the graphics window.
 This requires eight bytes of data after the command as
 follows:
 
-Bytes 1 and 2	x coordinate of left-hand side of window.
-Bytes 3 and 4	y coordinate of bottom of window.
-Bytes 5 and 6	x coordinate of right-hand side of window.
-Bytes 7 and 8	y coordinate of top of window.
+Bytes 1 and 2   x coordinate of left-hand side of window.
+Bytes 3 and 4   y coordinate of bottom of window.
+Bytes 5 and 6   x coordinate of right-hand side of window.
+Bytes 7 and 8   y coordinate of top of window.
 
 Each pair of bytes is treated as a two byte signed integer with
 the least significant byte sent first. The coordinates are given
@@ -4897,11 +4897,11 @@ Issue a graphics command. Any graphics operation such as drawing a
 line or plotting a circle goes can be carried out using VDU 25.
 The code is followed by five parameter bytes as follows:
 
-Byte	1	Graphics PLOT code
-	2	Low byte of first parameter
-	3	High byte of first parameter
-	4	Low byte of second parameter
-	5	High byte of second parameter
+Byte    1       Graphics PLOT code
+        2       Low byte of first parameter
+        3       High byte of first parameter
+        4       Low byte of second parameter
+        5       High byte of second parameter
 
 See the section 'PLOT Codes' below for details of the graphics
 commands allowed.
@@ -4921,10 +4921,10 @@ Define the text window.
 
 This command requires four bytes of data as follows:
 
-Byte 	1	column number of left-hand side of window.
-	2	Row number of bottom of window.
-	3	Column number of right-hand side of window.
-	4	Row number of top of window.
+Byte    1       column number of left-hand side of window.
+        2       Row number of bottom of window.
+        3       Column number of right-hand side of window.
+        4       Row number of top of window.
 
 If any of the coordinates are off the screen the command is
 ignored.
@@ -4935,8 +4935,8 @@ Define the graphics origin.
 This requires four bytes of data after the command as
 follows:
 
-Bytes 1 and 2	x coordinate of graphics origin.
-Bytes 3 and 4	y coordinate of graphics origin.
+Bytes 1 and 2   x coordinate of graphics origin.
+Bytes 3 and 4   y coordinate of graphics origin.
 
 The pair of bytes is treated as a two byte signed integer with the
 low-order byte send first. The coordinates are absolute, that is,
@@ -4952,8 +4952,8 @@ Send cursor to given position in window.
 
 This requires two bytes of data after the command:
 
-Byte	1	Column number
-	2	Row number
+Byte    1       Column number
+        2       Row number
 
 The text cursor (or the graphics cursor if text is being plotted
 at the graphics cursor) is sent to the position corresponding to
@@ -4975,45 +4975,45 @@ given by (plot code MOD 8). It is easier to understand plot codes
 if they are written in binary. They can be expressed in this way
 as:
 
-	xxxxx y zz
+        xxxxx y zz
 
 where 'xxxxx' is the graphics operation, 'y' says how to treat the
 coordinates and 'zz' how to handle the colours. 'y' and 'zz' are
 defined as follows:
 
 'y' values:
-	0	Treat coordinate as relative
-	1	Treat coordinate as absolute
+        0       Treat coordinate as relative
+        1       Treat coordinate as absolute
 
 'zz' values:
-	0	Only move the graphics cursor.
-	1	Plot graphics using graphics foreground colour.
-	2	Plot graphics using logical inverse of colour at
-		each point.
-	3	Plot graphics using graphics background colour.	
+        0       Only move the graphics cursor.
+        1       Plot graphics using graphics foreground colour.
+        2       Plot graphics using logical inverse of colour at
+                each point.
+        3       Plot graphics using graphics background colour. 
 
 Brandy's VDU driver does not support the full range of PLOT codes. The
 ones implemented are:
 
-	  0-  7	Draw a solid line
-	  8- 15	Draw a solid line excluding the final point
-	 16- 23	Draw a dotted line
-	 24- 31	Draw a dotted line excluding the final point
-	 32- 39	Draw a solid line excluding the start point
-	 40- 47	Draw a solid line excluding the start and final points
-	 48- 55	Draw a dotted line excluding the start point
-	 56- 63	Draw a dotted line excluding the start and final points
-	 64- 71	Plot a single point
-	 80- 87	Draw a filled triangle
-	 96-103 Draw a filled rectangle
-	112-119	Draw a filled parallelogram
-	128-135	Flood fill background
-	144-151 Plot a circle outline
-	152-159 Draw a filled circle
-	160-167 Draw a circular arc
-	184-191 Move or copy a rectangle
-	192-199	Draw an ellipse outline
-	200-207 Plot a filled ellipse
+          0-  7 Draw a solid line
+          8- 15 Draw a solid line excluding the final point
+         16- 23 Draw a dotted line
+         24- 31 Draw a dotted line excluding the final point
+         32- 39 Draw a solid line excluding the start point
+         40- 47 Draw a solid line excluding the start and final points
+         48- 55 Draw a dotted line excluding the start point
+         56- 63 Draw a dotted line excluding the start and final points
+         64- 71 Plot a single point
+         80- 87 Draw a filled triangle
+         96-103 Draw a filled rectangle
+        112-119 Draw a filled parallelogram
+        128-135 Flood fill background
+        144-151 Plot a circle outline
+        152-159 Draw a filled circle
+        160-167 Draw a circular arc
+        184-191 Move or copy a rectangle
+        192-199 Draw an ellipse outline
+        200-207 Plot a filled ellipse
 
 Typical plot codes used are 4 (move graphics cursor), 5 (draw a
 line) and 69 (plot a point).
@@ -5025,37 +5025,37 @@ current screen mode being used, for example, the width of the
 screen in characters or in pixels. It is used as in the following
 example:
 
-	width% = VDU 1
-	PRINT"Screen width in characters is "; width%
+        width% = VDU 1
+        PRINT"Screen width in characters is "; width%
 
 The allowed values and what they return are as follows:
 
-  0  ModeFlags		0 if mode is capable of graphics
-			1 if mode is text only.
-  1  ScrRCol 		Width of screen in characters - 1
-  2  ScrBRow		Height of screen in characters - 1
-  3  NColour 		Number of colours allowed - 1
- 11  XWindLimit 	Width of screen in pixels - 1
- 12  YWindLimit 	Height of screen in pixels - 1
-128  GWLCol 		Graphics window left limit in pixels
-129  GWBRow 		Graphics window bottom limit in pixels
-130  GWRCol 		Graphics window right limit in pixels
-131  GWTRow 		Graphics window top limit in pixels
-132  TWLCol		Text window left limit in characters
-133  TWBRow 		Text window bottom limit in characters
-134  TWRCol 		Text window right limit in characters
-135  TWTRow		Text window top limit in characters
-136  OrgX 		Graphics X origin in RISC OS graphics units
-137  OrgY 		Graphics Y origin in RISC OS graphics units
-153  GFCOL		Graphics foreground colour
-154  GBCOL		Graphics background colour
-155  TForeCol		Text foreground colour
-156  TBackCol		Text background colour
-157  GFTint		Graphics foreground tint value
-158  GBTint		Graphics background tint value
-159  TFTint		Text foreground tint value
-160  TBTint		Text background tint value
-161  MaxMode		Highest screen mode number supported
+  0  ModeFlags          0 if mode is capable of graphics
+                        1 if mode is text only.
+  1  ScrRCol            Width of screen in characters - 1
+  2  ScrBRow            Height of screen in characters - 1
+  3  NColour            Number of colours allowed - 1
+ 11  XWindLimit         Width of screen in pixels - 1
+ 12  YWindLimit         Height of screen in pixels - 1
+128  GWLCol             Graphics window left limit in pixels
+129  GWBRow             Graphics window bottom limit in pixels
+130  GWRCol             Graphics window right limit in pixels
+131  GWTRow             Graphics window top limit in pixels
+132  TWLCol             Text window left limit in characters
+133  TWBRow             Text window bottom limit in characters
+134  TWRCol             Text window right limit in characters
+135  TWTRow             Text window top limit in characters
+136  OrgX               Graphics X origin in RISC OS graphics units
+137  OrgY               Graphics Y origin in RISC OS graphics units
+153  GFCOL              Graphics foreground colour
+154  GBCOL              Graphics background colour
+155  TForeCol           Text foreground colour
+156  TBackCol           Text background colour
+157  GFTint             Graphics foreground tint value
+158  GBTint             Graphics background tint value
+159  TFTint             Text foreground tint value
+160  TBTint             Text background tint value
+161  MaxMode            Highest screen mode number supported
 
 The names in the second columns are what the mode variables are
 called in RISC OS documentation.
@@ -5082,70 +5082,70 @@ This is a list of all of the Basic keywords and their minimum
 abbreviations. The '.' after each abbreviated name is considered
 to be part of the name.
 
-Keyword		Abbreviation	Keyword		Abbreviation
+Keyword         Abbreviation    Keyword         Abbreviation
 
-AND		A.		BEATS		BE.
-BPUT		BP.		CALL		CA.
-CASE		CAS.		CHAIN		CH.
-CIRCLE		CI.		CLG		CLG
-CLEAR		CL.		CLOSE		CLO.
-CLS		CLS		COLOUR		C.
-DATA		D.		DEF		DEF
-DIM		DIM		DIV		DI.
-DRAW		DR.		ELLIPSE		ELL.
-ELSE		EL.		END		END
-ENDCASE		ENDC.		ENDIF		ENDI.
-ENDPROC		E.		ENDWHILE	ENDW.
-ENVELOPE	ENV.		EOR		EOR
-ERROR		ERR.		FALSE		FA.
-FILL		FI.		FN		FN
-FOR		F.		GCOL		GC.
-GOSUB		GOS.		GOTO		G.
-HIMEM		H.		IF		IF
-INPUT		I.		LET		LET
-LIBRARY		LIB.		LINE		LIN.
-LOCAL		LOC.		MOD		MOD
-MODE		MO.		MOUSE		MOU.
-MOVE		MOV.		NEXT		N.
-NOT		NOT		OF		OF
-OFF		OFF		ON		ON
-OR		OR		ORIGIN		OR.
-OSCLI		OS.		OTHERWISE	OT.
-OVERLAY		OV.		PLOT		PL.
-POINT		POINT		PRINT		P.
-PROC		PROC		QUIT		Q.
-READ		REA.		RECTANGLE	REC.
-REM		REM		REPEAT		REP.
-REPORT		REPO.		RESTORE		RES.
-RETURN		R.		RUN		RU.
-SOUND		SO.		STEP		S.
-STEREO		STER.		STOP		STO.
-SWAP		SW.		SYS		SY.
-TEMPO		TE.		THEN		TH.
-TINT		TIN.		TO		TO
-TRACE		TR.		TRUE		TRU.
-UNTIL		U.		VDU		V.
-VOICE		VOICE		VOICES		VO.
-WAIT		WA.		WHEN		WHE.
-WHILE		W.		WIDTH		WI.
+AND             A.              BEATS           BE.
+BPUT            BP.             CALL            CA.
+CASE            CAS.            CHAIN           CH.
+CIRCLE          CI.             CLG             CLG
+CLEAR           CL.             CLOSE           CLO.
+CLS             CLS             COLOUR          C.
+DATA            D.              DEF             DEF
+DIM             DIM             DIV             DI.
+DRAW            DR.             ELLIPSE         ELL.
+ELSE            EL.             END             END
+ENDCASE         ENDC.           ENDIF           ENDI.
+ENDPROC         E.              ENDWHILE        ENDW.
+ENVELOPE        ENV.            EOR             EOR
+ERROR           ERR.            FALSE           FA.
+FILL            FI.             FN              FN
+FOR             F.              GCOL            GC.
+GOSUB           GOS.            GOTO            G.
+HIMEM           H.              IF              IF
+INPUT           I.              LET             LET
+LIBRARY         LIB.            LINE            LIN.
+LOCAL           LOC.            MOD             MOD
+MODE            MO.             MOUSE           MOU.
+MOVE            MOV.            NEXT            N.
+NOT             NOT             OF              OF
+OFF             OFF             ON              ON
+OR              OR              ORIGIN          OR.
+OSCLI           OS.             OTHERWISE       OT.
+OVERLAY         OV.             PLOT            PL.
+POINT           POINT           PRINT           P.
+PROC            PROC            QUIT            Q.
+READ            REA.            RECTANGLE       REC.
+REM             REM             REPEAT          REP.
+REPORT          REPO.           RESTORE         RES.
+RETURN          R.              RUN             RU.
+SOUND           SO.             STEP            S.
+STEREO          STER.           STOP            STO.
+SWAP            SW.             SYS             SY.
+TEMPO           TE.             THEN            TH.
+TINT            TIN.            TO              TO
+TRACE           TR.             TRUE            TRU.
+UNTIL           U.              VDU             V.
+VOICE           VOICE           VOICES          VO.
+WAIT            WA.             WHEN            WHE.
+WHILE           W.              WIDTH           WI.
 
 Basic Commands
 --------------
 Following is a list of all of the Basic commands and their
 minimum abbreviations.
 
-APPEND		AP.		AUTO		AU.
-CRUNCH		CR.		DELETE		DEL.
-EDIT		ED.		EDITO		EDITO
-HELP		HE.		INSTALL		INSTAL.
-LIST		L.		LISTIF		LISTIF
-LISTO		LISTO		LOAD		LO.
-LVAR		LVA.		NEW		NEW
-OLD		O.		RENUMBER	REN.
-SAVE		SA.		SAVEO		SAVEO
-TEXTLOAD	TEX.		TEXTSAVE	TEXTS.
-TEXTSAVEO	TEXTSAVEO	TWIN		TWIN
-TWINO		TWINO
+APPEND          AP.             AUTO            AU.
+CRUNCH          CR.             DELETE          DEL.
+EDIT            ED.             EDITO           EDITO
+HELP            HE.             INSTALL         INSTAL.
+LIST            L.              LISTIF          LISTIF
+LISTO           LISTO           LOAD            LO.
+LVAR            LVA.            NEW             NEW
+OLD             O.              RENUMBER        REN.
+SAVE            SA.             SAVEO           SAVEO
+TEXTLOAD        TEX.            TEXTSAVE        TEXTS.
+TEXTSAVEO       TEXTSAVEO       TWIN            TWIN
+TWINO           TWINO
 
 In addition, although 'RUN' and 'QUIT' are classed as keywords
 they are really commands and be entered in mixed case like
@@ -5157,33 +5157,33 @@ Functions and Pseudo Variables
 Following is a list of all of the Basic functions and pseudo
 variables and their minimum abbreviations.
 
-ABS		AB.		ACS		AC.
-ADVAL		AD.		ARGC		ARGC
-ARGV$		ARGV$		ASC		AS.
-ASN		ASN		ATN		AT.
-BEAT		BEAT		BGET		B.
-CHR$		CHR$		COS		COS
-COUNT		COU.		DEG		DE.
-EOF		EOF		ERL		ERL
-ERR		ERR		EVAL		EV.
-EXP		EXP		EXT		EXT
-FILEPATH$	FILE.		GET		GET
-GET$		GE.		INKEY		INKEY
-INKEY$		INK.		INSTR(		INS.
-INT		INT		LEFT$(		LE.
-LEN		LEN		LN		LN
-LOG		LOG		LOMEM		LOM.
-MID$(		M.		OPENIN		OP.
-OPENOUT		OPENO.		OPENUP		OPENU.
-PAGE		PA.		PI		PI
-POS		POS		PTR		PTR
-RAD		RA.		RIGHT$(		RI.
-RND		RN.		SGN		SG.
-SIN		SI.		SQR		SQR
-STR$		STR.		STRING$(	STRI.
-SUM		SU.		SUMLEN		SUMLEN
-TAN		T.		TIME		TI.
-TIME$		TIME$		TOP		TOP
-USR		US.		VAL		VA.
-VERIFY(		VE.		VPOS		VP.
-XLATE$		XL.
+ABS             AB.             ACS             AC.
+ADVAL           AD.             ARGC            ARGC
+ARGV$           ARGV$           ASC             AS.
+ASN             ASN             ATN             AT.
+BEAT            BEAT            BGET            B.
+CHR$            CHR$            COS             COS
+COUNT           COU.            DEG             DE.
+EOF             EOF             ERL             ERL
+ERR             ERR             EVAL            EV.
+EXP             EXP             EXT             EXT
+FILEPATH$       FILE.           GET             GET
+GET$            GE.             INKEY           INKEY
+INKEY$          INK.            INSTR(          INS.
+INT             INT             LEFT$(          LE.
+LEN             LEN             LN              LN
+LOG             LOG             LOMEM           LOM.
+MID$(           M.              OPENIN          OP.
+OPENOUT         OPENO.          OPENUP          OPENU.
+PAGE            PA.             PI              PI
+POS             POS             PTR             PTR
+RAD             RA.             RIGHT$(         RI.
+RND             RN.             SGN             SG.
+SIN             SI.             SQR             SQR
+STR$            STR.            STRING$(        STRI.
+SUM             SU.             SUMLEN          SUMLEN
+TAN             T.              TIME            TI.
+TIME$           TIME$           TOP             TOP
+USR             US.             VAL             VA.
+VERIFY(         VE.             VPOS            VP.
+XLATE$          XL.
