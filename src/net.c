@@ -306,13 +306,12 @@ int brandynet_connect(char *dest, char type, int reporterrors) {
   }
 
 /* Set the timeout of the socket if we're not reporting errors */
-  timeout.tv_sec = 3;
-  timeout.tv_usec = 0;
-
   for(rp = addrdata; rp != NULL; rp = rp->ai_next) {
     mysocket = socket(rp->ai_family, SOCK_STREAM, 0);
     if (mysocket == -1) continue;
 #ifndef TARGET_MINGW
+    timeout.tv_sec = 3;
+    timeout.tv_usec = 0;
     if (!reporterrors) setsockopt(mysocket, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 #endif
     sockres=connect(mysocket, rp->ai_addr, rp->ai_addrlen);
