@@ -1635,7 +1635,7 @@ static void cmd_refresh(char *command) {
     } else if (strcasecmp(command, "on") == 0) {
       flag=1;
     } else if (strcasecmp(command, "off") == 0) {
-      flag=0;
+      flag=2;
     }
     if (flag == 3) {
       emulate_printf("Syntax: Refresh [<On|Off|OnError>]\r\n"); // This should be an error

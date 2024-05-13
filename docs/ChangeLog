@@ -16,12 +16,13 @@ made from git in the master branch, and from tarballs with no git information.
   %APPDATA%\brandyrc or <Brandy$Dir>.brandyrc depending on platform.
   See docs/Config.txt for full details.
 - Graphics: Fixed some breakage in flood fill.
+- MOS: *Refresh Off is now the same as *Refresh OnError.
 - BASIC: IF something THEN REM is no longer handled as the start of a
   multi-line IF statement.
 - BASIC: Unary minus (and plus) on arrays are now implemented.
 - BASIC: Slight adjustment to TRACE VDU - 'TRACE VDU ON' now also works,
   and is functionally identical to 'TRACE VDU'.
-- BASIC: EXT#handle%,length%% is now supported.
+- BASIC: EXT#handle%=length%% is now supported.
 - BASIC: PTR#handle% and EXT#handle% now accept and can return 64-bit values
 - BASIC: PRINT was garbling numeric output when left-justified on some
   platforms (notably RISC OS).

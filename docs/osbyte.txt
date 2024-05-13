@@ -39,9 +39,10 @@ A=135:  Return screen mode and character under cursor or 0 if unreadable.
 A=160:  Read VDU variable (equivalent to VDU(X%))
 A=163:  Application Support - X < 128 are local to Brandy
         X=1: Get or set refresh state (as per *REFRESH)
-                Y=0: Equivalent to *REFRESH OFF
+                Y=0: Equivalent to the old behaviour of *REFRESH OFF
+                     (refresh is not re-enabled on an error condition)
                 Y=1: Equivalent to *REFRESH ON
-                Y=2: Equivalent to *REFRESH ONERROR
+                Y=2: Equivalent to *REFRESH OFF (and *REFRESH ONERROR)
                 Y=255: Query the state, will return 0, 1 or 2 in Y register.
         X=2: Get or set various states [Brandy only]
                 If NO bits set: return state in Y register.
@@ -50,9 +51,9 @@ A=163:  Application Support - X < 128 are local to Brandy
                     to 0.
                 Bits 0 and 1 control or contain the *REFRESH state:
                   00: No operation.
-                  01: Set with *REFRESH OFF
+                  01: Set with *FX163,1,0
                   10: Set with *REFRESH ON
-                  11: Set with *REFRESH ONERROR
+                  11: Set with *REFRESH OFF and *REFRESH ONERROR
                   Returned values: 01, 10 or 11.
                 Bits 2 and 3 control or contain the Full Screen state:
                   00: No operation.
