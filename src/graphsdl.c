@@ -4206,7 +4206,7 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 ** Draw a horizontal line
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action) {
-  if ((x1 < 0 && x2 < 0) || (x1 >= ds.vscrwidth && x2 >= ds.vscrwidth )) return;
+  if ((x1 < 0 || x1 >= ds.vscrwidth) && (x2 < 0 || x2 >= ds.vscrwidth )) return;
   if (x1 > x2) {
     int32 tt = x1;
     x1 = x2;
