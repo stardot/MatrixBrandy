@@ -3,7 +3,7 @@ ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 
 NOTE FOR DISTRIBUTIONS:
 Version 1.23.1 required the -DBRANDY_RELEASE flag to be set for a release
-build. As of version 1.23.2 this flag is automatically suppled for builds
+build. As of version 1.23.2 this flag is automatically applied for builds
 made from git in the master branch, and from tarballs with no git information.
 
 * 1.23.2 - 
