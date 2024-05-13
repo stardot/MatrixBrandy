@@ -1800,7 +1800,7 @@ static void cmd_help(char *command)
       emulate_printf("  This sets the SDL refresh mode. Default is on.\r\n");
       emulate_printf("  On:      Normal mode, display is updated after any change.\r\n");
       emulate_printf("  OnError: Updates are suspended, and re-enabled on an error condition.\r\n");
-      emulate_printf("  Off:     Equivalent to OnError.\r\n");
+      emulate_printf("  Off:     Equivalent to OnError. Use *FX163,1,0 to not re-enable on error.\r\n");
       emulate_printf("  If no parameter is given, force an immediate display refresh.\r\n");
       break;
     case CMD_SCREENSAVE:
