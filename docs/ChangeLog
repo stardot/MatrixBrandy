@@ -13,9 +13,12 @@ made from git in the master branch, and from tarballs with no git information.
 - System: Added a new version check for release builds. Use option "-nocheck"
   to skip this should it cause slow starts.
 - System: Added support for a configuration file, in $HOME/.brandyrc,
+= System: Tune stack and recursion depth to allow for a flood fill of crosshatch
+  in a 640x512 screen mode as the minimum stack size.
   %APPDATA%\brandyrc or <Brandy$Dir>.brandyrc depending on platform.
   See docs/Config.txt for full details.
-- Graphics: Fixed some breakage in flood fill.
+- Graphics: Fixed some breakage in flood fill. Also, allow it to terminate
+  early instead of crashing the interpreter if stack is exhausted.
 - MOS: *Refresh Off is now the same as *Refresh OnError.
 - BASIC: IF something THEN REM is no longer handled as the start of a
   multi-line IF statement.
