@@ -174,6 +174,7 @@ static void show_meminfo() {
   emulate_printf("  Workspace is at &" FMT_SZX ", size is &" FMT_SZX "\r\n  PAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",
   basicvars.workspace, basicvars.worksize, basicvars.page, basicvars.himem);
   emulate_printf("  stacktop = &" FMT_SZX ", stacklimit = &" FMT_SZX "\r\n", basicvars.stacktop.bytesp, basicvars.stacklimit.bytesp);
+  emulate_printf("  Internal recursion limit = %d, current = %d\r\n", basicvars.maxrecdepth, basicvars.recdepth);
 #ifdef USE_SDL
   emulate_printf("  Video frame buffer is at &" FMT_SZX ", size &%X\r\n", matrixflags.modescreen_ptr, matrixflags.modescreen_sz);
   emulate_printf("  MODE 7 Teletext frame buffer is at &" FMT_SZX "\r\n", MODE7FB);
