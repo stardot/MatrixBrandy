@@ -75,9 +75,12 @@ extern void string_zeroterm(char *);
 extern char *translatefname(char *);
 
 #ifdef USE_SDL
-extern Uint8 mode7frame[25][40];
+extern Uint8 mode7frame[26][40];
 #endif
 #define ISIDSTART(ch) (isalpha(ch) || ch=='_' || ch=='`')
 #define ISIDCHAR(ch) (isalnum(ch) || ch=='_' || ch=='`')
+
+#define MAX(a,b) ((a > b) ? a : b)
+#define MIN(a,b) ((a < b) ? a : b)
 
 #endif

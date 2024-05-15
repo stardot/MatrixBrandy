@@ -48,6 +48,7 @@
 #include "mos.h"
 #include "keyboard.h"
 #include "graphsdl.h"
+#include "miscprocs.h"
 #include "textfonts.h"
 #include "iostate.h"
 
@@ -258,9 +259,6 @@ static void set_graphics_colour(boolean background, int colnum);
 static void toggle_cursor(void);
 static void vdu_cleartext(void);
 static void mode7renderline(int32 ypos, int32 fast);
-
-#define max(a,b) ((a > b) ? a : b)
-#define min(a,b) ((a < b) ? a : b)
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
@@ -2996,24 +2994,32 @@ static void plot_pixel(SDL_Surface *surface, int32 x, int32 y, Uint32 colour, Ui
 **
 ** This code is slow but does the job, and is HIGHLY recursive (and memory hungry).
 */
-static void flood_fill_inner(int32 x, int y, int colour, Uint32 action) {
+// Attempt to reduce stack usage..
+int32 ffcolour, ffaction;
+
+static void flood_fill_inner(uint32 coord) {
+  int32 x=(coord & 0xFFFF);
+  int32 y=(coord >> 16);
+  if(basicvars.recdepth == basicvars.maxrecdepth) return;
+  basicvars.recdepth++;
   if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) != ds.gb_colour) return;
-  plot_pixel(screenbank[ds.writebank], x, y, colour, action); /* Plot this pixel */
+  plot_pixel(screenbank[ds.writebank], x, y, ffcolour, ffaction); /* Plot this pixel */
   if (x >= 1) /* Left */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) == ds.gb_colour)
-      flood_fill_inner(x-1, y, colour, action);
+      flood_fill_inner(x-1+(y<<16));
   if (x < (ds.screenwidth-1)) /* Right */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + (x+1) + y*ds.vscrwidth) == ds.gb_colour)
-      flood_fill_inner(x+1, y, colour, action);
+      flood_fill_inner(x+1+(y<<16));
   if (y >= 1) /* Up */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y-1)*ds.vscrwidth) == ds.gb_colour)
-      flood_fill_inner(x, y-1, colour, action);
+      flood_fill_inner(x+((y-1)<<16));
   if (y < (ds.screenheight-1)) /* Down */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y+1)*ds.vscrwidth) == ds.gb_colour)
-      flood_fill_inner(x, y+1, colour, action);
+      flood_fill_inner(x+((y+1)<<16));
+  basicvars.recdepth--;
 }
 
-static void flood_fill(int32 x, int y, int colour, Uint32 action) {
+static void flood_fill(int32 x, int32 y, int colour, Uint32 action) {
   int32 pwinleft, pwinright, pwintop, pwinbottom;
   if (colour == ds.gb_colour) return;
   pwinleft = GXTOPX(ds.gwinleft);               /* Calculate extent of graphics window in pixels */
@@ -3021,8 +3027,10 @@ static void flood_fill(int32 x, int y, int colour, Uint32 action) {
   pwintop = GYTOPY(ds.gwintop);
   pwinbottom = GYTOPY(ds.gwinbottom);
   if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom) return;
+  ffcolour=colour;
+  ffaction=action;
   if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) == ds.gb_colour)
-    flood_fill_inner(x, y, colour, action);
+    flood_fill_inner(x+(y<<16));
   hide_cursor();
   blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   reveal_cursor();
@@ -4382,10 +4390,10 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
          }
          // Draw the slice as a single horizontal line
          if (y >= 0) {
-            // Left line runs from xl_this rightwards to max(xl_this, max(xl_prev, xl_next) - 1)
-            int xl = max(xl_this, max(xl_prev, xl_next) - 1);
-            // Right line runs from xr_this leftwards to min(xr_this, min(xr_prev, xr_next) + 1)
-            int xr = min(xr_this, min(xr_prev, xr_next) + 1);
+            // Left line runs from xl_this rightwards to MAX(xl_this, MAX(xl_prev, xl_next) - 1)
+            int xl = MAX(xl_this, MAX(xl_prev, xl_next) - 1);
+            // Right line runs from xr_this leftwards to MIN(xr_this, MIN(xr_prev, xr_next) + 1)
+            int xr = MIN(xr_this, MIN(xr_prev, xr_next) + 1);
             draw_h_line(screen, xc + xl_this, xc + xl, yc + y, colour, action);
             draw_h_line(screen, xc + xr_this, xc + xr, yc + y, colour, action);
             if (y > 0) {
@@ -4535,10 +4543,10 @@ static void draw_arc(SDL_Surface *screen, int32 xc, int32 yc, float xradius, flo
       // Initialize the pipeline for the first slice
       // Draw the slice as a single horizontal line
       if (y >= 0) {
-        // Left line runs from xl_this rightwards to max(xl_this, max(xl_prev, xl_next) - 1)
-        int xl = max(xl_this, xl_next - 1);
-        // Right line runs from xr_this leftwards to min(xr_this, min(xr_prev, xr_next) + 1)
-        int xr = min(xr_this, xr_next + 1);
+        // Left line runs from xl_this rightwards to MAX(xl_this, MAX(xl_prev, xl_next) - 1)
+        int xl = MAX(xl_this, xl_next - 1);
+        // Right line runs from xr_this leftwards to MIN(xr_this, MIN(xr_prev, xr_next) + 1)
+        int xr = MIN(xr_this, xr_next + 1);
 
         // should be simple to filter each point now, however there is potentially some extra clipping
         // if we are on the start of the arc (at start_dx,start_dy) or the end of the arc (at end_dx,end_dy).
@@ -4593,10 +4601,10 @@ static void draw_arc(SDL_Surface *screen, int32 xc, int32 yc, float xradius, flo
           x1=xc - xl;
           x2=xc - xl_this;
           if (y==end_dy && end_dx>=0) {// top right clipping of LHS of the hline
-            x1=max(x1,xc + end_dx);
+            x1=MAX(x1,xc + end_dx);
           }
           if (y==start_dy && start_dx>=0) {// top right clipping of RHS of the hline
-            x2=min(x2,xc + start_dx);
+            x2=MIN(x2,xc + start_dx);
           }
           if ((y>=y1r && y<=y2r)||y>=y3r) {
             if (x1<=x2)

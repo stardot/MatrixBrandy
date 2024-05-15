@@ -147,17 +147,17 @@ int main(int argc, char *argv[]) {
     /* If that didn't work, carry on without it. */
     threadattrp = NULL;
   } else {
-    int32 stacksize = basicvars.worksize;
-    if (stacksize < 2*1024*1024) stacksize=2*1024*1024;
+    /* Set interpreter stack to be 8MB <= worksize <= 64M */
+    int32 stacksize = MIN(MAX(basicvars.worksize, 8*1024*1024), 64*1024*1024);
     threadattrp = &threadattrs;
     if (pthread_attr_setstacksize(threadattrp, stacksize)) {
       basicvars.maxrecdepth = 512;
-      fprintf(stderr, "Unable to override stack size\n");
+      fprintf(stderr, "Warning: Unable to set stack size\n");
     } else {
 #ifdef TARGET_MINGW
       basicvars.maxrecdepth = (stacksize / 670);
 #else
-      basicvars.maxrecdepth = (stacksize / 512);
+      basicvars.maxrecdepth = (stacksize / 50);
 #endif
     }
   }

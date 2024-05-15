@@ -1271,7 +1271,11 @@ void emulate_vdu(int32 charvalue) {
     move_curup();
     break;
   case VDU_CLEARTEXT:   /* 12 - Clear text window (formfeed) */
-    vdu_cleartext();
+    if (graphicurs) {
+      vdu_cleargraph();
+    } else {
+      vdu_cleartext();
+    }
     break;
   case VDU_RETURN:      /* 13 - Carriage return */
     vdu_return();
