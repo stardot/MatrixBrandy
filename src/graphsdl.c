@@ -3001,8 +3001,8 @@ static void flood_fill_inner(uint32 coord) {
   int32 x=(coord & 0xFFFF);
   int32 y=(coord >> 16);
   if(basicvars.recdepth == basicvars.maxrecdepth) return;
-  basicvars.recdepth++;
   if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) != ds.gb_colour) return;
+  basicvars.recdepth++;
   plot_pixel(screenbank[ds.writebank], x, y, ffcolour, ffaction); /* Plot this pixel */
   if (x >= 1) /* Left */
     if (*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) == ds.gb_colour)
