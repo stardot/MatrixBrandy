@@ -504,6 +504,11 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         for (a=0; a<inregs[1].i; a++) emulate_vdu(*((byte *)(size_t)inregs[0].i+a));
       }
       break;
+    case SWI_OS_SetColour:
+#ifdef USE_SDL
+      swi_os_setcolour(inregs[0].i, inregs[1].i);
+#endif /* USE_SDL */
+      break;
     case SWI_OS_ScreenMode:
 #ifdef USE_SDL
       outregs[0]=inregs[0].i;

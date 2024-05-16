@@ -5084,6 +5084,30 @@ void osword8C(int64 x) {
   }
 }
 
+void swi_os_setcolour(int32 r0, int32 r1) {
+  /* ECF not supported, so no-op if ECF bit is set. Also, read colour bit is poorly documented. */
+  int c64shuff[]={
+    0,1,16,17,2,3,18,19,4,5,20,21,6,7,22,23,8,9,24,25,10,11,26,27,12,13,28,29,14,15,30,31,
+    32,33,48,49,34,35,50,51,36,37,52,53,38,39,54,55,40,41,56,57,42,43,58,59,44,45,60,61,46,47,62,63};
+  if (((r0 & 0x20) == 0) && ((r0 & 0x80) == 0)) { 
+    int32 action = (r0 & 0x07), colour = 0, tint = 0;
+    if (colourdepth >= 256) {
+      tint = (r1 & 3) << TINTSHIFT;
+      colour = c64shuff[((r1 & 0xFC) >> 2)];
+    } else {
+      colour = (r1 & 0x7F);
+    }
+    if (r0 & 0x10) { /* background bit */
+      colour |= 0x80;
+    }
+    if (r0 & 0x40) { /* Text colour bit */
+      emulate_colourtint(colour, tint);
+    } else {
+      emulate_gcol(action, colour, tint);
+    }
+  }
+}
+
 void sdl_screensave(char *fname) {
   /* Strip quote marks, where appropriate */
   if ((fname[0] == '"') && (fname[strlen(fname)-1] == '"')) {
