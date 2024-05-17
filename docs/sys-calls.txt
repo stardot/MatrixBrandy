@@ -88,6 +88,11 @@ OS_File                 Calls 0, 6, 7, 8, 12, 14, 16, 19, 24 and 255 only.
                         Calls 12, 14, 16 and 255 are identical (for now).
                         Implementation is incomplete.
 
+OS_SetColour            Implemented mostly, apart from calls relating to
+                        ECF (which Matrix Brandy does not support), and
+                        the call to read the colour, as this is undocumented
+                        in RISC OS aside from its existence.
+
 ColourTrans_xxx
 ===============
 ColourTrans_SetGCOL
