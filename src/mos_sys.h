@@ -57,8 +57,11 @@ typedef struct {
 #define SWI_OS_ReadMonotonicTime              0x42
 #define SWI_OS_Plot                           0x45
 #define SWI_OS_WriteN                         0x46
+#define SWI_OS_SetECFOrigin                   0x56
+#define SWI_OS_ReadSysInfo                    0x58
 #define SWI_OS_SetColour                      0x61
 #define SWI_OS_ScreenMode                     0x65
+#define SWI_OS_Reset                          0x6A
 #define SWI_OS_ReadLine32                     0x7D
 
 #define SWI_ColourTrans_SetGCOL               0x40743
@@ -158,8 +161,11 @@ static switable swilist[] = {
   {SWI_OS_ReadMonotonicTime,                  "OS_ReadMonotonicTime"},
   {SWI_OS_Plot,                               "OS_Plot"},
   {SWI_OS_WriteN,                             "OS_WriteN"},
+  {SWI_OS_SetECFOrigin,                       "OS_SetECFOrigin"},
+  {SWI_OS_ReadSysInfo,                        "OS_ReadSysInfo"},
   {SWI_OS_SetColour,                          "OS_SetColour"},
   {SWI_OS_ScreenMode,                         "OS_ScreenMode"},
+  {SWI_OS_Reset,                              "OS_Reset"},
   {SWI_OS_ReadLine32,                         "OS_ReadLine32"},
 
   {SWI_ColourTrans_SetGCOL,                   "ColourTrans_SetGCOL"},

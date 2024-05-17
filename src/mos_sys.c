@@ -504,6 +504,38 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         for (a=0; a<inregs[1].i; a++) emulate_vdu(*((byte *)(size_t)inregs[0].i+a));
       }
       break;
+    case SWI_OS_SetECFOrigin:
+      /* Make this a no-op instead of an error */
+      break;
+    case SWI_OS_ReadSysInfo:
+      switch (inregs[0].i) {
+        case 0:
+          outregs[0]=1920*1080*4;
+          break;
+        case 1:
+          outregs[0]=matrixflags.startupmode;
+          outregs[1]=1;
+          break;
+        case 2:
+          outregs[0]=0xFFFFFF00;
+          break;
+        case 9:
+          *outstring='\0';
+          switch (inregs[1].i) {
+            case 0: case 6:
+              strncpy(outstring,"Matrix Brandy MOS V" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, 80);
+              break;
+            case 2:
+              strncpy(outstring,BRANDY_DATE, 80);
+              break;
+            case 7:
+              strncpy(outstring,"Unknown", 80);
+              break;
+          }
+          outregs[0]=(size_t)outstring;
+          break;
+      }
+      break;
     case SWI_OS_SetColour:
 #ifdef USE_SDL
       swi_os_setcolour(inregs[0].i, inregs[1].i);
@@ -522,6 +554,9 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
         case 10:        screencopy(inregs[1].i, inregs[2].i);break;
       }
 #endif
+      break;
+    case SWI_OS_Reset:
+      exit_interpreter(0);
       break;
     case SWI_ColourTrans_SetGCOL:
       outregs[0]=emulate_gcolrgb(inregs[4].i, (inregs[3].i & 0x80), ((inregs[0].i >> 8) & 0xFF), ((inregs[0].i >> 16) & 0xFF), ((inregs[0].i >> 24) & 0xFF));
