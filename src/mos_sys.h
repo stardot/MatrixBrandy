@@ -131,6 +131,7 @@ typedef struct {
 #define SWI_Brandy_dlcalladdr                 0x140015
 #define SWI_Brandy_Strict                     0x140016
 #define SWI_Brandy_TranslateFNames            0x140017
+#define SWI_Brandy_MemSet                     0x140018
 
 #define SWI_RaspberryPi_GPIOInfo                  0x140100
 #define SWI_RaspberryPi_GetGPIOPortMode           0x140101
@@ -232,6 +233,7 @@ static switable swilist[] = {
   {SWI_Brandy_dlcalladdr,                     "Brandy_dlcalladdr"},
   {SWI_Brandy_Strict,                         "Brandy_Strict"},
   {SWI_Brandy_TranslateFNames,                "Brandy_TranslateFNames"},
+  {SWI_Brandy_MemSet,                         "Brandy_MemSet"},
 
   {SWI_RaspberryPi_GPIOInfo,                  "RaspberryPi_GPIOInfo"},
   {SWI_RaspberryPi_GetGPIOPortMode,           "RaspberryPi_GetGPIOPortMode"},
