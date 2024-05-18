@@ -820,7 +820,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       if (inregs[0].i <= 2) matrixflags.translatefname = inregs[0].i;
       break;
     case SWI_Brandy_MemSet:
-      memset((void *)inregs[0].i, inregs[1].i, inregs[2].i);
+      memset((void *)inregs[0].i, inregs[2].i, inregs[1].i);
       break;
 // Raspberry Pi GPIO stuff below
     case SWI_RaspberryPi_GPIOInfo:

@@ -276,9 +276,9 @@ Brandy_xxx  (SWI numbers start &140000)
                                 Default value: 2
 
 &140018 Brandy_MemSet           Writes a value to a block of memory.
-                                This call fills the first R2 bytes of the
+                                This call fills the first R1 bytes of the
                                 memory area pointed to by R0 with the constant
-                                byte R1.
+                                byte R2.
 
 
 RaspberryPi_xxx (SWI numbers start &140100)
