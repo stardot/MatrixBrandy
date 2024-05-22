@@ -1,6 +1,6 @@
 Summary: A cross-platform BBC BASIC interpreter
 Name: brandy
-Version: 1.23.1
+Version: 1.23.2
 Release: %{extraverdata}.matrix%{?dist}
 License: GPLv2+
 Group: Development/Tools
