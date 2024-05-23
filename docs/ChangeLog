@@ -10,8 +10,8 @@ made from git in the master branch, and from tarballs with no git information.
 - General: Much code clean-up (and some bugs fixed) after static analysis.
 - Build: Autodetect whether it's a release build (master branch, or a tarball
   without any git information) or a development build (anything else).
-- System: Added a new version check for release builds. Use option "-nocheck"
-  to skip this should it cause slow starts.
+- System: Added a new version check. Use option "-nocheck" to skip this
+  should it cause slow starts.
 - System: Added support for a configuration file, in $HOME/.brandyrc,
   %APPDATA%\brandyrc or <Brandy$Dir>.brandyrc depending on platform.
   See docs/Config.txt for full details.
@@ -30,9 +30,9 @@ made from git in the master branch, and from tarballs with no git information.
   and is functionally identical to 'TRACE VDU'.
 - BASIC: EXT#handle%=length%% is now supported.
 - BASIC: PTR#handle% and EXT#handle% now accept and can return 64-bit values
+  for working with large files.
 - BASIC: PRINT was garbling numeric output when left-justified on some
   platforms (notably RISC OS).
-  for working with large files.
 
 * 1.23.1 - 13 April 2024
 - System: Rework the threading model to use pthreads even under SDL, this allows
