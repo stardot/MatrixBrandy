@@ -1984,6 +1984,9 @@ EXIT breaks out of a loop, jumping to the statement immediately
 after the matching NEXT, UNTIL or ENDWHILE as appropriate.
 
 This is an extension based on BB4W, BBCSDL, BBCTTY and BBCZ80 v5.
+Note that if EXIT FOR is used, every FOR should have its own matching
+NEXT, properly nested, and not using multiple control variables on a
+single NEXT.
 
 FALSE
 Syntax: FALSE
