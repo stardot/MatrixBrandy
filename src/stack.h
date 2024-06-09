@@ -131,6 +131,8 @@ extern void debug_show_stackitemtype(int32);
 
 #define TOPITEMISNUMARRTEMP ((basicvars.stacktop.intsp->itemtype == STACK_IATEMP) || (basicvars.stacktop.intsp->itemtype == STACK_U8ATEMP) || (basicvars.stacktop.intsp->itemtype == STACK_I64ATEMP) || (basicvars.stacktop.intsp->itemtype == STACK_FATEMP))
 
+#define TOPITEMISFOR ((basicvars.stacktop.intsp->itemtype == STACK_INTFOR) || (basicvars.stacktop.intsp->itemtype == STACK_INT64FOR) || (basicvars.stacktop.intsp->itemtype == STACK_FLOATFOR))
+
 #define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
                 basicvars.stacktop.intsp->itemtype = STACK_INT; \
                 basicvars.stacktop.intsp->intvalue = (x);

@@ -441,6 +441,8 @@ byte *get_srcaddr(byte *p) {
 //}
 #define get_exec(p) (*(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT)
 
+#define PREVIOUS_TOKEN (tokenbase[next-1])
+
 /*
 ** 'store' is called to add a character to the tokenised line buffer
 */
@@ -1152,9 +1154,10 @@ static void tokenise_source(char *start, boolean haslineno) {
 ** keyword token is found
 */
 static void do_keyword(void) {
-  byte token;
+  byte token, previous;
 
   DEBUGFUNCMSGIN;
+  previous = PREVIOUS_TOKEN;
   token = tokenbase[source];
   source++;
   if (token>=TYPE_COMMAND) {            /* Two byte token */
@@ -1174,38 +1177,40 @@ static void do_keyword(void) {
   }
   else {        /* Found a single byte token */
     store(token);
-    firstitem = token == BASTOKEN_REPEAT || token == BASTOKEN_THEN || token == BASTOKEN_XELSE || token == BASTOKEN_XOTHERWISE;
-    switch (token) {            /* Check for special cases */
-    case BASTOKEN_XIF:
-      store_shortoffset(0);             /* Store offset of code after 'THEN' */
-      store_shortoffset(0);             /* Store offset of code after 'ELSE' */
-      break;
-    case BASTOKEN_XELSE: case BASTOKEN_XLHELSE: case BASTOKEN_XWHEN: case BASTOKEN_XOTHERWISE:
-    case BASTOKEN_XWHILE:
-      store_shortoffset(0);             /* Store offset of code at end of statement */
-      break;
-    case BASTOKEN_XCASE:
-      store_longoffset(0);              /* Store pointer to case value table */
-      break;
-    case BASTOKEN_FN: case BASTOKEN_PROC:     /* Replace token with 'X' token and add offset to name */
-      next--;           /* Hack, hack... */
-      store(BASTOKEN_XFNPROCALL);
-      store_longoffset(next-source);    /* Store offset to PROC/FN name */
-      while (ISIDCHAR(tokenbase[source])) source++;      /* Skip PROC/FN name, was isident()*/
-      break;
-    case BASTOKEN_REM:     /* Skip rest of tokenised line */
-       //next--;          /* Remove REM token */
-       source = -1;     /* Flag value to say we have finished this line */
-       break;
-    case BASTOKEN_DATA:    /* Insert the offset back to the data itself after the DATA token */
-      store_shortoffset(next-1-source); /* -1 so that offset is from the DATA token itself */
-      source = -1;      /* Flag value to say we have finished this line */
-      break;
-    case BASTOKEN_TRACE:   /* Just copy the token that follows TRACE so that it is unmangled */
-      while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB) source++;
-      if (tokenbase[source]>BASTOKEN_LOWEST) {     /* TRACE is followed by a token */
-        store(tokenbase[source]);
-        source++;
+    if (previous != BASTOKEN_EXIT) {
+      firstitem = token == BASTOKEN_REPEAT || token == BASTOKEN_THEN || token == BASTOKEN_XELSE || token == BASTOKEN_XOTHERWISE;
+      switch (token) {            /* Check for special cases */
+      case BASTOKEN_XIF:
+        store_shortoffset(0);             /* Store offset of code after 'THEN' */
+        store_shortoffset(0);             /* Store offset of code after 'ELSE' */
+        break;
+      case BASTOKEN_XELSE: case BASTOKEN_XLHELSE: case BASTOKEN_XWHEN: case BASTOKEN_XOTHERWISE:
+      case BASTOKEN_XWHILE:
+        store_shortoffset(0);             /* Store offset of code at end of statement */
+        break;
+      case BASTOKEN_XCASE:
+        store_longoffset(0);              /* Store pointer to case value table */
+        break;
+      case BASTOKEN_FN: case BASTOKEN_PROC:     /* Replace token with 'X' token and add offset to name */
+        next--;           /* Hack, hack... */
+        store(BASTOKEN_XFNPROCALL);
+        store_longoffset(next-source);    /* Store offset to PROC/FN name */
+        while (ISIDCHAR(tokenbase[source])) source++;      /* Skip PROC/FN name, was isident()*/
+        break;
+      case BASTOKEN_REM:     /* Skip rest of tokenised line */
+         //next--;          /* Remove REM token */
+         source = -1;     /* Flag value to say we have finished this line */
+         break;
+      case BASTOKEN_DATA:    /* Insert the offset back to the data itself after the DATA token */
+        store_shortoffset(next-1-source); /* -1 so that offset is from the DATA token itself */
+        source = -1;      /* Flag value to say we have finished this line */
+        break;
+      case BASTOKEN_TRACE:   /* Just copy the token that follows TRACE so that it is unmangled */
+        while (tokenbase[source] == ' ' || tokenbase[source] == asc_TAB) source++;
+        if (tokenbase[source]>BASTOKEN_LOWEST) {     /* TRACE is followed by a token */
+          store(tokenbase[source]);
+          source++;
+        }
       }
     }
   }

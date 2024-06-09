@@ -489,6 +489,8 @@ static detail errortable [] = {
 /* ERR_ENDIF */         {NONFATAL, NOPARM,  49, "Cannot find matching 'ENDIF' for this 'IF' or 'ELSE'"},
 /* ERR_ENDWHILE */      {NONFATAL, NOPARM,  49, "Cannot find 'ENDWHILE' matching this 'WHILE'"},
 /* ERR_ENDCASE */       {NONFATAL, NOPARM,  47, "Cannot find 'ENDCASE'"},
+/* ERR_UNTIL */         {NONFATAL, NOPARM,  43, "Cannot find 'UNTIL' matching this 'REPEAT'"},
+/* ERR_NEXT */          {NONFATAL, NOPARM,  32, "Cannot find 'NEXT' matching this 'FOR'"},
 /* ERR_OFMISS */        {NONFATAL, NOPARM,  48, "'OF' missing"},
 /* ERR_TOMISS */        {NONFATAL, NOPARM,  36, "'TO' missing"},
 /* ERR_CORPNEXT */      {NONFATAL, NOPARM,  27, "',' or ')' expected"},

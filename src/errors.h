@@ -76,6 +76,8 @@ typedef enum {
     ERR_ENDIF,          /* ENDIF missing */
     ERR_ENDWHILE,       /* ENDWHILE missing */
     ERR_ENDCASE,        /* ENDCASE missing */
+    ERR_UNTIL,          /* UNTIL missing */
+    ERR_NEXT,           /* NEXT mising */
     ERR_OFMISS,         /* OF missing */
     ERR_TOMISS,         /* 'TO' missing */
     ERR_CORPNEXT,       /* ',' or ')' expected */

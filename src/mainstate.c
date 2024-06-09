@@ -990,7 +990,10 @@ void exec_error(void) {
 }
 
 void exec_exit(void) {
+  stack_for *fp;
+  stack_repeat *rp;
   stack_while *wp;
+  byte *btmp;
   int32 depth;
 
   DEBUGFUNCMSGIN;
@@ -998,12 +1001,108 @@ void exec_exit(void) {
   switch(*basicvars.current) {
     case BASTOKEN_FOR:
       fprintf(stderr, "exit - for\n");
-      error(ERR_NOTFOR);
-      return;
+      depth=1;
+      basicvars.current++;
+
+      if (!ateol[*basicvars.current]) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_SYNTAX);
+        return;
+      }
+      if (TOPITEMISFOR)       /* FOR control block is top of stack */
+        fp = basicvars.stacktop.forsp;
+      else {        /* Discard contents of stack as far as FOR block */
+        fp = get_for();
+      }
+      if (fp == NIL) {   /* Not in a FOR loop */
+        DEBUGFUNCMSGOUT;
+        error(ERR_NOTFOR);
+        return;
+      }
+      pop_for();
+      /* Now we need to look for NEXT */
+      btmp=basicvars.current;
+      while (depth>0) {
+        if (*basicvars.current == asc_NUL) {    /* At the end of a line */
+          basicvars.current++;
+          if (AT_PROGEND(basicvars.current)) {    /* No 'NEXT' found */
+            basicvars.current=btmp;
+            DEBUGFUNCMSGOUT;
+            error(ERR_NEXT);
+            return;
+          }
+          basicvars.current = FIND_EXEC(basicvars.current);
+        }
+        if (*basicvars.current == BASTOKEN_NEXT)
+          depth--;
+        else if (*basicvars.current == BASTOKEN_FOR) { /* Found a nested loop */
+          depth++;
+        }
+        if (depth>0) basicvars.current=skip_token(basicvars.current);
+      }
+      basicvars.current++;      /* Skip the NEXT token */
+      while (!ateol[*basicvars.current]) {
+        basicvars.current++;
+        if (*basicvars.current == ',') pop_for();
+      }
+      if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the UNTIL statement */
+      if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */
+        basicvars.current++;
+        if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
+        basicvars.current = FIND_EXEC(basicvars.current);
+      }
+      break;
     case BASTOKEN_REPEAT:
       fprintf(stderr, "exit - repeat\n");
-      error(ERR_NOTREPEAT);
-      return;
+      depth=1;
+      basicvars.current++;
+
+      if (!ateol[*basicvars.current]) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_SYNTAX);
+        return;
+      }
+      if (GET_TOPITEM == STACK_REPEAT)       /* REPEAT control block is top of stack */
+        rp = basicvars.stacktop.repeatsp;
+      else {        /* Discard contents of stack as far as REPEAT block */
+        rp = get_repeat();
+      }
+      if (rp == NIL) {   /* Not in a REPEAT loop */
+        DEBUGFUNCMSGOUT;
+        error(ERR_NOTREPEAT);
+        return;
+      }
+      pop_repeat();
+      /* Now we need to look for UNTIL */
+      btmp=basicvars.current;
+      while (depth>0) {
+        if (*basicvars.current == asc_NUL) {    /* At the end of a line */
+          basicvars.current++;
+          if (AT_PROGEND(basicvars.current)) {    /* No 'UNTIL' found */
+            basicvars.current=btmp;
+            DEBUGFUNCMSGOUT;
+            error(ERR_UNTIL);
+            return;
+          }
+          basicvars.current = FIND_EXEC(basicvars.current);
+        }
+        if (*basicvars.current == BASTOKEN_UNTIL)
+          depth--;
+        else if (*basicvars.current == BASTOKEN_REPEAT) { /* Found a nested loop */
+          depth++;
+        }
+        if (depth>0) basicvars.current=skip_token(basicvars.current);
+      }
+      basicvars.current++;      /* Skip the UNTIL token */
+      expression();
+      (void) pop_anynum64();    /* Skip the expression, discarding the result */
+      if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the UNTIL statement */
+      if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */
+        basicvars.current++;
+        if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
+        basicvars.current = FIND_EXEC(basicvars.current);
+      }
+      break;
     case BASTOKEN_WHILE:
     case BASTOKEN_XWHILE:
     fprintf(stderr, "exit - while\n");
@@ -1015,9 +1114,9 @@ void exec_exit(void) {
         error(ERR_SYNTAX);
         return;
       }
-      if (GET_TOPITEM == STACK_WHILE)       /* WHILE control block is top of stack */
+      if (GET_TOPITEM == STACK_WHILE) {       /* WHILE control block is top of stack */
         wp = basicvars.stacktop.whilesp;
-      else {        /* Discard contents of stack as far as WHILE block */
+      } else {        /* Discard contents of stack as far as WHILE block */
         wp = get_while();
       }
       if (wp == NIL) {   /* Not in a WHILE loop */
@@ -1027,10 +1126,12 @@ void exec_exit(void) {
       }
       pop_while();
       /* Now we need to look for ENDWHILE */
+      btmp=basicvars.current;
       while (depth>0) {
         if (*basicvars.current == asc_NUL) {    /* At the end of a line */
           basicvars.current++;
           if (AT_PROGEND(basicvars.current)) {    /* No 'ENDWHILE' found */
+            basicvars.current=btmp;
             DEBUGFUNCMSGOUT;
             error(ERR_ENDWHILE);
             return;
@@ -1053,7 +1154,7 @@ void exec_exit(void) {
       }
       break;
     default:
-      fprintf(stderr, "exit - default");
+      fprintf(stderr, "exit - default\n");
       error(ERR_SYNTAX);
   }
 
