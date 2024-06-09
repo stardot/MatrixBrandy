@@ -218,10 +218,10 @@
 #define BASTOKEN_XWHILE      0xEBu
 #define BASTOKEN_WHILE       0xECu
 #define BASTOKEN_WIDTH       0xEDu
+#define BASTOKEN_EXIT        0xEEu
 
 /* Unused tokens */
 
-#define UNUSED_EE       0xEEu
 #define UNUSED_EF       0xEFu
 #define UNUSED_F0       0xF0u
 #define UNUSED_F1       0xF1u

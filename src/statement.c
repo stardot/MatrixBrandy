@@ -431,7 +431,7 @@ static void (*statements[256])(void) = {
   exec_tint,       bad_syntax,      exec_trace,       bad_syntax,       /* E0..E3 */
   exec_until,      exec_vdu,        exec_voice,       exec_voices,      /* E4..E7 */
   exec_wait,       exec_xwhen,      exec_elsewhen,    exec_while,       /* E8..EB */
-  exec_while,      exec_width,      bad_token,        bad_token,        /* EC..EF */
+  exec_while,      exec_width,      exec_exit,        bad_token,        /* EC..EF */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F0..F3 */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F4..F7 */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F8..FB */

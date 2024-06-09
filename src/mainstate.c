@@ -989,6 +989,76 @@ void exec_error(void) {
   DEBUGFUNCMSGOUT;
 }
 
+void exec_exit(void) {
+  stack_while *wp;
+  int32 depth;
+
+  DEBUGFUNCMSGIN;
+  basicvars.current++;
+  switch(*basicvars.current) {
+    case BASTOKEN_FOR:
+      fprintf(stderr, "exit - for\n");
+      error(ERR_NOTFOR);
+      return;
+    case BASTOKEN_REPEAT:
+      fprintf(stderr, "exit - repeat\n");
+      error(ERR_NOTREPEAT);
+      return;
+    case BASTOKEN_WHILE:
+    case BASTOKEN_XWHILE:
+    fprintf(stderr, "exit - while\n");
+      depth=1;
+      basicvars.current++;
+
+      if (!ateol[*basicvars.current]) {
+        DEBUGFUNCMSGOUT;
+        error(ERR_SYNTAX);
+        return;
+      }
+      if (GET_TOPITEM == STACK_WHILE)       /* WHILE control block is top of stack */
+        wp = basicvars.stacktop.whilesp;
+      else {        /* Discard contents of stack as far as WHILE block */
+        wp = get_while();
+      }
+      if (wp == NIL) {   /* Not in a WHILE loop */
+        DEBUGFUNCMSGOUT;
+        error(ERR_NOTWHILE);
+        return;
+      }
+      pop_while();
+      /* Now we need to look for ENDWHILE */
+      while (depth>0) {
+        if (*basicvars.current == asc_NUL) {    /* At the end of a line */
+          basicvars.current++;
+          if (AT_PROGEND(basicvars.current)) {    /* No 'ENDWHILE' found */
+            DEBUGFUNCMSGOUT;
+            error(ERR_ENDWHILE);
+            return;
+          }
+          basicvars.current = FIND_EXEC(basicvars.current);
+        }
+        if (*basicvars.current == BASTOKEN_ENDWHILE)
+          depth--;
+        else if (*basicvars.current == BASTOKEN_WHILE || *basicvars.current == BASTOKEN_XWHILE) { /* Found a nested loop */
+          depth++;
+        }
+        if (depth>0) basicvars.current=skip_token(basicvars.current);
+      }
+      basicvars.current++;      /* Skip the ENDWHILE token */
+      if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the ENDWHILE */
+      if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */
+        basicvars.current++;
+        if (basicvars.traces.lines) trace_line(GET_LINENO(basicvars.current));
+        basicvars.current = FIND_EXEC(basicvars.current);
+      }
+      break;
+    default:
+      fprintf(stderr, "exit - default");
+      error(ERR_SYNTAX);
+  }
+
+}
+
 /*
 ** 'exec_for' deals with the 'FOR' statement at the start of a 'FOR' loop.
 ** It sets up the control block needed and starts the loop but that is all.

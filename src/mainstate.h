@@ -46,6 +46,7 @@ extern void exec_endproc(void);
 extern void exec_fnreturn(void);
 extern void exec_endwhile(void);
 extern void exec_error(void);
+extern void exec_exit(void);
 extern void exec_for(void);
 extern void exec_gosub(void);
 extern void exec_goto(void);
