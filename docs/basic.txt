@@ -1977,6 +1977,14 @@ trapped just like any other using ON ERROR and ON ERROR LOCAL.
 Example:
         ERROR 25, "Bad error"
 
+EXIT
+Syntax: EXIT FOR, EXIT REPEAT or EXIT WHILE
+
+EXIT breaks out of a loop, jumping to the statement immediately
+after the matching NEXT, UNTIL or ENDWHILE as appropriate.
+
+This is an extension based on BB4W, BBCSDL, BBCTTY and BBCZ80 v5.
+
 FALSE
 Syntax: FALSE
 

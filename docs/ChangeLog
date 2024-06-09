@@ -6,6 +6,10 @@ Version 1.23.1 required the -DBRANDY_RELEASE flag to be set for a release
 build. As of version 1.23.2 this flag is automatically applied for builds
 made from git in the master branch, and from tarballs with no git information.
 
+* 1.23.3 - 
+- BASIC: Implemented EXIT FOR, EXIT REPEAT and EXIT WHILE, based on the
+  extensions in Richard Russell's BB4W, BBCSDL, BBCTTY and BBCZ80 v5.
+
 * 1.23.2 - 22 May 2024
 - General: Much code clean-up (and some bugs fixed) after static analysis.
 - Build: Autodetect whether it's a release build (master branch, or a tarball

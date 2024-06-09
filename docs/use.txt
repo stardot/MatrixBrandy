@@ -352,6 +352,8 @@ interpreter's limit of 255. The list of differences are as follows:
 The following differences only apply on non-RISC OS builds:
 13) Support of the 'SYS' statement is minimal.
 14) Cursor editing is not available. A line editor is available in its place.
+15) EXIT <FOR|REPEAT|WHILE> from BB4W, BBCSDL, BBCTTY and BBC allow for
+    immediately breaking out of a loop.
 
 The major omissions in the versions of the interpreter are some graphics.
 The built-in assembler and support for machine code programs are
