@@ -1000,7 +1000,6 @@ void exec_exit(void) {
   basicvars.current++;
   switch(*basicvars.current) {
     case BASTOKEN_FOR:
-      fprintf(stderr, "exit - for\n");
       depth=1;
       basicvars.current++;
 
@@ -1053,7 +1052,6 @@ void exec_exit(void) {
       }
       break;
     case BASTOKEN_REPEAT:
-      fprintf(stderr, "exit - repeat\n");
       depth=1;
       basicvars.current++;
 
@@ -1105,7 +1103,6 @@ void exec_exit(void) {
       break;
     case BASTOKEN_WHILE:
     case BASTOKEN_XWHILE:
-    fprintf(stderr, "exit - while\n");
       depth=1;
       basicvars.current++;
 
@@ -1154,7 +1151,6 @@ void exec_exit(void) {
       }
       break;
     default:
-      fprintf(stderr, "exit - default\n");
       error(ERR_SYNTAX);
   }
 
