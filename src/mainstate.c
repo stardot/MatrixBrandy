@@ -1047,13 +1047,13 @@ void exec_exit(void) {
       }
       basicvars.current++;      /* Skip the NEXT token */
       while (!ateol[*basicvars.current]) {
-        basicvars.current++;
         if (*basicvars.current == ',') {  /* Multi-variable NEXT not supported */
           error(ERR_MULTINEXT);
           basicvars.current = btmp;
           error(ERR_EXITFOR);
           return;
         }
+        basicvars.current++;
       }
       if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the UNTIL statement */
       if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */
