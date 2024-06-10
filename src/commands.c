@@ -1266,7 +1266,7 @@ static void detailed_help(char *cmd) {
   } else if (!strcmp(cmd, "CLS")) {
     emulate_printf("Clear text screen.");
   } else if (!strcmp(cmd, "COLOUR") || !strcmp(cmd, "COLOR")) {
-    emulate_printf("COLOUR A [TINT t]: set text foreground colour [and tint] (background 128+a)\r\nCOLOUR [OF f] [ON b]: set foreground to colour number f and/or background to b.\r\nCOLOUR a,p: set palette entry for logical colour a to physical colour p.\r\nCOLOUR [[OF] r,g,b] [ON r,g,b]: set foreground and/or background to r, g, b.\r\nCOLOUR a,r,g,b: set palette entry for a to r,g, b physical colour.\r\nAs a function COLOUR(r,g,b) returns the nearest MODE-dependent colour number.");
+    emulate_printf("COLOUR A [TINT t]: set text foreground colour [and tint] (background 128+a)\r\nCOLOUR [OF f] [ON b]: set foreground to colour number f and/or background to b.\r\nCOLOUR a,p: set palette entry for logical colour a to physical colour p.\r\nCOLOUR [[OF] r,g,b] [ON r,g,b]: set foreground and/or background to r, g, b.\r\nCOLOUR a,r,g,b: set palette entry for a to r,g, b physical colour.\r\nAs a function COLOUR(r,g,b) returns the nearest MODE-dependent colour number.\r\nThis command may be entered as COLOR but will always list and save as COLOUR.");
   } else if (!strcmp(cmd, "COS")) {
     emulate_printf("This function gives the cosine of a number (<factor>).");
   } else if (!strcmp(cmd, "COUNT")) {
@@ -1317,6 +1317,8 @@ static void detailed_help(char *cmd) {
     emulate_printf("Part of ON ERROR; LOCAL ERROR and RESTORE ERROR statements.\r\nCause an error: ERROR <number>,<string>.");
   } else if (!strcmp(cmd, "EVAL")) {
     emulate_printf("This function evaluates a string: EVAL(\"2*X+1\").");
+  } else if (!strcmp(cmd, "EXIT")) {
+    emulate_printf("EXIT FOR: Immediate exit from a FOR..NEXT loop\r\nEXIT REPEAT: Immediate exit from a REPEAT..UNTIL loop\r\nEXIT WHILE: Immediate exit from a WHILE..ENDWHILE loop\r\nNote that EXIT FOR requires the matching NEXT statement to refer to only one\r\nFOR loop; NEXT x,y is not supported.");
   } else if (!strcmp(cmd, "EXP")) {
     emulate_printf("This function gives the exponential of a number (<factor>).");
   } else if (!strcmp(cmd, "EXT")) {
@@ -1554,20 +1556,21 @@ CHR$      CIRCLE    CLEAR     CLG       CLOSE     CLS       COLOUR    COLOR\r\n\
 COS       COUNT     CRUNCH    DATA      DEF       DEG       DELETE    DIM\r\n\
 DIV       DRAW      EDIT      ELLIPSE   ELSE      END       ENDCASE   ENDIF\r\n\
 ENDPROC   ENDWHILE  ENVELOPE  EOF       EOR       ERL       ERR       ERROR\r\n\
-EVAL      EXP       EXT       FALSE     FILL      FN        FOR       GCOL\r\n\
-GET       GET$      GOSUB     GOTO      HELP      HIMEM     IF        INKEY\r\n\
-INKEY$    INPUT     INSTALL   INSTR(    INT       LEFT$(    LEN       LET\r\n\
-LIBRARY   LINE      LIST      LISTIF    LN        LOAD      LOCAL     LOG\r\n\
-LOMEM     LVAR      MID$(     MOD       MODE      MOUSE     MOVE      NEXT\r\n\
-NEW       NOT       OF        OFF       OLD       ON        OPENIN    OPENOUT\r\n\
-OPENUP    OR        ORIGIN    OSCLI     OTHERWISE OVERLAY   PAGE      PI\r\n\
-PLOT      POINT     POS       PRINT     PROC      PTR       QUIT      RAD\r\n\
-READ      RECTANGLE REM       RENUMBER  REPEAT    REPORT    RESTORE   RETURN\r\n\
-RIGHT$(   RND       RUN       SAVE      SGN       SIN       SOUND     SPC\r\n\
-SQR       STEP      STEREO    STOP      STR$      STRING$(  SUM       SWAP\r\n\
-SYS       TAB(      TAN       TEMPO     TEXTLOAD  TEXTSAVE  THEN      TIME\r\n\
-TINT      TO        TOP       TRACE     TRUE      UNTIL     USR       VAL\r\n\
-VDU       VOICE     VOICES    VPOS      WAIT      WHEN      WHILE     WIDTH");
+EVAL      EXIT      EXP       EXT       FALSE     FILL      FN        FOR\r\n\
+GCOL      GET       GET$      GOSUB     GOTO      HELP      HIMEM     IF\r\n\
+INKEY     INKEY$    INPUT     INSTALL   INSTR(    INT       LEFT$(    LEN\r\n\
+LET       LIBRARY   LINE      LIST      LISTIF    LN        LOAD      LOCAL\r\n\
+LOG       LOMEM     LVAR      MID$(     MOD       MODE      MOUSE     MOVE\r\n\
+NEW       NEXT      NOT       OF        OFF       OLD       ON        OPENIN\r\n\
+OPENOUT   OPENUP    OR        ORIGIN    OSCLI     OTHERWISE OVERLAY   PAGE\r\n\
+PI        PLOT      POINT     POS       PRINT     PROC      PTR       QUIT\r\n\
+RAD       READ      RECTANGLE REM       RENUMBER  REPEAT    REPORT    RESTORE\r\n\
+RETURN    RIGHT$(   RND       RUN       SAVE      SGN       SIN       SOUND\r\n\
+SPC       SQR       STEP      STEREO    STOP      STR$      STRING$(  SUM\r\n\
+SWAP      SYS       TAB(      TAN       TEMPO     TEXTLOAD  TEXTSAVE  THEN\r\n\
+TIME      TINT      TO        TOP       TRACE     TRUE      UNTIL     USR\r\n\
+VAL       VDU       VOICE     VOICES    VPOS      WAIT      WHEN      WHILE\r\n\
+WIDTH");
   } else {
     emulate_printf("\r\nNo help available for '%s'", cmd);
   }
