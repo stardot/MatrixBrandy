@@ -1400,10 +1400,10 @@ static void detailed_help(char *cmd) {
     emulate_printf("MOUSE x,y,z[,t]: sets x,y to mouse position; z to button state [t to time].\r\nMOUSE OFF: turn mouse pointer off.\r\nMOUSE ON [a]: sets mouse pointer 1 [or a].\r\nMOUSE TO x,y: positions mouse and pointer at x,y.\r\nThe following three are not supported and are ignored:\r\nMOUSE COLOUR a,r,g,b: set mouse palette entry for a to r, g, b physical colour.\r\nMOUSE RECTANGLE x,y,width,height: constrain mouse movement to inside rectangle.\r\nMOUSE STEP a[,b]: sets mouse step multiplier to a,a [or a,b].");
   } else if (!strcmp(cmd, "MOVE")) {
     emulate_printf("MOVE [BY] x,y: graphics move to [relative by] x,y.");
-  } else if (!strcmp(cmd, "NEXT")) {
-    emulate_printf("NEXT [<variable>[,<variable>]^]: closes one or several FOR..NEXT structures.");
   } else if (!strcmp(cmd, "NEW")) {
     emulate_printf("NEW [<size>]: This command erases the current program.\r\nIf <size> specified, set the BASIC workspace size in bytes.");
+  } else if (!strcmp(cmd, "NEXT")) {
+    emulate_printf("NEXT [<variable>[,<variable>]^]: closes one or several FOR..NEXT structures.\r\nA NEXT statement must close only one FOR..NEXT structure if EXIT FOR is used.");
   } else if (!strcmp(cmd, "NOT")) {
     emulate_printf("This function gives the number with all bits inverted (0 and 1 exchanged).");
   } else if (!strcmp(cmd, "OF")) {
