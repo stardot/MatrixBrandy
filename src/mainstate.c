@@ -989,6 +989,12 @@ void exec_error(void) {
   DEBUGFUNCMSGOUT;
 }
 
+/*
+** 'exec_exit' implements EXIT FOR, EXIT REPEAT and EXIT WHILE. These are
+** based on extensions from Richard Russell's BB4W, BBCSDL, BBCTTY and
+** BBCZ80 v5.
+** One difference: EXIT FOR does not accept a control variable.
+*/
 void exec_exit(void) {
   stack_for *fp;
   stack_repeat *rp;
@@ -1042,7 +1048,12 @@ void exec_exit(void) {
       basicvars.current++;      /* Skip the NEXT token */
       while (!ateol[*basicvars.current]) {
         basicvars.current++;
-        if (*basicvars.current == ',') pop_for();
+        if (*basicvars.current == ',') {  /* Multi-variable NEXT not supported */
+          error(ERR_MULTINEXT);
+          basicvars.current = btmp;
+          error(ERR_EXITFOR);
+          return;
+        }
       }
       if (*basicvars.current == ':') basicvars.current++;       /* Skip a ':' after the UNTIL statement */
       if (*basicvars.current == asc_NUL) {      /* There is nothing else on the line - Skip to next line */

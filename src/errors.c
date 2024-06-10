@@ -491,6 +491,8 @@ static detail errortable [] = {
 /* ERR_ENDCASE */       {NONFATAL, NOPARM,  47, "Cannot find 'ENDCASE'"},
 /* ERR_UNTIL */         {NONFATAL, NOPARM,  43, "Cannot find 'UNTIL' matching this 'REPEAT'"},
 /* ERR_NEXT */          {NONFATAL, NOPARM,  32, "Cannot find 'NEXT' matching this 'FOR'"},
+/* ERR_MULTINEXT */     {WARNING,  NOPARM,   0, "'EXIT FOR' encountered an incompatible 'NEXT' statement"},
+/* ERR_EXITFOR */       {NONFATAL, NOPARM,  32, "'EXIT FOR' statement"},
 /* ERR_OFMISS */        {NONFATAL, NOPARM,  48, "'OF' missing"},
 /* ERR_TOMISS */        {NONFATAL, NOPARM,  36, "'TO' missing"},
 /* ERR_CORPNEXT */      {NONFATAL, NOPARM,  27, "',' or ')' expected"},

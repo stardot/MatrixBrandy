@@ -78,6 +78,8 @@ typedef enum {
     ERR_ENDCASE,        /* ENDCASE missing */
     ERR_UNTIL,          /* UNTIL missing */
     ERR_NEXT,           /* NEXT mising */
+    ERR_MULTINEXT,      /* Warning - EXIT FOR can't use a multi-loop NEXT statement */
+    ERR_EXITFOR,        /* EXIT FOR statement location */
     ERR_OFMISS,         /* OF missing */
     ERR_TOMISS,         /* 'TO' missing */
     ERR_CORPNEXT,       /* ',' or ')' expected */
@@ -90,7 +92,7 @@ typedef enum {
     ERR_RANGE,          /* General number out of range error */
     ERR_ONRANGE,        /* 'ON' index is out of range */
     ERR_ARITHMETIC,     /* Floating point exception */
-    WARN_PRECISION,      /* Precision lost in float conversion */
+    WARN_PRECISION,     /* Precision lost in float conversion */
     ERR_STRINGLEN,      /* String is too long */
     ERR_BADOPER,        /* Unrecognisable operand */
     ERR_TYPENUM,        /* Type mismatch: number wanted */
