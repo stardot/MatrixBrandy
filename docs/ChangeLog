@@ -8,7 +8,11 @@ made from git in the master branch, and from tarballs with no git information.
 
 * 1.23.3 - 
 - BASIC: Implemented EXIT FOR, EXIT REPEAT and EXIT WHILE, based on the
-  extensions in Richard Russell's BB4W, BBCSDL, BBCTTY and BBCZ80 v5.
+  extensions in Richard Russell's BB4W, BBCSDL, BBCTTY and BBCZ80v5.
+- BASIC: Implement == to be synonymous with = in comparisons. Another
+  compatility follow from Richard Russell's BASICs.
+- BASIC: Allow DIM var LOCAL -1 outside of FN/PROC (as per BB4W, BBCSDL,
+  BBCTTY and BBCZ80v5).
 
 * 1.23.2 - 22 May 2024
 - General: Much code clean-up (and some bugs fixed) after static analysis.

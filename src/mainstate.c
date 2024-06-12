@@ -473,13 +473,14 @@ static void define_byte_array(variable *vp, boolean offheap) {
   }
   islocal = *basicvars.current == BASTOKEN_LOCAL;
   if (islocal) {        /* Allocating block on stack */
-    if (basicvars.procstack == NIL) {   /* LOCAL found outside a PROC or FN */
+    basicvars.current++;
+    highindex = eval_int64();
+    if ((basicvars.procstack == NIL) && (highindex != -1)) {
+      /* LOCAL found outside a PROC or FN. Allow -1 as that shows stack pointer. */
       DEBUGFUNCMSGOUT;
       error(ERR_LOCAL);
       return;
     }
-    basicvars.current++;
-    highindex = eval_int64();
     if (highindex < -1) {
       DEBUGFUNCMSGOUT;
       error(ERR_NEGBYTEDIM, vp->varname);     /* Dimension is out of range */

@@ -4535,6 +4535,8 @@ void expression(void) {
   if (basicvars.debug_flags.debug) fprintf(stderr, "expression: returned from factor_table jump, current=0x%llX\n", (int64)(size_t)basicvars.current);
 #endif
   lastop = optable[*basicvars.current];
+  /* From BB4W/BBCSDL/BBCTTY/BBCZ80v5 - make == in comparisons synonymous with = */
+  if (*basicvars.current == '=' && *(basicvars.current+1) == '=') basicvars.current++;
   if (lastop == 0) {
     DEBUGFUNCMSGOUT;
     return;     /* Quick way out if there is nothing to do */
