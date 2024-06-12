@@ -515,6 +515,7 @@ static void define_byte_array(variable *vp, boolean offheap) {
         ep = newep;
 #ifdef MATRIX64BIT
         if ((vp->varflags == VAR_INTWORD) && ((int64)ep > 0xFFFFFFFFll)) {
+          fprintf(stderr, "here\n");
           free(ep); /* Can't store the address in the variable type given so free it before complaining */
           DEBUGFUNCMSGOUT;
           error(ERR_ADDRESS);
