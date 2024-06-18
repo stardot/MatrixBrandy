@@ -1566,26 +1566,41 @@ void exec_plot(void) {
 
   DEBUGFUNCMSGIN;
   basicvars.current++;
-  code = eval_integer();        /* Get 'PLOT' code */
-  if (*basicvars.current != ',') {
-    DEBUGFUNCMSGOUT;
-    error(ERR_COMISS);
-    return;
-  }
-  basicvars.current++;
-  x = eval_integer();           /* Get x coordinate for 'plot' command */
-  if (*basicvars.current != ',') {
-    /* Only two parameters, so assume code is 69 and shuffle parameters, as per BBCSDL */
-    y = x;
-    x = code;
-    code = 69;
-  } else {
+  if (*basicvars.current == BASTOKEN_BY) {
     basicvars.current++;
-    y = eval_integer();           /* Get y coordinate for 'plot' command */
+    code = PLOT_POINT+DRAW_RELATIVE;
+    x = eval_integer();           /* Get x coordinate of point */
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+      return;
+    }
+    basicvars.current++;
+    y = eval_integer();           /* Get y coordinate of point */
+    check_ateol();
+    emulate_plot(code, x, y);
+  } else {
+    code = eval_integer();        /* Get 'PLOT' code */
+    if (*basicvars.current != ',') {
+      DEBUGFUNCMSGOUT;
+      error(ERR_COMISS);
+      return;
+    }
+    basicvars.current++;
+    x = eval_integer();           /* Get x coordinate for 'plot' command */
+    if (*basicvars.current != ',') {
+      /* Only two parameters, so assume code is 69 and shuffle parameters, as per BBCSDL */
+      y = x;
+      x = code;
+      code = PLOT_POINT+DRAW_ABSOLUTE;
+    } else {
+      basicvars.current++;
+      y = eval_integer();           /* Get y coordinate for 'plot' command */
+    }
+    check_ateol();
+    emulate_plot(code, x, y);
+    DEBUGFUNCMSGOUT;
   }
-  check_ateol();
-  emulate_plot(code, x, y);
-  DEBUGFUNCMSGOUT;
 }
 
 /*

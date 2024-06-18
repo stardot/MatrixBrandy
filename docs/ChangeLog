@@ -13,6 +13,8 @@ made from git in the master branch, and from tarballs with no git information.
   compatility follow from Richard Russell's BASICs.
 - BASIC: Allow DIM var LOCAL -1 outside of FN/PROC (as per BB4W, BBCSDL,
   BBCTTY and BBCZ80v5).
+- BASIC: Implement BBCSDL's PLOT BY x,y (equivalent to PLOT 65,x,y), and
+  equivalent to POINT BY x,y in ARM BASIC V.
 
 * 1.23.2 - 22 May 2024
 - General: Much code clean-up (and some bugs fixed) after static analysis.
