@@ -137,7 +137,7 @@
 #define BASTOKEN_DEF         0x9Au
 #define BASTOKEN_DIM         0x9Bu
 #define BASTOKEN_DRAW        0x9Cu
-#define BASTOKEN_DRAWBY      0x9Du   /* 'DRAWBY' has to follow 'DRAW */
+#define BASTOKEN_BY          0x9Du
 #define BASTOKEN_ELLIPSE     0x9Eu
 #define BASTOKEN_XELSE       0x9Fu
 #define BASTOKEN_ELSE        0xA0u
@@ -169,7 +169,7 @@
 #define BASTOKEN_MODE        0xBAu
 #define BASTOKEN_MOUSE       0xBBu
 #define BASTOKEN_MOVE        0xBCu
-#define BASTOKEN_MOVEBY      0xBDu   /* 'MOVEBY' has to follow 'MOVE' */
+#define BASTOKEN_EXIT        0xBDu
 #define BASTOKEN_NEXT        0xBEu
 #define BASTOKEN_NOT         0xBFu
 #define BASTOKEN_OF          0xC0u
@@ -182,8 +182,6 @@
 #define BASTOKEN_OVERLAY     0xC7u
 #define BASTOKEN_PLOT        0xC8u
 #define BASTOKEN_POINT       0xC9u   /* POINT at a statement */
-#define BASTOKEN_POINTBY     0xCAu   /* 'POINTBY' has to follow 'POINT' */
-#define BASTOKEN_POINTTO     0xCBu
 #define BASTOKEN_PRINT       0xCCu
 #define BASTOKEN_PROC        0xCDu
 #define BASTOKEN_QUIT        0xCEu
@@ -218,10 +216,12 @@
 #define BASTOKEN_XWHILE      0xEBu
 #define BASTOKEN_WHILE       0xECu
 #define BASTOKEN_WIDTH       0xEDu
-#define BASTOKEN_EXIT        0xEEu
 
 /* Unused tokens */
 
+#define UNUSED_CA       0xCAu
+#define UNUSED_CB       0xCBu
+#define UNUSED_EE       0xEEu
 #define UNUSED_EF       0xEFu
 #define UNUSED_F0       0xF0u
 #define UNUSED_F1       0xF1u

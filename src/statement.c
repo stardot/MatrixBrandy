@@ -411,7 +411,7 @@ static void (*statements[256])(void) = {
   exec_xcase,      exec_case,       exec_chain,       exec_circle,      /* 90..93 */
   exec_clg,        exec_clear,      exec_close,       exec_cls,         /* 94..97 */
   exec_colour,     exec_data,       exec_def,         exec_dim,         /* 98..9B */
-  exec_draw,       exec_drawby,     exec_ellipse,     exec_xelse,       /* 9C..9F */
+  exec_draw,       bad_syntax,      exec_ellipse,     exec_xelse,       /* 9C..9F */
   exec_elsewhen,   exec_xlhelse,    exec_elsewhen,    exec_end,         /* A0..A3 */
   exec_endifcase,  exec_endifcase,  exec_endproc,     exec_endwhile,    /* A4..A7 */
   exec_envelope,   exec_error,      bad_syntax,       exec_fill,        /* A8..AB */
@@ -419,10 +419,10 @@ static void (*statements[256])(void) = {
   exec_gosub,      exec_goto,       exec_xif,         exec_blockif,     /* B0..B3 */
   exec_singlif,    exec_input,      exec_let,         exec_library,     /* B4..B7 */
   exec_line,       exec_local,      exec_mode,        exec_mouse,       /* B8..BB */
-  exec_move,       exec_moveby,     exec_next,        bad_syntax,       /* BC..BF */
+  exec_move,       exec_exit,       exec_next,        bad_syntax,       /* BC..BF */
   bad_syntax,      exec_off,        exec_on,          exec_origin,      /* C0..C3 */
   exec_oscli,      exec_xwhen,      exec_elsewhen,    exec_overlay,     /* C4..C7 */
-  exec_plot,       exec_point,      exec_pointby,     exec_pointto,     /* C8..CB */
+  exec_plot,       exec_point,      bad_token,        bad_token,        /* C8..CB */
   exec_print,      exec_proc,       exec_quit,        exec_read,        /* CC..CF */
   exec_rectangle,  exec_rem,        exec_repeat,      exec_report,      /* D0..D3 */
   exec_restore,    exec_return,     exec_run,         exec_sound,       /* D4..D7 */
@@ -431,7 +431,7 @@ static void (*statements[256])(void) = {
   exec_tint,       bad_syntax,      exec_trace,       bad_syntax,       /* E0..E3 */
   exec_until,      exec_vdu,        exec_voice,       exec_voices,      /* E4..E7 */
   exec_wait,       exec_xwhen,      exec_elsewhen,    exec_while,       /* E8..EB */
-  exec_while,      exec_width,      exec_exit,        bad_token,        /* EC..EF */
+  exec_while,      exec_width,      bad_token,        bad_token,        /* EC..EF */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F0..F3 */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F4..F7 */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F8..FB */

@@ -652,13 +652,18 @@ void exec_colour(void) {
 }
 
 /*
-** 'exec_draw' handles the Basic 'DRAW' statement
+** 'exec_draw' handles the Basic 'DRAW [BY]' statement
 */
 void exec_draw(void) {
   int32 x, y;
+  int32 plotcode = DRAW_SOLIDLINE+DRAW_ABSOLUTE;
 
   DEBUGFUNCMSGIN;
   basicvars.current++;
+  if (*basicvars.current == BASTOKEN_BY) {
+    basicvars.current++;
+    plotcode = DRAW_SOLIDLINE+DRAW_RELATIVE;
+  }
   x = eval_integer();           /* Get x coordinate of end point */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
@@ -668,28 +673,7 @@ void exec_draw(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
-  emulate_plot(DRAW_SOLIDLINE+DRAW_ABSOLUTE, x, y);
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'exec_drawby' handles the Basic 'DRAW BY' statement
-*/
-void exec_drawby(void) {
-  int32 x, y;
-
-  DEBUGFUNCMSGIN;
-  basicvars.current++;
-  x = eval_integer();           /* Get relative x coordinate of end point */
-  if (*basicvars.current != ',') {
-    DEBUGFUNCMSGOUT;
-    error(ERR_COMISS);
-    return;
-  }
-  basicvars.current++;
-  y = eval_integer();           /* Get relative y coordinate of end point */
-  check_ateol();
-  emulate_plot(DRAW_SOLIDLINE+DRAW_RELATIVE, x, y);
+  emulate_plot(plotcode, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -1515,13 +1499,18 @@ void exec_mouse(void) {
 }
 
 /*
-** 'exec_move' deals with the Basic 'MOVE' statement
+** 'exec_move' deals with the Basic 'MOVE [BY]' statement
 */
 void exec_move(void) {
   int32 x, y;
+  int32 plotcode = DRAW_SOLIDLINE+MOVE_ABSOLUTE;
 
   DEBUGFUNCMSGIN;
   basicvars.current++;
+  if (*basicvars.current == BASTOKEN_BY) {
+    basicvars.current++;
+    plotcode = DRAW_SOLIDLINE+MOVE_RELATIVE;
+  }
   x = eval_integer();           /* Get x coordinate of end point */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
@@ -1531,28 +1520,7 @@ void exec_move(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of end point */
   check_ateol();
-  emulate_plot(DRAW_SOLIDLINE+MOVE_ABSOLUTE, x, y);
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'exec_moveby' deals with the Basic 'MOVE BY' statement
-*/
-void exec_moveby(void) {
-  int32 x, y;
-
-  DEBUGFUNCMSGIN;
-  basicvars.current++;
-  x = eval_integer();           /* Get relative x coordinate of end point */
-  if (*basicvars.current != ',') {
-    DEBUGFUNCMSGOUT;
-    error(ERR_COMISS);
-    return;
-  }
-  basicvars.current++;
-  y = eval_integer();           /* Get relative y coordinate of end point */
-  check_ateol();
-  emulate_plot(DRAW_SOLIDLINE+MOVE_RELATIVE, x, y);
+  emulate_plot(plotcode, x, y);
   DEBUGFUNCMSGOUT;
 }
 
@@ -1625,9 +1593,18 @@ void exec_plot(void) {
 */
 void exec_point(void) {
   int32 x, y;
+  int32 plotcode = PLOT_POINT+DRAW_ABSOLUTE;
 
   DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip POINT token */
+  if (*basicvars.current == BASTOKEN_BY) {
+    basicvars.current++;
+    plotcode = PLOT_POINT+DRAW_RELATIVE;
+  }
+  if (*basicvars.current == BASTOKEN_TO) {
+    basicvars.current++;
+    plotcode = -1;
+  }
   x = eval_integer();           /* Get x coordinate of point */
   if (*basicvars.current != ',') {
     DEBUGFUNCMSGOUT;
@@ -1637,49 +1614,11 @@ void exec_point(void) {
   basicvars.current++;
   y = eval_integer();           /* Get y coordinate of point */
   check_ateol();
-  emulate_plot(PLOT_POINT+DRAW_ABSOLUTE, x, y);
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'exec_pointby' deals with the Basic 'POINT BY' statement
-*/
-void exec_pointby(void) {
-  int32 x, y;
-
-  DEBUGFUNCMSGIN;
-  basicvars.current++;
-  x = eval_integer();           /* Get x coordinate of point */
-  if (*basicvars.current != ',') {
-    DEBUGFUNCMSGOUT;
-    error(ERR_COMISS);
-    return;
+  if (plotcode == -1) {
+    emulate_pointto(x, y);
+  } else {
+    emulate_plot(plotcode, x, y);
   }
-  basicvars.current++;
-  y = eval_integer();           /* Get y coordinate of point */
-  check_ateol();
-  emulate_plot(PLOT_POINT+DRAW_RELATIVE, x, y);
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'exec_pointto' deals with the Basic 'POINT TO' statement
-*/
-void exec_pointto(void) {
-  int32 x, y;
-
-  DEBUGFUNCMSGIN;
-  basicvars.current++;
-  x = eval_integer();           /* Get x coordinate of point */
-  if (*basicvars.current != ',') {
-    DEBUGFUNCMSGOUT;
-    error(ERR_COMISS);
-    return;
-  }
-  basicvars.current++;
-  y = eval_integer();           /* Get y coordinate of point */
-  check_ateol();
-  emulate_pointto(x, y);
   DEBUGFUNCMSGOUT;
 }
 

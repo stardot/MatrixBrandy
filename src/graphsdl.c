@@ -3491,10 +3491,12 @@ int32 emulate_tintfn(int32 x, int32 y) {
 }
 
 /*
-** 'emulate_pointto' emulates the 'POINT TO' statement
+** 'emulate_pointto' emulates the 'POINT TO' statement.
+** Repointed to MOUSE TO as that's a bit more useful.
 */
 void emulate_pointto(int32 x, int32 y) {
-  error(ERR_UNSUPPORTED);
+  //error(ERR_UNSUPPORTED);
+  mos_mouse_to(x,y);
 }
 
 /*

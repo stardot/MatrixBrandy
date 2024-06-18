@@ -133,6 +133,7 @@ static token tokens [] = {
   {"BEAT",      4, 4, TYPE_FUNCTION, BASTOKEN_BEAT,       TYPE_FUNCTION, BASTOKEN_BEAT,       FALSE, FALSE},
   {"BGET",      4, 1, TYPE_FUNCTION, BASTOKEN_BGET,       TYPE_FUNCTION, BASTOKEN_BGET,       TRUE,  FALSE},
   {"BPUT",      4, 2, TYPE_ONEBYTE,  BASTOKEN_BPUT,       TYPE_ONEBYTE,  BASTOKEN_BPUT,       TRUE,  FALSE},
+  {"BY",        2, 2, TYPE_ONEBYTE,  BASTOKEN_BY,         TYPE_ONEBYTE,  BASTOKEN_BY,         FALSE, FALSE},
   {"CALL",      4, 2, TYPE_ONEBYTE,  BASTOKEN_CALL,       TYPE_ONEBYTE,  BASTOKEN_CALL,       FALSE, FALSE}, /* 13 */
   {"CASE",      4, 3, TYPE_ONEBYTE,  BASTOKEN_XCASE,      TYPE_ONEBYTE,  BASTOKEN_XCASE,      FALSE, FALSE},
   {"CHAIN",     5, 2, TYPE_ONEBYTE,  BASTOKEN_CHAIN,      TYPE_ONEBYTE,  BASTOKEN_CHAIN,      FALSE, FALSE},
@@ -151,7 +152,6 @@ static token tokens [] = {
   {"DEG",       3, 2, TYPE_FUNCTION, BASTOKEN_DEG,        TYPE_FUNCTION, BASTOKEN_DEG,        FALSE, FALSE},
   {"DIM",       3, 3, TYPE_ONEBYTE,  BASTOKEN_DIM,        TYPE_ONEBYTE,  BASTOKEN_DIM,        FALSE, FALSE},
   {"DIV",       3, 2, TYPE_ONEBYTE,  BASTOKEN_DIV,        TYPE_ONEBYTE,  BASTOKEN_DIV,        FALSE, FALSE},
-  {"DRAWBY",    6, 5, TYPE_ONEBYTE,  BASTOKEN_DRAWBY,     TYPE_ONEBYTE,  BASTOKEN_DRAWBY,     FALSE, FALSE},
   {"DRAW",      4, 2, TYPE_ONEBYTE,  BASTOKEN_DRAW,       TYPE_ONEBYTE,  BASTOKEN_DRAW,       FALSE, FALSE},
   {"ELLIPSE",   7, 3, TYPE_ONEBYTE,  BASTOKEN_ELLIPSE,    TYPE_ONEBYTE,  BASTOKEN_ELLIPSE,    FALSE, FALSE}, /* 33 */
   {"ELSE",      4, 2, TYPE_ONEBYTE,  BASTOKEN_XELSE,      TYPE_ONEBYTE,  BASTOKEN_XELSE,      FALSE, TRUE},
@@ -200,7 +200,6 @@ static token tokens [] = {
   {"MODE",      4, 2, TYPE_ONEBYTE,  BASTOKEN_MODE,       TYPE_ONEBYTE,  BASTOKEN_MODE,       FALSE, FALSE},
   {"MOD",       3, 3, TYPE_ONEBYTE,  BASTOKEN_MOD,        TYPE_ONEBYTE,  BASTOKEN_MOD,        FALSE, FALSE},
   {"MOUSE",     5, 3, TYPE_ONEBYTE,  BASTOKEN_MOUSE,      TYPE_ONEBYTE,  BASTOKEN_MOUSE,      FALSE, FALSE},
-  {"MOVEBY",    6, 6, TYPE_ONEBYTE,  BASTOKEN_MOVEBY,     TYPE_ONEBYTE,  BASTOKEN_MOVEBY,     FALSE, FALSE},
   {"MOVE",      4, 3, TYPE_ONEBYTE,  BASTOKEN_MOVE,       TYPE_ONEBYTE,  BASTOKEN_MOVE,       FALSE, FALSE},
   {"NEXT",      4, 1, TYPE_ONEBYTE,  BASTOKEN_NEXT,       TYPE_ONEBYTE,  BASTOKEN_NEXT,       FALSE, FALSE}, /* 82 */
   {"NOT",       3, 3, TYPE_ONEBYTE,  BASTOKEN_NOT,        TYPE_ONEBYTE,  BASTOKEN_NOT,        FALSE, FALSE},
@@ -218,8 +217,6 @@ static token tokens [] = {
   {"PAGE",      4, 2, TYPE_FUNCTION, BASTOKEN_PAGE,       TYPE_FUNCTION, BASTOKEN_PAGE,       TRUE,  FALSE}, /* 95 */
   {"PI",        2, 2, TYPE_FUNCTION, BASTOKEN_PI,         TYPE_FUNCTION, BASTOKEN_PI,         TRUE,  FALSE},
   {"PLOT",      4, 2, TYPE_ONEBYTE,  BASTOKEN_PLOT,       TYPE_ONEBYTE,  BASTOKEN_PLOT,       FALSE, FALSE},
-  {"POINTTO",   7, 7, TYPE_ONEBYTE,  BASTOKEN_POINTTO,    TYPE_ONEBYTE,  BASTOKEN_POINTTO,    FALSE, FALSE},
-  {"POINTBY",   7, 7, TYPE_ONEBYTE,  BASTOKEN_POINTBY,    TYPE_ONEBYTE,  BASTOKEN_POINTBY,    FALSE, FALSE},
   {"POINT(",    6, 2, TYPE_FUNCTION, BASTOKEN_POINTFN,    TYPE_FUNCTION, BASTOKEN_POINTFN,    FALSE, FALSE},
   {"POINT",     5, 5, TYPE_ONEBYTE,  BASTOKEN_POINT,      TYPE_ONEBYTE,  BASTOKEN_POINT,      FALSE, FALSE},
   {"POS",       3, 3, TYPE_FUNCTION, BASTOKEN_POS,        TYPE_FUNCTION, BASTOKEN_POS,        TRUE,  FALSE},
@@ -316,13 +313,13 @@ static token tokens [] = {
 #define TOKTABSIZE (sizeof(tokens)/sizeof(token))
 
 static int start_letter [] = {
-  0, 9, 13, 26, 33, 50, 55, 60, 61, NOKEYWORD, NOKEYWORD, 67, 76, 82, 84, 95,
-  106, 107, 120, 134, 143, 145, 151, 155, NOKEYWORD, NOKEYWORD
+  0, 9, 14, 27, 33, 50, 55, 60, 61, NOKEYWORD, NOKEYWORD, 67, 76, 81, 83, 94,
+  103, 104, 117, 131, 140, 142, 148, 152, NOKEYWORD, NOKEYWORD
 };
 
 static int command_start [] = { /* Starting positions for commands in 'tokens' */
-  156, NOKEYWORD, 158, 159, 160, NOKEYWORD, NOKEYWORD, 162, 163, NOKEYWORD,
-  NOKEYWORD, 164, NOKEYWORD, 172, 173, NOKEYWORD, 174, 175, 177, 179,
+  153, NOKEYWORD, 155, 156, 157, NOKEYWORD, NOKEYWORD, 159, 160, NOKEYWORD,
+  NOKEYWORD, 161, NOKEYWORD, 169, 170, NOKEYWORD, 171, 172, 174, 176,
   NOKEYWORD, NOKEYWORD, NOKEYWORD, NOKEYWORD, NOKEYWORD, NOKEYWORD
 };
 
@@ -604,6 +601,8 @@ static char *copy_line(char *lp) {
   return lp;
 }
 
+#if 0
+// Disabled - no longer used as DRAW BY etc are now two tokens
 /*
 ** 'nextis' is called to check if the next non-blank characters match
 ** the string given by 'string'. It returns 'true' if they do. This
@@ -619,6 +618,7 @@ static boolean nextis(char *string) {
   DEBUGFUNCMSGOUT;
   return *cp != asc_NUL && strncmp(cp, string, strlen(string)) == 0;
 }
+#endif
 
 /*
 ** "kwsearch" checks to see if the text passed to it is a token, returning
@@ -738,16 +738,6 @@ static void copy_keyword(int token) {
     tokvalue = tokens[token].value;
   }
   firstitem = FALSE;
-  if (toktype == TYPE_ONEBYTE) {                /* Check for keywords such as 'DRAW' and 'MOVE' */
-    if ((tokvalue == BASTOKEN_DRAW || tokvalue == BASTOKEN_MOVE || tokvalue == BASTOKEN_POINT) && nextis("BY")) {
-      tokvalue++;       /* Got 'DRAW BY', 'MOVE BY' or 'POINT BY' */
-      lp = skip_blanks(lp)+2;
-    }
-    else if (tokvalue == BASTOKEN_POINT && nextis("TO")) {
-      tokvalue = BASTOKEN_POINTTO; /* Got 'POINT TO' */
-      lp = skip_blanks(lp)+2;
-    }
-  }
   if (toktype != TYPE_ONEBYTE) store(toktype);
   store(tokvalue);
   if (tokens[token].name[tokens[token].length-1] == '(') brackets++;    /* Allow for '(' in things like 'TAB(' */
@@ -1591,10 +1581,10 @@ static int skiptable [] = {
   0,         0,         2*OFFSIZE, 2*OFFSIZE,               /* B0..B3 */ /* IF */
   2*OFFSIZE, 0,         0,         0,                       /* B4..B7 */ /* IF */
   0,         0,         0,         0,                       /* B8..BB */
-  0,         0,         0,         0,                       /* BC..BF */
+  0,         1,         0,         0,                       /* BC..BF */
   0,         0,         0,         0,                       /* C0..C3 */
   0,         OFFSIZE,   OFFSIZE,   0,                       /* C4..C7 */ /* OTHERWISE */
-  0,         0,         0,         0,                       /* C8..CB */
+  0,         0,         -1,        -1,                      /* C8..CB */
   0,         0,         0,         0,                       /* CC..CF */
   0,         0,         0,         0,                       /* D0..D3 */
   0,         0,         0,         0,                       /* D4..D7 */
@@ -1603,7 +1593,7 @@ static int skiptable [] = {
   0,         0,         0,         0,                       /* E0..E3 */
   0,         0,         0,         0,                       /* E4..E7 */
   0,         OFFSIZE,   OFFSIZE,   OFFSIZE,                 /* E8..EB */ /* WHEN, WHILE */
-  OFFSIZE,    0,        1,         -1,                      /* EC..EF */ /* WHEN, WHILE */
+  OFFSIZE,    0,        -1,        -1,                      /* EC..EF */ /* WHEN, WHILE */
   -1, -1, -1, -1, -1, -1, -1, -1,                           /* F0..F7 */
   -1, -1, -1, -1, 1, 1, 1, 1                                /* F8..FF */
 };
@@ -1706,7 +1696,7 @@ static char *onebytelist [] = { /* Token -> keyword name */
   "CASE",      "CASE",      "CHAIN",     "CIRCLE",          /* 90..93 */
   "CLG",       "CLEAR",     "CLOSE",     "CLS",             /* 94..97 */
   "COLOUR",    "DATA",      "DEF",       "DIM",             /* 98..9B */
-  "DRAW",      "DRAW BY",   "ELLIPSE",   "ELSE",            /* 9C..9F */
+  "DRAW",      "BY",        "ELLIPSE",   "ELSE",            /* 9C..9F */
   "ELSE",      "ELSE",      "ELSE",      "END",             /* A0..A3 */
   "ENDCASE",   "ENDIF",     "ENDPROC",   "ENDWHILE",        /* A4..A7 */
   "ENVELOPE",  "ERROR",     "FALSE",     "FILL",            /* A8..AB */
@@ -1714,10 +1704,10 @@ static char *onebytelist [] = { /* Token -> keyword name */
   "GOSUB",     "GOTO",      "IF",        "IF",              /* B0..B3 */
   "IF",        "INPUT",     "LET",       "LIBRARY",         /* B4..B7 */
   "LINE",      "LOCAL",     "MODE",      "MOUSE",           /* B8..BB */
-  "MOVE",      "MOVE BY",   "NEXT",      "NOT",             /* BC..BF */
+  "MOVE",      "EXIT",      "NEXT",      "NOT",             /* BC..BF */
   "OF",        "OFF",       "ON",        "ORIGIN",          /* C0..C3 */
   "OSCLI",     "OTHERWISE", "OTHERWISE", "OVERLAY",         /* C4..C7 */
-  "PLOT",      "POINT",     "POINT BY",  "POINT TO",        /* C8..CB */
+  "PLOT",      "POINT",      NIL,         NIL,              /* C8..CB */
   "PRINT",     "PROC",      "QUIT",      "READ",            /* CC..CF */
   "RECTANGLE", "REM",       "REPEAT",    "REPORT",          /* D0..D3 */
   "RESTORE",   "RETURN",    "RUN",       "SOUND",           /* D4..D7 */
@@ -1726,7 +1716,7 @@ static char *onebytelist [] = { /* Token -> keyword name */
   "TINT",      "TO",        "TRACE",     "TRUE",            /* E0..E3 */
   "UNTIL",     "VDU",       "VOICE",     "VOICES",          /* E4..E7 */
   "WAIT",      "WHEN",      "WHEN",      "WHILE",           /* E8..EB */
-  "WHILE",     "WIDTH",     "EXIT",       NIL,              /* EC..EF */
+  "WHILE",     "WIDTH",      NIL,         NIL,              /* EC..EF */
    NIL,  NIL,   NIL,  NIL,   NIL,  NIL,   NIL,  NIL,        /* F0..F7 */
    NIL,  NIL,   NIL,  NIL,   NIL,  NIL,   NIL,  NIL         /* F8..FF */
 };
