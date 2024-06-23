@@ -339,8 +339,7 @@ interpreter's limit of 255. The list of differences are as follows:
     the Acorn keynumbers as closely as possible, there are inevitably a small
     handful of differences due to physical keyboard hardware differences.
 6)  Not all of the VDU commands have been implemented.
-7)  'WIDTH' has not been implemented. 'PRINT' leaves something to be desired
-    too.
+7)  'PRINT' leaves something to be desired.
 8)  The TRACE option 'TRACE STEP' has not been implemented yet.
 9)  A new TRACE option 'TRACE VDU' has been added, this redirects TRACE output
     to the controlling terminal.
@@ -1301,8 +1300,8 @@ Known Problems
 There are no major known bugs in the program but there are a few minor issues
 as follows:
 
-1)      'PRINT' could be better implemented. 'WIDTH' is not handled correctly
-        and the way in which floating point numbers are output could be better.
+1)      'PRINT' could be better implemented. The way in which floating point
+        numbers are output could be better.
 
 2)      If an error occurs when renumbering the lines of a program when the
         program is being loaded, the line number of the line in error is not

@@ -3904,8 +3904,6 @@ by the PRINT statement to <expression> characters. It
 automatically wraps round to the next line when that number is
 reached. The default is the width of the screen or text window.
 
-This version of the interpreter ignores WIDTH.
-
 Example:
         WIDTH 40
 
