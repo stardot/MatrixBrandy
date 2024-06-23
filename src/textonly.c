@@ -1340,7 +1340,13 @@ void emulate_vdustr(char string[], int32 length) {
   int32 n;
   if (length==0) length = strlen(string);
   echo_off();
-  for (n=0; n<length; n++) emulate_vdu(string[n]);      /* Send the string to the VDU driver */
+  for (n=0; n<length; n++) {
+    emulate_vdu(string[n]);      /* Send the string to the VDU driver */
+    if ((basicvars.printwidth > 0) && (emulate_pos() == basicvars.printwidth)) {
+      emulate_vdu(13);
+      emulate_vdu(10);
+    }
+  }
   echo_on();
 }
 

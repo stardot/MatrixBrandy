@@ -94,13 +94,15 @@ void emulate_vdu(int32 charvalue) {
 ** 'emulate_vdustr' is called to write a character string to the screen
 */
 void emulate_vdustr(char *string, int32 length) {
-  _kernel_oserror *oserror;
-  _kernel_swi_regs regs;
-  if (length == 0) length = strlen(string);
-  regs.r[0] = (int)(string);
-  regs.r[1] = length;
-  oserror = _kernel_swi(OS_WriteN, &regs, &regs);
-  if (oserror != NIL) error(ERR_CMDFAIL, oserror->errmess);
+  int32 n;
+  if (length==0) length = strlen(string);
+  for (n=0; n<length; n++) {
+    _kernel_oswrch(string[n]);      /* Send the string to the VDU driver */
+    if ((basicvars.printwidth > 0) && (emulate_pos() == basicvars.printwidth)) {
+      _kernel_oswrch(13);
+      _kernel_oswrch(10);
+    }
+  }
 }
 
 /*
