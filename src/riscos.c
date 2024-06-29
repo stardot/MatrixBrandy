@@ -98,9 +98,11 @@ void emulate_vdustr(char *string, int32 length) {
   if (length==0) length = strlen(string);
   for (n=0; n<length; n++) {
     _kernel_oswrch(string[n]);      /* Send the string to the VDU driver */
-    if ((basicvars.printwidth > 0) && (emulate_pos() == basicvars.printwidth)) {
-      _kernel_oswrch(13);
-      _kernel_oswrch(10);
+    if (basicvars.printwidth > 0) { /* Separate to two levels for performance */
+      if (emulate_pos() == basicvars.printwidth) {
+        _kernel_oswrch(13);
+        _kernel_oswrch(10);
+      }
     }
   }
 }
