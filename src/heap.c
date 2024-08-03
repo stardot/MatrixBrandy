@@ -96,7 +96,7 @@ static void *mymap (size_t size)
 ** heap
 */
 boolean init_heap(void) {
-  basicvars.stringwork = malloc(MAXSTRING);
+  basicvars.stringwork = malloc(MAXSTRING+4);
   return basicvars.stringwork!=NIL;
 }
 

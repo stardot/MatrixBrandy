@@ -648,7 +648,7 @@ void sdl_voice(int32 channel, char *name) {
   n= ch-'0';
  } else {
   for(i=1;i<=9;i++)
-   if( strcmp(name,voicetab[i]) == 0) {
+   if( strncmp(name,voicetab[i], strlen(name)+1) == 0) {
     n = i;
     break;
    }

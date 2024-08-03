@@ -74,6 +74,10 @@ extern int32 sgnf(float64);
 extern void string_zeroterm(char *);
 extern char *translatefname(char *);
 
+#ifndef TARGET_OPENBSD
+extern char *my_strlcpy(char *dest, const char *src, size_t n);
+#endif
+
 #ifdef USE_SDL
 extern Uint8 mode7frame[26][40];
 #endif

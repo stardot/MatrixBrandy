@@ -115,7 +115,7 @@ void trace_line(int32 lineno) {
   int32 len;
 
   DEBUGFUNCMSGIN;
-  len = sprintf(basicvars.stringwork, "[%d]", lineno);
+  len = snprintf(basicvars.stringwork, MAXSTRING, "[%d]", lineno);
   if (basicvars.tracehandle == 0)       { /* Trace output goes to screen */
     if (basicvars.traces.console)
       fprintf(stderr, "%s", basicvars.stringwork);
@@ -139,9 +139,9 @@ void trace_proc(char *np, boolean entering) {
   DEBUGFUNCMSGIN;
   np++;
   if (entering) /* Entering procedure or function */
-    len = sprintf(basicvars.stringwork, "==>%s%s ", what, np);
+    len = snprintf(basicvars.stringwork, MAXSTRING, "==>%s%s ", what, np);
   else {        /* Leaving procedure or function */
-    len = sprintf(basicvars.stringwork, "%s%s--> ", what, np);
+    len = snprintf(basicvars.stringwork, MAXSTRING, "%s%s--> ", what, np);
   }
   if (basicvars.tracehandle == 0)       { /* Trace output goes to screen */
     if (basicvars.traces.console)
@@ -170,7 +170,7 @@ void trace_branch(byte *from, byte *to) {
   fromline = find_linestart(from);
   toline = find_linestart(to);
   if (fromline == NIL || toline == NIL) return; /* Do not trace anything if at command line */
-  len = sprintf(basicvars.stringwork, "[%d->%d]", GET_LINENO(fromline), GET_LINENO(toline));
+  len = snprintf(basicvars.stringwork, MAXSTRING, "[%d->%d]", GET_LINENO(fromline), GET_LINENO(toline));
   if (basicvars.tracehandle == 0)       { /* Trace output goes to screen */
     if (basicvars.traces.console)
       fprintf(stderr, "%s", basicvars.stringwork);

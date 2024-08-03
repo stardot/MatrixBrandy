@@ -7,6 +7,8 @@ build. As of version 1.23.2 this flag is automatically applied for builds
 made from git in the master branch, and from tarballs with no git information.
 
 * 1.23.3 - 
+- General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag
+  Talon for this!
 - BASIC: Implemented EXIT FOR, EXIT REPEAT and EXIT WHILE, based on the
   extensions in Richard Russell's BB4W, BBCSDL, BBCTTY and BBCZ80v5.
 - BASIC: Implement == to be synonymous with = in comparisons. Another

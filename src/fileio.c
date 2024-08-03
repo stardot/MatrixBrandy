@@ -667,8 +667,9 @@ int32 fileio_openin(char *name, int32 namelen) {
   thefile = fopen(filename, INMODE);
   if (thefile==NIL) {
     char filenameb[FNAMESIZE];
-    strncpy(filenameb, filename, FNAMESIZE);
-    strcat(filenameb, ".bbc"); /* Append a .bbc suffix and try again */
+    STRLCPY(filenameb, filename, FNAMESIZE);
+    /* Append a .bbc suffix and try again */
+    STRLCAT(filenameb, ".bbc", FNAMESIZE);
     thefile = fopen(filenameb, INMODE);
     if (thefile==NIL) {
       if (matrixflags.translatefname == 0) {
@@ -770,8 +771,8 @@ int32 fileio_openup(char *name, int32 namelen) {
 #endif
     thefile = fopen(filename, UPMODE);
     if (thefile==NIL) {
-      strncpy(filenameb, filename, FNAMESIZE);
-      strcat(filenameb, ".bbc"); /* Append a .bbc suffix and try again */
+      STRLCPY(filenameb, filename, FNAMESIZE);
+      STRLCAT(filenameb, ".bbc", FNAMESIZE); /* Append a .bbc suffix and try again */
       thefile = fopen(filenameb, UPMODE);
       if (thefile==NIL) {
         if (matrixflags.translatefname == 0) {

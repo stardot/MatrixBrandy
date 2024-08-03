@@ -1363,7 +1363,7 @@ void emulate_printf(char *format, ...) {
   va_list parms;
   char text [MAXSTRING];
   va_start(parms, format);
-  length = vsprintf(text, format, parms);
+  length = vsnprintf(text, MAXSTRING, format, parms);
   va_end(parms);
   echo_off();
   for (n = 0; n < length; n++) emulate_vdu(text[n]);

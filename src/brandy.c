@@ -405,25 +405,25 @@ static void check_configfile() {
       parameter++;
     }
 
-    if(!strcmp(item, "nocheck")) {
+    if(!strncmp(item, "nocheck", 8)) {
       matrixflags.checknewver = FALSE;
 #ifdef USE_SDL
-    } else if(!strcmp(item, "fullscreen")) {
+    } else if(!strncmp(item, "fullscreen", 11)) {
       basicvars.runflags.startfullscreen=TRUE;
-    } else if(!strcmp(item, "nofull")) {
+    } else if(!strncmp(item, "nofull", 7)) {
       matrixflags.neverfullscreen=TRUE;
-    } else if(!strcmp(item, "swsurface")) {
+    } else if(!strncmp(item, "swsurface", 10)) {
       basicvars.runflags.swsurface=TRUE;
 #endif
-    } else if(!strcmp(item, "tek")) {
+    } else if(!strncmp(item, "tek", 4)) {
       matrixflags.tekenabled=1;
-    } else if(!strcmp(item, "ignore")) {
+    } else if(!strncmp(item, "ignore", 8)) {
       basicvars.runflags.flag_cosmetic = FALSE;
-    } else if(!strcmp(item, "strict")) {
+    } else if(!strncmp(item, "strict", 7)) {
       basicvars.runflags.flag_cosmetic = TRUE;
-    } else if(!strcmp(item, "nostar")) {
+    } else if(!strncmp(item, "nostar", 7)) {
       basicvars.runflags.ignore_starcmd = TRUE;
-    } else if(!strcmp(item, "size")) {
+    } else if(!strncmp(item, "size", 5)) {
       char *sp;
       worksize = CAST(strtol(parameter, &sp, 10), size_t);  /* Fetch workspace size (n.b. no error checking) */
       if (tolower(*sp)=='k') {          /* Size is in kilobytes */
@@ -434,19 +434,20 @@ static void check_configfile() {
         worksize = worksize*1024*1024*1024;
       }
 #ifndef BRANDY_MODE7ONLY
-    } else if(!strcmp(item, "startupmode")) {
+    } else if(!strncmp(item, "startupmode", 12)) {
       char *sp;
       matrixflags.startupmode = CAST(strtol(parameter, &sp, 10), size_t);  /* startup mode */
 #endif
-    } else if(!strcmp(item, "path")) {
+    } else if(!strncmp(item, "path", 5)) {
       if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
       basicvars.loadpath = malloc(strlen(parameter)+1);         /* +1 for the NUL */
       if (basicvars.loadpath==NIL) {    /* No memory available */
         cmderror(CMD_NOMEMORY);
         exit(EXIT_FAILURE);
       }
-      strcpy(basicvars.loadpath, parameter);
-    } else if(!strcmp(item, "lib")) {
+      /* This is safe, the required space is allocated a few lines above. */
+      STRLCPY(basicvars.loadpath, parameter, FNAMESIZE);
+    } else if(!strncmp(item, "lib", 4)) {
       struct loadlib *p = malloc(sizeof(struct loadlib));
       if (p==NIL) {
         cmderror(CMD_NOMEMORY);
@@ -461,15 +462,15 @@ static void check_configfile() {
         }
         liblast = p;
       }
-    } else if(!strcmp(item, "intusesfloat")) {
+    } else if(!strncmp(item, "intusesfloat", 13)) {
       matrixflags.int_uses_float = TRUE;
-    } else if(!strcmp(item, "legacyintmaths")) {
+    } else if(!strncmp(item, "legacyintmaths", 15)) {
       matrixflags.legacyintmaths = TRUE;
-    } else if(!strcmp(item, "hex64")) {
+    } else if(!strncmp(item, "hex64", 6)) {
       matrixflags.hex64 = TRUE;
-    } else if(!strcmp(item, "bitshift64")) {
+    } else if(!strncmp(item, "bitshift64", 11)) {
       matrixflags.bitshift64 = TRUE;
-    } else if(!strcmp(item, "pseudovarsunsigned")) {
+    } else if(!strncmp(item, "pseudovarsunsigned", 19)) {
       matrixflags.pseudovarsunsigned = TRUE;
     }
   }
@@ -577,7 +578,8 @@ static void check_cmdline(int argc, char *argv[]) {
             cmderror(CMD_NOMEMORY);
             exit(EXIT_FAILURE);
           }
-          strcpy(basicvars.loadpath, argv[n]);
+          /* This is safe, the required space is allocated a few lines above. */
+          STRLCPY(basicvars.loadpath, argv[n], FNAMESIZE);
         }
       }
       else if (optchar=='s') {              /* -size */
@@ -757,7 +759,7 @@ static void *run_interpreter(void *dummydata) {
       init_expressions();
       memset(basicvars.program, 0, FNAMESIZE);
       if (strlen(loadfile) < FNAMESIZE ) {
-        strncpy(basicvars.program, loadfile, FNAMESIZE-1);      /* Save the name of the file */
+        STRLCPY(basicvars.program, loadfile, FNAMESIZE);      /* Save the name of the file */
       }
       if (basicvars.runflags.loadngo) run_program(basicvars.start);     /* Start program execution */
     }

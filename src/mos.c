@@ -649,7 +649,7 @@ void mos_setend(int32 newend) {
 */
 void mos_oscli(char *command, char *respfile, FILE *respfh) {
   if (respfile==NIL) {  /* Command output goes to normal place */
-    if (!strcasecmp(command, "brandyinfo")) {
+    if (!strncasecmp(command, "brandyinfo", 10)) {
       cmd_brandyinfo();
     } else if ( (!strncasecmp(command, "refresh", 7)) ||
                 (!strncasecmp(command, "fullscreen", 10)) ||
@@ -664,9 +664,9 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
     }
   }
   else {        /* Want response back from command */
-    strcat(command, "{ > ");
-    strcat(command, respfile);
-    strcat(command, " }");
+    STRLCAT(command, "{ > ", MAXSTRING);
+    STRLCAT(command, respfile, MAXSTRING);
+    STRLCAT(command, " }", MAXSTRING);
     basicvars.retcode = _kernel_oscli(command);
     if (basicvars.retcode<0) {  /* Call failed */
       remove(respfile);
@@ -1381,7 +1381,7 @@ int get_cmdvalue(char *name) {
 
   for(;;) {
     if(cmdtab[i].name == (char*)0 ) return CMD_UNKNOWN;
-    if(cmdtab[i].hash == h && (strcmp(name,cmdtab[i].name)==0)){
+    if(cmdtab[i].hash == h && (strncmp(name,cmdtab[i].name, strlen(name))==0)){
       return cmdtab[i].value;
     }
     i=((i+1)&(CMDTABSIZE-1));
@@ -1446,17 +1446,17 @@ static void strip_quotes(char *buffer) {
  * column spacing to work in any 20/40/80 screen mode.
  */
 static void cmd_cat(char *command) {
-  char dbuf[FILENAME_MAX+1];
-  char fbuf[FILENAME_MAX+1];
+  char dbuf[FNAMESIZE+1];
+  char fbuf[FNAMESIZE+1];
   int buflen=0, loop=0;
   struct dirent *entry;
   DIR *dirp;
   struct stat statbuf;
 
-  memset(dbuf,0,FILENAME_MAX+1);
-  memset(fbuf,0,FILENAME_MAX+1);
-  getcwd(dbuf, FILENAME_MAX);
-  buflen=FILENAME_MAX - strlen(dbuf);
+  memset(dbuf,0,FNAMESIZE+1);
+  memset(fbuf,0,FNAMESIZE+1);
+  getcwd(dbuf, FNAMESIZE);
+  buflen=FNAMESIZE - strlen(dbuf);
   while (*command && (*command != ' ')) command++;      // Skip command
   while (*command == ' ') command++;                    // Skip spaces
   if (strlen(command)) {
@@ -1468,8 +1468,8 @@ static void cmd_cat(char *command) {
       strncpy(dbuf, command, buflen);
     } else {
       buflen--;
-      strncat(dbuf, "/", buflen);
-      strncat(dbuf, command, buflen-strlen(command));
+      STRLCAT(dbuf, "/", buflen);
+      STRLCAT(dbuf, command, buflen);
     }
   }
   emulate_printf("Dir. %s\r\n", dbuf);
@@ -1480,10 +1480,10 @@ static void cmd_cat(char *command) {
   } else {
     emulate_printf("\r\n", dbuf);
     while ((entry = readdir(dirp)) != NULL) {
-      if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
-      strncpy(fbuf, dbuf, FILENAME_MAX+1);
-      strncat(fbuf, "/", 2);
-      strncat(fbuf, entry->d_name, FILENAME_MAX - strlen(dbuf));
+      if (!strncmp(entry->d_name, ".", 2) || !strncmp(entry->d_name, "..", 3)) continue;
+      strncpy(fbuf, dbuf, FNAMESIZE+1);
+      STRLCAT(fbuf, "/", FNAMESIZE);
+      STRLCAT(fbuf, entry->d_name, FNAMESIZE);
       stat(fbuf, &statbuf);
       emulate_printf("%s", entry->d_name);
       loop=(1000 - (5+strlen(entry->d_name))) % 20;
@@ -1532,10 +1532,9 @@ static void cmd_fullscreen(char *command) {
   int flag=3;
   while (*command == ' ') command++;    // Skip spaces
   if (strlen(command) == 0) flag=2;
-  if (strcmp(command, "1" ) == 0) flag=1;
-  if (strcmp(command, "0" ) == 0) flag=0;
-  if (strcasecmp(command, "on" ) == 0) flag=1;
-  if (strcasecmp(command, "off" ) == 0) flag=0;
+  if ((command[0] == '1') || (command[0] == '0')) flag=command[0]-48;
+  if (strncasecmp(command, "on", 3) == 0) flag=1;
+  if (strncasecmp(command, "off", 4) == 0) flag=0;
   if (flag != 3) {
     tmsg.modechange = 0x400 + (flag);
     while (tmsg.modechange >= 0) usleep(1000);
@@ -1631,11 +1630,11 @@ static void cmd_refresh(char *command) {
   if (strlen(command) == 0) {
     star_refresh(3);
   } else {
-    if (strcasecmp(command, "onerror") == 0) {
+    if (strncasecmp(command, "onerror", 8) == 0) {
       flag=2;
-    } else if (strcasecmp(command, "on") == 0) {
+    } else if (strncasecmp(command, "on", 3) == 0) {
       flag=1;
-    } else if (strcasecmp(command, "off") == 0) {
+    } else if (strncasecmp(command, "off", 4) == 0) {
       flag=2;
     }
     if (flag == 3) {
@@ -2122,9 +2121,9 @@ static int check_command(char *text) {
     text++;
   }
   command[length] = 0;
-//if (strcmp(command, "cat")    == 0) return CMD_CAT; /* Disabled, *. works but *cat is passed to OS */
-//if (strcmp(command, "window") == 0) return CMD_WINDOW;
-//if (strcmp(command, "title")  == 0) return CMD_TITLE;
+//if (strncmp(command, "cat", 4)    == 0) return CMD_CAT; /* Disabled, *. works but *cat is passed to OS */
+//if (strncmp(command, "window", 7) == 0) return CMD_WINDOW;
+//if (strncmp(command, "title", 6)  == 0) return CMD_TITLE;
 
   if(cmdtab == (cmdtabent*)0) make_cmdtab();
   return get_cmdvalue(command);
@@ -2205,14 +2204,15 @@ HANDLE g_hInputFile = NULL;
 
 /* Create a child process that uses the previously created pipes for STDIN and STDOUT. */
 void CreateChildProcess(char *procname) {
-  char cmdLine[256];
+  int cmdLineLen = 256;
+  char cmdLine[cmdLineLen];
   PROCESS_INFORMATION piProcInfo;
   STARTUPINFO siStartInfo;
   BOOL bSuccess = FALSE;
 
   *cmdLine='\0';
-  strcat(cmdLine, "cmd /c ");
-  strncat(cmdLine, procname, 247);
+  STRLCAT(cmdLine, "cmd /c ", cmdLineLen);
+  STRLCAT(cmdLine, procname, cmdLineLen);
 
 // Set up members of the PROCESS_INFORMATION structure.
   ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
@@ -2309,8 +2309,8 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       return;
     }
   } else {                              /* Want response back from command */
-    strcat(cmdbuf, " >");
-    strcat(cmdbuf, respfile);
+    STRLCAT(cmdbuf, " >", clen);
+    STRLCAT(cmdbuf, respfile, clen);
     basicvars.retcode = system(cmdbuf);
     find_cursor();                      /* Figure out where the cursor has gone to */
 #if defined(TARGET_MINGW)
@@ -2330,7 +2330,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 */
   if (respfile == NIL) {                /* Command output goes to normal place */
 #ifdef USE_SDL
-    strcat(cmdbuf, " 2>&1");
+    STRLCAT(cmdbuf, " 2>&1", clen);
     sout = popen(cmdbuf, "r");
     if (sout == NULL) {
       error(ERR_CMDFAIL);
@@ -2352,7 +2352,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
 #endif
   } else {                              /* Want response back from command */
-    strcat(cmdbuf, " 2>&1");
+    STRLCAT(cmdbuf, " 2>&1", clen);
     sout = popen(cmdbuf, "r");
     if (sout == NULL) {
       fclose(respfh);
@@ -2383,7 +2383,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 */
   if (respfile == NIL) {                /* Command output goes to normal place */
 #ifdef USE_SDL
-    //strcat(cmdbuf, " 2>&1");
+    //STRLCAT(cmdbuf, " 2>&1", clen);
 
 // Create a pipe for the child process's STDOUT.
     if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0)) {
@@ -2437,7 +2437,7 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
     }
 #endif /* USE_SDL */
   } else {                              /* Want response back from command */
-    strcat(cmdbuf, " 2>&1");
+    STRLCAT(cmdbuf, " 2>&1", clen);
     sout = popen(cmdbuf, "r");
     if (sout == NULL) {
       fclose(respfh);
@@ -2474,12 +2474,11 @@ void mos_getswiname(size_t swino, size_t namebuf, size_t buflen, int32 inxflag) 
   *swiname_result='\0';
   if (swino & XBIT) {
     swino &= ~XBIT;
-    strncat(swiname_result, "X",2);
-    buflen--;
+    STRLCAT(swiname_result, "X", buflen);
   }
   for (ptr=0; swilist[ptr].swinum!=0xFFFFFFFF; ptr++) {
     if (swino == swilist[ptr].swinum) {
-      strncat(swiname_result, swilist[ptr].swiname, buflen);
+      STRLCAT(swiname_result, swilist[ptr].swiname, buflen);
       break;
     }
   }
@@ -2494,7 +2493,8 @@ void mos_getswiname(size_t swino, size_t namebuf, size_t buflen, int32 inxflag) 
 size_t mos_getswinum(char *name, int32 length, int32 inxflag) {
   int32 ptr;
   int32 xflag=0;
-  char namebuffer[128];
+  int32 namebufferLen = 128;
+  char namebuffer[namebufferLen];
 
   if (name[0] == 'X') {
     name++;

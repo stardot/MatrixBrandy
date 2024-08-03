@@ -392,12 +392,12 @@ void renumber_program(byte *progstart, int32 start, int32 step) {
 */
 static FILE *open_file(char *name) {
   FILE *handle;
-  strcpy(basicvars.filename, name);
+  STRLCPY(basicvars.filename, name, FNAMESIZE);
   handle = fopen(name, "rb");
 #ifndef TARGET_RISCOS
   if (handle!=NIL) return handle;
   /* Retry with a .bbc suffix */
-  strcat(basicvars.filename, ".bbc");
+  STRLCAT(basicvars.filename, ".bbc", FNAMESIZE);
   handle = fopen(basicvars.filename, "rb");
 #endif
   if (handle!=NIL || basicvars.loadpath==NIL || isapath(name)) {
@@ -405,7 +405,7 @@ static FILE *open_file(char *name) {
 /* File not found but there is a list of directories to search */
   } else {
     char *dest, *srce = basicvars.loadpath;
-    strcpy(basicvars.filename, name); /* Reset */
+    STRLCPY(basicvars.filename, name, FNAMESIZE); /* Reset */
     do {
       dest = basicvars.filename;
       if (*srce!=',') {         /* Not got a null directory name */
@@ -420,12 +420,12 @@ static FILE *open_file(char *name) {
         }
       }
       *dest = asc_NUL;
-      strcat(basicvars.filename, name);
+      STRLCAT(basicvars.filename, name, FNAMESIZE);
       handle = fopen(basicvars.filename, "rb");
       if (handle!=NIL || *srce==asc_NUL) break; /* File found or end of directory list reached */
 #ifndef TARGET_RISCOS
       /* Add a .bbc suffix and try again */
-      strcat(basicvars.filename, ".bbc");
+      STRLCAT(basicvars.filename, ".bbc", FNAMESIZE);
       handle = fopen(basicvars.filename, "rb");
       if (handle!=NIL || *srce==asc_NUL) break; /* File found or end of directory list reached */
 #endif
@@ -846,7 +846,7 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
     lp->libflink = basicvars.installist;
     basicvars.installist = lp;
   }
-  strcpy(lp->libname, name);
+  STRLCPY(lp->libname, name, strlen(name)+1);
   lp->libstart = base;
   lp->libsize = size;
   lp->libfplist = NIL;
@@ -941,7 +941,7 @@ void read_library(char *name, boolean onheap) {
   else {
     lp = basicvars.installist;
   }
-  while (lp != NIL && strcmp(lp->libname, name) != 0) lp = lp->libflink;
+  while (lp != NIL && strncmp(lp->libname, name, strlen(name)+1) != 0) lp = lp->libflink;
   if (lp != NIL) {      /* Library has already been loaded */
     error(WARN_LIBLOADED, name);
     return;

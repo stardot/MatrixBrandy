@@ -94,6 +94,7 @@ static boolean disposable [] = {
 
 #ifdef DEBUG
 
+static int32 entryLen = 64;
 static char entry [64];
 
 static char *entryname(stackitem what) {
@@ -133,7 +134,7 @@ static char *entryname(stackitem what) {
     case STACK_OPSTACK:         return "operator stack";
     case STACK_RESTART:         return "siglongjmp block";
     default:
-    sprintf(entry, "** Bad type %X **", what);
+    snprintf(entry, entryLen, "** Bad type %X **", what);
     return entry;
   }
 }

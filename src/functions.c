@@ -1632,9 +1632,9 @@ static void fn_str(void) {
   if (IS_NUMERIC(resultype)) {
     if (ishex)
       if (matrixflags.hex64)
-        length = sprintf(basicvars.stringwork, "%llX", pop_anynum64());
+        length = snprintf(basicvars.stringwork, MAXSTRING, "%llX", pop_anynum64());
       else
-        length = sprintf(basicvars.stringwork, "%X", pop_anynum32());
+        length = snprintf(basicvars.stringwork, MAXSTRING, "%X", pop_anynum32());
     else {
       int32 format, numdigits;
       char *fmt, *bufptr;
@@ -1655,12 +1655,12 @@ static void fn_str(void) {
       if (((format>>2*BYTESHIFT) & BYTEMASK) == FORMAT_E) numdigits--;
       if (numdigits > 19 ) numdigits = 19; /* Maximum meaningful length */
       if (resultype == STACK_FLOAT) {
-        length = sprintf(basicvars.stringwork, fmt, numdigits, pop_anynumfp());
+        length = snprintf(basicvars.stringwork, MAXSTRING, fmt, numdigits, pop_anynumfp());
       } else {
         int64 fromstack=pop_anynum64();
-        length = sprintf(basicvars.stringwork, "%lld", fromstack);
+        length = snprintf(basicvars.stringwork, MAXSTRING, "%lld", fromstack);
         if (length > numdigits) {
-          length = sprintf(basicvars.stringwork, fmt, numdigits, TOFLOAT(fromstack));
+          length = snprintf(basicvars.stringwork, MAXSTRING, fmt, numdigits, TOFLOAT(fromstack));
         }
       }
       if (format & COMMADPT) decimaltocomma(basicvars.stringwork, length);

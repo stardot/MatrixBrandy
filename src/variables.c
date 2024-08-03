@@ -176,8 +176,8 @@ void exec_clear_himem(void) {
 */
 static void list_varlist(char which, library *lp) {
   variable *vp;
-  char temp[320];
-  int templen=319; /* Leave room for the terminating \0 byte */
+  int temp_size = 320;
+  char temp[temp_size];
   int done = 0, columns = 0, next, len = 0, n, width;
 
   DEBUGFUNCMSGIN;
@@ -196,43 +196,43 @@ static void list_varlist(char which, library *lp) {
         case VAR_INTWORD:
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varinteger);
+            len = snprintf(temp, temp_size, "%p  %s = %d", vp, vp->varname, vp->varentry.varinteger);
           else
 #endif
-            len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varinteger);
+            len = snprintf(temp, temp_size, "%s = %d", vp->varname, vp->varentry.varinteger);
           break;
         case VAR_UINT8:
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s = %d", vp, vp->varname, vp->varentry.varu8int);
+            len = snprintf(temp, temp_size, "%p  %s = %d", vp, vp->varname, vp->varentry.varu8int);
           else
 #endif
-            len = sprintf(temp, "%s = %d", vp->varname, vp->varentry.varu8int);
+            len = snprintf(temp, temp_size, "%s = %d", vp->varname, vp->varentry.varu8int);
           break;
         case VAR_INTLONG:
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s = %lld", vp, vp->varname, vp->varentry.var64int);
+            len = snprintf(temp, temp_size, "%p  %s = %lld", vp, vp->varname, vp->varentry.var64int);
           else
 #endif
-            len = sprintf(temp, "%s = %lld", vp->varname, vp->varentry.var64int);
+            len = snprintf(temp, temp_size, "%s = %lld", vp->varname, vp->varentry.var64int);
           break;
         case VAR_FLOAT:
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s = %g", vp, vp->varname, vp->varentry.varfloat);
+            len = snprintf(temp, temp_size, "%p  %s = %g", vp, vp->varname, vp->varentry.varfloat);
           else
 #endif
-            len = sprintf(temp, "%s = %g", vp->varname, vp->varentry.varfloat);
+            len = snprintf(temp, temp_size, "%s = %g", vp->varname, vp->varentry.varfloat);
           break;
         case VAR_STRINGDOL: {
           int count;
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s = \"", vp, vp->varname);
+            len = snprintf(temp, temp_size, "%p  %s = \"", vp, vp->varname);
           else
 #endif
-            len = sprintf(temp, "%s = \"", vp->varname);
+            len = snprintf(temp, temp_size, "%s = \"", vp->varname);
 
           if (vp->varentry.varstring.stringlen<=MAXSUBSTR)
             count = vp->varentry.varstring.stringlen;
@@ -241,23 +241,24 @@ static void list_varlist(char which, library *lp) {
           }
           memmove(temp+len, vp->varentry.varstring.stringaddr, count);
           if (vp->varentry.varstring.stringlen<=MAXSUBSTR)
-            strncpy(temp+len+count, "\"", templen-len-count);
+            STRLCPY(temp+len+count, "\"", temp_size-len-count);
           else {
-            strncpy(temp+len+count, "...\"", templen-len-count);
+            STRLCPY(temp+len+count, "...\"", temp_size-len-count);
           }
-          len = strnlen(temp,templen);
+          len = strnlen(temp,temp_size);
           break;
         }
         case VAR_INTARRAY: case VAR_UINT8ARRAY: case VAR_INT64ARRAY: case VAR_FLOATARRAY: case VAR_STRARRAY: {
           int i;
-          char temp2[20];
+          int temp2_size = 20;
+          char temp2[temp2_size];
           basicarray *ap;
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s", vp, vp->varname);
+            len = snprintf(temp, temp_size, "%p  %s", vp, vp->varname);
           else
 #endif
-            len = sprintf(temp, "%s", vp->varname);
+            len = snprintf(temp, temp_size, "%s", vp->varname);
           if (vp->varentry.vararray==NIL) {     /* Array bounds are undefined */
             temp[len] = ')';
             temp[len+1] = asc_NUL;
@@ -266,14 +267,14 @@ static void list_varlist(char which, library *lp) {
             ap = vp->varentry.vararray;
             for (i=0; i<ap->dimcount; i++) {
               if (i+1==ap->dimcount)    /* Doing last dimension */
-                sprintf(temp2, "%d)", ap->dimsize[i]-1);
+                snprintf(temp2, temp2_size, "%d)", ap->dimsize[i]-1);
               else {
-                sprintf(temp2, "%d,", ap->dimsize[i]-1);
+                snprintf(temp2, temp2_size, "%d,", ap->dimsize[i]-1);
               }
-              strcat(temp, temp2);
+              STRLCAT(temp, temp2, temp_size);
             }
           }
-          len = strnlen(temp,templen);
+          len = strnlen(temp,temp_size);
           break;
         }
         case VAR_PROC: case VAR_FUNCTION: {
@@ -286,43 +287,43 @@ static void list_varlist(char which, library *lp) {
           }
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  %s%s", vp, p, vp->varname+1);
+            len = snprintf(temp, temp_size, "%p  %s%s", vp, p, vp->varname+1);
           else
 #endif
-            len = sprintf(temp, "%s%s", p, vp->varname+1);
+            len = snprintf(temp, temp_size, "%s%s", p, vp->varname+1);
           fp = vp->varentry.varfnproc->parmlist;
           if (fp!=NIL) {
-            strcat(temp, "(");
+            STRLCAT(temp, "(", temp_size);
             do {
-              if ((fp->parameter.typeinfo & VAR_RETURN)!=0) strcat(temp, "RETURN ");
+              if ((fp->parameter.typeinfo & VAR_RETURN)!=0) STRLCAT(temp, "RETURN ", temp_size);
               switch(fp->parameter.typeinfo & PARMTYPEMASK) {
               case VAR_INTWORD: case VAR_INTLONG: case VAR_INTBYTEPTR: case VAR_INTWORDPTR: case VAR_UINT8:
-                strcat(temp, "integer");
+                STRLCAT(temp, "integer", temp_size);
                 break;
               case VAR_FLOAT: case VAR_FLOATPTR:
-                strcat(temp, "real");
+                STRLCAT(temp, "real", temp_size);
                 break;
               case VAR_STRINGDOL: case VAR_DOLSTRPTR:
-                strcat(temp, "string");
+                STRLCAT(temp, "string", temp_size);
                 break;
-              case VAR_INTARRAY: strcat(temp, "integer()"); break;
-              case VAR_INT64ARRAY: strcat(temp, "int64()"); break;
-              case VAR_UINT8ARRAY: strcat(temp, "uint8()"); break;
-              case VAR_FLOATARRAY: strcat(temp, "real()"); break;
-              case VAR_STRARRAY: strcat(temp, "string()"); break;
+              case VAR_INTARRAY: STRLCAT(temp, "integer()", temp_size); break;
+              case VAR_INT64ARRAY: STRLCAT(temp, "int64()", temp_size); break;
+              case VAR_UINT8ARRAY: STRLCAT(temp, "uint8()", temp_size); break;
+              case VAR_FLOATARRAY: STRLCAT(temp, "real()", temp_size); break;
+              case VAR_STRARRAY: STRLCAT(temp, "string()", temp_size); break;
               default: 
                 error(ERR_BROKEN, __LINE__, "variables");
                 return;
               }
               fp = fp->nextparm;
               if (fp==NIL)
-                strcat(temp, ")");
+                STRLCAT(temp, ")", temp_size);
               else {
-                strcat(temp, ",");
+                STRLCAT(temp, ",", temp_size);
               }
             } while (fp!=NIL);
           }
-          len = strnlen(temp,templen);
+          len = strnlen(temp,temp_size);
           break;
         }
         case VAR_MARKER: {
@@ -334,10 +335,10 @@ static void list_varlist(char which, library *lp) {
           }
 #ifdef DEBUG
           if (basicvars.debug_flags.variables)
-            len = sprintf(temp, "%p  [line %d] %s%s", vp, GET_LINENO(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
+            len = snprintf(temp, temp_size, "%p  [line %d] %s%s", vp, GET_LINENO(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
           else
 #endif
-            len = sprintf(temp, "[line %d] %s%s", GET_LINENO(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
+            len = snprintf(temp, temp_size, "[line %d] %s%s", GET_LINENO(find_linestart(vp->varentry.varmarker)), p, vp->varname+1);
           break;
         }
         default:        /* Bad type of variable flag */
@@ -396,11 +397,12 @@ void list_variables(char which) {
   DEBUGFUNCMSGIN;
   width = (basicvars.printwidth==0 ? PRINTWIDTH : basicvars.printwidth);
   if (which==' ') {     /* List everything */
-    char n, temp[40];
+    int temp_size = 40;
+    char n, temp[temp_size];
     int columns = 0, atpercent, len, next;
     emulate_printf("Static integer variables:\r\n");
     for (n='A'; n<='Z'; n++) {
-      len = sprintf(temp, "%c%% = %d", n, basicvars.staticvars[n-'A'+1].varentry.varinteger);
+      len = snprintf(temp, temp_size, "%c%% = %d", n, basicvars.staticvars[n-'A'+1].varentry.varinteger);
       next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
       if (next>=width) {        /* Not enough room on this line */
         emulate_printf("\r\n%s", temp);
@@ -417,7 +419,7 @@ void list_variables(char which) {
     }
     /* Let's now do @%, output in hex as it makes more sense. */
     atpercent = basicvars.staticvars[ATPERCENT].varentry.varinteger;
-    len = sprintf(temp, "@%% = &%X", atpercent);
+    len = snprintf(temp, temp_size, "@%% = &%X", atpercent);
     next = (columns+FIELDWIDTH-1)/FIELDWIDTH*FIELDWIDTH;
     while (columns<next) {
       emulate_vdu(' ');
@@ -599,8 +601,9 @@ void define_array(variable *vp, boolean islocal, boolean offheap) {
     } else {
       ap = allocmem(sizeof(basicarray), 0);             /* Grab memory for array descriptor */
       if (ap==NIL) {
-        char tmpvarname[256];
-        strncpy(tmpvarname, vp->varname, 255);
+        int tmpvarnameLen = 256;
+        char tmpvarname[tmpvarnameLen];
+        STRLCPY(tmpvarname, vp->varname, tmpvarnameLen);
         remove_variable(vp, vp->varflink);
         error(ERR_BADDIM, tmpvarname);  /* There is not enough memory available for the descriptor */
         return;
@@ -754,14 +757,14 @@ variable *find_variable(byte *np, int namelen) {
   lp = find_library(np);        /* Was the variable reference in a library? */
   if (lp!=NIL) {                /* Yes - Search library's symbol table first */
     vp = lp->varlists[hashvalue & VARMASK];
-    while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(name, vp->varname)!=0)) vp = vp->varflink;
+    while (vp!=NIL && (hashvalue!=vp->varhash || strncmp(name, vp->varname, strlen(name)+1)!=0)) vp = vp->varflink;
     if (vp!=NIL) {
       DEBUGFUNCMSGOUT;
       return vp;        /* Found symbol - Return pointer to symbol table entry */
     }
   }
   vp = basicvars.varlists[hashvalue & VARMASK];
-  while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(name, vp->varname)!=0)) vp = vp->varflink;
+  while (vp!=NIL && (hashvalue!=vp->varhash || strncmp(name, vp->varname, strlen(name)+1)!=0)) vp = vp->varflink;
   DEBUGFUNCMSGOUT;
   return vp;
 }
@@ -1033,7 +1036,7 @@ static variable *search_library(library *lp, char *name) {
   if (fpp==NIL) return NIL;             /* Entry not found in library */
   vp = allocmem(sizeof(variable), 1);   /* Entry found. Create symbol table entry for it */
   vp->varname = allocmem(namelen+1, 1); /* +1 for NUL at end of name */
-  strcpy(vp->varname, name);
+  STRLCPY(vp->varname, name, namelen+1);
   vp->varhash = hashvalue;
   vp->varentry.varmarker = fpp->fpmarker;       /* Needed in 'scan_parmlist' */
   vp->varflink = basicvars.varlists[hashvalue & VARMASK];
@@ -1111,7 +1114,7 @@ static variable *scan_fnproc(char *name) {
     bp+=GET_LINELEN(bp);        /* This is updated here so that 'lastsearch' is set correctly below */
     if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found 'DEF PROC' or 'DEF FN' */
       vp = mark_procfn(tp+1); /* Must be a previously unseen entry */
-      if (vp->varhash==namehash && strcmp(name, vp->varname)==0) break; /* Found it */
+      if (vp->varhash==namehash && strncmp(name, vp->varname, strlen(name)+1)==0) break; /* Found it */
       vp = NIL; /* Reset 'vp' as this proc/fn is not the one needed */
     }
   }
@@ -1163,7 +1166,8 @@ variable *find_fnproc(byte *np, int namelen) {
   hashvalue = hash(basicvars.stringwork);
   vp = basicvars.varlists[hashvalue & VARMASK];
   if (vp!=NIL) {        /* List is not empty - Scan it for function or proc */
-    while (vp!=NIL && (hashvalue!=vp->varhash || strcmp(basicvars.stringwork, vp->varname)!=0)) vp = vp->varflink;
+    while (vp!=NIL && (hashvalue!=vp->varhash || strncmp(basicvars.stringwork, vp->varname, MAXSTRING)!=0))
+      vp = vp->varflink;
     if (vp!=NIL && vp->varflags!=VAR_MARKER) return vp; /* Found it */
   }
   if (vp==NIL) vp = scan_fnproc(basicvars.stringwork);  /* Not a known proc - Scan program and libraries for it */

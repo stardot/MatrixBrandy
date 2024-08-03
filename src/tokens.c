@@ -974,7 +974,7 @@ static void copy_other(void) {
       error(WARN_PARNEST);
     }
     break;
-  case 172:         /* This is '¬' which is a hi-bit char and causes a compiler warning if used directly */
+  case 172:         /* This is a hi-bit char and causes a compiler warning if used directly */
     tclass = TYPE_FUNCTION;
     token = BASTOKEN_NOT;
     break;
@@ -1768,7 +1768,7 @@ static int expand_token(char *cp, char *namelist[], byte token) {
     error(ERR_BROKEN, __LINE__, "tokens");       /* Sanity check for bad token value */
     return 0;
   }
-  strcpy(cp, name);
+  STRLCPY(cp, name, MAXSTRING);
   count = strlen(name);
   if (basicvars.list_flags.lower) {     /* Lower case version of name required */
     int n;
@@ -1814,7 +1814,7 @@ void expand(byte *line, char *text) {
 
   DEBUGFUNCMSGIN;
   if (!basicvars.list_flags.noline) {   /* Include line number */
-    sprintf(text, "%5d", GET_LINENO(line));
+    snprintf(text, MAXSTRING, "%5d", GET_LINENO(line));
     text+=5;
     if (basicvars.list_flags.space) {   /* Need a blank before the expanded line */
       *text = ' ';
@@ -1884,7 +1884,7 @@ void expand(byte *line, char *text) {
 /* Deal with special cases first */
     if (token == BASTOKEN_XLINENUM) {      /* Line number */
       elp++;
-      count = sprintf(text, "%d", GET_LINENO(elp));
+      count = snprintf(text, MAXSTRING, "%d", GET_LINENO(elp));
       text+=count;
       elp+=LINESIZE;
     }
@@ -2443,13 +2443,13 @@ static byte nospace [] = {
 */
 int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
   int count;
-  char *cp = NULL, *p = NULL;
+  char *cp = NULL, *cporig, *p = NULL;
   byte token, token2;
   char line[ACORNLEN];
 
   DEBUGFUNCMSGIN;
-  cp = &line[0];
-  count = sprintf(cp, "%d", (*tp<<8) + *(tp+1));          /* Start with two byte line number */
+  cp = cporig = &line[0];
+  count = snprintf(cp, ACORNLEN, "%d", (*tp<<8) + *(tp+1));          /* Start with two byte line number */
   cp+=count;
   tp+=ACORN_START;                                        /* Skip line number and length byte */
   token = *tp;
@@ -2466,12 +2466,12 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
         } while (token != '\"' && *tp != ACORN_ENDLINE);
       }
     } else if (token == ACORN_LINENUM) {
-      count = sprintf(cp, "%d", expand_linenum(tp+1));
+      count = snprintf(cp, ACORNLEN - (cp - cporig), "%d", expand_linenum(tp+1));
       cp+=count;
       tp+=ACORN_LINESIZE;
     } else if (token == ACORN_REM || token == ACORN_DATA) { /* REM or DATA - Copy rest of line */
       p = onebyte_token[token-ACORNONE_LOWEST];
-      strcpy(cp, p);
+      STRLCPY(cp, p, MAXSTRING);
       cp+=strlen(p);
       tp++;
       while (*tp != ACORN_ENDLINE) {
@@ -2562,7 +2562,7 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
         *cp = ' ';
         cp++;
       }
-      strcpy(cp, p);
+      STRLCPY(cp, p, MAXSTRING);
       cp+=strlen(p);
 /*
  * If keyword is followed by a letter or a digit, add a blank.

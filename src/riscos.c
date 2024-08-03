@@ -117,7 +117,7 @@ void emulate_printf(char *format, ...) {
   va_list parms;
   char text [MAXSTRING];
   va_start(parms, format);
-  length = vsprintf(text, format, parms);
+  length = vsnprintf(text, MAXSTRING, format, parms);
   va_end(parms);
   emulate_vdustr(text, length);
 }

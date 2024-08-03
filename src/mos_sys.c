@@ -114,7 +114,8 @@ static gpio2rpistruct rpiboards[]={
  {255,255},
 };
 
-char outstring[65536];
+static int outstringLen = 65536;
+static char outstring[65536];
 
 static char*ostype=BRANDY_OS;
 static char*cputype=CPUTYPE;
@@ -523,13 +524,13 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
           *outstring='\0';
           switch (inregs[1].i) {
             case 0: case 6:
-              strncpy(outstring,"Matrix Brandy MOS V" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, 80);
+              STRLCPY(outstring, "Matrix Brandy MOS V" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL, outstringLen);
               break;
             case 2:
-              strncpy(outstring,BRANDY_DATE, 80);
+              STRLCPY(outstring, BRANDY_DATE, outstringLen);
               break;
             case 7:
-              strncpy(outstring,"Unknown", 80);
+              STRLCPY(outstring, "Unknown", outstringLen);
               break;
           }
           outregs[0]=(size_t)outstring;
@@ -575,7 +576,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       break;
 #endif /* not TARGET_RISCOS */
     case SWI_Brandy_Version:
-      strncpy(outstring,BRANDY_OS,64);
+      STRLCPY(outstring,BRANDY_OS, outstringLen);
       outregs[4]=(size_t)outstring;
       outregs[0]=atoi(BRANDY_MAJOR); outregs[1]=atoi(BRANDY_MINOR); outregs[2]=atoi(BRANDY_PATCHLEVEL);
 #ifdef BRANDY_GITCOMMIT
@@ -618,7 +619,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[7]=(size_t)wmInfo.window;
 #endif /* TARGET_UNIX */
 #else
-      strncpy(outstring,"no_sdl",64);
+      STRLCPY(outstring,"no_sdl", outstringLen);
       outregs[2] = 0;
       outregs[3] = 0;
       outregs[4] = 0;
@@ -626,7 +627,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[6] = 0;
 #endif
 #ifdef TARGET_RISCOS
-      strncpy(outstring,"riscos",64);
+      STRLCPY(outstring,"riscos", outstringLen);
 #endif
       outregs[1]=strlen(outstring);
       outregs[0]=(size_t)outstring;
@@ -832,7 +833,7 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
       outregs[2]=0;
       outregs[3]=0;
       if (NULL == file_handle) {
-        strncpy(outstring, "No machine type detected",25);
+        STRLCPY(outstring, "No machine type detected", outstringLen);
       } else {
         if(fgets(outstring, 65534, file_handle))
           ;

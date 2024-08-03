@@ -214,12 +214,12 @@ char *tocstring(char *cp, int32 len) {
   if (len>=MAXNAMELEN) len = MAXNAMELEN-1;
   switch (*CAST(cp, byte *)) {
   case BASTOKEN_PROC:
-    strcpy(cstring, "PROC");
+    STRLCPY(cstring, "PROC", MAXNAMELEN);
     n = 4;
     cp++;
     break;
   case BASTOKEN_FN:
-    strcpy(cstring, "FN");
+    STRLCPY(cstring, "FN", MAXNAMELEN);
     n = 2;
     cp++;
     break;
@@ -482,11 +482,11 @@ FILE *secure_tmpnam(char *name) {
   return fdes;
 #else
 #if defined(BODGEMGW) | defined(BODGESDL) | defined(__TARGET_SCL__)
-  strcpy(name, "/tmp/.brandy.XXXXXX");
+  STRLCPY(name, "/tmp/.brandy.XXXXXX", MAXNAMELEN);
   return fopen(name, "w+");
 #else
   int fdes;
-  strcpy(name, "/tmp/.brandy.XXXXXX");
+  STRLCPY(name, "/tmp/.brandy.XXXXXX", MAXNAMELEN);
   fdes=mkstemp(name);
   if (!fdes) return NULL;
   return fdopen(fdes, "w+");
@@ -572,7 +572,7 @@ void string_zeroterm(char *buffer) {
   }
 }
 
-static char fnbuf[FILENAME_MAX+4];
+static char fnbuf[FNAMESIZE+4];
 
 static char _chrflip(char c) {
   if(c=='.') c='/';
@@ -587,17 +587,33 @@ static char _chrflip(char c) {
 char *translatefname(char *fn) {
   int i=0, p=0;
   
-  memset(fnbuf, 0, FILENAME_MAX+4);
+  memset(fnbuf, 0, FNAMESIZE+4);
   p=strlen(fn);
-  if (p>FILENAME_MAX) p=FILENAME_MAX;
+  if (p>FNAMESIZE) p=FNAMESIZE;
   for(i=0;i<p;i++) fnbuf[i]=_chrflip(fn[i]);
 #ifdef TARGET_RISCOS
   if (fnbuf[0]=='.') {
-    memmove(fnbuf+1, fnbuf, FILENAME_MAX);
+    memmove(fnbuf+1, fnbuf, FNAMESIZE);
     fnbuf[0]='$';
   }
 #else
-  if (fnbuf[0]=='$') memmove(fnbuf, fnbuf+1, FILENAME_MAX);
+  if (fnbuf[0]=='$') memmove(fnbuf, fnbuf+1, FNAMESIZE);
 #endif
   return(fnbuf);
 }
+
+#ifndef TARGET_OPENBSD
+/* strncpy() does not gurarantee to include a \0 byte at the end of a string
+ * if the number of characters copied is equal to the number copied. OpenBSD
+ * strlcpy() copies one less, and ensures there is always a zero byte at the
+ * end. This attempts to emulate that. */
+char *my_strlcpy(char *dest, const char *src, size_t n) {
+  size_t i;
+  
+  for (i = 0; i < n-1 && src[i] != '\0'; i++)
+    dest[i] = src[i];
+  dest[i]='\0';
+  return dest;
+}
+
+#endif

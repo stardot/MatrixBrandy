@@ -179,6 +179,7 @@ static Uint8 vdu141track[27];           /* Track use of Double Height in Mode 7 
                                          * First line is [1] */
 threadmsg tmsg;
 
+int32 titlestringLen = 256;
 char titlestring[256];
 
 /* The "virtual screen" below is the size of the display in uniquely addressable pixels,
@@ -2646,7 +2647,7 @@ void emulate_printf(char *format, ...) {
   va_list parms;
   char text [MAXSTRING];
   va_start(parms, format);
-  length = vsprintf(text, format, parms);
+  length = vsnprintf(text, MAXSTRING, format, parms);
   va_end(parms);
   emulate_vdustr(text, length);
 }
@@ -4743,7 +4744,7 @@ void sdl_mouse_onoff(int state) {
 void set_wintitle(char *title) {
   /* This is picked up by the video update thread */
   memset(titlestring, 0, 256);
-  strncpy(titlestring, title, 255);
+  STRLCPY(titlestring, title, titlestringLen);
   tmsg.titlepointer = titlestring;
 }
 

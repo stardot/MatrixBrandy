@@ -96,6 +96,7 @@ static HANDLE sigintthread = NULL;     /* Thread number for Escape key watching 
 #endif
 
 static char errortext[200];     /* Copy of text of last error for REPORT */
+static int errortext_size = 200;
 
 /*
 ** 'handle_signal' deals with any signals raised during program execution.
@@ -864,7 +865,7 @@ void error(int32 errnumber, ...) {
   if (2 == get_refreshmode()) star_refresh(1);  /* Re-enable Refresh if stopped using *Refresh OnError */
 #endif
   va_start(parms, errnumber);
-  vsprintf(errortext, errortable[errnumber].msgtext, parms);
+  vsnprintf(errortext, errortext_size, errortable[errnumber].msgtext, parms);
   va_end(parms);
   if (errortable[errnumber].equiverror != -1) basicvars.error_number = errortable[errnumber].equiverror;
   if (basicvars.current==NIL)           /* Not running a program */
@@ -914,7 +915,7 @@ void show_error(int32 number, char *text) {
   DEBUGFUNCMSGIN;
   basicvars.error_number = number;
   severity = number==0 ? FATAL : NONFATAL;
-  strcpy(errortext, text);
+  STRLCPY(errortext, text, errortext_size);
   badline = find_linestart(basicvars.current);
   if (badline==NIL)     /* 'ERROR' was not used in program - Assume it was in the command line */
     basicvars.error_line = 0;

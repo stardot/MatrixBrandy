@@ -108,6 +108,9 @@
 **
 */
 
+#ifdef TARGET_OPENBSD
+#include <sys/select.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -118,6 +121,7 @@
 #include "screen.h"
 #include "keyboard.h"
 #include "inkey.h"
+#include "miscprocs.h"
 #include "mos.h"
 
 #ifdef TARGET_SUNOS
@@ -1914,7 +1918,7 @@ static void init_recall(void) {
   recalline = histindex;
 }
 
-static void recall_histline(char buffer[], int updown) {
+static void recall_histline(char buffer[], int32 length, int updown) {
   int count;
   if (updown < 0) {     /* Move backwards in history list */
     if (recalline == 0) return; /* Already at start of list */
@@ -1929,7 +1933,7 @@ static void recall_histline(char buffer[], int updown) {
   else {
     int n, start = 0;
     for (n = 0; n < recalline; n++) start += histlength[n];
-    strcpy(buffer, &histbuffer[start]);
+    STRLCPY(buffer, &histbuffer[start], length);
   }
   display(VDU_CURBACK, place);          /* Move cursor to start of old line */
   place = strlen(buffer);
@@ -2130,7 +2134,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       break;
     case CTRL_P:        /* Move backwards one entry in the history list */
       if (kbd_vikeys)
-        recall_histline(buffer, -1);
+        recall_histline(buffer, length, -1);
 #ifdef USE_SDL
       else
         emulate_vdu(16);
@@ -2138,7 +2142,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       break;
     case CTRL_N:        /* Move forwards one entry in the history list */
       if (kbd_vikeys)
-        recall_histline(buffer, 1);
+        recall_histline(buffer, length, 1);
 #ifdef USE_SDL
       else
         emulate_vdu(14);
@@ -2188,10 +2192,10 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 #endif
         break;
       case UP:          /* Move backwards one entry in the history list */
-        recall_histline(buffer, -1);
+        recall_histline(buffer, length, -1);
         break;
       case DOWN:        /* Move forwards one entry in the history list */
-        recall_histline(buffer, 1);
+        recall_histline(buffer, length, 1);
         break;
       case LEFT:        /* Move cursor left */
         if (place > 0) {
