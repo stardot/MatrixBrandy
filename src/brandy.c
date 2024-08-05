@@ -291,7 +291,7 @@ static void init1(void) {
   matrixflags.printer_ignore = 13;    /* By default, ignore carriage return characters */
   matrixflags.translatefname = 2;     /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
   matrixflags.startupmode = BRANDY_STARTUP_MODE;  /* Defaults to 0 */
-#ifdef BRANDYAPP
+#if defined(BRANDYAPP) || defined(BRANDY_NOVERCHECK)
   matrixflags.checknewver = 0;        /* By default, try to check for a new version */
 #else
   matrixflags.checknewver = 1;        /* By default, try to check for a new version */
