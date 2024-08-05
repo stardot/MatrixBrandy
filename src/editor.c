@@ -829,10 +829,11 @@ void read_basic_block() {
 */
 static void link_library(char *name, byte *base, int32 size, boolean onheap) {
   library *lp;
-  int n;
+  int n, nameLen;
+  nameLen = strlen(name) + 1;
   if (onheap) {         /* Library is held on Basic heap */
     lp = allocmem(sizeof(library), 1);  /* Add library to list */
-    lp->libname = allocmem(strlen(name)+1, 1);  /* +1 for NULL at end */
+    lp->libname = allocmem(nameLen, 1);  /* +1 for NULL at end */
     lp->libflink = basicvars.liblist;
     basicvars.liblist = lp;
   }
@@ -842,11 +843,11 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
       error(ERR_LIBSIZE, name);      /* Run out of memory */
       return;
     }
-    lp->libname = malloc(strlen(name)+1);
+    lp->libname = malloc(nameLen);
     lp->libflink = basicvars.installist;
     basicvars.installist = lp;
   }
-  strncpy(lp->libname, name, strlen(name)+1);
+  STRLCPY(lp->libname, name, nameLen);
   lp->libstart = base;
   lp->libsize = size;
   lp->libfplist = NIL;
