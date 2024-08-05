@@ -1,0 +1,85 @@
+# Makefile for brandy in text mode under OpenBSD
+
+CC = cc
+LD = cc
+STRIP = strip
+ADDFLAGS = ${BRANDY_BUILD_FLAGS}
+
+include build/git.mk
+
+#CFLAGS = -g -DDEBUG -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+#CFLAGS = -g -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O3 -fPIE -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+
+LDFLAGS =
+
+LIBS = -lm -lpthread
+
+SRCDIR = src
+
+OBJ = $(SRCDIR)/variables.o $(SRCDIR)/tokens.o \
+	$(SRCDIR)/strings.o $(SRCDIR)/statement.o $(SRCDIR)/stack.o \
+	$(SRCDIR)/miscprocs.o $(SRCDIR)/mainstate.o $(SRCDIR)/lvalue.o \
+	$(SRCDIR)/keyboard.o $(SRCDIR)/iostate.o $(SRCDIR)/heap.o \
+	$(SRCDIR)/functions.o $(SRCDIR)/fileio.o $(SRCDIR)/evaluate.o \
+	$(SRCDIR)/errors.o $(SRCDIR)/mos.o $(SRCDIR)/editor.o \
+	$(SRCDIR)/convert.o $(SRCDIR)/commands.o $(SRCDIR)/brandy.o \
+	$(SRCDIR)/assign.o $(SRCDIR)/net.o $(SRCDIR)/mos_sys.o
+
+TEXTONLYOBJ = $(SRCDIR)/textonly.o
+
+SIMPLETEXTOBJ = $(SRCDIR)/simpletext.o
+
+SRC = $(SRCDIR)/variables.c $(SRCDIR)/tokens.c \
+	$(SRCDIR)/strings.c $(SRCDIR)/statement.c $(SRCDIR)/stack.c \
+	$(SRCDIR)/miscprocs.c $(SRCDIR)/mainstate.c $(SRCDIR)/lvalue.c \
+	$(SRCDIR)/keyboard.c $(SRCDIR)/iostate.c $(SRCDIR)/heap.c \
+	$(SRCDIR)/functions.c $(SRCDIR)/fileio.c $(SRCDIR)/evaluate.c \
+	$(SRCDIR)/errors.c $(SRCDIR)/mos.c $(SRCDIR)/editor.c \
+	$(SRCDIR)/convert.c $(SRCDIR)/commands.c $(SRCDIR)/brandy.c \
+	$(SRCDIR)/assign.c $(SRCDIR)/net.c $(SRCDIR)/mos_sys.c
+
+TEXTONLYSRC = $(SRCDIR)/textonly.c
+
+SIMPLETEXTSRC = $(SRCDIR)/simpletext.c
+
+all:	tbrandy sbrandy
+
+tbrandy:	$(OBJ) $(TEXTONLYOBJ)
+	@echo ""
+	@echo "Build flags: $(CFLAGS)"
+	$(LD) $(LDFLAGS) -o tbrandy $(OBJ) $(TEXTONLYOBJ) $(LIBS)
+
+sbrandy:	$(OBJ) $(SIMPLETEXTOBJ)
+	@echo ""
+	$(LD) $(LDFLAGS) -o sbrandy $(OBJ) $(SIMPLETEXTOBJ) $(LIBS)
+
+include build/depends.mk
+
+.c.o:
+	@echo -n "$@ "
+	@$(CC) $(CFLAGS) $< -c -o $@
+
+trecompile:
+	$(CC) $(CFLAGS) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
+
+srecompile:
+	$(CC) $(CFLAGS) $(SRC) $(SIMPLETEXTSRC) $(LIBS) -o sbrandy
+
+tnodebug:
+	$(CC) $(CFLAGS2) $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
+	$(STRIP) tbrandy
+
+snodebug:
+	$(CC) $(CFLAGS2) $(SRC) $(SIMPLETEXTSRC) $(LIBS) -o sbrandy
+	$(STRIP) sbrandy
+
+tcheck:
+	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(TEXTONLYSRC) $(LIBS) -o tbrandy
+
+scheck:
+	$(CC) $(CFLAGS) -Wall -O2 $(SRC) $(SIMPLETEXTSRC) $(LIBS) -o sbrandy
+
+clean:
+	rm -f $(SRCDIR)/*.o tbrandy sbrandy
+
