@@ -846,7 +846,7 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
     lp->libflink = basicvars.installist;
     basicvars.installist = lp;
   }
-  STRLCPY(lp->libname, name, strlen(name)+1);
+  strncpy(lp->libname, name, strlen(name)+1);
   lp->libstart = base;
   lp->libsize = size;
   lp->libfplist = NIL;
