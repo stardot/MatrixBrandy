@@ -1,6 +1,6 @@
 Summary: A cross-platform BBC BASIC interpreter
 Name: brandy
-Version: 1.23.2
+Version: 1.23.3
 Release: %{extraverdata}.matrix%{?dist}
 License: GPLv2+
 Group: Development/Tools
@@ -24,6 +24,12 @@ both of which are used by the bundled "telstar" example. Many bugs are fixed
 and mathematics are brought more in line with Acorn's BBC BASIC VI.
 Some BASIC extensions from Richard Russell's BB4W and BBCSDL are also
 supported, as are a few from Steve Drain's Basalt add-on for RISC OS.
+
+BBC BASIC is a trademark of the British Broadcasting Corporation.
+Matrix Brandy does not claim to be "BBC BASIC", however it aims to be an
+interpreter of the BBC BASIC dialect of BASIC.  The term "BBC BASIC" in
+the documentation is used in reference to the dialect, and other
+implementations where the name is used under licence (e.g. Acorn/RISC OS).
 
 %prep
 %setup -q -n MatrixBrandy-%{version}

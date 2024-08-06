@@ -9,7 +9,7 @@ Also, 1.23.2 introduced an automatic new version check. This may be considered
 inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
-* 1.23.3 - 
+* 1.23.3 - 06 August 2024
 - General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag
   Talon for this!
 - Build: Added build option -DBRANDY_NOVERCHECK to disable new version
