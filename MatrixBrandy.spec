@@ -4,7 +4,7 @@ Version: 1.23.3
 Release: %{extraverdata}.matrix%{?dist}
 License: GPLv2+
 Group: Development/Tools
-Source: http://brandy.matrixnetwork.co.uk/releases/MatrixBrandy-%{version}.tar.gz
+Source: http://brandy.matrixnetwork.co.uk/releases/MatrixBrandy-%{version}.tar.xz
 URL: http://brandy.matrixnetwork.co.uk/
 # Dirty hack to ensure we have SDL-devel or sdl12-compat-devel
 BuildRequires: /usr/include/SDL/SDL.h
