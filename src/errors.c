@@ -305,9 +305,11 @@ void announce(void) {
   emulate_printf("\n%s\r\n\nStarting with " FMT_SZD " bytes free\r\n\n", IDSTRING, basicvars.himem-basicvars.page);
 #endif /* BRANDY_BANNER_MINIMAL */
 #ifndef NONET
+#ifndef BRANDY_NOVERCHECK
   if (matrixflags.checknewver) {
     if (checkfornewer()) emulate_printf("A newer version is available!\r\n\n");
   }
+#endif /* BRANDY_NOVERCHECK */
 #endif /* NONET */
 #ifdef DEBUG
   emulate_printf("Basicvars is at &" FMT_SZX ", tokenised line is at &" FMT_SZX "\r\nWorkspace is at &" FMT_SZX ", size is " FMT_SZX "\r\nPAGE = &" FMT_SZX ", HIMEM = &" FMT_SZX "\r\n",

@@ -626,7 +626,9 @@ typedef struct {
   boolean neverfullscreen;    /* TRUE if -nofullscreen given on CLI */
 #endif
   int32 startupmode;          /* Screen mode to start in */
+#ifndef BRANDY_NOVERCHECK
   boolean checknewver;        /* TRUE if we try to check for a new version on startup */
+#endif
 } matrixbits;
 extern matrixbits matrixflags;
 

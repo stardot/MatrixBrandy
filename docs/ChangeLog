@@ -1,14 +1,19 @@
 ChangeLog for Matrix Brandy - as forked from Sourceforge after V1.20.1
 ======================================================================
 
-NOTE FOR DISTRIBUTIONS:
+NOTES FOR DISTRIBUTIONS AND PACKAGERS:
 Version 1.23.1 required the -DBRANDY_RELEASE flag to be set for a release
 build. As of version 1.23.2 this flag is automatically applied for builds
 made from git in the master branch, and from tarballs with no git information.
+Also, 1.23.2 introduced an automatic new version check. This may be considered
+inappropriate by distribution packagers, so 1.23.3 adds build option
+-DBRANDY_NOVERCHECK to disable this.
 
 * 1.23.3 - 
 - General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag
   Talon for this!
+- Build: Added build option -DBRANDY_NOVERCHECK to disable new version
+  checking on startup.
 - BASIC: Implemented EXIT FOR, EXIT REPEAT and EXIT WHILE, based on the
   extensions in Richard Russell's BB4W, BBCSDL, BBCTTY and BBCZ80v5.
 - BASIC: Implement == to be synonymous with = in comparisons. Another

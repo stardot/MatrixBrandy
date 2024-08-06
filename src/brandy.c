@@ -291,11 +291,13 @@ static void init1(void) {
   matrixflags.printer_ignore = 13;    /* By default, ignore carriage return characters */
   matrixflags.translatefname = 2;     /* 0 = Don't, 1 = Always, 2 = Attempt autodetect */
   matrixflags.startupmode = BRANDY_STARTUP_MODE;  /* Defaults to 0 */
-#if defined(BRANDYAPP) || defined(BRANDY_NOVERCHECK)
+#ifndef BRANDY_NOVERCHECK
+#ifdef BRANDYAPP
   matrixflags.checknewver = 0;        /* By default, try to check for a new version */
 #else
   matrixflags.checknewver = 1;        /* By default, try to check for a new version */
-#endif
+#endif /* BRANDYAPP */
+#endif /* !BRANDY_NOVERCHECK */
 
 /*
  * Add dummy first parameter for Basic program command line.
@@ -405,8 +407,12 @@ static void check_configfile() {
       parameter++;
     }
 
-    if(!strncmp(item, "nocheck", 8)) {
+    if(!strncmp(item, "tek", 4)) {
+      matrixflags.tekenabled=1;
+#ifndef BRANDY_NOVERCHECK
+    } else if(!strncmp(item, "nocheck", 8)) {
       matrixflags.checknewver = FALSE;
+#endif
 #ifdef USE_SDL
     } else if(!strncmp(item, "fullscreen", 11)) {
       basicvars.runflags.startfullscreen=TRUE;
@@ -415,8 +421,6 @@ static void check_configfile() {
     } else if(!strncmp(item, "swsurface", 10)) {
       basicvars.runflags.swsurface=TRUE;
 #endif
-    } else if(!strncmp(item, "tek", 4)) {
-      matrixflags.tekenabled=1;
     } else if(!strncmp(item, "ignore", 8)) {
       basicvars.runflags.flag_cosmetic = FALSE;
     } else if(!strncmp(item, "strict", 7)) {
@@ -521,9 +525,11 @@ static void check_cmdline(int argc, char *argv[]) {
       }
 #endif
 #ifndef BRANDYAPP
+#ifndef BRANDY_NOVERCHECK
       else if (optchar=='n' && tolower(*(p+2))=='o' && tolower(*(p+3))=='c') {  /* -nocheck */
         matrixflags.checknewver = FALSE;
       }
+#endif /* BRANDY_NOVERCHECK */
       else if (optchar == 'c' || optchar == 'q' || (optchar == 'l' && tolower(*(p+2)) == 'o')) {        /* -chain, -quit or -load */
         n++;
         if (n==argc)

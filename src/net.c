@@ -420,12 +420,13 @@ int net_bputstr(int handle, char *string, int32 length) {
   return(0);
 }
 
+#ifndef BRANDY_NOVERCHECK
 /* This function queries the Matrix Brandy web server to check for a newer
  * version. This is a quick and dirty implementation talking raw HTML!
  */
 int checkfornewer() {
   int hndl, ptr, val, vermaj, vermin, verpatch;
-  char *inbuf, *verstr, *ptra;
+  char *inbuf, *verstr, *ptra, *request;
 
   DEBUGFUNCMSGIN;
   inbuf=malloc(8192);
@@ -436,7 +437,14 @@ int checkfornewer() {
     DEBUGFUNCMSGOUT;
     return(0);
   }
-  net_bputstr(hndl, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\n\r\n", -1);
+  request=malloc(1024);
+#ifdef BRANDY_RELEASE
+  snprintf(request, 1023, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\nUser-Agent: MatrixBrandy/" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL "(" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ")\r\n\r\n");
+#else
+  snprintf(request, 1023, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\nUser-Agent: MatrixBrandy/" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL "(" BRANDY_OS "/" CPUTYPE SFX1 SFX2 " " BRANDY_GITBRANCH ":" BRANDY_GITCOMMIT ")\r\n\r\n");
+#endif
+  net_bputstr(hndl, request, -1);
+  free(request);
   ptr = 0;
   val=-1;
   while (val != -2) {
@@ -469,4 +477,5 @@ int checkfornewer() {
     return(0);
   }
 }
+#endif /* BRANDY_NOVERCHECK */
 #endif /* NONET ... right at top of the file */
