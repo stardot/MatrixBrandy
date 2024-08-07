@@ -183,6 +183,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#define STRLCPY(x,y,z) strlcpy(x,y,z)
+#define STRLCAT(x,y,z) strlcat(x,y,z)
 #endif
 
 #ifdef __FreeBSD__
@@ -195,6 +197,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#define STRLCPY(x,y,z) strlcpy(x,y,z)
+#define STRLCAT(x,y,z) strlcat(x,y,z)
 #endif
 
 #ifdef __OpenBSD__
@@ -233,6 +237,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#define STRLCPY(x,y,z) strlcpy(x,y,z)
+#define STRLCAT(x,y,z) strlcat(x,y,z)
 #endif
 
 #ifdef __midipix__
@@ -261,6 +267,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#define STRLCPY(x,y,z) strlcpy(x,y,z)
+#define STRLCAT(x,y,z) strlcat(x,y,z)
 #endif
 
 /* Same as Linux, but can be treated exactly like it, see the Linux specific
@@ -298,6 +306,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "edit"
 #define DIR_SEPS "\\/:"
 #define DIR_SEP  '\\'
+#define STRLCPY(x,y,z) strlcpy(x,y,z)
+#define STRLCAT(x,y,z) strlcat(x,y,z)
 #define NOTEKGFX 1
 #endif
 
@@ -354,6 +364,8 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "/Applications/TextEdit.app/Contents/MacOS/TextEdit"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#define STRLCPY(x,y,z) strlcpy(x,y,z)
+#define STRLCAT(x,y,z) strlcat(x,y,z)
 #endif
 
 #if defined(_AMIGA) || defined(__amigaos__)
@@ -448,13 +460,14 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 typedef jmp_buf sigjmp_buf;
 #endif /* TARGET_MINGW || __TARGET_SCL__ */
 
-/* OpenBSD recommends strlcpy() and frends over strncpy(), but it's not
- * available on all systems. So macro it to resolve as strlcpy on OpenBSD
+/* OpenBSD recommends strlcpy() and friends over strncpy(), but it's not
+ * available on all systems. So macro it to resolve as strlcpy where available
  * and strncpy on others. Also, strlcat() takes into account the current
  * destination string length, strncat() does not. */
 #ifndef STRLCPY
 #define STRLCPY(x,y,z) my_strlcpy(x,y,z)
 #define STRLCAT(x,y,z) strncat(x,y,z - strlen(x) -1)
+#define USE_MY_STRLCPY
 #endif /* STRLCPY */
 
 #ifdef __TARGET_SCL__
