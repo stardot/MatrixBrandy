@@ -602,7 +602,7 @@ char *translatefname(char *fn) {
   return(fnbuf);
 }
 
-#ifndef TARGET_OPENBSD
+#ifndef BRANDY_HAS_STRL_FUNCTIONS
 /* strncpy() does not gurarantee to include a \0 byte at the end of a string
  * if the number of characters copied is equal to the number copied. OpenBSD
  * strlcpy() copies one less, and ensures there is always a zero byte at the
