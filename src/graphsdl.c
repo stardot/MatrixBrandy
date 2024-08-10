@@ -2737,6 +2737,7 @@ static void setup_mode(int32 mode) {
       return;
     }
   }
+  memset(matrixflags.surface->pixels, 0, sx*sy*4);
   ds.autorefresh=1;
   ds.vscrwidth = sx;
   ds.vscrheight = sy;
