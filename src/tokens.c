@@ -1758,7 +1758,7 @@ static char *printlist [] = {NIL, "SPC", "TAB("};
 ** 'expand_token' is called to expand the token passed to it to its textual
 ** form. The function returns the length of the expanded form
 */
-static int expand_token(char *cp, char *namelist[], byte token) {
+static int expand_token(char *cp, char *namelist[], byte token, int bufsz) {
   int count;
   char *name;
 
@@ -1768,7 +1768,7 @@ static int expand_token(char *cp, char *namelist[], byte token) {
     error(ERR_BROKEN, __LINE__, "tokens");       /* Sanity check for bad token value */
     return 0;
   }
-  STRLCPY(cp, name, MAXSTRING);
+  STRLCPY(cp, name, bufsz);
   count = strlen(name);
   if (basicvars.list_flags.lower) {     /* Lower case version of name required */
     int n;
@@ -1811,14 +1811,17 @@ void expand(byte *line, char *text) {
   byte token;
   byte *elp;
   int count;
+  int bufsz = MAXSTRING;
 
   DEBUGFUNCMSGIN;
   if (!basicvars.list_flags.noline) {   /* Include line number */
     snprintf(text, MAXSTRING, "%5d", GET_LINENO(line));
     text+=5;
+    bufsz-=5;
     if (basicvars.list_flags.space) {   /* Need a blank before the expanded line */
       *text = ' ';
       text++;
+      bufsz--;
     }
   }
   elp = line+OFFSOURCE;  /* Point at start of code after source token */
@@ -1874,6 +1877,7 @@ void expand(byte *line, char *text) {
     for (n=1; n<=thisindent; n++) {
       *text = ' ';
       text++;
+      bufsz--;
     }
     indentation = nextindent;
     elp = skip(line+OFFSOURCE);
@@ -1886,6 +1890,7 @@ void expand(byte *line, char *text) {
       elp++;
       count = snprintf(text, MAXSTRING, "%d", GET_LINENO(elp));
       text+=count;
+      bufsz-=count;
       elp+=LINESIZE;
     }
     else if (token == BASTOKEN_XVAR)       /* Marks start of variable name - Ignore */
@@ -1894,26 +1899,30 @@ void expand(byte *line, char *text) {
       do {      /* Copy characters up to next '"' */
         *text = *elp;
         text++;
+        bufsz--;
         elp++;
       } while (*elp != '"' && *elp != asc_NUL);
       if (*elp == '"') { /* '"' at end of string */
         *text = '"';
         text++;
+        bufsz--;
         elp++;
       }
     }
     else if (token<BASTOKEN_LOWEST) {      /* Normal characters */
       *text = token;
       text++;
+      bufsz--;
       elp++;
     }
     else if (token == BASTOKEN_DATA || token == BASTOKEN_REM) {       /* 'DATA' and 'REM' are a special case */
-      count = expand_token(text, onebytelist, token-BASTOKEN_LOWEST);
+      count = expand_token(text, onebytelist, token-BASTOKEN_LOWEST, bufsz);
       text+=count;
       elp++;
       while (*elp != asc_NUL) {      /* Copy rest of line after 'DATA' or ' REM' */
         *text = *elp;
         text++;
+        bufsz--;
         elp++;
       }
     }
@@ -1926,7 +1935,7 @@ void expand(byte *line, char *text) {
           error(ERR_BADPROG);
           return;
         }
-        count = expand_token(text, printlist, token);
+        count = expand_token(text, printlist, token, bufsz);
         break;
       case TYPE_FUNCTION:       /* Built-in Function */
         elp++;
@@ -1935,7 +1944,7 @@ void expand(byte *line, char *text) {
           error(ERR_BADPROG);
           return;
         }
-        count = expand_token(text, functionlist, token);
+        count = expand_token(text, functionlist, token, bufsz);
         break;
       case TYPE_COMMAND:
         elp++;
@@ -1944,12 +1953,13 @@ void expand(byte *line, char *text) {
           error(ERR_BADPROG);
           return;
         }
-        count = expand_token(text, commandlist, token);
+        count = expand_token(text, commandlist, token, bufsz);
         break;
       default:
-        count = expand_token(text, onebytelist, token-BASTOKEN_LOWEST);
+        count = expand_token(text, onebytelist, token-BASTOKEN_LOWEST, bufsz);
       }
       text+=count;
+      bufsz--;
       elp++;
     }
     token = *elp;
