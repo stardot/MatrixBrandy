@@ -29,8 +29,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - BASIC: Implement BBCSDL's PLOT BY x,y (equivalent to PLOT 65,x,y), and
   equivalent to POINT BY x,y in ARM BASIC V.
 - BASIC: WIDTH is now operational for GUI mode and the 'tbrandy' text-mode
-  builds. Note that unlike RISC OS it affects ALL output, including from
-  built-in *-commands (but not external commands).
+  builds. Note that unlike RISC OS it affects almost ALL output (VDU excluded),
+  including from built-in *-commands (but not external commands).
 
 * 1.23.2 - 22 May 2024
 - General: Much code clean-up (and some bugs fixed) after static analysis.
