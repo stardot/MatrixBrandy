@@ -14,6 +14,7 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - General: Fix use of potentially uninitialised memory in SDL buffer.
 - Build: Add support for strlcpy() and friends for more platforms that
   include them, thanks to Brad Smith for this!
+- BASIC: SAVE no longer affected by LISTO.
 
 * 1.23.3 - 06 August 2024
 - General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag

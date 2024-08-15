@@ -278,24 +278,12 @@ static void list_if(void) {
   DEBUGFUNCMSGOUT;
 }
 
-static void set_listoption(int32 listopts) {
-  DEBUGFUNCMSGIN;
-  basicvars.list_flags.space = (listopts & LIST_SPACE) != 0;
-  basicvars.list_flags.indent = (listopts & LIST_INDENT) != 0;
-  basicvars.list_flags.split = (listopts & LIST_SPLIT) != 0;
-  basicvars.list_flags.noline = (listopts & LIST_NOLINE) != 0;
-  basicvars.list_flags.lower = (listopts & LIST_LOWER) != 0;
-  basicvars.list_flags.showpage = (listopts & LIST_PAGE) != 0;
-  basicvars.list_flags.expand = (listopts & LIST_EXPAND) != 0;
-  DEBUGFUNCMSGOUT;
-}
-
 /*
 ** 'set_listopt' sets the options for the LIST command. It is also
 ** used to set the level of internal debugging information produced
 ** by the interpreter.
 */
-static void set_listopt(void) {
+void set_listopt(void) {
   int32 listopts;
 
   DEBUGFUNCMSGIN;
@@ -303,18 +291,6 @@ static void set_listopt(void) {
   listopts = get_number();
   check_ateol();
   set_listoption(listopts);
-#ifdef DEBUG
-/* Internal debugging options */
-  basicvars.debug_flags.debug = (listopts & DEBUG_DEBUG) != 0;
-  basicvars.debug_flags.tokens = (listopts & DEBUG_TOKENS) != 0;
-  basicvars.debug_flags.variables = (listopts & DEBUG_VARIABLES) != 0;
-  basicvars.debug_flags.strings = (listopts & DEBUG_STRINGS) != 0;
-  basicvars.debug_flags.stats = (listopts & DEBUG_STATS) != 0;
-  basicvars.debug_flags.stack = (listopts & DEBUG_STACK) != 0;
-  basicvars.debug_flags.allstack = (listopts & DEBUG_ALLSTACK) != 0;
-  basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
-  basicvars.debug_flags.vdu = (listopts & DEBUG_VDU) != 0;
-#endif
   DEBUGFUNCMSGOUT;
 }
 
@@ -590,6 +566,7 @@ static char *get_savefile(void) {
 */
 static void save_program(void) {
   char *np;
+  int32 listovalue;
 
   DEBUGFUNCMSGIN;
   if (basicvars.misc_flags.badprogram) {
@@ -600,7 +577,10 @@ static void save_program(void) {
   basicvars.current++;
   np = get_savefile();
   reset_indent();
+  listovalue = get_listo();
+  set_listoption(0);
   write_text(np, NULL);
+  set_listoption(listovalue);
   STRLCPY(basicvars.program, np, FNAMESIZE);        /* Preserve name used when saving program for later */
   DEBUGFUNCMSGOUT;
 }

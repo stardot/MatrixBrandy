@@ -73,6 +73,8 @@ extern int32 sgni(int64);
 extern int32 sgnf(float64);
 extern void string_zeroterm(char *);
 extern char *translatefname(char *);
+extern int32 get_listo(void);
+extern void set_listoption(int32);
 
 #ifndef BRANDY_HAS_STRL_FUNCTIONS
 extern char *my_strlcpy(char *dest, const char *src, size_t n);

@@ -602,6 +602,49 @@ char *translatefname(char *fn) {
   return(fnbuf);
 }
 
+int32 get_listo(void) {
+  return (basicvars.list_flags.space | basicvars.list_flags.indent<<1
+        | basicvars.list_flags.split<<2 | basicvars.list_flags.noline<<3
+        | basicvars.list_flags.lower<<4 | basicvars.list_flags.showpage<<5
+        | basicvars.list_flags.expand<<6
+#ifdef DEBUG
+        | basicvars.debug_flags.debug<<8
+        | basicvars.debug_flags.tokens<<9
+        | basicvars.debug_flags.variables<<10
+        | basicvars.debug_flags.strings<<11
+        | basicvars.debug_flags.stats<<12
+        | basicvars.debug_flags.stack<<13
+        | basicvars.debug_flags.allstack<<14
+        | basicvars.debug_flags.functions<<15
+        | basicvars.debug_flags.vdu<<16
+#endif
+        );
+}
+
+void set_listoption(int32 listopts) {
+  DEBUGFUNCMSGIN;
+  basicvars.list_flags.space = (listopts & LIST_SPACE) != 0;
+  basicvars.list_flags.indent = (listopts & LIST_INDENT) != 0;
+  basicvars.list_flags.split = (listopts & LIST_SPLIT) != 0;
+  basicvars.list_flags.noline = (listopts & LIST_NOLINE) != 0;
+  basicvars.list_flags.lower = (listopts & LIST_LOWER) != 0;
+  basicvars.list_flags.showpage = (listopts & LIST_PAGE) != 0;
+  basicvars.list_flags.expand = (listopts & LIST_EXPAND) != 0;
+#ifdef DEBUG
+/* Internal debugging options */
+  basicvars.debug_flags.debug = (listopts & DEBUG_DEBUG) != 0;
+  basicvars.debug_flags.tokens = (listopts & DEBUG_TOKENS) != 0;
+  basicvars.debug_flags.variables = (listopts & DEBUG_VARIABLES) != 0;
+  basicvars.debug_flags.strings = (listopts & DEBUG_STRINGS) != 0;
+  basicvars.debug_flags.stats = (listopts & DEBUG_STATS) != 0;
+  basicvars.debug_flags.stack = (listopts & DEBUG_STACK) != 0;
+  basicvars.debug_flags.allstack = (listopts & DEBUG_ALLSTACK) != 0;
+  basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
+  basicvars.debug_flags.vdu = (listopts & DEBUG_VDU) != 0;
+#endif
+  DEBUGFUNCMSGOUT;
+}
+
 #ifndef BRANDY_HAS_STRL_FUNCTIONS
 /* strncpy() does not gurarantee to include a \0 byte at the end of a string
  * if the number of characters copied is equal to the number copied. OpenBSD

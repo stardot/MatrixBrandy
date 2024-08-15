@@ -1226,9 +1226,7 @@ static void fn_len(void) {
 */
 static void fn_listofn(void) {
   DEBUGFUNCMSGIN;
-  push_int(basicvars.list_flags.space | basicvars.list_flags.indent<<1
-        | basicvars.list_flags.split<<2 | basicvars.list_flags.noline<<3
-        | basicvars.list_flags.lower<<4 | basicvars.list_flags.showpage<<5);
+  push_int(get_listo());
   DEBUGFUNCMSGOUT;
 }
 
