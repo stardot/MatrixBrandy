@@ -823,6 +823,9 @@ void mos_sys_ext(size_t swino, sysparm inregs[], size_t outregs[], int32 xflag, 
     case SWI_Brandy_MemSet:
       memset((void *)inregs[0].i, inregs[2].i, inregs[1].i);
       break;
+    case SWI_Brandy_AllowLowercase:
+      matrixflags.lowercasekeywords = inregs[0].i;
+      break;
 // Raspberry Pi GPIO stuff below
     case SWI_RaspberryPi_GPIOInfo:
       outregs[0]=matrixflags.gpio; outregs[1]=(size_t)matrixflags.gpiomem;

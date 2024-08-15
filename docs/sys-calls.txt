@@ -280,6 +280,12 @@ Brandy_xxx  (SWI numbers start &140000)
                                 memory area pointed to by R0 with the constant
                                 byte R2.
 
+&140019 Brandy_AllowLowercase	This sets whether or not Brandy accepts
+                                keywords in lowercase. This may also be set
+                                using the '-lck' command line option or the
+                                'lowercase' config file option.
+				Default: R0=0 (disabled)
+
 
 RaspberryPi_xxx (SWI numbers start &140100)
  -- see also docs/raspi-gpio.txt

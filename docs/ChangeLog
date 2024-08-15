@@ -15,6 +15,9 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - Build: Add support for strlcpy() and friends for more platforms that
   include them, thanks to Brad Smith for this!
 - BASIC: SAVE no longer affected by LISTO.
+- BASIC: Allow lowercase keywords if '-lck' command line option is used or
+  'lowercase' config file option is present, or at runtime via the SYS
+  "Brandy_AllowLowercase" call.
 
 * 1.23.3 - 06 August 2024
 - General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag
