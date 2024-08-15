@@ -613,6 +613,7 @@ typedef struct {
   boolean pseudovarsunsigned; /* Unsigned pseudovars on 32-bit */
   boolean tekenabled;         /* Tektronix enabled in text mode (default: no) */
   boolean networking;         /* TRUE if networking is available */
+  boolean lowercasekeywords;  /* Allow lower-case keywords? */
 #ifdef USE_SDL
   byte *modescreen_ptr;       /* Mode screen pointer to pixels memory */
   uint32 modescreen_sz;       /* Mode screen size */

@@ -421,6 +421,8 @@ static void check_configfile() {
     } else if(!strncmp(item, "swsurface", 10)) {
       basicvars.runflags.swsurface=TRUE;
 #endif
+    } else if(!strncmp(item,"lowercase",10)) {
+      matrixflags.lowercasekeywords = TRUE;
     } else if(!strncmp(item, "ignore", 8)) {
       basicvars.runflags.flag_cosmetic = FALSE;
     } else if(!strncmp(item, "strict", 7)) {
@@ -545,6 +547,8 @@ static void check_cmdline(int argc, char *argv[]) {
           }
         }
       }
+      else if (optchar=='l' && tolower(*(p+2))=='c' && tolower(*(p+3))=='k')
+        matrixflags.lowercasekeywords=1;                /* -lck */
       else if (optchar=='t')                            /* -tek - enable Tek graphics */
         matrixflags.tekenabled=1;
       else if (optchar=='i' && tolower(*(p+2))=='g')    /* -ignore  Ignore cosmetic errors */

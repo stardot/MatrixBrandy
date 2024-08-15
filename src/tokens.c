@@ -652,9 +652,15 @@ static int kwsearch(void) {
   keyword[n] = asc_NUL;
   kwlength = n;
   first = keyword[0];
-  if (islower(first))
+  if (matrixflags.lowercasekeywords) {
+    if (islower(first)) {
+      for (n=0; keyword[n] != asc_NUL; n++) keyword[n] = toupper(keyword[n]);
+      first = keyword[0];
+    }
+  }
+  if (islower(first)) {
     nomatch = TRUE;
-  else {
+  } else {
     n = start_letter[first-'A'];
     if (n == NOKEYWORD) return NOKEYWORD;       /* No keyword starts with this letter */
     do {
@@ -663,7 +669,7 @@ static int kwsearch(void) {
         count = kwlength;
         if (kwlength < tokens[n].minlength) count = tokens[n].minlength;
       }
-      if (strncmp(keyword, tokens[n].name, count) == 0) break;
+      if (strncasecmp(keyword, tokens[n].name, count) == 0) break;
       n++;
     } while (*(tokens[n].name) == first);
     nomatch = *(tokens[n].name) != first;
@@ -681,15 +687,12 @@ static int kwsearch(void) {
 ** Kludge time...If the line does not start with a line number, convert
 ** the keyword to upper case and check if it is a command
 */
-#ifdef BRANDY_ALLOW_LOWERCASE_COMMANDS
-    if (numbered && islower(first)) return NOKEYWORD;
-    if (!numbered) {    /* Line is not numbered so ignore case of keyword */
+    if (matrixflags.lowercasekeywords) {
       for (n=0; keyword[n] != asc_NUL; n++) keyword[n] = toupper(keyword[n]);
       first = keyword[0];
+    } else {
+      if (islower(first)) return NOKEYWORD;
     }
-#else
-    if (islower(first)) return NOKEYWORD;
-#endif
     n = command_start[first - 'A'];
     if (n == NOKEYWORD) return NOKEYWORD;       /* Text is not a keyword or a command */
     do {

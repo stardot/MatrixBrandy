@@ -387,6 +387,7 @@ void show_help(void) {
 #else
   printf("  -ignore        Ignore 'unsupported feature' where possible\n");
 #endif
+  printf("  -lck           Allow use of lowercase keywords\n");
 #ifndef TARGET_RISCOS
   printf("  -nostar        Do not check OSCLI for internal *-commands, instead pass all\n");
   printf("                 commands to the underlying operating system.\n");

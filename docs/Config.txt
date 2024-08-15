@@ -68,6 +68,10 @@ strict                  (If ignore mode enabled by default) The interpreter
                         some obvious BASIC program bugs that are ignored by
                         the Acorn interpreter.
 
+lowercase               Allow use of lower-case keywords. Unless LISTO option
+                        is set, LIST will show keywords in uppercase. SAVE
+                        will always save keywords in uppercase.
+
 nostar                  Do not check commands issued via OSCLI to see if they
                         are dealt with by Brandy. Pass all commands to the
                         underlying operating system.
