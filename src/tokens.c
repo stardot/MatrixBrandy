@@ -653,10 +653,8 @@ static int kwsearch(void) {
   kwlength = n;
   first = keyword[0];
   if (matrixflags.lowercasekeywords) {
-    if (islower(first)) {
-      for (n=0; keyword[n] != asc_NUL; n++) keyword[n] = toupper(keyword[n]);
-      first = keyword[0];
-    }
+    for (n=0; keyword[n] != asc_NUL; n++) keyword[n] = toupper(keyword[n]);
+    first = keyword[0];
   }
   if (islower(first)) {
     nomatch = TRUE;
