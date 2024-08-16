@@ -1655,7 +1655,7 @@ static void print_screen(void) {
   int32 format, formattype, fieldwidth, numdigits, size;
   int32 eoff;
   char *leftfmt, *rightfmt;
-  char *bufptr;
+  char *bufptr, *crptr;
 
   DEBUGFUNCMSGIN;
   hex = FALSE;
@@ -1828,7 +1828,12 @@ static void print_screen(void) {
       descriptor = pop_string();
       if (descriptor.stringlen>0) {
         emulate_vdustr(descriptor.stringaddr, descriptor.stringlen);
-        basicvars.printcount+=descriptor.stringlen;
+        crptr=strrchr(descriptor.stringaddr, '\r');
+        if (crptr) {
+          basicvars.printcount+=(descriptor.stringlen - 1 - (crptr-descriptor.stringaddr));
+        } else {
+          basicvars.printcount+=descriptor.stringlen;
+        }
       }
       if (resultype == STACK_STRTEMP) free_string(descriptor);
       break;

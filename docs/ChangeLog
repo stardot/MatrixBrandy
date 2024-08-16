@@ -18,7 +18,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - BASIC: Allow lowercase keywords if '-lck' command line option is used or
   'lowercase' config file option is present, or at runtime via the SYS
   "Brandy_AllowLowercase" call.
-- BASIC: Fix behaviour of WIDTH and TAB(x,y).
+- BASIC: Fix behaviour of WIDTH and TAB(x,y), and behaviour of TAB(x) with
+  an embedded CR in the string.
 
 * 1.23.3 - 06 August 2024
 - General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag
