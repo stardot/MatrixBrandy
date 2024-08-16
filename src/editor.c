@@ -521,7 +521,7 @@ static int32 read_bbcfile(FILE *bbcfile, byte *base, byte *limit, int32 ftype) {
 ** the end of the file. It could indicate an I/O error on the file.
 */
 static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean silent) {
-  int length;
+  int length, lck;
   byte *filebase;
   char *result;
   byte tokenline[MAXSTATELEN];
@@ -561,6 +561,8 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
       return 0;
     }
   }
+  lck=matrixflags.lowercasekeywords;
+  matrixflags.lowercasekeywords=0;
   needsnumbers = FALSE;         /* This will be set by tokenise_line() above */
   basicvars.linecount = 0;      /* Number of line being read from file */
   filebase = base;
@@ -605,6 +607,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
 #endif
         fclose(textfile);
         basicvars.misc_flags.badprogram=1; /* The program is incomplete, thus corrupt */
+        matrixflags.lowercasekeywords=lck;
         error(ERR_NOROOM);
         return 0;
       }
@@ -626,6 +629,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   fclose(textfile);
   basicvars.linecount = 0;
   if (base+ENDMARKSIZE>=limit) {
+    matrixflags.lowercasekeywords=lck;
     error(ERR_NOROOM);
     return 0;
   }
@@ -634,6 +638,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     if (!basicvars.runflags.loadngo) emulate_printf("Line numbers added to program\r\n");
     renumber_program(filebase, 1, 1);
   }
+  matrixflags.lowercasekeywords=lck;
   return ALIGN(base-filebase+ENDMARKSIZE);
 }
 
