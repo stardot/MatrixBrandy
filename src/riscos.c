@@ -90,7 +90,7 @@ void emulate_vdu(int32 charvalue) {
   _kernel_oswrch(charvalue);
   /* This might not be quite right, but as we just use the RISC OS VDU driver,
    * we can't really track whether a CR is a parameter or a VDU code. */
-  is (charvalue ==  asc_CR) basicvars.xtab = 0;
+  if (charvalue ==  asc_CR) basicvars.xtab = 0;
 }
 
 /*
