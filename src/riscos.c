@@ -450,6 +450,7 @@ void emulate_tab(int32 x, int32 y) {
   emulate_vdu(VDU_MOVETEXT);
   emulate_vdu(x);
   emulate_vdu(y);
+  basicvars.xtab = x;
 }
 
 /*
