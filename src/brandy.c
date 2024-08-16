@@ -261,6 +261,7 @@ static void init1(void) {
   basicvars.loadpath = NIL;
   basicvars.argcount = 0;
   basicvars.recdepth = 0;
+  basicvars.xtab = 0;
   basicvars.arglist = NIL;            /* List of command line arguments */
   basicvars.maxrecdepth = MAXRECDEPTH;
   arglast = NIL;                      /* End of list of command line arguments */

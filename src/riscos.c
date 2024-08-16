@@ -88,6 +88,9 @@ void echo_off(void) {
 */
 void emulate_vdu(int32 charvalue) {
   _kernel_oswrch(charvalue);
+  /* This might not be quite right, but as we just use the RISC OS VDU driver,
+   * we can't really track whether a CR is a parameter or a VDU code. */
+  is (charvalue ==  asc_CR) basicvars.xtab = 0;
 }
 
 /*
@@ -99,9 +102,10 @@ void emulate_vdustr(char *string, int32 length) {
   for (n=0; n<length; n++) {
     _kernel_oswrch(string[n]);      /* Send the string to the VDU driver */
     if (basicvars.printwidth > 0) { /* Separate to two levels for performance */
-      if (emulate_pos() == basicvars.printwidth) {
-        _kernel_oswrch(13);
-        _kernel_oswrch(10);
+      if ((emulate_pos() - basicvars.xtab) == basicvars.printwidth) {
+        _kernel_oswrch(asc_CR);
+        _kernel_oswrch(asc_LF);
+        basicvars.xtab = 0;
       }
     }
   }

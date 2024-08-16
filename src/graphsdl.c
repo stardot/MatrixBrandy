@@ -2047,6 +2047,7 @@ static void vdu_return(void) {
       set_rgb();
     }
   }
+  basicvars.xtab = 0;
 }
 
 #ifndef BRANDY_MODE7ONLY
@@ -2628,9 +2629,10 @@ void emulate_vdustr(char string[], int32 length) {
   for (n = 0; n < length; n++) {
     emulate_vdu(string[n]);        /* Send the string to the VDU driver */
     if (basicvars.printwidth > 0) {
-      if (emulate_pos() == basicvars.printwidth) {
-        emulate_vdu(13);
-        emulate_vdu(10);
+      if ((emulate_pos() - basicvars.xtab) == basicvars.printwidth) {
+        emulate_vdu(asc_CR);
+        emulate_vdu(asc_LF);
+        basicvars.xtab = 0;
       }
     }
   }
@@ -3527,6 +3529,7 @@ void emulate_tab(int32 x, int32 y) {
   emulate_vdu(VDU_MOVETEXT);
   emulate_vdu(x);
   emulate_vdu(y);
+  basicvars.xtab = x;
 }
 
 /*

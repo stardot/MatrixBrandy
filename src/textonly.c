@@ -941,6 +941,7 @@ static void vdu_cleartext(void) {
 */
 static void vdu_return(void) {
   move_cursor(twinleft, ytext);
+  basicvars.xtab = 0;
 }
 
 /*
@@ -1344,8 +1345,9 @@ void emulate_vdustr(char string[], int32 length) {
     emulate_vdu(string[n]);      /* Send the string to the VDU driver */
     if (basicvars.printwidth > 0) {
       if (emulate_pos() == basicvars.printwidth) {
-        emulate_vdu(13);
-        emulate_vdu(10);
+        emulate_vdu(asc_CR);
+        emulate_vdu(asc_LF);
+        basicvars.xtab = 0;
       }
     }
   }
