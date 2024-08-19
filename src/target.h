@@ -478,7 +478,6 @@ typedef jmp_buf sigjmp_buf;
 #else
 #define STRLCPY(x,y,z) my_strlcpy(x,y,z)
 #define STRLCAT(x,y,z) strncat(x,y,z - strlen(x) -1)
-#define USE_MY_STRLCPY
 #endif /* BRANDY_HAS_STRL_FUNCTIONS */
 
 #ifdef __TARGET_SCL__

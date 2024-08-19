@@ -108,13 +108,13 @@
 **
 */
 
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 #include "target.h"
 #ifdef TARGET_OPENBSD
 #include <sys/select.h>
 #endif
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 #include "common.h"
 #include "basicdefs.h"
 #include "errors.h"

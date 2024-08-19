@@ -17,13 +17,13 @@
 ** the Free Software Foundation, 59 Temple Place - Suite 330,
 ** Boston, MA 02111-1307, USA.
 */
-#include "target.h"
 #ifndef NONET /* matching endif at end of file */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "target.h"
 #ifdef TARGET_MINGW
 #include <winsock2.h>
 #include <windows.h>

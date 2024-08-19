@@ -22,7 +22,6 @@
 **      This file contains the main interpreter command loop
 */
 
-#include "target.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,6 +29,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include "target.h"
 #ifndef TARGET_RISCOS
 #include <pthread.h>
 #endif
