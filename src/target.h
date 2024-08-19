@@ -212,7 +212,7 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define BRANDY_HAS_STRL_FUNCTIONS
 #endif
 
-#ifdef linux
+#ifdef __linux__
 #define TARGET_LINUX
 #define TARGET_UNIX
 #define BRANDY_OS "Linux"
@@ -222,6 +222,12 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#if defined(__GLIBC__) && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 38)))
+#define BRANDY_HAS_STRL_FUNCTIONS
+#elif !defined(__GLIBC__)
+#define _GNU_SOURCE
+#define BRANDY_HAS_STRL_FUNCTIONS
+#endif
 #endif
 
 #ifdef __minix
@@ -278,6 +284,9 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#if defined(__GLIBC__) && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 38)))
+#define BRANDY_HAS_STRL_FUNCTIONS
+#endif
 #endif
 
 #ifdef __GNU__
@@ -289,6 +298,12 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define DEFAULT_EDITOR  "vi"
 #define DIR_SEPS "/"
 #define DIR_SEP  '/'
+#if defined(__GLIBC__) && ((__GLIBC__ > 2) || ((__GLIBC__ == 2) && (__GLIBC_MINOR__ >= 38)))
+#define BRANDY_HAS_STRL_FUNCTIONS
+#elif !defined(__GLIBC__)
+#define _GNU_SOURCE
+#define BRANDY_HAS_STRL_FUNCTIONS
+#endif
 #endif
 
 #ifdef DJGPP
