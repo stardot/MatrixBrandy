@@ -457,6 +457,7 @@ int checkfornewer() {
     }
   }
   brandynet_close(hndl);
+  if (strlen(inbuf) == 0) return(2);
   verstr=strstr(inbuf, "\r\n\r\n");
   verstr+=4;
   ptra=strchr(verstr, '\n'); *ptra='\0';

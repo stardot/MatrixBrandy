@@ -12,6 +12,7 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 * 1.23.4 - 
 - General: Fix potential buffer overflow when detokenising code.
 - General: Fix use of potentially uninitialised memory in SDL buffer.
+- General: Fix crash and add warning if version check retrieval fails.
 - Build: Add support for strlcpy() and friends for more platforms that
   include them, thanks to Brad Smith for this!
 - BASIC: SAVE no longer affected by LISTO.

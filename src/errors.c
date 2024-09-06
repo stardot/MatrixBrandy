@@ -307,7 +307,12 @@ void announce(void) {
 #ifndef NONET
 #ifndef BRANDY_NOVERCHECK
   if (matrixflags.checknewver) {
-    if (checkfornewer()) emulate_printf("A newer version is available!\r\n\n");
+    switch (checkfornewer()) {
+      case 1:emulate_printf("A newer version is available!\r\n\n");
+              break;
+      case 2:emulate_printf("Error retrieving version info, use '-nocheck' to avoid hangs.\r\n\n");
+      default: break;
+    }
   }
 #endif /* BRANDY_NOVERCHECK */
 #endif /* NONET */
