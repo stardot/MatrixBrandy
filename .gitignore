@@ -32,5 +32,8 @@ app.c
 *.rej
 *.orig
 
+# Debugging
+perf.data
+
 # Temporary files
 ~*
