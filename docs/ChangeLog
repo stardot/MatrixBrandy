@@ -15,6 +15,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - General: Fix crash and add warning if version check retrieval fails.
 - Build: Add support for strlcpy() and friends for more platforms that
   include them, thanks to Brad Smith for this!
+- Graphics: Work around a SDL1.2-compat issue where leaving fullscreen
+  mode left the mouse restricted to the window.
 - BASIC: SAVE no longer affected by LISTO.
 - BASIC: Allow lowercase keywords if '-lck' command line option is used or
   'lowercase' config file option is present, or at runtime via the SYS

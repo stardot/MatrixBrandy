@@ -4764,6 +4764,9 @@ void fullscreenmode(int onoff) {
     SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
     matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
+    if (!(matrixflags.sdl_flags & SDL_FULLSCREEN)) {
+      SDL_WM_GrabInput(SDL_GRAB_OFF);
+    }
   }
   tmsg.modechange = -1;
 }
