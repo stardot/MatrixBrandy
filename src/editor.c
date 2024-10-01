@@ -32,6 +32,7 @@
 #include <ctype.h>
 #include "common.h"
 #include "target.h"
+#include "editor.h"
 #include "basicdefs.h"
 #include "errors.h"
 #include "variables.h"
@@ -571,7 +572,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     result = gzgets(gzipfile, basicvars.stringwork, INPUTLEN);
   else
 #endif
-  result = fgets(basicvars.stringwork, INPUTLEN, textfile);
+  result = multifgets(basicvars.stringwork, INPUTLEN, textfile);
     if (result!=NIL && basicvars.stringwork[0]=='#') {  /* Ignore first line if it starts with a '#' */
     basicvars.runflags.quitatend=basicvars.runflags.loadngo;
 #ifdef HAVE_ZLIB_H
@@ -579,7 +580,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
       result = gzgets(gzipfile, basicvars.stringwork, INPUTLEN);
     else
 #endif
-    result = fgets(basicvars.stringwork, INPUTLEN, textfile);
+    result = multifgets(basicvars.stringwork, INPUTLEN, textfile);
   }
   while (result!=NIL) {
     basicvars.linecount++;
@@ -619,7 +620,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
       result = gzgets(gzipfile, basicvars.stringwork, INPUTLEN);
     else
 #endif
-    result = fgets(basicvars.stringwork, INPUTLEN, textfile);
+    result = multifgets(basicvars.stringwork, INPUTLEN, textfile);
   }
 #ifdef HAVE_ZLIB_H
   if (gzipped)
@@ -1021,4 +1022,26 @@ void edit_line(void) {
   else {
     insert_line(thisline);
   }
+}
+
+/*
+** Implementation of fgets() that handles both 0x0D and 0x0A line endings
+**/
+char *multifgets(char *mfbuf, int bufsz, FILE *handle) {
+  int c = 0;
+  char* cs;
+  cs = mfbuf;
+
+  while(--bufsz > 0 && (c = getc(handle)) != EOF) {
+    // put the input char into the current pointer position, then increment it
+    // if a newline entered, break
+    if ((c == '\n') || (c == '\r')) {
+      c='\n';
+      if (cs == mfbuf) continue; /* If CR or LF at start of line, get next character */
+    }
+    if ((*cs++ = c) == '\n') break;          
+  }
+
+  *cs = '\0';
+  return (c == EOF && cs == mfbuf) ? NULL : mfbuf;
 }

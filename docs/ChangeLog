@@ -23,6 +23,7 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
   "Brandy_AllowLowercase" call.
 - BASIC: Fix behaviour of WIDTH and TAB(x,y), and behaviour of TAB(x) with
   an embedded CR in the string.
+- BASIC: Brandy can now load text files with CR, CR/LF or LF line endings.
 
 * 1.23.3 - 06 August 2024
 - General: Implemented code tidy-ups recommended by OpenBSD. Thank you to Jag

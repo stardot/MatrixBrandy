@@ -45,5 +45,6 @@ extern void read_library(char *, boolean);
 extern void write_text(char *, FILE *);
 extern boolean validate_program(void);
 extern void renumber_program(byte *, int32, int32);
+extern char *multifgets(char *mfbuf, int bufsz, FILE *handle);
 
 #endif
