@@ -425,7 +425,7 @@ int net_bputstr(int handle, char *string, int32 length) {
  * version. This is a quick and dirty implementation talking raw HTML!
  */
 int checkfornewer() {
-  int hndl, ptr, val, vermaj, vermin, verpatch;
+  int hndl, ptr, val, vermaj, vermin, verpatch, lc;
   char *inbuf, *verstr, *ptra, *request;
 
   DEBUGFUNCMSGIN;
@@ -447,6 +447,7 @@ int checkfornewer() {
   free(request);
   ptr = 0;
   val=-1;
+  lc=0;
   while (val != -2) {
     val=net_bget(hndl);
     if (val >= 0) {
@@ -454,6 +455,9 @@ int checkfornewer() {
       ptr++;
     } else {
       usleep(10000);
+      lc++;                                             /* Increment loop counter */
+      /* If we have hung for a second or have data in the buffer already, stop waiting */
+      if ((lc >= 100) || ((val == -1) && (ptr > 0))) val=-2;
     }
   }
   brandynet_close(hndl);
