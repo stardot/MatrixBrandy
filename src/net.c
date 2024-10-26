@@ -461,10 +461,16 @@ int checkfornewer() {
     }
   }
   brandynet_close(hndl);
-  if (strlen(inbuf) == 0) return(2);
+  if (strlen(inbuf) == 0) {
+    free(inbuf);
+    return(2);
+  }
   verstr=strstr(inbuf, "\r\n\r\n");
   verstr+=4;
-  if ((*verstr < 48) || (*verstr > 57)) return(2);
+  if ((*verstr < 48) || (*verstr > 57)) {
+    free(inbuf);
+    return(2);
+  }
   ptra=strchr(verstr, '\n'); *ptra='\0';
   ptra=strchr(verstr, '.'); *ptra='\0';
   vermaj=atoi(verstr);
