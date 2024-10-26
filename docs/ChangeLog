@@ -9,6 +9,10 @@ Also, 1.23.2 introduced an automatic new version check. This may be considered
 inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
+* 1.23.5 - 
+- System: Fix an intermittent hang on the version check due to network
+  conditions, and a crash if unexpected data is received.
+
 * 1.23.4 - 18 October 2024
 - General: Fix potential buffer overflow when detokenising code.
 - General: Fix use of potentially uninitialised memory in SDL buffer.
