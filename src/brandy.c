@@ -553,6 +553,8 @@ static void check_cmdline(int argc, char *argv[]) {
       }
       else if (optchar=='l' && tolower(*(p+2))=='c' && tolower(*(p+3))=='k')
         matrixflags.lowercasekeywords=1;                /* -lck */
+      else if (optchar=='2' && tolower(*(p+2))=='x')
+        matrixflags.videoscale = 2;                     /* -2x - scale display */
       else if (optchar=='t')                            /* -tek - enable Tek graphics */
         matrixflags.tekenabled=1;
       else if (optchar=='i' && tolower(*(p+2))=='g')    /* -ignore  Ignore cosmetic errors */

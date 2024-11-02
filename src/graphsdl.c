@@ -864,18 +864,20 @@ static void toggle_cursor(void) {
   } else {
     mxppc=XPPC;   myppc=YPPC;
   }
-  startpt = myppc;
+  startpt = myppc * matrixflags.videoscale;
   if (xtemp > twinright) xtemp=twinright;
   cursorstate = (cursorstate == ONSCREEN) ? SUSPENDED : ONSCREEN;       /* Toggle the cursor state */
   left = xtemp*ds.xscale*mxppc;                                 /* Calculate pixel coordinates of ends of cursor */
   right = left + ds.xscale*mxppc -1;
   if (cursmode == UNDERLINE) curheight=(tmsg.crtc6845r10 & 31);
-  y = ((ytext+1)*ds.yscale*myppc - ds.yscale) * ds.vscrwidth;
-  while (startpt > curheight) {
+  y = ((ytext+1)*ds.yscale*matrixflags.videoscale*myppc - ds.yscale) * ds.vscrwidth;
+  while (startpt > curheight*matrixflags.videoscale) {
     for (ys=0; ys < ysc; ys++) {
       for (x=left; x <= right; x++) {
-        if ((x + y + (ds.vscrwidth * csroffset)) >= 0 && (x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight)) {      /* Prevent offscreen drawing */
-          *((Uint32*)matrixflags.surface->pixels + x + y + (ds.vscrwidth * csroffset)) ^= SWAPENDIAN(ds.xor_mask);
+        if ((x + y + (ds.vscrwidth * csroffset)) >= 0 && (x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight * matrixflags.videoscale)) {      /* Prevent offscreen drawing */
+          *((Uint32*)matrixflags.surface->pixels + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
+          if (matrixflags.videoscale == 2)
+          *((Uint32*)matrixflags.surface->pixels + 1 + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
         }
       }
       csroffset--;
@@ -905,6 +907,8 @@ static void toggle_cursor(void) {
 #ifndef BRANDY_MODE7ONLY
 static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
   int32 xx, yy;
+  int32 xscale = ds.xscale * matrixflags.videoscale;
+  int32 yscale = ds.yscale * matrixflags.videoscale;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
@@ -917,7 +921,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
   if (right >= ds.screenwidth) right = ds.screenwidth-1;
   if (top < 0) top = 0;
   if (bottom >= ds.screenheight) bottom = ds.screenheight-1;
-  if (!ds.scaled) {
+  if ((!ds.scaled) && (matrixflags.videoscale == 1)) {
     if ((top == 0) && (left == 0) && (right == ds.screenwidth-1) && (bottom == ds.screenheight-1)) {
       /* Special high-speed memory copy for full-screen non-scaled blits */
       uint64 *dptr, *sptr, lptr, scrsz;
@@ -934,17 +938,17 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       }
     }
   } else {
-    int32 dleft = left*ds.xscale;                               /* Calculate pixel coordinates in the */
-    int32 dtop  = top*ds.yscale;                                /* screen buffer of the rectangle */
+    int32 dleft = left*xscale;                               /* Calculate pixel coordinates in the */
+    int32 dtop  = top*yscale;                                /* screen buffer of the rectangle */
     int32 i, j, ii, jj;
 
     yy = dtop;
     for (j = top; j <= bottom; j++) {
-      for (jj = 1; jj <= ds.yscale; jj++) {
+      for (jj = 1; jj <= yscale; jj++) {
         xx = dleft;
         for (i = left; i <= right; i++) {
-          for (ii = 1; ii <= ds.xscale; ii++) {
-            *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth) = *((Uint32*)screenbank[ds.displaybank]->pixels + i + j*ds.vscrwidth);
+          for (ii = 1; ii <= xscale; ii++) {
+            *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth*matrixflags.videoscale) = *((Uint32*)screenbank[ds.displaybank]->pixels + i + j*ds.vscrwidth);
             xx++;
           }
         }
@@ -955,8 +959,8 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       int p;
       hide_cursor();
       for (p=0; p<25; p++) {
-        yy=16+(p*20);
-        memset(matrixflags.surface->pixels + 4*yy*ds.vscrwidth, 0, 16*ds.screenwidth*ds.xscale);
+        yy=(16+(p*20))*matrixflags.videoscale;
+        memset(matrixflags.surface->pixels + 4*yy*ds.vscrwidth*matrixflags.videoscale, 0, 16*ds.screenwidth*xscale*matrixflags.videoscale);
       }
     }
   }
@@ -1178,7 +1182,7 @@ static void scroll_up(int32 windowed) {
     return;
   }
   toggle_cursor();
-  if (windowed) {
+  if (windowed || (matrixflags.videoscale != 1)) {
     topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
     dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
@@ -1187,18 +1191,12 @@ static void scroll_up(int32 windowed) {
     scroll_rect.y = YPPC * (twintop + 1);
     scroll_rect.w = XPPC * (twinright - twinleft +1);
     scroll_rect.h = YPPC * (twinbottom - twintop);
-    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, NULL);
+    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screenbank[ds.writebank], NULL);
     line_rect.x = 0;
     line_rect.y = YPPC * (twinbottom - twintop);
     line_rect.w = XPPC * (twinright - twinleft +1);
     line_rect.h = YPPC;
-    SDL_FillRect(screen1, &line_rect, ds.tb_colour);
-    line_rect.x = line_rect.y = 0;
-    line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC * (twinbottom - twintop +1);
-    scroll_rect.x = left;
-    scroll_rect.y = dest;
-    SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
+    SDL_FillRect(screenbank[ds.writebank], &line_rect, ds.tb_colour);
     blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
   } else {
     int loop;
@@ -1250,7 +1248,7 @@ static void scroll_down(int32 windowed) {
     return;
   }
   toggle_cursor();
-  if (windowed) {
+  if (windowed || (matrixflags.videoscale != 1)) {
     topwin = twintop*YPPC;              /* Y coordinate of top of text window */
     dest = (twintop)*YPPC;
     left = twinleft*XPPC;
@@ -1324,7 +1322,7 @@ static void scroll_left(int32 windowed) {
     return;
   }
   toggle_cursor();
-  if (windowed) {
+  if (windowed || (matrixflags.videoscale != 1)) {
     topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
     dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
@@ -1394,7 +1392,7 @@ static void scroll_right(int32 windowed) {
     return;
   }
   toggle_cursor();
-  if (windowed) {
+  if (windowed || (matrixflags.videoscale != 1)) {
     topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
     dest = twintop*YPPC;                                /* Move screen up to this point */
     left = twinleft*XPPC;
@@ -2705,8 +2703,18 @@ int32 emulate_vpos(void) {
 */
 static void setup_mode(int32 mode) {
   int32 modecopy;
-  Uint32 sx, sy, ox, oy;
+  Uint32 sx, sy, ox, oy, rmask, gmask, bmask;
   int p;
+
+#if SDL_BYTEORDER == SDL_BIGENDIAN
+  rmask = 0xFF000000;
+  gmask = 0x00FF0000;
+  bmask = 0x0000FF00;
+#else
+  rmask = 0x000000FF;
+  gmask = 0x0000FF00;
+  bmask = 0x00FF0000;
+#endif
 
   ds.videorefresh = 0;
   mode = mode & MODEMASK;       /* Lose 'shadow mode' bit */
@@ -2728,35 +2736,36 @@ static void setup_mode(int32 mode) {
   sy=(modetable[mode].yres * modetable[mode].yscale);
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
   SDL_FreeSurface(matrixflags.surface);
-  matrixflags.surface = SDL_SetVideoMode(sx, sy, 32, matrixflags.sdl_flags);
+  matrixflags.surface = SDL_SetVideoMode(sx * matrixflags.videoscale, sy * matrixflags.videoscale, 32, matrixflags.sdl_flags);
   if (!matrixflags.surface) {
     /* Reinstate previous display mode */
     sx=ox; sy=oy;
-    matrixflags.surface = SDL_SetVideoMode(ox, oy, 32, matrixflags.sdl_flags);
+    matrixflags.surface = SDL_SetVideoMode(ox * matrixflags.videoscale, oy * matrixflags.videoscale, 32, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
     if (matrixflags.failovermode == 255) {
       tmsg.modechange = -2;
       return;
     }
   }
-  memset(matrixflags.surface->pixels, 0, sx*sy*4);
+  memset(matrixflags.surface->pixels, 0, 4 * sx * sy * matrixflags.videoscale * matrixflags.videoscale);
   ds.autorefresh=1;
   ds.vscrwidth = sx;
   ds.vscrheight = sy;
   for (p=0; p<MAXBANKS; p++) {
     SDL_FreeSurface(screenbank[p]);
-    screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
+    //screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
+    screenbank[p] = SDL_CreateRGBSurface(SDL_SWSURFACE, sx, sy, 32, rmask, gmask, bmask, 0);
   }
   matrixflags.modescreen_ptr = screenbank[ds.writebank]->pixels;
   matrixflags.modescreen_sz = modetable[mode].xres * modetable[mode].yres * 4;
   ds.displaybank=0;
   ds.writebank=0;
   SDL_FreeSurface(screen1);
-  screen1 = SDL_DisplayFormat(matrixflags.surface);
+  screen1 = SDL_DisplayFormat(screenbank[0]);
   SDL_FreeSurface(screen2);
-  screen2 = SDL_DisplayFormat(matrixflags.surface);
+  screen2 = SDL_DisplayFormat(screenbank[0]);
   SDL_FreeSurface(screen3);
-  screen3 = SDL_DisplayFormat(matrixflags.surface);
+  screen3 = SDL_DisplayFormat(screenbank[0]);
 /* Set up VDU driver parameters for mode */
   screenmode = modecopy;
   YPPC=8; if ((mode == 3) || (mode == 6) || (mode == 11) || (mode == 14) || (mode == 17)) YPPC=10;
@@ -4762,7 +4771,7 @@ void fullscreenmode(int onoff) {
       matrixflags.sdl_flags &= ~SDL_FULLSCREEN;
     }
     SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
-    matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w, matrixflags.surface->h, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
+    matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w * matrixflags.videoscale, matrixflags.surface->h * matrixflags.videoscale, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
     if (!(matrixflags.sdl_flags & SDL_FULLSCREEN)) {
       SDL_WM_GrabInput(SDL_GRAB_OFF);
