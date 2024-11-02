@@ -424,6 +424,8 @@ static void check_configfile() {
       matrixflags.neverfullscreen=TRUE;
     } else if(!strncmp(item, "swsurface", 10)) {
       basicvars.runflags.swsurface=TRUE;
+    } else if(!strncmp(item, "zoom2x", 7)) {
+      matrixflags.videoscale = 2;
 #endif
     } else if(!strncmp(item,"lowercase",10)) {
       matrixflags.lowercasekeywords = TRUE;
