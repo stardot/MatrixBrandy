@@ -4683,12 +4683,12 @@ void get_sdl_mouse(size_t values[]) {
   drain_mouse_expired();
   if (mousebuffer != NULL) {
     int mx, my;
-    mx=(mousebuffer->x * (ds.xgupp / ds.xscale));
+    mx=((mousebuffer->x / matrixflags.videoscale) * (ds.xgupp / ds.xscale));
     if (mx < 0) mx = 0;
     if (mx >= ds.xgraphunits) mx = (ds.xgraphunits - 1);
     mx -= ds.xorigin;
 
-    my=((ds.vscrheight - mousebuffer->y) * (ds.ygupp / ds.yscale));
+    my=((ds.vscrheight - (mousebuffer->y / matrixflags.videoscale)) * (ds.ygupp / ds.yscale));
     if (my < 0) my = 0;
     if (my >= ds.ygraphunits) my = (ds.ygraphunits - 1);
     my -= ds.yorigin;
@@ -5296,7 +5296,7 @@ int videoupdatethread(void) {
           else SDL_ShowCursor(SDL_DISABLE);
           break;
         case 2:
-          SDL_WarpMouse(tmsg.x/2,ds.vscrheight-(tmsg.y/2));
+          SDL_WarpMouse((tmsg.x*matrixflags.videoscale/2),(ds.vscrheight-(tmsg.y/2))*matrixflags.videoscale);
           break;
       }
       tmsg.mousecmd = 0;
