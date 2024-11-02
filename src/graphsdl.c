@@ -4734,12 +4734,12 @@ void get_sdl_mouse(size_t values[]) {
     }
   }
 
-  x=(x * (ds.xgupp / ds.xscale));
+  x=((x / matrixflags.videoscale) * (ds.xgupp / ds.xscale));
   if (x < 0) x = 0;
   if (x >= ds.xgraphunits) x = (ds.xgraphunits - 1);
   x -= ds.xorigin;
 
-  y=((ds.vscrheight-y) * (ds.ygupp / ds.yscale));
+  y=((ds.vscrheight-(y / matrixflags.videoscale)) * (ds.ygupp / ds.yscale));
   if (y < 0) y = 0;
   if (y >= ds.ygraphunits) y = (ds.ygraphunits - 1);
   y -= ds.yorigin;
