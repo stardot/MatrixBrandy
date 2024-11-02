@@ -904,11 +904,42 @@ static void toggle_cursor(void) {
 ** converted to real pixel coordinates by multiplying them by 'xscale'
 ** and 'yscale'.
 */
-#ifndef BRANDY_MODE7ONLY
-static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
+
+/* blit_scaled_actual2 is also used directly for MODE 7 rendering when scaled */
+static void blit_scaled_actual2(int32 left, int32 top, int32 right, int32 bottom, SDL_Surface* srcsurface) {
   int32 xx, yy;
   int32 xscale = ds.xscale * matrixflags.videoscale;
   int32 yscale = ds.yscale * matrixflags.videoscale;
+  int32 dleft = left*xscale;                               /* Calculate pixel coordinates in the */
+  int32 dtop  = top*yscale;                                /* screen buffer of the rectangle */
+  int32 i, j, ii, jj;
+  yy = dtop;
+  for (j = top; j <= bottom; j++) {
+    for (jj = 1; jj <= yscale; jj++) {
+      xx = dleft;
+      for (i = left; i <= right; i++) {
+        for (ii = 1; ii <= xscale; ii++) {
+          *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth*matrixflags.videoscale) = 
+            *((Uint32*)srcsurface->pixels + i + j*ds.vscrwidth);
+          xx++;
+        }
+      }
+      yy++;
+    } 
+  }
+  if ((screenmode == 3) || (screenmode == 6)) {       /* Paint on the black bars over the background */
+    int p;
+    hide_cursor();
+    for (p=0; p<25; p++) {
+      yy=(16+(p*20))*matrixflags.videoscale;
+      memset(matrixflags.surface->pixels + 4*yy*ds.vscrwidth*matrixflags.videoscale, 0, 16*ds.screenwidth*xscale*matrixflags.videoscale);
+    }
+  }
+}
+
+#ifndef BRANDY_MODE7ONLY
+static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom) {
+  int32 xx, yy;
 /*
 ** Start by clipping the rectangle to be blit'ed if it extends off the
 ** screen.
@@ -938,31 +969,7 @@ static void blit_scaled_actual(int32 left, int32 top, int32 right, int32 bottom)
       }
     }
   } else {
-    int32 dleft = left*xscale;                               /* Calculate pixel coordinates in the */
-    int32 dtop  = top*yscale;                                /* screen buffer of the rectangle */
-    int32 i, j, ii, jj;
-
-    yy = dtop;
-    for (j = top; j <= bottom; j++) {
-      for (jj = 1; jj <= yscale; jj++) {
-        xx = dleft;
-        for (i = left; i <= right; i++) {
-          for (ii = 1; ii <= xscale; ii++) {
-            *((Uint32*)matrixflags.surface->pixels + xx + yy*ds.vscrwidth*matrixflags.videoscale) = *((Uint32*)screenbank[ds.displaybank]->pixels + i + j*ds.vscrwidth);
-            xx++;
-          }
-        }
-        yy++;
-      } 
-    }
-    if ((screenmode == 3) || (screenmode == 6)) {       /* Paint on the black bars over the background */
-      int p;
-      hide_cursor();
-      for (p=0; p<25; p++) {
-        yy=(16+(p*20))*matrixflags.videoscale;
-        memset(matrixflags.surface->pixels + 4*yy*ds.vscrwidth*matrixflags.videoscale, 0, 16*ds.screenwidth*xscale*matrixflags.videoscale);
-      }
-    }
+    blit_scaled_actual2(left, top, right, bottom, screenbank[ds.displaybank]);
   }
 }
 
@@ -5313,16 +5320,25 @@ int videoupdatethread(void) {
             memcpy(mode7cloneframe, mode7frame, 1000);
             tmsg.mode7forcerefresh = 0;
             mode7renderscreen();
-            SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
+            if (matrixflags.videoscale == 2)
+              blit_scaled_actual2(0, 0, ds.screenwidth-1, ds.screenheight-1, vduflag(MODE7_BANK) ? screen3 :  screen2);
+            else
+              SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
           }
           if ((mode7timer - mytime) <= 0) {
             hide_cursor();
             if (vduflag(MODE7_BANK)) {
-              SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
+              if (matrixflags.videoscale == 2)
+                blit_scaled_actual2(0, 0, ds.screenwidth-1, ds.screenheight-1, screen2);
+              else
+                SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
               write_vduflag(MODE7_BANK,0);
               mode7timer=mytime + 96;
             } else {
-              SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
+              if (matrixflags.videoscale == 2)
+                blit_scaled_actual2(0, 0, ds.screenwidth-1, ds.screenheight-1, screen3);
+              else
+                SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
               write_vduflag(MODE7_BANK,1);
               mode7timer=mytime + 32;
             }
