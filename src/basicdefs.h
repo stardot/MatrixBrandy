@@ -621,6 +621,7 @@ typedef struct {
   SDL_Surface *surface;       /* SDL Surface handle for screen0 */
   int32 sdl_flags;            /* SDL surface flags */
   uint32 vdu14lines;          /* Line counter for VDU14 page mode */
+  uint32 videoscale;          /* Video scaling factor (1 or 2) */
   boolean noupdate;           /* Skip update if TRUE */
   boolean videothreadbusy;    /* True when thread is doing stuff */
   boolean cursorbusy;         /* TRUE when cursor is being worked on */
