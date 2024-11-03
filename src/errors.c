@@ -376,7 +376,7 @@ void show_help(void) {
   printf("  -fullscreen    Start Brandy in fullscreen mode\n");
   printf("  -nofull        Never use fullscreen mode\n");
   printf("  -swsurface     Use a software SDL surface\n");
-  printf("  -2x            Zoom display by 2:1\n");
+  printf("  -zoom <amount> Zoom display by <amount>:1\n");
 #endif
 #if !defined(TARGET_RISCOS) && !defined(TARGET_MINGW) && !defined(USE_SDL)
   printf("  -tek           Enable Tek graphics (on compatible builds)\n");

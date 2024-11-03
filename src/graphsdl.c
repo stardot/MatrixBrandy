@@ -876,8 +876,11 @@ static void toggle_cursor(void) {
       for (x=left; x <= right; x++) {
         if ((x + y + (ds.vscrwidth * csroffset)) >= 0 && (x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight * matrixflags.videoscale)) {      /* Prevent offscreen drawing */
           *((Uint32*)matrixflags.surface->pixels + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
-          if (matrixflags.videoscale != 1)
-          *((Uint32*)matrixflags.surface->pixels + 1 + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
+          if (matrixflags.videoscale > 1) {
+            int zl;
+            for (zl = 1; zl < matrixflags.videoscale; zl++)
+              *((Uint32*)matrixflags.surface->pixels + zl + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
+          }
         }
       }
       csroffset--;

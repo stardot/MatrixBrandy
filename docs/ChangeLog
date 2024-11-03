@@ -12,8 +12,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 * 1.23.5 - 
 - System: Fix an intermittent hang on the version check due to network
   conditions, and a crash if unexpected data is received.
-- Graphics: Can now zoom the window 2x, use command line -2x or config file
-  entry zoom2x.
+- Graphics: Can now zoom the window, use command line -zoom <factor> or config
+  file entry zoom <factor>.
 
 * 1.23.4 - 18 October 2024
 - General: Fix potential buffer overflow when detokenising code.

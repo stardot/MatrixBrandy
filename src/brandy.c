@@ -424,8 +424,9 @@ static void check_configfile() {
       matrixflags.neverfullscreen=TRUE;
     } else if(!strncmp(item, "swsurface", 10)) {
       basicvars.runflags.swsurface=TRUE;
-    } else if(!strncmp(item, "zoom2x", 7)) {
-      matrixflags.videoscale = 2;
+    } else if(!strncmp(item, "zoom", 5)) {
+      char *sp;
+      matrixflags.videoscale = CAST(strtol(parameter, &sp, 10), size_t);
 #endif
     } else if(!strncmp(item,"lowercase",10)) {
       matrixflags.lowercasekeywords = TRUE;
@@ -531,8 +532,15 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='s' && tolower(*(p+2))=='w') {    /* -swsurface */
         basicvars.runflags.swsurface=TRUE;
       }
-      else if (optchar=='2' && tolower(*(p+2))=='x')
-        matrixflags.videoscale = 2;                     /* -2x - scale display */
+      else if (optchar=='z') {              /* -z */
+        n++;
+        if (n==argc)
+          matrixflags.videoscale = 2;
+        else {
+          char *sp;
+          matrixflags.videoscale = CAST(strtol(argv[n], &sp, 10), size_t);
+        }
+      }
 #endif
 #ifndef BRANDYAPP
 #ifndef BRANDY_NOVERCHECK
