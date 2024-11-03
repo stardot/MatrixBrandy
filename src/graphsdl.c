@@ -876,7 +876,7 @@ static void toggle_cursor(void) {
       for (x=left; x <= right; x++) {
         if ((x + y + (ds.vscrwidth * csroffset)) >= 0 && (x + y + (ds.vscrwidth * csroffset)) < (ds.vscrwidth * ds.vscrheight * matrixflags.videoscale)) {      /* Prevent offscreen drawing */
           *((Uint32*)matrixflags.surface->pixels + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
-          if (matrixflags.videoscale == 2)
+          if (matrixflags.videoscale != 1)
           *((Uint32*)matrixflags.surface->pixels + 1 + (x + y + (ds.vscrwidth * csroffset))*matrixflags.videoscale) ^= SWAPENDIAN(ds.xor_mask);
         }
       }
@@ -5320,7 +5320,7 @@ int videoupdatethread(void) {
             memcpy(mode7cloneframe, mode7frame, 1000);
             tmsg.mode7forcerefresh = 0;
             mode7renderscreen();
-            if (matrixflags.videoscale == 2)
+            if (matrixflags.videoscale != 1)
               blit_scaled_actual2(0, 0, ds.screenwidth-1, ds.screenheight-1, vduflag(MODE7_BANK) ? screen3 :  screen2);
             else
               SDL_BlitSurface(vduflag(MODE7_BANK) ? screen3 :  screen2, NULL, matrixflags.surface, NULL);
@@ -5328,14 +5328,14 @@ int videoupdatethread(void) {
           if ((mode7timer - mytime) <= 0) {
             hide_cursor();
             if (vduflag(MODE7_BANK)) {
-              if (matrixflags.videoscale == 2)
+              if (matrixflags.videoscale != 1)
                 blit_scaled_actual2(0, 0, ds.screenwidth-1, ds.screenheight-1, screen2);
               else
                 SDL_BlitSurface(screen2, NULL, matrixflags.surface, NULL);
               write_vduflag(MODE7_BANK,0);
               mode7timer=mytime + 96;
             } else {
-              if (matrixflags.videoscale == 2)
+              if (matrixflags.videoscale != 1)
                 blit_scaled_actual2(0, 0, ds.screenwidth-1, ds.screenheight-1, screen3);
               else
                 SDL_BlitSurface(screen3, NULL, matrixflags.surface, NULL);
