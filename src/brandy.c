@@ -427,6 +427,7 @@ static void check_configfile() {
     } else if(!strncmp(item, "zoom", 5)) {
       char *sp;
       matrixflags.videoscale = CAST(strtol(parameter, &sp, 10), size_t);
+      if ((matrixflags.videoscale < 1) || (matrixflags.videoscale > 4)) matrixflags.videoscale = 1;
 #endif
     } else if(!strncmp(item,"lowercase",10)) {
       matrixflags.lowercasekeywords = TRUE;
@@ -535,10 +536,11 @@ static void check_cmdline(int argc, char *argv[]) {
       else if (optchar=='z') {              /* -z */
         n++;
         if (n==argc)
-          matrixflags.videoscale = 2;
+          matrixflags.videoscale = 1;
         else {
           char *sp;
           matrixflags.videoscale = CAST(strtol(argv[n], &sp, 10), size_t);
+          if ((matrixflags.videoscale < 1) || (matrixflags.videoscale > 4)) matrixflags.videoscale = 1;
         }
       }
 #endif

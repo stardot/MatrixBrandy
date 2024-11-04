@@ -36,7 +36,7 @@ nofull                  (SDL build only) Never use fullscreen mode.
 swsurface               (SDL build only) Use a software SDL surface.
 
 zoom <amount>           (SDL build only) Zoom the display window by integer
-                        <amount>.
+                        <amount>, in the range 1-4.
 
 tek                     (Text-mode 'tbrandy' build only) Enable Tektronics
                         graphics.
