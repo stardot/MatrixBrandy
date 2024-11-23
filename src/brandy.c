@@ -649,6 +649,8 @@ static void check_cmdline(int argc, char *argv[]) {
 #endif /* BRANDYAPP */
     n++;
   }
+  // Never allow full screen if zoom is in use.
+  if (matrixflags.videoscale != 1) matrixflags.neverfullscreen=TRUE;
 
 #ifndef BRANDYAPP
 /* Update program's name in Basic's command line list */
