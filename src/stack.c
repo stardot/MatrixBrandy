@@ -373,11 +373,11 @@ void push_arraytemp(basicarray *descriptor, int32 type) {
 /*
 ** 'push_proc' pushes the return address and so forth for a procedure call
 */
-void push_proc(char *name, int32 count) {
+fnprocinfo *push_proc(char *name, int32 count) {
   basicvars.stacktop.bytesp-=ALIGNSIZE(stack_proc);
   if (basicvars.stacktop.bytesp<basicvars.stacklimit.bytesp) {
     error(ERR_STACKFULL);
-    return;
+    return(NULL);
   }
   basicvars.stacktop.procsp->itemtype = STACK_PROC;
   basicvars.stacktop.procsp->fnprocblock.lastcall = basicvars.procstack;
@@ -388,6 +388,7 @@ void push_proc(char *name, int32 count) {
 #ifdef DEBUG
   if (basicvars.debug_flags.stack) fprintf(stderr, "Saving PROC return block at %p\n", basicvars.stacktop.procsp);
 #endif
+  return(&basicvars.stacktop.procsp->fnprocblock);
 }
 
 /*
@@ -1442,7 +1443,12 @@ errorblock pop_error(void) {
 ** required sort. (This should be the most common case)
 */
 void empty_stack(stackitem required) {
-  while (GET_TOPITEM && GET_TOPITEM!=required)
+  while (GET_TOPITEM && (GET_TOPITEM!=required))
+    discard(GET_TOPITEM, 1);
+}
+
+void empty_stack_to_fn_or_proc() {
+  while (GET_TOPITEM && (GET_TOPITEM!=STACK_FN) && (GET_TOPITEM != STACK_PROC))
     discard(GET_TOPITEM, 1);
 }
 

@@ -851,7 +851,7 @@ void error(int32 errnumber, ...) {
 
 /* This causes a segfault on an error, to stop gdb in its tracks.
 ** UGLY UGLY hack. Use with compilation option -g to allow a stack
-** backtrace to see exactly where an error condition was raised. */
+** backtrace to see exactly how an error condition was raised. */
 #ifdef BORKONERROR
   char *collapse = NULL; /* debug hack */
 

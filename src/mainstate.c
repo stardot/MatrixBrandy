@@ -802,8 +802,6 @@ void exec_endproc(void) {
     error(ERR_ENDPROC);
     return;
   }
-  item = stack_unwindlocal();
-  if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);       /* Throw away unwanted entries on Basic stack */
   returnblock = pop_proc();     /* Fetch return address and so forth */
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had parameters - Restore old values */
@@ -811,6 +809,8 @@ void exec_endproc(void) {
     if (basicvars.traces.procs) trace_proc(returnblock.fnprocname, FALSE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, returnblock.retaddr);
   }
+  item = stack_unwindlocal();
+  if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   basicvars.current = returnblock.retaddr;
   DEBUGFUNCMSGOUT;
 }
@@ -866,11 +866,13 @@ void exec_fnreturn(void) {
     error(ERR_VARNUMSTR);
     return;
   }
-  item = stack_unwindlocal();
-  if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   empty_stack(STACK_FN);        /* Throw away unwanted entries on Basic stack */
   returnblock = pop_fn();       /* Fetch return address and so forth */
   if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had arguments - restore old values */
+
+  item = stack_unwindlocal();
+  if (item == STACK_ERROR) basicvars.error_handler = pop_error();
+
   if (resultype == STACK_INT) { /* Lastly, put the result back on the stack */
     push_int(intresult);
   }
@@ -2051,7 +2053,8 @@ static void exec_onbranch(void) {
       }
     }
     else if (onwhat == BASTOKEN_XFNPROCALL || onwhat == BASTOKEN_FNPROCALL) {     /* Got 'ON ... PROC' */
-     fnprocdef *dp = NULL;
+      fnprocinfo *procinfo;
+      fnprocdef *dp = NULL;
       variable *pp = NULL;
       if (index>1) basicvars.current = find_onentry(basicvars.current, index);
       if (*basicvars.current == BASTOKEN_XELSE) {    /* Branch to statement after 'ELSE' */
@@ -2095,15 +2098,17 @@ static void exec_onbranch(void) {
           error(ERR_SYNTAX);
           return;
         }
+        while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);   /* Find return address */
+        if (*basicvars.current == ':') basicvars.current++;
+        procinfo = push_proc(pp->varname, dp->parmcount);
+        basicvars.current = dp->fnprocaddr;
+
         if (*basicvars.current == '(') push_parameters(dp, pp->varname);        /* Deal with parameters */
         if (basicvars.traces.enabled) {
           if (basicvars.traces.procs) trace_proc(pp->varname, TRUE);
           if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
         }
-        while (*basicvars.current != ':' && *basicvars.current != asc_NUL) basicvars.current = skip_token(basicvars.current);   /* Find return address */
-        if (*basicvars.current == ':') basicvars.current++;
-        push_proc(pp->varname, dp->parmcount);
-        basicvars.current = dp->fnprocaddr;
+        procinfo->retaddr = basicvars.current;
       }
     }
     else {
@@ -2256,6 +2261,7 @@ void exec_overlay(void) {
 void exec_proc(void) {
   fnprocdef *dp;
   variable *vp;
+  fnprocinfo *procinfo;
 
   DEBUGFUNCMSGIN;
   vp = GET_ADDRESS(basicvars.current, variable *);
@@ -2266,6 +2272,13 @@ void exec_proc(void) {
   }
   dp = vp->varentry.varfnproc;
   basicvars.current+=1+LOFFSIZE;                /* Skip pointer to procedure */
+
+  procinfo = push_proc(vp->varname, dp->parmcount);
+  if (basicvars.traces.enabled) {
+    if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
+    if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
+  }
+
   if (*basicvars.current == '(') {
     push_parameters(dp, vp->varname);   /* Deal with parameters */
     if (!ateol[*basicvars.current]) {
@@ -2274,11 +2287,8 @@ void exec_proc(void) {
       return;
     }
   }
-  push_proc(vp->varname, dp->parmcount);
-  if (basicvars.traces.enabled) {
-    if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
-    if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
-  }
+  // Need to update the return address in the PROC block on the stack
+  procinfo->retaddr = basicvars.current;
   basicvars.local_restart = &basicvars.error_restart;
   basicvars.current = dp->fnprocaddr;
   DEBUGFUNCMSGOUT;
@@ -2662,6 +2672,7 @@ static void restore_dataptr(void) {
 */
 void exec_restore(void) {
   stackitem item;
+  
 
   DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip RESTORE token */
@@ -2688,7 +2699,11 @@ void exec_restore(void) {
     if (item == STACK_ERROR) {
       basicvars.error_handler = pop_error();
     }
-    if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);
+    if ((GET_TOPITEM != STACK_PROC) && (GET_TOPITEM != STACK_FN)) empty_stack_to_fn_or_proc();
+    // Update the stack block for the FN/PROC to say no parameters to restore.
+    // This can only work if there's nothing else on the stack (e.g. FOR, REPEAT)
+    if (GET_TOPITEM == STACK_PROC) basicvars.stacktop.procsp->fnprocblock.parmcount = 0;
+    if (GET_TOPITEM == STACK_FN) basicvars.stacktop.fnsp->fnprocblock.parmcount = 0;
     break;
   case BASTOKEN_DATA:        /* RESTORE DATA */
     basicvars.current = skip_token(basicvars.current);

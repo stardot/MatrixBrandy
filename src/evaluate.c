@@ -1395,12 +1395,11 @@ static void do_function(void) {
   dp = vp->varentry.varfnproc;
   basicvars.current+=LOFFSIZE+1;        /* Skip pointer to function */
 
-/* Now deal with the arguments of the function call */
-  if (*basicvars.current == '(') push_parameters(dp, vp->varname);
-
 /* Save everything */
   push_fn(vp->varname, dp->parmcount);
-  tp = basicvars.current;
+
+/* Now deal with the arguments of the function call */
+  if (*basicvars.current == '(') push_parameters(dp, vp->varname);
 
 /* Lastly, create a new operator stack and call the function */
   basicvars.opstop = make_opstack();
@@ -1410,6 +1409,8 @@ static void do_function(void) {
     if (basicvars.traces.procs) trace_proc(vp->varname, TRUE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, dp->fnprocaddr);
   }
+  tp = basicvars.current;
+
   if (sigsetjmp(*basicvars.local_restart, 1) == 0) {
     exec_fnstatements(dp->fnprocaddr);
     basicvars.recdepth--;
