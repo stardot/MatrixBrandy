@@ -810,7 +810,7 @@ void exec_endproc(void) {
     if (basicvars.traces.procs) trace_proc(returnblock.fnprocname, FALSE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, returnblock.retaddr);
   }
-  item = stack_unwindlocal();
+  if (GET_TOPITEM == STACK_LOCAL) item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   basicvars.current = returnblock.retaddr;
   DEBUGFUNCMSGOUT;
@@ -871,7 +871,7 @@ void exec_fnreturn(void) {
   returnblock = pop_fn();       /* Fetch return address and so forth */
   // if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had arguments - restore old values */
 
-  item = stack_unwindlocal();
+  if (GET_TOPITEM == STACK_LOCAL) item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
 
   if (resultype == STACK_INT) { /* Lastly, put the result back on the stack */
@@ -3258,9 +3258,9 @@ void exec_until(void) {
   int64 result = 0;
 
   DEBUGFUNCMSGIN;
-  if (GET_TOPITEM == STACK_REPEAT)      /* REPEAT control block is top of stack */
+  if (GET_TOPITEM == STACK_REPEAT) {     /* REPEAT control block is top of stack */
     rp = basicvars.stacktop.repeatsp;
-  else {        /* Discard stack entries as far as REPEAT control block */
+  } else {        /* Discard stack entries as far as REPEAT control block */
     rp = get_repeat();
   }
   if (rp == NIL) {
