@@ -804,7 +804,8 @@ void exec_endproc(void) {
   }
   if (GET_TOPITEM != STACK_PROC) empty_stack(STACK_PROC);       /* Throw away unwanted entries on Basic stack */
   returnblock = pop_proc();     /* Fetch return address and so forth */
-  if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had parameters - Restore old values */
+  
+  //if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had parameters - Restore old values */
   if (basicvars.traces.enabled) {
     if (basicvars.traces.procs) trace_proc(returnblock.fnprocname, FALSE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, returnblock.retaddr);
@@ -868,7 +869,7 @@ void exec_fnreturn(void) {
   }
   empty_stack(STACK_FN);        /* Throw away unwanted entries on Basic stack */
   returnblock = pop_fn();       /* Fetch return address and so forth */
-  if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had arguments - restore old values */
+  // if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had arguments - restore old values */
 
   item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
