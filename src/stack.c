@@ -1452,9 +1452,8 @@ void empty_stack_to_fn_or_proc() {
     discard(GET_TOPITEM, 1);
 }
 
-// TODO: Not sure if this is correct, do we only want to discard STACK_LOCAL ?
 stackitem stack_unwindlocal() {
-  while (GET_TOPITEM && GET_TOPITEM!=STACK_ERROR && GET_TOPITEM!=STACK_PROC && GET_TOPITEM!=STACK_FN)
+  while (GET_TOPITEM && GET_TOPITEM==STACK_LOCAL)
     discard(GET_TOPITEM, 1);
   return GET_TOPITEM;
 }

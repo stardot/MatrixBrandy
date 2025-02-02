@@ -793,7 +793,7 @@ void exec_endifcase(void) {
 */
 void exec_endproc(void) {
   fnprocinfo returnblock;
-  stackitem item;
+  stackitem item = 0;
 
   DEBUGFUNCMSGIN;
   basicvars.errorislocal = 0;
@@ -810,7 +810,7 @@ void exec_endproc(void) {
     if (basicvars.traces.procs) trace_proc(returnblock.fnprocname, FALSE);
     if (basicvars.traces.branches) trace_branch(basicvars.current, returnblock.retaddr);
   }
-  if (GET_TOPITEM == STACK_LOCAL) item = stack_unwindlocal();
+  item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
   basicvars.current = returnblock.retaddr;
   DEBUGFUNCMSGOUT;
@@ -826,7 +826,7 @@ void exec_endproc(void) {
 ** heap
 */
 void exec_fnreturn(void) {
-  stackitem resultype, item;
+  stackitem resultype, item = 0;
   int32 intresult = 0;
   int64 int64result = 0;
   uint8 uint8result = 0;
@@ -871,7 +871,7 @@ void exec_fnreturn(void) {
   returnblock = pop_fn();       /* Fetch return address and so forth */
   // if (returnblock.parmcount != 0) restore_parameters(returnblock.parmcount);    /* Procedure had arguments - restore old values */
 
-  if (GET_TOPITEM == STACK_LOCAL) item = stack_unwindlocal();
+  item = stack_unwindlocal();
   if (item == STACK_ERROR) basicvars.error_handler = pop_error();
 
   if (resultype == STACK_INT) { /* Lastly, put the result back on the stack */
