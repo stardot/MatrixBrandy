@@ -310,6 +310,10 @@ char *resize_string(char *cp, int32 oldlen, int32 newlen) {
   if (newbin==oldbin) return cp;        /* Can use same string */
   if (newlen>oldlen) {          /* New string is longer than old one */
     newcp = alloc_string(newlen);       /* Grab new block and copy old string to it */
+    if (newcp == NULL) {
+      error(ERR_BROKEN, __LINE__, "strings");
+      return((char *)-1);
+    }
     if (oldlen!=0) {
       memmove(newcp, cp, oldlen);
       descriptor.stringlen = oldlen;    /* Have to fake a descriptor for 'free_string' */
