@@ -290,7 +290,16 @@ int brandynet_connect(char *dest, char type, int reporterrors) {
   hints.ai_protocol = IPPROTO_TCP;
 
   host=strdup(dest);
+  if (host == NULL) {
+    error(ERR_NET_NOTFOUND);
+    return(-1);
+  }
   port=strchr(host,':');
+  if (port == NULL) {
+    free(host);
+    error(ERR_NET_NOTFOUND);
+    return(-1);
+  }
   port[0]='\0';
   port++;
 
@@ -430,6 +439,7 @@ int checkfornewer() {
 
   DEBUGFUNCMSGIN;
   inbuf=malloc(8192);
+  if (inbuf == NULL) return(0);
   memset(inbuf, 0, 4096);
   hndl=brandynet_connect("brandy.matrixnetwork.co.uk:80", 0, 0);
   if (hndl < 0) {

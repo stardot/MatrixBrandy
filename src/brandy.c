@@ -206,6 +206,7 @@ int WinMain(void) {
 static void add_arg(char *p) {
   cmdarg *ap;
   ap = malloc(sizeof(cmdarg));
+  if (ap == NULL) return;
   ap->argvalue = p;
   ap->nextarg = NIL;
   if (arglast == NIL)
@@ -370,6 +371,7 @@ static void check_configfile() {
   char *conffname, *line, *item, *parameter;
 
   conffname=malloc(1024);
+  if(conffname == NULL) return;
   memset(conffname, 0, 1024);
 #ifdef TARGET_RISCOS
   snprintf(conffname, 1023, "<Brandy$Dir>.brandyrc");
@@ -392,6 +394,11 @@ static void check_configfile() {
     return;
   }
   line=malloc(1024);
+  if(line == NULL) {
+    fclose(conffile);
+    free(conffname);
+    return;
+  }
   while (!feof(conffile)) {
     memset(line,0,1024);          /* Clear the buffer before new entries are read */
     parameter=NULL;
@@ -438,29 +445,35 @@ static void check_configfile() {
     } else if(!strncmp(item, "nostar", 7)) {
       basicvars.runflags.ignore_starcmd = TRUE;
     } else if(!strncmp(item, "size", 5)) {
-      char *sp;
-      worksize = CAST(strtol(parameter, &sp, 10), size_t);  /* Fetch workspace size (n.b. no error checking) */
-      if (tolower(*sp)=='k') {          /* Size is in kilobytes */
-        worksize = worksize*1024;
-      } else if (tolower(*sp)=='m') {   /* Size is in megabytes */
-        worksize = worksize*1024*1024;
-      } else if (tolower(*sp)=='g') {   /* Size is in gigabytes */
-        worksize = worksize*1024*1024*1024;
+      if(parameter) {
+        char *sp;
+        worksize = CAST(strtol(parameter, &sp, 10), size_t);  /* Fetch workspace size (n.b. no error checking) */
+        if (tolower(*sp)=='k') {          /* Size is in kilobytes */
+          worksize = worksize*1024;
+        } else if (tolower(*sp)=='m') {   /* Size is in megabytes */
+          worksize = worksize*1024*1024;
+        } else if (tolower(*sp)=='g') {   /* Size is in gigabytes */
+          worksize = worksize*1024*1024*1024;
+        }
       }
 #ifndef BRANDY_MODE7ONLY
     } else if(!strncmp(item, "startupmode", 12)) {
-      char *sp;
-      matrixflags.startupmode = CAST(strtol(parameter, &sp, 10), size_t);  /* startup mode */
+      if(parameter) {
+        char *sp;
+        matrixflags.startupmode = CAST(strtol(parameter, &sp, 10), size_t);  /* startup mode */
+      }
 #endif
     } else if(!strncmp(item, "path", 5)) {
-      if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
-      basicvars.loadpath = malloc(strlen(parameter)+1);         /* +1 for the NUL */
-      if (basicvars.loadpath==NIL) {    /* No memory available */
-        cmderror(CMD_NOMEMORY);
-        exit(EXIT_FAILURE);
+      if(parameter) {
+        if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
+        basicvars.loadpath = malloc(strlen(parameter)+1);         /* +1 for the NUL */
+        if (basicvars.loadpath==NIL) {    /* No memory available */
+          cmderror(CMD_NOMEMORY);
+          exit(EXIT_FAILURE);
+        }
+        /* This is safe, the required space is allocated a few lines above. */
+        STRLCPY(basicvars.loadpath, parameter, FNAMESIZE);
       }
-      /* This is safe, the required space is allocated a few lines above. */
-      STRLCPY(basicvars.loadpath, parameter, FNAMESIZE);
     } else if(!strncmp(item, "lib", 4)) {
       struct loadlib *p = malloc(sizeof(struct loadlib));
       if (p==NIL) {
