@@ -1114,6 +1114,10 @@ static variable *scan_fnproc(char *name) {
     bp+=GET_LINELEN(bp);        /* This is updated here so that 'lastsearch' is set correctly below */
     if (*tp==BASTOKEN_DEF && *(tp+1)==BASTOKEN_XFNPROCALL) {      /* Found 'DEF PROC' or 'DEF FN' */
       vp = mark_procfn(tp+1); /* Must be a previously unseen entry */
+      if (vp == NIL) {
+        error(ERR_BROKEN, __LINE__, "variables");
+        return((variable *)-1);
+      }
       if (vp->varhash==namehash && strncmp(name, vp->varname, strlen(name)+1)==0) break; /* Found it */
       vp = NIL; /* Reset 'vp' as this proc/fn is not the one needed */
     }
