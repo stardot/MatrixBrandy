@@ -1579,12 +1579,14 @@ static void *make_array(int32 arraytype, basicarray* original) {
   default:
     DEBUGFUNCMSGOUT;
     error(ERR_BROKEN, __LINE__, "evaluate");            /* Passed bad array type */
-    return NULL;
+    return((void *)-1);  /* NULL would be better, but static analyzers complain, and
+                            execution never reaches this point anyway */
   }
   if (base == NIL) {   /* Not enough room on stack to create array */
     DEBUGFUNCMSGOUT;
     error(ERR_NOROOM);
-    return NULL;
+    return((void *)-1);  /* NULL would be better, but static analyzers complain, and
+                            execution never reaches this point anyway */
   }
   push_arraytemp(&result, arraytype);
   DEBUGFUNCMSGOUT;
