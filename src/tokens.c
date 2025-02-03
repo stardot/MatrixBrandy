@@ -2573,6 +2573,10 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
         *cp = ' ';
         cp++;
       }
+      if (p == NULL) {
+        error(ERR_BROKEN, __LINE__, "tokens");
+        return(-1);
+      }
       STRLCPY(cp, p, MAXSTRING);
       cp+=strlen(p);
 /*
