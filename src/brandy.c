@@ -432,9 +432,11 @@ static void check_configfile() {
     } else if(!strncmp(item, "swsurface", 10)) {
       basicvars.runflags.swsurface=TRUE;
     } else if(!strncmp(item, "zoom", 5)) {
-      char *sp;
-      matrixflags.videoscale = CAST(strtol(parameter, &sp, 10), size_t);
-      if ((matrixflags.videoscale < 1) || (matrixflags.videoscale > 4)) matrixflags.videoscale = 1;
+      if(parameter) {
+        char *sp;
+        matrixflags.videoscale = CAST(strtol(parameter, &sp, 10), size_t);
+        if ((matrixflags.videoscale < 1) || (matrixflags.videoscale > 4)) matrixflags.videoscale = 1;
+      }
 #endif
     } else if(!strncmp(item,"lowercase",10)) {
       matrixflags.lowercasekeywords = TRUE;

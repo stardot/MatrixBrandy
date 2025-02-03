@@ -1487,6 +1487,10 @@ void exec_xif(void) {
       boolean cascade = 0;
       if (start_blockif(basicvars.current)) cascade = 1;
       if (*basicvars.current != BASTOKEN_THEN) lp2 = basicvars.current;
+      if (lp2 == NULL) {
+        error(ERR_BROKEN, __LINE__, "mainstate");
+        return;
+      }
       set_dest(thenplace, lp2);
       if (cascade && matrixflags.cascadeiftweak) {
         /* Scan the line for a trailing THEN. If so, we need to look for
@@ -1494,6 +1498,10 @@ void exec_xif(void) {
         while (*lp2 != asc_NUL) {
           lp3 = lp2;
           lp2 = skip_token(lp2);
+        }
+        if (lp3 == NULL) {
+          error(ERR_BROKEN, __LINE__, "mainstate");
+          return;
         }
         if (*lp3 != BASTOKEN_THEN) {
           /* Not a block IF */
@@ -2005,6 +2013,7 @@ static byte *find_onentry(byte *tp, int32 wanted) {
 */
 static void exec_onbranch(void) {
   int32 index;
+  byte *temp;
 
   DEBUGFUNCMSGIN;
   index = eval_integer();
@@ -2015,7 +2024,14 @@ static void exec_onbranch(void) {
     if (onwhat == BASTOKEN_GOTO || onwhat == BASTOKEN_GOSUB) {
       byte *dest;
       basicvars.current++;      /* Skip the 'GOTO' or 'GOSUB' token */
+      temp = basicvars.current;
       if (index>1) basicvars.current = find_onentry(basicvars.current, index);
+      if (basicvars.current == NULL) {
+        // Reinstate old value
+        basicvars.current = temp;
+        error(ERR_BROKEN, __LINE__, "mainstate");
+        return;
+      }
       if (*basicvars.current == BASTOKEN_XELSE) {
         basicvars.current+=1+OFFSIZE;   /* Find statement after 'ELSE' */
         if (*basicvars.current == BASTOKEN_XLINENUM) {  /* Line number is not allowed here */
@@ -2162,6 +2178,10 @@ void exec_oscli(void) {
     return;
   }
   oscli_string=malloc(MAXSTRING);
+  if(oscli_string == NULL) {
+    error(ERR_BROKEN, __LINE__, "mainstate");
+    return;
+  }
   tofile = *basicvars.current == BASTOKEN_TO;
   if (tofile) { /* Have got 'OSCLI <command> TO' */
     basicvars.current++;
