@@ -10,6 +10,7 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
 * 1.23.5 - 
+- General: Implement code fixes based on GCC 14.2's -fanalyze feature.
 - System: Fix an intermittent hang on the version check due to network
   conditions, and a crash if unexpected data is received.
 - Graphics: Can now zoom the window, use command line -zoom <factor> or config
