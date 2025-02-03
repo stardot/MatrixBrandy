@@ -576,6 +576,10 @@ static void save_program(void) {
   }
   basicvars.current++;
   np = get_savefile();
+  if (np == NULL) {
+    error(ERR_BROKEN, __LINE__, "commands");
+    return;
+  }
   reset_indent();
   listovalue = get_listo();
   set_listoption(0);
@@ -607,6 +611,10 @@ static void saveo_program(void) {
   saveopts = get_number();
   if (*basicvars.current == ',') basicvars.current++;   /* Skip comma between options and name */
   np = get_savefile();
+  if (np == NULL) {
+    error(ERR_BROKEN, __LINE__, "commands");
+    return;
+  }
   basicvars.listo_copy = basicvars.list_flags;
   set_listoption(saveopts);             /* Change list options to save options */
   basicvars.list_flags.lower = FALSE;   /* Lose pointless options */
@@ -666,6 +674,10 @@ static void install_library(void) {
   } else {
     do {
       char *name = get_name();
+      if(name == NULL) {
+        error(ERR_BROKEN, __LINE__, "commands");
+        return;
+      }
       if (strlen(name)>0) read_library(name, INSTALL_LIBRARY);  /* Permanently install the library */
       if (*basicvars.current != ',') break;
       basicvars.current++;
@@ -1202,6 +1214,10 @@ void init_commands(void) {
 #ifndef NOINLINEHELP
 static void detailed_help(char *cmd) {
   DEBUGFUNCMSGIN;
+  if        (cmd == NULL) {
+    emulate_printf("Unexpected error trying to get HELP parameter\r\n\n");
+    return;
+  }
   if        (!strncmp(cmd, "ABS", 4)) {
     emulate_printf("This function gives the magnitude (absolute value) of a number (<factor>).");
   } else if (!strncmp(cmd, "ACS", 4)) {
