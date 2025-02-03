@@ -533,6 +533,7 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
   fseek (textfile, 0, 0);
   tokenline[2] = 0;
   if (fread(tokenline, 1, 3, textfile) < 3) {
+    fclose (textfile);
     error(ERR_CANTREAD);
     return 0;
   }
@@ -839,6 +840,10 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
   nameLen = strlen(name) + 1;
   if (onheap) {         /* Library is held on Basic heap */
     lp = allocmem(sizeof(library), 1);  /* Add library to list */
+    if (lp == NULL) {
+      error(ERR_LIBSIZE, name);
+      return;
+    }
     lp->libname = allocmem(nameLen, 1);  /* +1 for NULL at end */
     lp->libflink = basicvars.liblist;
     basicvars.liblist = lp;
@@ -850,6 +855,10 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
       return;
     }
     lp->libname = malloc(nameLen);
+    if (lp->libname == NULL) {
+      error(ERR_BROKEN, __LINE__, "editor");
+      return;
+    }
     lp->libflink = basicvars.installist;
     basicvars.installist = lp;
   }
