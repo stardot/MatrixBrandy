@@ -1285,6 +1285,10 @@ void fn_mod(void) {
   else {
     vp = get_arrayname();
   }
+  if (vp == NULL) {
+    error(ERR_BROKEN, __LINE__, "functions");
+    return;
+  }
   elements = vp->varentry.vararray->arrsize;
   switch (vp->varflags) {
   case VAR_INTARRAY: {  /* Calculate the modulus of an integer array */
@@ -1769,6 +1773,10 @@ static void fn_sum(void) {
   }
   else {
     vp = get_arrayname();
+  }
+  if (vp == NULL) {
+    error(ERR_BROKEN, __LINE__, "functions");
+    return;
   }
   elements = vp->varentry.vararray->arrsize;
   if (sumlen) {         /* Got 'SUM LEN' */
