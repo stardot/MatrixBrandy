@@ -521,6 +521,7 @@ static char *check_incore(void) {
   DEBUGFUNCMSGIN;
   if (AT_PROGEND(basicvars.start)) return NIL;  /* There is nothing to search */
   p = basicvars.start+OFFSOURCE;
+  while (*p != asc_NUL && *p != BASTOKEN_REM) p++;   /* Look for a REM token */
   while (*p != asc_NUL && *p != '>') p++;   /* Look for a '>' */
   if (*p == asc_NUL) return NIL;            /* Did not find one so give up */
   p = skip(p+1);
