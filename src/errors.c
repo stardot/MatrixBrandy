@@ -153,7 +153,6 @@ static void handle_signal(int signo) {
 #ifdef TARGET_MINGW
     (void) signal(SIGCONT, handle_signal);
 #endif
-//    kbd_init();               // shouldn't be re-init'ing kbd in middle of a signal
     return;
 #endif
   default:

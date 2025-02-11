@@ -740,16 +740,13 @@ void init_clock() {
 
 #ifndef TARGET_RISCOS
 static void *timer_thread(void *data) {
-  //struct timeval tv;
   struct timespec tv;
   while(1) {
     clock_gettime(basicvars.clocktype, &tv);
 
     /* tv.tv_sec  = Seconds */
-    // /* tv.tv_usec = and microseconds */
     /* tv.tv_nsec = Nanoseconds */
 
-    //basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_usec / 10000));
     basicvars.centiseconds = (((uint64)tv.tv_sec * 100) + ((uint64)tv.tv_nsec / 10000000));
     usleep(5000);
   }

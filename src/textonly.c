@@ -225,7 +225,6 @@ void find_cursor(void) {
   column = row = 0;
   if (!basicvars.runflags.outredir && !basicvars.runflags.inredir) {
     int ch;
-    // set_esc_key(_POSIX_VDISABLE); /* Disable INTR */
     printf("\033[6n");  /* ANSI/VTxxx sequence to find the position of the cursor */
     fflush(stdout);
     ch = kbd_inkey(50);    /* Sequence expected back is ' ESC[<no>;<no>R' */
@@ -255,7 +254,6 @@ void find_cursor(void) {
     else if (SCRHEIGHT!=0 && ytext>twinbottom) {
       ytext = twinbottom;
     }
-    // set_esc_key(27); /* Put INTR back on ESC key */
   }
 }
 
@@ -1879,96 +1877,88 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     /* Do nothing, not supported */
   }
   switch (code & GRAPHOP_MASK) {
-  case DRAW_SOLIDLINE:
-  case DRAW_SOLIDLINE+8:
-  case DRAW_DOTLINE:
-  case DRAW_DOTLINE+8:
-  case DRAW_SOLIDLINE2:
-  case DRAW_SOLIDLINE2+8:
-  case DRAW_DOTLINE2:
-  case DRAW_DOTLINE2+8: {       /* Draw line */
-    draw_line(sx, sy, ex, ey, (code & DRAW_STYLEMASK));
-    break;
-  }
-  case PLOT_POINT:      /* Plot a single point */
-    plot_pixel(ex, ey);
-    break;
-  case FILL_TRIANGLE: {         /* Plot a filled triangle */
-    // int32 left, right, top, bottom;
-    filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
-    break;
-  }
-  case FILL_RECTANGLE: {                /* Plot a filled rectangle */
-    int32 left, right, top, bottom;
-    left = sx;
-    top = sy;
-    if (ex < sx) left = ex;
-    if (ey < sy) top = ey;
-    right = sx+ex-left;
-    bottom = sy+ey-top;
+    case DRAW_SOLIDLINE:
+    case DRAW_SOLIDLINE+8:
+    case DRAW_DOTLINE:
+    case DRAW_DOTLINE+8:
+    case DRAW_SOLIDLINE2:
+    case DRAW_SOLIDLINE2+8:
+    case DRAW_DOTLINE2:
+    case DRAW_DOTLINE2+8: {       /* Draw line */
+      draw_line(sx, sy, ex, ey, (code & DRAW_STYLEMASK));
+      break;
+    }
+    case PLOT_POINT:      /* Plot a single point */
+      plot_pixel(ex, ey);
+      break;
+    case FILL_TRIANGLE: {         /* Plot a filled triangle */
+      filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
+      break;
+    }
+    case FILL_RECTANGLE: {                /* Plot a filled rectangle */
+      int32 left, right, top, bottom;
+      left = sx;
+      top = sy;
+      if (ex < sx) left = ex;
+      if (ey < sy) top = ey;
+      right = sx+ex-left;
+      bottom = sy+ey-top;
 /* sx and sy give the bottom left-hand corner of the rectangle */
 /* x and y are its width and height */
-    fill_rectangle(left, top, right, bottom);
-    break;
-  }
-  case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
-    int32 vx, vy;
-    // int32 left, right, top, bottom;
-    filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
-    vx = xlast3-xlast2+xlast;
-    vy = ylast3-ylast2+ylast;
-    filled_triangle(ex, ey, vx, vy, xlast3, ylast3);
-    break;
-  }
-  case PLOT_CIRCLE:             /* Plot the outline of a circle */
-  case FILL_CIRCLE: {           /* Plot a filled circle */
-    int32 xradius, yradius, xr;
+      fill_rectangle(left, top, right, bottom);
+      break;
+    }
+    case FILL_PARALLELOGRAM: {    /* Plot a filled parallelogram */
+      int32 vx, vy;
+      filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
+      vx = xlast3-xlast2+xlast;
+      vy = ylast3-ylast2+ylast;
+      filled_triangle(ex, ey, vx, vy, xlast3, ylast3);
+      break;
+    }
+    case PLOT_CIRCLE:             /* Plot the outline of a circle */
+    case FILL_CIRCLE: {           /* Plot a filled circle */
+      int32 xradius, yradius, xr;
 /*
 ** (xlast2, ylast2) is the centre of the circle. (xlast, ylast) is a
 ** point on the circumference, specifically the left-most point of the
 ** circle.
 */
-    xradius = abs(xlast2-xlast)/xgupp;
-    yradius = abs(xlast2-xlast)/ygupp;
-    xr=xlast2-xlast;
-    if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-      draw_ellipse(sx, sy, xradius, yradius, 0);
-    else {
-      filled_ellipse(sx, sy, xradius, yradius, 0);
-    }
-    /* To match RISC OS, xlast needs to be the right-most point not left-most. */
-    xlast+=(xr*2);
-//    ex = sx-xradius;
-//    ey = sy-yradius;
+      xradius = abs(xlast2-xlast)/xgupp;
+      yradius = abs(xlast2-xlast)/ygupp;
+      xr=xlast2-xlast;
+      if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
+        draw_ellipse(sx, sy, xradius, yradius, 0);
+      else {
+        filled_ellipse(sx, sy, xradius, yradius, 0);
+      }
+      /* To match RISC OS, xlast needs to be the right-most point not left-most. */
+      xlast+=(xr*2);
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    break;
-  }
-  case PLOT_ELLIPSE:            /* Draw an ellipse outline */
-  case FILL_ELLIPSE: {          /* Draw a filled ellipse */
-    int32 semimajor, semiminor, shearx;
+      break;
+    }
+    case PLOT_ELLIPSE:            /* Draw an ellipse outline */
+    case FILL_ELLIPSE: {          /* Draw a filled ellipse */
+      int32 semimajor, semiminor, shearx;
 /*
 ** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
 ** point on the circumference in the +ve X direction and (xlast, ylast)
 ** is a point on the circumference in the +ve Y direction
 */
-    semimajor = abs(xlast2-xlast3)/xgupp;
-    semiminor = abs(ylast-ylast3)/ygupp;
-    sx = xlast3;
-    sy = ylast3;
-    shearx=(xlast-sx)*(ylast3 > ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
-
-    if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-      draw_ellipse(sx, sy, semimajor, semiminor, shearx);
-    else {
-      filled_ellipse(sx, sy, semimajor, semiminor, shearx);
-    }
-//    ex = sx-semimajor;
-//    ey = sy-semiminor;
+      semimajor = abs(xlast2-xlast3)/xgupp;
+      semiminor = abs(ylast-ylast3)/ygupp;
+      sx = xlast3;
+      sy = ylast3;
+      shearx=(xlast-sx)*(ylast3 > ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
+  
+      if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
+        draw_ellipse(sx, sy, semimajor, semiminor, shearx);
+      else {
+        filled_ellipse(sx, sy, semimajor, semiminor, shearx);
+      }
 /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse */
-    break;
-  }
-  //default:
-    //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
+      break;
+    }
   }
   tekexit();
 }

@@ -594,7 +594,6 @@ static int32 read_textfile(FILE *textfile, byte *base, byte *limit, boolean sile
     length++;
     basicvars.stringwork[length] = asc_NUL;
     tokenize(basicvars.stringwork, tokenline, HASLINE, FALSE);
-//    tokenize(basicvars.stringwork, tokenline, HASLINE);
     if (GET_LINENO(tokenline)==NOLINENO) {
       save_lineno(tokenline, 0);        /* Otherwise renumber goes a bit funny */
       needsnumbers = TRUE;

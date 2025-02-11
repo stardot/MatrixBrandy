@@ -2444,7 +2444,6 @@ static void read_numeric(lvalue destination) {
   }
   basicvars.datacur = dp;
   tokenize(text, readexpr, NOLINE, FALSE);      /* Tokenise the expression */
-//  tokenize(text, readexpr, NOLINE);   /* Tokenise the expression */
   save_current();       /* Preserve our place in the program */
   basicvars.current = FIND_EXEC(&readexpr[0]);
   expression();

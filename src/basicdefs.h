@@ -93,7 +93,7 @@
 #define DEBUG_STACK 0x2000      /* Show structures pushed and popped from stack */
 #define DEBUG_ALLSTACK 0x4000   /* Show in detail items pushed and popped from stack */
 #define DEBUG_FUNCTIONS 0x8000  /* Show which functions are called - very incomplete */
-#define DEBUG_VDU 0x10000       /* Ghow debugging related to VDU drivers */
+#define DEBUG_VDU 0x10000       /* Show debugging related to VDU drivers */
 
 /* Variable type flags */
 

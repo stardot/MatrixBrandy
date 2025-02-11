@@ -2554,7 +2554,6 @@ void emulate_vdu(int32 charvalue) {
     vdu_restwind();
     break;
   case VDU_ESCAPE:      /* 27 - Do nothing (character is sent to output stream) */
-//    putch(vducmd);
     break;
   case VDU_DEFTEXT:     /* 28 - Define text window */
     vdu_textwind();
@@ -2707,7 +2706,6 @@ static void setup_mode(int32 mode) {
   ds.vscrheight = sy;
   for (p=0; p<MAXBANKS; p++) {
     SDL_FreeSurface(screenbank[p]);
-    //screenbank[p]=SDL_DisplayFormat(matrixflags.surface);
     screenbank[p] = SDL_CreateRGBSurface(SDL_SWSURFACE, sx, sy, 32, rmask, gmask, bmask, 0);
   }
   matrixflags.modescreen_ptr = screenbank[ds.writebank]->pixels;
@@ -3286,8 +3284,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   ** point on the circumference, specifically the left-most point of the
   ** circle.
   */
-      // xradius = abs(ds.xlast2-ds.xlast)/ds.xgupp;
-      // yradius = abs(ds.xlast2-ds.xlast)/ds.ygupp;
       float fradius=sqrtf((ds.xlast-ds.xlast2)*(ds.xlast-ds.xlast2)+(ds.ylast-ds.ylast2)*(ds.ylast-ds.ylast2));
       xradius = (int)(fradius/ds.xgupp);
       yradius = (int)(fradius/ds.ygupp);
@@ -3362,9 +3358,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
         int end_dx,end_dy;
         int start_dx=xlast2-xlast3;//displacement to start point from centre
         int start_dy=ylast2-ylast3;//displacement to start point from centre
-        //fprintf(stderr,"start_dx %d=%d-%d\n",start_dx,ds.xlast2,ds.xlast3);
         end_dx=(int)((xlast-xlast3)*fradius/fradius_end);//projects end point onto circle circumference
-        //end_dy=ds.ylast-ds.ylast3;
         end_dy=floor(((ylast-ylast3)*fradius/fradius_end));//projects end point onto circle circumference
   
         // check that the rounding above does not cause end_dx, end_dy to lie off the rasterised curve.
@@ -3376,35 +3370,25 @@ void emulate_plot(int32 code, int32 x, int32 y) {
           xnext_rasterised=1;
         if (abs(end_dx)<xnext_rasterised ) {
           // like xnext to be smaller, so like abs(end_dy) to be larger
-          //fprintf(stderr,"Going to have error... end point too short xnext_rasterised %d xthis_rasterised %d\n",xnext_rasterised,xthis_rasterised);
           end_dy+=end_dy>0?1:-1;
-          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
         } 
         if (abs(end_dx)>xthis_rasterised) {
           // like xthis to be bigger, so end_dy to be smaller
-          //fprintf(stderr,"Going to have error... end point too long xnext_rasterised %d xthis_rasterised %d\n",xnext_rasterised,xthis_rasterised);
           end_dy-=end_dy>0?1:-1; 
-          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
         }
   
         int xnext_srasterised=abs(start_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy)+1)*(abs(start_dy)+1)))+1:0; // uses same formula as used by draw_arc function
         int xthis_srasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy))*(abs(start_dy)))); // uses same formula as used by draw_arc function
         if (abs(start_dx)<xnext_srasterised ) {
           // like xnext to be smaller, so like abs(end_dy) to be larger
-          //fprintf(stderr,"Going to have error... start point too short xnext_srasterised %d xthis_srasterised %d\n",xnext_rasterised,xthis_rasterised);
           start_dy+=start_dy>0?1:-1;
-          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
         } 
         if (abs(start_dx)>xthis_srasterised) {
           // like xthis to be bigger, so end_dy to be smaller
-          //fprintf(stderr,"Going to have error... start point too long xnext_srasterised %d xthis_srasterised %d\n",xnext_rasterised,xthis_rasterised);
           start_dy-=start_dy>0?1:-1; 
-          //fprintf(stderr,"A xr %f yr %f sdx %d sdy %d edx %d edy %d\n", xradius, yradius, start_dx,start_dy,end_dx,end_dy);
         }
   
         draw_arc(screenbank[ds.writebank], tx, ty, xradius, yradius, start_dx,start_dy,end_dx,end_dy, colour, action);    
-        //plot_pixel(screenbank[ds.writebank], tx, ty, colour, action);
-        //plot_pixel(screenbank[ds.writebank], tx+start_dx, ty-start_dy, colour, action);
         hide_cursor();
         blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
         reveal_cursor();
@@ -3419,8 +3403,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       
       break;
     }
-    //default:
-      //error(ERR_UNSUPPORTED); /* switch this off, make unhandled plots a no-op*/
+    /* Unhandled plots are a no-op */
   }
 #endif
 }
@@ -3469,7 +3452,6 @@ int32 emulate_tintfn(int32 x, int32 y) {
 ** Repointed to MOUSE TO as that's a bit more useful.
 */
 void emulate_pointto(int32 x, int32 y) {
-  //error(ERR_UNSUPPORTED);
   mos_mouse_to(x,y);
 }
 
@@ -3541,7 +3523,6 @@ void emulate_tint(int32 action, int32 tint) {
   emulate_vdu(VDU_COMMAND);             /* Use VDU 23,17 */
   emulate_vdu(17);
   emulate_vdu(action);  /* Says which colour to modify */
-  //if (tint<=MAXTINT) tint = tint<<TINTSHIFT;  /* Assume value is in the wrong place */
   emulate_vdu(tint);
   for (n=1; n<=7; n++) emulate_vdu(0);
 #endif
@@ -4727,9 +4708,7 @@ void fullscreenmode(int onoff) {
     SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
     matrixflags.surface = SDL_SetVideoMode(matrixflags.surface->w * matrixflags.videoscale, matrixflags.surface->h * matrixflags.videoscale, matrixflags.surface->format->BitsPerPixel, matrixflags.sdl_flags);
     SDL_BlitSurface(screen1, NULL, matrixflags.surface, NULL);
-//    if (!(matrixflags.sdl_flags & SDL_FULLSCREEN)) {
-      SDL_WM_GrabInput(SDL_GRAB_OFF);
-//    }
+    SDL_WM_GrabInput(SDL_GRAB_OFF);
   }
   tmsg.modechange = -1;
 }

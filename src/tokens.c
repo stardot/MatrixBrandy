@@ -1122,7 +1122,6 @@ static void do_keyword(void) {
         while (ISIDCHAR(tokenbase[source])) source++;      /* Skip PROC/FN name, was isident()*/
         break;
       case BASTOKEN_REM:     /* Skip rest of tokenised line */
-         //next--;          /* Remove REM token */
          source = -1;     /* Flag value to say we have finished this line */
          break;
       case BASTOKEN_DATA:    /* Insert the offset back to the data itself after the DATA token */
@@ -1964,7 +1963,6 @@ static void clear_varaddrs(byte *bp) {
     }
     else if (*tp == BASTOKEN_FNPROCALL || *tp == BASTOKEN_XFNPROCALL) {
       while (*sp != BASTOKEN_PROC && *sp != BASTOKEN_FN && *sp != asc_NUL) sp++;  /* Find PROC/FN name */
-      //if (*sp == asc_NUL) error(ERR_BROKEN, __LINE__, "tokens");
       if (*tp == BASTOKEN_FNPROCALL) {     /* Reset PROC/FN ref that has been filled in */
         *tp = BASTOKEN_XFNPROCALL;
         offset = tp-sp;         /* Offset from 'XVAR' token to variable name */

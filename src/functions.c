@@ -911,7 +911,6 @@ static void fn_eval(void) {
   basicvars.stringwork[descriptor.stringlen] = asc_NUL; /* Now have a null-terminated version of string */
   if (stringtype == STACK_STRTEMP) free_string(descriptor);
   tokenize(basicvars.stringwork, evalexpr, NOLINE, FALSE);      /* 'tokenise' leaves its results in 'thisline' */
-//  tokenize(basicvars.stringwork, evalexpr, NOLINE);   /* 'tokenise' leaves its results in 'thisline' */
   save_current();               /* Save pointer to current position in expression */
   basicvars.current = FIND_EXEC(evalexpr);
   expression();

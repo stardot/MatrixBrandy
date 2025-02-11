@@ -71,7 +71,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
-//#include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
 #include "common.h"
@@ -96,7 +95,6 @@
 #ifdef TARGET_MINGW
 #include <windows.h>
 #include <tchar.h>
-//#include <strsafe.h>
 #endif
 
 #if defined(TARGET_MINGW) || defined(TARGET_UNIX) || defined(TARGET_MACOSX)
@@ -441,12 +439,10 @@ void mos_mouse(size_t values[]) {
 ** If x<0 reads buffer status, if x>=0 reads input device.
 */
 int32 mos_adval(int32 x) {
-//  _kernel_oserror *oserror;
   _kernel_swi_regs regs;
   regs.r[0] = 128;      /* Use OS_Byte 128 for this */
   regs.r[1] = x;
   regs.r[2] = x >> 8;
-//  oserror = _kernel_swi(OS_Byte, &regs, &regs);
   _kernel_swi(OS_Byte, &regs, &regs);
 // Bug in RISC OS, *mustn't* return an error here
   return regs.r[1]+(regs.r[2]<<BYTESHIFT);
@@ -1353,8 +1349,6 @@ void add_cmd(char *name, int value) {
   i=(h & (CMDTABSIZE-1));
   j=i;
 
-  // fprintf(stderr," name %s hash %d index %d\n",name,h,i);
-
   while(cmdtab[i].name != (char*)0){
     i=((i+1)&(CMDTABSIZE-1));
     if(i==j){
@@ -1366,15 +1360,11 @@ void add_cmd(char *name, int value) {
   cmdtab[i].name  = name;
   cmdtab[i].hash  = (unsigned)h;
   cmdtab[i].value = (unsigned)value;
-
-  // fprintf(stderr, "add_cmd name \"%s\"\n hash %10u entry %4d (+%d) value %4d\n",name,(unsigned)h,i,i-j,value);
 }
 
 int get_cmdvalue(char *name) {
   int i,j,h;
   h=hash_name(name);
-
-  //fprintf(stderr,"GET_cmdvalue 1 name %s name %s entry %d \n",name,cmdtab[i].name != (char*)0 ? cmdtab[i].name : "NULL",i);
 
   i=(h &(CMDTABSIZE-1));
   j=i;
@@ -1520,7 +1510,6 @@ static void cmd_ex(char *command) {
         native_oscli("dir", NIL, NULL);
 #elif defined(TARGET_MACOSX) | defined(TARGET_UNIX)
         native_oscli("ls -l", NIL, NULL);
-        // native_oscli("ls -C", NIL, NULL);
 #elif defined(TARGET_AMIGA)
         native_oscli("list", NIL, NULL);
 #endif
@@ -1975,7 +1964,6 @@ static void cmd_load(char *command){
   }
   chbuff[len] ='\0';
   strip_quotes(chbuff);
-  // fprintf(stderr,"load filename is \"%s\"\n",chbuff);
 
   ptr=&command[len];
   while( (ch= *ptr)>0 && ch <=32)ptr++;
@@ -1983,15 +1971,12 @@ static void cmd_load(char *command){
   num = 0;
   while((n=ishex(ch=*ptr))>=0) {num=(num<<4)+n; ptr++;}
 
-  //fprintf(stderr,"load addr is %ld (0x%08lx)\n",num,num);
-
   if (num == 0) {
     emulate_printf("Syntax: LOAD <filename> <load address>\r\n");
     return;
   }
 
   if ( (filep = fopen(chbuff,"rb")) == (FILE*)0){
-    // fprintf(stderr,"LOAD: Could not open file \"%s\"\n",chbuff);
     error(ERR_NOTFOUND, chbuff);
     return;
   }
@@ -2024,15 +2009,12 @@ static void cmd_save(char *command){
   }
   chbuff[len] ='\0';
   strip_quotes(chbuff);
-  // fprintf(stderr,"save filename is \"%s\"\n",chbuff);
 
   ptr=&command[len];
   while( (ch= *ptr)>0 && ch <=32)ptr++;
 
   addr = 0;
   while((n=ishex(ch=*ptr))>=0) {addr=(addr<<4)+n; ptr++;}
-
-  // fprintf(stderr,"save addr is %ld (0x%08lx)\n",addr,addr);
 
   while( (ch= *ptr)>0 && ch <=32)ptr++;
 
@@ -2044,7 +2026,9 @@ static void cmd_save(char *command){
   }
    while((n=ishex(ch=*ptr))>=0) {size=(size<<4)+n; ptr++;}
   if(!f) size -= addr-1;
-  // fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
+#ifdef DEBUG
+  fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
+#endif
 
   if ((addr == 0) || (size == 0)) {
     emulate_printf("Syntax: SAVE <fname> <start addr> <end addr>|+<length>\r\n");
@@ -2068,33 +2052,33 @@ static void cmd_save(char *command){
 
 static void cmd_volume(char *command){
 #ifdef USE_SDL
- int ch,v;
- while((ch=*command)== ' ' || ch == '\t') command ++;
- v=0;
- while( (ch= *command++) >= '0' && ch <= '9') v=(v*10)+ (ch-'0');
+  int ch,v;
+  while((ch=*command)== ' ' || ch == '\t') command ++;
+  v=0;
+  while( (ch= *command++) >= '0' && ch <= '9') v=(v*10)+ (ch-'0');
 
- sdl_volume(v);
+  sdl_volume(v);
 #endif
 }
 
 static void cmd_channelvoice(char *command){
 #ifdef USE_SDL
- int ch,channel;
+  int ch,channel;
 
- while((ch=*command)== ' ' || ch == '\t') command ++;
+  while((ch=*command)== ' ' || ch == '\t') command ++;
  
- channel=0;
- while( (ch= *command++) >= '0' && ch <= '9') channel=(channel*10)+ (ch-'0');
+  channel=0;
+  while( (ch= *command++) >= '0' && ch <= '9') channel=(channel*10)+ (ch-'0');
 
- while((ch=*command)== ' ' || ch == '\t') command ++;
+  while((ch=*command)== ' ' || ch == '\t') command ++;
 
- sdl_voice(channel, command);
+  sdl_voice(channel, command);
 #endif
 }
 
 static void cmd_voices(){
 #ifdef USE_SDL
- sdl_star_voices();
+  sdl_star_voices();
 #endif
 }
 
@@ -2121,9 +2105,6 @@ static int check_command(char *text) {
     text++;
   }
   command[length] = 0;
-//if (strncmp(command, "cat", 4)    == 0) return CMD_CAT; /* Disabled, *. works but *cat is passed to OS */
-//if (strncmp(command, "window", 7) == 0) return CMD_WINDOW;
-//if (strncmp(command, "title", 6)  == 0) return CMD_TITLE;
 
   if(cmdtab == (cmdtabent*)0) make_cmdtab();
   return get_cmdvalue(command);
@@ -2147,7 +2128,6 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
   while (*command == ' ' || *command == '*') command++;
   if (*command == 0) return;                                    /* Null string */
   if (*command == (char)124 || *command == (char)221) return;   /* Comment     */
-//if (*command == '\\') { }                                     /* Extension   */
 
   if (!basicvars.runflags.ignore_starcmd) {
 /*
@@ -2167,7 +2147,6 @@ void mos_oscli(char *command, char *respfile, FILE *respfh) {
       case CMD_EXEC:         cmd_exec(command+4); return;
       case CMD_SPOOL:        cmd_spool(command+5,0); return;
       case CMD_SPOOLON:      cmd_spool(command+7,1); return;
-//    case CMD_VER:          cmd_ver(); return;
       case CMD_SCREENSAVE:   cmd_screensave(command+10); return;
       case CMD_SCREENLOAD:   cmd_screenload(command+10); return;
       case CMD_WINTITLE:     cmd_wintitle(command+8); return;
@@ -2383,7 +2362,6 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
 */
   if (respfile == NIL) {                /* Command output goes to normal place */
 #ifdef USE_SDL
-    //STRLCAT(cmdbuf, " 2>&1", clen);
 
 // Create a pipe for the child process's STDOUT.
     if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0)) {

@@ -2083,7 +2083,6 @@ static void eval_ivminus(void) {
     } else {
       push_float((float64)fltmp);
     }
-    //DECR_FLOAT(TOFLOAT(rhint));
   } else if (TOPITEMISNUMARRAY) {      /* <array>-<integer value> */
     basicarray *lharray = pop_array();
     int32 n;
@@ -2155,7 +2154,6 @@ static void eval_fvminus(void) {
     } else {
       push_float((float64)fltmp);
     }
-    // DECR_FLOAT(floatvalue);
   } else if (TOPITEMISNUMARRAY) {    /* <array>-<float value> */
     basicarray *lharray = pop_array();
     float64 *base = make_array(VAR_FLOAT, lharray);

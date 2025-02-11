@@ -308,9 +308,7 @@ byte *find_line(int32 lineno) {
 void show_byte(size_t low, size_t high) {
   int32 n, ll, count;
   byte ch;
-  //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
   if (low>high) return;
-  //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
   for (n=0; n<count; n+=16) {
     int32 x = 0;
@@ -354,9 +352,7 @@ void show_word(size_t low, size_t high) {
   byte ch;
   low = ALIGN(low);
   high = ALIGN(high);
-  //if (low<0 || low>=basicvars.worksize || high<0 || low>high) return;
   if (low>high) return;
-  //if (high>basicvars.worksize) high = basicvars.worksize-1;
   count = high-low;
   for (n=0; n<count; n+=16) {
     emulate_printf("%06X  +%04X  %08X  %08X  %08X  %08X  ",
@@ -409,7 +405,6 @@ boolean read_line(char line[], int32 linelen) {
   readstate result;
   line[0] = asc_NUL;
   result = kbd_readline(line, linelen, 0);
-  //result = READ_OK;     /* temp'y bodge */
   if (result==-READ_ESC || basicvars.escape) {
     error(ERR_ESCAPE);
     return FALSE;
@@ -432,7 +427,6 @@ boolean read_line(char line[], int32 linelen) {
 boolean amend_line(char line[], int32 linelen) {
   readstate result;
   result = kbd_readline(line, linelen,0);
-  //result = READ_OK;     /* temp'y bodge */
   if (result==-READ_ESC || basicvars.escape) {
     error(ERR_ESCAPE);
     return FALSE;
@@ -496,7 +490,6 @@ size_t TONATIVEADDR(float64 fltmp) {
 ** to allow negative 32-bit ints to be entered as hex.
 */
 int32 INT64TO32(int64 itmp) {
-//  if ((itmp > 2147483647ll) || (itmp < -2147483648ll)) error(ERR_RANGE);
   if ((itmp > 4294967295ll) || (itmp < -2147483648ll)) error(ERR_RANGE); /* Allow &80000000-FFFFFFFF */
   return (int32)itmp;
 }

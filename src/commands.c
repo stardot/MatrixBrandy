@@ -958,7 +958,6 @@ static void alter_line(void) {
     return;
   }
   tokenize(basicvars.stringwork, thisline, HASLINE, FALSE);
-//  tokenize(basicvars.stringwork, thisline, HASLINE);
   if (GET_LINENO(thisline) == NOLINENO) /* If line number has been removed, execute line */
     exec_thisline();
   else {

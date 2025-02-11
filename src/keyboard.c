@@ -380,12 +380,9 @@ int32 kbd_readline(char *buffer, int32 length, int32 chars) {
 #ifdef TARGET_MINIX
 #include <sys/time.h>
 #endif /* TARGET_MINIX */
-// #include <sys/types.h>
 #include <errno.h>
-// #include <unistd.h>
 #include <sys/ioctl.h>
 #include <termios.h>
-// Move these later
 static struct termios origtty;  /* Copy of original keyboard parameters */
 #endif /* TARGET_UNIX */
 
@@ -544,7 +541,6 @@ static boolean waitkey(int wait);               /* Forward reference    */
 static int32 pop_key(void);                     /* Forward reference    */
 static int32 read_fn_string(void);              /* Forward reference    */
 static int32 switch_fn_string(int32 key);       /* Forward reference    */
-// static int32 decode_sequence(void);          /* Forward reference    */
 
 #if !defined(USE_SDL) && defined(CYGWINBUILD) /* text-mode build */
 static void reinitWinConsole() {
@@ -598,7 +594,6 @@ boolean kbd_init() {
 
   keyboard = fileno(stdin);             /* Handle to keyboard */
   if (tcgetattr(keyboard, &tty) == 0) return TRUE;              /* Keyboard being used */
-//  if (tcgetattr(fileno(stdin), &tty) == 0) return TRUE;       /* Keyboard being used */
 /* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
 ** a keyboard and so the program does simple reads from stdin rather than use the custom
 ** keyboard code. If the error is not ENOTTY then something has gone wrong so we abort
@@ -628,7 +623,6 @@ boolean kbd_init() {
 /* Set up keyboard for unbuffered I/O */
   keyboard = fileno(stdin);
   if (tcgetattr(keyboard, &tty) < 0) {          /* Could not obtain keyboard parameters */
-//  if (tcgetattr(fileno(stdin), &tty) < 0) {   /* Could not obtain keyboard parameters */
     nokeyboard=1;
 /* tcgetattr() returned an error. If the error is ENOTTY then stdin does not point at
 ** a keyboard and so the program does simple reads from stdin rather than use the custom
@@ -653,7 +647,6 @@ boolean kbd_init() {
   tty.c_cflag |= CREAD;                 /* Enable reading                       */
   tty.c_cc[VTIME] = 1;                  /* 1cs timeout                          */
   tty.c_cc[VMIN] = 1;                   /* One character at a time              */
-//  tty.c_cc[VINTR] = 27; // doing this here stops get0() working and kills tbrandy
   if (tcsetattr(keyboard, TCSADRAIN, &tty) < 0) return FALSE;
                                         /* Could not set up keyboard in the way desired */
   return TRUE;
@@ -842,17 +835,6 @@ int GetAsyncKeyState(int key) {
   }
   return (y ? -1 : 0);
 }
-//  __asm__ __volatile__(
-//  "cld\n"
-//  "movw %w1,  %%ax\n"
-//  "andw $255, %%ax\n"
-//  "push %%ax\n"
-//  "call [vecGetAsyncKeyState]\n"
-//  "movw %%ax, %w0\n"
-//  : "=r" (y)
-//  : "r" (x)
-//  );
-//  return y;
 #endif
 
 
@@ -865,7 +847,6 @@ int GetAsyncKeyState(int key) {
  * Returns:   0 if ok
  *          <>0 if can't set because key is in use
  */
-//  kbd_fnkeyset(int key, int length, char *string) {
 int kbd_fnkeyset(int key, char *string, int length) {
   if (fn_string_count)         return fn_string_count;  /* Key in use                   */
   if (fn_key[key].text != NIL) free(fn_key[key].text);  /* Remove existing definition   */
@@ -1144,8 +1125,6 @@ int32 kbd_inkey(int32 arg) {
  */
 int32 kbd_get(void) {
   int ch, fnkey;
-//  int cooked;
-//  int raw=0;
 
   if (matrixflags.doexec) {                     /* Are we doing *EXEC?                  */
     if (kbd_escpoll()) {
@@ -1179,20 +1158,17 @@ int32 kbd_get(void) {
   ch=kbd_get0();                                /* Get a keypress from 'keyboard buffer'*/
   backgnd_escape=TRUE;
 
-//  cooked=(sysvar[sv_KeyOptions]&192)==192;
-//  if (cooked) {
-    if (ch & 0x100) {                           /* Translate special keys               */
-      if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;   /* Swap to RISC OS ordering             */
-      if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;   /* PGDN/PGUP */
-      if ((ch & 0x0CF) == 0xC9) ch=ch - 62;     /* END       */
-      if (ch == 0x1C8)          ch=30;          /* HOME      */
-      if (ch == 0x1C7)          ch=127;         /* DELETE    */
-      if ((ch & 0x0CF) == 0xC6) ch=ch + 7;      /* INSERT    */
-      if (matrixflags.osbyte4val == 1) {
-        if ((ch >= 0x18B) && (ch <= 0x18F)) ch -=0x104;
-      }
+  if (ch & 0x100) {                           /* Translate special keys               */
+    if ((ch & 0x00F) >= 10)   ch=ch ^ 0x40;   /* Swap to RISC OS ordering             */
+    if ((ch & 0x0CE) == 0x8A) ch=ch ^ 0x14;   /* PGDN/PGUP */
+    if ((ch & 0x0CF) == 0xC9) ch=ch - 62;     /* END       */
+    if (ch == 0x1C8)          ch=30;          /* HOME      */
+    if (ch == 0x1C7)          ch=127;         /* DELETE    */
+    if ((ch & 0x0CF) == 0xC6) ch=ch + 7;      /* INSERT    */
+    if (matrixflags.osbyte4val == 1) {
+      if ((ch >= 0x18B) && (ch <= 0x18F)) ch -=0x104;
     }
-//  }
+  }
 
 #if defined(TARGET_MINGW) || defined(USE_SDL)
   while (kbd_escpoll()) basicvars.escape=FALSE; /* Rather brute-force                   */
@@ -1451,14 +1427,12 @@ static int32 keyboard;          /* File descriptor for keyboard */
 void push_key(int32 ch) {
   holdcount++;
   holdstack[holdcount] = ch;
-  //fprintf(stderr, "push_key called, ch=%d, holdcount=%d\n", ch, holdcount);
 }
 
 /*
 ** pop_key - Remove a key from the held key stack
 */
 static int32 pop_key(void) {
-  //fprintf(stderr, "pop_key called, ch=%d, holdcount=%d\n", holdstack[holdcount], holdcount-1);
   return holdstack[holdcount--];
 }
 
@@ -1490,8 +1464,6 @@ void osbyte21(int32 xreg) {
   }
 #endif
 }
-
-// int64 esclast=0;
 
 // Should be called kbd_something, escenabled should be tested here, should be a function
 /* The check for escape_enabled moved to the calling point in statement.c */
@@ -1678,14 +1650,6 @@ int32 read_key(void) {
   SDL_Event ev;
   int mx, my;
 
-#ifndef USE_SDL // but this is within USE_SDL
-  if ((read(keyboard, &ch, 1)) < 0) {           /* Read from keyboard stream            */
-//    if(basicvars.escape_enabled && (errno == EINTR)) error(ERR_ESCAPE);       /* Assume CTRL-C has been pressed */
-//    error(ERR_BROKEN, __LINE__, "keyboard");
-  }
-  return ch;
-#endif
-
   if (holdcount > 0) return pop_key();  // moved to here
 
   while (ch == 0) {
@@ -1716,7 +1680,6 @@ int32 read_key(void) {
         case SDL_KEYUP:
           break;
         case SDL_KEYDOWN:
-// emulate_printf("$%0X",ev.key.keysym.sym);
           switch(ev.key.keysym.sym) {
             case SDLK_RSHIFT:   /* ignored keys */
             case SDLK_LSHIFT:
@@ -1725,22 +1688,6 @@ int32 read_key(void) {
             case SDLK_RALT:
             case SDLK_LALT:
               break;
-#ifdef TARGET_DOSWIN
-//            case 0:
-// This seems to be the way, fill in the rest later.
-// NB, use low-level codes, translate to RISC OS codes higher up.
-// GetKeyState() gets state for this keypress
-// GetAsyncKeyState() gets state right now this instant
-//               if (GetAsyncKeyState(0x1D)<0) {        /* NoConvert    */
-//                 ch=0xC5;
-//                 break;
-//               }
-//               if (GetAsyncKeyState(0x1C)<0) {         /* Convert     */
-//                 ch=0xC6;
-//                 break;
-//               }
-//               break;
-#endif
             case SDLK_F1: case SDLK_F2: case SDLK_F3: case SDLK_F4: case SDLK_F5:
             case SDLK_F6: case SDLK_F7: case SDLK_F8: case SDLK_F9: case SDLK_F10:
             case SDLK_F11: case SDLK_F12:
@@ -1761,16 +1708,12 @@ int32 read_key(void) {
             case SDLK_RIGHT:    ch=0xCD; break;
             case SDLK_DOWN:     ch=0xCE; break;
             case SDLK_UP:       ch=0xCF; break;
-//          case SDLK_ESCAPE:
-//            if (basicvars.escape_enabled) error(ERR_ESCAPE); // Should set flag for foreground to check
-//            return ESCAPE;
             default:
               ch = ev.key.keysym.unicode;
 #ifdef SDL12_COMPAT_HEADERS
               /* Workaround an sdl12-compat bug */
               if ((ch >= 32) && (ev.key.keysym.mod & KMOD_CTRL)) ch=compatkeyfix(ev.key.keysym.sym, ev.key.keysym.mod);
 #endif
-              //fprintf(stderr, "keysym.unicode=%d keysym.sym=%d keysym.mod=0x%X\n", ch, ev.key.keysym.sym, ev.key.keysym.mod);
               if (ch < 0x100) {
                 matrixflags.noupdate = 0;
                 return ch;
@@ -1835,7 +1778,6 @@ int32 read_key(void) {
   }
 #endif
   return ch;
-//  ch=decode_sequence();               /* Temp'y, stop compiler complaining */
 }
 
 #endif
@@ -2060,10 +2002,7 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
   lastplace = length-2;         /* Index of last position that can be used in buffer    */
   init_recall();
   do {
-//basicvars.escape=FALSE;
-//printf("$%02X",basicvars.escape);
     ch = kbd_get();             /* Get 9-bit keypress or expanded function key          */
-//fprintf(stderr, "&%02X &%03X\n",basicvars.escape,ch);
     if ((ch & 0x100) || ((ch == DEL) && !matrixflags.delcandelete)) {
       pendch=ch & 0xFF;         /* temp */
       ch = asc_NUL;
@@ -2071,11 +2010,6 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
 
     watch_signals();           /* Let asynchronous signals catch up */
 
-//    if (basicvars.escape) return READ_ESC;
-//      /* Check if the escape key has been pressed and bail out if it has */
-
-//  if (((ch == ESCAPE) && basicvars.escape_enabled) || basicvars.escape) {
-//    basicvars.escape=TRUE; // bodge
     if (basicvars.escape) {     /* Will have been set within kbd_get()  */
       sysvar[sv_KeyOptions]=oldopt;
       return READ_ESC;
@@ -2087,7 +2021,6 @@ readstate emulate_readline(char buffer[], int32 length, int32 echochar) {
       buffer[highplace] = asc_NUL;
       if (highplace > 0) add_history(buffer, highplace);
       break;
-//  case CTRL_H: case DEL:      /* Delete character to left of cursor */
     case CTRL_H:                /* Delete character to left of cursor */
       if (place > 0) {
         emulate_vdu(DEL);
