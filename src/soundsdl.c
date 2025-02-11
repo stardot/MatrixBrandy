@@ -305,7 +305,7 @@ void init_sound(){
   double fhz;
 
 #ifdef DEBUG
-  fprintf(stderr,"init_sound called\n");
+  if (basicvars.debug_flags.sound) fprintf(stderr,"init_sound called\n");
 #endif
 
   SDL_InitSubSystem(SDL_INIT_AUDIO);
@@ -351,14 +351,14 @@ void init_sound(){
     steptab[i] = (unsigned int)floor((fhz * (((double)0xffffffffu)/20480.0))+0.5);
 
 #ifdef DEBUG
-  fprintf(stderr,"fhz is %12.4f steptab[%3d] is %9u\n",fhz,i,steptab[i]);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"fhz is %12.4f steptab[%3d] is %9u\n",fhz,i,steptab[i]);
 #endif
   }
   for(i=254; i>=0; i--){
     steptab[i] = steptab[i+48] >> 1;
 
 #ifdef DEBUG
-    fprintf(stderr,"steptab[%3d] is %9u\n",i,steptab[i]);
+    if (basicvars.debug_flags.sound) fprintf(stderr,"steptab[%3d] is %9u\n",i,steptab[i]);
 #endif
   }
 
@@ -419,16 +419,16 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
     diff =  floor(0.5 + (1.0/65536.0)*e*((double)(steptab[t+1] - steptab[t])));
     step = (steptab[t] >> 16) + diff;
 #ifdef DEBUG
-    fprintf(stderr,"t is %3d step is %d e is %6.3f diff is %5d\n",t, step, e, diff);
+    if (basicvars.debug_flags.sound) fprintf(stderr,"t is %3d step is %d e is %6.3f diff is %5d\n",t, step, e, diff);
 #endif
   }
 
   if(step > 32767) step = 32767;
 
 #ifdef DEBUG
-  fprintf(stderr,"sdl_sound called: cm1 (%2d) amplitude (%3d) pitch (%5d) duration (%3d) delay (%d) step is %d\n",cm1, amplitude, pitch, duration, delay, step);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"sdl_sound called: cm1 (%2d) amplitude (%3d) pitch (%5d) duration (%3d) delay (%d) step is %d\n",cm1, amplitude, pitch, duration, delay, step);
 
-  fprintf(stderr,"sdl_sound: step is %d delay is %d is_on %d paused %d\n",step, delay, snd_ison, snd_paused);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"sdl_sound: step is %d delay is %d is_on %d paused %d\n",step, delay, snd_ison, snd_paused);
 #endif
 
   tvol= 0;
@@ -455,7 +455,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
   if(delay > 32768) delay = 32768;
 #ifdef DEBUG
-  fprintf(stderr,"sdl_sound tvol %3d step is %5d snd_wr[%d] = %2d snd_rd[%d] = %2d sndtime[%d] %4d tnow %4d sactive %2x\n", tvol, step, cm1, snd_wr[cm1], cm1, snd_rd[cm1], cm1, sndtime[cm1], tnow, sactive);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"sdl_sound tvol %3d step is %5d snd_wr[%d] = %2d snd_rd[%d] = %2d sndtime[%d] %4d tnow %4d sactive %2x\n", tvol, step, cm1, snd_wr[cm1], cm1, snd_rd[cm1], cm1, sndtime[cm1], tnow, sactive);
 #endif
 
   if(!step) tvol = 0;
@@ -520,7 +520,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
   SDL_UnlockAudio();
 
 #ifdef DEBUG
-  fprintf(stderr,"sdl_sound: step is %d cm1 %d type %d tvol %d sactive %d\n",step, cm1, cht, tvol, sactive);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"sdl_sound: step is %d cm1 %d type %d tvol %d sactive %d\n",step, cm1, cht, tvol, sactive);
 #endif
 
   if( snd_ison && snd_paused){
@@ -531,7 +531,7 @@ void sdl_sound(int32 channel, int32 amplitude, int32 pitch, int32 duration, int3
 
 void sdl_sound_onoff(int32 onoff){
 #ifdef DEBUG
-  fprintf(stderr, "sdl_sound_onoff(%d) called ison %d paused %d \n",onoff, snd_ison, snd_paused);
+  if (basicvars.debug_flags.sound) fprintf(stderr, "sdl_sound_onoff(%d) called ison %d paused %d \n",onoff, snd_ison, snd_paused);
 #endif
 
   if(onoff && !snd_ison ) {
@@ -611,7 +611,7 @@ void sdl_voice(int32 channel, char *name) {
   int i,ch, n;
 
 #ifdef DEBUG
-  fprintf(stderr,"sdl_voice called: channel (%d) name \"%s\"\n",channel, name);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"sdl_voice called: channel (%d) name \"%s\"\n",channel, name);
 #endif
 
   if(!snd_inited) init_sound();
@@ -629,7 +629,7 @@ void sdl_voice(int32 channel, char *name) {
   if(channel >=1 && channel <=8 && n>=1 && n<=9) chanvoice[channel-1] = n;
 
 #ifdef DEBUG
-  fprintf(stderr,"sdlvoice - channel number is %d\n",n);
+  if (basicvars.debug_flags.sound) fprintf(stderr,"sdlvoice - channel number is %d\n",n);
 #endif
 }
  

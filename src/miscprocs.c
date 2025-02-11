@@ -584,6 +584,7 @@ int32 get_listo(void) {
         | basicvars.debug_flags.allstack<<14
         | basicvars.debug_flags.functions<<15
         | basicvars.debug_flags.vdu<<16
+        | basicvars.debug_flags.sound<<17
 #endif
         );
 }
@@ -608,6 +609,7 @@ void set_listoption(int32 listopts) {
   basicvars.debug_flags.allstack = (listopts & DEBUG_ALLSTACK) != 0;
   basicvars.debug_flags.functions = (listopts & DEBUG_FUNCTIONS) != 0;
   basicvars.debug_flags.vdu = (listopts & DEBUG_VDU) != 0;
+  basicvars.debug_flags.sound = (listopts & DEBUG_SOUND) != 0;
 #endif
   DEBUGFUNCMSGOUT;
 }

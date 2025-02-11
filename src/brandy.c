@@ -242,6 +242,7 @@ static void init1(void) {
   basicvars.debug_flags.stack = FALSE;
   basicvars.debug_flags.allstack = FALSE;
   basicvars.debug_flags.vdu = FALSE;
+  basicvars.debug_flags.sound = FALSE;
 #endif
   basicvars.errorislocal = 0;
 

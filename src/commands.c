@@ -1373,7 +1373,7 @@ static void detailed_help(char *cmd) {
   } else if (!strncmp(cmd, "LISTO", 6)) {
     emulate_printf("LISTO <option number>. Bits mean:-\r\n0: space after line number.\r\n1: indent structure\r\n2: split lines at :\r\n3: don't list line number\r\n4: list tokens in lower case\r\n5: pause after showing 20 lines");
 #ifdef DEBUG
-    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)\r\n16: Show VDU debugging (very incomplete) (&10000)\r\n");
+    emulate_printf("\r\n\nAdditional debug bits are offered:\r\n 8: Show debugging output (&100)\r\n 9: Show tokenised lines on input plus addresses on listings (&200)\r\n10: List addresses of variables when created + on LVAR (&400)\r\n11: Show allocation/release of memory for strings (&800)\r\n12: Show string heap statistics (&1000)\r\n13: Show structures pushed and popped from stack (&2000)\r\n14: Show in detail items pushed and popped from stack (&4000)\r\n15: Show which functions are called (incomplete) (&8000)\r\n16: Show VDU debugging (very incomplete) (&10000)\r\n17: Show sound system debugging (&20000)\r\n");
 #endif
   } else if (!strncmp(cmd, "LN", 3)) {
     emulate_printf("This function gives the natural logarithm (base e) of a number(<factor>).");

@@ -94,6 +94,7 @@
 #define DEBUG_ALLSTACK 0x4000   /* Show in detail items pushed and popped from stack */
 #define DEBUG_FUNCTIONS 0x8000  /* Show which functions are called - very incomplete */
 #define DEBUG_VDU 0x10000       /* Show debugging related to VDU drivers */
+#define DEBUG_SOUND 0x20000     /* Show sound subsystem debugging */
 
 /* Variable type flags */
 
@@ -552,6 +553,7 @@ typedef struct {
     unsigned int allstack:1;  /* Show detailed stack push/pop info */
     unsigned int functions:1; /* Show functions entered (incomplete) */
     unsigned int vdu:1;       /* Show VDU debugging */
+    unsigned int sound:1;     /* Show sound system debugging */
   } debug_flags;              /* Interpreter debugging options */
 #endif
   struct {

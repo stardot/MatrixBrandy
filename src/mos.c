@@ -2026,9 +2026,6 @@ static void cmd_save(char *command){
   }
    while((n=ishex(ch=*ptr))>=0) {size=(size<<4)+n; ptr++;}
   if(!f) size -= addr-1;
-#ifdef DEBUG
-  fprintf(stderr,"save size is %ld (0x%08lx)\n",size,size);
-#endif
 
   if ((addr == 0) || (size == 0)) {
     emulate_printf("Syntax: SAVE <fname> <start addr> <end addr>|+<length>\r\n");
