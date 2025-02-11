@@ -941,7 +941,7 @@ void show_error(int32 number, char *text) {
 void set_error(void) {
   DEBUGFUNCMSGIN;
   basicvars.error_handler.current = basicvars.current;
-  basicvars.error_handler.stacktop = basicvars.safestack.bytesp; /* get_safestack */
+  basicvars.error_handler.stacktop = basicvars.safestack.bytesp;
   basicvars.error_handler.islocal = FALSE;
 #ifdef DEBUG
   if (basicvars.debug_flags.debug) fprintf(stderr, "Set up ON ERROR handler at %p,  stack = %p\n",

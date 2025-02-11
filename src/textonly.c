@@ -1896,19 +1896,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   case FILL_TRIANGLE: {         /* Plot a filled triangle */
     // int32 left, right, top, bottom;
     filled_triangle(xlast3, ylast3, sx, sy, ex, ey);
-/*  Now figure out the coordinates of the rectangle that contains the triangle */
-#if 0 /* These might be useful for future expansion */
-    left = right = xlast3;
-    top = bottom = ylast3;
-    if (xlast2 < left) left = xlast2;
-    if (xlast < left) left = xlast;
-    if (xlast2 > right) right = xlast2;
-    if (xlast > right) right = xlast;
-    if (ylast2 > top) top = ylast2;
-    if (ylast > top) top = ylast;
-    if (ylast2 < bottom) bottom = ylast2;
-    if (ylast < bottom) bottom = ylast;
-#endif
     break;
   }
   case FILL_RECTANGLE: {                /* Plot a filled rectangle */
@@ -1931,23 +1918,6 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     vx = xlast3-xlast2+xlast;
     vy = ylast3-ylast2+ylast;
     filled_triangle(ex, ey, vx, vy, xlast3, ylast3);
-/*  Now figure out the coordinates of the rectangle that contains the parallelogram */
-#if 0 /* These might be useful for future expansion */
-    left = right = xlast3;
-    top = bottom = ylast3;
-    if (xlast2 < left) left = xlast2;
-    if (xlast < left) left = xlast;
-     if (vx < left) left = vx;
-    if (xlast2 > right) right = xlast2;
-    if (xlast > right) right = xlast;
-    if (vx > right) right = vx;
-    if (ylast2 > top) top = ylast2;
-    if (ylast > top) top = ylast;
-    if (vy > top) top = vy;
-    if (ylast2 < bottom) bottom = ylast2;
-    if (ylast < bottom) bottom = ylast;
-    if (vy < bottom) bottom = vy;
-#endif
     break;
   }
   case PLOT_CIRCLE:             /* Plot the outline of a circle */

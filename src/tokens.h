@@ -387,4 +387,7 @@ extern boolean isempty(byte []);
 #define AT_PROGEND(p) (*(p+OFFLINE+1)==ENDMARKER)
 #define FIND_EXEC(p) (p+*(p+OFFEXEC)+(*(p+OFFEXEC+1)<<BYTESHIFT))
 
+#define get_exec(p) (*(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT)
+#define PREVIOUS_TOKEN (tokenbase[next-1])
+
 #endif

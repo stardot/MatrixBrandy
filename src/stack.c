@@ -194,19 +194,6 @@ sigjmp_buf *make_restart(void) {
   return &basicvars.stacktop.restartsp->restart;
 }
 
-/*
-** 'get_safestack' returns the value that the stack pointer is set
-** to after an error to restore the stack to a known condition
-*/
-#if 0 /* Code disabled; only used in one place and it's a global struct variable */
-byte *get_safestack(void) {
-#ifdef DEBUG
-  if (basicvars.debug_flags.stack) fprintf(stderr, "Get safestack = %p\n", basicvars.safestack.bytesp);
-#endif
-  return basicvars.safestack.bytesp;
-}
-#endif
-
 /* Pushes an int of variable size, using the most appropriate type */
 void push_varyint(int64 value) {
   if (value == (uint8)value) {

@@ -2412,19 +2412,6 @@ static void native_oscli(char *command, char *respfile, FILE *respfh) {
       if (getChar == '\n') emulate_vdu('\r');
       emulate_vdu(getChar);
     }
-#if 0
-    /* This really needs to be redone using Windows API calls instead of popen() */
-    sout = popen(cmdbuf, "r");
-    if (sout == NULL) {
-      error(ERR_CMDFAIL);
-      return;
-    }
-    while (fread(&buf, 1, 1, sout) > 0) {
-      if (buf == '\n') emulate_vdu('\r');
-      emulate_vdu(buf);
-    }
-    pclose(sout);
-#endif
 #else /* !USE_SDL */
     fflush(stdout);                     /* Make sure everything has been output */
     fflush(stderr);

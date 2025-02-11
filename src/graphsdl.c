@@ -579,18 +579,6 @@ static int32 gtextyhome(void) {
   return ds.gwintop;
 }
 
-#if 0 /* Currently don't need these */
-static int32 gtextxedge(void) {
-  if (vdu2316byte & 2) return ds.gwinleft;
-  return ds.gwinright-XPPC*ds.xgupp+2;
-}
-
-static int32 gtextyedge(void) {
-  if (vdu2316byte & 4) return ds.gwintop;
-  return ds.gwinbottom+YPPC*ds.ygupp;
-}
-#endif
-
 /*
 ** 'find_cursor' locates the cursor on the text screen and ensures that
 ** its position is valid, that is, lies within the text window.
@@ -1493,50 +1481,6 @@ static void scroll_yneg(int32 windowed) {
     case 5: case 7: scroll_right(windowed); break;
   }
 }
-
-#if 0
-static void cursor_move_sp(int32 *curx, int32 *cury, int32 incx, int32 incy) {
-  int32 lx, ly;
-  lx = *curx;
-  ly = *cury;
-  switch (MOVFLAG) {
-    case 0:
-      lx += incx;
-      break;
-  }
-  *curx = lx;
-  *cury = ly;
-}
-
-static void cursor_move(int32 *curx, int32 *cury, int32 incx, int32 incy) {
-  int32 lx, ly;
-  lx = *curx;
-  ly = *cury;
-  switch (MOVFLAG) {
-    case 0:
-      lx += incx;
-      if (lx > twinright) {
-        lx=twinleft;
-        ly ++;
-        if (*cury > twinbottom) {
-          scroll(SCROLL_UP);
-          ly --;
-        }
-      }
-      if (lx < twinleft) {
-        lx = twinright;
-        ly --;
-        if (ly < twintop) {
-          scroll(SCROLL_DOWN);
-          ly ++;
-        }
-      }
-      break;
-  }
-  *curx = lx;
-  *cury = ly;
-}
-#endif
 
 /*
 ** 'write_char' draws a character when in fullscreen graphics mode

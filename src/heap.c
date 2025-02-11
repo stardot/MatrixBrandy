@@ -274,20 +274,6 @@ void freemem(void *where, int32 size) {
 }
 
 /*
-** 'returnable' is called to check if the block at 'where' is the
-** last item allocated on the heap and can therefore be returned
-** to it
-*/
-#if 0 /* converted to macro in heap.h */
-boolean returnable(void *where, int32 size) {
-  DEBUGFUNCMSGIN;
-  size = ALIGN(size);
-  DEBUGFUNCMSGOUT;
-  return CAST(where, byte *)+size==basicvars.vartop;
-}
-#endif
-
-/*
 ** 'clear_heap' is used to clear the variable and free string lists
 ** when a 'clear' command is used, a program is edited or 'new' or
 ** 'old' are issued.

@@ -52,32 +52,6 @@ int64 llabs(int64 i) {
 }
 #endif
 
-#if 0 /* Converted to macros in miscprocs.h */
-/*
-** 'isidstart' returns TRUE if the character passed to it can appear at
-** the start of an identifier
-*/
-boolean isidstart(char ch) {
-  return isalpha(ch) || ch=='_' || ch=='`';
-}
-
-/*
-** 'isidchar' returns TRUE if the character passed to it can appear in the
-** middle of an identifier
-*/
-boolean isidchar(char ch) {
-  return isalnum(ch) || ch=='_' || ch=='`';
-}
-
-/*
-** 'isident' is the same as 'isidchar' but is called when the character
-** is an unsigned char.
-*/
-boolean isident(byte ch) {
-  return isalnum(ch) || ch=='_' || ch=='`';
-}
-#endif /* 0 - macro conversion */
-
 /*
 ** 'get_integer' returns the four byte integer found at offset
 ** 'offset' in the Basic workspace. This is used to return the

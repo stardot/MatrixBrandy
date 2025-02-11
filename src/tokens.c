@@ -393,54 +393,6 @@ static void store_exec(int32 offset) {
 }
 
 /*
-** 'get_linelen' returns the length of a line. 'p' is assumed to point at the
-** start of the line (that is, the line number)
-*/
-#if 0 /* Converted to macro in tokens.h */
-int32 get_linelen(byte *p) {
-  DEBUGFU#NCMSGIN;
-  DEBUGFUNCMSGOUT;
-  return *(p+OFFLENGTH) | *(p+OFFLENGTH+1)<<BYTESHIFT;
-}
-
-/*
-** 'get_lineno' returns the line number of the line starting at 'p'
-*/
-int32 get_lineno(byte *p) {
-  DEBUGFUNCMSGIN;
-  DEBUGFUNCMSGOUT;
-  return *(p+OFFLINE) | *(p+OFFLINE+1)<<BYTESHIFT;
-}
-
-/*
-** 'get_srcaddr' returns the address of a byte in the source part
-** of a line. This is given as an offset from the address of the
-** token at 'p'. The offset is stored in the two bytes after the
-** token
-*/
-byte *get_srcaddr(byte *p) {
-  DEBUGFUNCMSGIN;
-  DEBUGFUNCMSGOUT;
-  return p-(*(p+1)+(*(p+2)<<BYTESHIFT));
-}
-
-#endif /* 0 - macro conversion */
-
-/*
-** 'get_exec' returns the offset in the line of the first executable
-** token. 'p' points at the start of the line. Normally a macro is
-** used to do this for speed
-*/
-//static int32 get_exec(byte *p) {
-//  DEBUGFUNCMSGIN;
-//  DEBUGFUNCMSGOUT;
-//  return *(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT;
-//}
-#define get_exec(p) (*(p+OFFEXEC) | *(p+OFFEXEC+1)<<BYTESHIFT)
-
-#define PREVIOUS_TOKEN (tokenbase[next-1])
-
-/*
 ** 'store' is called to add a character to the tokenised line buffer
 */
 static void store(byte token) {
@@ -600,25 +552,6 @@ static char *copy_line(char *lp) {
   DEBUGFUNCMSGOUT;
   return lp;
 }
-
-#if 0
-// Disabled - no longer used as DRAW BY etc are now two tokens
-/*
-** 'nextis' is called to check if the next non-blank characters match
-** the string given by 'string'. It returns 'true' if they do. This
-** function is used when checking for statement types such as 'DRAW BY'
-** as 'DRAW BY' and its ilk are represented by single tokens in this
-** interpreter
-*/
-static boolean nextis(char *string) {
-  char *cp;
-
-  DEBUGFUNCMSGIN;
-  cp = skip_blanks(lp);
-  DEBUGFUNCMSGOUT;
-  return *cp != asc_NUL && strncmp(cp, string, strlen(string)) == 0;
-}
-#endif
 
 /*
 ** "kwsearch" checks to see if the text passed to it is a token, returning
@@ -1651,18 +1584,6 @@ static byte *get_address(byte *p) {
   DEBUGFUNCMSGOUT;
   return basicvars.workspace+(*(p+1) | *(p+2)<<8 | *(p+3)<<16 | *(p+4)<<24);
 }
-
-/*
-** 'get_linenum' returns the line number following the line number token
-** at 'lp'
-*/
-#if 0 /* Converted to macro in tokens.h */
-int32 get_linenum(byte *lp) {
-  DEBUGFUNCMSGIN;
-  DEBUGFUNCMSGOUT;
-  return *(lp+1) | *(lp+2)<<BYTESHIFT;
-}
-#endif
 
 /*
 ** 'set_linenum' stores a line number following the line number token
