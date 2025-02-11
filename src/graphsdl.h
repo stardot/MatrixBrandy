@@ -62,7 +62,6 @@ extern int32 osbyte250(void);
 extern int32 osbyte251(void);
 extern void reset_sysfont(int x);
 extern void hide_cursor(void);
-//extern void reveal_cursor(void);
 extern void osword09(int64 x);
 extern void osword0A(int64 x);
 extern void osword0B(int64 x);

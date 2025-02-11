@@ -360,11 +360,7 @@ extern byte *skip_token(byte *);
 extern byte *skip_name(byte *);
 extern void set_dest(byte *, byte *);
 extern void set_address(byte *, void *);
-//extern byte *get_srcaddr(byte *);
 extern void save_lineno(byte *, int32);
-//extern int32 get_lineno(byte *);        /* Returns line number at start of line */
-//extern int32 get_linelen(byte *);
-//extern int32 get_linenum(byte *);       /* Returns line number after 'linenum' token */
 extern float64 get_fpvalue(byte *);
 extern void clear_varptrs(void);
 extern void clear_linerefs(byte *);
