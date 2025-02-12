@@ -36,66 +36,41 @@ typedef enum {
     ERR_UNSUPSTATE,     /* Unsupported statement type */
     ERR_NOGRAPHICS,     /* No graphics available */
     ERR_NOVDUCMDS,      /* VDU commands cannot be used here */
-    ERR_SYNTAX,         /* General purpose error */
     ERR_SILLY,          /* A silly error */
     ERR_BADPROG,        /* Corrupted program */
-    ERR_ESCAPE,         /* Escape key pressed */
     ERR_STOP,           /* STOP statement */
     ERR_STATELEN,       /* Statement > 1024 chars long */
     ERR_LINENO,         /* Line number out of range */
-    ERR_LINEMISS,       /* Line number not found */
-    ERR_VARMISS,        /* Unknown variable */
-    ERR_ARRAYMISS,      /* Unknown array */
-    ERR_FNMISS,         /* Unknown function */
-    ERR_PROCMISS,       /* Unknown procedure */
-    ERR_TOOMANY,        /* Too many parameters in FN or PROC call */
-    ERR_NOTENUFF,       /* Not enough parameters in FN or PROC call */
-    ERR_BADDIM,         /* Not enough room to create an array */
-    ERR_BADBYTEDIM,     /* Not enough room to create a byte array */
-    ERR_NEGDIM,         /* Array dimension is negative */
-    ERR_NEGBYTEDIM,     /* Array dimension is negative */
-    ERR_DIMCOUNT,       /* Array has too many dimensions */
-    ERR_DUPLDIM,        /* Array already defined */
-    ERR_BADINDEX,       /* Array index is out of range */
-    ERR_INDEXCO,        /* Wrong number of array dimension */
-    ERR_DIMRANGE,       /* Array dimension number is out of range */
-    ERR_NODIMS,         /* Array dimensions not defined */
-    ERR_ADDRESS,        /* Address out of range for variable type */
-    WARN_BADTOKEN,      /* Bad token value entered */
-    WARN_BADHEX,        /* Bad hexadecimal constant */
-    WARN_BADBIN,        /* Bad binary constant */
-    WARN_EXPOFLO,       /* Exponent is too large */
     ERR_NAMEMISS,       /* Variable name expected */
-    ERR_EQMISS,         /* Mistake (usually '=' missing) */
-    ERR_COMISS,         /* ',' missing */
-    ERR_LPMISS,         /* '(' missing */
-    ERR_RPMISS,         /* ')' missing */
-    WARN_QUOTEMISS,     /* '"' missing (warning) */
-    ERR_QUOTEMISS,      /* '"' missing */
-    ERR_HASHMISS,       /* '#' missing */
-    ERR_ENDIF,          /* ENDIF missing */
-    ERR_ENDWHILE,       /* ENDWHILE missing */
-    ERR_ENDCASE,        /* ENDCASE missing */
-    ERR_UNTIL,          /* UNTIL missing */
-    ERR_NEXT,           /* NEXT mising */
     ERR_MULTINEXT,      /* Warning - EXIT FOR can't use a multi-loop NEXT statement */
-    ERR_EXITFOR,        /* EXIT FOR statement location */
-    ERR_OFMISS,         /* OF missing */
-    ERR_TOMISS,         /* 'TO' missing */
-    ERR_CORPNEXT,       /* ',' or ')' expected */
-    ERR_NOTWHILE,       /* Not in a 'WHILE' loop */
-    ERR_NOTREPEAT,      /* Not in a 'REPEAT' loop */
-    ERR_NOTFOR,         /* Not in a 'FOR' loop */
-    ERR_DIVZERO,        /* Divide by zero */
-    ERR_NEGROOT,        /* Square root of a negative number */
-    ERR_LOGRANGE,       /* Log of zero or a negative number */
-    ERR_RANGE,          /* General number out of range error */
-    ERR_ONRANGE,        /* 'ON' index is out of range */
-    ERR_ARITHMETIC,     /* Floating point exception */
-    ERR_HEXOVERFLOW,    /* Value out of range for current hexadecimal mode */
-    WARN_PRECISION,     /* Precision lost in float conversion */
-    ERR_STRINGLEN,      /* String is too long */
     ERR_BADOPER,        /* Unrecognisable operand */
+    ERR_NOROOM,         /* Out of memory */
+    ERR_STACKFULL,      /* Arithmetic stack overflow */
+    ERR_OPSTACK,        /* Operator stack overflow */
+    ERR_LOMEMFIXED,     /* Cannot change LOMEM in a function or procedure */
+    ERR_HIMEMFIXED,     /* Cannot change HIMEM here */
+    ERR_BADTRACE,       /* Bad TRACE option */
+    ERR_LIBSIZE,        /* Not enough memory available to load library */
+    ERR_NOLIBLOC,       /* LIBRARY LOCAL not at start of library */
+    ERR_FILENAME,       /* File name missing */
+    ERR_EDITFAIL,       /* Edit session failed */
+    ERR_NOGZIP,         /* gzip support not available */
+    ERR_BROKEN,         /* Basic program is corrupt or interpreter logic error */
+    ERR_COMMAND,        /* Basic command found in program */
+    ERR_RENUMBER,       /* RENUMBER failed */
+    WARN_LINENO,        /* Line number too large (warning) */
+    WARN_LINEMISS,      /* Line number missing (warning) */
+    WARN_RPMISS,        /* ')' missing (warning) */
+    WARN_RPAREN,        /* Too many ')' (warning) */
+    WARN_PARNEST,       /* '()' nested incorrectly */
+    WARN_FUNNYFLOAT,    /* Unknown floating point format */
+    WARN_LIBLOADED,     /* Library already loaded */
+    WARN_BADHIMEM,      /* Attempted to set HIMEM to a bad value */
+    WARN_BADLOMEM,      /* Attempted to set LOMEM to a bad value */
+    WARN_BADPAGE,       /* Attempted to set PAGE to a bad value */
+    WARN_PRECISION,     /* Precision lost in float conversion */
+    WARN_BADTOKEN,      /* Bad token value entered */
+    ERR_EQMISS,         /* Mistake (usually '=' missing) */
     ERR_TYPENUM,        /* Type mismatch: number wanted */
     ERR_TYPESTR,        /* Type mismatch: string wanted */
     ERR_PARMNUM,        /* Parameter type mismatch: number wanted */
@@ -114,95 +89,122 @@ typedef enum {
     ERR_NOSWAP,         /* Type mismatch: cannot swap variables of different types */
     ERR_UNSUITABLEVAR,  /* Type mismatch: unsuitable variable type for operation */
     ERR_BADARITH,       /* Cannot perform arithmetic operations on these types of operand */
-    ERR_BADEXPR,        /* Syntax error in expression */
-    ERR_RETURN,         /* RETURN encountered outside a subroutine */
-    ERR_NOTAPROC,       /* Cannot use a function as a procedure */
-    ERR_NOTAFN,         /* Cannot use a procedure as a function */
-    ERR_ENDPROC,        /* ENDPROC encountered outside a PROC */
+    ERR_BADBITWISE,     /* 6, Bitwise operations cannot be performed on these operands */
     ERR_FNRETURN,       /* Function return encountered outside a FN */
+    ERR_QUOTEMISS,      /* '"' missing */
+    WARN_QUOTEMISS,     /* '"' missing (warning) */
+    ERR_NEGDIM,         /* Array dimension is negative */
+    ERR_NEGBYTEDIM,     /* Array dimension is negative */
+    ERR_DIMCOUNT,       /* Array has too many dimensions */
+    ERR_DUPLDIM,        /* Array already defined */
+    ERR_BADDIM,         /* Not enough room to create an array */
+    ERR_BADBYTEDIM,     /* Not enough room to create a byte array */
     ERR_LOCAL,          /* LOCAL found outside a PROC or FN */
-    ERR_DATA,           /* Out of data */
-    ERR_NOROOM,         /* Out of memory */
-    ERR_WHENCOUNT,      /* Too many WHEN clauses in CASE statement */
-    ERR_SYSCOUNT,       /* Too many parameters found in a SYS statement */
-    ERR_STACKFULL,      /* Arithmetic stack overflow */
-    ERR_OPSTACK,        /* Operator stack overflow */
-    WARN_BADHIMEM,      /* Attempted to set HIMEM to a bad value */
-    WARN_BADLOMEM,      /* Attempted to set LOMEM to a bad value */
-    WARN_BADPAGE,       /* Attempted to set PAGE to a bad value */
-    ERR_LOMEMFIXED,     /* Cannot change LOMEM in a function or procedure */
-    ERR_HIMEMFIXED,     /* Cannot change HIMEM here */
-    ERR_BADTRACE,       /* Bad TRACE option */
-    ERR_ERRNOTOP,       /* Error block not on top of stack */
-    ERR_DATANOTOP,      /* DATA pointer not on top of stack */
+    ERR_ENDPROC,        /* ENDPROC encountered outside a PROC */
+    ERR_ARRAYMISS,      /* Unknown array */
+    ERR_NODIMS,         /* Array dimensions not defined */
+    ERR_BADINDEX,       /* Array index is out of range */
+    ERR_INDEXCO,        /* Wrong number of array dimension */
+    ERR_DIMRANGE,       /* Array dimension number is out of range */
+    ERR_SYNTAX,         /* General purpose error */
+    ERR_BADEXPR,        /* Syntax error in expression */
+    ERR_ESCAPE,         /* Escape key pressed */
+    ERR_DIVZERO,        /* Divide by zero */
+    ERR_STRINGLEN,      /* String is too long */
+    ERR_RANGE,          /* General number out of range error */
+    ERR_ARITHMETIC,     /* Floating point exception */
+    ERR_HEXOVERFLOW,    /* Value out of range for current hexadecimal mode */
+    WARN_EXPOFLO,       /* Exponent is too large */
+    ERR_NEGROOT,        /* Square root of a negative number */
+    ERR_LOGRANGE,       /* Log of zero or a negative number */
     ERR_BADMODESC,      /* Bad mode descriptor */
     ERR_BADMODE,        /* Screen mode unavailable */
-    WARN_LIBLOADED,     /* Library already loaded */
+    ERR_VARMISS,        /* Unknown variable */
+    ERR_COMISS,         /* ',' missing */
+    ERR_LPMISS,         /* '(' missing */
+    ERR_RPMISS,         /* ')' missing */
+    ERR_CORPNEXT,       /* ',' or ')' expected */
+    WARN_BADHEX,        /* Bad hexadecimal constant */
+    WARN_BADBIN,        /* Bad binary constant */
+    ERR_FNMISS,         /* Unknown function */
+    ERR_PROCMISS,       /* Unknown procedure */
+    ERR_NOTAPROC,       /* Cannot use a function as a procedure */
+    ERR_NOTAFN,         /* Cannot use a procedure as a function */
+    ERR_TOOMANY,        /* Too many parameters in FN or PROC call */
+    ERR_NOTENUFF,       /* Not enough parameters in FN or PROC call */
+    ERR_NEXT,           /* NEXT mising */
+    ERR_EXITFOR,        /* EXIT FOR statement location */
+    ERR_NOTFOR,         /* Not in a 'FOR' loop */
+    ERR_TOMISS,         /* 'TO' missing */
+    ERR_RETURN,         /* RETURN encountered outside a subroutine */
+    ERR_ONRANGE,        /* 'ON' index is out of range */
+    ERR_LINEMISS,       /* Line number not found */
+    ERR_DATA,           /* Out of data */
+    ERR_UNTIL,          /* UNTIL missing */
+    ERR_NOTREPEAT,      /* Not in a 'REPEAT' loop */
+    ERR_HASHMISS,       /* '#' missing */
+    ERR_NOTWHILE,       /* Not in a 'WHILE' loop */
+    ERR_WHENCOUNT,      /* Too many WHEN clauses in CASE statement */
+    ERR_ENDCASE,        /* ENDCASE missing */
+    ERR_OFMISS,         /* OF missing */
+    ERR_ENDIF,          /* ENDIF missing */
+    ERR_ENDWHILE,       /* ENDWHILE missing */
+    ERR_SYSCOUNT,       /* Too many parameters found in a SYS statement */
+    ERR_ERRNOTOP,       /* Error block not on top of stack */
+    ERR_DATANOTOP,      /* DATA pointer not on top of stack */
+    ERR_BADVARPROCNAME, /* Bad variable or procedure/function name */
+    ERR_BADPROCFNNAME,  /* Bad procedure or function name found at line X */
     ERR_NOLIB,          /* Cannot find library */
-    ERR_LIBSIZE,        /* Not enough memory available to load library */
-    ERR_NOLIBLOC,       /* LIBRARY LOCAL not at start of library */
-    ERR_FILENAME,       /* File name missing */
-    ERR_NOTFOUND,       /* Cannot find file */
-    ERR_OPENWRITE,      /* Cannot open file for write */
-    ERR_OPENIN,         /* File is open for reading, not writing */
-    ERR_CANTREAD,       /* Unable to read from file */
-    ERR_CANTWRITE,      /* Unable to write to file */
-    ERR_HITEOF,         /* Have hit end of file */
-    ERR_READFAIL,       /* Cannot read file */
-    ERR_NOTCREATED,     /* Cannot create file */
-    ERR_WRITEFAIL,      /* Could not finish writing to file */
+    ERR_DIRNOTFOUND,    /* Directory not found */
+    ERR_ADDRESS,        /* Address out of range for variable type */
+    ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
+    ERR_OSCLIFAIL,      /* OSCLI failed */
+    ERR_SWINAMENOTKNOWN,/* SWI name not known */
+    ERR_SWINUMNOTKNOWN, /* SWI &xxx not known */
+    ERR_PRINTER,        /* Unable to connect to printer */
+// Filing system errors:
     ERR_FILEIO,         /* Some other I/O error */
     ERR_CMDFAIL,        /* OS command failed */
-    ERR_UNKNOWN,        /* Unexpected signal received */
-    ERR_BADHANDLE,      /* Handle is invalid or file associated with it is closed */
     ERR_SETPTRFAIL,     /* File pointer cannot be changed */
     ERR_GETPTRFAIL,     /* File pointer cannot be read */
     ERR_GETEXTFAIL,     /* File size cannot be found */
-    ERR_MAXHANDLE,      /* Maximum number of files are already open */
-    ERR_INVALIDFNAME,   /* Invalid file name */
     ERR_NOMEMORY,       /* Not enough memory available to run interpreter */
-    ERR_BROKEN,         /* Basic program is corrupt or interpreter logic error */
-    ERR_COMMAND,        /* Basic command found in program */
-    ERR_RENUMBER,       /* RENUMBER failed */
-    WARN_LINENO,        /* Line number too large (warning) */
-    WARN_LINEMISS,      /* Line number missing (warning) */
-    WARN_RPMISS,        /* ')' missing (warning) */
-    WARN_RPAREN,        /* Too many ')' (warning) */
-    WARN_PARNEST,       /* '()' nested incorrectly */
-    ERR_EDITFAIL,       /* Edit session failed */
-    ERR_OSCLIFAIL,      /* OSCLI failed */
-    ERR_NOGZIP,         /* gzip support not available */
-    WARN_FUNNYFLOAT,    /* Unknown floating point format */
-    ERR_SWINAMENOTKNOWN,/* SWI name not known */
-    ERR_SWINUMNOTKNOWN, /* SWI &xxx not known */
-    ERR_DIRNOTFOUND,    /* Directory not found */
-    ERR_BADBITWISE,     /* 6, Bitwise operations cannot be performed on these operands */
-    ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
-    ERR_PRINTER,        /* Unable to connect to printer */
-    ERR_BADVARPROCNAME, /* Bad variable or procedure/function name */
-    ERR_BADPROCFNNAME,  /* Bad procedure or function name found at line X */
+    ERR_CANTREAD,       /* Unable to read from file */
+    ERR_READFAIL,       /* Cannot read file */
+    ERR_NOTCREATED,     /* Cannot create file */
+    ERR_MAXHANDLE,      /* Maximum number of files are already open */
+    ERR_OPENWRITE,      /* Cannot open file for write */
+    ERR_OPENIN,         /* File is open for reading, not writing */
+    ERR_CANTWRITE,      /* Unable to write to file */
+    ERR_WRITEFAIL,      /* Could not finish writing to file */
+    ERR_NOTFOUND,       /* Cannot find file */
+    ERR_BADHANDLE,      /* Handle is invalid or file associated with it is closed */
+    ERR_HITEOF,         /* Have hit end of file */
+    ERR_UNKNOWN,        /* Unexpected signal received */
+    ERR_INVALIDFNAME,   /* Invalid file name */
 // From JGH's Banana Brandy fork
-    ERR_BADCOMMAND,     /* 254, Bad command */
-    ERR_BADSTRING,      /* 253, Bad string */
-    ERR_BADNUMBER,      /* 252, Bad number */
-    ERR_BADKEY,         /* 251, Bad key */
-    ERR_KEYINUSE,       /* 250, Key in use */
-    ERR_MOSVERSION,     /* 247, MOS x,yz */
     ERR_BADSYNTAX,      /* 220, Bad syntax */
+    ERR_MOSVERSION,     /* 247, MOS x,yz */
+    ERR_KEYINUSE,       /* 250, Key in use */
+    ERR_BADKEY,         /* 251, Bad key */
+    ERR_BADNUMBER,      /* 252, Bad number */
+    ERR_BADSTRING,      /* 253, Bad string */
+    ERR_BADCOMMAND,     /* 254, Bad command */
 // Network errors
-    ERR_NET_CONNREFUSED,/* 165, Connection refused */
-    ERR_NET_NOTFOUND,   /* 213, Host not found */
-    ERR_NET_MAXSOCKETS, /* 192, Maximum number of sockets already open */
     ERR_NET_NOTSUPP,    /* 157, Network operation not supported */
+    ERR_NET_CONNREFUSED,/* 165, Connection refused */
+    ERR_NET_MAXSOCKETS, /* 192, Maximum number of sockets already open */
+    ERR_NET_NOTFOUND,   /* 213, Host not found */
     ERR_NO_RPI_GPIO,    /* 510, Raspberry Pi GPIO not available */
 // Dynamic Linker errors
     ERR_DL_NODL,        /* 0, dlopen() and friends not available */
     ERR_DL_NOSYM,       /* 0, Symbol not found */
 // Misc errors
+    ERR_DIRNOTEMPTY,    /* 104884 (180), Directory not empty */
+    ERR_NODIR,          /* 104885 (189), Unable to create directory */
+    ERR_FILELOCKED,     /* 67779  (195), This item is locked */
     ERR_BAD_OSFILE,     /* 1026, Bad OSFile call */
-    ERR_FILELOCKED,     /* 67779, This item is locked */
-    ERR_DIRNOTEMPTY,    /* 104884, Directory not empty */
-    ERR_NODIR,          /* 104885, Unable to create directory */
+// No more errors
     HIGHERROR           /* Leave last, dummy error */
 } errnum;
 
