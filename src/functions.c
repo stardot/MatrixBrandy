@@ -1631,12 +1631,16 @@ static void fn_str(void) {
   (*factor_table[*basicvars.current])();
   resultype=GET_TOPITEM;
   if (IS_NUMERIC(resultype)) {
-    if (ishex)
-      if (matrixflags.hex64)
+    if (ishex) {
+      if (matrixflags.hex64) {
         length = snprintf(basicvars.stringwork, MAXSTRING, "%llX", pop_anynum64());
-      else
-        length = snprintf(basicvars.stringwork, MAXSTRING, "%X", pop_anynum32());
-    else {
+      } else {
+        int64 result = pop_anynum64();
+        if ((result < MININTVAL) || (result > MAXINTVAL))
+          error(ERR_HEXOVERFLOW);
+        length = snprintf(basicvars.stringwork, MAXSTRING, "%X", (int32)result);
+      }
+    } else {
       int32 format, numdigits;
       char *fmt, *bufptr;
       format = basicvars.staticvars[ATPERCENT].varentry.varinteger;

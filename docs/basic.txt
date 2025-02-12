@@ -877,13 +877,16 @@ SQR
         Use: SQR <factor>
         Returns the square root of numeric value <factor>.
 
-STR
-        Use: a) STR <factor>
-             b) STR~ <factor>
+STR$
+        Use: a) STR$ <factor>
+             b) STR$~ <factor>
         a) Converts the numeric value <factor> to a decimal
         string.
         b) Converts the numeric value <factor> to a hexadecimal
-        string.
+        string. An error is reported if a hexadecimal value cannot
+        be accurately represented (e.g. a value greater than 2^31-1
+        when Hex64 is not enabled, or any value greater than 2^63-1,
+        and similar negative numbers). 
 
 STRING$(
         Use: STRING$( <expression>, <string expr> )

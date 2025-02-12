@@ -92,6 +92,7 @@ typedef enum {
     ERR_RANGE,          /* General number out of range error */
     ERR_ONRANGE,        /* 'ON' index is out of range */
     ERR_ARITHMETIC,     /* Floating point exception */
+    ERR_HEXOVERFLOW,    /* Value out of range for current hexadecimal mode */
     WARN_PRECISION,     /* Precision lost in float conversion */
     ERR_STRINGLEN,      /* String is too long */
     ERR_BADOPER,        /* Unrecognisable operand */
