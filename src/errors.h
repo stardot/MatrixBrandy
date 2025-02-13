@@ -157,11 +157,11 @@ typedef enum {
     ERR_NOLIB,          /* Cannot find library */
     ERR_DIRNOTFOUND,    /* Directory not found */
     ERR_ADDRESS,        /* Address out of range for variable type */
-    ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
     ERR_OSCLIFAIL,      /* OSCLI failed */
     ERR_SWINAMENOTKNOWN,/* SWI name not known */
     ERR_SWINUMNOTKNOWN, /* SWI &xxx not known */
     ERR_PRINTER,        /* Unable to connect to printer */
+    ERR_ADDREXCEPT,     /* Address exception - use for segfault handler */
 // Filing system errors:
     ERR_FILEIO,         /* Some other I/O error */
     ERR_CMDFAIL,        /* OS command failed */

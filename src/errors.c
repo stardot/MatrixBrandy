@@ -579,11 +579,11 @@ static detail errortable [] = {
 /* ERR_NOLIB */         {NONFATAL, STRING,  214, "Cannot find library '%s'"},
 /* ERR_DIRNOTFOUND */   {NONFATAL, NOPARM,  214, "Directory not found or could not be selected"},
 /* ERR_ADDRESS */       {NONFATAL, NOPARM,  242, "Address is out of range for given variable type"},
-/* ERR_ADDREXCEPT */    {NONFATAL, NOPARM,  243, "Address exception"},
 /* ERR_OSCLIFAIL */     {NONFATAL, STRING,  254, "OSCLI failed (%s)"},
 /* ERR_SWINAMENOTKNOWN*/{NONFATAL, NOPARM,  486, "SWI name '%s' not known"},
 /* ERR_SWINUMNOTKNOWN */{NONFATAL, INTEGER, 486, "SWI &%llX not known"},
 /* ERR_PRINTER */       {NONFATAL, NOPARM,  509, "Unable to connect to printer"},
+/* ERR_ADDREXCEPT */    {NONFATAL, NOPARM,  0x80000003, "Address exception"},
 // Filing system errors:
 #ifdef TARGET_RISCOS
 /* ERR_FILEIO */        {FATAL,    STRING,    0, "%s"},
