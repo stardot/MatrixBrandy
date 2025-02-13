@@ -2156,25 +2156,21 @@ void exec_oscli(void) {
   boolean tofile;
   char *oscli_string;
   char respname[FNAMESIZE];
-  int count, n, hex64tmp;
+  int count, n;
   FILE *respfile, *respfh;
   basicarray *ap;
 
   DEBUGFUNCMSGIN;
-  hex64tmp = matrixflags.hex64;
-  matrixflags.hex64 = 1;
   basicvars.current++;  /* Hop over the OSCLI token */
   expression();
   stringtype = GET_TOPITEM;
   if (stringtype != STACK_STRING && stringtype != STACK_STRTEMP) {
-    matrixflags.hex64 = hex64tmp;
     DEBUGFUNCMSGOUT;
     error(ERR_TYPESTR);
     return;
   }
   oscli_string=malloc(MAXSTRING);
   if(oscli_string == NULL) {
-    matrixflags.hex64 = hex64tmp;
     error(ERR_BROKEN, __LINE__, "mainstate");
     return;
   }
@@ -2184,7 +2180,6 @@ void exec_oscli(void) {
     get_lvalue(&response);
     if (response.typeinfo != VAR_STRARRAY) {
       if(oscli_string) free(oscli_string);
-      matrixflags.hex64 = hex64tmp;
       DEBUGFUNCMSGOUT;
       error(ERR_STRARRAY);
       return;
@@ -2206,7 +2201,6 @@ void exec_oscli(void) {
   if (!tofile) {        /* Response not wanted - Run command and go home */
     mos_oscli(oscli_string, NIL, NULL);
     free(oscli_string);
-    matrixflags.hex64 = hex64tmp;
     DEBUGFUNCMSGOUT;
     return;
   }
@@ -2216,7 +2210,6 @@ void exec_oscli(void) {
   respfh=secure_tmpnam(respname);
   if (!respfh) {
     free(oscli_string);
-    matrixflags.hex64 = hex64tmp;
     DEBUGFUNCMSGOUT;
     error (ERR_OSCLIFAIL, strerror (errno));
     return;
@@ -2241,7 +2234,6 @@ void exec_oscli(void) {
       if (!ferror(respfile)) break;             /* End of file and no data read */
       fclose(respfile);
       remove(respname);
-      matrixflags.hex64 = hex64tmp;
       DEBUGFUNCMSGOUT;
       error(ERR_BROKEN, __LINE__, "mainstate");
       return;
@@ -2264,7 +2256,6 @@ void exec_oscli(void) {
   remove(respname);
 /* Save the number of lines stored in the array */
   if (linecount.typeinfo != 0) store_value(linecount, count, NOSTRING);
-  matrixflags.hex64 = hex64tmp;
   DEBUGFUNCMSGOUT;
 }
 
