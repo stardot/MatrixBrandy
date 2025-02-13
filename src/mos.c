@@ -1946,12 +1946,21 @@ static int ishex(char ch){
  return -1;
 }
 
+#ifdef MATRIX64BIT
+static inline void printwarning() {
+  emulate_printf("Warning: The use of 32-bit hexadecimal  values on 64-bit platforms may not have the desired outcome.\r\n");
+}
+#endif
+
 static void cmd_load(char *command){
   int i,len,ch,n;
   size_t num;
   char chbuff[256], *ptr;
   FILE *filep;
 
+#ifdef MATRIX64BIT
+  if (matrixflags.hex64 == 0) printwarning();
+#endif
   memset(chbuff, 0, 256);
   while( (ch= *command)>0 && ch <=32)command++;
   len=255;
@@ -1996,6 +2005,10 @@ static void cmd_save(char *command){
   int f;
   char chbuff[256], *ptr;
   FILE *filep;
+
+#ifdef MATRIX64BIT
+  if (matrixflags.hex64 == 0) printwarning();
+#endif
 
   while((ch=*command)==32 || ch ==9)command++;
 

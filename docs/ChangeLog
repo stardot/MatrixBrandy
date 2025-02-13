@@ -15,12 +15,14 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
   conditions, and a crash if unexpected data is received.
 - Graphics: Can now zoom the window, use command line -zoom <factor> or config
   file entry zoom <factor> in the range 1-4.
+- MOS: *LOAD and *SAVE display a warning if Hex64 mode is not enabled on 64-bit
+  platforms.
 - BASIC: Fix behaviour of RESTORE LOCAL with implied LOCAL of variables passed
   into a function or procedure.
 - BASIC: Incore file name on first line of program MUST be after a REM.
-- BASIC: STR$~ now reports an error if Hex64 is not enabled and the value
-  cannot be accurately displayed. Note that this is limited to STR$~, PRINT
-  continues to truncate the value to the bottom 32 bits.
+- BASIC: If Strict mode is enabled, STR$~ now reports an error if Hex64 is not
+  enabled and the value cannot be accurately displayed. Note that this is
+  limited to STR$~, PRINT continues to truncate the value to the bottom 32 bits.
 
 * 1.23.4 - 18 October 2024
 - General: Fix potential buffer overflow when detokenising code.
