@@ -1636,8 +1636,10 @@ static void fn_str(void) {
         length = snprintf(basicvars.stringwork, MAXSTRING, "%llX", pop_anynum64());
       } else {
         int64 result = pop_anynum64();
-        if ((result < MININTVAL) || (result > MAXINTVAL))
-          error(ERR_HEXOVERFLOW);
+        if (basicvars.runflags.flag_cosmetic) {
+          if ((result < MININTVAL) || (result > MAXINTVAL))
+            error(ERR_HEXOVERFLOW);
+        }
         length = snprintf(basicvars.stringwork, MAXSTRING, "%X", (int32)result);
       }
     } else {

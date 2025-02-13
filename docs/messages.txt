@@ -127,8 +127,8 @@ This error is reported when dealing with a string that is in
 quotes in a READ statement. The end of the line in the DATA
 statement has been reached and the second '"' has not been found.
 
-(Error)  Address is out of range
---------------------------------
+(Error)  Address exception
+--------------------------
 This error can be reported when using indirection operators in an
 arithmetic expression. It says that the address from which data is
 to be read or to which it is to be written lies outside the Basic

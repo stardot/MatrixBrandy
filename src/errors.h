@@ -68,7 +68,6 @@ typedef enum {
     WARN_BADHIMEM,      /* Attempted to set HIMEM to a bad value */
     WARN_BADLOMEM,      /* Attempted to set LOMEM to a bad value */
     WARN_BADPAGE,       /* Attempted to set PAGE to a bad value */
-    WARN_PRECISION,     /* Precision lost in float conversion */
     WARN_BADTOKEN,      /* Bad token value entered */
     ERR_EQMISS,         /* Mistake (usually '=' missing) */
     ERR_TYPENUM,        /* Type mismatch: number wanted */

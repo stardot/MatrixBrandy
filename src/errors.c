@@ -469,7 +469,7 @@ static detail errortable [] = {
 /* ERR_NOROOM */        {FATAL,    NOPARM,    0, "The interpreter has run out of memory"},
 /* ERR_STACKFULL */     {FATAL,    NOPARM,    0, "Arithmetic stack overflow"},
 /* ERR_OPSTACK */       {FATAL,    NOPARM,    0, "Expression is too complex to evaluate"},
-/* ERR_LOMEMFIXED */    {NONFATAL, NOPARM,    0, "LOMEM cannot be changed in a PROC or FN"}, // need to check what uses this
+/* ERR_LOMEMFIXED */    {NONFATAL, NOPARM,    0, "LOMEM cannot be changed in a PROC or FN"},
 /* ERR_HIMEMFIXED */    {NONFATAL, NOPARM,    0, "HIMEM cannot be changed in a PROC, FN or any other program structure"},
 /* ERR_BADTRACE */      {NONFATAL, NOPARM,    0, "Invalid option found after 'TRACE'"},
 /* ERR_LIBSIZE */       {FATAL,    STRING,    0, "There is not enough memory to load library '%s'"},
@@ -490,7 +490,6 @@ static detail errortable [] = {
 /* WARN_BADHIMEM */     {WARNING,  NOPARM,    0, "Value of HIMEM must be in the range END to end of the Basic workspace"},
 /* WARN_BADLOMEM */     {WARNING,  NOPARM,    0, "Value of LOMEM must be in the range TOP to end of the Basic workspace"},
 /* WARN_BADPAGE */      {WARNING,  NOPARM,    0, "Value of PAGE must lie in the Basic workspace"},
-/* WARN_PRECISION */    {WARNING,  NOPARM,    0, "Warning: Precision lost in floating-point conversion"},
 /* WARN_BADTOKEN */     {WARNING,  NOPARM,    0, "Value entered is not a legal token value"},
 /* ERR_EQMISS */        {NONFATAL, NOPARM,    4, "Mistake"},
 /* ERR_TYPENUM */       {NONFATAL, NOPARM,    6, "Type mismatch: number wanted"},
