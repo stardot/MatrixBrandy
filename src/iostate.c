@@ -1654,6 +1654,7 @@ static void print_screen(void) {
   boolean hex, rightjust, newline;
   int32 format, formattype, fieldwidth, numdigits, size;
   int32 eoff;
+  int64 hextmp;
   char *leftfmt, *rightfmt;
   char *bufptr, *crptr;
 
@@ -1746,10 +1747,16 @@ static void print_screen(void) {
     case STACK_INT: case STACK_UINT8: case STACK_INT64: case STACK_FLOAT:
       if (rightjust) {  /* Value is printed right justified */
         if (hex) {
-          if (matrixflags.hex64)
+          if (matrixflags.hex64) {
             size = snprintf(basicvars.stringwork, MAXSTRING, "%*llX", fieldwidth, pop_anynum64());
-          else
-            size = snprintf(basicvars.stringwork, MAXSTRING, "%*X", fieldwidth, pop_anynum32());
+          } else {
+            hextmp = pop_anynum64();
+            if (basicvars.runflags.flag_cosmetic) {
+              if ((hextmp < MININTVAL) || (hextmp > MAXINTVAL))
+                error(ERR_HEXOVERFLOW);
+            }
+            size = snprintf(basicvars.stringwork, MAXSTRING, "%*X", fieldwidth, (int32)hextmp);
+          }
         } else {
           if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F) {
             size = snprintf(basicvars.stringwork, MAXSTRING, rightfmt, fieldwidth, numdigits, pop_anynumfp());
@@ -1764,15 +1771,21 @@ static void print_screen(void) {
         }
       } 
       else {    /* Left justify the value */
-        if (hex)
-          if (matrixflags.hex64)
+        if (hex) {
+          if (matrixflags.hex64) {
             size = snprintf(basicvars.stringwork, MAXSTRING, "%llX", pop_anynum64());
-          else
-            size = snprintf(basicvars.stringwork, MAXSTRING, "%X", pop_anynum32());
-        else {
-          if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F)
+          } else {
+            hextmp = pop_anynum64();
+            if (basicvars.runflags.flag_cosmetic) {
+              if ((hextmp < MININTVAL) || (hextmp > MAXINTVAL))
+                error(ERR_HEXOVERFLOW);
+            }
+            size = snprintf(basicvars.stringwork, MAXSTRING, "%X", (int32)hextmp);
+          }
+        } else {
+          if (resultype == STACK_FLOAT || formattype == FORMAT_E || formattype == FORMAT_F) {
             size = snprintf(basicvars.stringwork, MAXSTRING, leftfmt, numdigits, pop_anynumfp());
-          else {
+          } else {
             int64 fromstack=pop_anynum64();
             size = snprintf(basicvars.stringwork, MAXSTRING, "%lld", fromstack);
             if (size > numdigits)
