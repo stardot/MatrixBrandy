@@ -2786,6 +2786,17 @@ void exec_assignment(void) {
     }
     (*assiminus_table[destination.typeinfo])(destination.address);
   }
+  else if (assignop==BASTOKEN_POWRAB) {
+    basicvars.current++;
+    expression();
+    if (!ateol[*basicvars.current]) {
+      DEBUGFUNCMSGOUT;
+      error(ERR_SYNTAX);
+      return;
+    }
+    //(*assiminus_table[destination.typeinfo])(destination.address);
+    fprintf(stderr, "Placeholder: Power assignment\n");
+  }
   else if (assignop==BASTOKEN_AND) {
     basicvars.current++;
     if (*basicvars.current != '=') {
@@ -2966,6 +2977,7 @@ void assign_staticvar(void) {
   byte assignop;
   int32 value;
   int64 value64;
+  float64 fvalue;
   int32 varindex;
   stackitem exprtype;
 
@@ -2978,7 +2990,7 @@ void assign_staticvar(void) {
   basicvars.current++;          /* Skip index */
   assignop = *basicvars.current;
   basicvars.current++;
-  if (assignop!='=' && assignop!=BASTOKEN_PLUSAB && assignop!=BASTOKEN_MINUSAB && assignop!=BASTOKEN_AND && assignop!=BASTOKEN_OR && assignop!=BASTOKEN_EOR && assignop!=BASTOKEN_MOD && assignop!=BASTOKEN_DIV) {
+  if (assignop!='=' && assignop!=BASTOKEN_PLUSAB && assignop!=BASTOKEN_MINUSAB && assignop!=BASTOKEN_POWRAB && assignop!=BASTOKEN_AND && assignop!=BASTOKEN_OR && assignop!=BASTOKEN_EOR && assignop!=BASTOKEN_MOD && assignop!=BASTOKEN_DIV) {
     DEBUGFUNCMSGOUT;
     error(ERR_EQMISS);
     return;
@@ -3014,7 +3026,8 @@ void assign_staticvar(void) {
       if (exprtype==STACK_STRTEMP) free_string(format);
     }
   } else {      /* Other static variables */
-    value64 = pop_anynum64();
+    fvalue = pop_anynumfp();
+    value64 = (int64)fvalue;
     if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) {
       DEBUGFUNCMSGOUT;
       error(ERR_RANGE);
@@ -3025,6 +3038,10 @@ void assign_staticvar(void) {
       basicvars.staticvars[varindex].varentry.varinteger = value;
     } else if (assignop==BASTOKEN_PLUSAB) {
       basicvars.staticvars[varindex].varentry.varinteger+=value;
+    } else if (assignop==BASTOKEN_MINUSAB) {
+      basicvars.staticvars[varindex].varentry.varinteger-=value;
+    } else if (assignop==BASTOKEN_POWRAB) {
+      basicvars.staticvars[varindex].varentry.varinteger=(int)powl(basicvars.staticvars[varindex].varentry.varinteger, fvalue);
     } else if (assignop==BASTOKEN_AND) {
       basicvars.staticvars[varindex].varentry.varinteger &= value;
     } else if (assignop==BASTOKEN_OR) {
@@ -3036,7 +3053,7 @@ void assign_staticvar(void) {
     } else if (assignop==BASTOKEN_DIV) {
       basicvars.staticvars[varindex].varentry.varinteger /= value;
     } else {
-      basicvars.staticvars[varindex].varentry.varinteger-=value;
+      error(ERR_BROKEN, __LINE__, "assign");
     }
   }
 #ifdef DEBUG
