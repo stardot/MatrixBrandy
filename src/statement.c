@@ -407,31 +407,31 @@ static void (*statements[256])(void) = {
   bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 80..83 */
   bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 84..87 */
   bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 88..8B */
-  bad_syntax,      exec_beats,      exec_bput,        exec_call,        /* 8C..8F */
-  exec_xcase,      exec_case,       exec_chain,       exec_circle,      /* 90..93 */
-  exec_clg,        exec_clear,      exec_close,       exec_cls,         /* 94..97 */
-  exec_colour,     exec_data,       exec_def,         exec_dim,         /* 98..9B */
-  exec_draw,       bad_syntax,      exec_ellipse,     exec_xelse,       /* 9C..9F */
-  exec_elsewhen,   exec_xlhelse,    exec_elsewhen,    exec_end,         /* A0..A3 */
-  exec_endifcase,  exec_endifcase,  exec_endproc,     exec_endwhile,    /* A4..A7 */
-  exec_envelope,   exec_error,      bad_syntax,       exec_fill,        /* A8..AB */
-  exec_fillby,     bad_token,       exec_for,         exec_gcol,        /* AC..AF */
-  exec_gosub,      exec_goto,       exec_xif,         exec_blockif,     /* B0..B3 */
-  exec_singlif,    exec_input,      exec_let,         exec_library,     /* B4..B7 */
-  exec_line,       exec_local,      exec_mode,        exec_mouse,       /* B8..BB */
-  exec_move,       exec_exit,       exec_next,        bad_syntax,       /* BC..BF */
-  bad_syntax,      exec_off,        exec_on,          exec_origin,      /* C0..C3 */
-  exec_oscli,      exec_xwhen,      exec_elsewhen,    exec_overlay,     /* C4..C7 */
-  exec_plot,       exec_point,      bad_token,        bad_token,        /* C8..CB */
-  exec_print,      exec_proc,       exec_quit,        exec_read,        /* CC..CF */
-  exec_rectangle,  exec_rem,        exec_repeat,      exec_report,      /* D0..D3 */
-  exec_restore,    exec_return,     exec_run,         exec_sound,       /* D4..D7 */
-  exec_oscmd,      bad_syntax,      exec_stereo,      exec_stop,        /* D8..DB */
-  exec_swap,       exec_sys,        exec_tempo,       bad_syntax,       /* DC..DF */
-  exec_tint,       bad_syntax,      exec_trace,       bad_syntax,       /* E0..E3 */
-  exec_until,      exec_vdu,        exec_voice,       exec_voices,      /* E4..E7 */
-  exec_wait,       exec_xwhen,      exec_elsewhen,    exec_while,       /* E8..EB */
-  exec_while,      exec_width,      bad_token,        bad_token,        /* EC..EF */
+  bad_syntax,      bad_token,       bad_token,        bad_token,        /* 8C..8F */
+  exec_beats,      exec_bput,       exec_call,        exec_xcase,       /* 90..93 */
+  exec_case,       exec_chain,      exec_circle,      exec_clg,         /* 94..97 */
+  exec_clear,      exec_close,      exec_cls,         exec_colour,      /* 98..9B */
+  exec_data,       exec_def,        exec_dim,         exec_draw,        /* 9C..9F */
+  bad_syntax,      exec_ellipse,    exec_xelse,       exec_elsewhen,    /* A0..A3 */
+  exec_xlhelse,    exec_elsewhen,   exec_end,         exec_endifcase,   /* A4..A7 */
+  exec_endifcase,  exec_endproc,    exec_endwhile,    exec_envelope,    /* A8..AB */
+  exec_error,      bad_syntax,      exec_fill,        exec_fillby,      /* AC..AF */
+  bad_token,       exec_for,        exec_gcol,        exec_gosub,       /* B0..B3 */
+  exec_goto,       exec_xif,        exec_blockif,     exec_singlif,     /* B4..B7 */
+  exec_input,      exec_let,        exec_library,     exec_line,        /* B8..BB */
+  exec_local,      exec_mode,       exec_mouse,       exec_move,        /* BC..BF */
+  exec_exit,       exec_next,       bad_syntax,       bad_syntax,       /* C0..C3 */
+  exec_off,        exec_on,         exec_origin,      exec_oscli,       /* C4..C7 */
+  exec_xwhen,      exec_elsewhen,   exec_overlay,     exec_plot,        /* C8..CB */
+  exec_point,      exec_print,      exec_proc,        exec_quit,        /* CC..CF */
+  exec_read,       exec_rectangle,  exec_rem,         exec_repeat,      /* D0..D3 */
+  exec_report,     exec_restore,    exec_return,      exec_run,         /* D4..D7 */
+  exec_sound,      exec_oscmd,      bad_syntax,       exec_stereo,      /* D8..DB */
+  exec_stop,       exec_swap,       exec_sys,         exec_tempo,       /* DC..DF */
+  bad_syntax,      exec_tint,       bad_syntax,       exec_trace,       /* E0..E3 */
+  bad_syntax,      exec_until,      exec_vdu,         exec_voice,       /* E4..E7 */
+  exec_voices,     exec_wait,       exec_xwhen,       exec_elsewhen,    /* E8..EB */
+  exec_while,      exec_while,      exec_width,       bad_token,        /* EC..EF */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F0..F3 */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F4..F7 */
   bad_token,       bad_token,       bad_token,        bad_token,        /* F8..FB */

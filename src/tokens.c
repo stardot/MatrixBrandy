@@ -1503,30 +1503,30 @@ static int skiptable [] = {
   -1, -1, -1,  0,  0,  0,  0, -1,                           /* 78..7F */
   0,   0,  0,  0,  0,  0,  0,  0,                           /* 80..87 */
   0,   0,  0,  0,  0,  0,  0,  0,                           /* 88..8F */
-  LOFFSIZE,  LOFFSIZE,  0,         0,                       /* 90..93 */ /* CASE */
-  0,         0,         0,         0,                       /* 94..97 */
-  0,         OFFSIZE,   0,         0,                       /* 98..9B */ /* DATA */
-  0,         0,         0,         OFFSIZE,                 /* 9C..9F */ /* ELSE */
-  OFFSIZE,   OFFSIZE,   OFFSIZE,   0,                       /* A0..A2 */ /* ELSE */
-  0,         0,         0,         0,                       /* A4..A7 */
-  0,         0,         0,         0,                       /* A8..AB */
-  0,         0,         0,         0,                       /* AC..AF */
-  0,         0,         2*OFFSIZE, 2*OFFSIZE,               /* B0..B3 */ /* IF */
-  2*OFFSIZE, 0,         0,         0,                       /* B4..B7 */ /* IF */
-  0,         0,         0,         0,                       /* B8..BB */
-  0,         1,         0,         0,                       /* BC..BF */
-  0,         0,         0,         0,                       /* C0..C3 */
-  0,         OFFSIZE,   OFFSIZE,   0,                       /* C4..C7 */ /* OTHERWISE */
-  0,         0,         -1,        -1,                      /* C8..CB */
-  0,         0,         0,         0,                       /* CC..CF */
-  0,         0,         0,         0,                       /* D0..D3 */
-  0,         0,         0,         0,                       /* D4..D7 */
-  OFFSIZE,   0,         0,         0,                       /* D8..DB */ /* *command */
-  0,         0,         0,         0,                       /* DC..DF */
-  0,         0,         0,         0,                       /* E0..E3 */
-  0,         0,         0,         0,                       /* E4..E7 */
-  0,         OFFSIZE,   OFFSIZE,   OFFSIZE,                 /* E8..EB */ /* WHEN, WHILE */
-  OFFSIZE,    0,        -1,        -1,                      /* EC..EF */ /* WHEN, WHILE */
+  0,          0,          0,          LOFFSIZE,             /* 90..93 */ /* XCASE at 93 */
+  LOFFSIZE,   0,          0,          0,                    /* 94..97 */
+  0,          0,          0,          0,                    /* 98..9B */ /* DATA */
+  OFFSIZE,    0,          0,          0,                    /* 9C..9F */ /* ELSE */
+  0,          0,          OFFSIZE,    OFFSIZE,              /* A0..A2 */ /* ELSE */
+  OFFSIZE,    OFFSIZE,    0,          0,                    /* A4..A7 */
+  0,          0,          0,          0,                    /* A8..AB */
+  0,          0,          0,          0,                    /* AC..AF */
+  0,          0,          0,          0,                    /* B0..B3 */ /* IF */
+  0,          2*OFFSIZE,  2*OFFSIZE,  2*OFFSIZE,            /* B4..B7 */ /* IF */
+  0,          0,          0,          0,                    /* B8..BB */
+  0,          0,          0,          0,                    /* BC..BF */
+  1,          0,          0,          0,                    /* C0..C3 */
+  0,          0,          0,          0,                    /* C4..C7 */ /* OTHERWISE */
+  OFFSIZE,    OFFSIZE,    0,          0,                    /* C8..CB */
+  0,          0,          0,          0,                    /* CC..CF */
+  0,          0,          0,          0,                    /* D0..D3 */
+  0,          0,          0,          0,                    /* D4..D7 */
+  0,          OFFSIZE,    0,          0,                    /* D8..DB */ /* *command */
+  0,          0,          0,          0,                    /* DC..DF */
+  0,          0,          0,          0,                    /* E0..E3 */
+  0,          0,          0,          0,                    /* E4..E7 */
+  0,          0,          OFFSIZE,    OFFSIZE,              /* E8..EB */ /* WHEN, WHILE */
+  OFFSIZE,    OFFSIZE,    0,          -1,                   /* EC..EF */ /* WHEN, WHILE */
   -1, -1, -1, -1, -1, -1, -1, -1,                           /* F0..F7 */
   -1, -1, -1, -1, 1, 1, 1, 1                                /* F8..FF */
 };
@@ -1613,31 +1613,31 @@ static char *onebytelist [] = { /* Token -> keyword name */
   "AND",       ">>",        "DIV",       "EOR",             /* 80..83 */
   ">=",        "<=",        "<<",        ">>>",             /* 84..87 */
   "-=",        "MOD",       "<>",        "OR",              /* 88..8B */
-  "+=",        "BEATS",     "BPUT",      "CALL",            /* 8C..8F */
-  "CASE",      "CASE",      "CHAIN",     "CIRCLE",          /* 90..93 */
-  "CLG",       "CLEAR",     "CLOSE",     "CLS",             /* 94..97 */
-  "COLOUR",    "DATA",      "DEF",       "DIM",             /* 98..9B */
-  "DRAW",      "BY",        "ELLIPSE",   "ELSE",            /* 9C..9F */
-  "ELSE",      "ELSE",      "ELSE",      "END",             /* A0..A3 */
-  "ENDCASE",   "ENDIF",     "ENDPROC",   "ENDWHILE",        /* A4..A7 */
-  "ENVELOPE",  "ERROR",     "FALSE",     "FILL",            /* A8..AB */
-  "FILL BY",   "FN",        "FOR",       "GCOL",            /* AC..AF */
-  "GOSUB",     "GOTO",      "IF",        "IF",              /* B0..B3 */
-  "IF",        "INPUT",     "LET",       "LIBRARY",         /* B4..B7 */
-  "LINE",      "LOCAL",     "MODE",      "MOUSE",           /* B8..BB */
-  "MOVE",      "EXIT",      "NEXT",      "NOT",             /* BC..BF */
-  "OF",        "OFF",       "ON",        "ORIGIN",          /* C0..C3 */
-  "OSCLI",     "OTHERWISE", "OTHERWISE", "OVERLAY",         /* C4..C7 */
-  "PLOT",      "POINT",      NIL,         NIL,              /* C8..CB */
-  "PRINT",     "PROC",      "QUIT",      "READ",            /* CC..CF */
-  "RECTANGLE", "REM",       "REPEAT",    "REPORT",          /* D0..D3 */
-  "RESTORE",   "RETURN",    "RUN",       "SOUND",           /* D4..D7 */
-  "*",         "STEP",      "STEREO",    "STOP",            /* D8..DB */
-  "SWAP",      "SYS",       "TEMPO",     "THEN",            /* DC..DF */
-  "TINT",      "TO",        "TRACE",     "TRUE",            /* E0..E3 */
-  "UNTIL",     "VDU",       "VOICE",     "VOICES",          /* E4..E7 */
-  "WAIT",      "WHEN",      "WHEN",      "WHILE",           /* E8..EB */
-  "WHILE",     "WIDTH",      NIL,         NIL,              /* EC..EF */
+  "+=",         NIL,         NIL,         NIL,              /* 8C..8F */
+  "BEATS",     "BPUT",      "CALL",      "CASE",            /* 90..93 */
+  "CASE",      "CHAIN",     "CIRCLE",    "CLG",             /* 94..97 */
+  "CLEAR",     "CLOSE",     "CLS",       "COLOUR",          /* 98..9B */
+  "DATA",      "DEF",       "DIM",       "DRAW",            /* 9C..9F */
+  "BY",        "ELLIPSE",   "ELSE",      "ELSE",            /* A0..93 */
+  "ELSE",      "ELSE",      "END",       "ENDCASE",         /* A4..A7 */
+  "ENDIF",     "ENDPROC",   "ENDWHILE",  "ENVELOPE",        /* A8..AB */
+  "ERROR",     "FALSE",     "FILL",      "FILL BY",         /* AC..AF */
+  "FN",        "FOR",       "GCOL",      "GOSUB",           /* B0..B3 */
+  "GOTO",      "IF",        "IF",        "IF",              /* B4..B7 */
+  "INPUT",     "LET",       "LIBRARY",   "LINE",            /* B8..BB */
+  "LOCAL",     "MODE",      "MOUSE",     "MOVE",            /* BC..BF */
+  "EXIT",      "NEXT",      "NOT",       "OF",              /* C0..C3 */
+  "OFF",       "ON",        "ORIGIN",    "OSCLI",           /* C4..C7 */
+  "OTHERWISE", "OTHERWISE", "OVERLAY",   "PLOT",            /* C8..CB */
+  "POINT",     "PRINT",     "PROC",      "QUIT",            /* CC..CF */
+  "READ",      "RECTANGLE", "REM",       "REPEAT",          /* D0..D3 */
+  "REPORT",    "RESTORE",   "RETURN",    "RUN",             /* D4..D7 */
+  "SOUND",     "*",         "STEP",      "STEREO",          /* D8..DB */
+  "STOP",      "SWAP",      "SYS",       "TEMPO",           /* DC..DF */
+  "THEN",      "TINT",      "TO",        "TRACE",           /* E0..E3 */
+  "TRUE",      "UNTIL",     "VDU",       "VOICE",           /* E4..E7 */
+  "VOICES",    "WAIT",      "WHEN",      "WHEN",            /* E8..EB */
+  "WHILE",     "WHILE",     "WIDTH",      NIL,              /* EC..EF */
    NIL,  NIL,   NIL,  NIL,   NIL,  NIL,   NIL,  NIL,        /* F0..F7 */
    NIL,  NIL,   NIL,  NIL,   NIL,  NIL,   NIL,  NIL         /* F8..FF */
 };
