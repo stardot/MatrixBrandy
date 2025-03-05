@@ -118,10 +118,10 @@
 #define BASTOKEN_NE          0x8Au   /* <> */
 #define BASTOKEN_OR          0x8Bu
 #define BASTOKEN_PLUSAB      0x8Cu   /* += */
+#define BASTOKEN_POWRAB      0x8Du   /* ^= */
 
 /* Unused operator tokens */
 
-#define UNUSED_8D       0x8Du
 #define UNUSED_8E       0x8Eu
 #define UNUSED_8F       0x8Fu
 

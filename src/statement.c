@@ -407,7 +407,7 @@ static void (*statements[256])(void) = {
   bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 80..83 */
   bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 84..87 */
   bad_syntax,      bad_syntax,      exec_oscmd,       bad_syntax,       /* 88..8B */
-  bad_syntax,      bad_token,       bad_token,        bad_token,        /* 8C..8F */
+  bad_syntax,      bad_syntax,      bad_token,        bad_token,        /* 8C..8F */
   exec_beats,      exec_bput,       exec_call,        exec_xcase,       /* 90..93 */
   exec_case,       exec_chain,      exec_circle,      exec_clg,         /* 94..97 */
   exec_clear,      exec_close,      exec_cls,         exec_colour,      /* 98..9B */

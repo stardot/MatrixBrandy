@@ -924,6 +924,12 @@ static void copy_other(void) {
       lp++;
     }
     break;
+  case '^':
+    if (*(lp+1) == '=') {       /* Found '^=' */
+      token = BASTOKEN_POWRAB;
+      lp++;
+    }
+    break;
   case '>':
     switch (*(lp+1)) {
     case '=':           /* Found '>=' */
@@ -1502,7 +1508,7 @@ static int skiptable [] = {
   -1, -1, -1, -1, -1, -1, -1, -1,                           /* 70..77 */
   -1, -1, -1,  0,  0,  0,  0, -1,                           /* 78..7F */
   0,   0,  0,  0,  0,  0,  0,  0,                           /* 80..87 */
-  0,   0,  0,  0,  0,  0,  0,  0,                           /* 88..8F */
+  0,   0,  0,  0,  0,  0, -1, -1,                           /* 88..8F */
   0,          0,          0,          LOFFSIZE,             /* 90..93 */ /* XCASE at 93 */
   LOFFSIZE,   0,          0,          0,                    /* 94..97 */
   0,          0,          0,          0,                    /* 98..9B */ /* DATA */
@@ -1613,7 +1619,7 @@ static char *onebytelist [] = { /* Token -> keyword name */
   "AND",       ">>",        "DIV",       "EOR",             /* 80..83 */
   ">=",        "<=",        "<<",        ">>>",             /* 84..87 */
   "-=",        "MOD",       "<>",        "OR",              /* 88..8B */
-  "+=",         NIL,         NIL,         NIL,              /* 8C..8F */
+  "+=",        "^=",         NIL,         NIL,              /* 8C..8F */
   "BEATS",     "BPUT",      "CALL",      "CASE",            /* 90..93 */
   "CASE",      "CHAIN",     "CIRCLE",    "CLG",             /* 94..97 */
   "CLEAR",     "CLOSE",     "CLS",       "COLOUR",          /* 98..9B */
