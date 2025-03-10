@@ -4299,31 +4299,31 @@ void (*factor_table[256])(void) = {
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* 80..83 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* 84..87 */
   bad_syntax,   fn_mod,        bad_syntax,    bad_syntax,   /* 88..8B */
-  bad_syntax,   fn_beats,      bad_syntax,    bad_syntax,   /* 8C..8F */
-  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* 90..93 */
+  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* 8C..8F */
+  fn_beats,     bad_syntax,    bad_syntax,    bad_syntax,   /* 90..93 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* 94..97 */
-  fn_colour,    bad_syntax,    bad_syntax,    fn_dim,       /* 98..9B */
-  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* 9C..9F */
-  bad_syntax,   bad_syntax,    bad_syntax,    fn_end,       /* A0..A3 */
-  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* A4..A7 */
-  bad_syntax,   bad_token,     fn_false,      bad_syntax,   /* A8..AB */
-  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* AC..AF */
+  bad_syntax,   bad_syntax,    bad_syntax,    fn_colour,    /* 98..9B */
+  bad_syntax,   bad_syntax,    fn_dim,        bad_syntax,   /* 9C..9F */
+  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* A0..A3 */
+  bad_syntax,   bad_syntax,    fn_end,        bad_syntax,   /* A4..A7 */
+  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* A8..AB */
+  bad_token,    fn_false,      bad_syntax,    bad_syntax,   /* AC..AF */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* B0..B3 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* B4..B7 */
-  bad_syntax,   bad_syntax,    fn_mode,       bad_syntax,   /* B8..BB */
-  bad_syntax,   bad_syntax,    bad_syntax,    fn_not,       /* BC..BF */
-  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* C0..C3 */
+  bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* B8..BB */
+  bad_syntax,   fn_mode,       bad_syntax,    bad_syntax,   /* BC..BF */
+  bad_syntax,   bad_syntax,    fn_not,        bad_syntax,   /* C0..C3 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* C4..C7 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* C8..CB */
-  bad_syntax,   bad_syntax,    fn_quit,       bad_syntax,   /* CC..CF */
+  bad_syntax,   bad_syntax,    bad_syntax,    fn_quit,      /* CC..CF */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* D0..D3 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* D4..D7 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* D8..DB */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* DC..DF */
-  fn_tint,      fn_top,        fn_trace,      fn_true,      /* E0..E3 */
-  bad_syntax,   fn_vdu,        bad_syntax,    bad_syntax,   /* E4..E7 */
+  bad_syntax,   fn_tint,       fn_top,        fn_trace,     /* E0..E3 */
+  fn_true,      bad_syntax,    fn_vdu,        bad_syntax,   /* E4..E7 */
   bad_syntax,   bad_syntax,    bad_syntax,    bad_syntax,   /* E8..EB */
-  bad_syntax,   fn_width,      bad_token,     bad_token,    /* EC..EF */
+  bad_syntax,   bad_syntax,    fn_width,      bad_token,    /* EC..EF */
   bad_token,    bad_token,     bad_token,     bad_token,    /* F0..F3 */
   bad_token,    bad_token,     bad_token,     bad_token,    /* F4..F7 */
   bad_token,    bad_token,     bad_token,     bad_token,    /* F8..FB */
