@@ -2665,6 +2665,300 @@ static void assidiv_floatarray(pointers address) {
   DEBUGFUNCMSGOUT;
 }
 
+/*
+** 'assipow_intword' handles the '^=' assignment operator for 32-bit integer
+** variables
+*/
+static void assipow_intword(pointers address) {
+  DEBUGFUNCMSGIN;
+  *address.intaddr=(int32)powl(*address.intaddr,pop_anynumfp());
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_intbyte' handles the '^=' assignment operator for unsigned
+** 8-bit integer variables
+*/
+static void assipow_intbyte(pointers address) {
+  DEBUGFUNCMSGIN;
+  *address.uint8addr=(uint8)powl(*address.uint8addr,pop_anynumfp());
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_int64word' handles the '^=' assignment operator for 64-bit integer
+** variables
+*/
+static void assipow_int64word(pointers address) {
+  DEBUGFUNCMSGIN;
+  *address.int64addr=(int64)powl(*address.int64addr,pop_anynumfp());
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_float' handles the '^=' assignment operator for floating point
+** variables
+*/
+static void assipow_float(pointers address) {
+  DEBUGFUNCMSGIN;
+  *address.floataddr=powl(*address.floataddr,pop_anynumfp());
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_intbyteptr' handles the '^=' assignment operator for single
+** byte integer indirect variables
+*/
+static void assipow_intbyteptr(pointers address) {
+  DEBUGFUNCMSGIN;
+  basicvars.memory[address.offset]= (int32)powl(basicvars.memory[address.offset],pop_anynumfp());
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_intwordptr' handles the '^=' assignment operator for word
+** indirect integer variables
+*/
+static void assipow_intwordptr(pointers address) {
+  DEBUGFUNCMSGIN;
+  store_integer(address.offset, (int32)powl(get_integer(address.offset),pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_int64ptr' handles the '^=' assignment operator for word
+** indirect integer variables
+*/
+static void assipow_int64ptr(pointers address) {
+  DEBUGFUNCMSGIN;
+  store_int64(address.offset, (int64)powl(get_int64(address.offset),pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_floatptr' handles the '^=' assignment operator for indirect
+** floating point variables
+*/
+static void assipow_floatptr(pointers address) {
+  DEBUGFUNCMSGIN;
+  store_float(address.offset, powl(get_float(address.offset),pop_anynumfp()));
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_intarray' handles the '^=' assignment operator for 32-bit integer
+** arrays
+*/
+static void assipow_intarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 *p, *p2, n;
+  int64 *p64;
+  float64 *pf;
+  uint8 *p8;
+
+  DEBUGFUNCMSGIN;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) {                                    /* Undefined array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NODIMS, "(");
+    return;
+  }
+  if (TOPITEMISNUM) { /* array()^=<value> */
+    float64 value = pop_anynumfp();
+    p = ap->arraystart.intbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=(int32)powl(p[n],value);
+  } else if (TOPITEMISNUMARRAY) {
+    ap2 = pop_array();
+    if (ap2==NIL) {                                 /* Undefined array */
+      DEBUGFUNCMSGOUT;
+      error(ERR_NODIMS, "(");
+      return;
+    }
+    check_arrays(ap, ap2);
+    p = ap->arraystart.intbase;
+    if (exprtype==STACK_INTARRAY) {                 /* array1()^=array2() */
+      p2 =ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int32)powl(p[n],p2[n]);
+    } else if (exprtype==STACK_INT64ARRAY) {        /* array1()^=array2() */
+      p64 =ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int32)powl(p[n],p64[n]);
+    } else if (exprtype==STACK_UINT8ARRAY) {        /* array1()^=array2() */
+      p8 =ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int32)powl(p[n],p8[n]);
+    } else if (exprtype==STACK_FLOATARRAY) {        /* array1()^=array2() */
+      pf =ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int32)powl(p[n],pf[n]);
+    }
+  } else {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_uint8array' handles the '^=' assignment operator for unsigned
+** 8-bit integer arrays
+*/
+static void assipow_uint8array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int32 n;
+  uint8 *p, *p2;
+  int32 *p32;
+  int64 *p64;
+  float64 *pf;
+
+  DEBUGFUNCMSGIN;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) {                                    /* Undefined array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NODIMS, "(");
+    return;
+  }
+  if (TOPITEMISNUM) { /* array()&=<value> */
+    int32 value = pop_anynum32();
+    p = ap->arraystart.uint8base;
+    for (n=0; n<ap->arrsize; n++) p[n]&=value;
+  } else if (TOPITEMISNUMARRAY) {
+    ap2 = pop_array();
+    if (ap2==NIL) {                                 /* Undefined array */
+      DEBUGFUNCMSGOUT;
+      error(ERR_NODIMS, "(");
+      return;
+    }
+    check_arrays(ap, ap2);
+    p = ap->arraystart.uint8base;
+    if (exprtype==STACK_UINT8ARRAY) {               /* array1()^=array2() */
+      p2 =ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]=(uint8)powl(p[n],p2[n]);
+    } else if (exprtype==STACK_INTARRAY) {          /* array1()^=array2() */
+      p32 =ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=(uint8)powl(p[n],p32[n]);
+    } else if (exprtype==STACK_INT64ARRAY) {        /* array1()^=array2() */
+      p64 =ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]=(uint8)powl(p[n],p64[n]);
+    } else if (exprtype==STACK_FLOATARRAY) {        /* array1()^=array2() */
+      pf =ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=(uint8)powl(p[n],pf[n]);
+    }
+  } else {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_int64array' handles the '^=' assignment operator for 64-bit integer
+** arrays
+*/
+static void assipow_int64array(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  int64 *p, *p2, n;
+  int32 *p32;
+  uint8 *p8;
+  float64 *pf;
+
+  DEBUGFUNCMSGIN;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) {                                    /* Undefined array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NODIMS, "(");
+    return;
+  }
+  if (TOPITEMISNUM) { /* array()&=<value> */
+    int64 value = pop_anynum64();
+    p = ap->arraystart.int64base;
+    for (n=0; n<ap->arrsize; n++) p[n]&=value;
+  } else if (TOPITEMISNUMARRAY) {
+    ap2 = pop_array();
+    if (ap2==NIL) {                                 /* Undefined array */
+      DEBUGFUNCMSGOUT;
+      error(ERR_NODIMS, "(");
+      return;
+    }
+    check_arrays(ap, ap2);
+    p = ap->arraystart.int64base;
+    if (exprtype==STACK_INT64ARRAY) {               /* array1()^=array2() */
+      p2 =ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int64)powl(p[n],p2[n]);
+    } else if (exprtype==STACK_INTARRAY) {          /* array1()^=array2() */
+      p32 =ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int64)powl(p[n],p32[n]);
+    } else if (exprtype==STACK_UINT8ARRAY) {        /* array1()^=array2() */
+      p8 =ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int64)powl(p[n],p8[n]);
+    } else if (exprtype==STACK_FLOATARRAY) {        /* array1()^=array2() */
+      pf =ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=(int64)powl(p[n],pf[n]);
+    }
+  } else {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
+}
+
+/*
+** 'assipow_floatarray' handles the '^=' assignment operator for
+** floating point arrays
+*/
+static void assipow_floatarray(pointers address) {
+  stackitem exprtype;
+  basicarray *ap, *ap2;
+  float64 *p, *p2;
+  int32 n, *p32;
+  uint8 *p8;
+  int64 *p64;
+
+  DEBUGFUNCMSGIN;
+  exprtype = GET_TOPITEM;
+  ap = *address.arrayaddr;
+  if (ap==NIL) {                                    /* Undefined array */
+    DEBUGFUNCMSGOUT;
+    error(ERR_NODIMS, "(");
+    return;
+  }
+  if (TOPITEMISNUM) { /* array()&=<value> */
+    int64 value = pop_anynum64();
+    p = ap->arraystart.floatbase;
+    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) & value);
+  } else if (TOPITEMISNUMARRAY) {
+    ap2 = pop_array();
+    if (ap2==NIL) {                                 /* Undefined array */
+      DEBUGFUNCMSGOUT;
+      error(ERR_NODIMS, "(");
+      return;
+    }
+    check_arrays(ap, ap2);
+    p = ap->arraystart.floatbase;
+    if (exprtype==STACK_FLOATARRAY) {               /* array1()^=array2() */
+      p2 = ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=powl(p[n], p2[n]);
+    } else if (exprtype==STACK_INTARRAY) {          /* array1()^=array2() */
+      p32 = ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]=powl(p[n], p32[n]);
+    } else if (exprtype==STACK_UINT8ARRAY) {        /* array1()^=array2() */
+      p8 = ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]=powl(p[n], p8[n]);
+    } else if (exprtype==STACK_INT64ARRAY) {        /* array1()^=array2() */
+      p64 = ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]=powl(p[n], p64[n]);
+    }
+  } else {
+    DEBUGFUNCMSGOUT;
+    error(ERR_TYPENUM);
+  }
+  DEBUGFUNCMSGOUT;
+}
+
+
 static void (*assign_table[])(pointers) = {
   assignment_invalid, assignment_invalid, assign_intword,    assign_float,
   assign_stringdol,   assignment_invalid, assign_int64,      assign_intbyte,
@@ -2737,6 +3031,15 @@ static void (*assidiv_table[])(pointers) = {
   assignment_invalid, assibit_badtype,    assidiv_int64ptr,   assignment_invalid
 };
 
+static void (*assipow_table[])(pointers) = {
+  assignment_invalid, assignment_invalid, assipow_intword,    assipow_float,
+  assibit_badtype,    assignment_invalid, assipow_int64word,  assipow_intbyte,
+  assignment_invalid, assignment_invalid, assipow_intarray,   assipow_floatarray,
+  assibit_badtype,    assignment_invalid, assipow_int64array, assipow_uint8array,
+  assignment_invalid, assipow_intbyteptr, assipow_intwordptr, assipow_floatptr,
+  assignment_invalid, assibit_badtype,    assipow_int64ptr,   assignment_invalid
+};
+
 /*
 ** The main purpose of 'exec_assignment' is to deal with the more complex
 ** assignments. However all assignments are handled by this function the
@@ -2794,8 +3097,7 @@ void exec_assignment(void) {
       error(ERR_SYNTAX);
       return;
     }
-    //(*assiminus_table[destination.typeinfo])(destination.address);
-    fprintf(stderr, "Placeholder: Power assignment\n");
+    (*assipow_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_AND) {
     basicvars.current++;
@@ -3041,7 +3343,7 @@ void assign_staticvar(void) {
     } else if (assignop==BASTOKEN_MINUSAB) {
       basicvars.staticvars[varindex].varentry.varinteger-=value;
     } else if (assignop==BASTOKEN_POWRAB) {
-      basicvars.staticvars[varindex].varentry.varinteger=(int)powl(basicvars.staticvars[varindex].varentry.varinteger, fvalue);
+      basicvars.staticvars[varindex].varentry.varinteger=(int32)powl(basicvars.staticvars[varindex].varentry.varinteger, fvalue);
     } else if (assignop==BASTOKEN_AND) {
       basicvars.staticvars[varindex].varentry.varinteger &= value;
     } else if (assignop==BASTOKEN_OR) {
