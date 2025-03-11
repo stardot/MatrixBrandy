@@ -2514,6 +2514,9 @@ static void assidiv_intarray(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int32 *p, *p2, n;
+  int64 *p64;
+  float64 *pf;
+  uint8 *p8;
 
   DEBUGFUNCMSGIN;
   exprtype = GET_TOPITEM;
@@ -2527,17 +2530,28 @@ static void assidiv_intarray(pointers address) {
     int32 value = pop_anynum32();
     p = ap->arraystart.intbase;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
-  } else if (exprtype==STACK_INTARRAY) {        /* array1()/=array2() */
+  } else if (TOPITEMISNUMARRAY) {
     ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
+    if (ap2==NIL) {                                 /* Undefined array */
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
       return;
     }
     check_arrays(ap, ap2);
     p = ap->arraystart.intbase;
-    p2 =ap2->arraystart.intbase;
-    for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    if (exprtype==STACK_INTARRAY) {                 /* array1()DIV=array2() */
+      p2 =ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    } else if (exprtype==STACK_INT64ARRAY) {        /* array1()DIV=array2() */
+      p64 =ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p64[n];
+    } else if (exprtype==STACK_UINT8ARRAY) {        /* array1()DIV=array2() */
+      p8 =ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p8[n];
+    } else if (exprtype==STACK_FLOATARRAY) {        /* array1()DIV=array2() */
+      pf =ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=pf[n];
+    }
   } else {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
@@ -2552,8 +2566,10 @@ static void assidiv_intarray(pointers address) {
 static void assidiv_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
-  int32 n;
+  int32 n, *p32;
   uint8 *p, *p2;
+  int64 *p64;
+  float64 *pf;
 
   DEBUGFUNCMSGIN;
   exprtype = GET_TOPITEM;
@@ -2567,17 +2583,28 @@ static void assidiv_uint8array(pointers address) {
     int32 value = pop_anynum32();
     p = ap->arraystart.uint8base;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
-  } else if (exprtype==STACK_UINT8ARRAY) {      /* array1()/=array2() */
+  } else if (TOPITEMISNUMARRAY) {
     ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
+    if (ap2==NIL) {                                 /* Undefined array */
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
       return;
     }
     check_arrays(ap, ap2);
     p = ap->arraystart.uint8base;
-    p2 =ap2->arraystart.uint8base;
-    for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    if (exprtype==STACK_UINT8ARRAY) {               /* array1()DIV=array2() */
+      p2 =ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    } else if (exprtype==STACK_INTARRAY) {          /* array1()DIV=array2() */
+      p32 =ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p32[n];
+    } else if (exprtype==STACK_INT64ARRAY) {        /* array1()DIV=array2() */
+      p64 =ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p64[n];
+    } else if (exprtype==STACK_FLOATARRAY) {        /* array1()DIV=array2() */
+      pf =ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=pf[n];
+    }
   } else {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
@@ -2593,6 +2620,9 @@ static void assidiv_int64array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   int64 *p, *p2, n;
+  int32 *p32;
+  uint8 *p8;
+  float64 *pf;
 
   DEBUGFUNCMSGIN;
   exprtype = GET_TOPITEM;
@@ -2606,17 +2636,28 @@ static void assidiv_int64array(pointers address) {
     int64 value = pop_anynum64();
     p = ap->arraystart.int64base;
     for (n=0; n<ap->arrsize; n++) p[n]/=value;
-  } else if (exprtype==STACK_INT64ARRAY) {      /* array1()/=array2() */
+  } else if (TOPITEMISNUMARRAY) {
     ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
+    if (ap2==NIL) {                                 /* Undefined array */
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
       return;
     }
     check_arrays(ap, ap2);
     p = ap->arraystart.int64base;
-    p2 =ap2->arraystart.int64base;
-    for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    if (exprtype==STACK_INT64ARRAY) {               /* array1()DIV=array2() */
+      p2 =ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    } else if (exprtype==STACK_INTARRAY) {          /* array1()DIV=array2() */
+      p32 =ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p32[n];
+    } else if (exprtype==STACK_UINT8ARRAY) {        /* array1()DIV=array2() */
+      p8 =ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p8[n];
+    } else if (exprtype==STACK_FLOATARRAY) {        /* array1()DIV=array2() */
+      pf =ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=pf[n];
+    }
   } else {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
@@ -2632,7 +2673,9 @@ static void assidiv_floatarray(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
   float64 *p, *p2;
-  int32 n;
+  int32 n, *p32;
+  uint8 *p8;
+  int64 *p64;
 
   DEBUGFUNCMSGIN;
   exprtype = GET_TOPITEM;
@@ -2646,19 +2689,29 @@ static void assidiv_floatarray(pointers address) {
     int64 value = pop_anynum64();
     p = ap->arraystart.floatbase;
     for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) / value);
-  } else if (exprtype==STACK_FLOATARRAY) {      /* array1()DIV=array2() */
+  } else if (TOPITEMISNUMARRAY) {
     ap2 = pop_array();
-    if (ap2==NIL) {                             /* Undefined array */
+    if (ap2==NIL) {                                 /* Undefined array */
       DEBUGFUNCMSGOUT;
       error(ERR_NODIMS, "(");
       return;
     }
     check_arrays(ap, ap2);
     p = ap->arraystart.floatbase;
-    p2 = ap2->arraystart.floatbase;
-    for (n=0; n<ap->arrsize; n++) p[n]=TOFLOAT(TOINT64(p[n]) / TOINT64(p2[n]));
-  }
-  else {
+    if (exprtype==STACK_FLOATARRAY) {               /* array1()DIV=array2() */
+      p2 = ap2->arraystart.floatbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p2[n];
+    } else if (exprtype==STACK_INTARRAY) {          /* array1()DIV=array2() */
+      p32 = ap2->arraystart.intbase;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p32[n];
+    } else if (exprtype==STACK_UINT8ARRAY) {        /* array1()DIV=array2() */
+      p8 = ap2->arraystart.uint8base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p8[n];
+    } else if (exprtype==STACK_INT64ARRAY) {        /* array1()DIV=array2() */
+      p64 = ap2->arraystart.int64base;
+      for (n=0; n<ap->arrsize; n++) p[n]/=p64[n];
+    }
+  } else {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
   }
@@ -2670,14 +2723,20 @@ static void assidiv_floatarray(pointers address) {
 ** variables
 */
 static void assipow_intword(pointers address) {
+  float64 value;
+  float80 result;
+
   DEBUGFUNCMSGIN;
-  *address.intaddr=(int32)powl(*address.intaddr,pop_anynumfp());
+  value = pop_anynumfp();
+  result = powl(*address.intaddr,value);
+  if ((result > MAXINTVAL) || (result < MININTVAL)) error(ERR_RANGE);
+  *address.intaddr=(int32)result;
   DEBUGFUNCMSGOUT;
 }
 
 /*
 ** 'assipow_intbyte' handles the '^=' assignment operator for unsigned
-** 8-bit integer variables
+** 8-bit integer variables. No range check on this one, we just truncate to 0-255.
 */
 static void assipow_intbyte(pointers address) {
   DEBUGFUNCMSGIN;
@@ -2690,8 +2749,14 @@ static void assipow_intbyte(pointers address) {
 ** variables
 */
 static void assipow_int64word(pointers address) {
+  float64 value;
+  float80 result;
+
   DEBUGFUNCMSGIN;
-  *address.int64addr=(int64)powl(*address.int64addr,pop_anynumfp());
+  value = pop_anynumfp();
+  result = powl(*address.intaddr,value);
+  if ((result > MAXINT64VAL) || (result < MININT64VAL)) error(ERR_RANGE);
+  *address.int64addr=(int64)result;
   DEBUGFUNCMSGOUT;
 }
 
@@ -2700,8 +2765,14 @@ static void assipow_int64word(pointers address) {
 ** variables
 */
 static void assipow_float(pointers address) {
+  float64 value;
+  float80 result;
+
   DEBUGFUNCMSGIN;
-  *address.floataddr=powl(*address.floataddr,pop_anynumfp());
+  value = pop_anynumfp();
+  result = powl(*address.intaddr,value);
+  if ((result > MAXFLOATVAL) || (result < -MAXFLOATVAL)) error(ERR_RANGE);
+  *address.floataddr=result;
   DEBUGFUNCMSGOUT;
 }
 
@@ -2805,9 +2876,8 @@ static void assipow_intarray(pointers address) {
 static void assipow_uint8array(pointers address) {
   stackitem exprtype;
   basicarray *ap, *ap2;
-  int32 n;
+  int32 n, *p32;
   uint8 *p, *p2;
-  int32 *p32;
   int64 *p64;
   float64 *pf;
 
@@ -3280,6 +3350,7 @@ void assign_staticvar(void) {
   int32 value;
   int64 value64;
   float64 fvalue;
+  float80 fresult;
   int32 varindex;
   stackitem exprtype;
 
@@ -3315,7 +3386,7 @@ void assign_staticvar(void) {
   if (varindex==ATPERCENT && assignop=='=') {   /* @%= is a special case */
     if (TOPITEMISNUM) {
       value64 = pop_anynum64();
-      if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) {
+      if ((value64 > MAXINTVAL) || (value64 < MININTVAL)) {
         DEBUGFUNCMSGOUT;
         error(ERR_RANGE);
         return;
@@ -3330,7 +3401,7 @@ void assign_staticvar(void) {
   } else {      /* Other static variables */
     fvalue = pop_anynumfp();
     value64 = (int64)fvalue;
-    if ((value64 > 0x7FFFFFFFll) || (value64 < -(0x80000000ll))) {
+    if ((value64 > MAXINTVAL) || (value64 < MININTVAL)) {
       DEBUGFUNCMSGOUT;
       error(ERR_RANGE);
       return;
@@ -3343,7 +3414,12 @@ void assign_staticvar(void) {
     } else if (assignop==BASTOKEN_MINUSAB) {
       basicvars.staticvars[varindex].varentry.varinteger-=value;
     } else if (assignop==BASTOKEN_POWRAB) {
-      basicvars.staticvars[varindex].varentry.varinteger=(int32)powl(basicvars.staticvars[varindex].varentry.varinteger, fvalue);
+      fresult=powl(basicvars.staticvars[varindex].varentry.varinteger, fvalue);
+      if ((fresult > MAXINTVAL) || (fresult < MININTVAL)) {
+        error(ERR_RANGE);
+        return;
+      }
+      basicvars.staticvars[varindex].varentry.varinteger=(int32)fresult;
     } else if (assignop==BASTOKEN_AND) {
       basicvars.staticvars[varindex].varentry.varinteger &= value;
     } else if (assignop==BASTOKEN_OR) {
