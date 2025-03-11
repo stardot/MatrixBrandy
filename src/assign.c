@@ -27,8 +27,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <math.h>
-#include "common.h"
 #include "target.h"
+#include "common.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "heap.h"
@@ -2754,7 +2754,7 @@ static void assipow_int64word(pointers address) {
 
   DEBUGFUNCMSGIN;
   value = pop_anynumfp();
-  result = powl(*address.intaddr,value);
+  result = powl(*address.int64addr,value);
   if ((result > MAXINT64VAL) || (result < MININT64VAL)) error(ERR_RANGE);
   *address.int64addr=(int64)result;
   DEBUGFUNCMSGOUT;
@@ -2770,9 +2770,9 @@ static void assipow_float(pointers address) {
 
   DEBUGFUNCMSGIN;
   value = pop_anynumfp();
-  result = powl(*address.intaddr,value);
+  result = powl(*address.floataddr,value);
   if ((result > MAXFLOATVAL) || (result < -MAXFLOATVAL)) error(ERR_RANGE);
-  *address.floataddr=result;
+  *address.floataddr=(float64)result;
   DEBUGFUNCMSGOUT;
 }
 

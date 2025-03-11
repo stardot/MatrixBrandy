@@ -29,8 +29,8 @@
 #include <math.h>
 #include <time.h>
 #include <setjmp.h>
-#include "common.h"
 #include "target.h"
+#include "common.h"
 #include "basicdefs.h"
 #include "tokens.h"
 #include "variables.h"
@@ -43,11 +43,6 @@
 #include "miscprocs.h"
 #include "functions.h"
 #include "keyboard.h"
-
-#ifdef TARGET_RISCOS
-extern float80 powl(long double x, long double y);
-extern float80 fabsl(long double x);
-#endif
 
 /* #define DEBUG */
 

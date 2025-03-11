@@ -91,4 +91,10 @@ typedef unsigned char boolean;
 #define TOSTRING(x) ((char *)(x))
 #define TOINTADDR(x) ((int32 *)(x))
 
+/* These exist in the RISC OS UnixLib but are missing from the headers */
+#ifdef TARGET_RISCOS
+extern float80 powl(long double x, long double y);
+extern float80 fabsl(long double x);
+#endif
+
 #endif
