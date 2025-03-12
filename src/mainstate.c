@@ -2171,7 +2171,7 @@ void exec_oscli(void) {
   }
   oscli_string=malloc(MAXSTRING);
   if(oscli_string == NULL) {
-    error(ERR_BROKEN, __LINE__, "mainstate");
+    error(ERR_OSFULL, __LINE__, "mainstate");
     return;
   }
   tofile = *basicvars.current == BASTOKEN_TO;

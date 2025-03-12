@@ -478,6 +478,7 @@ static detail errortable [] = {
 /* ERR_EDITFAIL */      {FATAL,    STRING,    0, "Edit session failed (%s)"},
 /* ERR_NOGZIP */        {FATAL,    NOPARM,    0, "This build of the interpreter does not support gzipped programs"},
 /* ERR_BROKEN */        {FATAL,    INTSTR,    0, "The interpreter has gone wrong at line %d in %s"},
+/* ERR_OSFULL */        {FATAL,    INTSTR,    0, "The interpreter was unable to claim memory at line %d in %s"},
 /* ERR_COMMAND */       {FATAL,    NOPARM,    0, "This Basic command cannot be used in a running program"},
 /* ERR_RENUMBER */      {FATAL,    NOPARM,    0, "Line number went outside the range 0..65279 when renumbering program"},
 /* WARN_LINENO */       {WARNING,  NOPARM,    0, "Warning: line number is outside the range 0..65279"},

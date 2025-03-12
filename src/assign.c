@@ -3770,7 +3770,7 @@ static void assign_filepath(void) {
     basicvars.loadpath = malloc(string.stringlen+1); /* +1 for NUL at end */
     if (basicvars.loadpath==NIL) {              /* Not enough memory left */
       DEBUGFUNCMSGOUT;
-      error(ERR_NOROOM);
+      error(ERR_OSFULL, __LINE__, "assign");
       return;
     }
     memcpy(basicvars.loadpath, string.stringaddr, string.stringlen);

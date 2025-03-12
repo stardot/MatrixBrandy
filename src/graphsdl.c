@@ -285,7 +285,7 @@ void add_mouseitem(int x, int y, int b, int64 c) {
   
   m=malloc(sizeof(mousequeue));
   if (m == NULL) {
-    fprintf(stderr,"Unable to allocate memory for mouse queue item\n");
+    error(ERR_OSFULL, __LINE__, "graphsdl");
     return;
   }
   m->x = x;

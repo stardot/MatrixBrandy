@@ -56,6 +56,7 @@ typedef enum {
     ERR_EDITFAIL,       /* Edit session failed */
     ERR_NOGZIP,         /* gzip support not available */
     ERR_BROKEN,         /* Basic program is corrupt or interpreter logic error */
+    ERR_OSFULL,         /* Interpreter was unable to claim memory error */
     ERR_COMMAND,        /* Basic command found in program */
     ERR_RENUMBER,       /* RENUMBER failed */
     WARN_LINENO,        /* Line number too large (warning) */
