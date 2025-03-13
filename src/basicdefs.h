@@ -35,10 +35,16 @@
 
 /* Debug statement handler */
 #ifdef DEBUG
+#ifdef TARGET_RISCOS
+#define DEBUGFUNCMSGIN if (basicvars.debug_flags.functions) printf(">>> Entered function %s:%s at line %d\n", __FILE__, __func__, __LINE__)
+#define DEBUGFUNCMSGOUT if (basicvars.debug_flags.functions) printf("<<< Exited function  %s:%s at line %d\n", __FILE__, __func__, __LINE__)
+#define DEBUGFUNCMSG(x) if (basicvars.debug_flags.functions) printf("    %s:%s: %s at line %d\n", __FILE__, __func__, x, __LINE__)
+#else
 #define DEBUGFUNCMSGIN if (basicvars.debug_flags.functions) fprintf(stderr, ">>> Entered function %s:%s at line %d\n", __FILE__, __func__, __LINE__)
 #define DEBUGFUNCMSGOUT if (basicvars.debug_flags.functions) fprintf(stderr, "<<< Exited function  %s:%s at line %d\n", __FILE__, __func__, __LINE__)
 #define DEBUGFUNCMSG(x) if (basicvars.debug_flags.functions) fprintf(stderr, "    %s:%s: %s at line %d\n", __FILE__, __func__, x, __LINE__)
-#else
+#endif
+#else /* DEBUG */
 /* Not debugging, these macros resolve to nothing */
 #define DEBUGFUNCMSGIN
 #define DEBUGFUNCMSGOUT
