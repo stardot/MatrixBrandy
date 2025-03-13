@@ -155,8 +155,12 @@ typedef unsigned long int nativeuint;   /* 32 or 64-bit depending on architectur
 #define TARGET_RISCOS
 #define BRANDY_OS "RISC OS"
 #undef CPUTYPE
-#ifdef __TARGET_SCL__
-#define CPUTYPE "CLib"
+#ifdef __ARM_ARCH_2__
+#define CPUTYPE "ARMv2-26bit"
+#elif defined(__ARM_ARCH_3__)
+#define CPUTYPE "ARMv3-32bit"
+#elif defined(__ARM_ARCH_6ZK__)
+#define CPUTYPE "ARMv6-32bit"
 #else
 #define CPUTYPE "UnixLib"
 #endif /* __TARGET_SCL__ */
