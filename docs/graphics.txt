@@ -4,6 +4,9 @@ Graphics Support
 Brandy includes limited graphics support under Linux. It includes only a subset
 of the facilities provided by the RISC OS VDU drivers but it should be enough
 for now.
+
+This document does not apply to the RISC OS builds, as all graphics are handled
+by the OS, and Matrix Brandy just passes the VDU codes across.
  
 The graphics support is based around SDL 1.2
 

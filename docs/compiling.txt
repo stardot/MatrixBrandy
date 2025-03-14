@@ -30,7 +30,8 @@ Windows 32-bit  gcc (mingw under Cygwin)
 Windows 64-bit  gcc (mingw under Cygwin)
 Mac OS X        clang (using its gcc alias, with SDL 1.2 built from source of latest snapshot)
 Minix 3         clang (Text builds only)
-RISC OS         Cross-compiled with gcc using gccsdk under Linux.
+RISC OS         Cross-compiled with gcc using gccsdk under Linux, and gcc 3.4
+                within RISC OS.
 
 
 Hopefully the program will compile under other operating systems

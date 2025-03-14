@@ -32,6 +32,8 @@ Mode7           This contains notes on the program's Mode 7 Teletext
 networking      This contains some notes on the implementation of
                 network connectivity that was added in V1.21.6.
 
+RISC-OS         This contains some notes on how the RISC OS build differs.
+
 Brandy implements Basic VI, the the 64-bit floating-point mathematics
 variant of the dialect of Basic that Acorn Computers supplied with their
 ranges of desktop computers that use the ARM processor such as the Archimedes

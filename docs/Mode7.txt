@@ -1,6 +1,11 @@
 MODE 7 support in Brandy BASIC V/VI
 ===================================
 
+Under RISC OS, MODE 7 support is provided by RISC OS not Matrix Brandy,
+thus neither the OSWORD calls are not available nor the BBC-micro-like
+screen memory at &7C00, and on RISC OS versions before 5, the VDU calls
+are not supported.
+
 Mode 7 teletext charactes use 16x20 character cells, this allows for a
 decent rendering of mosaic graphics, especially separated graphics.
 

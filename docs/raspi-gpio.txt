@@ -1,6 +1,9 @@
 Raspberry Pi GPIO support
 =========================
 
+RISC OS note: Under RISC OS, the GPIO module provides support in the GPIO_
+namespace, the RaspberryPi_ namespace is not supported.
+
 In keeping with the BBC Micro style of I/O ports being memory-mapped, if
 Brandy is able to open /dev/gpiomem for read-write, then it'll mmap() it, and
 the following code can be used to test whether it's available, and if so, where.
