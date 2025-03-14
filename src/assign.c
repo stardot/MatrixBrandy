@@ -91,8 +91,12 @@ static void assign_intword(pointers address) {
 */
 static void assign_intbyte(pointers address) {
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  else *address.uint8addr = pop_anynum32();
+  if (!ateol[*basicvars.current]) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+    return;
+  }
+  *address.uint8addr = pop_anynum32();
   DEBUGFUNCMSGOUT;
 }
 
@@ -101,8 +105,12 @@ static void assign_intbyte(pointers address) {
 */
 static void assign_int64(pointers address) {
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  else *address.int64addr = pop_anynum64();
+  if (!ateol[*basicvars.current]) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+    return;
+  }
+  *address.int64addr = pop_anynum64();
   DEBUGFUNCMSGOUT;
 }
 
@@ -111,8 +119,12 @@ static void assign_int64(pointers address) {
 */
 static void assign_float(pointers address) {
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) error(ERR_SYNTAX);
-  else *address.floataddr = pop_anynumfp();
+  if (!ateol[*basicvars.current]) {
+    DEBUGFUNCMSGOUT;
+    error(ERR_SYNTAX);
+    return;
+  }
+  *address.floataddr = pop_anynumfp();
   DEBUGFUNCMSGOUT;
 }
 
