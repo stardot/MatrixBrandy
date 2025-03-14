@@ -1,6 +1,11 @@
 The built-in screen modes in Matrix Brandy are based on those from RISC OS,
 the first 8 themselves based on the BBC Micro.
 
+On RISC OS, MODEs 0-63 are available depending on your monitor configuration
+and RISC OS version.  MODEs 64 and up are not available. On the Risc PC and
+later, user-defined modes with the extended MODE command are available, but
+handled by RISC OS (and not through MODE 126). *NewMode is not implemented.
+
 Mode  Text resolution Graphics resolution  Colours  Pixel size  Logical res
   0       80x32           640x256             2       1x2        1280x1024
   1       40x32           320x256             4       2x2        1280x1024
