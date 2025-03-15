@@ -164,8 +164,9 @@ double '%%' at the end of the name.
 8-bit unsigned integers are denoted as being an 8-bit unsigned integer by
 having a '&' at the end of the name.
 
-Floating point variables are 64 bits wide. If a variable does not have either
-a '%', '%%', '&' or a '$' suffix then it is a floating point variable.
+Floating point variables are 64 bits wide. If a variable does not have
+either a '%', '%%', '&' or a '$' suffix then it is a floating point
+variable.
 
 String variables have a '$' suffix at the end of their name. They can refer
 to strings that have a maximum length of 65,536 characters.

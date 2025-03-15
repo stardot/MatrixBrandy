@@ -1,10 +1,10 @@
 MODE 7 support in Brandy BASIC V/VI
 ===================================
 
-Under RISC OS, MODE 7 support is provided by RISC OS not Matrix Brandy,
-thus neither the OSWORD calls are not available nor the BBC-micro-like
-screen memory at &7C00, and on RISC OS versions before 5, the VDU calls
-are not supported.
+Under RISC OS, MODE 7 support is provided by RISC OS not Matrix Brandy, thus
+neither the OSWORD calls are not available nor the BBC-micro-like screen
+memory at &7C00, and on RISC OS versions before 5, the VDU calls are not
+supported.
 
 Mode 7 teletext charactes use 16x20 character cells, this allows for a
 decent rendering of mosaic graphics, especially separated graphics.
@@ -18,17 +18,17 @@ Some RISC OS 5 extensions are also supported:
   (source: http://beebwiki.mdfs.net/VDU_23)
 
 VDU 23,18,2,flags,0,0,0,0,0,0 - Set Teletext reveal state
-  bit 0 - if set, any concealed text will be displayed. If cleared, concealed
-          text is concealed.
+  bit 0 - if set, any concealed text will be displayed. If cleared,
+          concealed text is concealed.
 Setting or clearing this will cause an immediate refresh of the display.
 
 VDU 23,18,3,enable,0,0,0,0,0,0 - Set Teletext black enable
   enable = 0: Control codes &80 and &90 do nothing (default)
   enable = 1: Control code &80 selects alphanumeric black,
               control code &90 selects graphics black.
-More strictly, this code toggle is an extended features toggle, which include
-Alpha Black (&80), Graphics Black (&90) and Alternative Character Set (&9B),
-and also corrects the Hold "bug" in the SAA5050 Teletext chip.
+  More strictly, this code toggle is an extended features toggle, which
+  include Alpha Black (&80), Graphics Black (&90) and Alternative Character
+  Set (&9B), and also corrects the Hold "bug" in the SAA5050 Teletext chip.
 
 VDU23,18,4,pri,alt,0,0,0,0,0 - Select Teletext character set
   The values are as per the SAA505x family of chips. This is extended in
@@ -37,10 +37,10 @@ VDU23,18,4,pri,alt,0,0,0,0,0 - Select Teletext character set
   displayed, alt is the Alternative Character Set selected with &9B
   (if enabled using VDU23,18,3,1|)
 
-Two new OSWORD calls are available, one to read the character definition
-of a teletext character, another to change a character with a new definition.
-These OSWORD calls are specific to Matrix Brandy and Richard Russell's BBCSDL
-with whom these extensions were developed in parallel.
+Two new OSWORD calls are available, one to read the character definition of
+a teletext character, another to change a character with a new definition.
+These OSWORD calls are specific to Matrix Brandy and Richard Russell's
+BBCSDL with whom these extensions were developed in parallel.
 
 OSWORD &8B (139) - Read a Teletext character definition.
 Requires a block size of 44.
@@ -62,14 +62,14 @@ OSBYTE 20 will reset the definition back to default along with the regular
 non-MODE7 font.
 OSBYTE 25 has been extended, if X=16 then reset teletext font only.
 
-The Alternative Character Set is implemented, it is toggled with teletext code
-ESCAPE (&9B), and defaults to the US-ASCII set as implemented on the SAA5055.
-The Alternative Character Set can be read and written to, use bank 0 and
-set the high bit on the character code.
+The Alternative Character Set is implemented, it is toggled with teletext
+code ESCAPE (&9B), and defaults to the US-ASCII set as implemented on the
+SAA5055. The Alternative Character Set can be read and written to, use bank
+0 and set the high bit on the character code.
 
 Note that the characters are shuffled, so the redefinitions are as follows:
 Redefine &23, change &60 and &A3.
 Redefine &5F, change &23 and &DF.
 Redefine &60, change &5F and &E0.
-This is also true for redefining &A3, &DF and &E0 in the alternative character
-set bank.
+This is also true for redefining &A3, &DF and &E0 in the alternative
+character set bank.

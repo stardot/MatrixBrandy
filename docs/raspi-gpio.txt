@@ -5,8 +5,9 @@ RISC OS note: Under RISC OS, the GPIO module provides support in the GPIO_
 namespace, the RaspberryPi_ namespace is not supported.
 
 In keeping with the BBC Micro style of I/O ports being memory-mapped, if
-Brandy is able to open /dev/gpiomem for read-write, then it'll mmap() it, and
-the following code can be used to test whether it's available, and if so, where.
+Brandy is able to open /dev/gpiomem for read-write, then it'll mmap() it,
+and the following code can be used to test whether it's available, and if
+so, where.
 
 SYS "RaspberryPi_GPIOInfo" TO present%,gpiomem%
 
@@ -16,11 +17,11 @@ present% will be set to 0, and gpiomem% to &FFFFFFFF. This will happen every
 time Matrix Brandy is started.
 
 With the exception of the above SYS call, all the other GPIO calls report the
-error "Raspberry Pi GPIO not available" if present% is 0 (and it wasn't called
-as an X call).
+error "Raspberry Pi GPIO not available" if present% is 0 (and it wasn't
+called as an X call).
 
-The remaining SYS calls all take the GPIO port number in R0 and the parameter,
-if required, in R1. Those that return a value do so in R0.
+The remaining SYS calls all take the GPIO port number in R0 and the
+parameter, if required, in R1. Those that return a value do so in R0.
 
 The other GPIO calls are:
 RaspberryPi_GetGPIOPortMode: R0=port

@@ -1,18 +1,18 @@
 SYS calls in Matrix Brandy
 ==========================
 
-On RISC OS builds, all host SWIs are available. Additionally, the
-Brandy-specific calls which are implemented by Matrix Brandy are also
-recognised and are available for use.
+On RISC OS builds, all host SWIs are available. Additionally, the Brandy-
+specific calls which are implemented by Matrix Brandy are also recognised
+and are available for use.
 
 A number of SYS calls are supported in Matrix Brandy, some of which are
 emulations of the equivalent RISC OS SWIs.  Where a RISC OS SWI is emulated,
 the SWI number used is the same as that used by RISC OS, in order to allow
-code that uses the number rather than the name for performance reasons to run
-correctly.
+code that uses the number rather than the name for performance reasons to
+run correctly.
 
-In this document, the parameters listed are labelled as ARM registers as
-if the SWI were called in RISC OS.
+In this document, the parameters listed are labelled as ARM registers as if
+the SWI were called in RISC OS.
 
 Where a parameter returns a pointer to a string, it MUST be picked up with a
 string variable; picking it up with a numeric variable and attempting to
@@ -38,7 +38,8 @@ OS_NewLine              Sends \r\n (&0D, &0A) to the VDU stream.
 OS_ReadC                Reads a character from the keyboard, returned in R0.
 
 OS_ReadLine and
-OS_ReadLine32           Returns a string input from the keyboard, pointed in R0.
+OS_ReadLine32           Returns a string input from the keyboard, pointed in
+                        R0.
 
 OS_Mouse                Returns mouse state.
 
@@ -53,12 +54,12 @@ OS_ReadVduVariables     Read VDU variables requested in block pointed in R0
 OS_ReadMonotonicTime    Return centisecond timer in R0.
                         Matrix Brandy extension:
                            As the centisecond timer is centiseconds since the
-                           start of the instance, the offset from the raw value
-                           is returned in R1.
+                           start of the instance, the offset from the raw
+                           value is returned in R1.
 
-OS_Plot                 Executes a PLOT function. Note that this bypasses the
-                        VDU driver so plotting this way will not be picked up
-                        by *SPOOL.
+OS_Plot                 Executes a PLOT function. Note that this bypasses
+                        the VDU driver so plotting this way will not be
+                        picked up by *SPOOL.
 
 OS_ScreenMode           Only R0=0,1,7,8,9,10 are supported.
 
@@ -118,11 +119,11 @@ Brandy_xxx  (SWI numbers start &140000)
                                 R7: 1 if 64-bit build, otherwise 0.
 
 &140001 Brandy_Swap16Palette    Returns nothing.
-                                In 16-colour modes, as Flash isn't supported,
-                                this swaps the dimmed colours at 8-15 with the
-                                standard brightness at 0-7. Calling again
-                                switches back. Some other BBC BASIC versions
-                                use 0-7 as dimmed colours.
+                                In 16-colour modes, as Flash isn't
+                                supported, this swaps the dimmed colours at
+                                8-15 with the standard brightness at 0-7.
+                                Calling again switches back. Some other BBC
+                                BASIC versions use 0-7 as dimmed colours.
 
 &140002 Brandy_GetVideoDriver   Returns:
                                 R0: Pointer to SDL video driver name string
@@ -135,42 +136,47 @@ Brandy_xxx  (SWI numbers start &140000)
                                     the display surface.
                                 R7: OS-native window handle
 
-&140003 Brandy_SetFailoverMode  R0: Set mode to be selected should chosen screen
-                                    mode be unavailable (instead of returning
-                                    "Screen mode is unavailable). Set to 255 to
-                                    disable.
+&140003 Brandy_SetFailoverMode  R0: Set mode to be selected should chosen
+                                    screen mode be unavailable (instead of
+                                    returning "Screen mode is unavailable).
+                                    Set to 255 to disable.
 
-&140004 Brandy_AccessVideoRAM   If R0=0, return pixel value at pixel offset R1
-                                   into R2.
-                                If R0 non-zero, write R2 into pixel offset R1.
+&140004 Brandy_AccessVideoRAM   If R0=0, return pixel value at pixel offset
+                                   R1 into R2.
+                                If R0 non-zero, write R2 into pixel offset
+                                   R1.
                                 R1 is pixel offset, so each step of 1 is the
                                    next pixel irrespective of screen mode.
                                 Note this writes directly to the 24bpp frame
-                                buffer so bypasses any screen mode palette or
-                                colour depth limit. The top 8 bits, which are
-                                ignored by SDL, are used to carry the logical
-                                colour number in paletted modes to support
-                                VDU19 palette changing.
+                                buffer so bypasses any screen mode palette
+                                or colour depth limit. The top 8 bits, which
+                                are ignored by SDL, are used to carry the
+                                logical colour number in paletted modes to
+                                support VDU19 palette changing.
 
-&140005 Brandy_INTusesFloat     This enables a BB4W/BBCSDL extension that allows
-                                INT() to handle numbers > 2^31-1 by using a
-                                float if the number is out of range for a 32-bit
-                                signed integer.
-                                R0=1 to enable, 0 to disable. Default: disabled.
+&140005 Brandy_INTusesFloat     This enables a BB4W/BBCSDL extension that
+                                allows INT() to handle numbers > 2^31-1 by
+                                using a float if the number is out of range
+                                for a 32-bit signed integer.
+                                R0=1 to enable, 0 to disable.
+                                Default: disabled.
 
-&140006 Brandy_LegacyIntMaths   This allows integer mathematics to be handled in
-                                the way BBC BASIC 1 to 4 on the Acorn 8-bit
-                                machines, and RISC OS ARM BBC BASIC V,
-                                including the rather questionable wrap-around
-                                on integers. RISC OS ARM BBC BASIC VI, BB4W
-                                and BBCSDL do not have this wrap-around issue
-                                and will promote to float when needed.
-                                R0=1 to enable, 0 to disable. Default: disabled.
+&140006 Brandy_LegacyIntMaths   This allows integer mathematics to be
+                                handled in the way BBC BASIC 1 to 4 on the
+                                Acorn 8-bit machines, and RISC OS ARM BBC
+                                BASIC V, including the rather questionable
+                                wrap-around on integers. RISC OS ARM BBC
+                                BASIC VI, BB4W and BBCSDL do not have this
+                                wrap-around issue and will promote to float
+                                when needed.
+                                R0=1 to enable, 0 to disable.
+                                Default: disabled.
 
 &140007 Brandy_Hex64            This controls whether Brandy renders and
                                 interprets Base 16 (Hexadecimal) values as
                                 64-bit.
-                                R0=1 to enable, 0 to disable. Default: disabled.
+                                R0=1 to enable, 0 to disable.
+                                Default: disabled.
 
 &140008 Brandy_DELisBS          Toggles whether the DEL key functions as
                                 backspace (DELETE in old BBC terminology).
@@ -183,16 +189,19 @@ Brandy_xxx  (SWI numbers start &140000)
                                 whether memory pseudo-variables (e.g. PAGE,
                                 HIMEM etc) return large positive numbers
                                 above &7FFFFFFF.
-                                R0=1 to enable, 0 to disable. Default: disabled.
+                                R0=1 to enable, 0 to disable.
+                                Default: disabled.
 
-&14000A Brandy_TekEnabled       Only effective on the 'tbrandy' build, ignored
-                                without error on other builds.
+&14000A Brandy_TekEnabled       Only effective on the 'tbrandy' build,
+                                ignored without error on other builds.
                                 This switch enables Tektronix graphics to
                                 be generated for graphics operations, with
                                 particular reference to the Tek emulation
                                 in xterm.
-                                R0=1 to enable, 0 to disable. Default: disabled
-                                R1=simulated baud rate, 0 to run at full speed.
+                                R0=1 to enable, 0 to disable.
+                                Default: disabled
+                                R1=simulated baud rate, 0 to run at full
+                                speed.
 
 &14000B Brandy_uSleep           Calls the OS function usleep(R0).
 
@@ -203,7 +212,8 @@ Brandy_xxx  (SWI numbers start &140000)
 &14000D Brandy_dlcall           Locates the symbol in R0, and calls it with
                                 parameters from R1..R9.
 
-&14000E Brandy_MAlloc           Allocates memory from system call malloc(R0).
+&14000E Brandy_MAlloc           Allocates memory from system call
+                                malloc(R0).
                                 Pointer to base returned in R0.
                                 DEPRECATED, please use DIM HIMEM instead.
 
@@ -215,10 +225,11 @@ Brandy_xxx  (SWI numbers start &140000)
 &140010 Brandy_BitShift64       This controls whether Brandy calculates bit
                                 shifts in 64-bit space. 32-bit space is used
                                 when disabled as per ARM BBC BASIC VI.
-                                R0=1 to enable, 0 to disable. Default: disabled.
+                                R0=1 to enable, 0 to disable.
+                                Default: disabled.
 
-&140011 Brandy_Platform         Similar to Brandy_Version, but more focused on
-                                the platform Brandy is running on.
+&140011 Brandy_Platform         Similar to Brandy_Version, but more focused
+                                on the platform Brandy is running on.
                                 R0: Pointer to host OS name string
                                 R1: Pointer to CPU family string
                                 R2: 64-bit? (1 or 0)
@@ -238,8 +249,8 @@ Brandy_xxx  (SWI numbers start &140000)
                                 call, then the behaviour won't be changed.
                                 If used, it is recommended this be called at
                                 the top of a program as it affects the way
-                                the tokeniser updates jumps as the program is
-                                scanned upon first execute..
+                                the tokeniser updates jumps as the program
+                                is scanned upon first execute..
 
 &140013 Brandy_MouseEventExpire Sets the mouse event expiry time in
                                 centiseonds, 0 disables.
@@ -251,17 +262,18 @@ Brandy_xxx  (SWI numbers start &140000)
                                 call given in R0, with the library handle
                                 from Brandy_dlopen optionally provided in R1,
                                 and returns the address in R0. If the symbol
-                                isn't found and the X flag  is set, R0 contains
-                                -1, else an error is raised.
+                                isn't found and the X flag  is set, R0
+                                contains -1, else an error is raised.
 
 &140015 Brandy_dlcalladdr       Similar to Brandy_dlcall (above), but takes
                                 the address of the symbol in R0 instead of
                                 the symbol name.
 
-&140016 Brandy_Strict           Enable/disable strict execution mode (as also
-                                set by command-line -strict/-ignore options).
-                                Default: Disabled if built with DEFAULT_IGNORE
-                                otherwise enabled.
+&140016 Brandy_Strict           Enable/disable strict execution mode (as
+                                also set by command-line -strict/-ignore
+                                options).
+                                Default: Disabled if built with
+                                DEFAULT_IGNORE otherwise enabled.
 
 &140017 Brandy_TranslateFNames  Enable/disable transparent translation of
                                 filenames between Linux and RISC OS formats.
@@ -277,14 +289,15 @@ Brandy_xxx  (SWI numbers start &140000)
 
 &140018 Brandy_MemSet           Writes a value to a block of memory.
                                 This call fills the first R1 bytes of the
-                                memory area pointed to by R0 with the constant
-                                byte R2.
+                                memory area pointed to by R0 with the
+                                constant byte R2.
+                                This calls memset(R0, R2, R1).
 
-&140019 Brandy_AllowLowercase	This sets whether or not Brandy accepts
+&140019 Brandy_AllowLowercase   This sets whether or not Brandy accepts
                                 keywords in lowercase. This may also be set
                                 using the '-lck' command line option or the
                                 'lowercase' config file option.
-				Default: R0=0 (disabled)
+                                Default: R0=0 (disabled)
 
 
 RaspberryPi_xxx (SWI numbers start &140100)
@@ -332,8 +345,8 @@ A few of the RISC OS GPIO module (SWI base &58F80) are also recognised:
 &58FBE GPIO_GetBoard
   Returns board model code local to the module in R0,
   the board type string in R1
-  and additionally, local to Brandy, the 32-bit model code from /proc/cpuinfo
-  into R2.
+  and additionally, local to Brandy, the 32-bit model code from
+  /proc/cpuinfo into R2.
 &58F80 GPIO_ReadData: mapped to RaspberryPi_ReadGPIOPort
 &58F81 GPIO_WriteData: mapped to RaspberryPi_WriteGPIOPort
 &58F8F GPIO_ReadMode: mapped to RaspberryPi_GetGPIOPortMode

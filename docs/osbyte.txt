@@ -15,7 +15,8 @@ bits.
 Supported OSBYTE calls
 ----------------------
 A=0:    X=0:  return the MOS version as an error with ERR=247.
-        X<>0: Return the host OS version in the X register (as per the 'use' doc)
+        X<>0: Return the host OS version in the X register (as per the 'use'
+              doc)
 A=6:    Sets the default printer ignore character, default is 13.
 A=15:   Flush keyboard and mouse buffers.
 A=20:   Resets the system font (SDL build only)
@@ -34,7 +35,8 @@ A=106:  Select mouse pointer. Due to SDL limitations, this simply turns the
 A=112:  Selects which video bank the VDU drivers access. 4 available.
 A=113:  Selects which video bank is drawn to the display window.
 A=128:  ADVAL. As with BASIC ADVAL, only some subfuntions supported.
-A=129:  INKEY. As with BASIC INKEY, scanning for range of keys not supported.
+A=129:  INKEY. As with BASIC INKEY, scanning for range of keys not
+        supported.
 A=130:  High word of user memory.
 A=131:  Bottom of user memory.
 A=132:  Top of user memory
@@ -51,8 +53,8 @@ A=163:  Application Support - X < 128 are local to Brandy
         X=2: Get or set various states [Brandy only]
                 If NO bits set: return state in Y register.
                 If ALL bits set: Analogue of Linux's "stty sane" - enables 
-                    Refresh, issues a VDU 6 and sets both video bank controls
-                    to 0.
+                    Refresh, issues a VDU 6 and sets both video bank
+                    controls to 0.
                 Bits 0 and 1 control or contain the *REFRESH state:
                   00: No operation.
                   01: Set with *FX163,1,0
@@ -87,8 +89,8 @@ A=250:  Read and write video bank set with OSBYTE 112, returns bank set with
         OSBYTE 113 in Y
 A=251:  Read and write video bank set with OSBYTE 113.
 
-OSBYTEs 166-255 read and write OSBYTE system variables with new=(old AND Y) EOR X,
-but only those listed have any effect.
+OSBYTEs 166-255 read and write OSBYTE system variables with new=(old AND Y)
+EOR X, but only those listed have any effect.
 
 
 Keyboard OSBYTEs
@@ -117,17 +119,18 @@ Set Escape state       |        Translate to      | *FX221-*FX228
     Return                        Return
    'no key'                      keypress
 
-The difference between *FX229 and *FX200 is that *FX229,1 results in the Escape
-key returning an ASCII character, and *FX200,1 results in the Escape key not
-generating an Escape state.
+The difference between *FX229 and *FX200 is that *FX229,1 results in the
+Escape key returning an ASCII character, and *FX200,1 results in the Escape
+key not generating an Escape state.
 
 Escape handler generates an "Escape" error. The error handler then calls the
 EscapeAcknowledge code called by OSBYTE 126. This examines OSBYTE 230 to
-determine what to do. bit0-bit3 indicate what to do after an Escape, bit4-bit7
-indicate that these actions should be done for all errors, not just Escapes.
-The default is &00 to do all Escape actions on Escape only.
+determine what to do. bit0-bit3 indicate what to do after an Escape,
+bit4-bit7 indicate that these actions should be done for all errors, not
+just Escapes. The default is &00 to do all Escape actions on Escape only.
 
-bit 0=0: close Exec, cancel VDU queue, clear sounds, cancel pending keypresses
+bit 0=0: close Exec, cancel VDU queue, clear sounds, cancel pending
+         keypresses
 bit 1=0: refresh display
 bit 2=0: reserved
 bit 3=0: reserved

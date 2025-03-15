@@ -7,17 +7,20 @@ the differences in the implementation:
 compiling.txt:  Excluded because the process will vary depending on which
                 compiler is used, and whether cross-compiling.
 
-graphics.txt:   Matrix Brandy offers no internal graphics support on RISC OS,
-                instead the VDU codes are passed through to the underlying OS.
-                *REFRESH and other commands that interact with the SDL layer,
-                thus, are recognised but do nothing.  User-defined screen modes
-                are not available.
+graphics.txt:   Matrix Brandy offers no internal graphics support on RISC
+                OS, instead the VDU codes are passed through to the
+                underlying OS. *REFRESH and other commands that interact
+                with the SDL layer, thus, are recognised but do nothing.
+                User-defined screen modes via *NewMode are not available.
 
 Mode7.txt:      As with graphics, MODE 7 support is implemented by RISC OS,
                 rather than in Matrix Brandy. Thus the OSWORDs to read and
                 write the teletext font are not available, nor are the
-                facilities to change the SAA505x code page or black as a colour
-                on older RISC OS versions.
+                facilities to change the SAA505x code page or black as a
+                colour on older RISC OS versions.
 
 osbyte.txt:     OSBYTE is passed through to RISC OS to handle, no emulation
                 is offered by Matrix Brandy.
+
+All display output is passed to the operating system "raw", as the internal
+versions of ARM BBC BASIC would, and are handled by RISC OS.
