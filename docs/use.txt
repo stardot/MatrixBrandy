@@ -148,6 +148,8 @@ where <filename> is the optional name of the program to load and
                         are dealt with by Brandy. Pass all commands to the
                         underlying operating system.
 
+-lck                    Allow use of lower-case in keywords.
+
 --                      Subsequent options are passed to the Basic program,
                         rather than being considered as options to the
                         interpreter.
@@ -156,8 +158,8 @@ where <filename> is the optional name of the program to load and
                         the interpreter when the program has finished running.
 
 The case of the names of the options is ignored. It depends on the operating
-system under which the interpreter is running as to whether the names of files
-are case sensitive or insensitive.
+system under which the interpreter is running as to whether or not the names
+of files are case sensitive.
 
 Most of these items can be put into a configuration file, those that cannot
 be used are -load, -chain, -quit, -version, --help or a supplied program to
@@ -202,8 +204,9 @@ The name of the program to run can be specified on the command line. If no name
 is given, the interpreter starts with a '>' prompt. Programs can be loaded,
 edited and run from here. Briefly, the commands to use are as follows:
 
-QUIT
-Leaves the interpreter.
+QUIT [<exit code>]
+Leaves the interpreter.  If an exit code is supplied, this is returned to the
+operating system where supported. Default is 0.
 
 LOAD <filename>
 Load program <filename> into the Basic workspace.
@@ -347,11 +350,14 @@ interpreter's limit of 255. The list of differences are as follows:
 11) The 'END=' version of the END statement is not supported.
 12) Brandy behaves differently to the Acorn interpreter after an error when the
     program contains ON ERROR or ON ERROR LOCAL statements to trap errors.
+13) OLD is not implemented.
+14) Strict mode may cause a program to report an error that would otherwise
+    be ignored, and would typically indicate a bug in the BASIC program.
 
 The following differences only apply on non-RISC OS builds:
-13) Support of the 'SYS' statement is minimal.
-14) Cursor editing is not available. A line editor is available in its place.
-15) EXIT <FOR|REPEAT|WHILE> from BB4W, BBCSDL, BBCTTY and BBC allow for
+15) Support of the 'SYS' statement is minimal.
+16) Cursor editing is not available. A line editor is available in its place.
+17) EXIT <FOR|REPEAT|WHILE> from BB4W, BBCSDL and BBCTTY allow for
     immediately breaking out of a loop.
 
 The major omissions in the versions of the interpreter are some graphics.
@@ -366,7 +372,7 @@ The interpreter has the following extensions:
 3)  Libraries can have their own private variables.
 4)  The OSCLI statement has been extended to allow the output from operating
     system commands to captured.
-5)  (Only if compiled with -DBRANDY_ALLOW_LOWERCASE_COMMANDS)
+5)  (If enabled with the -lck option or SYS"Brandy_AllowLowercase",1)
     The case of commands such as 'LIST' and 'RUN' is ignored, so 'LIST' could
     be entered as 'list' or 'List'. The downside is that variable names that
     are the lower case equivalents of commands will now be seen as commands,
@@ -386,46 +392,47 @@ The interpreter has the following extensions:
     BASICs.
 11) The 'RUN' command can also be followed by a line number to start program
     execution at that line.
-12) There are two extra 'TRACE' option: 'TRACE GOTO' and 'TRACE VDU'.
-    'TRACE GOTO' prints out the source and destination line numbers of any
+12) 'TRACE GOTO' prints out the source and destination line numbers of any
     branches in the program.
-    'TRACE VDU' redirects trace output to the controlling terminal's stderr
+13) 'TRACE VDU' redirects trace output to the controlling terminal's stderr
     output stream.
-13) 'TRACE PROC' shows returns from procedures and functions as well as when
+14) 'TRACE PROC' shows returns from procedures and functions as well as when
     they are called.
-14) Individual TRACE options may be turned off and on, for example,
+15) Individual TRACE options may be turned off and on, for example,
     'TRACE PROC OFF' will turn off the only the procedure trace and leave any
     other running.
-15) There is an extra 'LISTO' option, 32. When this option is in effect,
+16) There is an extra 'LISTO' option, 32. When this option is in effect,
     listing of a program pauses every twenty lines with the prompt
     '-- more --'. Press the space bar to show the next twenty lines, 'return'
     to print just the next line or the 'Escape' key to stop the command.
-16) 'LISTO' can be used as a function to find out the current setting of
+17) 'LISTO' can be used as a function to find out the current setting of
     'listo'.
-17) There are a couple of extra 'LIST' commands. 'LISTB' dumps memory in byte
+18) There are a couple of extra 'LIST' commands. 'LISTB' dumps memory in byte
     form between the two addresses specified. 'LISTW' is the same, but dumps
     memory as words. These were added for debugging but will probably be left
     in.
-18) The 'EDIT' command on its own invokes a text editor to edit the program.
+19) The 'EDIT' command on its own invokes a text editor to edit the program.
     Under Linux and NetBSD it calls 'vi' and currently does not work under
     Windows.
-19) 'EDIT' followed by a line number allows that line to be edited using the
+20) 'EDIT' followed by a line number allows that line to be edited using the
     built-in line editor.
-20) When a program is loaded via a 'LOAD' command the name of the file is kept
+21) When a program is loaded via a 'LOAD' command the name of the file is kept
     and saving the program using the 'SAVE' command with no argument will save
     the program using that name.
-21) Programs are always saved as plain text.
-22) The latest extended versions of COLOUR, GCOL, MODE and DIM are supported.
+22) Programs are always saved as plain text.
+23) The latest extended versions of COLOUR, GCOL, MODE and DIM are supported.
     VDU can also be used as a function to read RISC OS mode variables. COLOUR
     can also be used as a function to return a number that represents the
     closest match to the colour whose colour components were passed to the
     function.
-23) Under RISC OS on the Risc PC or later, the UnixLib build uses a Dynamic
+24) Under RISC OS on the Risc PC or later, the 32-bit builds use a Dynamic
     Area rather than the WimpSlot for workspace, so BASIC's workspace can
     be as large as the available memory.
+25) 'DIM' allows a byte array or numeric array to be created "off-heap", in
+    a separately allocated memory pool.
 
 There is quite a list here but really apart from the longer maximum string and
-statement lengths, local variables in libraries and the change to 'new', most
+statement lengths, local variables in libraries and the change to 'NEW', most
 of these are really cosmetic changes.
 
 Local Variables in Libraries
@@ -1044,17 +1051,15 @@ is it running under:
     not the interpreter. For example, ARM BASIC could be running on a BBC
     second processor, so INKEY-256 could return &FE.  However, there is
     no other reliable way to ascertain whether the interpreter in use is
-    ARM BBC BASIC or Matrix Brandy, thus as of V1.22.12 Matrix Brandy also
-    returns &4D under RISC OS.
+    ARM BBC BASIC or Matrix Brandy.
 
     This is open to interpretation, thus Matrix Brandy, along with Richard
     Russell's BBC BASIC for Windows and BBC BASIC for SDL 2.0, have chosen
     to interpret this platform specifier to be a MOS version (or emulation)
-    identifier. Thus, all non-RISC OS builds of Matrix Brandy from version
-    1.22.6 return &4D (ASC"M"). RISC OS builds until V.1.22.12 returned the
-    "native" value as the real MOS is being used. For reference, BB4W returns
-    &57 (ASC"W"), BBSDL from assembly source returns &53 (ASC"S") and from C
-    source returns &73 (ASC"s").
+    identifier. For reference, BB4W returns &57 (ASC"W"), BBSDL from assembly
+    source returns &53 (ASC"S") and from C source returns &73 (ASC"s").
+    (Returning &4D on RISC OS stretches this a bit, but allows a program to
+    accurately identify Matrix Brandy.)
 
     To reliably identify Matrix Brandy as of V1.22.12 with suitable capabilities
     for a program that requires a graphical output, you can use the following:

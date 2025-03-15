@@ -29,7 +29,8 @@ BBC BASIC is a trademark of the British Broadcasting Corporation.
 Matrix Brandy does not claim to be "BBC BASIC", however it aims to be an
 interpreter of the BBC BASIC dialect of BASIC.  The term "BBC BASIC" in
 the documentation is used in reference to the dialect, and other
-implementations where the name is used under licence (e.g. Acorn/RISC OS).
+implementations where the name is used under licence (e.g. Acorn/RISC OS and
+the interpreters by Richard Russell)..
 
 %prep
 %setup -q -n MatrixBrandy-%{version}
