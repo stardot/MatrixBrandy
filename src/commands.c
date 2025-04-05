@@ -1331,9 +1331,9 @@ static void detailed_help(char *cmd) {
   } else if (!strncmp(cmd, "GCOL", 5)) {
     emulate_printf("GCOL a [TINT t]: set graphics foreground colour [and tint] (background 128+a).\r\nGCOL <action>,a [TINT t]: set graphics fore|background colour and action.\r\nGCOL [OF [<action>,]f] [ON [<action>,]b:\r\n     Set graphics foreground and/or background colour number [and action].\r\nGCOL [[OF] [<action>,]r,g,b] [ON [<action,]r,g,b]:\r\n     Set graphics foreground and/or background colour to r, g, b [and action].");
   } else if (!strncmp(cmd, "GET", 4)) {
-    emulate_printf("This function gives the ASCII value of the next character in the input stream.");
+    emulate_printf("This function gives the ASCII value of the next character in the input stream.\r\nGET(x,y) returns the character at position (x,y) on the screen.");
   } else if (!strncmp(cmd, "GET$", 5)) {
-    emulate_printf("This function gives the next input character as a one character string.\r\nGET$#<channel> gives the next string from the file.");
+    emulate_printf("This function gives the next input character as a one character string.\r\nGET$#<channel> gives the next string from the file.\r\nGET$(x,y) returns the character at position (x,y) on the screen.");
   } else if (!strncmp(cmd, "GOSUB", 6)) {
     emulate_printf("GOSUB <line number>: call subroutine at line number.");
   } else if (!strncmp(cmd, "GOTO", 5)) {
