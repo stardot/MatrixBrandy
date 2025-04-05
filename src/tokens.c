@@ -600,7 +600,11 @@ static int kwsearch(void) {
         count = kwlength;
         if (kwlength < tokens[n].minlength) count = tokens[n].minlength;
       }
-      if (strncasecmp(keyword, tokens[n].name, count) == 0) break;
+      if (matrixflags.lowercasekeywords) {
+        if (strncasecmp(keyword, tokens[n].name, count) == 0) break;
+      } else {
+        if (strncmp(keyword, tokens[n].name, count) == 0) break;
+      }
       n++;
     } while (*(tokens[n].name) == first);
     nomatch = *(tokens[n].name) != first;

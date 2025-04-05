@@ -150,7 +150,7 @@ static void exec_new(void) {
   basicvars.current++;
   if (!isateol(basicvars.current)) {    /* New workspace size supplied */
     int32 oldsize, newsize;
-    boolean ok;
+    boolean ok = 0;
     newsize = get_number();
     check_ateol();
     oldsize = basicvars.worksize;
