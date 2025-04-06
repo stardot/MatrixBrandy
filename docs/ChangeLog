@@ -9,7 +9,7 @@ Also, 1.23.2 introduced an automatic new version check. This may be considered
 inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
-* 1.23.5 - 
+* 1.23.5 - 06 April 2025
 - General: Implement code fixes based on GCC 14.2's -fanalyze feature.
 - System: Fix an intermittent hang on the version check due to network
   conditions, and a crash if unexpected data is received.
