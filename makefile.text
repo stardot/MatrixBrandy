@@ -83,3 +83,5 @@ scheck:
 clean:
 	rm -f $(SRCDIR)/*.o tbrandy sbrandy
 
+test: sbrandy
+	prove -r t/
