@@ -1,0 +1,11 @@
+FROM debian:12 AS build
+RUN apt-get update && apt-get install -y build-essential cmake
+COPY . /build
+WORKDIR /build
+RUN cmake .
+RUN cmake --build .
+RUN ctest
+
+FROM debian:12
+COPY --from=build /build/sbrandy /usr/local/bin/sbrandy
+ENTRYPOINT ["/usr/local/bin/sbrandy"]
