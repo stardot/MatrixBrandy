@@ -1172,7 +1172,7 @@ static void scroll_up_mode7(int32 windowed) {
 
 static void scroll_up(int32 windowed) {
 #ifndef BRANDY_MODE7ONLY
-  int left, right, dest, topwin;
+  int dest;
   if (screenmode == 7) { 
 #endif
     scroll_up_mode7(windowed);
@@ -1181,21 +1181,30 @@ static void scroll_up(int32 windowed) {
   }
   toggle_cursor();
   if (windowed || (matrixflags.videoscale != 1)) {
-    topwin = twintop*YPPC;                              /* Y coordinate of top of text window */
-    dest = twintop*YPPC;                                /* Move screen up to this point */
-    left = twinleft*XPPC;
-    right = twinright*XPPC+XPPC-1;
-    scroll_rect.x = left;
-    scroll_rect.y = YPPC * (twintop + 1);
-    scroll_rect.w = XPPC * (twinright - twinleft +1);
-    scroll_rect.h = YPPC * (twinbottom - twintop);
-    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screenbank[ds.writebank], NULL);
-    line_rect.x = 0;
-    line_rect.y = YPPC * (twinbottom - twintop);
-    line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC;
-    SDL_FillRect(screenbank[ds.writebank], &line_rect, ds.tb_colour);
-    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+    /* New windowed scroll up code */
+    size_t sptr, dptr;
+    int ldiff=4*ds.screenwidth*YPPC*ds.xscale;
+    int trow, tprow, tline;
+    int tlen=4*(1+twinright-twinleft)*XPPC;
+
+    for (trow=twintop; trow < twinbottom; trow++) {
+      for (tprow=0; tprow < YPPC; tprow++) {
+        dptr=(size_t)matrixflags.modescreen_ptr + 4*((((trow*YPPC)+tprow)*ds.vscrwidth) + (twinleft*XPPC));
+        sptr = dptr + ldiff;
+        for (tline=0; tline < tlen; tline+=4) {
+          *(uint32 *)(dptr+tline) = *(uint32 *)(sptr+tline);
+        }
+      }
+    }
+    /* Copied. Now we need to fill the top row with background colour */
+    for (tprow=0; tprow < YPPC; tprow++) {
+      dptr=(size_t)matrixflags.modescreen_ptr + 4*((((twinbottom*YPPC)+tprow)*ds.vscrwidth) + (twinleft*XPPC));
+      for (tline=0; tline < tlen; tline+=4) {
+        *(uint32 *)(dptr+tline)=ds.tb_colour;
+      }
+    }
+    blit_scaled(twinleft*XPPC, twintop*YPPC, ((twinright+1)*XPPC)-1, twinbottom*YPPC+YPPC-1);
+
   } else {
     int loop;
     int top = 4*ds.screenwidth*YPPC*ds.xscale;            /* First, get size of one line. */
@@ -1238,7 +1247,7 @@ static void scroll_down_mode7(int32 windowed) {
 
 static void scroll_down(int32 windowed) {
 #ifndef BRANDY_MODE7ONLY
-  int left, right, top, dest, topwin;
+  int top, dest;
   if (screenmode == 7) { 
 #endif
     scroll_down_mode7(windowed);
@@ -1247,29 +1256,30 @@ static void scroll_down(int32 windowed) {
   }
   toggle_cursor();
   if (windowed || (matrixflags.videoscale != 1)) {
-    topwin = twintop*YPPC;              /* Y coordinate of top of text window */
-    dest = (twintop)*YPPC;
-    left = twinleft*XPPC;
-    right = (twinright+1)*XPPC-1;
-    top = twintop*YPPC;
-    scroll_rect.x = left;
-    scroll_rect.y = top;
-    scroll_rect.w = XPPC * (twinright - twinleft +1);
-    scroll_rect.h = YPPC * (twinbottom - twintop);
-    line_rect.x = 0;
-    line_rect.y = YPPC;
-    SDL_BlitSurface(screenbank[ds.writebank], &scroll_rect, screen1, &line_rect);
-    line_rect.x = line_rect.y = 0;
-    line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC;
-    SDL_FillRect(screen1, &line_rect, ds.tb_colour);
-    line_rect.x = line_rect.y = 0;
-    line_rect.w = XPPC * (twinright - twinleft +1);
-    line_rect.h = YPPC * (twinbottom - twintop +1);
-    scroll_rect.x = left;
-    scroll_rect.y = dest;
-    SDL_BlitSurface(screen1, &line_rect, screenbank[ds.writebank], &scroll_rect);
-    blit_scaled(left, topwin, right, twinbottom*YPPC+YPPC-1);
+    /* New windowed scroll down code */
+    size_t sptr, dptr;
+    int ldiff=4*ds.screenwidth*YPPC*ds.xscale;
+    int trow, tprow, tline;
+    int tlen=4*(1+twinright-twinleft)*XPPC;
+
+    for (trow=twinbottom; trow > twintop; trow--) {
+      for (tprow=0; tprow < YPPC; tprow++) {
+        dptr=(size_t)matrixflags.modescreen_ptr + 4*((((trow*YPPC)+tprow)*ds.vscrwidth) + (twinleft*XPPC));
+        sptr = dptr - ldiff;
+        for (tline=0; tline < tlen; tline+=4) {
+          *(uint32 *)(dptr+tline) = *(uint32 *)(sptr+tline);
+        }
+      }
+    }
+    /* Copied. Now we need to fill the top row with background colour */
+    for (tprow=0; tprow < YPPC; tprow++) {
+      dptr=(size_t)matrixflags.modescreen_ptr + 4*((((twintop*YPPC)+tprow)*ds.vscrwidth) + (twinleft*XPPC));
+      for (tline=0; tline < tlen; tline+=4) {
+        *(uint32 *)(dptr+tline)=ds.tb_colour;
+      }
+    }
+    blit_scaled(twinleft*XPPC, twintop*YPPC, ((twinright+1)*XPPC)-1, twinbottom*YPPC+YPPC-1);
+
   } else {
     int loop;
     /* First, get size of one line. */
