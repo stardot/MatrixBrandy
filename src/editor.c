@@ -855,6 +855,7 @@ static void link_library(char *name, byte *base, int32 size, boolean onheap) {
     }
     lp->libname = malloc(nameLen);
     if (lp->libname == NULL) {
+      free(lp);
       error(ERR_OSFULL, __LINE__, "editor");
       return;
     }
