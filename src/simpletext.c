@@ -120,6 +120,10 @@ void emulate_vdu(int32 charvalue) {
   if (matrixflags.dospool) fputc(charvalue, matrixflags.dospool);
   if (matrixflags.printer) printout_character(charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
+    if (vduflag(VDU_FLAG_DISABLE)) {
+      if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);
+      return;
+    }
     if (charvalue == 127) charvalue=8;  /* DEL maps to BACKSPACE */
     if (charvalue>=' ') {               /* Most common case - print something */
       if (charvalue==DEL) charvalue = ' ';
@@ -155,11 +159,15 @@ void emulate_vdu(int32 charvalue) {
   case VDU_DISPRINT:    /*  3 - Disable the sending of characters to the printer */
     close_printer();
     break;
-  case VDU_TEXTCURS:    /*  4 - Print text at text cursor (ignored) */
   case VDU_ENABLE:      /*  6 - Enable the VDU driver (ignored) */
+    write_vduflag(VDU_FLAG_DISABLE,0);
+    break;
+  case VDU_DISABLE:     /* 21 - Disable the VDU driver (ignored) */
+    write_vduflag(VDU_FLAG_DISABLE,1);
+    break;
+  case VDU_TEXTCURS:    /*  4 - Print text at text cursor (ignored) */
   case VDU_ENAPAGE:     /* 14 - Enable page mode (ignored) */
   case VDU_DISPAGE:     /* 15 - Disable page mode (ignored) */
-  case VDU_DISABLE:     /* 21 - Disable the VDU driver (ignored) */
     break;
   case VDU_GRAPHICURS:  /*  5 - Print text at graphics cursor */
   case VDU_CLEARGRAPH:  /* 16 - Clear graphics window */

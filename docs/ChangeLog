@@ -11,6 +11,7 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 
 * 1.23.6 - 
 - System: Fix bugs in scrolling up and down when a text window is active.
+- System: Text-mode builds now handle VDU21 and VDU6.
 
 * 1.23.5 - 06 April 2025
 - General: Implement code fixes based on GCC 14.2's -fanalyze feature.

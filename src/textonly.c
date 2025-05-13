@@ -1204,6 +1204,10 @@ void emulate_vdu(int32 charvalue) {
   if (matrixflags.dospool) fputc(charvalue, matrixflags.dospool);
   if (matrixflags.printer) printout_character(charvalue);
   if (vduneeded==0) {                   /* VDU queue is empty */
+    if (vduflag(VDU_FLAG_DISABLE)) {
+      if (charvalue == VDU_ENABLE) write_vduflag(VDU_FLAG_DISABLE,0);
+      return;
+    }
     if (charvalue>=' ' && charvalue != DEL) {               /* Most common case - print something */
       print_char(charvalue);
       return;
@@ -1227,10 +1231,8 @@ void emulate_vdu(int32 charvalue) {
   switch (vducmd) {   /* Emulate the various control codes */
   case VDU_NULL:        /* 0 - Do nothing */
     break;
-  case VDU_ENABLE:      /* 6 - Enable the VDU driver (ignored) */
   case VDU_ENAPAGE:     /* 14 - Enable page mode (ignored) */
   case VDU_DISPAGE:     /* 15 - Disable page mode (ignored) */
-  case VDU_DISABLE:     /* 21 - Disable the VDU driver (ignored) */
     break;
   case VDU_PRINT:       /* 1 - Send next character to the print stream */
     printer_char();
@@ -1252,6 +1254,9 @@ void emulate_vdu(int32 charvalue) {
     }
     tekinit();
     graphicurs = 1;
+    break;
+  case VDU_ENABLE:      /* 6 - Enable the VDU driver (ignored) */
+    write_vduflag(VDU_FLAG_DISABLE,0);
     break;
   case VDU_BEEP:        /* 7 - Sound the bell */
     putch('\7');
@@ -1297,6 +1302,9 @@ void emulate_vdu(int32 charvalue) {
     reset_colours();
     textcolor(text_physforecol);
     textbackground(text_physbackcol);
+    break;
+  case VDU_DISABLE:     /* 21 - Disable the VDU driver (ignored) */
+    write_vduflag(VDU_FLAG_DISABLE,1);
     break;
   case VDU_SCRMODE:     /* 22 - Change screen mode */
     emulate_mode(vduqueue[0]);
