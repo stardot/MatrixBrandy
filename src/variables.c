@@ -689,6 +689,9 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
     case '&':
       vp->varflags = VAR_UINT8|VAR_ARRAY;
       break;
+    case '#':
+      vp->varflags = VAR_FLOAT|VAR_ARRAY;
+      break;
     case '$':
       vp->varflags = VAR_STRINGDOL|VAR_ARRAY;
       break;
@@ -712,6 +715,10 @@ variable *create_variable(byte *varname, int namelen, library *lp) {
   case '&':
     vp->varflags = VAR_UINT8;
     vp->varentry.varinteger = 0;
+    break;
+  case '#':
+    vp->varflags = VAR_FLOAT;
+    vp->varentry.varfloat = 0.0;
     break;
   case '$':
     vp->varflags = VAR_STRINGDOL;
