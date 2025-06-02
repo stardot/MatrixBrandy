@@ -13,11 +13,13 @@ jobs:
     env:
       CC: ${{ matrix.cc }}
       CXX: ${{ matrix.cc }}
+      CFLAGS: "-Wextra"
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install libsdl1.2-dev
+      - run: sudo apt-get install libsdl1.2-dev valgrind
       - run: cmake .
-      - run: make
+      - run: cmake --build .
+      - run: ctest --rerun-failed --output-on-failure
   make:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -44,16 +46,87 @@ jobs:
       - uses: actions/checkout@v2
       - run: make -f ${{ matrix.makefile }}
       - run: make -f ${{ matrix.makefile }} test
-  make_macos:
+  cmake_macos:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['macos-14', 'macos-13']
-        makefile: ['build/makefile.macosx.text']
-    name: Compile via ${{ matrix.makefile }} Makefile on ${{ matrix.os }}
+        os: ['macos-latest', 'macos-13']
+    name: Compile via cmake on ${{ matrix.os }}
     env:
-      BRANDY_BUILD_FLAGS: "-Wextra"
+      CFLAGS: "-Wextra"
     steps:
       - uses: actions/checkout@v2
-      - run: make -f ${{ matrix.makefile }} all
-      - run: make -f ${{ matrix.makefile }} test
+      - run: cmake .
+      - run: cmake --build .
+      - run: ctest --rerun-failed --output-on-failure
+
+  cmake_windows:
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { icon: '🟦', sys: mingw64, runs-on: 'windows-latest' }
+          - { icon: '🟨', sys: ucrt64, runs-on: 'windows-latest' }
+          - { icon: '🟧', sys: clang64, runs-on: 'windows-latest' }
+# clangarm64 currently fails: https://github.com/llvm/llvm-project/issues/136358
+#          - { icon: '🟩', sys: clangarm64, runs-on: 'windows-11-arm' }
+    name: Compile via cmake on ${{ matrix.sys }}
+    env:
+      CFLAGS: "-Wextra"
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - name: '${{ matrix.icon }} Setup MSYS2'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{matrix.sys}}
+          update: true
+          install: >-
+            git
+            make
+          pacboy: >-
+            toolchain:p
+            cmake:p
+            ninja:p
+            dlfcn:p
+            sdl12-compat:p
+            perl:p
+      - run: cmake .
+      - run: cmake --build .
+      - run: ctest --rerun-failed --output-on-failure
+
+  docker-build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+          - linux/386
+          - linux/arm/v6
+          - linux/arm/v7
+          - linux/ppc64le
+          - linux/s390x
+    steps:
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY_IMAGE }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          platforms: ${{ matrix.platform }}
+          file: Dockerfile.sbrandy

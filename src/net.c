@@ -451,7 +451,11 @@ int checkfornewer() {
 #ifdef BRANDY_RELEASE
   snprintf(request, 1023, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\nUser-Agent: MatrixBrandy/" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL "(" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ")\r\n\r\n");
 #else
+#ifdef BRANDY_GITCOMMIT
   snprintf(request, 1023, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\nUser-Agent: MatrixBrandy/" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL "(" BRANDY_OS "/" CPUTYPE SFX1 SFX2 " " BRANDY_GITBRANCH ":" BRANDY_GITCOMMIT ")\r\n\r\n");
+#else
+  snprintf(request, 1023, "GET /latest HTTP/1.0\r\nHost: brandy.matrixnetwork.co.uk\r\nUser-Agent: MatrixBrandy/" BRANDY_MAJOR "." BRANDY_MINOR "." BRANDY_PATCHLEVEL "(" BRANDY_OS "/" CPUTYPE SFX1 SFX2 ")\r\n\r\n");
+#endif
 #endif
   net_bputstr(hndl, request, -1);
   free(request);
