@@ -15,6 +15,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - BASIC: Permit variables of the form name# for floating-point variables.
   BBCSDL uses this suffix to explicitly specify a FP variable, as it uses
   suffixless variables as "variants" which can change their nature.
+- BASIC: Fixed a bug where RENUMBER on a program with a REM would make the
+  program un-RUN-able.
 
 * 1.23.5 - 06 April 2025
 - General: Implement code fixes based on GCC 14.2's -fanalyze feature.

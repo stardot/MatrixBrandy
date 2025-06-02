@@ -1958,6 +1958,10 @@ static void clear_varaddrs(byte *bp) {
   int offset;
 
   DEBUGFUNCMSGIN;
+  if (*bp == BASTOKEN_REM) {
+    DEBUGFUNCMSGOUT;
+    return;
+  }
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
