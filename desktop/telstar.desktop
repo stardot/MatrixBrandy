@@ -2,6 +2,6 @@
 Encoding=UTF-8
 Name=Telstar
 Exec=/usr/bin/telstar
-Icon=/usr/share/pixmaps/telstar.png 
+Icon=/usr/share/pixmaps/telstar.png
 Type=Application
-Category=Miscellaneous
+Categories=Network;
