@@ -1,0 +1,7 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Telstar
+Exec=/usr/bin/telstar
+Icon=/usr/share/brandy-1.23.5/telstar.png 
+Type=Application
+Category=Miscellaneous

@@ -32,6 +32,15 @@ the documentation is used in reference to the dialect, and other
 implementations where the name is used under licence (e.g. Acorn/RISC OS and
 the interpreters by Richard Russell)..
 
+%package telstar
+Summary: Desktop link for Matrix Brandy's videotex/viewdata client
+Requires: brandy = %{version}-%{release}
+BuildArch: noarch
+
+%description telstar
+This package contains the desktop shortcut files and icon for
+Matrix Brandy's Telstar viewdata/videotex client.
+
 %prep
 %setup -q -n MatrixBrandy-%{version}
 chmod 0644 docs/*
@@ -47,9 +56,13 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_libdir}
 mkdir -p %{buildroot}%{_datadir}/%{name}-%{version}/examples
+mkdir -p %{buildroot}%{_datadir}/applications
 install -s -m 0755 brandy %{buildroot}%{_bindir}
 install -s -m 0755 sbrandy %{buildroot}%{_bindir}
 install -s -m 0755 tbrandy %{buildroot}%{_bindir}
+install -m 0755 desktop/telstar %{buildroot}%{_bindir}
+install -m 0644 desktop/telstar.desktop %{buildroot}%{_datadir}/applications
+install -m 0644 desktop/telstar.png %{buildroot}%{_datadir}/%{name}-%{version}
 cp -r examples/* %{buildroot}%{_datadir}/%{name}-%{version}/examples
 
 %clean
@@ -60,7 +73,12 @@ rm -rf %{buildroot}
 %{_bindir}/brandy
 %{_bindir}/sbrandy
 %{_bindir}/tbrandy
-%{_datadir}/%{name}-%{version}
+%{_datadir}/%{name}-%{version}/examples
+
+%files telstar
+%{_bindir}/telstar
+%{_datadir}/%{name}-%{version}/telstar.png
+%{_datadir}/applications/telstar.desktop
 
 %changelog
 * Sat Aug 01 2020 Michael McConnell <mike@matrixnetwork.co.uk> - 1.22.7
