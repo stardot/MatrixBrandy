@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=Telstar
-Exec=/usr/local/bin/telstar
-Icon=/usr/local/share/icons/telstar.png 
+Exec=/usr/bin/telstar
+Icon=/usr/share/pixmaps/telstar.png 
 Type=Application
 Category=Miscellaneous
