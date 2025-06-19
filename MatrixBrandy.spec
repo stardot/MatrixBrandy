@@ -57,6 +57,7 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_libdir}
 mkdir -p %{buildroot}%{_datadir}/%{name}-%{version}/examples
 mkdir -p %{buildroot}%{_datadir}/applications
+mkdir -p %{buildroot}%{_datadir}/pixmaps
 install -s -m 0755 brandy %{buildroot}%{_bindir}
 install -s -m 0755 sbrandy %{buildroot}%{_bindir}
 install -s -m 0755 tbrandy %{buildroot}%{_bindir}
