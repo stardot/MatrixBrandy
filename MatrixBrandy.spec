@@ -62,7 +62,9 @@ install -s -m 0755 brandy %{buildroot}%{_bindir}
 install -s -m 0755 sbrandy %{buildroot}%{_bindir}
 install -s -m 0755 tbrandy %{buildroot}%{_bindir}
 install -m 0755 desktop/telstar %{buildroot}%{_bindir}
+install -m 0644 desktop/brandy.desktop %{buildroot}%{_datadir}/applications
 install -m 0644 desktop/telstar.desktop %{buildroot}%{_datadir}/applications
+install -m 0644 desktop/brandy.png %{buildroot}%{_datadir}/pixmaps
 install -m 0644 desktop/telstar.png %{buildroot}%{_datadir}/pixmaps
 cp -r examples/* %{buildroot}%{_datadir}/%{name}-%{version}/examples
 
@@ -74,6 +76,8 @@ rm -rf %{buildroot}
 %{_bindir}/brandy
 %{_bindir}/sbrandy
 %{_bindir}/tbrandy
+%{_datadir}/pixmaps/brandy.png
+%{_datadir}/applications/brandy.desktop
 %{_datadir}/%{name}-%{version}/examples
 
 %files telstar
