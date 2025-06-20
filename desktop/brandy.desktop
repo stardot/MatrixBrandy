@@ -4,4 +4,4 @@ Name=Matrix Brandy
 Exec=/usr/bin/brandy
 Icon=/usr/share/pixmaps/brandy.png
 Type=Application
-Category=Miscellaneous
+Categories=Development;
