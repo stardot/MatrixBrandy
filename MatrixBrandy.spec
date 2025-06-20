@@ -29,8 +29,8 @@ BBC BASIC is a trademark of the British Broadcasting Corporation.
 Matrix Brandy does not claim to be "BBC BASIC", however it aims to be an
 interpreter of the BBC BASIC dialect of BASIC.  The term "BBC BASIC" in
 the documentation is used in reference to the dialect, and other
-implementations where the name is used under licence (e.g. Acorn/RISC OS and
-the interpreters by Richard Russell)..
+implementations where the name is used under licence (e.g. by Acorn/RISC OS
+and the interpreters by Richard Russell)..
 
 %package telstar
 Summary: Desktop link for Matrix Brandy's videotex/viewdata client
@@ -38,8 +38,8 @@ Requires: brandy = %{version}-%{release}
 BuildArch: noarch
 
 %description telstar
-This package contains the desktop shortcut files and icon for
-Matrix Brandy's Telstar viewdata/videotex client.
+This package contains the desktop shortcut file, icon and launcher script
+for Matrix Brandy's Telstar viewdata/videotex client.
 
 %prep
 %setup -q -n MatrixBrandy-%{version}
@@ -86,6 +86,8 @@ rm -rf %{buildroot}
 %{_datadir}/applications/telstar.desktop
 
 %changelog
+* Fri Jun 20 2025 Michael McConnell <mike@matrixnetwork.co.uk> - 1.23.6
+- Added sub-package "telstar".
 * Sat Aug 01 2020 Michael McConnell <mike@matrixnetwork.co.uk> - 1.22.7
 - Removed BrandyApp from package as build mechanism has changed.
 * Tue Jul 23 2019 Michael McConnell <mike@matrixnetwork.co.uk> - 1.22.0
