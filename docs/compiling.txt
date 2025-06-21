@@ -72,6 +72,25 @@ shell environment variable. Notable ones include:
 -DBRANDY_ALLOW_LOWERCASE_COMMANDS       Allow immediate-mode commands to be
                                         entered in lower case.
 
+Compiling the graphical build (aside from RISC OS) requires SDL 1.2.
+
+On EL6, 7 and 8, and older Fedora, do:
+  sudo yum install SDL-devel
+
+On EL9 and 10, do:
+  sudo dnf config-manager --set-enabled crb
+  sudo dnf install sdl12-compat-devel
+
+(EL is Red Hat Enterprise Linux, CentOS, AlmaLinux, Rocky Linux,
+ Scientific Linux, Oracle Linux and any other Red Hat rebuild)
+
+On newer Fedora, certainly 38 and later:
+  sudo dnf install sdl12-compat-devel
+
+For Debian-based distributions including RaspberryPiOS and Ubuntu, do:
+  sudo apt-get install libsdl1.2-dev
+
+
 Compiling Under Different Operating Systems
 -------------------------------------------
 Compilation of the OS-specific parts of the interpreter is
@@ -105,7 +124,7 @@ macros can be found by looking at the 'specs' file. The command
 alternative is to hard-code the TARGET_xxxx macro in target.h.
 
 
-Target.h
+target.h
 --------
 The machine-specific options for compiling the program are defined
 in this include file. There is not much to set up and details of

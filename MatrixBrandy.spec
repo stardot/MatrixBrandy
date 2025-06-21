@@ -33,7 +33,7 @@ implementations where the name is used under licence (e.g. by Acorn/RISC OS
 and the interpreters by Richard Russell)..
 
 %package telstar
-Summary: Desktop link for Matrix Brandy's videotex/viewdata client
+Summary: Desktop launcher for Matrix Brandy's videotex/viewdata client
 Requires: brandy = %{version}-%{release}
 BuildArch: noarch
 
