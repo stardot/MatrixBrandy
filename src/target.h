@@ -39,6 +39,10 @@
 #define BRANDY_DATE       "06 Apr 2025"
 // #define BRANDY_PATCHDATE  "JGH191007"
 
+#ifdef BRANDY_RELEASE
+#undef DEBUG
+#endif
+
 /*
 ** DEFAULTSIZE and MINSIZE give the default and minimum Basic
 ** workspace sizes in bytes. DEFAULTSIZE is the amount of memory
