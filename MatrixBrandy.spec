@@ -1,4 +1,4 @@
-Summary: A cross-platform BBC BASIC interpreter
+Summary: A cross-platform BBC BASIC interpreter with SDL graphics
 Name: brandy
 Version: 1.23.5
 Release: %{extraverdata}.matrix%{?dist}
@@ -8,6 +8,8 @@ Source: https://brandy.matrixnetwork.co.uk/releases/MatrixBrandy-%{version}.tar.
 URL: https://brandy.matrixnetwork.co.uk/
 # Dirty hack to ensure we have SDL-devel or sdl12-compat-devel
 BuildRequires: /usr/include/SDL/SDL.h
+Requires: brandy-docs = %{version}-%{release}
+Requires: brandy-examples = %{version}-%{release}
 
 %define debug_package %{nil}
 
@@ -30,16 +32,56 @@ Matrix Brandy does not claim to be "BBC BASIC", however it aims to be an
 interpreter of the BBC BASIC dialect of BASIC.  The term "BBC BASIC" in
 the documentation is used in reference to the dialect, and other
 implementations where the name is used under licence (e.g. by Acorn/RISC OS
-and the interpreters by Richard Russell)..
+and the interpreters by Richard Russell).
+
+%package docs
+Summary: Documentation for Matrix Brandy
+BuildArch: noarch
+
+%package examples
+Summary: Example programs for Matrix Brandy
+BuildArch: noarch
+
+%package text
+Summary: A cross-platform BBC BASIC interpreter (text mode)
+Requires: brandy-docs = %{version}-%{release}
+Requires: brandy-examples = %{version}-%{release}
 
 %package telstar
 Summary: Desktop launcher for Matrix Brandy's videotex/viewdata client
 Requires: brandy = %{version}-%{release}
 BuildArch: noarch
 
+%description docs
+This package contains the documentation files for Matrix Brandy.
+
+%description examples
+This package contains the example programs for Matrix Brandy.
+
 %description telstar
 This package contains the desktop shortcut file, icon and launcher script
-for Matrix Brandy's Telstar viewdata/videotex client.
+for Matrix Brandy's Telstar viewdata/videotex client.  The Telstar program
+itself is one of the examples in the main brandy package, this sub-package
+simply provides a GNOME desktop link and icon.
+
+%description text
+Brandy is an interpreter for BBC BASIC VI that runs under a variety of
+operating systems. BASIC V and BASIC VI are versions of BASIC supplied with
+computers running RISC OS. These were originally made by Acorn Computers and
+more recently designed and manufactured by companies such as Advantage Six
+and Castle Technology.
+
+This package contains the text-mode builds of Matrix Brandy, and aside for
+Tektronix support with some terminals, these builds do not support graphics.
+
+BBC BASIC is a trademark of the British Broadcasting Corporation.
+Matrix Brandy does not claim to be "BBC BASIC", however it aims to be an
+interpreter of the BBC BASIC dialect of BASIC.  The term "BBC BASIC" in
+the documentation is used in reference to the dialect, and other
+implementations where the name is used under licence (e.g. by Acorn/RISC OS
+and the interpreters by Richard Russell).
+
+
 
 %prep
 %setup -q -n MatrixBrandy-%{version}
@@ -72,18 +114,24 @@ cp -r examples/* %{buildroot}%{_datadir}/%{name}-%{version}/examples
 rm -rf %{buildroot}
 
 %files
-%doc READ.ME docs/ChangeLog docs/README docs/*.txt
 %{_bindir}/brandy
-%{_bindir}/sbrandy
-%{_bindir}/tbrandy
 %{_datadir}/pixmaps/brandy.png
 %{_datadir}/applications/brandy.desktop
+
+%files docs
+%doc READ.ME docs/ChangeLog docs/README docs/*.txt
+
+%files examples
 %{_datadir}/%{name}-%{version}/examples
 
 %files telstar
 %{_bindir}/telstar
 %{_datadir}/pixmaps/telstar.png
 %{_datadir}/applications/telstar.desktop
+
+%files text
+%{_bindir}/sbrandy
+%{_bindir}/tbrandy
 
 %changelog
 * Fri Jun 20 2025 Michael McConnell <mike@matrixnetwork.co.uk> - 1.23.6
