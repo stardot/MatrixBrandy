@@ -50,6 +50,7 @@ Requires: brandy-examples = %{version}-%{release}
 %package telstar
 Summary: Desktop launcher for Matrix Brandy's videotex/viewdata client
 Requires: brandy = %{version}-%{release}
+Requires: brandy-examples = %{version}-%{release}
 BuildArch: noarch
 
 %description docs

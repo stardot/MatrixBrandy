@@ -1,2 +1,2 @@
 #!/bin/bash
-exec brandy $(rpm -ql brandy | grep Mode7/telstar)
+exec brandy $(rpm -ql brandy-examples | grep Mode7/telstar)
