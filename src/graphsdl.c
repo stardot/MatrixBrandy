@@ -4447,7 +4447,7 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
   // Original Graphics ROM sector, arc and segment 6502 routines are dissasembled here: https://tobylobster.github.io/GXR-pages/gxr/S-s16.html
   // This code is based on that logic, i.e. considering all pixels in a solid circle, but only plotting those pixels on the
   // correct side of the construction vectors.
-  // This implementation by M.Fairbank, July 2025  
+  // (This implementation by M.Fairbank, July 2025)
   int32 width=xradius;
   int32 height=yradius;
   start_dy=-start_dy; // swap coordinate system for these vectors to point in conventional mathematical direction (i.e. where +y axis points up)
