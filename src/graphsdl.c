@@ -4388,29 +4388,39 @@ static void draw_h_line_with_sector_filter(SDL_Surface *sr, int32 xc, int32 yc, 
      x2=x1;
      x1=temp;
   }
-  // work out whether this sector is a MAJOR sector or a MINOR sector (i.e. whether the angle at the centre of the sector is >180 or <180)
-  int32 is_minor_sector=start_dx*end_dy<=end_dx*start_dy;// a synonym for this would be "arc sweeps out less than 180 degrees"
-  int32 start_dx_normal_vector=start_dy;// rotates start vector 90 degrees clockwise
+  // work out whether the sector being filled is a MAJOR sector or a MINOR sector (i.e. whether the angle at the centre of the sector is >180 or <180)
+  // We know this is a major sector if the start line is less than 180 degrees anticlockwise of the end line.
+  // We know this is a minor sector if the start line is less than 180 degrees clockwise of the end line. (Remember, we fill this sector by 
+  // sweeping anticlockwise from the start line to the end line).
+  // We can check if the start line is anticlockwise of the end line by forming their cross product, as follows:
+  int32 cross_product=start_dx*end_dy-end_dx*start_dy;
+  int32 is_minor_sector=cross_product<=0;// a synonym for this would be "arc sweeps out less than 180 degrees"
+  int32 start_dx_normal_vector=start_dy;// rotates start vector 90 degrees
   int32 start_dy_normal_vector=-start_dx;
-  int32 end_dx_normal_vector=-end_dy;// rotates end vector 90 degrees clockwise
+  int32 end_dx_normal_vector=-end_dy;// rotates end vector 90 degrees in opposite direction
   int32 end_dy_normal_vector=end_dx;
+  // note that both normal vectors now point inwards towards the region that needs filling.
   for (int32 x=x1;x<=x2;x++) {
     // This loop is pretty inefficient.  It would be possible to rewrite this to not use a loop at all
-    // and get the code much faster.  But for now I just want to keep the logic clear, and also get these plot codes working.
+    // and get the code much faster.  But for now I just want to keep the logic clear, and also
+    // just get these plot codes working reliably.
     if (is_minor_sector) {
-        // Our sector's angle is less than 180 degrees
+        // Our sector's angle is less than 180 degrees.
         // So this means we only plot a single minor sector.  We just need to see if we are inside that minor sector,
         // i.e. we just need to check our point is on the correct side of BOTH normal vectors.
+        // Both normal vectors point inwards towards the minor sector which we want to fill.
         int32 xInMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)>=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)>=0);
         if (xInMinorSector) 
             draw_h_line(sr,xc+x,xc+x,yc+y,col,action);  
     } else {
         // Our sector's angle is > 180 degrees
-        // Here we are drawing a MAJOR sector.  The logic for this is to consider the opposite points to those we want.  Those opposite points
-        // form a minor sector.  Checking for that minor sector is simple, we need to check we are on the WRONG sides of BOTH normal vectors
-        int32 xInMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)<=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)<=0);
-        // Next, because we want the OPPOSITE of that minor sector, we have a ! in the next line:
-        if (!xInMinorSector) 
+        // Here we are drawing a MAJOR sector.  Let's call the minor sector which we don't plot as the "void".
+        // The logic to plot the major sector is to consider the opposite points to those we want.  Those opposite points, form the "void",
+        // form a minor sector.  Checking for that minor sector is simple.  The void is backwards from both normal vectors.
+        int32 xInVoidMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)<=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)<=0);
+        // Next, because we want the OPPOSITE of that "void" minor sector, we have a ! in the next line:
+        if (!xInVoidMinorSector) 
+            // okay, so this must be part of the Major sector...  So we plot it...
             draw_h_line(sr,xc+x,xc+x,yc+y,col,action);  
     }
   }
@@ -4428,12 +4438,13 @@ static void draw_h_line_with_segment_filter(SDL_Surface *sr, int32 xc, int32 yc,
   // calculate the chord vector, which goes from (start_dx,start_dy) to (end_dx, end_dy)
   int32 chord_dx=end_dx-start_dx;
   int32 chord_dy=end_dy-start_dy;
-  // Calculate the "normal" to the chord vector, i.e. rotate chord vector 90 degrees anticlockwise
+  // Calculate the "normal" to the chord vector, i.e. rotate chord vector 90 degrees
   int32 chord_dx_normal_vector=chord_dy;
   int32 chord_dy_normal_vector=-chord_dx;
   for (int32 x=x1;x<=x2;x++) {
     // This loop is pretty inefficient.  It would be possible to rewrite this to not use a loop at all
-    // and get the code much faster.  But for now I just want to keep the logic clear, and also get these plot codes working.
+    // and get the code much faster.  But for now I just want to keep the logic clear, and also
+    // just get these plot codes working reliably.
     int32 correct_side_of_chord=((x-start_dx)*chord_dx_normal_vector+(y-start_dy)*chord_dy_normal_vector)<=0;
     if (correct_side_of_chord) 
       // only draw pixels that are on the correct side of the segment's chord:
@@ -4496,7 +4507,7 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
             } else if (action_code==PLOT_SEGMENT) {
                 draw_h_line_with_segment_filter(screen, xc,yc,xl_this, xr_this, y, colour, action,start_dx,start_dy,end_dx,end_dy);
             } else {
-                // This is an ARC.  So we just draw the groups of pixels at the left and right of each row.
+                // This is PLOT_ARC.  So we just draw the groups of pixels at the left and right of each row.
                 // However those pixels can be filtered by exactly the same logic as the sector filter, so we just 
                 // reuse that method here.
                 draw_h_line_with_sector_filter(screen, xc,yc,xl_this, xl, y, colour, action,start_dx,start_dy,end_dx,end_dy);
@@ -4508,7 +4519,7 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
                 } else if (action_code==PLOT_SEGMENT) {
                    draw_h_line_with_segment_filter(screen, xc,yc,xl_this, xr_this, -y, colour, action,start_dx,start_dy,end_dx,end_dy);
                 } else {
-                  // This is an ARC.  So we just draw the groups of pixels at the left and right of each row.
+                  // This is PLOT_ARC.  So we just draw the groups of pixels at the left and right of each row.
                   // However those pixels can be filtered by exactly the same logic as the sector filter, so we just 
                   // reuse that method here.
                   draw_h_line_with_sector_filter(screen, xc,yc,-xl_this, -xl, -y, colour, action,start_dx,start_dy,end_dx,end_dy);
@@ -4526,7 +4537,7 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
         draw_h_line_with_segment_filter(screen,xc,yc, +xl_this, xr_this, +height, colour, action,start_dx,start_dy,end_dx,end_dy);
         draw_h_line_with_segment_filter(screen,xc,yc, -xl_this,-xr_this, -height, colour, action,start_dx,start_dy,end_dx,end_dy);
       } else {
-        // This is an ARC or SECTOR.
+        // This is PLOT_ARC or PLOT_SECTOR.  The logic here is the same (because this is the top/bottom single row of pixels)
         draw_h_line_with_sector_filter(screen,xc,yc, +xl_this, xr_this, +height, colour, action,start_dx,start_dy,end_dx,end_dy);
         draw_h_line_with_sector_filter(screen,xc,yc, -xl_this,-xr_this, -height, colour, action,start_dx,start_dy,end_dx,end_dy);
       }
