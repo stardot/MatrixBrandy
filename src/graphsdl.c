@@ -4147,16 +4147,12 @@ static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col
     x1 = x2;
     x2 = tt;
   }
-  if (x1 >= ds.vscrwidth || x2 < 0) return;
-  if ( y >= 0 && y < ds.vscrheight ) {
-    int32 i;
-    if (x1 < 0) x1 = 0;
-    if (x1 >= ds.vscrwidth) x1 = ds.vscrwidth-1;
-    if (x2 < 0) x2 = 0;
-    if (x2 >= ds.vscrwidth) x2 = ds.vscrwidth-1;
-    for (i = x1; i <= x2; i++)
-      plot_pixel(sr, i, y, col, action);
-  }
+  if (x1 >= ds.vscrwidth || x2 < 0 || y<0 || y>=ds.vscrheight) return;
+  if (x1 < 0) x1 = 0;
+  if (x2 >= ds.vscrwidth) x2 = ds.vscrwidth-1;
+  int32 i;
+  for (i = x1; i <= x2; i++)
+    plot_pixel(sr, i, y, col, action);
 }
 
 /*
