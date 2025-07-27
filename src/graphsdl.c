@@ -4377,13 +4377,18 @@ static void filled_ellipse(SDL_Surface *screen,
 
 
 static void draw_h_line_with_sector_filter(SDL_Surface *sr, int32 xc, int32 yc, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action,int32 start_dx,int32 start_dy, int32 end_dx, int32 end_dy) {
-  // this function draws a horizontal line from x1 to x2, at height y; but only plots those pixels 
+  // This function draws a horizontal line from x1+xc to x2+xc, at height y+yc; but only plots those pixels 
   // which are in the sector defined by vectors (start_dx,start_dy) and (end_dx, end_dy), relative to circle centre (cx,cy)
   if (x1>x2) {
      int32 temp=x2;
      x2=x1;
      x1=temp;
   }
+  // copy clipping logic from draw_h_line() method, but add on xc,yc to the x and y coordinates:
+  if (x1+xc >= ds.vscrwidth || x2+xc < 0 || y+yc<0 || y+yc>=ds.vscrheight) return;
+  if (x1+xc < 0) x1 = -xc;
+  if (x2+xc >= ds.vscrwidth) x2 = ds.vscrwidth-1-xc;
+
   // work out whether the sector being filled is a MAJOR sector or a MINOR sector (i.e. whether the angle at the centre of the sector is >180 or <180)
   // We know this is a major sector if the start line is less than 180 degrees anticlockwise of the end line.
   // We know this is a minor sector if the start line is less than 180 degrees clockwise of the end line. (Remember, we fill this sector by 
@@ -4397,54 +4402,63 @@ static void draw_h_line_with_sector_filter(SDL_Surface *sr, int32 xc, int32 yc, 
   int32 end_dy_normal_vector=end_dx;
   // note that both normal vectors now point inwards towards the region that needs filling.
   for (int32 x=x1;x<=x2;x++) {
-    // This loop is pretty inefficient.  It would be possible to rewrite this to not use a loop at all
-    // and get the code much faster.  But for now I just want to keep the logic clear, and also
+    // These next lines could be made more efficient (to avoid doing multiplications at every step of this loop).
+    // Also, we could avoid looping through multiple consecutive points that are not being plotted by just skipping
+    // to the next plotted point (with an appropriate bit of logic).
+    // But for now, let's just keep the logic clear and simple, and also
     // just get these plot codes working reliably.
     if (is_minor_sector) {
-        // Our sector's angle is less than 180 degrees.
-        // So this means we only plot a single minor sector.  We just need to see if we are inside that minor sector,
-        // i.e. we just need to check our point is on the correct side of BOTH normal vectors.
-        // Both normal vectors point inwards towards the minor sector which we want to fill.
-        int32 xInMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)>=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)>=0);
-        if (xInMinorSector) 
-            draw_h_line(sr,xc+x,xc+x,yc+y,col,action);  
+      // Our sector's angle is less than 180 degrees.
+      // So this means we only plot a single minor sector.  We just need to see if we are inside that minor sector,
+      // i.e. we just need to check our point is on the correct side of BOTH normal vectors.
+      // Both normal vectors point inwards towards the minor sector which we want to fill.
+      int32 xInMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)>=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)>=0);
+      if (xInMinorSector) 
+        plot_pixel(sr, xc+x, yc+y, col, action);  
     } else {
-        // Our sector's angle is > 180 degrees
-        // Here we are drawing a MAJOR sector.  Let's call the minor sector which we don't plot as the "void".
-        // The logic to plot the major sector is to consider the opposite points to those we want.  Those opposite points, form the "void",
-        // form a minor sector.  Checking for that minor sector is simple.  The void is backwards from both normal vectors.
-        int32 xInVoidMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)<=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)<=0);
-        // Next, because we want the OPPOSITE of that "void" minor sector, we have a ! in the next line:
-        if (!xInVoidMinorSector) 
-            // okay, so this must be part of the Major sector...  So we plot it...
-            draw_h_line(sr,xc+x,xc+x,yc+y,col,action);  
+      // Our sector's angle is > 180 degrees
+      // Here we are drawing a MAJOR sector.  Let's call the minor sector which we don't plot as the "void".
+      // The logic to plot the major sector is to consider the opposite points to those we want.  Those opposite points, form the "void",
+      // form a minor sector.  Checking for that minor sector is simple.  The void is backwards from both normal vectors.
+      int32 xInVoidMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)<=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)<=0);
+      // Next, because we want the OPPOSITE of that "void" minor sector, we have a ! in the next line:
+      if (!xInVoidMinorSector) 
+        // okay, so this must be part of the Major sector...  So we plot it...
+        plot_pixel(sr, xc+x, yc+y, col, action);  
     }
   }
 }
 
 
 static void draw_h_line_with_segment_filter(SDL_Surface *sr, int32 xc, int32 yc, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action,int32 start_dx,int32 start_dy, int32 end_dx, int32 end_dy) {
-  // this function draws a horizontal line from x1 to x2, at height y; but only plots those pixels 
+  // this function draws a horizontal line from x1+xc to x2+xc, at height y+yc; but only plots those pixels 
   // which are on the correct side of the chord running from (start_dx,start_dy) to (end_dx, end_dy)
   if (x1>x2) {
      int32 temp=x2;
      x2=x1;
      x1=temp;
   }
-  // calculate the chord vector, which goes from (start_dx,start_dy) to (end_dx, end_dy)
+  // copy clipping logic from draw_h_line() method, but add on xc,yc to the x and y coordinates:
+  if (x1+xc >= ds.vscrwidth || x2+xc < 0 || y+yc<0 || y+yc>=ds.vscrheight) return;
+  if (x1+xc < 0) x1 = -xc;
+  if (x2+xc >= ds.vscrwidth) x2 = ds.vscrwidth-1-xc;
+
+  // calculate segment's chord vector:
   int32 chord_dx=end_dx-start_dx;
   int32 chord_dy=end_dy-start_dy;
   // Calculate the "normal" to the chord vector, i.e. rotate chord vector 90 degrees
   int32 chord_dx_normal_vector=chord_dy;
   int32 chord_dy_normal_vector=-chord_dx;
   for (int32 x=x1;x<=x2;x++) {
-    // This loop is pretty inefficient.  It would be possible to rewrite this to not use a loop at all
-    // and get the code much faster.  But for now I just want to keep the logic clear, and also
+    // This next line could be made more efficient (to avoid doing multiplications at every step of this loop).
+    // Also, we could avoid looping through multiple consecutive points that are not being plotted by just skipping
+    // to the next plotted point (with an appropriate bit of logic).
+    // But for now, let's just keep the logic clear and simple, and also
     // just get these plot codes working reliably.
     int32 correct_side_of_chord=((x-start_dx)*chord_dx_normal_vector+(y-start_dy)*chord_dy_normal_vector)<=0;
     if (correct_side_of_chord) 
       // only draw pixels that are on the correct side of the segment's chord:
-      draw_h_line(sr,xc+x,xc+x,yc+y,col,action);  
+      plot_pixel(sr, xc+x, yc+y, col, action);
   }
 }
 
