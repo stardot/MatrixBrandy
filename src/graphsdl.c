@@ -252,7 +252,7 @@ static void plot_pixel(SDL_Surface *, int32, int32, Uint32, Uint32);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
 static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void draw_arc(SDL_Surface *, int32, int32, float, float, int32, int32, int32, int32, Uint32, Uint32);
+static void draw_arc_or_sector_or_segment(SDL_Surface *, int32, int32, float, float, int32, int32, int32, int32, Uint32, Uint32, int32);
 static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
@@ -3342,6 +3342,8 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       reveal_cursor();
       break;
     }
+    case PLOT_SECTOR:  
+    case PLOT_SEGMENT:  
     case PLOT_ARC: {
       float xradius,yradius;
   /*
@@ -3357,60 +3359,28 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       int ylast2=ds.ylast2/ds.ygupp; // performs integer division
       int xlast=ds.xlast/ds.xgupp; // performs integer division
       int ylast=ds.ylast/ds.ygupp; // performs integer division
-      float fradius=sqrtf((xlast3-xlast2)*(xlast3-xlast2)*ds.xgupp*ds.xgupp+(ylast3-ylast2)*(ylast3-ylast2)*ds.ygupp*ds.ygupp)+0.5;
+      int start_dx=xlast2-xlast3;//displacement to start point from centre
+      int start_dy=ylast2-ylast3;//displacement to start point from centre
+      float fradius=sqrtf(start_dx*start_dx*ds.xgupp*ds.xgupp+start_dy*start_dy*ds.ygupp*ds.ygupp)+0.5;
       xradius = (fradius/ds.xgupp);
       yradius = (fradius/ds.ygupp);
-      float fradius_end=sqrtf((xlast3-xlast)*(xlast3-xlast)*ds.xgupp*ds.xgupp+(ylast3-ylast)*(ylast3-ylast)*ds.ygupp*ds.ygupp);
+      int end_dx=xlast-xlast3;//displacement from endpoint to centre
+      int end_dy=ylast-ylast3;//displacement from endpoint to centre
+      float fradius_end=sqrtf(end_dx*end_dx*ds.xgupp*ds.xgupp+end_dy*end_dy*ds.ygupp*ds.ygupp);
       if (fradius_end<1e-9) {
-        // the end point is on top of the centre, so there's not much we can do here.
-        // Don't do anything in this case, to avoid a division by zero
+        // the end radius is too small, so it doesn't give us a good closing angle to work with.  Ignore this curve
       } else {
-        int end_dx,end_dy;
-        int start_dx=xlast2-xlast3;//displacement to start point from centre
-        int start_dy=ylast2-ylast3;//displacement to start point from centre
-        end_dx=(int)((xlast-xlast3)*fradius/fradius_end);//projects end point onto circle circumference
-        end_dy=floor(((ylast-ylast3)*fradius/fradius_end));//projects end point onto circle circumference
-  
-        // check that the rounding above does not cause end_dx, end_dy to lie off the rasterised curve.
-        float axis_ratio = (float) xradius / (float) yradius;
-        int xnext_rasterised=abs(end_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(end_dy)+1)*(abs(end_dy)+1)))+1:0; // uses same formula as used by draw_arc function
-        int xthis_rasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(end_dy))*(abs(end_dy)) )); // uses same formula as used by draw_arc function
-        
-        if (abs(end_dy)==yradius && end_dy>0 &&0)
-          xnext_rasterised=1;
-        if (abs(end_dx)<xnext_rasterised ) {
-          // like xnext to be smaller, so like abs(end_dy) to be larger
-          end_dy+=end_dy>0?1:-1;
-        } 
-        if (abs(end_dx)>xthis_rasterised) {
-          // like xthis to be bigger, so end_dy to be smaller
-          end_dy-=end_dy>0?1:-1; 
+        if ((code & GRAPHOP_MASK)==PLOT_SEGMENT) {
+          // segment needs a chord accuractly going from start_dx,start_dy to (end_dx,end_dy),
+          // but this assumes (end_dx,end_dy) is projected onto the circumference exactly
+          end_dx=(int)(end_dx*(fradius/fradius_end)); // project end_dx onto circumference exactly
+          end_dy=(int)(end_dy*(fradius/fradius_end)); // project end_dy onto circumference exactly
         }
-  
-        int xnext_srasterised=abs(start_dy)<yradius?(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy)+1)*(abs(start_dy)+1)))+1:0; // uses same formula as used by draw_arc function
-        int xthis_srasterised=(int)(axis_ratio*sqrt(yradius*yradius-(abs(start_dy))*(abs(start_dy)))); // uses same formula as used by draw_arc function
-        if (abs(start_dx)<xnext_srasterised ) {
-          // like xnext to be smaller, so like abs(end_dy) to be larger
-          start_dy+=start_dy>0?1:-1;
-        } 
-        if (abs(start_dx)>xthis_srasterised) {
-          // like xthis to be bigger, so end_dy to be smaller
-          start_dy-=start_dy>0?1:-1; 
-        }
-  
-        draw_arc(screenbank[ds.writebank], tx, ty, xradius, yradius, start_dx,start_dy,end_dx,end_dy, colour, action);    
+        draw_arc_or_sector_or_segment(screenbank[ds.writebank], tx, ty, xradius, yradius, start_dx,start_dy,end_dx,end_dy, colour, action, (code & GRAPHOP_MASK));    
         hide_cursor();
         blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
         reveal_cursor();
       }
-      break;
-    }
-    case PLOT_SEGMENT: {
-      
-      break;
-    }
-    case PLOT_SECTOR: {
-      
       break;
     }
     /* Unhandled plots are a no-op */
@@ -4182,21 +4152,17 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
 ** Draw a horizontal line
 */
 static void draw_h_line(SDL_Surface *sr, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action) {
-  if ((x1 < 0 || x1 >= ds.vscrwidth) && (x2 < 0 || x2 >= ds.vscrwidth )) return;
   if (x1 > x2) {
     int32 tt = x1;
     x1 = x2;
     x2 = tt;
   }
-  if ( y >= 0 && y < ds.vscrheight ) {
-    int32 i;
-    if (x1 < 0) x1 = 0;
-    if (x1 >= ds.vscrwidth) x1 = ds.vscrwidth-1;
-    if (x2 < 0) x2 = 0;
-    if (x2 >= ds.vscrwidth) x2 = ds.vscrwidth-1;
-    for (i = x1; i <= x2; i++)
-      plot_pixel(sr, i, y, col, action);
-  }
+  if (x1 >= ds.vscrwidth || x2 < 0 || y<0 || y>=ds.vscrheight) return;
+  if (x1 < 0) x1 = 0;
+  if (x2 >= ds.vscrwidth) x2 = ds.vscrwidth-1;
+  int32 i;
+  for (i = x1; i <= x2; i++)
+    plot_pixel(sr, i, y, col, action);
 }
 
 /*
@@ -4419,192 +4385,182 @@ static void filled_ellipse(SDL_Surface *screen,
   }
 }
 
-/*
-** Draw an arc into a buffer
-*/
-static void draw_arc(SDL_Surface *screen, int32 xc, int32 yc, float xradius, float yradius, int32 start_dx, int32 start_dy, int32 end_dx, int32 end_dy, Uint32 colour, Uint32 action) {
-  // Use the same logic as the draw-circle routine, i.e. we draw the circle one row at a time, both left and right sides simultaneously.
-  // However for the arc, we filter exactly when to plot a point on the left and when to plot a point on the right.
-  int height=(int)yradius;
-  if (height == 0)
-    draw_h_line(screen,xc+start_dx, xc+end_dx, yc, colour, action);
-  else if (end_dy==start_dy && start_dx*end_dx>=0 && ((start_dx>=end_dx && end_dy>0)||(start_dx<=end_dx && end_dy<0))) {
-    // This arc starts and finishes on the same height, and is a minor arc, so it's just a single hline.
-    // Because this is a highly unusual situation which will otherwise break everything, it's best to handle it here right now and exit.
-    draw_h_line(screen,xc+start_dx, xc+end_dx, yc-end_dy, colour, action);
-  } else {
-    // We want to find the y-coordinates to plot on the left (we find y1l,y2l,y3l such that we plot all y-coords which satisfy (y1l<=y<=y2l or y>=y3l))
-    // Similarly, we want to find the y-coors to plot on the right  (we find y1r,y2r,y3r such that we plot all y-coords which satisfy (y1r<=y<=y2r or y>=y3r))
-    // Here, we assume the coordiante system is such that positive y goes upwards (which is WRONG but simpler to think about for now...)
-    int32 y1r,y2r,y3r,y1l,y2l,y3l;
-    if (start_dx>0 || (start_dx==0 && start_dy<0)) {
-      if (end_dx<0 || (end_dx==0 && end_dy<0) || end_dy>start_dy || (end_dy==start_dy && ((start_dy>0 && end_dx<start_dx) || (start_dy<0 && end_dx>start_dx)))) {
-        // it definitely starts going upwards on the right, and possibly over the top
-        int passes_over_the_top=(end_dx<0 || (end_dx==0 && end_dy<0));
-        y1r=start_dy;
-        y3r=height+1;
-        y2r=passes_over_the_top?height+1:end_dy;
-        if (passes_over_the_top) {
-           // we're finishing off over the top
-           y1l=end_dy;
-           y2l=y3l=height+1;
-         } else {
-           // There's nothing to draw on the left.
-           y1l=y2l=y3l=height+1;
-         }
-      } else {
-        // We have something poking from bottom of right half.
-        // end_dx >=0 and end_dy<=start_dy...
-        y1r=-height-1;
-        y2r=end_dy;
-        y3r=start_dy;
-        // fill in all of lhs
-        y1l=-height-1;
-        y2l=y3l= height+1;
-      }
+
+static void draw_h_line_with_sector_filter(SDL_Surface *sr, int32 xc, int32 yc, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action,int32 start_dx,int32 start_dy, int32 end_dx, int32 end_dy) {
+  // This function draws a horizontal line from x1+xc to x2+xc, at height y+yc; but only plots those pixels 
+  // which are in the sector defined by vectors (start_dx,start_dy) and (end_dx, end_dy), relative to circle centre (cx,cy)
+  if (x1>x2) {
+     int32 temp=x2;
+     x2=x1;
+     x1=temp;
+  }
+  // copy clipping logic from draw_h_line() method, but add on xc,yc to the x and y coordinates:
+  if (x1+xc >= ds.vscrwidth || x2+xc < 0 || y+yc<0 || y+yc>=ds.vscrheight) return;
+  if (x1+xc < 0) x1 = -xc;
+  if (x2+xc >= ds.vscrwidth) x2 = ds.vscrwidth-1-xc;
+
+  // work out whether the sector being filled is a MAJOR sector or a MINOR sector (i.e. whether the angle at the centre of the sector is >180 or <180)
+  // We know this is a major sector if the start line is less than 180 degrees anticlockwise of the end line.
+  // We know this is a minor sector if the start line is less than 180 degrees clockwise of the end line. (Remember, we fill this sector by 
+  // sweeping anticlockwise from the start line to the end line).
+  // We can check if the start line is anticlockwise of the end line by forming their cross product, as follows:
+  int32 cross_product=start_dx*end_dy-end_dx*start_dy;
+  int32 is_minor_sector=cross_product<=0;// a synonym for this would be "arc sweeps out less than 180 degrees"
+  int32 start_dx_normal_vector=start_dy;// rotates start vector 90 degrees
+  int32 start_dy_normal_vector=-start_dx;
+  int32 end_dx_normal_vector=-end_dy;// rotates end vector 90 degrees in opposite direction
+  int32 end_dy_normal_vector=end_dx;
+  // note that both normal vectors now point inwards towards the region that needs filling.
+  for (int32 x=x1;x<=x2;x++) {
+    // These next lines could be made more efficient (to avoid doing multiplications at every step of this loop).
+    // Also, we could avoid looping through multiple consecutive points that are not being plotted by just skipping
+    // to the next plotted point (with an appropriate bit of logic).
+    // But for now, let's just keep the logic clear and simple, and also
+    // just get these plot codes working reliably.
+    if (is_minor_sector) {
+      // Our sector's angle is less than 180 degrees.
+      // So this means we only plot a single minor sector.  We just need to see if we are inside that minor sector,
+      // i.e. we just need to check our point is on the correct side of BOTH normal vectors.
+      // Both normal vectors point inwards towards the minor sector which we want to fill.
+      int32 xInMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)>=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)>=0);
+      if (xInMinorSector) 
+        plot_pixel(sr, xc+x, yc+y, col, action);  
     } else {
-      // start_dx<0...
-      if (end_dx>0 || (end_dx==0 && end_dy>0) || end_dy<start_dy || (end_dy==start_dy && ((start_dy>0 && end_dx<start_dx) || (start_dy<0 && end_dx>start_dx)))) {
-        // it definitely starts off going downwards on the left, and possibly around the bottom
-        int passes_around_bottom=(end_dx>0 || (end_dx==0 && end_dy>0));
-        y3l=height+1;
-        y2l=start_dy;
-        y1l=passes_around_bottom?-height-1:end_dy;
-        if (passes_around_bottom) {
-          // yes it goes around the bottom
-          y1r=-height-1;
-          y2r=end_dy;
-          y3r=height+1;
-        } else {
-          // there's nothing to draw on the right
-          y1r=y2r=y3r=height+1;
-        }
+      // Our sector's angle is > 180 degrees
+      // Here we are drawing a MAJOR sector.  Let's call the minor sector which we don't plot as the "void".
+      // The logic to plot the major sector is to consider the opposite points to those we want.  Those opposite points, form the "void",
+      // form a minor sector.  Checking for that minor sector is simple.  The void is backwards from both normal vectors.
+      int32 xInVoidMinorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)<=0)&((x*end_dx_normal_vector+y*end_dy_normal_vector)<=0);
+      // Next, because we want the OPPOSITE of that "void" minor sector, we have a ! in the next line:
+      if (!xInVoidMinorSector) 
+        // okay, so this must be part of the Major sector...  So we plot it...
+        plot_pixel(sr, xc+x, yc+y, col, action);  
+    }
+  }
+}
+
+
+static void draw_h_line_with_segment_filter(SDL_Surface *sr, int32 xc, int32 yc, int32 x1, int32 x2, int32 y, Uint32 col, Uint32 action,int32 start_dx,int32 start_dy, int32 end_dx, int32 end_dy) {
+  // this function draws a horizontal line from x1+xc to x2+xc, at height y+yc; but only plots those pixels 
+  // which are on the correct side of the chord running from (start_dx,start_dy) to (end_dx, end_dy)
+  if (x1>x2) {
+     int32 temp=x2;
+     x2=x1;
+     x1=temp;
+  }
+  // copy clipping logic from draw_h_line() method, but add on xc,yc to the x and y coordinates:
+  if (x1+xc >= ds.vscrwidth || x2+xc < 0 || y+yc<0 || y+yc>=ds.vscrheight) return;
+  if (x1+xc < 0) x1 = -xc;
+  if (x2+xc >= ds.vscrwidth) x2 = ds.vscrwidth-1-xc;
+
+  // calculate segment's chord vector:
+  int32 chord_dx=end_dx-start_dx;
+  int32 chord_dy=end_dy-start_dy;
+  // Calculate the "normal" to the chord vector, i.e. rotate chord vector 90 degrees
+  int32 chord_dx_normal_vector=chord_dy;
+  int32 chord_dy_normal_vector=-chord_dx;
+  for (int32 x=x1;x<=x2;x++) {
+    // This next line could be made more efficient (to avoid doing multiplications at every step of this loop).
+    // Also, we could avoid looping through multiple consecutive points that are not being plotted by just skipping
+    // to the next plotted point (with an appropriate bit of logic).
+    // But for now, let's just keep the logic clear and simple, and also
+    // just get these plot codes working reliably.
+    int32 correct_side_of_chord=((x-start_dx)*chord_dx_normal_vector+(y-start_dy)*chord_dy_normal_vector)<=0;
+    if (correct_side_of_chord) 
+      // only draw pixels that are on the correct side of the segment's chord:
+      plot_pixel(sr, xc+x, yc+y, col, action);
+  }
+}
+
+
+static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 yc, float xradius, float yradius, int32 start_dx, int32 start_dy, int32 end_dx, int32 end_dy, Uint32 colour, Uint32 action, int32 action_code) {
+  // For details of the arc, sector, segment plot codes, see e.g. http://www.riscos.com/support/developers/bbcbasic/part2/complexgraphics.html
+  // Original Graphics ROM sector, arc and segment 6502 routines are dissasembled here: https://tobylobster.github.io/GXR-pages/gxr/S-s16.html
+  // This code is based on that logic, i.e. considering all pixels in a solid circle, but only plotting those pixels on the
+  // correct side of the construction vectors.
+  // (This implementation by M.Fairbank, July 2025)
+  int32 width=xradius;
+  int32 height=yradius;
+  start_dy=-start_dy; // swap coordinate system for these vectors to point in conventional mathematical direction (i.e. where +y axis points up)
+  end_dy=-end_dy;
+  int32 shear=0;
+  if (height == 0) {
+    // this arc/sector/segment is just a single point
+    draw_h_line(screen,xc,xc,yc,colour,action);  
+  } else {
+      // this loop copies the code and logic from draw_ellipse(...) as closely as possible.
+      float axis_ratio = (float) width / (float) height;
+      float shear_per_line = (float) (shear) / (float) height;
+      float xshear = 0.0;
+      int y=0;
+      int odd_sequence = 1;
+      int y_squared = 0;
+      int h_squared = height * height;
+      // Maintain the left/right coordinated of the previous, current, and next slices
+      // to allow lines to be drawn to make sure the pixels are connected
+      int xl_prev = 0;
+      int xr_prev = 0;
+      int xl_this = 0;
+      int xr_this = 0;
+      // Start at -1 to allow the pipeline to fill
+      for (y = -1; y < height; y++) {
+         float x = axis_ratio * sqrtf(h_squared - y_squared);
+         int xl_next = (int) (xshear - x);
+         int xr_next = (int) (xshear + x);
+         xshear += shear_per_line;
+         // It's probably quicker to just use y * y
+         y_squared += odd_sequence;
+         odd_sequence += 2;
+         // Initialize the pipeline for the first slice
+         if (y == 0) {
+            xl_prev = -xr_next;
+            xr_prev = -xl_next;
+         }
+         // Draw the slice as a single horizontal line
+         if (y >= 0) {
+            // Left line runs from xl_this rightwards to MAX(xl_this, MAX(xl_prev, xl_next) - 1)
+            int xl = MAX(xl_this, MAX(xl_prev, xl_next) - 1);
+            // Right line runs from xr_this leftwards to MIN(xr_this, MIN(xr_prev, xr_next) + 1)
+            int xr = MIN(xr_this, MIN(xr_prev, xr_next) + 1);
+            if (action_code==PLOT_SECTOR) {
+                draw_h_line_with_sector_filter(screen, xc,yc,xl_this, xr_this, y, colour, action,start_dx,start_dy,end_dx,end_dy);
+            } else if (action_code==PLOT_SEGMENT) {
+                draw_h_line_with_segment_filter(screen, xc,yc,xl_this, xr_this, y, colour, action,start_dx,start_dy,end_dx,end_dy);
+            } else {
+                // This is PLOT_ARC.  So we just draw the groups of pixels at the left and right of each row.
+                // However those pixels can be filtered by exactly the same logic as the sector filter, so we just 
+                // reuse that method here.
+                draw_h_line_with_sector_filter(screen, xc,yc,xl_this, xl, y, colour, action,start_dx,start_dy,end_dx,end_dy);
+                draw_h_line_with_sector_filter(screen, xc,yc,xr_this, xr, y, colour, action,start_dx,start_dy,end_dx,end_dy);
+            }
+            if (y > 0) {
+                if (action_code==PLOT_SECTOR) {
+                   draw_h_line_with_sector_filter(screen, xc,yc,xl_this, xr_this, -y, colour, action,start_dx,start_dy,end_dx,end_dy);
+                } else if (action_code==PLOT_SEGMENT) {
+                   draw_h_line_with_segment_filter(screen, xc,yc,xl_this, xr_this, -y, colour, action,start_dx,start_dy,end_dx,end_dy);
+                } else {
+                  // This is PLOT_ARC.  So we just draw the groups of pixels at the left and right of each row.
+                  // However those pixels can be filtered by exactly the same logic as the sector filter, so we just 
+                  // reuse that method here.
+                  draw_h_line_with_sector_filter(screen, xc,yc,-xl_this, -xl, -y, colour, action,start_dx,start_dy,end_dx,end_dy);
+                  draw_h_line_with_sector_filter(screen, xc,yc,-xr_this, -xr, -y, colour, action,start_dx,start_dy,end_dx,end_dy);
+                }
+            }
+         }
+         xl_prev = xl_this;
+         xr_prev = xr_this;
+         xl_this = xl_next;
+         xr_this = xr_next;
+      }
+      // Draw the final slice
+      if (action_code==PLOT_SEGMENT) {
+        draw_h_line_with_segment_filter(screen,xc,yc, +xl_this, xr_this, +height, colour, action,start_dx,start_dy,end_dx,end_dy);
+        draw_h_line_with_segment_filter(screen,xc,yc, -xl_this,-xr_this, -height, colour, action,start_dx,start_dy,end_dx,end_dy);
       } else {
-        // we have something finishing off around the top left...
-        // end_dx<0 and end_dy>start_dy
-        y3l=end_dy;
-        y2l=start_dy;
-        y1l=-height-1;
-        // fill in all of rhs...
-        y1r=-height-1;
-        y2r=y3r=height+1;
+        // This is PLOT_ARC or PLOT_SECTOR.  The logic here is the same (because this is the top/bottom single row of pixels)
+        draw_h_line_with_sector_filter(screen,xc,yc, +xl_this, xr_this, +height, colour, action,start_dx,start_dy,end_dx,end_dy);
+        draw_h_line_with_sector_filter(screen,xc,yc, -xl_this,-xr_this, -height, colour, action,start_dx,start_dy,end_dx,end_dy);
       }
-    }
-    if (y1l>y2l || y2l>y3l) fprintf(stderr, "WARN, not in increasing order yL %d %d %d \n", y1l,y2l,y3l);
-    if (y1r>y2r || y2r>y3r) fprintf(stderr, "WARN, not in increasing order yR %d %d %d \n", y1r,y2r,y3r);
-
-    // the following code is copied from the draw_ellipse function, and modified slightly.
-    // The main modification is that we should only draw a line on the left if the y coordinate satisfies (y1l<=y<=y2l or y>=y3l).  Similarly for the right.
-    float axis_ratio = (float) xradius / (float) yradius;
-    int y=0;
-    float h_squared = yradius * yradius;
-    // Maintain the left/right coordinated of the previous, current, and next slices
-    // to allow lines to be drawn to make sure the pixels are connected
-    int xl_this = 0;
-    int xr_this = 0;
-    // Start at -1 to allow the pipeline to fill
-    for (y = -1; y < height+1; y++) {
-      int y_squared=(y+1)*(y+1);
-      float x_next = y<height?(axis_ratio * sqrtf(h_squared - y_squared)):0;
-      int xl_next = (int) ( - x_next);
-      int xr_next = (int) ( + x_next);
-      // Initialize the pipeline for the first slice
-      // Draw the slice as a single horizontal line
-      if (y >= 0) {
-        // Left line runs from xl_this rightwards to MAX(xl_this, MAX(xl_prev, xl_next) - 1)
-        int xl = MAX(xl_this, xl_next - 1);
-        // Right line runs from xr_this leftwards to MIN(xr_this, MIN(xr_prev, xr_next) + 1)
-        int xr = MIN(xr_this, xr_next + 1);
-
-        // should be simple to filter each point now, however there is potentially some extra clipping
-        // if we are on the start of the arc (at start_dx,start_dy) or the end of the arc (at end_dx,end_dy).
-        // So "clipping" is only referring to the start/end of the arc; 
-        // "clipping" does not refer to the sides of the graphics window - that is handled separately by the draw_h_line function.
-        if (y==height) {
-          xl=-1; // the final top and bottom hlines should not meet in the middle (in case we have GCOL3,x EOR colour selected)
-          xr=0;
-        }
-        int x1=xc + xr;
-        int x2=xc + xr_this;
-        // Note that earlier the filtering to generate y1l,y2l,y3l,y1r,y2r,y3r was assuming positive y is upwards.
-        // As this was not true, we have a -y appearing often below....!
-        
-        // bottom right quadrant:
-        if (-y==end_dy && end_dx>=0) {// bottom right clipping
-          x2=xc + end_dx;
-        }
-        if (-y==start_dy && start_dx>=0) {// bottom right clipping
-          x1=xc + start_dx;
-        }
-        if ((-y>=y1r && -y<=y2r)||-y>=y3r) {
-          if (x1<=x2)
-            draw_h_line(screen, x1, x2, yc + y, colour, action);
-          else {
-            // really unusual situation due to clipping x1 and x2 have swapped over.  Hence need two draw statements:
-            if (xc+xr<=x2) draw_h_line(screen, xc+xr, x2, yc + y, colour, action);
-            if (x1<=xc+xr_this) draw_h_line(screen, x1, xc + xr_this, yc + y, colour, action);
-          }
-        }
-        //bottom left quadrant:
-        x2=xc + xl;
-        x1=xc + xl_this;
-        if (-y==end_dy && end_dx<0) {// bottom left clipping
-          x2=xc + end_dx;
-        }
-        if (-y==start_dy && start_dx<0) {// bottom left clipping
-          x1=xc + start_dx;
-        }
-        if ((-y>=y1l && -y<=y2l)||-y>=y3l) {
-          if (x1<=x2)
-            draw_h_line(screen, x1, x2, yc + y, colour, action);
-          else {
-            // really unusual situation due to clipping x1 and x2 have swapped over.  Hence need two draw statements:
-            if (xc+xl_this<=x2) draw_h_line(screen, xc + xl_this, x2, yc + y, colour, action);
-            if (x1<xc+xl) draw_h_line(screen, x1, xc + xl, yc + y, colour, action);
-          }
-        }
-
-        if (y > 0) {
-          // top right quadrant
-          x1=xc - xl;
-          x2=xc - xl_this;
-          if (y==end_dy && end_dx>=0) {// top right clipping of LHS of the hline
-            x1=MAX(x1,xc + end_dx);
-          }
-          if (y==start_dy && start_dx>=0) {// top right clipping of RHS of the hline
-            x2=MIN(x2,xc + start_dx);
-          }
-          if ((y>=y1r && y<=y2r)||y>=y3r) {
-            if (x1<=x2)
-              draw_h_line(screen, x1, x2, yc - y, colour, action);
-            else {
-              // really unusual situation due to clipping x1 and x2 have swapped over.  Hence need two draw statements:
-              if (xc-xl<=x2) draw_h_line(screen, xc - xl, x2, yc - y, colour, action);// This is drawing the unwanted left pixel!!!!  from xc-xl=161 to x2=160
-              if (x1<=xc-xl_this) draw_h_line(screen, x1, xc - xl_this, yc - y, colour, action); // this is drawing the wanted right pixel
-            }
-          }
-
-          // top left quadrant
-          x2=xc - xr;
-          x1=xc - xr_this;
-          if (y==end_dy && end_dx<0) // top left clipping
-             x1=xc + end_dx;
-          if (y==start_dy && start_dx<=0) // top left clipping
-             x2=xc + start_dx;
-          if ((y>=y1l && y<=y2l)||y>=y3l) {
-            if (x1<=x2)
-              draw_h_line(screen, x1,x2, yc - y, colour, action);
-            else {
-              // really unusual situation due to clipping x1 and x2 have swapped over.  Hence need two draw statements:
-              if (xc-xr_this<=x2) draw_h_line(screen, xc - xr_this, x2, yc - y, colour, action);
-              if (x1<=xc-xr) draw_h_line(screen, x1, xc - xr, yc - y, colour, action);
-            }
-          }
-        }
-      }
-      xl_this = xl_next;
-      xr_this = xr_next;
-    }
   }
 }
 
