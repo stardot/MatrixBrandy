@@ -3289,9 +3289,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   
       xr=ds.xlast2-ds.xlast;
       if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-        draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action, 1);
-      else {
         draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action, 0);
+      else {
+        draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action, 1);
       }
       /* To match RISC OS, xlast needs to be the right-most point not left-most. */
       ds.xlast+=(xr*2);
