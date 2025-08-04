@@ -251,9 +251,8 @@ static void reveal_cursor(void);
 static void plot_pixel(SDL_Surface *, int32, int32, Uint32, Uint32);
 static void draw_line(SDL_Surface *, int32, int32, int32, int32, Uint32, int32, Uint32);
 static void filled_triangle(SDL_Surface *, int32, int32, int32, int32, int32, int32, Uint32, Uint32);
-static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
+static void draw_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32, Uint32);
 static void draw_arc_or_sector_or_segment(SDL_Surface *, int32, int32, float, float, int32, int32, int32, int32, Uint32, Uint32, int32);
-static void filled_ellipse(SDL_Surface *, int32, int32, int32, int32, int32, Uint32, Uint32);
 static void set_text_colour(boolean background, int colnum);
 static void set_graphics_colour(boolean background, int colnum);
 #endif
@@ -3290,9 +3289,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   
       xr=ds.xlast2-ds.xlast;
       if ((code & GRAPHOP_MASK) == PLOT_CIRCLE)
-        draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+        draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action, 1);
       else {
-        filled_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action);
+        draw_ellipse(screenbank[ds.writebank], sx, sy, xradius, yradius, 0, colour, action, 0);
       }
       /* To match RISC OS, xlast needs to be the right-most point not left-most. */
       ds.xlast+=(xr*2);
@@ -3319,9 +3318,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       shearx=(GXTOPX(ds.xlast)-tx)*(ds.ylast3 > ds.ylast ? 1 : -1); /* Hopefully this corrects some incorrectly plotted ellipses? */
   
       if ((code & GRAPHOP_MASK) == PLOT_ELLIPSE)
-        draw_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
+        draw_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action, 0);
       else {
-        filled_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action);
+        draw_ellipse(screenbank[ds.writebank], tx, ty, semimajor, semiminor, shearx, colour, action, 1);
       }
       /*
       ** ex = sx-semimajor;  ey = sy-semiminor;
@@ -4278,10 +4277,11 @@ static void filled_triangle(SDL_Surface *sr, int32 x1, int32 y1, int32 x2, int32
 }
 
 /*
-** Draw an ellipse into a buffer
+** Draw or fill an ellipse into a buffer
 ** This code is based on the RISC OS implementation, as translated from ARM to C by hoglet@Stardot for PiTubeDirect.
 */
-static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, int32 height, int32 shear, Uint32 colour, Uint32 action) {
+static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, int32 height, int32 shear, Uint32 colour, Uint32 action, Uint32 fill_ellipse) {
+  // this will draw an ellipse outline (and fill it, if fill_ellipse!=0)
   if (height == 0) {
     draw_h_line(screen,xc-width, xc+width, yc, colour, action);
   } else {
@@ -4314,15 +4314,24 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
          }
          // Draw the slice as a single horizontal line
          if (y >= 0) {
-            // Left line runs from xl_this rightwards to MAX(xl_this, MAX(xl_prev, xl_next) - 1)
-            int xl = MAX(xl_this, MAX(xl_prev, xl_next) - 1);
-            // Right line runs from xr_this leftwards to MIN(xr_this, MIN(xr_prev, xr_next) + 1)
-            int xr = MIN(xr_this, MIN(xr_prev, xr_next) + 1);
-            draw_h_line(screen, xc + xl_this, xc + xl, yc + y, colour, action);
-            draw_h_line(screen, xc + xr_this, xc + xr, yc + y, colour, action);
-            if (y > 0) {
-               draw_h_line(screen, xc - xl_this, xc - xl, yc - y, colour, action);
-               draw_h_line(screen, xc - xr_this, xc - xr, yc - y, colour, action);
+            if (fill_ellipse) {
+              // Draw the slice as a single horizontal line
+              draw_h_line(screen, xc + xl_this, xc + xr_this, yc + y, colour, action);
+              if (y > 0) {
+                 draw_h_line(screen, xc - xl_this, xc - xr_this, yc - y, colour, action);
+              }
+            } else {
+              // This is an ellipse outline.  Need to draw left and right edges:
+              // Left line runs from xl_this rightwards to MAX(xl_this, MAX(xl_prev, xl_next) - 1)
+              int xl = MAX(xl_this, MAX(xl_prev, xl_next) - 1);
+              // Right line runs from xr_this leftwards to MIN(xr_this, MIN(xr_prev, xr_next) + 1)
+              int xr = MIN(xr_this, MIN(xr_prev, xr_next) + 1);
+              draw_h_line(screen, xc + xl_this, xc + xl, yc + y, colour, action);
+              draw_h_line(screen, xc + xr_this, xc + xr, yc + y, colour, action);
+              if (y > 0) {
+                draw_h_line(screen, xc - xl_this, xc - xl, yc - y, colour, action);
+                draw_h_line(screen, xc - xr_this, xc - xr, yc - y, colour, action);
+              }
             }
          }
          xl_prev = xl_this;
@@ -4333,45 +4342,6 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
       // Draw the final slice
       draw_h_line(screen, xc + xl_this, xc + xr_this, yc + height, colour, action);
       draw_h_line(screen, xc - xl_this, xc - xr_this, yc - height, colour, action);
-  }
-}
-
-/*
-** Draw a filled ellipse into a buffer
-*/
-
-static void filled_ellipse(SDL_Surface *screen, 
-  int32 xc, /* Centre X */
-  int32 yc, /* Centre Y */
-  int32 width, /* Width */
-  int32 height, /* Height */
-  int32 shear, /* X shear */
-  Uint32 colour, Uint32 action
-) {
-  if (height == 0) {
-    draw_h_line(screen, xc - width, xc + width, yc, colour, action);
-  } else {
-    float axis_ratio = (float) width / (float) height;
-    float shear_per_line = (float) (shear) / (float) height;
-    float xshear = 0.0;
-    int y=0;
-    int odd_sequence = 1;
-    int y_squared = 0;
-    int h_squared = height * height;
-    for (y = 0; y <= height; y++) {
-      float x = axis_ratio * sqrtf(h_squared - y_squared);
-      int xl = (int) (xshear - x);
-      int xr = (int) (xshear + x);
-      xshear += shear_per_line;
-      // It's probably quicker to just use y * y
-      y_squared += odd_sequence;
-      odd_sequence += 2;
-      // Draw the slice as a single horizontal line
-      draw_h_line(screen, xc + xl, xc + xr, yc + y, colour, action);
-      if (y > 0) {
-         draw_h_line(screen, xc - xl, xc - xr, yc - y, colour, action);
-      }
-    }
   }
 }
 
