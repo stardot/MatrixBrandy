@@ -2763,7 +2763,7 @@ static void check_arraytype(basicarray *result, basicarray *lharray, basicarray 
     result->dimcount = 1;               /* Result is a column vector the same size as the second array */
     result->dimsize[ROW] = result->arrsize = lhrows;
   }
-  else {                /* Multiplying two two dimensional matrixes */
+  else {                /* Multiplying two two-dimensional matrixes */
     if (lhcols != rhrows) {
       DEBUGFUNCMSGOUT;
       error(ERR_MATARRAY);
@@ -2803,7 +2803,7 @@ static void eval_immul(void) {
   if (rharray->dimcount != 1) rhrowsize = rharray->dimsize[COLUMN];
   lhbase = lharray->arraystart.intbase;
   rhbase = rharray->arraystart.intbase;
-  if (lharray->dimcount == 1) { /* Result is a row vector */
+  if (lharray->dimcount == 1) { /* Multiplying a vector by a matrix.  Result is a (row) vector */
     for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
       sum = 0;
       for (col = 0; col < lharray->dimsize[ROW]; col++) {
@@ -2812,7 +2812,7 @@ static void eval_immul(void) {
       base[resindex] = sum;
     }
   }
-  else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Result is a column vector */
+  else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Multiplying matrix by a vector.  Result is a (row) vector */
     for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
       sum = 0;
       for (col = 0; col < rharray->dimsize[ROW]; col++) {
@@ -2821,10 +2821,10 @@ static void eval_immul(void) {
       base[resindex] = sum;
     }
   }
-  else {        /* Multiplying two two dimensional matrices */
+  else {        /* Multiplying two two-dimensional matrices */
     resindex = 0;
-    for (row = 0; row < result.dimsize[ROW]; row++) {
-      for (col = 0; col < result.dimsize[COLUMN]; col++) {
+    for (row = 0; row < result.dimsize[ROW]; row++) {   /* Row in the result array */
+      for (col = 0; col < result.dimsize[COLUMN]; col++) {      /* Column in the result array */
         int lhcol;
         sum = 0;
         for (lhcol = 0; lhcol < lharray->dimsize[COLUMN]; lhcol++) {
@@ -2866,7 +2866,7 @@ static void eval_fmmul(void) {
   if (rharray->dimcount != 1) rhrowsize = rharray->dimsize[COLUMN];
   lhbase = lharray->arraystart.floatbase;
   rhbase = rharray->arraystart.floatbase;
-  if (lharray->dimcount == 1) { /* Result is a row vector */
+  if (lharray->dimcount == 1) { /* Multiplying a vector by a matrix.  Result is a (row) vector */
     for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
       sum = 0;
       for (col = 0; col < lharray->dimsize[ROW]; col++) {
@@ -2875,7 +2875,7 @@ static void eval_fmmul(void) {
       base[resindex] = sum;
     }
   }
-  else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /*  Result is a column vector */
+  else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Multiplying matrix by a vector.  Result is a (row) vector */
     for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
       sum = 0;
       for (col = 0; col < rharray->dimsize[ROW]; col++) {
@@ -2884,7 +2884,7 @@ static void eval_fmmul(void) {
       base[resindex] = sum;
     }
   }
-  else {        /* Multiplying two two dimensional matrices */
+  else {        /* Multiplying two two-dimensional matrices */
     resindex = 0;
     for (row = 0; row < result.dimsize[ROW]; row++) {   /* Row in the result array */
       for (col = 0; col < result.dimsize[COLUMN]; col++) {      /* Column in the result array */
