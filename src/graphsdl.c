@@ -3349,7 +3349,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       
       int start_dx=xlast2-tx;//displacement to start point from centre
       int start_dy=ylast2-ty;//displacement to start point from centre
-      float fradius=sqrtf(start_dx*start_dx*ds.xgupp*ds.xgupp+start_dy*start_dy*ds.ygupp*ds.ygupp)+0.5;
+      float fradius=sqrtf(start_dx*start_dx*ds.xgupp*ds.xgupp+start_dy*start_dy*ds.ygupp*ds.ygupp);
       xradius = (fradius/ds.xgupp);
       yradius = (fradius/ds.ygupp);
       int end_dx=xlast-tx;//displacement to end point from centre
