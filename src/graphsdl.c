@@ -4363,23 +4363,28 @@ static void draw_h_line_with_sector_segment_filter(SDL_Surface *sr, int32 xc, in
   int32 start_dy_normal_vector=-start_dx;
   int32 end_dx_normal_vector=-end_dy;// rotates end vector 90 degrees in opposite direction
   int32 end_dy_normal_vector=end_dx;
+  // note that both normal vectors now point inwards towards the region that needs filling.
   
   // calculate segment's chord vector (only used if is_segment!=0):
   int32 chord_dx=end_dx-start_dx;
   int32 chord_dy=end_dy-start_dy;
   // Calculate the "normal" to the chord vector, i.e. rotate chord vector 90 degrees
-  int32 chord_dx_normal_vector=chord_dy;
-  int32 chord_dy_normal_vector=-chord_dx;
-  // note that both normal vectors now point inwards towards the region that needs filling.
-  for (int32 x=x1;x<=x2;x++) {
-    // These next lines could be made more efficient (to avoid doing multiplications at every step of this loop).
-    // Also, we could avoid looping through multiple consecutive points that are not being plotted by just skipping
-    // to the next plotted point (with an appropriate bit of logic).
-    // But for now, let's just keep the logic clear and simple, and also
-    // just get these plot codes working reliably.
-    int32 correct_side_of_chord=is_segment?(((x-start_dx)*chord_dx_normal_vector+(y-start_dy)*chord_dy_normal_vector)<=0):0;// only used for segment
-    int32 correct_side_of_start_vector=(x*start_dx_normal_vector+y*start_dy_normal_vector)>=0;
-    int32 correct_side_of_end_vector=(x*end_dx_normal_vector+y*end_dy_normal_vector)>=0;
+  int32 chord_dx_normal_vector=-chord_dy;
+  int32 chord_dy_normal_vector=chord_dx;
+
+  int32 x=x1;
+  //The following 3 dot products indicate which side of the vectors/chord that the point (x,y) is at.  These dot products
+  // are positive if (x,y) is on the side indicated by the direction of the corresponding normal vector.
+  int dot_product_for_chord=(x-start_dx)*chord_dx_normal_vector+(y-start_dy)*chord_dy_normal_vector;// only used for segment
+  int dot_product_for_start_vector=x*start_dx_normal_vector+y*start_dy_normal_vector;
+  int dot_product_for_end_vector=x*end_dx_normal_vector+y*end_dy_normal_vector;
+    
+  for (x=x1;x<=x2;x++) {
+    // the following 3 booleans say which side of the vectors/chord that the point (x,y) is at.  These are true if (x,y) is on
+    // the side indicated by the corresponding normal vector.
+    int32 correct_side_of_chord=dot_product_for_chord>=0;// only used for segment
+    int32 correct_side_of_start_vector=dot_product_for_start_vector>=0;
+    int32 correct_side_of_end_vector=dot_product_for_end_vector>=0;
     if (is_minor_sector) {
       // Our sector's angle is less than 180 degrees.
       // So this means we only plot a single minor sector.  We just need to see if we are inside that minor sector,
@@ -4403,6 +4408,11 @@ static void draw_h_line_with_sector_segment_filter(SDL_Surface *sr, int32 xc, in
         // Otherwise, for very small void angles, pixels can be missed from the segment due to rounding errors.
         plot_pixel(sr, xc+x, yc+y, col, action);  
     }
+    // Now, as we move to the next pixel, update the 3 dot products to be applicable for the next point (x+1,y)
+    // To do this, we just increase each dot product by their coefficient of x:
+    dot_product_for_chord+=chord_dx_normal_vector;// only used for segment
+    dot_product_for_start_vector+=start_dx_normal_vector;
+    dot_product_for_end_vector+=end_dx_normal_vector;
   }
 }
 
