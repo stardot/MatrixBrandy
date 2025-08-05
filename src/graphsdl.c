@@ -4285,13 +4285,14 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
   if (height == 0) {
     draw_h_line(screen,xc-width, xc+width, yc, colour, action);
   } else {
-      float axis_ratio = (float) width / (float) height;
+      float oversize=0.5;
+      float axis_ratio = (float) (width+oversize) / (float) (height+oversize);
       float shear_per_line = (float) (shear) / (float) height;
       float xshear = 0.0;
       int y=0;
       int odd_sequence = 1;
       int y_squared = 0;
-      int h_squared = height * height;
+      float h_squared = (height+oversize) * (height+oversize);
       // Maintain the left/right coordinated of the previous, current, and next slices
       // to allow lines to be drawn to make sure the pixels are connected
       int xl_prev = 0;
@@ -4449,13 +4450,14 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
     draw_h_line(screen,xc,xc,yc,colour,action);  
   } else {
       // this loop copies the code and logic from draw_ellipse(...) as closely as possible.
-      float axis_ratio = (float) width / (float) height;
+      float oversize=0.5;// this makes the circles a bit fatter, and avoids leaving a single pixel at the top and bottom
+      float axis_ratio = (float) (width+oversize) / (float) (height+oversize);
       float shear_per_line = (float) (shear) / (float) height;
       float xshear = 0.0;
       int y=0;
       int odd_sequence = 1;
       int y_squared = 0;
-      int h_squared = height * height;
+      float h_squared = (height+oversize) * (height+oversize);
       // Maintain the left/right coordinated of the previous, current, and next slices
       // to allow lines to be drawn to make sure the pixels are connected
       int xl_prev = 0;
