@@ -4395,18 +4395,17 @@ static void draw_h_line_with_sector_segment_filter(SDL_Surface *sr, int32 xc, in
         // For a segment, with a small angle like this (minor sector) we are using the sector check AND the segment chord check together.
         // otherwise, for very small angle segments, pixels can leak out of the sector due to rounding errors.
         plot_pixel(sr, xc+x, yc+y, col, action);  
-    } else if (is_segment) {
-      if (correct_side_of_chord) 
-        plot_pixel(sr, xc+x, yc+y, col, action);  
     } else {
       // Our sector's angle is > 180 degrees
-      // Here we are drawing a MAJOR sector.  Let's call the minor sector which we don't plot as the "void".
-      // The logic to plot the major sector is to consider the opposite points to those we want.  Those opposite points, form the "void",
-      // form a minor sector.  Checking for that minor sector is simple.  The void is backwards from both normal vectors.
-      // Note that NOT(Void)=not(wrong side of both vectors) = correct side of either of the two vectors.  So we use an OR condition in the next line:
+      // Here we are drawing a MAJOR sector or segment.  Let's call the minor sector which we don't plot as the "void".
+      // The logic to plot the major sector is to consider the opposite points to those we want.  Those opposite points, form a minor-sector "void",
+      // Checking for that minor sector is simple.  The void is backwards from both normal vectors.
+      // Note that NOT(Void)=not(backwards from both normal vectors) = forward side of EITHER of the two vectors.  So we use an OR condition in the next line:
       int32 xInMajorSector=((x*start_dx_normal_vector+y*start_dy_normal_vector)>=0)||((x*end_dx_normal_vector+y*end_dy_normal_vector)>=0);
-      if (xInMajorSector) 
+      if (xInMajorSector || (correct_side_of_chord && is_segment==1)) 
         // okay, so this must be part of the Major sector...  So we plot it...
+        // For a major segment, with a very small void angle, we are using the sector check OR the segment chord check together.
+        // Otherwise, for very small void angles, pixels can be missed from the segment due to rounding errors.
         plot_pixel(sr, xc+x, yc+y, col, action);  
     }
   }
