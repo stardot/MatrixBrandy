@@ -4288,10 +4288,8 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
     float axis_ratio = (float) (width+oversize) / (float) (height+oversize);
     float shear_per_line = (float) (shear) / (float) height;
     float xshear = 0.0;
-    int odd_sequence = 1;
-    int y_squared = 0;
     float h_squared = (height+oversize) * (height+oversize);
-    // Maintain the left/right coordinated of the previous, current, and next slices
+    // Maintain the left/right coordinates of the previous, current, and next slices
     // to allow lines to be drawn to make sure the pixels are connected
     int xl_prev = 0;
     int xr_prev = 0;
@@ -4299,13 +4297,11 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
     int xr_this = 0;
     // Start at -1 to allow the pipeline to fill
     for (int y = -1; y < height; y++) {
-      float x = axis_ratio * sqrtf(h_squared - y_squared);
+      int y_squared_next=(y+1)*(y+1);
+      float x = axis_ratio * sqrtf(h_squared - y_squared_next);
       int xl_next = (int) (xshear - x);
       int xr_next = (int) (xshear + x);
       xshear += shear_per_line;
-      // It's probably quicker to just use (y+1) * (y+1)
-      y_squared += odd_sequence;
-      odd_sequence += 2;
       // Initialize the pipeline for the first slice
       if (y == 0) {
         xl_prev = -xr_next;
@@ -4443,10 +4439,8 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
     float axis_ratio = (float) (width+oversize) / (float) (height+oversize);
     float shear_per_line = (float) (shear) / (float) height;
     float xshear = 0.0;
-    int odd_sequence = 1;
-    int y_squared = 0;
     float h_squared = (height+oversize) * (height+oversize);
-    // Maintain the left/right coordinated of the previous, current, and next slices
+    // Maintain the left/right coordinates of the previous, current, and next slices
     // to allow lines to be drawn to make sure the pixels are connected
     int xl_prev = 0;
     int xr_prev = 0;
@@ -4454,13 +4448,11 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
     int xr_this = 0;
     // Start at -1 to allow the pipeline to fill
     for (int y = -1; y < height; y++) {
-      float x = axis_ratio * sqrtf(h_squared - y_squared);
+      int y_squared_next=(y+1)*(y+1);
+      float x = axis_ratio * sqrtf(h_squared - y_squared_next);
       int xl_next = (int) (xshear - x);
       int xr_next = (int) (xshear + x);
       xshear += shear_per_line;
-      // It's probably quicker to just use (y+1) * (y+1)
-      y_squared += odd_sequence;
-      odd_sequence += 2;
       // Initialize the pipeline for the first slice
       if (y == 0) {
         xl_prev = -xr_next;
