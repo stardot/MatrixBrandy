@@ -3309,7 +3309,7 @@ void emulate_plot(int32 code, int32 x, int32 y) {
   /*
   ** (xlast3, ylast3) is the centre of the ellipse. (xlast2, ylast2) is a
   ** point on the circumference in the +ve X direction and (xlast, ylast)
-  ** is a point on the circumference in the +ve Y direction
+  ** is the highest point on the circumference
   */
       semimajor = abs(ds.xlast2-ds.xlast3)/ds.xgupp;
       semiminor = abs(ds.ylast-ds.ylast3)/ds.ygupp;
@@ -3327,7 +3327,15 @@ void emulate_plot(int32 code, int32 x, int32 y) {
       ** (ex, ey) = coordinates of top left hand corner of the rectangle that contains the ellipse
       */
       hide_cursor();
-      blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
+      // Calculate bounding box of ellipse to blit
+      // (Here the y-limits are straight forward, it's just the top of the ellipse, which is one of the control points (i.e. ds.ylast). 
+      // The width of a rectangle surrounding the ellipse is theoretically given by sqrt(x_top^2+x_width^2)
+      // where x_top is (ds.xlast-cx) and x_width is (ds.xlast2-cx).  We know this by maximising the equation of the ellipse curve
+      // used in draw_ellipse, i.e. maximise x=aspect_ratio*sqrt(height^2-y^2)+shear*y) with respect to y.
+      // Doing this in wolfram alpha querying "maximise y=a*sqrt(h^2-x^2)+c*x, with respect to x, for 0<x<h, h>0, c>0, a>0" gives
+      // height*sqrt(aspect_ratio^2+shear^2), which equals sqrt(x_top^2+x_width^2))
+      int ellipse_max_width=(int) sqrt(semimajor*semimajor+(GXTOPX(ds.xlast)-tx)*(GXTOPX(ds.xlast)-tx))+2; // add 2 to account for possible rounding errors
+      blit_scaled(tx-ellipse_max_width, ty-semiminor, tx+ellipse_max_width, ty+semiminor);
       reveal_cursor();
       break;
     }
@@ -3365,8 +3373,11 @@ void emulate_plot(int32 code, int32 x, int32 y) {
           end_dy=(int)(end_dy*(fradius/fradius_end)); // project end_dy onto circumference exactly
         }
         draw_arc_or_sector_or_segment(screenbank[ds.writebank], tx, ty, xradius, yradius, start_dx,start_dy,end_dx,end_dy, colour, action, (code & GRAPHOP_MASK));    
+        ex = tx-xradius-1;
+        ey = ty-yradius-1;
+    /* (ex, ey) = coordinates of top left hand corner of the rectangle that contains the circle */
         hide_cursor();
-        blit_scaled(0,0,ds.vscrwidth,ds.vscrheight);
+        blit_scaled(ex, ey, ex+2*xradius+2, ey+2*yradius+2);
         reveal_cursor();
       }
       break;
