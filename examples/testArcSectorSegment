@@ -1,0 +1,32 @@
+   10REM >TestArcSectorSegment
+   20MODE 0
+   30ORIGIN 640,512
+   40SX%=-34:SY%=-200
+   50OX%=0:OY%=0:OB%=0
+   60MOUSE ON
+   70REPEAT
+   80MOUSE X%,Y%,B%
+   90IF X%<>OX% OR Y%<>OY% OR B%<>OB% THEN
+  100CLS
+  110PRINT"Left Sector and arc start and end angles should match."
+  120PRINT"Right Segment and arc start and end angles should match."
+  130PRINT"Drag mouse to move start angle and radius"
+  140MOVE -240,0
+  150DRAW -240+SX%, SY%
+  160IF B%<>0 SX%=X%-240:SY%=Y%-0
+  170PLOT &A5,X%,Y%:REM arc
+  180DRAW -240,0
+  190MOVE -240,0
+  200DRAW -240+SX%*0.8, SY%*0.8
+  210PLOT &B5,X%,Y%:REM sector
+  220
+  230MOVE 240,0
+  240MOVE 240+SX%*0.8, SY%*0.8
+  250PLOT &AD,X%+240,Y% :REM segment
+  260MOVE 240,0:MOVE 240+SX%, SY%:PLOT &A5,X%+240,Y%:REM arc
+  270LINE 240,0,240+SX%,SY%:LINE 240,0,240+X%,Y%
+  280OX%=X%:OY%=Y%:OB%=B%
+  290WAIT
+  300ENDIF
+  310WAIT
+  320UNTIL FALSE
