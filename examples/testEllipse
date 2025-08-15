@@ -1,0 +1,56 @@
+   10REM >testEllipse
+   20MODE 12
+   30ORIGIN640,512
+   40SX%=80:REM this is the side point of the ellipse (i.e. x-axis intercept)
+   50OX%=0:OY%=0:OB%=0
+   60MOUSE ON
+   70REPEAT
+   80MOUSE X%,Y%,B%
+   90IF X%<>OX% OR Y%<>OY% OR B%<>OB% THEN
+  100CLS
+  110PRINT"Green ellipse tests ELLIPSE FILL command.  Blue lines show major/minor axes."
+  120PRINT"White ellipses are PLOT 205 (filled) and PLOT197 (outline)"
+  130PRINT"Red lines show PLOT205 control points.  All 3 ellipses should be parallel."
+  140PRINT"Click and hold mouse to shift x-axis control point"
+  150GCOL0,7:REM white
+  160MOVE 0,0:REM centre of ellipse
+  170MOVE SX%*1.2,0:REM side point of ellipse (i.e. x-axis intercept)
+  180IF B%<>0 SX%=X%
+  190PLOT 197,X%*1.2,Y%*1.2:REM Top point of ellipse; draw ellipse outline
+  200
+  210MOVE 0,0:REM centre of ellipse
+  220MOVE SX%,0:REM side point of ellipse (i.e. x-axis intercept)
+  230PLOT 205,X%,Y% :REM Top point of ellipse; draw filled ellipse
+  240
+  250IF Y%<>0 AND SX%<>0 THEN
+  260REM Test the ELLIPSE FILL cx,cy,major,minor,angle command.
+  270REM To test this, we need to convert the plot 197 control points into major and minor axis lengths, plus a rotation angle alpha for the ellipse
+  280REM First convert the ellipse into a more familiar Cartesian form, Ax^2+Bxy+Cy^2=1
+  290REM on x axis, y=0, so Cartesian form simplifies to Ax^2=1.  Solve for A...
+  300A=1/SX%^2
+  310REM at top of ellipse, dy/dx=0, so -2xA-By=0, so use this to find B:
+  320B=2*X%*A/-Y%
+  330REM Use fact that the cartesian curve passes through (X%,Y%) and solve for C
+  340C=(1-A*X%^2-B*X%*Y%)/Y%^2
+  350REM calc ellipse angle, using formulae on https://en.wikipedia.org/wiki/Ellipse#General_ellipse with D=0,E=0,F=-1
+  360alpha=ATN(-B,C-A)/2:REM in matrix brandy, ATN(a,b) implements atan2 function.
+  370REM calc major + minor axis lengths, using formulae on https://en.wikipedia.org/wiki/Ellipse#General_ellipse with D=0,E=0,F=-1
+  380major=-SQR(-2*(B^2-4*A*C)*((A+C)+SQR((A-C)^2+B^2)))/(B^2-4*A*C)
+  390minor=-SQR(-2*(B^2-4*A*C)*((A+C)-SQR((A-C)^2+B^2)))/(B^2-4*A*C)
+  400REM now we have ellipse in major,minor,alpha form, we can use the ELLIPSE FILL command and check it produces an aligned ellipse.
+  410GCOL0,2:REM green
+  420ELLIPSE FILL 0,0,major*0.8,minor*0.8,alpha
+  430GCOL0,4:REM blue. Draw major and minor axes...
+  440LINE -major*0.8*COS(alpha), -major*0.8*SIN(alpha), major*0.8*COS(alpha), major*0.8*SIN(alpha)
+  450LINE +minor*0.8*SIN(alpha), -minor*0.8*COS(alpha),-minor*0.8*SIN(alpha), minor*0.8*COS(alpha)
+  460ENDIF
+  470
+  480GCOL 0,1:REM red.  Draw control points for white ellipse...
+  490LINE 0,0,SX%,0
+  500LINE 0,0,X%,Y%
+  510
+  520OX%=X%:OY%=Y%:OB%=B%
+  530WAIT
+  540ENDIF
+  550WAIT
+  560UNTIL FALSE
