@@ -21,6 +21,9 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
   program un-RUN-able.
 - BASIC: MOD and DIV with floating-point arguments are now supported.
   (They are, of course, converted to ints before processing.)
+- BASIC: Fixed a subtle bug in comparison functions where comparing large
+  64-bit integers that can't be accurately stored in a float may give
+  incorrect answers.
 
 * 1.23.5 - 06 April 2025
 - General: Implement code fixes based on GCC 14.2's -fanalyze feature.

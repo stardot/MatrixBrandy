@@ -3746,7 +3746,10 @@ static void eval_iveq(void) {
   int64 rhint = pop_anyint();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() == rhint ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() == rhint ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() == rhint ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3759,7 +3762,10 @@ static void eval_fveq(void) {
   floatvalue = pop_float();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() == floatvalue ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() == floatvalue ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() == floatvalue ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3798,7 +3804,10 @@ static void eval_ivne(void) {
   int64 rhint = pop_anyint();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() != rhint ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() != rhint ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() != rhint ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3808,7 +3817,13 @@ static void eval_ivne(void) {
 */
 static void eval_fvne(void) {
   floatvalue = pop_float();
-  push_int(pop_anynumfp() != floatvalue ? BASTRUE : BASFALSE);
+
+  DEBUGFUNCMSGIN;
+  if (TOPITEMISINT)
+    push_int(pop_anyint() != floatvalue ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() != floatvalue ? BASTRUE : BASFALSE);
+  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -3845,7 +3860,10 @@ static void eval_ivgt(void) {
   int64 rhint = pop_anyint();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() > rhint ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() > rhint ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() > rhint ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3857,7 +3875,10 @@ static void eval_fvgt(void) {
   floatvalue = pop_float();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() > floatvalue ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() > floatvalue ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() > floatvalue ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3901,7 +3922,10 @@ static void eval_ivlt(void) {
   int64 rhint = pop_anyint();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() < rhint ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() < rhint ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() < rhint ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3913,7 +3937,10 @@ static void eval_fvlt(void) {
   floatvalue = pop_float();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() < floatvalue ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() < floatvalue ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() < floatvalue ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3957,7 +3984,10 @@ static void eval_ivge(void) {
   int64 rhint = pop_anyint();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() >= rhint ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() >= rhint ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() >= rhint ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -3969,7 +3999,10 @@ static void eval_fvge(void) {
   floatvalue = pop_float();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() >= floatvalue ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() >= floatvalue ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() >= floatvalue ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -4013,7 +4046,10 @@ static void eval_ivle(void) {
   int64 rhint = pop_anyint();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() <= rhint ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() <= rhint ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() <= rhint ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -4025,7 +4061,10 @@ static void eval_fvle(void) {
   floatvalue = pop_float();
 
   DEBUGFUNCMSGIN;
-  push_int(pop_anynumfp() <= floatvalue ? BASTRUE : BASFALSE);
+  if (TOPITEMISINT)
+    push_int(pop_anyint() <= floatvalue ? BASTRUE : BASFALSE);
+  else
+    push_int(pop_float() <= floatvalue ? BASTRUE : BASFALSE);
   DEBUGFUNCMSGOUT;
 }
 
@@ -4061,16 +4100,15 @@ static void eval_svle(void) {
   DEBUGFUNCMSGOUT;
 }
 
+/* These next three functions are commutative so order is unimportant */
+
 /*
 ** 'eval_ivand' deals with the logical 'and' operator when the right-hand
 ** operand is any integer or floating point value
 */
 static void eval_ivand(void) {
-  int64 rhint=pop_anynum64();
-  int64 lhint=pop_anynum64();
-
   DEBUGFUNCMSGIN;
-  push_varyint(lhint & rhint);
+  push_varyint(pop_anynum64() & pop_anynum64());
   DEBUGFUNCMSGOUT;
 }
 
@@ -4079,11 +4117,8 @@ static void eval_ivand(void) {
 ** operand is any integer or floating point value
 */
 static void eval_ivor(void) {
-  int64 rhint=pop_anynum64();
-  int64 lhint=pop_anynum64();
-
   DEBUGFUNCMSGIN;
-  push_varyint(lhint | rhint);
+  push_varyint(pop_anynum64() | pop_anynum64());
   DEBUGFUNCMSGOUT;
 }
 
@@ -4092,11 +4127,8 @@ static void eval_ivor(void) {
 ** operand is any integer or floating point value
 */
 static void eval_iveor(void) {
-  int64 rhint=pop_anynum64();
-  int64 lhint=pop_anynum64();
-
   DEBUGFUNCMSGIN;
-  push_varyint(lhint ^ rhint);
+  push_varyint(pop_anynum64() ^ pop_anynum64());
   DEBUGFUNCMSGOUT;
 }
 
