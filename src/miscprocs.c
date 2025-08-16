@@ -38,6 +38,7 @@
 #include "errors.h"
 #include "keyboard.h"
 #include "screen.h"
+#include "statement.h"
 #include "miscprocs.h"
 
 #ifdef TARGET_RISCOS

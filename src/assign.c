@@ -71,11 +71,7 @@ static void assign_intword(pointers address) {
   int64 value;
 
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   value = pop_anynum64();
   if (value > MAXINTVAL || value < MININTVAL) {
     DEBUGFUNCMSGOUT;
@@ -91,11 +87,7 @@ static void assign_intword(pointers address) {
 */
 static void assign_intbyte(pointers address) {
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   *address.uint8addr = pop_anynum32();
   DEBUGFUNCMSGOUT;
 }
@@ -105,11 +97,7 @@ static void assign_intbyte(pointers address) {
 */
 static void assign_int64(pointers address) {
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   *address.int64addr = pop_anynum64();
   DEBUGFUNCMSGOUT;
 }
@@ -119,11 +107,7 @@ static void assign_int64(pointers address) {
 */
 static void assign_float(pointers address) {
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   *address.floataddr = pop_anynumfp();
   DEBUGFUNCMSGOUT;
 }
@@ -137,11 +121,7 @@ static void assign_stringdol(pointers address) {
   char *cp;
 
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   exprtype = GET_TOPITEM;
   if (exprtype!=STACK_STRING && exprtype!=STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
@@ -176,11 +156,7 @@ static void assign_intbyteptr(pointers address) {
 #ifdef USE_SDL
   address.offset = m7offset(address.offset);
 #endif
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   basicvars.memory[address.offset] = pop_anynum32();
   DEBUGFUNCMSGOUT;
 }
@@ -194,11 +170,7 @@ static void assign_intwordptr(pointers address) {
 #ifdef USE_SDL
   address.offset = m7offset(address.offset);
 #endif
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   store_integer(address.offset, pop_anynum32());
   DEBUGFUNCMSGOUT;
 }
@@ -212,11 +184,7 @@ static void assign_int64ptr(pointers address) {
 #ifdef USE_SDL
   address.offset = m7offset(address.offset);
 #endif
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   store_int64(address.offset, pop_anynum64());
   DEBUGFUNCMSGOUT;
 }
@@ -230,11 +198,7 @@ static void assign_floatptr(pointers address) {
 #ifdef USE_SDL
   address.offset = m7offset(address.offset);
 #endif
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   store_float(address.offset, pop_anynumfp());
   DEBUGFUNCMSGOUT;
 }
@@ -244,11 +208,7 @@ static void assign_dolstrptr(pointers address) {
   basicstring result;
 
   DEBUGFUNCMSGIN;
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   exprtype = GET_TOPITEM;
   if (exprtype!=STACK_STRING && exprtype!=STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
@@ -306,26 +266,15 @@ static void assign_intarray(pointers address) {
           return;
         }
       } while (TRUE);
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
-    } else if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
+      check_ateol();
     } else {      /* array()=<value> */
+      check_ateol();
       value = pop_anynum32();
       p = ap->arraystart.intbase;
       for (n=0; n<ap->arrsize; n++) p[n] = value;
     }
   } else if (TOPITEMISNUMARRAY) {
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     ap2 = pop_array();
     if (ap2==NIL) {                             /* Undefined array */
       DEBUGFUNCMSGOUT;
@@ -347,11 +296,7 @@ static void assign_intarray(pointers address) {
       for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
   } else if (TOPITEMISNUMARRTEMP) {
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     basicarray temp = pop_arraytemp();
     check_arrays(ap, &temp);
     p = ap->arraystart.intbase;
@@ -416,26 +361,15 @@ static void assign_uint8array(pointers address) {
           return;
         }
       } while (TRUE);
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
-    } else if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
+      check_ateol();
     } else {      /* array()=<value> */
+      check_ateol();
       value = pop_anynum32();
       p = ap->arraystart.uint8base;
       for (n=0; n<ap->arrsize; n++) p[n] = value;
     }
   } else if (TOPITEMISNUMARRAY) {
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     ap2 = pop_array();
     if (ap2==NIL) {                             /* Undefined array */
       DEBUGFUNCMSGOUT;
@@ -457,11 +391,7 @@ static void assign_uint8array(pointers address) {
       for (n=0; n<ap->arrsize; n++) p[n] = TOINT(fp[n]);
     }
   } else if (TOPITEMISNUMARRTEMP) {
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     basicarray temp = pop_arraytemp();
     check_arrays(ap, &temp);
     p = ap->arraystart.uint8base;
@@ -524,26 +454,15 @@ static void assign_int64array(pointers address) {
           return;
         }
       } while (TRUE);
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
-    } else if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
+      check_ateol();
     } else {      /* array()=<value> */
+      check_ateol();
       value = pop_anynum64();
       p = ap->arraystart.int64base;
       for (n=0; n<ap->arrsize; n++) p[n] = value;
     }
   } else if (TOPITEMISNUMARRAY) {
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     ap2 = pop_array();
     if (ap2==NIL) {                             /* Undefined array */
       DEBUGFUNCMSGOUT;
@@ -566,11 +485,7 @@ static void assign_int64array(pointers address) {
     }
   } else if (TOPITEMISNUMARRTEMP) {
     basicarray temp = pop_arraytemp();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     check_arrays(ap, &temp);
     p = ap->arraystart.int64base;
     if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
@@ -632,26 +547,15 @@ static void assign_floatarray(pointers address) {
           return;
         }
       } while (TRUE);
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
-    } else if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
+      check_ateol();
     } else {
+      check_ateol();
       fpvalue = pop_anynumfp();
       p = ap->arraystart.floatbase;
       for (n=0; n<ap->arrsize; n++) p[n] = fpvalue;
     }
   } else if (TOPITEMISNUMARRAY) {
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     ap2 = pop_array();
     if (ap2==NIL) {                             /* Undefined array */
       DEBUGFUNCMSGOUT;
@@ -674,11 +578,7 @@ static void assign_floatarray(pointers address) {
     }
   } else if (TOPITEMISNUMARRTEMP) {
     basicarray temp = pop_arraytemp();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     check_arrays(ap, &temp);
     p = ap->arraystart.floatbase;
     if (exprtype==STACK_IATEMP) {  /* array1()=array2()<op><value> */
@@ -767,16 +667,9 @@ static void assign_strarray(pointers address) {
           return;
         }
       } while (TRUE);
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
-    } else if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
+      check_ateol();
     } else {      /* array$()=<value> */
+      check_ateol();
       stringvalue = pop_string();
       p = ap->arraystart.stringbase;
       stringlen = stringvalue.stringlen;
@@ -804,11 +697,7 @@ static void assign_strarray(pointers address) {
       }
     }
   } else if (exprtype==STACK_STRARRAY) {        /* array$()=array$() */
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     ap2 = pop_array();
     if (ap!=ap2) {      /* 'a$()=a$()' could cause this code to go wrong */
       if (ap2==NIL) {                           /* Undefined array */
@@ -831,11 +720,7 @@ static void assign_strarray(pointers address) {
   } else if (exprtype==STACK_SATEMP) {  /* array1$()=array2$()<op><value> */
     basicarray temp = pop_arraytemp();
     int count;
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     check_arrays(ap, &temp);
     count = ap->arrsize;
     p = ap->arraystart.stringbase;
@@ -3154,31 +3039,19 @@ void exec_assignment(void) {
   else if (assignop==BASTOKEN_PLUSAB) {
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assiplus_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_MINUSAB) {
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assiminus_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_POWRAB) {
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assipow_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_AND) {
@@ -3190,11 +3063,7 @@ void exec_assignment(void) {
     }
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assiand_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_OR) {
@@ -3206,11 +3075,7 @@ void exec_assignment(void) {
     }
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assior_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_EOR) {
@@ -3222,11 +3087,7 @@ void exec_assignment(void) {
     }
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assieor_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_MOD) {
@@ -3238,11 +3099,7 @@ void exec_assignment(void) {
     }
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assimod_table[destination.typeinfo])(destination.address);
   }
   else if (assignop==BASTOKEN_DIV) {
@@ -3254,11 +3111,7 @@ void exec_assignment(void) {
     }
     basicvars.current++;
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     (*assidiv_table[destination.typeinfo])(destination.address);
   }
   else {
@@ -3389,11 +3242,7 @@ void assign_staticvar(void) {
     basicvars.current++;
   }
   expression();
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   exprtype = GET_TOPITEM;
   if (varindex==ATPERCENT && assignop=='=') {   /* @%= is a special case */
     if (TOPITEMISNUM) {
@@ -3488,6 +3337,8 @@ void assign_intvar(void) {
     *ip = value;
   } else if (assignop==BASTOKEN_PLUSAB) {
     *ip+=value;
+  } else if (assignop==BASTOKEN_MINUSAB) {
+    *ip-=value;
   } else if (assignop==BASTOKEN_AND) {
     *ip &= value;
   } else if (assignop==BASTOKEN_OR) {
@@ -3499,7 +3350,7 @@ void assign_intvar(void) {
   } else if (assignop==BASTOKEN_DIV) {
     *ip /= value;
   } else {
-    *ip-=value;
+    error(ERR_BROKEN, __LINE__, "assign");
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Integer assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
@@ -3536,6 +3387,8 @@ void assign_uint8var(void) {
     *ip = value;
   } else if (assignop==BASTOKEN_PLUSAB) {
     *ip+=value;
+  } else if (assignop==BASTOKEN_MINUSAB) {
+    *ip-=value;
   } else if (assignop==BASTOKEN_AND) {
     *ip &= value;
   } else if (assignop==BASTOKEN_OR) {
@@ -3547,7 +3400,7 @@ void assign_uint8var(void) {
   } else if (assignop==BASTOKEN_DIV) {
     *ip /= value;
   } else {
-    *ip-=value;
+    error(ERR_BROKEN, __LINE__, "assign");
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Integer assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
@@ -3577,6 +3430,8 @@ void assign_int64var(void) {
     *ip = value;
   } else if (assignop==BASTOKEN_PLUSAB) {
     *ip+=value;
+  } else if (assignop==BASTOKEN_MINUSAB) {
+    *ip-=value;
   } else if (assignop==BASTOKEN_AND) {
     *ip &= value;
   } else if (assignop==BASTOKEN_OR) {
@@ -3588,7 +3443,7 @@ void assign_int64var(void) {
   } else if (assignop==BASTOKEN_DIV) {
     *ip /= value;
   } else {
-    *ip-=value;
+    error(ERR_BROKEN, __LINE__, "assign");
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "64-bit integer assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
@@ -3621,8 +3476,10 @@ void assign_floatvar(void) {
     *fp = value;
   } else if (assignop==BASTOKEN_PLUSAB) {
     *fp+=value;
-  } else {
+  } else if (assignop==BASTOKEN_MINUSAB) {
     *fp-=value;
+  } else {
+    error(ERR_BROKEN, __LINE__, "assign");
   }
 #ifdef DEBUG
   if (basicvars.debug_flags.allstack) fprintf(stderr, "Float assignment end - Basic stack pointer = %p\n", basicvars.stacktop.bytesp);
@@ -3652,11 +3509,7 @@ void assign_stringvar(void) {
   }
   else if (assignop==BASTOKEN_PLUSAB) {
     expression();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     assiplus_stringdol(address);
   }
   else if (assignop==BASTOKEN_MINUSAB)
@@ -3689,11 +3542,7 @@ static void assign_himem(void) {
   }
   basicvars.current++;
   newhimem = (byte *)(size_t)ALIGN(eval_int64());
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   if (basicvars.himem == newhimem) return; /* Always OK to set HIMEM to its existing value */
   if (newhimem<(basicvars.vartop+1024) || newhimem>basicvars.end) {
     error(WARN_BADHIMEM);       /* Flag error (execution continues after this one) */
@@ -3737,11 +3586,7 @@ static void assign_ext(void) {
   }
   basicvars.current++;
   newsize = eval_int64();
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   fileio_setext(handle, newsize);
   DEBUGFUNCMSGOUT;
 }
@@ -3763,11 +3608,7 @@ static void assign_filepath(void) {
   }
   basicvars.current++;
   expression();
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   stringtype = GET_TOPITEM;
   if (stringtype!=STACK_STRING && stringtype!=STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
@@ -3836,11 +3677,7 @@ static void assign_left(void) {
   }
   basicvars.current++;
   expression(); /* Evaluate the RH side of the assignment */
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   stringtype = GET_TOPITEM;
   if (stringtype!=STACK_STRING && stringtype!=STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
@@ -3881,11 +3718,7 @@ static void assign_lomem(void) {
   }
   basicvars.current++;
   address = (byte *)(size_t)ALIGN(eval_int64());
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   if (address<basicvars.top || address>=basicvars.himem)
     error(WARN_BADLOMEM);       /* Flag error (execution continues after this one) */
   else if (basicvars.procstack!=NIL) {  /* Cannot alter LOMEM in a procedure */
@@ -3953,11 +3786,7 @@ static void assign_mid(void) {
   }
   basicvars.current++;
   expression(); /* Evaluate the RH side of the assignment */
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   stringtype = GET_TOPITEM;
   if (stringtype!=STACK_STRING && stringtype!=STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;
@@ -4001,11 +3830,7 @@ static void assign_page(void) {
   }
   basicvars.current++;
   newpage = (byte *)(size_t)ALIGN(eval_int64());
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   if (newpage<basicvars.workspace || newpage>=(basicvars.workspace+basicvars.worksize)) {
     DEBUGFUNCMSGOUT;
     error(WARN_BADPAGE);        /* Flag error (execution continues after this one) */
@@ -4036,11 +3861,7 @@ static void assign_ptr(void) {
     }
     basicvars.current++;
     newplace = eval_int64();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
     fileio_setptr(handle, newplace);
   } else if (*basicvars.current=='(') {
     size_t newptr;
@@ -4114,11 +3935,7 @@ static void assign_right(void) {
   }
   basicvars.current++;
   expression(); /* Evaluate the RH side of the assignment */
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   stringtype = GET_TOPITEM;
   if (stringtype!=STACK_STRING && stringtype!=STACK_STRTEMP) {
     DEBUGFUNCMSGOUT;

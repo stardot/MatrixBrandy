@@ -771,11 +771,7 @@ void exec_end(void) {
 void exec_endifcase(void) {
   DEBUGFUNCMSGIN;
   basicvars.current++;          /* Skip token */
-  if (!ateol[*basicvars.current]) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();
   if (*basicvars.current == ':') basicvars.current++;   /* Skip ':' */
   if (*basicvars.current == asc_NUL) {  /* Token is at end of line */
     basicvars.current++;                /* Move to start of next line */
@@ -1005,11 +1001,7 @@ void exec_exit(void) {
       depth=1;
       basicvars.current++;
 
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
+      check_ateol();
       if (TOPITEMISFOR)       /* FOR control block is top of stack */
         fp = basicvars.stacktop.forsp;
       else {        /* Discard contents of stack as far as FOR block */
@@ -1062,11 +1054,7 @@ void exec_exit(void) {
       depth=1;
       basicvars.current++;
 
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
+      check_ateol();
       if (GET_TOPITEM == STACK_REPEAT)       /* REPEAT control block is top of stack */
         rp = basicvars.stacktop.repeatsp;
       else {        /* Discard contents of stack as far as REPEAT block */
@@ -1113,11 +1101,7 @@ void exec_exit(void) {
       depth=1;
       basicvars.current++;
 
-      if (!ateol[*basicvars.current]) {
-        DEBUGFUNCMSGOUT;
-        error(ERR_SYNTAX);
-        return;
-      }
+      check_ateol();
       if (GET_TOPITEM == STACK_WHILE) {       /* WHILE control block is top of stack */
         wp = basicvars.stacktop.whilesp;
       } else {        /* Discard contents of stack as far as WHILE block */
@@ -1256,11 +1240,7 @@ void exec_for(void) {
       }
     }
   }
-  if (!ateol[*basicvars.current]) {    /* Ensure there is nothing left on the line */
-    DEBUGFUNCMSGOUT;
-    error(ERR_SYNTAX);
-    return;
-  }
+  check_ateol();           /* Ensure there is nothing left on the line */
   if (*basicvars.current == ':') basicvars.current++;   /* Find the start of the statements in the loop */
   if (*basicvars.current == asc_NUL) {  /* Not on this line - Try the next */
     basicvars.current++;
@@ -2294,11 +2274,7 @@ void exec_proc(void) {
 
   if (*basicvars.current == '(') {
     push_parameters(dp, vp->varname);   /* Deal with parameters */
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
   }
   // Need to update the return address in the PROC block on the stack
   procinfo->retaddr = basicvars.current;
@@ -3289,11 +3265,7 @@ void exec_until(void) {
   }
   else {        /* Escape from loop - Remove REPEAT control block from stack */
     pop_repeat();
-    if (!ateol[*basicvars.current]) {
-      DEBUGFUNCMSGOUT;
-      error(ERR_SYNTAX);
-      return;
-    }
+    check_ateol();
   }
   DEBUGFUNCMSGOUT;
 }

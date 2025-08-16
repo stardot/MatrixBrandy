@@ -1101,9 +1101,9 @@ int64 pop_anyint(void) {
 
 int32 pop_anynum32(void) {
   switch(GET_TOPITEM) {
-    case STACK_INT: return pop_int();
-    case STACK_UINT8: return pop_uint8();
-    case STACK_INT64: return pop_int64();
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: return pop_anyint();
     case STACK_FLOAT: return TOINT(pop_float());
     default: error(ERR_TYPENUM);
   }
@@ -1112,9 +1112,9 @@ int32 pop_anynum32(void) {
 
 int64 pop_anynum64(void) {
   switch(GET_TOPITEM) {
-    case STACK_INT: return pop_int();
-    case STACK_UINT8: return pop_uint8();
-    case STACK_INT64: return pop_int64();
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: return pop_anyint();
     case STACK_FLOAT: return TOINT64(pop_float());
     default: error(ERR_TYPENUM);
   }
@@ -1123,9 +1123,9 @@ int64 pop_anynum64(void) {
 
 float64 pop_anynumfp(void) {
   switch(GET_TOPITEM) {
-    case STACK_INT: return TOFLOAT(pop_int());
-    case STACK_UINT8: return TOFLOAT(pop_uint8());
-    case STACK_INT64: return TOFLOAT(pop_int64());
+    case STACK_INT:
+    case STACK_UINT8:
+    case STACK_INT64: return TOFLOAT(pop_anyint());
     case STACK_FLOAT: return pop_float();
     default: error(ERR_TYPENUM);
   }
@@ -1134,9 +1134,9 @@ float64 pop_anynumfp(void) {
 
 float80 pop_anynumld(void) {
   switch(GET_TOPITEM) {
-    case STACK_INT:   return (float80)pop_int();
-    case STACK_UINT8: return (float80)pop_uint8();
-    case STACK_INT64: return (float80)pop_int64();
+    case STACK_INT: 
+    case STACK_UINT8:
+    case STACK_INT64: return (float80)pop_anyint();
     case STACK_FLOAT: return (float80)pop_float();
     default: error(ERR_TYPENUM);
   }

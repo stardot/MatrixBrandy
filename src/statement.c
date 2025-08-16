@@ -239,6 +239,7 @@ void check_ateol(void) {
   if (!ateol[*basicvars.current]) {
     DEBUGFUNCMSGOUT;
     error(ERR_SYNTAX);
+    return;
   }
   DEBUGFUNCMSGOUT;
 }
