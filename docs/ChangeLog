@@ -19,6 +19,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
   suffixless variables as "variants" which can change their nature.
 - BASIC: Fixed a bug where RENUMBER on a program with a REM would make the
   program un-RUN-able.
+- BASIC: MOD and DIV with floating-point arguments are now supported.
+  (They are, of course, converted to ints before processing.)
 
 * 1.23.5 - 06 April 2025
 - General: Implement code fixes based on GCC 14.2's -fanalyze feature.

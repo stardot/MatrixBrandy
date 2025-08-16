@@ -134,21 +134,6 @@ extern void debug_show_stackitemtype(int32);
 
 #define TOPITEMISFOR ((basicvars.stacktop.intsp->itemtype == STACK_INTFOR) || (basicvars.stacktop.intsp->itemtype == STACK_INT64FOR) || (basicvars.stacktop.intsp->itemtype == STACK_FLOATFOR))
 
-#define PUSH_INT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int)); \
-                basicvars.stacktop.intsp->itemtype = STACK_INT; \
-                basicvars.stacktop.intsp->intvalue = (x);
-#define PUSH_UINT8(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_uint8)); \
-                basicvars.stacktop.uint8sp->itemtype = STACK_UINT8; \
-                basicvars.stacktop.uint8sp->uint8value = (x);
-#define PUSH_INT64(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_int64)); \
-                basicvars.stacktop.int64sp->itemtype = STACK_INT64; \
-                basicvars.stacktop.int64sp->int64value = (x);
-#define PUSH_FLOAT(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_float)); \
-                basicvars.stacktop.floatsp->itemtype = STACK_FLOAT; \
-                basicvars.stacktop.floatsp->floatvalue = (x);
-#define PUSH_STRING(x) basicvars.stacktop.bytesp-=ALIGN(sizeof(stack_string)); \
-                basicvars.stacktop.stringsp->itemtype = STACK_STRING; \
-                basicvars.stacktop.stringsp->descriptor = (x);
 #define INCR_INT(x) basicvars.stacktop.intsp->intvalue+=(x)
 #define INCR_FLOAT(x) basicvars.stacktop.floatsp->floatvalue+=(x)
 #define DECR_INT(x) basicvars.stacktop.intsp->intvalue-=(x)
@@ -214,24 +199,6 @@ extern void debug_show_stackitemtype(int32);
                      (basicvars.stacktop.uint8sp->uint8value<=(x) ? BASTRUE : BASFALSE)
 #define CPLE_INT64(x) basicvars.stacktop.int64sp->int64value = \
                      (basicvars.stacktop.int64sp->int64value<=(x) ? BASTRUE : BASFALSE)
-
-/*
-** If the debug version of the code is being used, replace some
-** of the macros with calls to their equivalent functions as these
-** produce debugging output if the DEBUG macro is defined
-*/
-#ifdef DEBUG
-#undef PUSH_INT
-#undef PUSH_INT64
-#undef PUSH_UINT8
-#undef PUSH_FLOAT
-#undef PUSH_STRING
-#define PUSH_INT(x) push_int(x)
-#define PUSH_INT64(x) push_int64(x)
-#define PUSH_UINT8(x) push_uint8(x)
-#define PUSH_FLOAT(x) push_float(x)
-#define PUSH_STRING(x) push_string(x)
-#endif
 
 #endif
 

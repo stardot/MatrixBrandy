@@ -245,6 +245,9 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
   ERR_PARMNUM, ERR_PARMNUM, ERR_PARMNUM},
 };
 
+static int isBasicArith(int oper) {
+  return ((oper == OP_ADD) || (oper == OP_SUB) || (OP_MUL) || (OP_DIV));
+};
 
 /*
 ** 'eval_integer' evaluates a numeric expression where an integer value
@@ -1588,112 +1591,451 @@ static void *make_array(int32 arraytype, basicarray* original) {
   return base;
 }
 
-/*
-** 'eval_ivplus' deals with addition when the right-hand operand is
-** any integer value. All versions of the operator are dealt with
-** by this function
+/* This function subsumes the functionality of eval_ivplus, eval_ivminus,
+** eval_ivmul, eval_ivdiv, eval_ivmod and eval_ivintdiv.
 */
-static void eval_ivplus(void) {
+static void eval_iv_op(int oper) {
   stackitem lhitem, rhitem;
-  int64 rhint = 0;
+  int64 rhint;
   
   DEBUGFUNCMSGIN;
   rhitem = GET_TOPITEM;
   rhint=pop_anyint();
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
-    push_varyint(pop_anyint() + rhint);
-  } else if (lhitem == STACK_FLOAT)
-    INCR_FLOAT(TOFLOAT(rhint)); /* float+int - Update value on stack in place */
-  else if (TOPITEMISNUMARRAY) {        /* <array>+<integer value> */
+    switch (oper) {
+      case OP_ADD: push_varyint(pop_anyint() + rhint); break;
+      case OP_SUB: /* Branch according to type of left-hand operand */
+        if (matrixflags.legacyintmaths && is8or32int(rhitem) && is8or32int(lhitem)) {
+          push_int(pop_int() - rhint);
+        } else {
+          push_varyint(pop_anyint() - rhint);
+        }
+        break;
+      case OP_MUL: {   /* Now look at left-hand operand */
+          float64 floatres;
+          int64 lhint = pop_anyint();
+          int64 intres = lhint*rhint;
+          floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
+          if (fabs(floatres) > (float80)MAXINT64VAL)
+            push_float(floatres);
+          else
+            push_varyint(intres);
+        }
+        break;
+      case OP_DIV: push_float(fdivwithtest(pop_anynumfp(),TOFLOAT(rhint))); break;
+      case OP_MOD:
+        if (lhitem == STACK_INT)
+          INTMOD_INT(rhint);
+        else if (lhitem == STACK_UINT8)
+          INTMOD_UINT8(rhint);
+        else if (lhitem == STACK_INT64)
+          INTMOD_INT64(rhint);
+        else {
+          error(ERR_BROKEN, __LINE__, "evaluate"); return;
+        }
+        break;
+      case OP_INTDIV:
+        if (lhitem == STACK_INT)              /* Branch according to type of left-hand operand */
+          INTDIV_INT(rhint);
+        else if (lhitem == STACK_UINT8)       /* Branch according to type of left-hand operand */
+          INTDIV_UINT8(rhint);
+        else if (lhitem == STACK_INT64)       /* Branch according to type of left-hand operand */
+          INTDIV_INT64(rhint);
+        else {
+          error(ERR_BROKEN, __LINE__, "evaluate"); return;
+        }
+        break;
+        
+    }
+  } else if (lhitem == STACK_FLOAT) {
+    switch(oper) {
+      case OP_ADD: INCR_FLOAT(TOFLOAT(rhint)); break;
+      case OP_SUB: {
+          /* Use float80 space - doesn't help on ARM but doesn't hurt it */
+          float80 fltmp = (float80)pop_float() - (float80)rhint;
+          if (fltmp == (int64)fltmp) {
+            push_varyint((int64)fltmp);
+          } else {
+            push_float((float64)fltmp);
+          }
+        }
+        break;
+      case OP_MUL: push_float(fmulwithtest(pop_float(), TOFLOAT(rhint))); break;
+      case OP_DIV: push_float(fdivwithtest(pop_float(), TOFLOAT(rhint))); break;
+      case OP_MOD: push_int64(TOINT64(pop_float()) % rhint); break;
+      case OP_INTDIV: push_int64(TOINT64(pop_float()) / rhint); break;
+    }
+  } else if (TOPITEMISNUMARRAY) {
     basicarray *lharray = pop_array();
     int32 n;
-    if (lhitem == STACK_INTARRAY) {
-      if (rhitem == STACK_INT64) {
-        int64 *srce = lharray->arraystart.int64base;
-        int64 *base = make_array(VAR_INTLONG, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+rhint;
-      } else {
-        int32 *srce = lharray->arraystart.intbase;
-        int32 *base = make_array(VAR_INTWORD, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]+rhint);
-      }
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      if (rhitem == STACK_INT) {
-        uint8 *srce = lharray->arraystart.uint8base;
-        uint8 *base = make_array(VAR_UINT8, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = (uint8)(srce[n]+rhint);
-      } else if (rhitem == STACK_UINT8) {
-        int32 *srce = lharray->arraystart.intbase;
-        int32 *base = make_array(VAR_INTWORD, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]+rhint);
-      } else { /* STACK_INT64 */
-        int64 *srce = lharray->arraystart.int64base;
-        int64 *base = make_array(VAR_INTLONG, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+rhint;
-      }
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+rhint;
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      float64 *base = make_array(VAR_FLOAT, lharray);
-      floatvalue = TOFLOAT(rhint);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+floatvalue;
+    switch(oper) {
+      case OP_ADD: {        /* <array>+<integer value> */
+          if (lhitem == STACK_INTARRAY) {
+            if (rhitem == STACK_INT64) {
+              int64 *srce = lharray->arraystart.int64base;
+              int64 *base = make_array(VAR_INTLONG, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+rhint;
+            } else {
+              int32 *srce = lharray->arraystart.intbase;
+              int32 *base = make_array(VAR_INTWORD, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]+rhint);
+            }
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            if (rhitem == STACK_INT) {
+              uint8 *srce = lharray->arraystart.uint8base;
+              uint8 *base = make_array(VAR_UINT8, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = (uint8)(srce[n]+rhint);
+            } else if (rhitem == STACK_UINT8) {
+              int32 *srce = lharray->arraystart.intbase;
+              int32 *base = make_array(VAR_INTWORD, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]+rhint);
+            } else { /* STACK_INT64 */
+              int64 *srce = lharray->arraystart.int64base;
+              int64 *base = make_array(VAR_INTLONG, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+rhint;
+            }
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+rhint;
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            float64 *base = make_array(VAR_FLOAT, lharray);
+            floatvalue = TOFLOAT(rhint);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+floatvalue;
+          }
+        }
+        break;
+      case OP_SUB:{      /* <array>-<integer value> */
+          if (lhitem == STACK_INTARRAY) {
+            if (rhitem == STACK_INT64) {
+              int64 *srce = lharray->arraystart.int64base;
+              int64 *base = make_array(VAR_INTLONG, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]-rhint;
+            } else {
+              int32 *srce = lharray->arraystart.intbase;
+              int32 *base = make_array(VAR_INTWORD, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]-rhint);
+            }
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            if (rhitem == STACK_INT) {
+              uint8 *srce = lharray->arraystart.uint8base;
+              uint8 *base = make_array(VAR_UINT8, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = (uint8)(srce[n]-rhint);
+            } else if (rhitem == STACK_UINT8) {
+              int32 *srce = lharray->arraystart.intbase;
+              int32 *base = make_array(VAR_INTWORD, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]-rhint);
+            } else { /* STACK_INT64 */
+              int64 *srce = lharray->arraystart.int64base;
+              int64 *base = make_array(VAR_INTLONG, lharray);
+              for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]-rhint;
+            }
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] - rhint;
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            float64 *base = make_array(VAR_FLOAT, lharray);
+            floatvalue = TOFLOAT(rhint);
+            for (n = 0; n < lharray->arrsize; n++) {
+              base[n] = (float64)((float80)srce[n] - (float80)floatvalue);
+            }
+          }
+        }
+        break;
+      case OP_MUL: {        /* <array>*<integer value> */
+          if (lhitem == STACK_INTARRAY) {                     /* <int array>*<intX> */
+            int32 *srce;
+            if (rhitem == STACK_INT64) {
+              int64 *base = make_array(VAR_INTLONG, lharray);
+              srce = lharray->arraystart.intbase;
+              for (n = 0; n < lharray->arrsize; n++) base[n]=i64mulwithtest(srce[n], rhint);
+            } else { /* STACK_INT and STACK_UINT8 */
+              int32 *base = make_array(VAR_INTWORD, lharray);
+              srce = lharray->arraystart.intbase;
+              for (n = 0; n < lharray->arrsize; n++) base[n] = i32mulwithtest(srce[n], rhint);
+            }
+          } else if (lhitem == STACK_UINT8ARRAY) {                    /* <int array>*<intX> */
+            uint8 *srce;
+            if (rhitem == STACK_INT) {
+              int32 *base = make_array(VAR_INTWORD, lharray);
+              srce = lharray->arraystart.uint8base;
+              for (n = 0; n < lharray->arrsize; n++) base[n] = i32mulwithtest(srce[n], rhint);
+            } else if (rhitem == STACK_INT64) {
+              int64 *base = make_array(VAR_INTLONG, lharray);
+              srce = lharray->arraystart.uint8base;
+              for (n = 0; n < lharray->arrsize; n++) base[n] = i64mulwithtest(srce[n], rhint);
+            } else { /* STACK_UINT8 */
+              uint8 *base = make_array(VAR_UINT8, lharray);
+              srce = lharray->arraystart.uint8base;
+              for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]*rhint;
+            }
+          } else if (lhitem == STACK_INT64ARRAY) {            /* <int64 array>*<intX> */
+            int64 *srce = lharray->arraystart.int64base;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = i64mulwithtest(srce[n], rhint);
+          } else {    /* <float array>*<integer> */
+            float64 *srce = lharray->arraystart.floatbase;
+            float64 *base = make_array(VAR_FLOAT, lharray);
+            floatvalue = TOFLOAT(rhint);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(srce[n], floatvalue);
+          }
+        }
+        break;
+      case OP_DIV: {    /* <array>/<float value> */
+          float64 *base = make_array(VAR_FLOAT, lharray);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(srce[n], floatvalue);
+          }
+        }
+        break;
+      case OP_MOD: {        /* <array> MOD <integer value> */
+          if (lhitem == STACK_INTARRAY) {                             /* <int32 array> MOD <integer value> */
+            int32 *srce = lharray->arraystart.intbase;
+            int32 *base = make_array(VAR_INTWORD, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % rhint;
+          } else if (lhitem == STACK_UINT8ARRAY) {                    /* <uint8 array> MOD <integer value> */
+            uint8 *srce = lharray->arraystart.uint8base;
+            uint8 *base = make_array(VAR_UINT8, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % rhint;
+          } else if (lhitem == STACK_INT64ARRAY) {                    /* <int64 array> MOD <integer value> */
+            int64 *srce = lharray->arraystart.int64base;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % rhint;
+          } else {                                                    /* <float array> MOD <integer value> */
+            float64 *srce = lharray->arraystart.floatbase;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOINT64(srce[n]) % rhint;
+          }
+        }
+        break;
+      case OP_INTDIV: {        /* <array> DIV <integer value> */
+          if (lhitem == STACK_INTARRAY) {             /* <integer array> DIV <integer value> */
+            int32 *srce = lharray->arraystart.intbase;
+            int32 *base = make_array(VAR_INTWORD, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / rhint;
+          } else if (lhitem == STACK_UINT8ARRAY) {    /* <integer array> DIV <integer value> */
+            uint8 *srce = lharray->arraystart.uint8base;
+            uint8 *base = make_array(VAR_UINT8, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / rhint;
+          } else if (lhitem == STACK_INT64ARRAY) {    /* <integer array> DIV <integer value> */
+            int64 *srce = lharray->arraystart.int64base;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / rhint;
+          } else {    /* <float array> DIV <integer value> */
+            float64 *srce = lharray->arraystart.floatbase;
+            int64 *base = make_array(VAR_INTLONG, lharray);
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOINT64(srce[n]) / rhint;
+          }
+        }
+        break;
     }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>+<integer value> */
+  } else if ((lhitem == STACK_FATEMP) && isBasicArith(oper)) {
     basicarray lharray = pop_arraytemp();
     float64 *base = lharray.arraystart.floatbase;
-    int32 n;
     floatvalue = TOFLOAT(rhint);
-    for (n = 0; n < lharray.arrsize; n++) base[n]+=floatvalue;
+    int32 n;
+    switch(oper) {
+      case OP_ADD: /* <float array>+<integer value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n]+=floatvalue;
+        break;
+      case OP_SUB: /* <float array>-<integer value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n] -= floatvalue;
+        break;
+      case OP_MUL: /* <float array>*<integer value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n]=fmulwithtest(base[n], floatvalue);
+        break;
+      case OP_DIV: /* <float array>/<integer value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n] = fdivwithtest(base[n], floatvalue);
+        break;
+    }
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
   DEBUGFUNCMSGOUT;
 }
 
-/*
-** 'eval_fvplus' deals with addition when the right-hand operand is
-** a floating point value. All versions of the operator are dealt with
-** by this function
+/* This function subsumes the functionality of eval_fvplus, eval_fvminus,
+** eval_fvmul, eval_fvdiv, eval_fvmod and eval_fvintdiv.
 */
-static void eval_fvplus(void) {
+static void eval_fv_op(int oper) {
   stackitem lhitem;
 
   DEBUGFUNCMSGIN;
   floatvalue = pop_float();       /* Top item on Basic stack is right-hand operand */
   lhitem = GET_TOPITEM;
   if (TOPITEMISINT) {
-    floatvalue+=TOFLOAT(pop_anyint());  /* This has to be split otherwise the macro */
-    push_float(floatvalue);             /* expansion of PUSH_FLOAT goes wrong */
-  } else if (lhitem == STACK_FLOAT)
-    INCR_FLOAT(floatvalue);
-  else if (TOPITEMISNUMARRAY) {        /* <array>+<float value> */
-    basicarray *lharray = pop_array();
-    float64 *base = make_array(VAR_FLOAT, lharray);
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {
-      int32 *srce = lharray->arraystart.intbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      uint8 *srce = lharray->arraystart.uint8base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+floatvalue;
+    switch(oper) {
+      case OP_ADD: push_float(floatvalue+pop_anynumfp()); break;
+      case OP_SUB: push_float(pop_anynumfp() - floatvalue); break;
+      case OP_MUL: push_float(fmulwithtest(pop_anynumfp(), floatvalue)); break;
+      case OP_DIV: push_float(fdivwithtest(pop_anynumfp(), floatvalue)); break;
+      case OP_MOD: push_int(pop_anyint() % TOINT64(floatvalue)); break;
+      case OP_INTDIV: push_int(pop_anyint() / TOINT64(floatvalue)); break;
     }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>+<float value> */
+  } else if (lhitem == STACK_FLOAT) {
+    switch(oper) {
+      case OP_ADD: INCR_FLOAT(floatvalue); break;
+      case OP_SUB: {
+          /* Use float80 space - doesn't help on ARM but doesn't hurt it */
+          float80 fltmp = (float80)pop_float() - (float80)floatvalue;
+          if (fltmp == (int64)fltmp) {
+            push_varyint((int64)fltmp);
+          } else {
+            push_float((float64)fltmp);
+          }
+        }
+        break;
+      case OP_MUL: push_float(fmulwithtest(pop_float(), floatvalue)); break;
+      case OP_DIV: push_float(fdivwithtest(pop_float(), floatvalue)); break;
+      case OP_MOD: push_int(pop_anynum64() % TOINT64(floatvalue)); break;
+      case OP_INTDIV: push_int(pop_anynum64() / TOINT64(floatvalue)); break;
+    }
+  } else if (TOPITEMISNUMARRAY) {
+    basicarray *lharray = pop_array();
+    int32 n;
+    switch(oper) {
+      case OP_ADD: {        /* <array>+<float value> */
+          float64 *base = make_array(VAR_FLOAT, lharray);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n])+floatvalue;
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]+floatvalue;
+          }
+        }
+        break;
+      case OP_SUB: {    /* <array>-<float value> */
+          float64 *base = make_array(VAR_FLOAT, lharray);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] - floatvalue;
+          }
+        }
+        break;
+      case OP_MUL: {        /* <array>*<float value> */
+          float64 *base = make_array(VAR_FLOAT, lharray);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(srce[n], floatvalue);
+          }
+        }
+        break;
+      case OP_DIV: {    /* <array>/<float value> */
+          float64 *base = make_array(VAR_FLOAT, lharray);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(srce[n], floatvalue);
+          }
+        }
+        break;
+      case OP_MOD: {    /* <array> MOD <float value> */
+          int64 *base = make_array(VAR_INTLONG, lharray);
+          int64 intvalue = TOINT64(floatvalue);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % intvalue;
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % intvalue;
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % intvalue;
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOINT64(srce[n]) % intvalue;
+          }
+        }
+        break;
+      case OP_INTDIV: {    /* <array> DIV <float value> */
+          int64 *base = make_array(VAR_INTLONG, lharray);
+          int64 intvalue = TOINT64(floatvalue);
+          if (lhitem == STACK_INTARRAY) {
+            int32 *srce = lharray->arraystart.intbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / intvalue;
+          } else if (lhitem == STACK_UINT8ARRAY) {
+            uint8 *srce = lharray->arraystart.uint8base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / intvalue;
+          } else if (lhitem == STACK_INT64ARRAY) {
+            int64 *srce = lharray->arraystart.int64base;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / intvalue;
+          } else {
+            float64 *srce = lharray->arraystart.floatbase;
+            for (n = 0; n < lharray->arrsize; n++) base[n] = TOINT64(srce[n]) / intvalue;
+          }
+        }
+        break;
+    }
+  } else if ((lhitem == STACK_FATEMP && isBasicArith(oper))) {
     basicarray lharray = pop_arraytemp();
     float64 *base = lharray.arraystart.floatbase;
     int32 n;
-    for (n = 0; n < lharray.arrsize; n++) base[n]+=floatvalue;
+    switch(oper) {
+      case OP_ADD: {  /* <float array>+<float value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n]+=floatvalue;
+        }
+        break;
+      case OP_SUB: {  /* <float array>-<float value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n] -= floatvalue;
+        }
+        break;
+      case OP_MUL: {  /* <float array>*<float value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n]*=floatvalue;
+        }
+        break;
+      case OP_DIV: {  /* <float array>/<float value> */
+          for (n = 0; n < lharray.arrsize; n++) base[n] = fdivwithtest(base[n], floatvalue);
+        }
+        break;
+    }
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
-  DEBUGFUNCMSGOUT;
 }
 
 /*
@@ -2052,131 +2394,6 @@ static void eval_saplus(void) {
 }
 
 /*
-** 'eval_ivminus' deals with subtraction when the right-hand operand is
-** any integer value. All versions of the operator are dealt with
-** by this function
-*/
-static void eval_ivminus(void) {
-  stackitem lhitem, rhitem;
-  int64 rhint = 0;
-
-  DEBUGFUNCMSGIN;
-  rhitem = GET_TOPITEM;
-  rhint = pop_anyint();
-  lhitem = GET_TOPITEM;
-  if (TOPITEMISINT) {   /* Branch according to type of left-hand operand */
-    if (matrixflags.legacyintmaths && is8or32int(rhitem) && is8or32int(lhitem)) {
-      push_int(pop_int() - rhint);
-    } else {
-      push_varyint(pop_anyint() - rhint);
-    }
-  } else if (lhitem == STACK_FLOAT) {
-    /* Use float80 space - doesn't help on ARM but doesn't hurt it */
-    float80 fltmp = (float80)pop_float() - (float80)rhint;
-    if (fltmp == (int64)fltmp) {
-      push_varyint((int64)fltmp);
-    } else {
-      push_float((float64)fltmp);
-    }
-  } else if (TOPITEMISNUMARRAY) {      /* <array>-<integer value> */
-    basicarray *lharray = pop_array();
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {
-      if (rhitem == STACK_INT64) {
-        int64 *srce = lharray->arraystart.int64base;
-        int64 *base = make_array(VAR_INTLONG, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]-rhint;
-      } else {
-        int32 *srce = lharray->arraystart.intbase;
-        int32 *base = make_array(VAR_INTWORD, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]-rhint);
-      }
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      if (rhitem == STACK_INT) {
-        uint8 *srce = lharray->arraystart.uint8base;
-        uint8 *base = make_array(VAR_UINT8, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = (uint8)(srce[n]-rhint);
-      } else if (rhitem == STACK_UINT8) {
-        int32 *srce = lharray->arraystart.intbase;
-        int32 *base = make_array(VAR_INTWORD, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = (int32)(srce[n]-rhint);
-      } else { /* STACK_INT64 */
-        int64 *srce = lharray->arraystart.int64base;
-        int64 *base = make_array(VAR_INTLONG, lharray);
-        for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]-rhint;
-      }
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] - rhint;
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      float64 *base = make_array(VAR_FLOAT, lharray);
-      floatvalue = TOFLOAT(rhint);
-      for (n = 0; n < lharray->arrsize; n++) {
-        base[n] = (float64)((float80)srce[n] - (float80)floatvalue);
-      }
-    }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>-<integer value> */
-    basicarray lharray = pop_arraytemp();
-    float64 *base = lharray.arraystart.floatbase;
-    int32 n;
-    floatvalue = TOFLOAT(rhint);
-    for (n = 0; n < lharray.arrsize; n++) base[n] -= floatvalue;
-    push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'eval_fvminus' deals with subtraction when the right-hand operand is
-** a floating point value
-*/
-static void eval_fvminus(void) {
-  stackitem lhitem;
-  floatvalue = pop_float();
-
-  DEBUGFUNCMSGIN;
-  lhitem = GET_TOPITEM;
-  if (TOPITEMISINT) {   /* <int>-<float> */
-    floatvalue = TOFLOAT(pop_anyint()) - floatvalue;
-    push_float(floatvalue);
-  } else if (lhitem == STACK_FLOAT) {
-    /* Use float80 space - doesn't help on ARM but doesn't hurt it */
-    float80 fltmp = (float80)pop_float() - (float80)floatvalue;
-    if (fltmp == (int64)fltmp) {
-      push_varyint((int64)fltmp);
-    } else {
-      push_float((float64)fltmp);
-    }
-  } else if (TOPITEMISNUMARRAY) {    /* <array>-<float value> */
-    basicarray *lharray = pop_array();
-    float64 *base = make_array(VAR_FLOAT, lharray);
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {
-      int32 *srce = lharray->arraystart.intbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      uint8 *srce = lharray->arraystart.uint8base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOFLOAT(srce[n]) - floatvalue;
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] - floatvalue;
-    }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>-<float value> */
-    basicarray lharray = pop_arraytemp();
-    float64 *base = lharray.arraystart.floatbase;
-    int32 n;
-    for (n = 0; n < lharray.arrsize; n++) base[n] -= floatvalue;
-    push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
 ** 'eval_iaminus' deals with subtraction when the right-hand operand is
 ** a 32-bit integer array. All versions of the operator are dealt with
 ** by this function
@@ -2388,126 +2605,6 @@ static void eval_faminus(void) {
     float64 *lhsrce = lharray.arraystart.floatbase;
     check_arrays(&lharray, rharray);
     for (n = 0; n < rharray->arrsize; n++) lhsrce[n] -= rhsrce[n];
-    push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'eval_ivmul' handles multiplication where the right-hand operand is
-** a 32-bit integer.
-** Note that in order to catch an integer overflow, the operands have
-** to be converted to floating point before they are multiplied so that
-** the result can be checked to see if it is in range still. There
-** should be no problem here as long as the number of bits in the
-** mantissa of the floating point number exceeds the number of bits
-** in an integer
-*/
-static void eval_ivmul(void) {
-  stackitem lhitem, rhitem;
-  int64 rhint;
-
-  DEBUGFUNCMSGIN;
-  rhitem = GET_TOPITEM;
-  rhint = pop_anyint();
-
-  lhitem = GET_TOPITEM;
-  if (TOPITEMISINT) {   /* Now look at left-hand operand */
-    float64 floatres;
-    int64 lhint = pop_anyint();
-    int64 intres = lhint*rhint;
-    floatres=(TOFLOAT(lhint)*TOFLOAT(rhint));
-    if (fabs(floatres) > (float80)MAXINT64VAL)
-      push_float(floatres);
-    else
-      push_varyint(intres);
-  } else if (lhitem == STACK_FLOAT)
-    push_float(fmulwithtest(pop_float(), TOFLOAT(rhint)));
-  else if (TOPITEMISNUMARRAY) {        /* <array>*<integer value> */
-    basicarray *lharray;
-    int32 n;
-    lharray = pop_array();
-    if (lhitem == STACK_INTARRAY) {                     /* <int array>*<intX> */
-      int32 *srce;
-      if (rhitem == STACK_INT64) {
-        int64 *base = make_array(VAR_INTLONG, lharray);
-        srce = lharray->arraystart.intbase;
-        for (n = 0; n < lharray->arrsize; n++) base[n]=i64mulwithtest(srce[n], rhint);
-      } else { /* STACK_INT and STACK_UINT8 */
-        int32 *base = make_array(VAR_INTWORD, lharray);
-        srce = lharray->arraystart.intbase;
-        for (n = 0; n < lharray->arrsize; n++) base[n] = i32mulwithtest(srce[n], rhint);
-      }
-    } else if (lhitem == STACK_UINT8ARRAY) {                    /* <int array>*<intX> */
-      uint8 *srce;
-      if (rhitem == STACK_INT) {
-        int32 *base = make_array(VAR_INTWORD, lharray);
-        srce = lharray->arraystart.uint8base;
-        for (n = 0; n < lharray->arrsize; n++) base[n] = i32mulwithtest(srce[n], rhint);
-      } else if (rhitem == STACK_INT64) {
-        int64 *base = make_array(VAR_INTLONG, lharray);
-        srce = lharray->arraystart.uint8base;
-        for (n = 0; n < lharray->arrsize; n++) base[n] = i64mulwithtest(srce[n], rhint);
-      } else { /* STACK_UINT8 */
-        uint8 *base = make_array(VAR_UINT8, lharray);
-        srce = lharray->arraystart.uint8base;
-        for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n]*rhint;
-      }
-    } else if (lhitem == STACK_INT64ARRAY) {            /* <int64 array>*<intX> */
-      int64 *srce = lharray->arraystart.int64base;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = i64mulwithtest(srce[n], rhint);
-    } else {    /* <float array>*<integer> */
-      float64 *srce = lharray->arraystart.floatbase;
-      float64 *base = make_array(VAR_FLOAT, lharray);
-      floatvalue = TOFLOAT(rhint);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(srce[n], floatvalue);
-    }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>*<integer value> */
-    basicarray lharray = pop_arraytemp();
-    float64 *base = lharray.arraystart.floatbase;
-    int32 n;
-    floatvalue = TOFLOAT(rhint);
-    for (n = 0; n < lharray.arrsize; n++) base[n]=fmulwithtest(base[n], floatvalue);
-    push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'eval_fvmul' handles multiplication where the right-hand operand is
-** a floating point value
-*/
-static void eval_fvmul(void) {
-  stackitem lhitem;
-
-  DEBUGFUNCMSGIN;
-  floatvalue = pop_float();
-  lhitem = GET_TOPITEM;
-  if (TOPITEMISNUM)      /* Now branch according to type of left-hand operand */
-    push_float(fmulwithtest(pop_anynumfp(), floatvalue));
-  else if (TOPITEMISNUMARRAY) {        /* <array>*<float value> */
-    basicarray *lharray = pop_array();
-    float64 *base = make_array(VAR_FLOAT, lharray);
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {
-      int32 *srce = lharray->arraystart.intbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      uint8 *srce = lharray->arraystart.uint8base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fmulwithtest(srce[n], floatvalue);
-    }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>*<float value> */
-    basicarray lharray = pop_arraytemp();
-    float64 *base = lharray.arraystart.floatbase;
-    int32 n;
-    for (n = 0; n < lharray.arrsize; n++) base[n]*=floatvalue;
     push_arraytemp(&lharray, VAR_FLOAT);
   } else want_number();
   DEBUGFUNCMSGOUT;
@@ -2902,86 +2999,6 @@ static void eval_fmmul(void) {
 }
 
 /*
-** 'eval_ivdiv' handles floating point division where the right-hand operand
-** is a 32-bit integer value
-*/
-static void eval_ivdiv(void) {
-  stackitem lhitem;
-  int64 rhint = pop_anyint();
-
-  DEBUGFUNCMSGIN;
-  lhitem = GET_TOPITEM;
-  if (TOPITEMISNUM)
-    push_float(fdivwithtest(pop_anynumfp(),TOFLOAT(rhint)));
-  else if (TOPITEMISNUMARRAY) {        /* <array>/<integer value> */
-    basicarray *lharray = pop_array();
-    float64 *base = make_array(VAR_FLOAT, lharray);
-    int32 n;
-    floatvalue = TOFLOAT(rhint);
-    if (lhitem == STACK_INTARRAY) {
-      int32 *srce = lharray->arraystart.intbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      uint8 *srce = lharray->arraystart.uint8base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(srce[n], floatvalue);
-    }
-  } else if (lhitem == STACK_FATEMP) {  /* <float array>/<integer value> */
-    basicarray lharray = pop_arraytemp();
-    float64 *base = lharray.arraystart.floatbase;
-    int32 n;
-    floatvalue = TOFLOAT(rhint);
-    for (n = 0; n < lharray.arrsize; n++) base[n] = fdivwithtest(base[n], floatvalue);
-    push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'eval_fvdiv' handles division where the right-hand operand is a
-** floating point value
-*/
-static void eval_fvdiv(void) {
-  stackitem lhitem;
-
-  DEBUGFUNCMSGIN;
-  floatvalue = pop_float();
-  lhitem = GET_TOPITEM;
-  if (TOPITEMISNUM)
-    push_float(fdivwithtest(pop_anynumfp(), floatvalue));
-  else if (lhitem == STACK_INTARRAY || lhitem == STACK_FLOATARRAY) {    /* <array>/<float value> */
-    basicarray *lharray = pop_array();
-    float64 *base = make_array(VAR_FLOAT, lharray);
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {
-      int32 *srce = lharray->arraystart.intbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else if (lhitem == STACK_UINT8ARRAY) {
-      uint8 *srce = lharray->arraystart.uint8base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else if (lhitem == STACK_INT64ARRAY) {
-      int64 *srce = lharray->arraystart.int64base;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(TOFLOAT(srce[n]), floatvalue);
-    } else {
-      float64 *srce = lharray->arraystart.floatbase;
-      for (n = 0; n < lharray->arrsize; n++) base[n] = fdivwithtest(srce[n], floatvalue);
-    }
-  } else if (lhitem == STACK_FATEMP) {                    /* <float array>/<float value> */
-    basicarray lharray = pop_arraytemp();
-    float64 *base = lharray.arraystart.floatbase;
-    int32 n;
-    for (n = 0; n < lharray.arrsize; n++) base[n] = fdivwithtest(base[n], floatvalue);
-    push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
 ** 'eval_iadiv' handles floating point division where the right-hand operand
 ** is a 32-bit integer array
 */
@@ -3162,54 +3179,6 @@ static void eval_fadiv(void) {
     check_arrays(&lharray, rharray);
     for (n = 0; n < rharray->arrsize; n++) lhsrce[n] = fdivwithtest(lhsrce[n], rhsrce[n]);
     push_arraytemp(&lharray, VAR_FLOAT);
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'eval_ivintdiv' handles the integer division operator when the
-** right-hand operand is any integer or floating point value
-*/
-static void eval_ivintdiv(void) {
-  stackitem lhitem;
-  int64 rhint = 0;
-
-  DEBUGFUNCMSGIN;
-  rhint = pop_anynum64();
-  if (rhint == 0) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_DIVZERO);
-    return;
-  }
-  lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)              /* Branch according to type of left-hand operand */
-    INTDIV_INT(rhint);
-  else if (lhitem == STACK_UINT8)       /* Branch according to type of left-hand operand */
-    INTDIV_UINT8(rhint);
-  else if (lhitem == STACK_INT64)       /* Branch according to type of left-hand operand */
-    INTDIV_INT64(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int64(TOINT64(pop_float())/rhint);
-  else if (TOPITEMISNUMARRAY) {        /* <array> DIV <integer value> */
-    basicarray *lharray = pop_array();
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {             /* <integer array> DIV <integer value> */
-      int32 *srce = lharray->arraystart.intbase;
-      int32 *base = make_array(VAR_INTWORD, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / rhint;
-    } else if (lhitem == STACK_UINT8ARRAY) {    /* <integer array> DIV <integer value> */
-      uint8 *srce = lharray->arraystart.uint8base;
-      uint8 *base = make_array(VAR_UINT8, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / rhint;
-    } else if (lhitem == STACK_INT64ARRAY) {    /* <integer array> DIV <integer value> */
-      int64 *srce = lharray->arraystart.int64base;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] / rhint;
-    } else {    /* <float array> DIV <integer value> */
-      float64 *srce = lharray->arraystart.floatbase;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOINT64(srce[n]) / rhint;
-    }
   } else want_number();
   DEBUGFUNCMSGOUT;
 }
@@ -3409,54 +3378,6 @@ static void eval_faintdiv(void) {
       float64 *lhsrce = lharray->arraystart.floatbase;
       base64 = make_array(VAR_INTLONG, rharray);
       for (n = 0; n < rharray->arrsize; n++) base64[n] = i64divwithtest(TOINT64(lhsrce[n]), TOINT64(rhsrce[n]));
-    }
-  } else want_number();
-  DEBUGFUNCMSGOUT;
-}
-
-/*
-** 'eval_ivmod' carries out the integer remainder operator when the right-hand
-** operand is any integer or floating point value
-*/
-static void eval_ivmod(void) {
-  stackitem lhitem;
-  int64 rhint = 0;
-
-  DEBUGFUNCMSGIN;
-  rhint = pop_anynum64();
-  if (rhint == 0) {
-    DEBUGFUNCMSGOUT;
-    error(ERR_DIVZERO);
-    return;
-  }
-  lhitem = GET_TOPITEM;
-  if (lhitem == STACK_INT)                  /* Branch according to type of left-hand operand */
-    INTMOD_INT(rhint);
-  else if (lhitem == STACK_UINT8)           /* Branch according to type of left-hand operand */
-    INTMOD_UINT8(rhint);
-  else if (lhitem == STACK_INT64)           /* Branch according to type of left-hand operand */
-    INTMOD_INT64(rhint);
-  else if (lhitem == STACK_FLOAT)
-    push_int64(TOINT64(pop_float()) % rhint);
-  else if (TOPITEMISNUMARRAY) {        /* <array> MOD <integer value> */
-    basicarray *lharray = pop_array();
-    int32 n;
-    if (lhitem == STACK_INTARRAY) {                             /* <int32 array> MOD <integer value> */
-      int32 *srce = lharray->arraystart.intbase;
-      int32 *base = make_array(VAR_INTWORD, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % rhint;
-    } else if (lhitem == STACK_UINT8ARRAY) {                    /* <uint8 array> MOD <integer value> */
-      uint8 *srce = lharray->arraystart.uint8base;
-      uint8 *base = make_array(VAR_UINT8, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % rhint;
-    } else if (lhitem == STACK_INT64ARRAY) {                    /* <int64 array> MOD <integer value> */
-      int64 *srce = lharray->arraystart.int64base;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = srce[n] % rhint;
-    } else {                                                    /* <float array> MOD <integer value> */
-      float64 *srce = lharray->arraystart.floatbase;
-      int64 *base = make_array(VAR_INTLONG, lharray);
-      for (n = 0; n < lharray->arrsize; n++) base[n] = TOINT64(srce[n]) % rhint;
     }
   } else want_number();
   DEBUGFUNCMSGOUT;
@@ -4252,6 +4173,26 @@ static void do_unaryminus(void) {
   DEBUGFUNCMSGOUT;
 }
 
+/* Dispatcher redirectors */
+static void eval_ivplus(void) { eval_iv_op(OP_ADD); }
+static void eval_fvplus(void) { eval_fv_op(OP_ADD); }
+
+static void eval_ivminus(void) { eval_iv_op(OP_SUB); }
+static void eval_fvminus(void) { eval_fv_op(OP_SUB); }
+
+static void eval_ivmul(void) { eval_iv_op(OP_MUL); }
+static void eval_fvmul(void) { eval_fv_op(OP_MUL); }
+
+static void eval_ivdiv(void) { eval_iv_op(OP_DIV); }
+static void eval_fvdiv(void) { eval_fv_op(OP_DIV); }
+
+static void eval_ivmod(void) { eval_iv_op(OP_MOD); }
+static void eval_fvmod(void) { eval_fv_op(OP_MOD); }
+
+static void eval_ivintdiv(void) { eval_iv_op(OP_INTDIV); }
+static void eval_fvintdiv(void) { eval_fv_op(OP_INTDIV); }
+
+
 /*
 ** 'factor_table' is a table of functions indexed by token type used
 ** to deal with factors in an expression.
@@ -4402,13 +4343,13 @@ static void (*opfunctions [21][18])(void) = {
   want_number},
 /* Integer division */
  {eval_badcall,  eval_badcall,  eval_ivintdiv,  eval_ivintdiv, eval_ivintdiv,
-  eval_ivintdiv, want_number,   want_number,    eval_iaintdiv,
+  eval_fvintdiv, want_number,   want_number,    eval_iaintdiv,
   eval_iaintdiv, eval_iu8aintdiv,eval_iu8aintdiv,eval_i64aintdiv,
   eval_i64aintdiv,eval_faintdiv, eval_faintdiv, want_number,
   want_number},
 /* Integer remainder (MOD)*/
  {eval_badcall,  eval_badcall,  eval_ivmod,     eval_ivmod,    eval_ivmod,
-  eval_ivmod,    want_number,   want_number,    eval_iamod,
+  eval_fvmod,    want_number,   want_number,    eval_iamod,
   eval_iamod,    eval_iu8amod,  eval_iu8amod,   eval_i64amod,
   eval_i64amod,  eval_famod,    eval_famod,     want_number,
   want_number},
