@@ -1594,7 +1594,7 @@ static void *make_array(int32 arraytype, basicarray* original) {
 /* This function subsumes the functionality of eval_ivplus, eval_ivminus,
 ** eval_ivmul, eval_ivdiv, eval_ivmod and eval_ivintdiv.
 */
-static void eval_iv_op(int oper) {
+static void core_eval_iv_op(int oper) {
   stackitem lhitem, rhitem;
   int64 rhint;
   
@@ -1870,7 +1870,7 @@ static void eval_iv_op(int oper) {
 /* This function subsumes the functionality of eval_fvplus, eval_fvminus,
 ** eval_fvmul, eval_fvdiv, eval_fvmod and eval_fvintdiv.
 */
-static void eval_fv_op(int oper) {
+static void core_eval_fv_op(int oper) {
   stackitem lhitem;
 
   DEBUGFUNCMSGIN;
@@ -4206,23 +4206,23 @@ static void do_unaryminus(void) {
 }
 
 /* Dispatcher redirectors */
-static void eval_ivplus(void) { eval_iv_op(OP_ADD); }
-static void eval_fvplus(void) { eval_fv_op(OP_ADD); }
+static void eval_ivplus(void) { core_eval_iv_op(OP_ADD); }
+static void eval_fvplus(void) { core_eval_fv_op(OP_ADD); }
 
-static void eval_ivminus(void) { eval_iv_op(OP_SUB); }
-static void eval_fvminus(void) { eval_fv_op(OP_SUB); }
+static void eval_ivminus(void) { core_eval_iv_op(OP_SUB); }
+static void eval_fvminus(void) { core_eval_fv_op(OP_SUB); }
 
-static void eval_ivmul(void) { eval_iv_op(OP_MUL); }
-static void eval_fvmul(void) { eval_fv_op(OP_MUL); }
+static void eval_ivmul(void) { core_eval_iv_op(OP_MUL); }
+static void eval_fvmul(void) { core_eval_fv_op(OP_MUL); }
 
-static void eval_ivdiv(void) { eval_iv_op(OP_DIV); }
-static void eval_fvdiv(void) { eval_fv_op(OP_DIV); }
+static void eval_ivdiv(void) { core_eval_iv_op(OP_DIV); }
+static void eval_fvdiv(void) { core_eval_fv_op(OP_DIV); }
 
-static void eval_ivmod(void) { eval_iv_op(OP_MOD); }
-static void eval_fvmod(void) { eval_fv_op(OP_MOD); }
+static void eval_ivmod(void) { core_eval_iv_op(OP_MOD); }
+static void eval_fvmod(void) { core_eval_fv_op(OP_MOD); }
 
-static void eval_ivintdiv(void) { eval_iv_op(OP_INTDIV); }
-static void eval_fvintdiv(void) { eval_fv_op(OP_INTDIV); }
+static void eval_ivintdiv(void) { core_eval_iv_op(OP_INTDIV); }
+static void eval_fvintdiv(void) { core_eval_fv_op(OP_INTDIV); }
 
 
 /*
