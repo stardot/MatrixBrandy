@@ -4316,8 +4316,9 @@ static void draw_ellipse(SDL_Surface *screen, int32 xc, int32 yc, int32 width, i
     int xr_prev = 0;
     int xl_this = 0;
     int xr_this = 0;
+    int y;
     // Start at -1 to allow the pipeline to fill
-    for (int y = -1; y < height; y++) {
+    for (y = -1; y < height; y++) {
       int y_squared_next=(y+1)*(y+1);
       float x = axis_ratio * sqrtf(h_squared - y_squared_next);
       int xl_next = (int) (xshear - x);
@@ -4467,8 +4468,9 @@ static void draw_arc_or_sector_or_segment(SDL_Surface *screen, int32 xc, int32 y
     int xr_prev = 0;
     int xl_this = 0;
     int xr_this = 0;
+    int y;
     // Start at -1 to allow the pipeline to fill
-    for (int y = -1; y < height; y++) {
+    for (y = -1; y < height; y++) {
       int y_squared_next=(y+1)*(y+1);
       float x = axis_ratio * sqrtf(h_squared - y_squared_next);
       int xl_next = (int) (xshear - x);
