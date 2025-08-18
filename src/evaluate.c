@@ -2900,35 +2900,42 @@ static void eval_immul(void) {
   if (rharray->dimcount != 1) rhrowsize = rharray->dimsize[COLUMN];
   lhbase = lharray->arraystart.intbase;
   rhbase = rharray->arraystart.intbase;
-  if (lharray->dimcount == 1) { /* Multiplying a vector by a matrix.  Result is a (row) vector */
-    for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
-      sum = 0;
-      for (col = 0; col < lharray->dimsize[ROW]; col++) {
-        sum+=lhbase[col] * rhbase[col * rhrowsize + resindex];
-      }
-      base[resindex] = sum;
-    }
-  }
-  else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Multiplying matrix by a vector.  Result is a (row) vector */
-    for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
-      sum = 0;
-      for (col = 0; col < rharray->dimsize[ROW]; col++) {
-        sum+=lhbase[lhrowsize * resindex + col] * rhbase[col];
-      }
-      base[resindex] = sum;
-    }
-  }
-  else {        /* Multiplying two two-dimensional matrices */
-    resindex = 0;
-    for (row = 0; row < result.dimsize[ROW]; row++) {   /* Row in the result array */
-      for (col = 0; col < result.dimsize[COLUMN]; col++) {      /* Column in the result array */
-        int lhcol;
+  if ((lharray->dimcount == 1) && (rharray->dimcount == 1) && (result.arrsize == 1)) { /* Vector multiplication - let's do the dot product */
+    sum = 0;
+    for (col = 0; col < lharray->dimsize[0]; col++)
+      sum += (lhbase[col] * rhbase[col]);
+    base[0] = sum;
+  } else {
+    if (lharray->dimcount == 1) { /* Multiplying a vector by a matrix.  Result is a (row) vector */
+      for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
         sum = 0;
-        for (lhcol = 0; lhcol < lharray->dimsize[COLUMN]; lhcol++) {
-          sum+=lhbase[lhrowsize * row + lhcol] * rhbase[rhrowsize * lhcol + col];
+        for (col = 0; col < lharray->dimsize[ROW]; col++) {
+          sum+=lhbase[col] * rhbase[col * rhrowsize + resindex];
         }
         base[resindex] = sum;
-        resindex++;
+      }
+    }
+    else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Multiplying matrix by a vector.  Result is a (row) vector */
+      for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
+        sum = 0;
+        for (col = 0; col < rharray->dimsize[ROW]; col++) {
+          sum+=lhbase[lhrowsize * resindex + col] * rhbase[col];
+        }
+        base[resindex] = sum;
+      }
+    }
+    else {        /* Multiplying two two-dimensional matrices */
+      resindex = 0;
+      for (row = 0; row < result.dimsize[ROW]; row++) {   /* Row in the result array */
+        for (col = 0; col < result.dimsize[COLUMN]; col++) {      /* Column in the result array */
+          int lhcol;
+          sum = 0;
+          for (lhcol = 0; lhcol < lharray->dimsize[COLUMN]; lhcol++) {
+            sum+=lhbase[lhrowsize * row + lhcol] * rhbase[rhrowsize * lhcol + col];
+          }
+          base[resindex] = sum;
+          resindex++;
+        }
       }
     }
   }
@@ -2963,35 +2970,42 @@ static void eval_fmmul(void) {
   if (rharray->dimcount != 1) rhrowsize = rharray->dimsize[COLUMN];
   lhbase = lharray->arraystart.floatbase;
   rhbase = rharray->arraystart.floatbase;
-  if (lharray->dimcount == 1) { /* Multiplying a vector by a matrix.  Result is a (row) vector */
-    for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
-      sum = 0;
-      for (col = 0; col < lharray->dimsize[ROW]; col++) {
-        sum+= fmulwithtest(lhbase[col], rhbase[col * rhrowsize + resindex]);
-      }
-      base[resindex] = sum;
-    }
-  }
-  else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Multiplying matrix by a vector.  Result is a (row) vector */
-    for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
-      sum = 0;
-      for (col = 0; col < rharray->dimsize[ROW]; col++) {
-        sum += fmulwithtest(lhbase[lhrowsize * resindex + col], rhbase[col]);
-      }
-      base[resindex] = sum;
-    }
-  }
-  else {        /* Multiplying two two-dimensional matrices */
-    resindex = 0;
-    for (row = 0; row < result.dimsize[ROW]; row++) {   /* Row in the result array */
-      for (col = 0; col < result.dimsize[COLUMN]; col++) {      /* Column in the result array */
-        int lhcol;
+  if ((lharray->dimcount == 1) && (rharray->dimcount == 1) && (result.arrsize == 1)) { /* Vector multiplication - let's do the dot product */
+    sum = 0;
+    for (col = 0; col < lharray->dimsize[0]; col++)
+      sum += fmulwithtest(lhbase[col], rhbase[col]);
+    base[0] = sum;
+  } else {
+    if (lharray->dimcount == 1) { /* Multiplying a vector by a matrix.  Result is a (row) vector */
+      for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
         sum = 0;
-        for (lhcol = 0; lhcol < lharray->dimsize[COLUMN]; lhcol++) {
-          sum+=fmulwithtest(lhbase[lhrowsize * row + lhcol], rhbase[rhrowsize * lhcol + col]);
+        for (col = 0; col < lharray->dimsize[ROW]; col++) {
+          sum+= fmulwithtest(lhbase[col], rhbase[col * rhrowsize + resindex]);
         }
         base[resindex] = sum;
-        resindex++;
+      }
+    }
+    else if (lharray->dimcount == 2 && rharray->dimcount == 1) {  /* Multiplying matrix by a vector.  Result is a (row) vector */
+      for (resindex = 0; resindex < result.dimsize[ROW]; resindex++) {
+        sum = 0;
+        for (col = 0; col < rharray->dimsize[ROW]; col++) {
+          sum += fmulwithtest(lhbase[lhrowsize * resindex + col], rhbase[col]);
+        }
+        base[resindex] = sum;
+      }
+    }
+    else {        /* Multiplying two two-dimensional matrices */
+      resindex = 0;
+      for (row = 0; row < result.dimsize[ROW]; row++) {   /* Row in the result array */
+        for (col = 0; col < result.dimsize[COLUMN]; col++) {      /* Column in the result array */
+          int lhcol;
+          sum = 0;
+          for (lhcol = 0; lhcol < lharray->dimsize[COLUMN]; lhcol++) {
+            sum+=fmulwithtest(lhbase[lhrowsize * row + lhcol], rhbase[rhrowsize * lhcol + col]);
+          }
+          base[resindex] = sum;
+          resindex++;
+        }
       }
     }
   }

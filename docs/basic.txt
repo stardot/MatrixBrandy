@@ -542,6 +542,14 @@ result in <array 1>.
 
 Note that '.' is used as the matrix multiplication operator.
 
+This also supports the vector "dot product" for a pair of one-dimensional
+arrays of the same size as per BBCSDL (note this is not supported on
+RISC OS).
+
+Portability note: Given that RISC OS does ot support the dot product
+directly, this can be implemented in a portable fashion using the normal
+array multiplier then running the resulting array thrrough SUM().
+
 Built-in Functions
 ~~~~~~~~~~~~~~~~~~
 The interpreter has a fairly standard set of functions. One feature of this
