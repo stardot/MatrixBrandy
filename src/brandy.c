@@ -344,7 +344,7 @@ static void gpio_init() {
 static void init2(void) {
   if (!mos_init() || !kbd_init() || !init_screen()) {
     cmderror(CMD_INITFAIL);           /* Initialisation failed */
-    exit_interpreter(EXIT_FAILURE);   /* End run */
+    exit_interpreter_real(EXIT_FAILURE);   /* End run */
   }
   if (!init_heap() || !init_workspace(worksize)) {
     cmderror(CMD_NOMEMORY);           /* Not enough memory to run interpreter */
