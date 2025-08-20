@@ -10,7 +10,7 @@ include git.mk
 
 #CFLAGS = -g -DDEBUG -DNONET -Wall $(GITFLAGS) -mlibscl
 #CFLAGS = -g -DNONET -Wall $(GITFLAGS) -mlibscl
-CFLAGS = -O3 -mfpu=vfp -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
+CFLAGS = -O2 -mfpu=vfp -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
 LDFLAGS += -mfpu=vfp
 
