@@ -487,7 +487,7 @@ void detail_library(library *lp) {
 /*
 ** 'list_libraries' lists the libraries that have been loaded
 */
-void list_libraries(char ch) {
+void list_libraries() {
   library *lp;
   if (basicvars.liblist!=NIL) {
     emulate_printf("\nLibraries (in search order):\r\n");
