@@ -507,8 +507,8 @@ void list_libraries() {
 */
 void define_array(variable *vp, boolean islocal, boolean offheap) {
   int32 bounds[1+MAXDIMS];
-  int32 n, dimcount, elemsize = 0;
-  size_t size;
+  int32 elemsize = 0;
+  size_t n, dimcount, size;
   basicarray *ap;
 
   DEBUGFUNCMSGIN;
