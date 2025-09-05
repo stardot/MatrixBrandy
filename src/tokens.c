@@ -1958,13 +1958,13 @@ static void clear_varaddrs(byte *bp) {
   int offset;
 
   DEBUGFUNCMSGIN;
-  if (*bp == BASTOKEN_REM) {
-    DEBUGFUNCMSGOUT;
-    return;
-  }
   sp = bp+OFFSOURCE;            /* Point at start of source code */
   tp = FIND_EXEC(bp);           /* Get address of start of executable tokens */
   while (*tp != asc_NUL) {
+    if (*tp == BASTOKEN_REM) {
+      DEBUGFUNCMSGOUT;
+      return;
+    }
     if (*tp == BASTOKEN_XVAR || (*tp >= BASTOKEN_UINT8VAR && *tp <= BASTOKEN_FLOATINDVAR)) {
       while (*sp != BASTOKEN_XVAR && *sp != asc_NUL) sp = skip_source(sp);     /* Locate variable in source part of line */
       if (*sp == asc_NUL) {
