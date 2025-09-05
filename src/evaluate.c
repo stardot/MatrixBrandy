@@ -1654,11 +1654,10 @@ static void core_eval_iv_op(int oper) {
       case OP_SUB: {
           /* Use float80 space - doesn't help on ARM but doesn't hurt it */
           float80 fltmp = (float80)pop_float() - (float80)rhint;
-          if (fltmp == (int64)fltmp) {
+          if (fltmp == (int64)fltmp)
             push_varyint((int64)fltmp);
-          } else {
+          else
             push_float((float64)fltmp);
-          }
         }
         break;
       case OP_MUL: push_float(fmulwithtest(pop_float(), TOFLOAT(rhint))); break;
@@ -2017,21 +2016,17 @@ static void core_eval_fv_op(int oper) {
     float64 *base = lharray.arraystart.floatbase;
     int32 n;
     switch(oper) {
-      case OP_ADD: {  /* <float array>+<float value> */
-          for (n = 0; n < lharray.arrsize; n++) base[n]+=floatvalue;
-        }
+      case OP_ADD:    /* <float array>+<float value> */
+        for (n = 0; n < lharray.arrsize; n++) base[n]+=floatvalue;
         break;
-      case OP_SUB: {  /* <float array>-<float value> */
-          for (n = 0; n < lharray.arrsize; n++) base[n] -= floatvalue;
-        }
+      case OP_SUB:    /* <float array>-<float value> */
+        for (n = 0; n < lharray.arrsize; n++) base[n] -= floatvalue;
         break;
-      case OP_MUL: {  /* <float array>*<float value> */
-          for (n = 0; n < lharray.arrsize; n++) base[n]*=floatvalue;
-        }
+      case OP_MUL:    /* <float array>*<float value> */
+        for (n = 0; n < lharray.arrsize; n++) base[n]*=floatvalue;
         break;
-      case OP_DIV: {  /* <float array>/<float value> */
-          for (n = 0; n < lharray.arrsize; n++) base[n] = fdivwithtest(base[n], floatvalue);
-        }
+      case OP_DIV:    /* <float array>/<float value> */
+        for (n = 0; n < lharray.arrsize; n++) base[n] = fdivwithtest(base[n], floatvalue);
         break;
     }
     push_arraytemp(&lharray, VAR_FLOAT);
