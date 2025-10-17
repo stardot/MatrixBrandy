@@ -1411,7 +1411,6 @@ static void do_function(void) {
 
   if (sigsetjmp(*basicvars.local_restart, 1) == 0) {
     exec_fnstatements(dp->fnprocaddr);
-    basicvars.recdepth--;
   } else {
 /*
 ** Restart here after an error in the function or something

@@ -31,6 +31,7 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 - General: Implement code fixes based on GCC 14.2's -fanalyze feature.
 - System: Fix an intermittent hang on the version check due to network
   conditions, and a crash if unexpected data is received.
+- System: Fix a recursion counter leak.
 - Graphics: Can now zoom the window, use command line -zoom <factor> or config
   file entry zoom <factor> in the range 1-4.
 - MOS: *LOAD and *SAVE display a warning if Hex64 mode is not enabled on 64-bit
