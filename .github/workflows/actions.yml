@@ -50,7 +50,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ['macos-latest', 'macos-13']
+        os: ['macos-latest', 'macos-14']
     name: Compile via cmake on ${{ matrix.os }}
     env:
       CFLAGS: "-Wextra"
