@@ -578,7 +578,7 @@ typedef struct {
   int32 argcount;                 /* Number of Basic program command line arguments */
   int32 printcount;               /* Chars printed this line (used by PRINT) */
   int32 printwidth;               /* Width of line (used by PRINT) */
-  int32 recdepth;                 /* Record depth of FN and flood-fill recursion */
+  uint32 recdepth;                /* Record depth of FN and flood-fill recursion */
   int32 xtab;                     /* X value of TAB(X,Y) */
   byte *lastsearch;               /* Place last proc/fn search reached */
   int32 linecount;                /* Used when reading a Basic program or library into memory */
