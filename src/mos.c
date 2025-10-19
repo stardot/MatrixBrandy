@@ -73,6 +73,7 @@
 #include <dirent.h>
 #include <ctype.h>
 #include <time.h>
+#include <errno.h>
 #include "common.h"
 #include "target.h"
 #include "errors.h"
@@ -1445,7 +1446,12 @@ static void cmd_cat(char *command) {
 
   memset(dbuf,0,FNAMESIZE+1);
   memset(fbuf,0,FNAMESIZE+1);
-  getcwd(dbuf, FNAMESIZE);
+
+  if (getcwd(dbuf, FNAMESIZE)==NULL) {
+    error(ERR_DIRNOTFOUND, strerror (errno));
+    return;
+  }
+
   buflen=FNAMESIZE - strlen(dbuf);
   while (*command && (*command != ' ')) command++;      // Skip command
   while (*command == ' ') command++;                    // Skip spaces

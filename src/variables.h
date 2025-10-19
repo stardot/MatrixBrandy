@@ -28,7 +28,7 @@
 
 extern void clear_varlists(void);
 extern void list_variables(char);
-extern void list_libraries(char);
+extern void list_libraries();
 extern void detail_library(library *);
 extern variable *find_variable(byte *, int);
 extern variable *find_fnproc(byte *, int);

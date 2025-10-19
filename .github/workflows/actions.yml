@@ -16,7 +16,7 @@ jobs:
       CFLAGS: "-Wextra"
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install libsdl1.2-dev valgrind
+      - run: sudo apt-get update && sudo apt-get install libsdl1.2-dev valgrind
       - run: cmake .
       - run: cmake --build .
       - run: ctest --rerun-failed --output-on-failure
@@ -31,7 +31,7 @@ jobs:
       BRANDY_BUILD_FLAGS: "-Wextra"
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt-get install libsdl1.2-dev
+      - run: sudo apt-get update && sudo apt-get install libsdl1.2-dev
       - run: make -f ${{ matrix.makefile }}
   make_text:
     runs-on: ${{ matrix.os }}

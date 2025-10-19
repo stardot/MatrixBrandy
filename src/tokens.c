@@ -501,7 +501,7 @@ static void store_int64const(int64 value) {
 */
 static void store_fpvalue(float64 fpvalue) {
   byte temp[sizeof(float64)];
-  int n;
+  size_t n;
 
   DEBUGFUNCMSGIN;
   if (next+FLOATSIZE>=MAXSTATELEN) {
@@ -708,7 +708,7 @@ static void copy_keyword(int token) {
 ** keyboard. It ensures that the token value is legal
 */
 static void copy_token(void) {
-  int n;
+  size_t n;
   byte toktype, tokvalue;
 
   DEBUGFUNCMSGIN;
@@ -2087,7 +2087,7 @@ static boolean legalow [] = {   /* Tokens in range 00.1F */
 ** The function only checks the executable tokens
 */
 boolean isvalid(byte *bp) {
-  int length, execoff;
+  unsigned int length, execoff;
   byte *base, *cp;
 
   DEBUGFUNCMSGIN;

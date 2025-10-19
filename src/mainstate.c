@@ -56,7 +56,8 @@
 
 /* Replacement for memmove where we dedupe pairs of double quotes */
 static int memcpydedupe(char *dest, const unsigned char *src, size_t len, char dedupe) {
-  int sptr = 0, dptr=0, shorten=0;
+  size_t sptr = 0;
+  int dptr=0, shorten=0;
 
   DEBUGFUNCMSGIN;
   while (sptr < len) {
