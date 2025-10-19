@@ -9,6 +9,9 @@ Also, 1.23.2 introduced an automatic new version check. This may be considered
 inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
+* 1.23.7 - 
+
+
 * 1.23.6 - 19 October 2025
 - System: Fix bugs in scrolling up and down when a text window is active.
 - System: Text-mode builds now handle VDU21 and VDU6.
