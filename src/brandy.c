@@ -400,10 +400,8 @@ static void check_configfile() {
     free(conffname);
     return;
   }
-  while (!feof(conffile)) {
-    memset(line,0,1024);          /* Clear the buffer before new entries are read */
+  while (fgets(line, 1024, conffile)!=NULL) {
     parameter=NULL;
-    fgets(line, 1024, conffile);
     /* Borrow the 'item' pointer, to remove any trailing CR/LF */
     item=strchr(line, '\n');
     if (item) *item='\0';

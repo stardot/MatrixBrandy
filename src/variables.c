@@ -487,7 +487,7 @@ void detail_library(library *lp) {
 /*
 ** 'list_libraries' lists the libraries that have been loaded
 */
-void list_libraries(char ch) {
+void list_libraries() {
   library *lp;
   if (basicvars.liblist!=NIL) {
     emulate_printf("\nLibraries (in search order):\r\n");
@@ -507,8 +507,8 @@ void list_libraries(char ch) {
 */
 void define_array(variable *vp, boolean islocal, boolean offheap) {
   int32 bounds[1+MAXDIMS];
-  int32 n, dimcount, elemsize = 0;
-  size_t size;
+  int32 elemsize = 0;
+  size_t n, dimcount, size;
   basicarray *ap;
 
   DEBUGFUNCMSGIN;
