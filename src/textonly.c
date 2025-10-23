@@ -1706,6 +1706,9 @@ static void draw_line(int32 x1, int32 y1, int32 x2, int32 y2, int32 style) {
 }
 
 static void draw_h_line(int32 x1, int32 y, int32 x2) {
+  /* If placeholders from buff_convex_poly haven't been given proper values, exit */
+  if ((x1 == MAX_XRES + 1) && (x2 == -1)) return;
+
   draw_line(x1, y, x2, y ,0);
 }
 
