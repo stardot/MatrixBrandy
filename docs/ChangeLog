@@ -10,6 +10,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
 * 1.23.7 - 
+- Graphics: Fix a regression involving horizontal line drawing - thank you
+  Richard Russell!
 
 
 * 1.23.6 - 19 October 2025
