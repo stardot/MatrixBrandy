@@ -464,6 +464,11 @@ static void check_configfile() {
         matrixflags.startupmode = CAST(strtol(parameter, &sp, 10), size_t);  /* startup mode */
       }
 #endif
+    } else if(!strncmp(item, "listo", 6)) {
+      if(parameter) {
+        char *sp;
+        set_listoption(strtol(parameter, &sp, 10));  /* default LISTO */
+      }
     } else if(!strncmp(item, "path", 5)) {
       if(parameter) {
         if (basicvars.loadpath!=NIL) free(basicvars.loadpath);  /* Discard existing list */
