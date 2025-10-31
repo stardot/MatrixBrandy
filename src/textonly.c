@@ -1578,8 +1578,6 @@ static void plot_pixel(int32 px, int32 py) {
 static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
   int32 dx, dy, xf, yf, a, b, t, i;
 
-  if (x1 == x2 && y1 == y2) return;
-
   if (x2 > x1) {
     dx = x2 - x1;
     xf = 1;
@@ -1603,8 +1601,8 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
     t = a - dx;
     b = t - dx;
     for (i = 0; i <= dx; i++) {
-      if (y1 >= 0 && x1 < geom_left[y1]) geom_left[y1] = x1;
-      if (y1 >= 0 && x1 > geom_right[y1]) geom_right[y1] = x1;
+      if (y1 >= 0 && y1<MAX_YRES && x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (y1 >= 0 && y1<MAX_YRES && x1 > geom_right[y1]) geom_right[y1] = x1;
       x1 += xf;
       if (t < 0)
         t += a;
@@ -1619,8 +1617,8 @@ static void trace_edge(int32 x1, int32 y1, int32 x2, int32 y2) {
     t = a - dy;
     b = t - dy;
     for (i = 0; i <= dy; i++) {
-      if (y1 >= 0 && x1 < geom_left[y1]) geom_left[y1] = x1;
-      if (y1 >= 0 && x1 > geom_right[y1]) geom_right[y1] = x1;
+      if (y1 >= 0 && y1<MAX_YRES && x1 < geom_left[y1]) geom_left[y1] = x1;
+      if (y1 >= 0 && y1<MAX_YRES && x1 > geom_right[y1]) geom_right[y1] = x1;
       y1 += yf;
       if (t < 0)
         t += a;
@@ -1721,6 +1719,8 @@ static void buff_convex_poly(int32 n, int32 *x, int32 *y) {
     if (y[i] > high) high = y[i];
     if (y[i] < low) low = y[i];
   }
+  if (high>MAX_YRES-1) high=MAX_YRES-1;
+  if (low<0) low=0;
   /* reset the minumum amount of the edge tables */
   for (iy = (low < 0) ? 0: low; iy <= high; iy++) {
     geom_left[iy] = MAX_XRES + 1;

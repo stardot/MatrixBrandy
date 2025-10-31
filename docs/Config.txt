@@ -49,7 +49,7 @@ lib <filename>          Load Basic library <filename> when the interpreter
                         in the order given on the command line. Note that the
                         search order is the reverse of this.
 
-listo                   Allow LISTO options value to be set automatically.
+listo <value>           Allow LISTO options value to be set automatically.
 
 lowercase               Allow use of lower-case keywords. Unless LISTO option
                         bit 4 (16) is set, LIST will show keywords in
