@@ -11,7 +11,7 @@ include build/git.mk
 #CFLAGS = -g -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 CFLAGS = -O3 -fPIE -I/usr/include/SDL -DNO_SDL -DDEFAULT_IGNORE -Wall $(GITFLAGS) $(ADDFLAGS)
 
-LDFLAGS =
+LDFLAGS = $(ADDFLAGS)
 
 LIBS = -lm -ldl -lpthread -lrt
 
