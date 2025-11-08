@@ -1,8 +1,12 @@
-.TH BRANDY 1 "28 Dec 2021" "brandy 1.22.12" "BBC BASIC VI interpreter"
+.TH BRANDY 1 "7 Nov 2025" "brandy 1.23.6" "BBC BASIC VI interpreter"
 .\" This man page was compiled by Darren Salt.
 
 .SH NAME
-brandy \- a portable BBC BASIC VI interpreter
+brandy \- a portable BBC BASIC VI interpreter with SDL graphics
+.br
+tbrandy \- a portable BBC BASIC VI interpreter with terminal output
+.br
+sbrandy \- a portable BBC BASIC VI interpreter with simple text output
 
 .SH SYNOPSIS
 .B brandy \-help
@@ -28,6 +32,12 @@ brandy \- a portable BBC BASIC VI interpreter
 .RB [ \-\-
 .RI < options >]
 .RI [< file >]
+.br
+.B tbrandy
+.I "\&..."
+.br
+.B sbrandy
+.I "\&..."
 
 .SH DESCRIPTION
 
@@ -131,12 +141,16 @@ files are case sensitive or insensitive.
 .SH "SEE ALSO"
 
 .TP
-.I /usr/share/doc/brandy
+.UR https://github.com/stardot/MatrixBrandy/tree/master/docs
 Full documentation.
+.UE
+Documentation may have also been installed locally on your system.
 
 .TP
-.I /usr/share/doc/brandy/examples
-Example programs.
+.UR https://github.com/stardot/MatrixBrandy/tree/master/examples
+Example progams.
+.UE
+Examples may have also been installed locally on your system.
 
 .SH AUTHORS
 
