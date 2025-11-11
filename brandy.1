@@ -1,0 +1,158 @@
+.TH BRANDY 1 "7 Nov 2025" "brandy 1.23.6" "BBC BASIC VI interpreter"
+.\" This man page was compiled by Darren Salt.
+
+.SH NAME
+brandy \- a portable BBC BASIC VI interpreter with SDL graphics
+.br
+tbrandy \- a portable BBC BASIC VI interpreter with terminal output
+.br
+sbrandy \- a portable BBC BASIC VI interpreter with simple text output
+
+.SH SYNOPSIS
+.B brandy \-help
+.br
+.B brandy \-version
+.br
+.B brandy
+.RB [ \-size
+.RI < size >]
+.RB [ \-fullscreen ]
+.RB [ \-swsurface ]
+.RB [ \-path
+.RI < list >]
+.RB [ \-load
+.RI < file >]
+.RB [ \-chain
+.RI < file >]
+.RB [ \-quit
+.RI < file >]
+.RB [ \-lib
+.RI < file >]
+.RB [ \-ignore ]
+.RB [ \-\-
+.RI < options >]
+.RI [< file >]
+.br
+.B tbrandy
+.I "\&..."
+.br
+.B sbrandy
+.I "\&..."
+
+.SH DESCRIPTION
+
+.B Brandy
+is an interpreter for
+.BR "BBC BASIC VI" ,
+the dialect of BASIC that Acorn Computers supplied with their ranges of
+desktop computers that use the ARM processor such as the Archimedes and
+Risc PC, and is still in use on these and compatibles.
+
+.B BASIC V
+is a much extended version of BBC BASIC. This was the BASIC used on the
+6502-based BBC Micro that Acorn made during the 1980s.
+
+.SH OPTIONS
+
+.TP
+.B \-help
+Print a summary of these options.
+
+.TP
+.BR \-size " <" \fIsize\fP >
+Set the size of the Basic workspace to
+.I size
+bytes when starting the interpreter. The minimum size allowed is 16384 bytes
+and anything below this value will be set to it. The maximum size is
+2147483644 bytes (4 bytes short of 2GiB).
+The size may have a suffix of
+.B k
+to denote that the size is in kilobytes or
+.B m
+if it is in megabytes. For example,
+.B \-size 100k
+will set the workspace size to 100 kilobytes (102400 bytes) and
+.B \-size 8m
+will set it to eight megabytes (8388608 bytes).
+
+.TP
+.BR \-lib " <" \fIfilename\fP >
+Load Basic library
+.I filename
+when the interpreter starts. This option can be
+repeated as many times as required to load a number of libraries. This is
+equivalent to typing
+.B INSTALL
+.I filename
+at the interpreter's command line. The libraries are loaded in the order
+given on the command line. Note that the search order is the reverse of this.
+
+.TP
+.BR \-load " <" \fIfilename\fP >
+Load Basic program
+.I filename
+when the interpreter starts.
+
+.TP
+.BR \-path " <" \fIdirectory\fP >[,< \fIdirectory\fP ]...
+This specifies a list of directories that the interpreter will search when
+looking for libraries and programs. The directory names are separated by
+commas. The pseudo-variable
+.B FILEPATH$
+is set to this value.
+
+.TP
+.BR \-quit " <" \fIfilename\fP >
+Load and run the Basic program
+.IR filename .
+Leave the interpreter when the program has finished running.
+
+.TP
+.BR \-chain " <" \fIfilename\fP >
+Load and run the Basic program
+.IR filename .
+Remain in the interpreter when the program has finished running.
+
+.TP
+.B \-ignore
+Ignore certain `unsupported feature' errors. By default the interpreter
+reports an error whenever it comes across a BASIC V feature that it does not
+support. This option allows some unsupported features that do not affect the
+basic running of the program to be ignored.
+
+.TP
+.RI < filename >
+This is exactly equivalent to
+.BR \-chain .
+
+.TP
+.RI \-nostar
+Do not check commands issued via
+.B OSCLI
+to see if they are dealt with by Brandy. Pass all commands to the
+underlying operating system.
+
+.P
+The case of the names of the options is ignored. It depends on the operating
+system under which the interpreter is running as to whether the names of
+files are case sensitive or insensitive.
+
+
+.SH "SEE ALSO"
+
+.TP
+.UR https://github.com/stardot/MatrixBrandy/tree/master/docs
+Full documentation.
+.UE
+Documentation may have also been installed locally on your system.
+
+.TP
+.UR https://github.com/stardot/MatrixBrandy/tree/master/examples
+Example progams.
+.UE
+Examples may have also been installed locally on your system.
+
+.SH AUTHORS
+
+David Daniels, with contributions from Darren Salt and Colin Tuckley.
+Matrix Brandy modifications by Michael McConnell and contributors.
