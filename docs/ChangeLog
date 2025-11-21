@@ -12,7 +12,9 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 * 1.23.7 - 
 - System: Addd a config file option for default LISTO value.
 - Graphics: Fix a regression involving horizontal line drawing - thank you
-  Richard Russell!
+  Richard Russell! With further cleanups thanks to Mike Fairbank.
+- Custom screen modes adjusted - modes 64 to 69 now based on those
+  defined in PiTubeDirect. Existing customised modes bumped by 6.
 
 
 * 1.23.6 - 19 October 2025

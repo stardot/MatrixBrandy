@@ -1,7 +1,7 @@
 The built-in screen modes in Matrix Brandy are based on those from RISC OS,
 the first 8 themselves based on the BBC Micro.
 
-On RISC OS, MODEs 0-63 are available depending on your monitor configuration
+On RISC OS, MODEs 0-53 are available depending on your monitor configuration
 and RISC OS version.  MODEs 64 and up are not available. On the Risc PC and
 later, user-defined modes with the extended MODE command are available, but
 handled by RISC OS (and not through MODE 126). *NewMode is not implemented.
@@ -62,50 +62,68 @@ Mode  Text resolution Graphics resolution  Colours  Pixel size  Logical res
  52       40x30           320x240            16       2x2        1280x960
  53       40x30           320x240           256       2x2        1280x960
 54-63 reserved for future expansion within RISC OS.
+
 Modes from 64 are only available on SDL builds, and can be redefined with
 *NewMode, these definitions are local to Matrix Brandy, and may be changed
 in the future.  As such they are not available on RISC OS, however the
 new-style MODE commands are available and can be used to replicate these.
-Modes 64-68 use the same coordinate system as Tektronix graphical terminals
- 64      128x97          1024x780             2       1x1        2048x1560
- 65      128x97          1024x780             4       1x1        2048x1560
- 66      128x97          1024x780            16       1x1        2048x1560
- 67      128x97          1024x780           256       1x1        2048x1560
- 68      128x97          1024x780      16777216       1x1        2048x1560
-Modes 69-93 are widescreen modes, possibly useful for full-screen use.
- 69      128x72          1024x576             2       1x1        2048x1152
- 70      128x72          1024x576             4       1x1        2048x1152
- 71      128x72          1024x576            16       1x1        2048x1152
- 72      128x72          1024x576           256       1x1        2048x1152
- 73      128x72          1024x576      16777216       1x1        2048x1152
- 74      170x48          1360x384             2       1x2        2720x1536
- 75      170x48          1360x384             4       1x2        2720x1536
- 76      170x48          1360x384            16       1x2        2720x1536
- 77      170x48          1360x384           256       1x2        2720x1536
- 78      170x48          1360x384      16777216       1x2        2720x1536
- 79      170x96          1360x768             2       1x1        2720x1536
- 80      170x96          1360x768             4       1x1        2720x1536
- 81      170x96          1360x768            16       1x1        2720x1536
- 82      170x96          1360x768           256       1x1        2720x1536
- 83      170x96          1360x768      16777216       1x1        2720x1536
- 84      240x67          1920x540             2       1x2        3840x2160
- 85      240x67          1920x540             4       1x2        3840x2160
- 86      240x67          1920x540            16       1x2        3840x2160
- 87      240x67          1920x540           256       1x2        3840x2160
- 88      240x67          1920x540      16777216       1x2        3840x2160
- 89      240x135         1920x1080            2       1x1        3840x2160
- 90      240x135         1920x1080            4       1x1        3840x2160
- 91      240x135         1920x1080           16       1x1        3840x2160
- 92      240x135         1920x1080          256       1x1        3840x2160
- 93      240x135         1920x1080     16777216       1x1        3840x2160
 
+As mode definitions may change, it is recommended that desired modes are
+set with *NewMode (even if they replicate an existing mode) so that any
+program that uses them won't be broken by future changes. (A case in point:
+The PiTubeDirct modes were inserted in the 1.23.7 development cycle,
+renumbering the Tektronix and widescreen modes bumping them by 6.)
+
+Modes 64-69 are based on custom modes in PiTubeDirect. Modes 66 and 67
+should be 16bpp modes, but are rendered in 24bpp colours as Matrix Brandy
+does not support 16bpp.
+ 64       80x64           640x512           256       1x1        1280x1024
+ 65      160x128         1280x1024          256       1x1        1280x1024
+ 66       80x64           640x512      16777216       1x1        1280x1024
+ 67      160x128         1280x1024     16777216       1x1        1280x1024
+ 68       80x64           640x512      16777216       1x1        1280x1024
+ 69      160x128         1280x1024     16777216       1x1        1280x1024
+Modes 70-74 use the same coordinate system as Tektronix graphical terminals
+ 70      128x97          1024x780             2       1x1        2048x1560
+ 71      128x97          1024x780             4       1x1        2048x1560
+ 72      128x97          1024x780            16       1x1        2048x1560
+ 73      128x97          1024x780           256       1x1        2048x1560
+ 74      128x97          1024x780      16777216       1x1        2048x1560
+Modes 75-99 are widescreen modes, possibly useful for full-screen use.
+ 75      128x72          1024x576             2       1x1        2048x1152
+ 76      128x72          1024x576             4       1x1        2048x1152
+ 77      128x72          1024x576            16       1x1        2048x1152
+ 78      128x72          1024x576           256       1x1        2048x1152
+ 79      128x72          1024x576      16777216       1x1        2048x1152
+ 80      170x48          1360x384             2       1x2        2720x1536
+ 81      170x48          1360x384             4       1x2        2720x1536
+ 82      170x48          1360x384            16       1x2        2720x1536
+ 83      170x48          1360x384           256       1x2        2720x1536
+ 84      170x48          1360x384      16777216       1x2        2720x1536
+ 85      170x96          1360x768             2       1x1        2720x1536
+ 86      170x96          1360x768             4       1x1        2720x1536
+ 87      170x96          1360x768            16       1x1        2720x1536
+ 88      170x96          1360x768           256       1x1        2720x1536
+ 89      170x96          1360x768      16777216       1x1        2720x1536
+ 90      240x67          1920x540             2       1x2        3840x2160
+ 91      240x67          1920x540             4       1x2        3840x2160
+ 92      240x67          1920x540            16       1x2        3840x2160
+ 93      240x67          1920x540           256       1x2        3840x2160
+ 94      240x67          1920x540      16777216       1x2        3840x2160
+ 95      240x135         1920x1080            2       1x1        3840x2160
+ 96      240x135         1920x1080            4       1x1        3840x2160
+ 97      240x135         1920x1080           16       1x1        3840x2160
+ 98      240x135         1920x1080          256       1x1        3840x2160
+ 99      240x135         1920x1080     16777216       1x1        3840x2160
 
 Note 1: MODEs 22 and 35 differ in that MODE 22 uses a non-standard pixel
 addressing with a 768x288 display on a 768x576 pixel addressing range,
 while MODE 35 uses the more standard doubling of 1536x1152.
+
 Note 2: COLOUR/GCOL numbers and TINT in 24-bit colour modes give the same
 colours as 256-colour modes. Using the newer form of COLOUR r,g,b or
 COLOUR OF r,g,b ON r,g,b (and likewise for GCOL) provide access to the
 full range of 16,777,216 colours.
-Custom screen modes can be used, via *NewMode, VDU23,22 or the newer forms
+
+Custom screen modes can be used, via *NewMode, VDU 23,22 or the newer forms
 of the MODE command.
