@@ -3016,6 +3016,51 @@ static void flood_fill(int32 x, int32 y, int colour, Uint32 action) {
   blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
   reveal_cursor();
 }
+
+static void flood_fill_fg_inner(uint32 coord) {
+  int32 x=(coord & 0xFFFF);
+  int32 y=(coord >> 16);
+  if(basicvars.recdepth == basicvars.maxrecdepth) return;
+  if ((*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) == ds.gf_colour) ||
+     (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) == ds.gb_colour)) return;
+  basicvars.recdepth++;
+  plot_pixel(screenbank[ds.writebank], x, y, ffcolour, ffaction); /* Plot this pixel */
+  if (x >= 1) /* Left */
+    if ((*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) != ds.gf_colour) &&
+       (*((Uint32*)screenbank[ds.writebank]->pixels + (x-1) + y*ds.vscrwidth) != ds.gb_colour))
+      flood_fill_fg_inner(x-1+(y<<16));
+  if (x < (ds.screenwidth-1)) /* Right */
+    if ((*((Uint32*)screenbank[ds.writebank]->pixels + (x+1) + y*ds.vscrwidth) != ds.gf_colour) &&
+       (*((Uint32*)screenbank[ds.writebank]->pixels + (x+1) + y*ds.vscrwidth) != ds.gb_colour))
+      flood_fill_fg_inner(x+1+(y<<16));
+  if (y >= 1) /* Up */
+    if ((*((Uint32*)screenbank[ds.writebank]->pixels + x + (y-1)*ds.vscrwidth) != ds.gf_colour) &&
+       (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y-1)*ds.vscrwidth) != ds.gb_colour))
+      flood_fill_fg_inner(x+((y-1)<<16));
+  if (y < (ds.screenheight-1)) /* Down */
+    if ((*((Uint32*)screenbank[ds.writebank]->pixels + x + (y+1)*ds.vscrwidth) != ds.gf_colour) &&
+       (*((Uint32*)screenbank[ds.writebank]->pixels + x + (y+1)*ds.vscrwidth) != ds.gb_colour))
+      flood_fill_fg_inner(x+((y+1)<<16));
+  basicvars.recdepth--;
+}
+
+static void flood_fill_fg(int32 x, int32 y, int colour, Uint32 action) {
+  int32 pwinleft, pwinright, pwintop, pwinbottom;
+  if (colour == ds.gf_colour) return;
+  pwinleft = GXTOPX(ds.gwinleft);               /* Calculate extent of graphics window in pixels */
+  pwinright = GXTOPX(ds.gwinright);
+  pwintop = GYTOPY(ds.gwintop);
+  pwinbottom = GYTOPY(ds.gwinbottom);
+  if (x < pwinleft || x > pwinright || y < pwintop || y > pwinbottom) return;
+  ffcolour=colour;
+  ffaction=action;
+  if (*((Uint32*)screenbank[ds.writebank]->pixels + x + y*ds.vscrwidth) != ds.gf_colour)
+    flood_fill_fg_inner(x+(y<<16));
+  hide_cursor();
+  blit_scaled(0,0,ds.screenwidth-1,ds.screenheight-1);
+  reveal_cursor();
+}
+
 #endif /* BRANDY_MODE7ONLY */
 
 /*
@@ -3165,6 +3210,9 @@ void emulate_plot(int32 code, int32 x, int32 y) {
     }
     case FLOOD_BACKGROUND:        /* Flood fill background with graphics foreground colour */
       flood_fill(ex, ey, colour, action);
+      break;
+    case FLOOD_FOREGROUND:        /* Flood fill foreground with graphics background colour */
+      flood_fill_fg(ex, ey, colour, action);
       break;
     case SHIFT_RECTANGLE: {       /* Move or copy a rectangle */
       int32 destleft, destop, left, right, top, bottom;
@@ -3391,6 +3439,10 @@ void emulate_plot(int32 code, int32 x, int32 y) {
         reveal_cursor();
       }
       break;
+#ifdef DEBUG
+    default:
+      fprintf(stderr, "Unknown plot code %d\n", code);
+#endif
     }
     /* Unhandled plots are a no-op */
   }

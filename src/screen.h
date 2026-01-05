@@ -54,6 +54,7 @@
 #define FILL_RECTANGLE     0x60 /* Plot a filled rectangle */
 #define FILL_PARALLELOGRAM 0x70 /* Plot a filled parallelogram */
 #define FLOOD_BACKGROUND   0x80 /* Flood fill as far as background colour */
+#define FLOOD_FOREGROUND   0x88 /* Flood fill as far as background colour */
 #define PLOT_CIRCLE        0x90 /* Plot a circle outline */
 #define FILL_CIRCLE        0x98 /* Plot a filled circle */
 #define PLOT_ARC           0xA0 /* Plot a circular arc */
