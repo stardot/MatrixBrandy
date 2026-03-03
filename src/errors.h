@@ -37,6 +37,7 @@ typedef enum {
     ERR_NOGRAPHICS,     /* No graphics available */
     ERR_NOVDUCMDS,      /* VDU commands cannot be used here */
     ERR_SILLY,          /* A silly error */
+    ERR_BADSTEP,        /* STEP can't be zero */
     ERR_BADPROG,        /* Corrupted program */
     ERR_STOP,           /* STOP statement */
     ERR_STATELEN,       /* Statement > 1024 chars long */

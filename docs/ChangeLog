@@ -10,12 +10,16 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 -DBRANDY_NOVERCHECK to disable this.
 
 * 1.23.7 - 
-- System: Addd a config file option for default LISTO value.
+- System: Add a config file option for default LISTO value.
 - Graphics: Fix a regression involving horizontal line drawing - thank you
   Richard Russell! With further cleanups thanks to Mike Fairbank.
-- Custom screen modes adjusted - modes 64 to 69 now based on those
-  defined in PiTubeDirect. Existing customised modes bumped by 6.
-
+- Graphics: Custom screen modes adjusted - modes 64 to 69 now based on
+  those defined in PiTubeDirect. Existing customised modes bumped by 6.
+- Graphics: PLOT &88-8F (fill with background colour bounded by foreground)
+  now implemented. Thank you Richard Russell for highlighting this
+  deficiency.
+- BASIC: Better error message for zero STEP value in FOR-NEXT loop. Based on
+  a Distillery thread by BigEd.
 
 * 1.23.6 - 19 October 2025
 - System: Fix bugs in scrolling up and down when a text window is active.

@@ -492,8 +492,12 @@ is not available.
 
 (Error)  Silly!
 ---------------
-This message indicates that an error such as setting the STEP value in a FOR
-loop to zero has been found.
+This message indicates that an error such as setting the line number increment
+in AUTO and RENUMBER to zero has been found.
+
+(Error)  STEP can't be zero
+---------------------------
+This message indicates that a STEP value in a FOR-NEXT loop was set to zero.
 
 (Error)  Line is longer than 1024 characters
 --------------------------------------------

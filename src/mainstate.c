@@ -1229,14 +1229,14 @@ void exec_for(void) {
       intstep=pop_anynum64();
       if (intstep == 0) {
         DEBUGFUNCMSGOUT;
-        error(ERR_SILLY);
+        error(ERR_BADSTEP);
         return;
       }
     } else {    /* Loop is a floating point loop */
       floatstep = pop_anynumfp();
       if (floatstep == 0.0) {
         DEBUGFUNCMSGOUT;
-        error(ERR_SILLY);
+        error(ERR_BADSTEP);
         return;
       }
     }

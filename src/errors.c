@@ -459,6 +459,7 @@ static detail errortable [] = {
 /* ERR_NOGRAPHICS */    {FATAL,    NOPARM,    0, "This version of the interpreter does not support graphics"},
 /* ERR_NOVDUCMDS */     {FATAL,    NOPARM,    0, "VDU commands cannot be used as output is not to a screen"},
 /* ERR_SILLY */         {NONFATAL, NOPARM,    0, "Silly!"},
+/* ERR_BADSTEP */       {NONFATAL, NOPARM,    0, "STEP can't be zero"},
 /* ERR_BADPROG */       {NONFATAL, NOPARM,    0, "Bad program"},
 /* ERR_STOP */          {FATAL,    NOPARM,    0, "STOP"},
 /* ERR_STATELEN */      {NONFATAL, NOPARM,    0, "Line is longer than 1024 characters"},
