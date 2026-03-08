@@ -403,14 +403,14 @@ static void strip(char line[]) {
 ** contains nothing
 */
 boolean read_line(char line[], int32 linelen) {
-  readstate result;
+  int32 result;
   line[0] = asc_NUL;
   result = kbd_readline(line, linelen, 0);
-  if (result==-READ_ESC || basicvars.escape) {
+  if (result==-1 || basicvars.escape) {
     error(ERR_ESCAPE);
     return FALSE;
   }
-  if (result==-READ_EOF) return FALSE;           /* Read failed - Hit EOF */
+  if (result==-2) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
 }
@@ -426,13 +426,13 @@ boolean read_line(char line[], int32 linelen) {
 ** is prefilled with a string
 */
 boolean amend_line(char line[], int32 linelen) {
-  readstate result;
+  int32 result;
   result = kbd_readline(line, linelen,0);
-  if (result==-READ_ESC || basicvars.escape) {
+  if (result==-1 || basicvars.escape) {
     error(ERR_ESCAPE);
     return FALSE;
   }
-  if (result==-READ_EOF) return FALSE;           /* Read failed - Hit EOF */
+  if (result==-2) return FALSE;           /* Read failed - Hit EOF */
   strip(line);
   return TRUE;
 }
