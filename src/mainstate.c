@@ -1189,7 +1189,10 @@ void exec_for(void) {
   }
   basicvars.current++;
   switch (forvar.typeinfo) {    /* Assign control variable's initial value */
-  case VAR_UINT8: forvar.typeinfo = VAR_INTWORD;
+  case VAR_UINT8:
+    forvar.typeinfo = VAR_INTWORD;
+    *forvar.address.intaddr = pop_anynum32();
+    break;
   case VAR_INTWORD:
     *forvar.address.intaddr = pop_anynum32();
     break;

@@ -2458,8 +2458,8 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
               } else {
                 p = twobyte_token[token2-ACORNTWO_LOWEST];      /* C8 8E+n */
                 tp++;
-                break;
               }
+              break;
             case ACORN_COMMAND:                                 /* C7 nn   */
               if (token2>ACORNCMD_HIGHEST) {
                 if((int32)(token2-ACORN_OTHER) < 0) {           /* Sanity check */
@@ -2474,8 +2474,8 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
                   p = command_token[token-ACORNCMD_LOWEST];       /* C7 8E+n */
                 }
                 tp++;
-                break;
               }
+              break;
             case ACORN_OTHER:                                   /* C6 nn   */
               if (token2>ACORNOTH_HIGHEST) {
                 if((int32)(token2-ACORN_OTHER) < 0) {           /* Sanity check */
@@ -2490,8 +2490,8 @@ int32 reformat(byte *tp, byte *tokenbuf, int32 ftype) {
                   p = other_token[token-ACORNOTH_LOWEST];
                 }
                 tp++;
-                break;
               }
+              break;
           } /* switch */
         }
       }
