@@ -112,3 +112,7 @@ ELSE()
 		add_test(NAME RegressionsValgrind COMMAND prove --exec "${VALGRIND} ${CMAKE_BINARY_DIR}/sbrandy" -r t/)
 	ENDIF()
 ENDIF()
+
+install(FILES ${CMAKE_SOURCE_DIR}/brandy.1 DESTINATION share/man/man1)
+install(FILES ${CMAKE_SOURCE_DIR}/brandy.1 DESTINATION share/man/man1 RENAME tbrandy.1)
+install(FILES ${CMAKE_SOURCE_DIR}/brandy.1 DESTINATION share/man/man1 RENAME sbrandy.1)
