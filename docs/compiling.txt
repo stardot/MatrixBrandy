@@ -6,24 +6,9 @@ whole build.
 
 General
 -------
-The program is written strictly in ANSI C. The upstream Brandy BASIC
-has been successfully compiled under the following operation systems:
+The program is written strictly in ANSI C. Matrix Brandy is developed under
+Linux, and has been successfully compiled on:
 
-RISC OS         Norcroft C
-NetBSD, FreeBSD gcc
-OpenBSD         gcc
-Linux           gcc
-Mac OS X        Objective C
-Amiga           SAS C
-DOS             gcc, Jacob Navia's version of lcc and Borland C++
-                version 5.5.
-Windows         gcc (mingw under Cygwin)
-
-It has also been compiled under Beos using gcc but this was just
-a test to make sure it worked.
-
-The Matrix Brandy fork is developed under Linux, and has been
-successfully compiled on:
 Linux 32-bit    gcc
 Linux 64-bit    gcc
 Windows 32-bit  gcc (mingw under Cygwin)
@@ -42,7 +27,41 @@ The Linux version of the program is the main one. Earlier versions were
 largely developed under RISC OS except for the OS-specific parts. More
 recently the development focus has been for SDL under Linux.
 
-Under RISC OS, the source is found in the 'C' and 'H'
+Dependencies
+------------
+
+Compiling the graphical build (aside from RISC OS) requires SDL 1.2.
+
+On EL6, 7 and 8, and older Fedora, do:
+  sudo yum install SDL-devel
+
+On EL9 and 10, do:
+  sudo dnf config-manager --set-enabled crb
+  sudo dnf install sdl12-compat-devel
+
+(EL is Red Hat Enterprise Linux, CentOS, AlmaLinux, Rocky Linux,
+ Scientific Linux, Oracle Linux and any other Red Hat rebuild)
+
+On newer Fedora, certainly 38 and later:
+  sudo dnf install sdl12-compat-devel
+
+For Debian-based distributions including RaspberryPiOS and Ubuntu, do:
+  sudo apt-get install libsdl1.2-dev
+
+
+Building with CMake
+-------------------
+
+On a modern system CMake can be used to build brandy. It should automatically
+find dependencies such as SDL.
+
+  cmake .
+  cmake --build .
+
+Building with make (or amu)
+---------------------------
+
+Under RISC OS, the source is found in the 'c' and 'h'
 subdirectories in the interpreter's directory in the normal way.
 Under the other operating systems it is kept in the 'src'
 subdirectory.
@@ -71,24 +90,6 @@ shell environment variable. Notable ones include:
                                 This works best with -DBRANDY_STARTUP_MODE=7 :)
 -DBRANDY_ALLOW_LOWERCASE_COMMANDS       Allow immediate-mode commands to be
                                         entered in lower case.
-
-Compiling the graphical build (aside from RISC OS) requires SDL 1.2.
-
-On EL6, 7 and 8, and older Fedora, do:
-  sudo yum install SDL-devel
-
-On EL9 and 10, do:
-  sudo dnf config-manager --set-enabled crb
-  sudo dnf install sdl12-compat-devel
-
-(EL is Red Hat Enterprise Linux, CentOS, AlmaLinux, Rocky Linux,
- Scientific Linux, Oracle Linux and any other Red Hat rebuild)
-
-On newer Fedora, certainly 38 and later:
-  sudo dnf install sdl12-compat-devel
-
-For Debian-based distributions including RaspberryPiOS and Ubuntu, do:
-  sudo apt-get install libsdl1.2-dev
 
 
 Compiling Under Different Operating Systems
@@ -224,3 +225,13 @@ debugging version. The only flavour of 'make' command that works
 is:
 
         make -f makefile.bcc
+
+
+Git history
+-----------
+The Git history of MatrixBrandy begins at its fork from Brandy. git-replace
+may be used to pull history from Brandy's CVS and all the pre-CVS releases
+this author could find.
+
+        git fetch https://codeberg.org/davel/brandy.git
+        git replace 95a5f46f1b2afcf73eea2fe4d80364f27d0fd1a5 7bc19c9789fe2750584843f612d00f7adf3ee7d5
