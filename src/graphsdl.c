@@ -56,11 +56,6 @@
 #include "textfonts.h"
 #include "iostate.h"
 
-/* Workaround for MINGW which doesn't know RTLD_NOLOAD */
-#ifndef RTLD_NOLOAD
-#define RTLD_NOLOAD RTLD_LOCAL
-#endif
-
 #ifdef TARGET_MACOSX
 #if SDL_PATCHLEVEL < 16
 #error "Latest snapshot from SDL 1.2 mercurial required for MacOS X, suitable tarball available at http://brandy.matrixnetwork.co.uk/testing/SDL-1.2.16pre-20200707.tar.bz2"
@@ -275,6 +270,7 @@ static void write_vduflag(unsigned int flags, int yesno) {
 
 /* Attempt to detect SDL3 - bug workaround */
 static int is_running_sdl3() {
+#ifndef TARGET_MINGW /* MinGW build statically links SDL 1.2 */
   void* sdl3_handle = dlopen("libSDL3.so.0", RTLD_LAZY | RTLD_NOLOAD);
 
   if (sdl3_handle) {
@@ -282,6 +278,7 @@ static int is_running_sdl3() {
     dlclose(sdl3_handle);
     return (sym!=NULL);
   }
+#endif
   return(0);
 }
 
