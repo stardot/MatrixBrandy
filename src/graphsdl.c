@@ -56,6 +56,11 @@
 #include "textfonts.h"
 #include "iostate.h"
 
+/* Workaround for MINGW which doesn't know RTLD_NOLOAD */
+#ifndef RTLD_NOLOAD
+#define RTLD_NOLOAD RTLD_LOCAL
+#endif
+
 #ifdef TARGET_MACOSX
 #if SDL_PATCHLEVEL < 16
 #error "Latest snapshot from SDL 1.2 mercurial required for MacOS X, suitable tarball available at http://brandy.matrixnetwork.co.uk/testing/SDL-1.2.16pre-20200707.tar.bz2"
