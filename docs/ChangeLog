@@ -11,6 +11,9 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
 
 * 1.23.7 - 
 - System: Add a config file option for default LISTO value.
+- System: Changing MODE to a larger size than 640x512 (the initial window
+  size) resulted in a blank screen if SDL1.2-compat AND SDL2-compat were
+  in use with SDL3 as the backend. A workaround has been put into place.
 - Graphics: Fix a regression involving horizontal line drawing - thank you
   Richard Russell! With further cleanups thanks to Mike Fairbank.
 - Graphics: Custom screen modes adjusted - modes 64 to 69 now based on

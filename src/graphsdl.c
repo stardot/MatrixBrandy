@@ -36,6 +36,10 @@
 #include <SDL.h>
 #include <sys/time.h>
 #include <math.h>
+#ifndef __USE_GNU
+#define __USE_GNU
+#endif
+#include <dlfcn.h>
 #include "common.h"
 #include "target.h"
 #if defined(TARGET_UNIX) && defined(USE_X11)
@@ -262,6 +266,18 @@ static void mode7renderline(int32 ypos, int32 fast);
 
 static void write_vduflag(unsigned int flags, int yesno) {
   vduflags = yesno ? vduflags | flags : vduflags & ~flags;
+}
+
+/* Attempt to detect SDL3 - bug workaround */
+static int is_running_sdl3() {
+  void* sdl3_handle = dlopen("libSDL3.so.0", RTLD_LAZY | RTLD_NOLOAD);
+
+  if (sdl3_handle) {
+    void* sym = dlsym(sdl3_handle, "SDL_GetTicksNS"); /* Symbol new to SDL3 */
+    dlclose(sdl3_handle);
+    return (sym!=NULL);
+  }
+  return(0);
 }
 
 static void reset_mode7() {
@@ -2666,8 +2682,9 @@ int32 emulate_vpos(void) {
 static void setup_mode(int32 mode) {
   int32 modecopy;
   Uint32 sx, sy, ox, oy, rmask, gmask, bmask;
+  SDL_Event ev;
   int p;
-
+  
 #if SDL_BYTEORDER == SDL_BIGENDIAN
   rmask = 0xFF000000;
   gmask = 0x00FF0000;
@@ -2697,8 +2714,17 @@ static void setup_mode(int32 mode) {
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
-  SDL_FreeSurface(matrixflags.surface);
+
+  if (matrixflags.sdl3used) {
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+    SDL_EnableUNICODE(SDL_ENABLE);
+    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL); 
+  }
+
   matrixflags.surface = SDL_SetVideoMode(sx * matrixflags.videoscale, sy * matrixflags.videoscale, 32, matrixflags.sdl_flags);
+  while(SDL_PollEvent(&ev));
+  matrixflags.surface = SDL_GetVideoSurface();
   if (!matrixflags.surface) {
     /* Reinstate previous display mode */
     sx=ox; sy=oy;
@@ -2709,6 +2735,7 @@ static void setup_mode(int32 mode) {
       return;
     }
   }
+
   memset(matrixflags.surface->pixels, 0, 4 * sx * sy * matrixflags.videoscale * matrixflags.videoscale);
   ds.autorefresh=1;
   ds.vscrwidth = sx;
@@ -3758,7 +3785,11 @@ void emulate_drawrect(int32 x1, int32 y1, int32 width, int32 height, boolean isf
 
 /*
 ** 'emulate_moverect' is called to either copy an area of the graphics screen
-** from one place to another or to move it, clearing its old location to the
+** from one pla  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
+    fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+    return FALSE;
+  }
+ce to another or to move it, clearing its old location to the
 ** current background colour
 */
 void emulate_moverect(int32 x1, int32 y1, int32 width, int32 height, int32 x2, int32 y2, boolean ismove) {
@@ -3789,14 +3820,18 @@ void emulate_origin(int32 x, int32 y) {
 
 /*
 ** 'init_screen' is called to initialise the RISC OS VDU driver
-** emulation code for the versions of this program that do not run
+** emulation c  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
+    fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+    return FALSE;
+  }
+ode for the versions of this program that do not run
 ** under RISC OS. It returns 'TRUE' if initialisation was okay or
 ** 'FALSE' if it failed (in which case it is not safe for the
 ** interpreter to run)
 */
 boolean init_screen(void) {
   static SDL_Surface *fontbuf, *m7fontbuf;
-  int p;
+  int p, initxres, inityres;
 #ifdef TARGET_UNIX
   char *videodriver;
 #endif
@@ -3822,6 +3857,7 @@ boolean init_screen(void) {
 #endif
 
   matrixflags.alwaysfullscreen = 0;
+  matrixflags.sdl3used = is_running_sdl3();
 
   ds.autorefresh=1;
   ds.displaybank=0;
@@ -3855,9 +3891,14 @@ boolean init_screen(void) {
 #endif
   
   reset_sysfont(0);
-  if (basicvars.runflags.swsurface) matrixflags.sdl_flags = SDL_SWSURFACE | SDL_ASYNCBLIT;
+  if (basicvars.runflags.swsurface)
+    matrixflags.sdl_flags = SDL_SWSURFACE | SDL_ASYNCBLIT;
+  else
+    matrixflags.sdl_flags = SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (!matrixflags.neverfullscreen && basicvars.runflags.startfullscreen) matrixflags.sdl_flags |= SDL_FULLSCREEN;
-  matrixflags.surface = SDL_SetVideoMode(640, 512, 32, matrixflags.sdl_flags); /* MODE 0 */
+  initxres = modetable[matrixflags.startupmode].xres * modetable[matrixflags.startupmode].xscale;
+  inityres = modetable[matrixflags.startupmode].yres * modetable[matrixflags.startupmode].yscale;
+  matrixflags.surface = SDL_SetVideoMode(initxres, inityres, 32, matrixflags.sdl_flags); /* MODE 0 */
   if (!matrixflags.surface) {
     fprintf(stderr, "Failed to open screen: %s\n", SDL_GetError());
     return FALSE;

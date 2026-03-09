@@ -635,6 +635,7 @@ typedef struct {
   boolean cursorbusy;         /* TRUE when cursor is being worked on */
   boolean alwaysfullscreen;   /* TRUE on framebuffer driver */
   boolean neverfullscreen;    /* TRUE if -nofullscreen given on CLI */
+  boolean sdl3used;           /* Are we running through SDL1.2-compat AND SDL2-compat to SDL3? */
 #endif
   int32 startupmode;          /* Screen mode to start in */
 #ifndef BRANDY_NOVERCHECK
