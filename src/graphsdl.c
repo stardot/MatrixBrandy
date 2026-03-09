@@ -2680,8 +2680,8 @@ int32 emulate_vpos(void) {
 ** 'setup_mode' is called to set up the details of mode 'mode'
 */
 static void setup_mode(int32 mode) {
-  int32 modecopy;
-  Uint32 sx, sy, ox, oy, rmask, gmask, bmask;
+  int32 modecopy, oldmode;
+  Uint32 osx, osy, sx, sy, ox, oy, rmask, gmask, bmask;
   SDL_Event ev;
   int p;
   
@@ -2695,6 +2695,7 @@ static void setup_mode(int32 mode) {
   bmask = 0x00FF0000;
 #endif
 
+  oldmode=emulate_modefn();
   ds.videorefresh = 0;
   mode = mode & MODEMASK;       /* Lose 'shadow mode' bit */
   modecopy = mode;
@@ -2711,15 +2712,19 @@ static void setup_mode(int32 mode) {
       modecopy = mode = matrixflags.failovermode;
     }
   }
+  osx=(modetable[oldmode].xres * modetable[oldmode].xscale);
+  osy=(modetable[oldmode].yres * modetable[oldmode].yscale);
   sx=(modetable[mode].xres * modetable[mode].xscale);
   sy=(modetable[mode].yres * modetable[mode].yscale);
   SDL_BlitSurface(matrixflags.surface, NULL, screen1, NULL);
 
-  if (matrixflags.sdl3used) {
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
-    SDL_InitSubSystem(SDL_INIT_VIDEO);
-    SDL_EnableUNICODE(SDL_ENABLE);
-    SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL); 
+  if ((sx!=osx) || (sy!=osy)) {
+    if (matrixflags.sdl3used) {
+      SDL_QuitSubSystem(SDL_INIT_VIDEO);
+      SDL_InitSubSystem(SDL_INIT_VIDEO);
+      SDL_EnableUNICODE(SDL_ENABLE);
+      SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL); 
+    }
   }
 
   matrixflags.surface = SDL_SetVideoMode(sx * matrixflags.videoscale, sy * matrixflags.videoscale, 32, matrixflags.sdl_flags);
