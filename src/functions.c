@@ -1189,7 +1189,7 @@ static void fn_int(void) {
         push_float(localfloat);
       }
     } else {
-      push_int(TOINT(floor(pop_float())));
+      push_varyint(floor(pop_float()));
     }
   } else if (GET_TOPITEM != STACK_INT && GET_TOPITEM != STACK_UINT8 && GET_TOPITEM != STACK_INT64) {
     DEBUGFUNCMSGOUT;
