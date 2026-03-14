@@ -147,7 +147,7 @@ char *tonumber(char *cp, boolean *isinteger, int32 *intvalue, int64 *int64value,
       static float64 fltdiv;
       if (isint) {
         isint = FALSE;
-        fpvalue = TOFLOAT(value);
+        fpvalue = TOFLOAT(value64);
       }
       fltdiv = 1.0;
       cp++;
