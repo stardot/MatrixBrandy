@@ -23,6 +23,8 @@ inappropriate by distribution packagers, so 1.23.3 adds build option
   deficiency.
 - BASIC: Better error message for zero STEP value in FOR-NEXT loop. Based on
   a Distillery thread by BigEd.
+- BASIC: INT() no longer complains about floats that are too big for a
+  32-bit integer
 
 * 1.23.6 - 19 October 2025
 - System: Fix bugs in scrolling up and down when a text window is active.

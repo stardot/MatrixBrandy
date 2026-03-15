@@ -1180,8 +1180,9 @@ static void fn_int(void) {
   DEBUGFUNCMSGIN;
   (*factor_table[*basicvars.current])();
   if (GET_TOPITEM == STACK_FLOAT) {
+    float64 localfloat;
     if (matrixflags.int_uses_float) {
-      float64 localfloat = floor(pop_float());
+      localfloat = floor(pop_float());
       int64 localint64 = (int64)localfloat;
       if (localint64 == localfloat) {
         push_varyint(localint64);
@@ -1189,11 +1190,17 @@ static void fn_int(void) {
         push_float(localfloat);
       }
     } else {
-      push_varyint(floor(pop_float()));
+      localfloat = pop_float();
+      if ((localfloat > MAXINT64FLT) || (localfloat < MININT64FLT)) {
+        error(ERR_RANGE);
+        return; /* Never reaches this, but gcc makes better code */
+      }
+      push_varyint(floor(localfloat));
     }
   } else if (GET_TOPITEM != STACK_INT && GET_TOPITEM != STACK_UINT8 && GET_TOPITEM != STACK_INT64) {
     DEBUGFUNCMSGOUT;
     error(ERR_TYPENUM);
+    return; /* Never reaches this, but gcc makes better code */
   }
   DEBUGFUNCMSGOUT;
 }
