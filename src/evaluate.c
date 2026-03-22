@@ -246,7 +246,7 @@ static int32 type_table [TYPECHECKMASK+1][STACK_LOCARRAY+1] = {
 };
 
 static int isBasicArith(int oper) {
-  return ((oper == OP_ADD) || (oper == OP_SUB) || (OP_MUL) || (OP_DIV));
+  return ((oper == OP_ADD) || (oper == OP_SUB) || (oper == OP_MUL) || (oper == OP_DIV));
 };
 
 /*
