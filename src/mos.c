@@ -1734,7 +1734,9 @@ static void cmd_help(char *command)
       emulate_printf("  HELP    (<text>)\r\n");
       emulate_printf("  KEY     <num> <string>\r\n");
       emulate_printf("  LOAD    <filename> <load addr>\r\n");
+#ifdef USE_SDL
       emulate_printf("  POINTER (<0|1>)\r\n");
+#endif
       emulate_printf("  QUIT\r\n");
       emulate_printf("  SAVE    <filename> <start addr> <end addr>|+<length>\r\n");
       emulate_printf("  SHOW    (<num>)\r\n");
