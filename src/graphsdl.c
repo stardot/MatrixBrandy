@@ -3882,6 +3882,7 @@ boolean init_screen(void) {
   matrixflags.sdl_flags = SDL_DOUBLEBUF | SDL_HWSURFACE | SDL_ASYNCBLIT;
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
     fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+    fprintf(stderr, "\nGraphical display unavailable, try tbrandy or sbrandy for a text-mode session.\n\n");
     return FALSE;
   }
 
